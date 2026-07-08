@@ -214,6 +214,19 @@ qizheng/
 
 ### 已知 TODO
 
+#### ⏳ 高优先级：Java 方法审计与翻译缺口表
+
+**任务**：对 MOIRA Java 原代码做完整方法级审计，产出翻译状态表 + 未翻译功能块清单 + moira_s.prop key 缺口表，回写本 AGENTS.md。
+
+**触发原因**：Phase 1-3 收口后诚实审计发现翻译覆盖率约 30%（Calculate 50% / ChartData 22% / EvalRule 33% / RuleEntry 0% / moira_s.prop 命理key 10%），且本 AGENTS.md 未记录完整未翻译清单，下一个 session 会误判进度。
+
+**执行文档**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/04-Java方法审计与翻译缺口表.md" />（含 8 个执行步骤，边做边勾选）
+
+**初步识别的 20 个未翻译功能块**（待审计确认，详见 dev-docs/04）：
+1. 八字系统（computeEightCharData）2. 神煞完整体系（getStarSigns）3. 流年神煞（getYearInfo）4. 流年推演（computeNowData）5. 推运系统（computeTransitData）6. 返照系统 7. 主限/次限推运 8. 日月食 9. 三煞 10. 太岁/年神 11. 大运/小限/月限/飞限完整实现 12. 高格林区位 13. 恒星计算 14. 方位角/高度角 15. 罗盘方位 16. 相位系统 17. 规则引擎24内置函数 18. 规则引擎58条复杂规则 19. 地方视太阳时 20. 地支顺逆
+
+#### 既有遗留问题
+
 - `calc_life_sign` 传统算法的 `birth_adj_date` 基准日定义需确认。
 - `fly_limit` 童限后半年切换逻辑需完整实现。
 - `calc_lunar_mansion` 角宿起点（MANSION_START=174°）需根据岁差精确校准。
@@ -223,7 +236,7 @@ qizheng/
   - 月柱变量 `${月柱}` （影响7条规则）
   - 算术运算 `@命+6=@日`（影响1条规则）
   - 函数调用 `&func()`（影响7条规则）
-- Phase 4+：流年推演待实现。
+- Phase 4+：流年推演待实现（依赖审计完成后的功能块排序）。
 - Phase 5+：完整 Rule.yacc 语法求值器（如果需要 100% 规则覆盖）。
 
 ## 研究资料索引（dev-notes/）
@@ -260,6 +273,7 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/01-Phase1排盘引擎补全完成报告.md" /> | **Phase 1 完成报告：农历/二十八宿/升落/身宫/长生十二运/逆顺迟疾 + 验证结果** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/02-Phase2命理参数表提取完成报告.md" /> | **Phase 2 完成报告：庙旺平陷/纳音五行/十干化曜/天干星曜 + 验证结果** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/03-Phase3格局规则引擎完成报告.md" /> | **Phase 3 完成报告：134条格局规则提取 + Python求值器 + 76/134条可求值** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/04-Java方法审计与翻译缺口表.md" /> | **⏳ TODO：Java 方法完整审计 + 翻译缺口表（翻译覆盖率约30%，20个未翻译功能块）** |
 
 ## 工作原则
 
