@@ -11,7 +11,7 @@
 ### 1. 数据库与矫正能力补全（影响入口 1/3）
 - [ ] 扩展 `db.py`：增加 `life_event` 表（事件年份、类型、描述、关联星象）。
 - [ ] 扩展 `subject` 表：增加 `time_uncertainty` 字段。
-- [ ] 实现 `get_rectification_history(subject_id)`、`list_charts_for_subject` 等查询函数。
+- [x] 实现 `get_rectification_history(subject_id)`、`list_charts_for_subject` 等查询函数。**已完成**
 - [ ] 实现 `rectify_multi_point()`：支持多事件-星象目标输入，返回一致性评分 + 推荐出生时间。
 
 ### 2. 限运与流年分析函数封装（影响入口 5/6）
