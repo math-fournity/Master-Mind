@@ -86,7 +86,8 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
     eight_char = core.compute_eight_char_data(four_poles, birth_date_arr)
 
     # 10c. 流年推演（当前年）
-    current_year = y
+    from datetime import datetime
+    current_year = datetime.now().year
     age = current_year - y + 1  # 虚岁
     now_data = core.compute_now_data(y, age, four_poles, life_sign)
 

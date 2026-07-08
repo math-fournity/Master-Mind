@@ -2029,7 +2029,7 @@ def _check_conjunction(bodies, p1, p2, orb=8.0):
     return b1 == b2
 
 def _build_derived_facts(chart_data):
-    """从星盘数据推导高级事实（会/拱/夹等）"""
+    """从星盘数据推导高级事实（会/拱/夹/__sp行星排序等）"""
     bodies = chart_data.get("bodies", {})
     facts = {}
 
@@ -2061,6 +2061,108 @@ def _build_derived_facts(chart_data):
         if _check_conjunction(bodies, p1, p2):
             facts[f"?{n1}{n2}会"] = "t"
             facts[f"?{n2}{n1}会"] = "t"
+
+    # __sp 行星排序检测（翻译 EvalRule.setBirthSign 中的 __sp 逻辑）
+    facts.update(_compute_sp_flags(bodies))
+
+    return facts
+
+def _compute_sp_flags(bodies):
+    """计算 __sp1~__sp6 行星排序标记。
+    翻译 EvalRule.setBirthSign 中的行星连续排列检测逻辑。
+
+    __sp1: 七政连环 — 日月金木水火土7颗按黄经顺序连续排列
+    __sp2: 五曜随阳 — 金木水火土5颗连续，且日紧邻其中
+    __sp3: 五星随月 — 金木水火土5颗连续，且月紧邻其中
+    __sp4: 五曜连珠 — 金木水火土5颗按黄经顺序连续排列
+    __sp5: 五曜环阳 — 金木水火土5颗连续，且日在其中
+    __sp6: 四余捧月 — 罗计孛炁4余星+月连续排列
+    """
+    facts = {}
+
+    # 行星索引（与 Java ChartData 常量一致）
+    # SUN=0, MOON=1, VENUS=2, JUPITER=3, MERCURY=4, MARS=5, SATURN=6
+    # TRUE_NODE=7, MEAN_APOG=8, OSCU_APOG=9 (实际索引可能不同)
+    # 这里用名称映射
+    SEVEN_STARS = ["sun", "moon", "venus", "jupiter", "mercury", "mars", "saturn"]
+    FIVE_STARS = ["venus", "jupiter", "mercury", "mars", "saturn"]
+    FOUR_YU = ["true_node_rohuo", "inv_true_node_jidu", "mean_apog_ziqi", "oscu_apog_yuebei"]
+
+    # 构建行星位置列表（按黄经排序）
+    positions = []
+    for name in SEVEN_STARS + FOUR_YU:
+        if name in bodies and "lon" in bodies[name]:
+            positions.append((name, normalize_degree(bodies[name]["lon"])))
+
+    if len(positions) < 11:
+        return facts
+
+    # 按黄经排序
+    positions.sort(key=lambda x: x[1])
+    sorted_names = [p[0] for p in positions]
+
+    # 检查五曜连珠（__sp4）: 金木水火土5颗连续
+    five_star_set = set(FIVE_STARS)
+    for i in range(len(sorted_names)):
+        # 检查从i开始的5个位置是否都是五曜
+        count = 0
+        for j in range(5):
+            idx = (i + j) % len(sorted_names)
+            if sorted_names[idx] in five_star_set:
+                count += 1
+            else:
+                break
+        if count == 5:
+            facts["?__sp4"] = "t"
+
+            # 检查是否日紧邻（__sp2: 五曜随阳）
+            prev_idx = (i - 1) % len(sorted_names)
+            next_idx = (i + 5) % len(sorted_names)
+            if sorted_names[prev_idx] == "sun" or sorted_names[next_idx] == "sun":
+                facts["?__sp2"] = "t"
+
+            # 检查是否月紧邻（__sp3: 五星随月）
+            if sorted_names[prev_idx] == "moon" or sorted_names[next_idx] == "moon":
+                facts["?__sp3"] = "t"
+
+            # 检查是否日在其中（__sp5: 五曜环阳）
+            around_sun = False
+            for j in range(5):
+                idx = (i + j) % len(sorted_names)
+                if sorted_names[idx] == "sun":
+                    around_sun = True
+                    break
+            if around_sun:
+                facts["?__sp5"] = "t"
+            break
+
+    # 检查七政连环（__sp1）: 日月金木水火土7颗连续
+    seven_star_set = set(SEVEN_STARS)
+    for i in range(len(sorted_names)):
+        count = 0
+        for j in range(7):
+            idx = (i + j) % len(sorted_names)
+            if sorted_names[idx] in seven_star_set:
+                count += 1
+            else:
+                break
+        if count == 7:
+            facts["?__sp1"] = "t"
+            break
+
+    # 检查四余捧月（__sp6）: 罗计孛炁+月5颗连续
+    yu_moon_set = set(FOUR_YU + ["moon"])
+    for i in range(len(sorted_names)):
+        count = 0
+        for j in range(5):
+            idx = (i + j) % len(sorted_names)
+            if sorted_names[idx] in yu_moon_set:
+                count += 1
+            else:
+                break
+        if count == 5:
+            facts["?__sp6"] = "t"
+            break
 
     return facts
 
