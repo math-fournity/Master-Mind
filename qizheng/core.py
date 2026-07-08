@@ -2831,6 +2831,114 @@ def _eval_set(arg, prefix, suffix, func, sym):
     return ",".join(results) if results else ""
 
 
+# ---------- Phase 25: 历史宿度加载 ----------
+
+_MANSION_ERA = "default"
+
+def set_mansion_era(era="default"):
+    """设置宿度时代。
+    era: "default"(汉代), "shoushi"(授时历), "dazong"(大统历)
+    """
+    global _MANSION_ERA
+    available = _c()["lunar_mansions"].get("historical_widths", {}).keys()
+    if era not in available:
+        raise ValueError(f"未知宿度时代: {era}, 可用: {list(available)}")
+    _MANSION_ERA = era
+
+
+def get_mansion_widths(era=None):
+    """获取指定时代的二十八宿宿度表。"""
+    if era is None:
+        era = _MANSION_ERA
+    lm = _c()["lunar_mansions"]
+    historical = lm.get("historical_widths", {})
+    if era in historical:
+        return historical[era]
+    return lm.get("width_yellow", [])
+
+
+def calc_lunar_mansion_historical(lon, era=None, ayanamsa_offset=0.0):
+    """历史宿度计算：使用指定时代的宿度表。
+    返回 {mansion_index, mansion_name, degree_in_mansion, mansion_width}
+    """
+    if era is None:
+        era = _MANSION_ERA
+    widths = get_mansion_widths(era)
+    order = _c()["lunar_mansions"]["order"]
+
+    # 计算角宿起点（考虑岁差）
+    sid_lon = normalize_degree(lon - ayanamsa_offset)
+
+    total = sum(widths)
+    pos = sid_lon * total / 360.0  # 缩放到宿度制
+
+    cursor = 0.0
+    for i, w in enumerate(widths):
+        if pos < cursor + w:
+            return {
+                "mansion_index": i,
+                "mansion_name": order[i],
+                "degree_in_mansion": round(pos - cursor, 6),
+                "mansion_width": w,
+                "era": era,
+            }
+        cursor += w
+
+    # 超出范围（不应该发生）
+    return {
+        "mansion_index": 27,
+        "mansion_name": order[-1],
+        "degree_in_mansion": round(pos - cursor + widths[-1], 6),
+        "mansion_width": widths[-1],
+        "era": era,
+    }
+
+
+# ---------- Phase 17: 断语库 ----------
+
+_DUANYU_LIBRARY = None
+
+def load_duanyu_library(path=None):
+    """加载断语库 JSON。"""
+    global _DUANYU_LIBRARY
+    if path is None:
+        path = os.path.join(_HERE, "duanyu_library.json")
+    if not os.path.exists(path):
+        _DUANYU_LIBRARY = []
+        return _DUANYU_LIBRARY
+    with open(path, encoding="utf-8") as f:
+        _DUANYU_LIBRARY = json.load(f)
+    return _DUANYU_LIBRARY
+
+
+def query_duanyu(chart_data):
+    """根据星盘数据查询匹配断语。
+    返回 [{id, source, text, tags, ...}] 列表。
+    """
+    if _DUANYU_LIBRARY is None:
+        load_duanyu_library()
+    if not _DUANYU_LIBRARY:
+        return []
+
+    # 构建符号表（复用规则引擎的符号系统）
+    sym = _build_symbol_table(chart_data)
+
+    matched = []
+    for duanyu in _DUANYU_LIBRARY:
+        cond = duanyu.get("condition", "")
+        if not cond:
+            # 无条件的断语总是匹配
+            matched.append(duanyu)
+            continue
+        try:
+            if _eval_simple_condition(cond, sym):
+                matched.append(duanyu)
+        except Exception:
+            continue
+
+    return matched
+
+
 # ---------- Phase 14: 多点矫正 ----------
 
 def rectify_multi_point(targets, start_jd, ephe_path="ephe"):
