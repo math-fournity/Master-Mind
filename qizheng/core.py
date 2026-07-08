@@ -1264,23 +1264,17 @@ def _days_between(y1, m1, d1, y2, m2, d2):
     d_end = datetime.date(y2, m2, d2)
     return (d_end - d_start).days
 
-def calc_four_poles(year, month, day, hour_ut, solar_cal=None):
+def calc_four_poles(year, month, day, hour_ut, solar_cal=None, use_solar_terms=True):
     """计算四柱干支（翻译 ChartData.chineseCalendar 的干支部分）。
     返回 ["年柱","月柱","日柱","时柱"]。
 
     year/month/day: 公历
     hour_ut: UT 小数
     solar_cal: [chinese_year_num, lunar_month] 或 None（自动计算）
+    use_solar_terms: True=节气分年月（果老星宗/传统八字），False=农历分年月（琴堂派）
     """
     data = _load_shen_sha()
     year_names = data.get('birth_year_names', '').split(', ')
-
-    # 获取农历年序号和月序号
-    if solar_cal is None:
-        lunar = solar_to_lunar(year, month, day, hour_ut)
-        if lunar is None:
-            return ["", "", "", ""]
-        solar_cal = [lunar.get('chinese_year_num', 1), lunar.get('lunar_month', 1)]
 
     # 时辰：23:00 后算下一日的时柱天干
     hour_local = hour_ut + 8.0  # UT → 北京时间
@@ -1294,17 +1288,63 @@ def calc_four_poles(year, month, day, hour_ut, solar_cal=None):
     adj_hour = int(hour_local)
     adj_min = int((hour_local % 1) * 60)
 
-    # 年柱
-    offset = solar_cal[0] - 1
-    year_pole = year_names[offset % len(year_names)]
+    if use_solar_terms:
+        # 节气分年月（果老星宗/传统八字标准）
+        # 节气基于回归黄道，不是恒星黄道
+        import swisseph as _swe
+        jd = jd_from_ymd_ut(year, month, day, hour_ut)
+        # 用回归黄道计算太阳位置（节气用回归黄道）
+        sun_result = _swe.calc_ut(jd, _swe.SUN, _swe.FLG_SWIEPH)
+        sun_lon = sun_result[0][0]  # 回归黄道经度
 
-    # 月柱
-    year_stem = year_pole[0]
-    y_idx = _SKY_POLE_NAMES.index(year_stem) if year_stem in _SKY_POLE_NAMES else 0
-    month_index = solar_cal[1] - 1
-    m1 = (month_index + _MONTH_SKY_POLE_SHIFTS[y_idx]) % 10
-    m2 = (month_index + _MONTH_EARTH_POLE_SHIFT) % 12
-    month_pole = _SKY_POLE_NAMES[m1] + _EARTH_POLE_NAMES_LIST[m2]
+        # 年柱：以立春(315°)为界
+        # 立春前(小寒285°到立春315°之间)=前一年，立春后=本年
+        if 270 <= sun_lon < 315:
+            solar_year = year - 1
+        else:
+            solar_year = year
+
+        # 月柱地支：寅=315-345, 卯=345-15, ..., 丑=285-315
+        # 节气月序号：寅=0(立春), 卯=1(惊蛰), ..., 丑=11(小寒)
+        month_branch_idx = int(((sun_lon - 315) % 360) / 30)
+        # 月柱地支
+        month_branches_solar = ["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"]
+        month_earth = month_branches_solar[month_branch_idx]
+
+        # 年柱：1984=甲子年(year_names[0])
+        offset = (solar_year - 1984) % 60
+        year_pole = year_names[offset]
+
+        # 月柱天干：五虎遁
+        year_stem = year_pole[0]
+        y_idx = _SKY_POLE_NAMES.index(year_stem) if year_stem in _SKY_POLE_NAMES else 0
+        # 寅月天干起于：甲己年丙寅, 乙庚年戊寅, 丙辛年庚寅, 丁壬年壬寅, 戊癸年甲寅
+        # _MONTH_SKY_POLE_SHIFTS已编码此规则
+        m1 = (month_branch_idx + _MONTH_SKY_POLE_SHIFTS[y_idx]) % 10
+        # 月柱地支：寅=0, 卯=1, ..., 丑=11
+        # 需要映射到_EARTH_POLE_NAMES_LIST的索引：子=0, 丑=1, ..., 亥=11
+        earth_map = {"寅":2, "卯":3, "辰":4, "巳":5, "午":6, "未":7, "申":8, "酉":9, "戌":10, "亥":11, "子":0, "丑":1}
+        m2 = earth_map[month_earth]
+        month_pole = _SKY_POLE_NAMES[m1] + month_earth
+    else:
+        # 农历分年月（原实现，琴堂派）
+        if solar_cal is None:
+            lunar = solar_to_lunar(year, month, day, hour_ut)
+            if lunar is None:
+                return ["", "", "", ""]
+            solar_cal = [lunar.get('chinese_year_num', 1), lunar.get('lunar_month', 1)]
+
+        # 年柱
+        offset = solar_cal[0] - 1
+        year_pole = year_names[offset % len(year_names)]
+
+        # 月柱
+        year_stem = year_pole[0]
+        y_idx = _SKY_POLE_NAMES.index(year_stem) if year_stem in _SKY_POLE_NAMES else 0
+        month_index = solar_cal[1] - 1
+        m1 = (month_index + _MONTH_SKY_POLE_SHIFTS[y_idx]) % 10
+        m2 = (month_index + _MONTH_EARTH_POLE_SHIFT) % 12
+        month_pole = _SKY_POLE_NAMES[m1] + _EARTH_POLE_NAMES_LIST[m2]
 
     # 日柱（基于 day_pole_base 的天数差）
     day_offset = _days_between(_DAY_POLE_BASE[0], _DAY_POLE_BASE[1], _DAY_POLE_BASE[2],
@@ -1314,10 +1354,9 @@ def calc_four_poles(year, month, day, hour_ut, solar_cal=None):
     # 时柱
     day_stem = day_pole[0]
     y2 = _SKY_POLE_NAMES.index(day_stem) if day_stem in _SKY_POLE_NAMES else 0
-    # 23:00 后算下一日的天干（除非 switch_day_at_11_pm=0）
-    if adj_hour == 23:
-        y2 = (y2 + 1) % 10
-    hour_index = (adj_hour + 1) // 2  # 子时=0, 丑时=1, ...
+    # 果老星宗/传统八字用早子时：23-0时属于当日子时，不用次日天干
+    # （晚子时0-1时已在上面hour_local>=24时跨日处理）
+    hour_index = ((adj_hour + 1) // 2) % 12  # 子时=0, 丑时=1, ..., 亥时=11
     h1 = (hour_index + _HOUR_SKY_POLE_SHIFTS[y2]) % 10
     h2 = (hour_index + _HOUR_EARTH_POLE_SHIFT) % 12
     hour_pole = _SKY_POLE_NAMES[h1] + _EARTH_POLE_NAMES_LIST[h2]

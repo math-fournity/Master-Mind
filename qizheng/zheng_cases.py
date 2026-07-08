@@ -87,14 +87,13 @@ def gz_year_offset(gz_str):
         if i % 10 == t and i % 12 == d:
             gz_index = i
             break
-    # 甲子年对应的公历年: 1984是甲子年, 1924也是, 1864也是...
-    # 元代约1300-1360, 找最近的甲子=1984-60*11=1324
-    # 1324是甲子年, 所以元代甲子=1324
-    base_years = [1324, 1384]  # 元代两个甲子年
+    # 甲子年对应的公历年: 1984是甲子年
+    # 元代明初约1280-1420
+    base_years = [1264, 1324, 1384]  # 三个甲子年
     possible_years = []
     for base in base_years:
         y = base + gz_index
-        if 1280 <= y <= 1400:
+        if 1260 <= y <= 1420:
             possible_years.append(y)
     return possible_years, gz_index
 
