@@ -9,7 +9,8 @@ import swisseph as swe
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _CONST_PATH = os.path.join(_HERE, "constants.json")
 
-# 天体 ID 映射（七政 + 四余）
+# 天体 ID 映射（七政 + 罗睺 + 月孛）
+# 紫炁是虚星，没有天文对应体，不能用 Swiss Ephemeris 计算，用自定义线性运动（见 calc_ziqi）
 BODIES = {
     "sun":     swe.SUN,
     "moon":    swe.MOON,
@@ -18,12 +19,42 @@ BODIES = {
     "mars":    swe.MARS,
     "jupiter": swe.JUPITER,
     "saturn":  swe.SATURN,
-    "true_node_rohuo":   swe.TRUE_NODE,   # 罗睺
-    "mean_apog_ziqi":    swe.MEAN_APOG,   # 紫炁
-    "oscu_apog_yuebei":  swe.OSCU_APOG,   # 月孛
+    "true_node_rohuo":   swe.TRUE_NODE,   # 罗睺（真交点）
+    "mean_apog_yuebei":  swe.MEAN_APOG,   # 月孛（平均远地点，与 Java MOIRA 一致）
 }
 # 计都 = 罗睺对宫
 INV_TRUE_NODE = "inv_true_node_jidu"
+# 紫炁 key（保持兼容，但计算方式已改为线性运动）
+ZIQI_KEY = "mean_apog_ziqi"
+YUEBEI_KEY = "mean_apog_yuebei"  # 新 key（mean_apog_yuebei 已废弃）
+
+# --- 紫炁线性运动参数（匹配 Java MOIRA moira_s.prop）---
+# 紫炁是虚星，约28年行一周天，匀速顺行，无天文对应体
+# 基准点：1975-03-13 16:00 UT，回归黄道 230.5°
+# 用《授时历》1280年数据点验证：误差约6°（694年外推，可接受）
+ZIQI_PERIOD = 10227.1792       # 周期（天）≈ 28年
+ZIQI_BASE_LON = 230.5          # 基准度数（回归黄道）
+ZIQI_SPEED = 360.0 / ZIQI_PERIOD  # 每日行度 ≈ 0.03520034°/天
+
+def _ziqi_base_jd():
+    """紫炁基准日期的儒略日：1975-03-13 16:00 UT。"""
+    return swe.julday(1975, 3, 13, 16.0)
+
+# --- 四余计算模式开关 ---
+# true_as_north: True=罗睺=升交点（新法/汤若望法，Java默认）
+#                False=罗睺=降交点（旧法/传统星命家法）
+# yuebei_mode: "mean"=平均远地点（Java MOIRA），"oscu"=osculating远地点
+_true_as_north = True
+_yuebei_mode = "mean"
+
+def set_four_yu_mode(true_as_north=True, yuebei_mode="mean"):
+    """设置四余计算模式。
+    true_as_north: True=罗睺升交点(新法/Java默认)，False=罗睺降交点(旧法/传统)
+    yuebei_mode: "mean"=平均远地点(Java MOIRA)，"oscu"=osculating远地点
+    """
+    global _true_as_north, _yuebei_mode
+    _true_as_north = true_as_north
+    _yuebei_mode = yuebei_mode
 
 # 命理常量（懒加载）
 _CONST = None
@@ -77,10 +108,46 @@ def calc_planet(jd, pid, sidereal=True, speed=True):
         return None
     return xx
 
+def calc_ziqi(jd, sidereal=True):
+    """计算紫炁位置（匀速线性运动，虚星无天文对应体）。
+
+    匹配 Java MOIRA 的自定义轨道算法：
+      degree = base_lon + speed * (jd - base_jd)
+    sidereal 模式下减去 ayanamsa（与 Java computeOrbit 一致）。
+
+    参数来源：moira_s.prop → purple_period / purple_base_date / purple_base_degree
+    验证：用《授时历》1280年数据点（紫气在女二度）验证，误差约6°（694年外推）。
+    """
+    base_jd = _ziqi_base_jd()
+    lon_tropical = (ZIQI_BASE_LON + ZIQI_SPEED * (jd - base_jd)) % 360.0
+    if sidereal:
+        ayanamsa = swe.get_ayanamsa_ut(jd)
+        lon = (lon_tropical - ayanamsa) % 360.0
+    else:
+        lon = lon_tropical
+    return {
+        "lon": round(lon, 6),
+        "lat": 0.0,
+        "dist": 1.0,
+        "lon_speed": round(ZIQI_SPEED, 6),
+        "lat_speed": 0.0,
+        "dist_speed": 0.0,
+    }
+
 def calc_all_bodies(jd, sidereal=True):
-    """计算七政四余所有天体。返回 dict[name] -> {lon, lat, dist, *_speed}。"""
+    """计算七政四余所有天体。返回 dict[name] -> {lon, lat, dist, *_speed}。
+
+    四余计算方式：
+    - 罗睺：Swiss Ephemeris TRUE_NODE（真交点），受 true_as_north 开关影响
+    - 计都：罗睺 + 180°
+    - 紫炁：匀速线性运动（虚星，无天文对应体），见 calc_ziqi
+    - 月孛：Swiss Ephemeris MEAN_APOG（平均远地点，受 yuebei_mode 开关影响）
+    """
     out = {}
     for name, pid in BODIES.items():
+        # 月孛：根据 yuebei_mode 选择 MEAN_APOG 或 OSCU_APOG
+        if name == YUEBEI_KEY and _yuebei_mode == "oscu":
+            pid = swe.OSCU_APOG
         xx = calc_planet(jd, pid, sidereal=sidereal)
         if xx is None:
             out[name] = {"error": "calc failed"}
@@ -93,10 +160,15 @@ def calc_all_bodies(jd, sidereal=True):
             "lat_speed": round(xx[4], 6),
             "dist_speed": round(xx[5], 8),
         }
+    # 紫炁：线性运动（不在 BODIES 中，单独计算）
+    out[ZIQI_KEY] = calc_ziqi(jd, sidereal=sidereal)
     # 计都 = 罗睺 + 180
     rn = out.get("true_node_rohuo", {})
     if "lon" in rn:
         out[INV_TRUE_NODE] = {**rn, "lon": round(normalize_degree(rn["lon"] + 180.0), 6)}
+        # 旧法（true_as_north=False）：交换罗睺和计都
+        if not _true_as_north:
+            out["true_node_rohuo"], out[INV_TRUE_NODE] = out[INV_TRUE_NODE], out["true_node_rohuo"]
     return out
 
 # ---------- 宫位 ----------
@@ -776,7 +848,7 @@ _PLANET_DIGNITY_MAP = {
     "sun": "日", "moon": "月", "venus": "金", "jupiter": "木",
     "mercury": "水", "mars": "火", "saturn": "土",
     "inv_true_node_jidu": "计", "true_node_rohuo": "罗",
-    "mean_apog_ziqi": "炁", "oscu_apog_yuebei": "孛",
+    "mean_apog_ziqi": "炁", "mean_apog_yuebei": "孛",
 }
 
 def calc_dignity(planet_name, branch):
@@ -1793,7 +1865,7 @@ def _build_symbol_table(chart_data):
         "sun": "日", "moon": "月", "venus": "金", "jupiter": "木",
         "mercury": "水", "mars": "火", "saturn": "土",
         "inv_true_node_jidu": "计", "true_node_rohuo": "罗",
-        "mean_apog_ziqi": "炁", "oscu_apog_yuebei": "孛",
+        "mean_apog_ziqi": "炁", "mean_apog_yuebei": "孛",
     }
     for name, data in bodies.items():
         if "lon" not in data:
@@ -2024,7 +2096,7 @@ def _planet_element(name):
         "sun": "日", "moon": "月", "venus": "金", "jupiter": "木",
         "mercury": "水", "mars": "火", "saturn": "土",
         "inv_true_node_jidu": "计", "true_node_rohuo": "罗",
-        "mean_apog_ziqi": "炁", "oscu_apog_yuebei": "孛",
+        "mean_apog_ziqi": "炁", "mean_apog_yuebei": "孛",
     }
     return m.get(name, "")
 
@@ -2058,11 +2130,11 @@ def _build_derived_facts(chart_data):
         ("sun", "moon"), ("sun", "venus"), ("sun", "jupiter"),
         ("sun", "mercury"), ("sun", "mars"), ("sun", "saturn"),
         ("sun", "inv_true_node_jidu"), ("sun", "true_node_rohuo"),
-        ("sun", "mean_apog_ziqi"), ("sun", "oscu_apog_yuebei"),
+        ("sun", "mean_apog_ziqi"), ("sun", "mean_apog_yuebei"),
         ("moon", "venus"), ("moon", "jupiter"), ("moon", "mercury"),
         ("moon", "mars"), ("moon", "saturn"),
         ("moon", "inv_true_node_jidu"), ("moon", "true_node_rohuo"),
-        ("moon", "mean_apog_ziqi"), ("moon", "oscu_apog_yuebei"),
+        ("moon", "mean_apog_ziqi"), ("moon", "mean_apog_yuebei"),
         ("venus", "jupiter"), ("venus", "mercury"), ("venus", "mars"),
         ("venus", "saturn"), ("jupiter", "mercury"), ("jupiter", "mars"),
         ("jupiter", "saturn"), ("mercury", "mars"), ("mercury", "saturn"),
@@ -2073,7 +2145,7 @@ def _build_derived_facts(chart_data):
         "sun": "日", "moon": "月", "venus": "金", "jupiter": "木",
         "mercury": "水", "mars": "火", "saturn": "土",
         "inv_true_node_jidu": "计", "true_node_rohuo": "罗",
-        "mean_apog_ziqi": "炁", "oscu_apog_yuebei": "孛",
+        "mean_apog_ziqi": "炁", "mean_apog_yuebei": "孛",
     }
 
     # 会（同宫）
@@ -2122,7 +2194,7 @@ def _compute_sp_flags(bodies):
     # 这里用名称映射
     SEVEN_STARS = ["sun", "moon", "venus", "jupiter", "mercury", "mars", "saturn"]
     FIVE_STARS = ["venus", "jupiter", "mercury", "mars", "saturn"]
-    FOUR_YU = ["true_node_rohuo", "inv_true_node_jidu", "mean_apog_ziqi", "oscu_apog_yuebei"]
+    FOUR_YU = ["true_node_rohuo", "inv_true_node_jidu", "mean_apog_ziqi", "mean_apog_yuebei"]
 
     # 构建行星位置列表（按黄经排序）
     positions = []

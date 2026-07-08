@@ -33,6 +33,10 @@ def main():
     for name, deg in target.items():
         if name == "sun":
             jd_found = core.find_date_at_sun_pos(deg, start_jd)
+        elif name == core.ZIQI_KEY:
+            # 紫炁是线性运动，反推 jd = base_jd + (deg - base_lon) / speed
+            base_jd = core._ziqi_base_jd()
+            jd_found = base_jd + ((deg - core.ZIQI_BASE_LON) / core.ZIQI_SPEED)
         else:
             pid = core.BODIES.get(name)
             if pid is None:

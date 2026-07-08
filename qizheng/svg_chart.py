@@ -23,7 +23,7 @@ _PLANET_CN = {
     "sun": "日", "moon": "月", "venus": "金", "jupiter": "木",
     "mercury": "水", "mars": "火", "saturn": "土",
     "inv_true_node_jidu": "计", "true_node_rohuo": "罗",
-    "mean_apog_ziqi": "炁", "oscu_apog_yuebei": "孛",
+    "mean_apog_ziqi": "炁", "mean_apog_yuebei": "孛",
 }
 
 # 行星颜色
@@ -32,7 +32,7 @@ _PLANET_COLOR = {
     "jupiter": "#7B8B6F", "mercury": "#5B9BD5", "mars": "#C0392B",
     "saturn": "#7F8C8D", "inv_true_node_jidu": "#8E44AD",
     "true_node_rohuo": "#E74C3C", "mean_apog_ziqi": "#2C3E50",
-    "oscu_apog_yuebei": "#34495E",
+    "mean_apog_yuebei": "#34495E",
 }
 
 # 12宫名
@@ -119,7 +119,7 @@ def render_svg(chart_data, size=600):
     # === 行星位置标记 ===
     planet_order = ["sun", "moon", "mercury", "venus", "mars",
                     "jupiter", "saturn", "inv_true_node_jidu",
-                    "true_node_rohuo", "mean_apog_ziqi", "oscu_apog_yuebei"]
+                    "true_node_rohuo", "mean_apog_ziqi", "mean_apog_yuebei"]
 
     # 按黄经分组，避免重叠
     planet_positions = []

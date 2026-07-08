@@ -6,7 +6,7 @@
 import sys, json
 import swisseph as swe
 
-# 天体: 七政(日月水金火木土) + 四余(罗睺=真北交点, 计都=真南交点, 紫炁=远地点, 月孛=osc apog)
+# 天体: 七政(日月水金火木土) + 四余(罗睺=真北交点, 计都=真南交点, 紫炁=虚星线性运动, 月孛=平均远地点)
 BODIES = [
     (swe.SUN,    "sun"),
     (swe.MOON,   "moon"),
@@ -16,9 +16,12 @@ BODIES = [
     (swe.JUPITER,"jupiter"),
     (swe.SATURN, "saturn"),
     (swe.TRUE_NODE, "true_node_rohuo"),
-    (swe.MEAN_APOG, "mean_apog_ziqi"),
-    (swe.OSCU_APOG,  "oscu_apog_yuebei"),
+    (swe.MEAN_APOG, "mean_apog_yuebei"),  # 月孛=平均远地点（与Java MOIRA一致）
 ]
+# 紫炁参数（虚星，匀速线性运动，不通过 Swiss Ephemeris 计算）
+ZIQI_PERIOD = 10227.1792
+ZIQI_BASE_LON = 230.5
+ZIQI_SPEED = 360.0 / ZIQI_PERIOD
 
 def main():
     if len(sys.argv) < 6:
@@ -46,6 +49,23 @@ def main():
             }
         else:
             bodies[name] = {"error": f"ret={ret}"}
+
+    # 紫炁：匀速线性运动（虚星）
+    base_jd = swe.julday(1975, 3, 13, 16.0)
+    ayanamsa = swe.get_ayanamsa_ut(jd)
+    ziqi_tropical = (ZIQI_BASE_LON + ZIQI_SPEED * (jd - base_jd)) % 360.0
+    ziqi_sidereal = (ziqi_tropical - ayanamsa) % 360.0
+    bodies["mean_apog_ziqi"] = {
+        "lon": round(ziqi_sidereal, 6),
+        "lat": 0.0, "dist": 1.0,
+        "lon_speed": round(ZIQI_SPEED, 6),
+        "lat_speed": 0.0, "dist_speed": 0.0,
+    }
+
+    # 计都 = 罗睺 + 180
+    rn = bodies.get("true_node_rohuo", {})
+    if "lon" in rn:
+        bodies["inv_true_node_jidu"] = {**rn, "lon": round((rn["lon"] + 180.0) % 360.0, 6)}
 
     out = {
         "input": {

@@ -9,7 +9,7 @@ _PLANET_CN = {
     "sun": "日", "moon": "月", "venus": "金", "jupiter": "木",
     "mercury": "水", "mars": "火", "saturn": "土",
     "inv_true_node_jidu": "计", "true_node_rohuo": "罗",
-    "mean_apog_ziqi": "炁", "oscu_apog_yuebei": "孛",
+    "mean_apog_ziqi": "炁", "mean_apog_yuebei": "孛",
 }
 
 # 行星显示顺序
@@ -17,7 +17,7 @@ _PLANET_ORDER = [
     "sun", "moon", "mercury", "venus", "mars",
     "jupiter", "saturn",
     "inv_true_node_jidu", "true_node_rohuo",
-    "mean_apog_ziqi", "oscu_apog_yuebei",
+    "mean_apog_ziqi", "mean_apog_yuebei",
 ]
 
 # 12宫名
