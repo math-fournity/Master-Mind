@@ -108,15 +108,16 @@ def run_phase24b():
         print(f"  ✗ {b}")
 
     # 逐例验证
-    print(f"\n=== 逐例格局匹配 ===")
+    print(f"\n=== 逐例格局匹配+评分 ===")
     results = []
     for case in ZHENG_40_CASES:
         c, msg = case_to_chart(case)
         if not c:
-            results.append({"id": case["id"], "grade": case["grade"], "matched": 0, "good": [], "bad": []})
+            results.append({"id": case["id"], "grade": case["grade"], "matched": 0, "good": [], "bad": [], "score": None})
             continue
 
         rule_result = core.eval_rules(c)
+        score = core.score_rules(rule_result)
         matched_count = rule_result["matched_count"]
         matched_names = [m["name"] for m in rule_result["matched"]]
 
@@ -130,6 +131,7 @@ def run_phase24b():
             "good": good,
             "bad": bad,
             "matched_names": matched_names,
+            "score": score,
         })
 
     # 命格等级 vs 格局匹配数
@@ -162,10 +164,37 @@ def run_phase24b():
             print("✗ 高命格的平均格局匹配数 <= 低命格（不符合预期）")
 
     # 输出每例详情
-    print(f"\n=== 40例详情 ===")
-    print(f"{'ID':>3} {'命格':<12} {'匹配':>4} {'喜格数':>6} {'忌格数':>6}")
+    print(f"\n=== 40例详情（含评分） ===")
+    print(f"{'ID':>3} {'命格':<12} {'匹配':>4} {'喜分':>6} {'忌分':>6} {'总分':>6} {'喜忌比':>6} {'系统建议'}")
     for r in results:
-        print(f"{r['id']:>3} {r['grade']:<12} {r['matched']:>4} {len(r['good']):>6} {len(r['bad']):>6}")
+        s = r.get("score")
+        if s:
+            print(f"{r['id']:>3} {r['grade']:<12} {r['matched']:>4} {s['good_score']:>6.1f} {s['bad_score']:>6.1f} {s['total_score']:>6.1f} {s['ratio']:>6.2f} {s['grade_suggestion']}")
+        else:
+            print(f"{r['id']:>3} {r['grade']:<12} {r['matched']:>4} {'N/A':>6} {'N/A':>6} {'N/A':>6} {'N/A':>6} N/A")
+
+    # 评分 vs 命格等级相关性
+    print(f"\n=== 评分 vs 命格等级 ===")
+    high_scores = [r["score"]["total_score"] for r in results if r["score"] and r["grade"] in high_grades]
+    low_scores = [r["score"]["total_score"] for r in results if r["score"] and r["grade"] in low_grades]
+    high_ratios = [r["score"]["ratio"] for r in results if r["score"] and r["grade"] in high_grades]
+    low_ratios = [r["score"]["ratio"] for r in results if r["score"] and r["grade"] in low_grades]
+
+    if high_scores and low_scores:
+        avg_h = sum(high_scores)/len(high_scores)
+        avg_l = sum(low_scores)/len(low_scores)
+        avg_hr = sum(high_ratios)/len(high_ratios)
+        avg_lr = sum(low_ratios)/len(low_ratios)
+        print(f"高命格({len(high_scores)}例): 平均总分{avg_h:.1f}, 平均喜忌比{avg_hr:.2f}")
+        print(f"低命格({len(low_scores)}例): 平均总分{avg_l:.1f}, 平均喜忌比{avg_lr:.2f}")
+        if avg_h > avg_l:
+            print(f"✓ 高命格的平均总分 > 低命格（评分模型有效，差值{avg_h-avg_l:.1f}）")
+        else:
+            print(f"✗ 高命格的平均总分 <= 低命格（评分模型仍需优化）")
+        if avg_hr > avg_lr:
+            print(f"✓ 高命格的喜忌比 > 低命格（喜忌比有效，差值{avg_hr-avg_lr:.2f}）")
+        else:
+            print(f"✗ 高命格的喜忌比 <= 低命格（喜忌比仍需优化）")
 
     # 总结
     print(f"\n{'='*70}")

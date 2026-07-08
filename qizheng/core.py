@@ -2344,6 +2344,7 @@ def eval_rules(chart_data):
         if result:
             matched.append({
                 "id": rule["id"],
+                "sign": rule.get("sign", "+"),
                 "name": rule["name"],
                 "priority": rule["priority"],
                 "condition": cond,
@@ -2352,6 +2353,139 @@ def eval_rules(chart_data):
             })
 
     return {"matched": matched, "total": len(expanded_rules), "matched_count": len(matched)}
+
+def score_rules(eval_result):
+    """格局质量评分模型（v2）。
+    不只数格局数量，而是：
+    1. 按priority权重给每个格局打分
+    2. 关键格局（日月夹命/官福夹命等）额外加权
+    3. 忌格组合惩罚（多个忌格同时出现时额外减分）
+    4. 喜格(sign="+")加分，忌格(sign="-")减分
+
+    priority权重映射（果老星宗传统等级）：
+    - 1.x.x（最高）：日月核心格局，权重5
+    - 2.0.x（高）：入垣/殿/得地，权重3
+    - 2.2.x（中高）：会合/夹拱，权重2.5
+    - 2.3.x（中）：相生/同辉，权重2
+    - 2.4.x（中低）：特殊组合，权重1.5
+    - 3.x.x（低）：方位/季节，权重1
+    - 4.x.x（最低）：其他，权重0.5
+    - None/未知：权重1
+    """
+    priority_weights = {
+        "1": 5.0,    # 最高：日月核心
+        "2.0": 3.0,  # 高：入垣殿
+        "2.2": 2.5,  # 中高：会合夹拱
+        "2.3": 2.0,  # 中：相生同辉
+        "2.4": 1.5,  # 中低：特殊组合
+        "3": 1.0,    # 低：方位季节
+        "4": 0.5,    # 最低：其他
+    }
+
+    # 关键格局额外加权（这些是决定命格等级的核心格局）
+    KEY_GOOD_PATTERNS = {
+        "日月夹命": 5.0, "日月夹夫": 3.0, "日月夹财": 3.0, "日月夹辅": 3.0,
+        "官福夹命": 5.0, "田财夹命": 3.0,
+        "日月拱福": 3.0, "官福拱命": 3.0,
+        "七政拱命": 4.0, "众曜环拱": 3.0,
+        "君臣庆会": 4.0, "天地开明": 3.0,
+        "日月殿垣": 3.0, "日月居垣": 3.0,
+        "孤月独明": 3.0, "木月清贵": 3.0,
+        "福官会聚": 3.0, "官福居垣": 3.0,
+        "身命升殿": 3.0, "身命殿垣": 3.0,
+    }
+
+    # 关键忌格（出现即严重减分）
+    KEY_BAD_PATTERNS = {
+        "日月失明": 5.0, "日月失躔": 4.0, "日月失位": 4.0, "日月失垣": 3.0,
+        "土埋双女": 4.0, "木打宝瓶": 4.0,
+        "水火交战": 3.0, "火孛交战": 3.0, "金木对克": 3.0,
+        "罗犯太阳": 4.0, "计犯太阴": 4.0,
+        "土月对掩": 4.0, "土月相掩": 3.0,
+        "诸星怒地": 5.0, "诸星背命": 4.0,
+        "孤日单行": 3.0, "炁星蔽月": 3.0,
+    }
+
+    good_score = 0.0
+    bad_score = 0.0
+    good_count = 0
+    bad_count = 0
+    key_good_matched = []
+    key_bad_matched = []
+
+    for m in eval_result["matched"]:
+        sign = m.get("sign", "+")
+        name = m.get("name", "")
+
+        # 计算基础权重
+        pri = str(m.get("priority", ""))
+        weight = 1.0
+        for prefix, w in priority_weights.items():
+            if pri.startswith(prefix):
+                weight = w
+                break
+
+        # 关键格局额外加权
+        key_bonus = 0.0
+        if sign == "+":
+            for kp, bonus in KEY_GOOD_PATTERNS.items():
+                if kp in name:
+                    key_bonus = bonus
+                    key_good_matched.append(name)
+                    break
+        else:
+            for kp, bonus in KEY_BAD_PATTERNS.items():
+                if kp in name:
+                    key_bonus = bonus
+                    key_bad_matched.append(name)
+                    break
+
+        total_weight = weight + key_bonus
+
+        if sign == "+":
+            good_score += total_weight
+            good_count += 1
+        else:
+            bad_score += total_weight
+            bad_count += 1
+
+    # 忌格组合惩罚：多个关键忌格同时出现时额外减分
+    if len(key_bad_matched) >= 3:
+        bad_score += len(key_bad_matched) * 2.0
+    elif len(key_bad_matched) >= 2:
+        bad_score += len(key_bad_matched) * 1.0
+
+    total_score = good_score - bad_score
+    ratio = good_score / bad_score if bad_score > 0 else float('inf') if good_score > 0 else 1.0
+
+    # 命格等级建议（基于总分、喜忌比、关键格局）
+    key_good_count = len(key_good_matched)
+    key_bad_count = len(key_bad_matched)
+
+    if total_score >= 35 and ratio >= 2.5 and key_good_count >= 2 and key_bad_count <= 1:
+        grade = "高命格（三品以上）"
+    elif total_score >= 25 and ratio >= 2 and key_good_count >= 1:
+        grade = "中高命格（五品至四品）"
+    elif total_score >= 15 and ratio >= 1.5:
+        grade = "中命格（七品至六品）"
+    elif total_score >= 10 or (key_bad_count >= 2 and ratio < 2):
+        grade = "中低命格（寻常至安常）"
+    else:
+        grade = "低命格（带疾/起倒）"
+
+    return {
+        "total_score": round(total_score, 2),
+        "good_score": round(good_score, 2),
+        "bad_score": round(bad_score, 2),
+        "good_count": good_count,
+        "bad_count": bad_count,
+        "ratio": round(ratio, 2) if ratio != float('inf') else 999.0,
+        "key_good_count": key_good_count,
+        "key_bad_count": key_bad_count,
+        "key_good_matched": key_good_matched,
+        "key_bad_matched": key_bad_matched,
+        "grade_suggestion": grade,
+    }
 
 def _expand_template_rule(rule):
     """展开模板规则（名称含 {} 占位符的）。
