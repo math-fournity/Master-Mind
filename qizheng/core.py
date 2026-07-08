@@ -2829,3 +2829,407 @@ def _eval_set(arg, prefix, suffix, func, sym):
         return ",".join(results)
     # eval
     return ",".join(results) if results else ""
+
+
+# ---------- Phase 15: 大限综合分析 ----------
+
+def find_daxian_transitions(life_sign_pos, child_limit_years=None):
+    """识别12个大限的交接年龄。
+    返回 [{limit_index, transition_age, limit_start_degree, limit_name}]。
+    """
+    limit_seq = _c()["limits"]["limit_seq"]
+    if child_limit_years is None:
+        child_limit_years = calc_child_limit_years(life_sign_pos, round_to_year=False) / 365.25
+
+    transitions = []
+    age_cursor = child_limit_years
+    for i in range(len(limit_seq)):
+        year = child_limit_years if i == 0 else limit_seq[i]
+        transitions.append({
+            "limit_index": i,
+            "transition_age": round(age_cursor, 4),
+            "limit_start_degree": round(normalize_degree(life_sign_pos + 30.0 * i), 6),
+            "limit_name": _lon_to_zodiac_name(normalize_degree(life_sign_pos + 30.0 * i)),
+        })
+        age_cursor += year
+    return transitions
+
+
+def analyze_daxian_limit(chart_data, limit_index):
+    """对指定大限做综合分析：宫位/宫主/宫主庙旺/限内星曜/限内神煞。
+    chart_data: build_chart() 返回的完整星盘数据
+    limit_index: 0-11
+    返回结构化 JSON。
+    """
+    life_sign = chart_data.get("life_sign", 0.0)
+    bodies = chart_data.get("bodies", {})
+    dignities = chart_data.get("dignities", {})
+    child_limit_yr = chart_data.get("child_limit_years", 10)
+
+    limit_seq = _c()["limits"]["limit_seq"]
+    if limit_index < 0 or limit_index >= len(limit_seq):
+        return None
+
+    year = child_limit_yr if limit_index == 0 else limit_seq[limit_index]
+    limit_start = normalize_degree(life_sign + 30.0 * limit_index)
+    limit_end = normalize_degree(limit_start + 30.0)
+    limit_name = _lon_to_zodiac_name(limit_start)
+
+    # 限内星曜
+    stars_in_limit = []
+    for name, body in bodies.items():
+        if "lon" not in body:
+            continue
+        lon = normalize_degree(body["lon"])
+        in_range = (limit_start <= lon < limit_end) if limit_start < limit_end else (lon >= limit_start or lon < limit_end)
+        if in_range:
+            stars_in_limit.append({
+                "name": name,
+                "lon": round(lon, 6),
+                "dignity": dignities.get(name, ""),
+                "speed_state": chart_data.get("speed_states", {}).get(name, ""),
+            })
+
+    # 宫主（该宫位地支的主星）
+    limit_branch = _lon_to_branch(limit_start)
+    house_ruler = _get_house_ruler(limit_branch)
+
+    # 宫主庙旺
+    ruler_dignity = ""
+    if house_ruler:
+        ruler_dignity = calc_dignity(house_ruler, limit_branch)
+
+    # 限内神煞（基于四柱）
+    star_signs = chart_data.get("star_signs", {})
+    table = star_signs.get("table", {})
+    limit_stars = []
+    if isinstance(table, dict):
+        # table 是 {地支: [神煞]} 映射
+        limit_stars = table.get(limit_branch, [])
+    elif isinstance(table, list) and limit_index < len(table):
+        row = table[limit_index]
+        if isinstance(row, list):
+            limit_stars = [s for s in row if s]
+        elif isinstance(row, dict):
+            limit_stars = [v for v in row.values() if v]
+
+    return {
+        "limit_index": limit_index,
+        "limit_name": limit_name,
+        "limit_branch": limit_branch,
+        "limit_years": year,
+        "limit_start_degree": round(limit_start, 6),
+        "limit_end_degree": round(limit_end, 6),
+        "house_ruler": house_ruler,
+        "ruler_dignity": ruler_dignity,
+        "stars_in_limit": stars_in_limit,
+        "limit_shen_sha": limit_stars,
+    }
+
+
+def _get_house_ruler(branch):
+    """获取地支的宫主星（七政四余宫主分配）。"""
+    # 十二宫主：子丑土、寅卯木、辰巳火、午未日、申酉水、戌亥火（七政四余体系）
+    # 实际七政四余宫主：子土/丑土/寅木/卯木/辰火/巳火/午日/未日/申水/酉水/戌火/亥火
+    # 这里用简化的地支→五行→行星映射
+    rulers = {
+        "子": "土", "丑": "土", "寅": "木", "卯": "木",
+        "辰": "火", "巳": "火", "午": "日", "未": "日",
+        "申": "水", "酉": "水", "戌": "火", "亥": "火",
+    }
+    return rulers.get(branch, "")
+
+
+def progress_daxian_years(chart_data, age_start, age_end):
+    """对年龄区间逐年调用 compute_now_data()，返回逐年流年数据列表。"""
+    life_sign = chart_data.get("life_sign", 0.0)
+    birth_year = chart_data.get("input", {}).get("date_ut", "1990")[:4]
+    try:
+        birth_year = int(birth_year)
+    except (ValueError, TypeError):
+        birth_year = 1990
+
+    results = []
+    for age in range(age_start, age_end + 1):
+        now_data = compute_now_data(birth_year, age, chart_data.get("four_poles"), life_sign)
+        daxian = calc_daxian(life_sign, age, chart_data.get("child_limit_years"))
+        results.append({
+            "age": age,
+            "year_pole": now_data.get("year_pole", ""),
+            "daxian": daxian,
+            "small_limit": round(small_limit(life_sign, age), 6),
+        })
+    return results
+
+
+def analyze_daxian_full(chart_data):
+    """12限全量分析：逐限调用 analyze_daxian_limit + 交接期标注。
+    返回完整大限推演报告 JSON。
+    """
+    life_sign = chart_data.get("life_sign", 0.0)
+    child_limit_yr = chart_data.get("child_limit_years", 10)
+
+    transitions = find_daxian_transitions(life_sign, child_limit_yr)
+    limits_analysis = []
+    for i in range(12):
+        analysis = analyze_daxian_limit(chart_data, i)
+        if analysis:
+            analysis["transition_age"] = transitions[i]["transition_age"] if i < len(transitions) else None
+            limits_analysis.append(analysis)
+
+    return {
+        "life_sign": round(life_sign, 6),
+        "child_limit_years": child_limit_yr,
+        "transitions": transitions,
+        "limits": limits_analysis,
+        "total_limits": len(limits_analysis),
+    }
+
+
+# ---------- Phase 16: 流年分析 ----------
+
+def taishui_relation(life_sign_pos, year_branch):
+    """太岁关系计算：返回合/冲/刑/破/害。
+    life_sign_pos: 命宫黄经
+    year_branch: 流年地支（如 "子"）
+    """
+    branches = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"]
+    if year_branch not in branches:
+        return {"relation": "未知", "details": ""}
+
+    year_idx = branches.index(year_branch)
+    life_branch = _lon_to_branch(life_sign_pos)
+    if life_branch not in branches:
+        return {"relation": "未知", "details": ""}
+    life_idx = branches.index(life_branch)
+
+    diff = (year_idx - life_idx) % 12
+
+    relations = []
+    if diff == 0:
+        relations.append("值太岁")
+    elif diff == 6:
+        relations.append("冲太岁")
+    elif diff == 3 or diff == 9:
+        relations.append("刑太岁")
+    elif diff == 7 or diff == 5:
+        relations.append("破太岁")
+    elif diff == 4 or diff == 8:
+        relations.append("害太岁")
+    elif diff == 1 or diff == 11:
+        relations.append("合太岁")
+
+    return {
+        "life_branch": life_branch,
+        "year_branch": year_branch,
+        "relation": "、".join(relations) if relations else "无",
+        "details": f"命宫{life_branch} vs 流年{year_branch}",
+    }
+
+
+def analyze_liunian(chart_data, age):
+    """对指定年龄做流年综合分析：太岁关系/神煞叠加/大限叠加。
+    返回结构化 JSON。
+    """
+    life_sign = chart_data.get("life_sign", 0.0)
+    birth_year = chart_data.get("input", {}).get("date_ut", "1990")[:4]
+    try:
+        birth_year = int(birth_year)
+    except (ValueError, TypeError):
+        birth_year = 1990
+
+    # 流年数据
+    now_data = compute_now_data(birth_year, age, chart_data.get("four_poles"), life_sign)
+
+    # 流年地支
+    year_pole = now_data.get("year_pole", "")
+    year_branch = year_pole[1] if len(year_pole) >= 2 else ""
+
+    # 太岁关系
+    taishui = taishui_relation(life_sign, year_branch)
+
+    # 当前大限
+    current_daxian = calc_daxian(life_sign, age, chart_data.get("child_limit_years"))
+
+    # 小限
+    small = small_limit(life_sign, age)
+
+    return {
+        "age": age,
+        "year_pole": year_pole,
+        "year_branch": year_branch,
+        "taishui": taishui,
+        "current_daxian": current_daxian,
+        "small_limit": round(small, 6),
+        "now_data": now_data,
+    }
+
+
+def progress_liunian_years(chart_data, age_start, age_end):
+    """对年龄区间逐年调用 analyze_liunian，返回逐年分析列表。"""
+    return [analyze_liunian(chart_data, age) for age in range(age_start, age_end + 1)]
+
+
+# ---------- Phase 19: 天文计算扩展 ----------
+
+def sanfang_sizheng(house_index):
+    """三方四正计算：返回三合宫+对宫。
+    house_index: 0-11
+    返回 {sanfang: [indices], duigong: index}
+    """
+    # 三合宫：index, index+4, index+8 (mod 12)
+    sanfang = [(house_index + i * 4) % 12 for i in range(3)]
+    # 对宫：index + 6 (mod 12)
+    duigong = (house_index + 6) % 12
+    return {
+        "house_index": house_index,
+        "sanfang": sanfang,
+        "duigong": duigong,
+        "all_related": sorted(set(sanfang + [duigong])),
+    }
+
+
+def calc_aspects(bodies, orb=8.0):
+    """行星间相位计算。
+    主要相位：合(0°)、冲(180°)、三合(120°)、六合(60°)、刑(90°)
+    返回 [{p1, p2, aspect, orb}] 列表。
+    """
+    aspects_def = [
+        ("合", 0.0),
+        ("六合", 60.0),
+        ("刑", 90.0),
+        ("三合", 120.0),
+        ("冲", 180.0),
+    ]
+
+    names = [n for n, d in bodies.items() if "lon" in d]
+    results = []
+    for i in range(len(names)):
+        for j in range(i + 1, len(names)):
+            n1, n2 = names[i], names[j]
+            lon1, lon2 = bodies[n1]["lon"], bodies[n2]["lon"]
+            diff = abs(normalize_degree(lon1 - lon2))
+            if diff > 180.0:
+                diff = 360.0 - diff
+            for asp_name, asp_angle in aspects_def:
+                delta = abs(diff - asp_angle)
+                if delta <= orb:
+                    results.append({
+                        "p1": n1, "p2": n2,
+                        "aspect": asp_name,
+                        "exact_angle": asp_angle,
+                        "actual_angle": round(diff, 6),
+                        "orb": round(delta, 6),
+                    })
+    return results
+
+
+def calc_transit(birth_jd, now_jd, body_id, ephe_path="ephe"):
+    """行星过境计算：计算某行星从出生到当前的移动。"""
+    init_ephe(ephe_path)
+    birth_pos = calc_planet(birth_jd, body_id)
+    now_pos = calc_planet(now_jd, body_id)
+    # calc_planet 返回 tuple: (lon, lat, dist, lon_speed, lat_speed, dist_speed)
+    birth_lon, _, _, birth_speed = birth_pos[0], birth_pos[1], birth_pos[2], birth_pos[3]
+    now_lon, _, _, now_speed = now_pos[0], now_pos[1], now_pos[2], now_pos[3]
+    delta = normalize_degree(now_lon - birth_lon)
+    return {
+        "body": body_id,
+        "birth_lon": round(birth_lon, 6),
+        "now_lon": round(now_lon, 6),
+        "delta": round(delta, 6),
+        "birth_speed": round(birth_speed, 6),
+        "now_speed": round(now_speed, 6),
+    }
+
+
+def solar_return(birth_jd, year, ephe_path="ephe"):
+    """太阳返照计算：返回太阳回到出生位置的JD。
+    birth_jd: 出生JD
+    year: 目标年份
+    """
+    init_ephe(ephe_path)
+    birth_sun = calc_planet(birth_jd, swe.SUN)
+    target_sun_lon = birth_sun[0]
+
+    # 从目标年年初开始搜索
+    jan1 = jd_from_ymd_ut(year, 1, 1, 0.0)
+    try:
+        return_jd = find_date_at_sun_pos(target_sun_lon, jan1, backward=False, ephe_path=ephe_path)
+    except Exception:
+        # 回退：手动迭代搜索
+        return_jd = _search_sun_pos(target_sun_lon, jan1, ephe_path)
+    if return_jd is None:
+        return None
+    return_sun = calc_planet(return_jd, swe.SUN)
+    return {
+        "year": year,
+        "return_jd": round(return_jd, 6),
+        "sun_lon": round(return_sun[0], 6),
+        "birth_sun_lon": round(target_sun_lon, 6),
+        "delta": round(abs(normalize_degree(return_sun[0] - target_sun_lon)), 6),
+    }
+
+
+def _search_sun_pos(target_lon, start_jd, ephe_path="ephe", max_days=400):
+    """回退方案：手动迭代搜索太阳到达目标经度的JD。"""
+    init_ephe(ephe_path)
+    # 使用 Moshier 回退模式（不需要星历文件）
+    flag = swe.FLG_SWIEPH | swe.FLG_SPEED | swe.FLG_SIDEREAL
+    try:
+        flag_moshier = swe.FLG_MOSEPH | swe.FLG_SPEED | swe.FLG_SIDEREAL
+    except AttributeError:
+        flag_moshier = flag
+    jd = start_jd
+    for _ in range(max_days * 2):
+        try:
+            xx, ret = swe.calc_ut(jd, swe.SUN, flag_moshier)
+        except Exception:
+            xx, ret = swe.calc_ut(jd, swe.SUN, flag)
+        lon = xx[0]
+        diff = normalize_degree(target_lon - lon)
+        if abs(diff) < 0.01:
+            return jd
+        if diff > 180:
+            diff -= 360
+        jd += diff  # 太阳每天约1°
+    return None
+
+
+def calc_eclipse(jd, ephe_path="ephe"):
+    """日月食状态判定。
+    返回 {type: 'solar'/'lunar'/'none', details}
+    """
+    init_ephe(ephe_path)
+    sun = calc_planet(jd, swe.SUN)
+    moon = calc_planet(jd, swe.MOON)
+    sun_lon, moon_lon = sun[0], moon[0]
+    diff = abs(normalize_degree(moon_lon - sun_lon))
+
+    # 合朔（日食可能）：diff ≈ 0
+    # 望（月食可能）：diff ≈ 180
+    is_new_moon = diff < 3.0
+    is_full_moon = abs(diff - 180.0) < 3.0
+
+    # 检查月亮纬度（简化判断：纬度接近0才可能发生食）
+    moon_lat = moon[1]
+    can_eclipse = abs(moon_lat) < 1.5
+
+    result = {"type": "none", "sun_lon": round(sun_lon, 6), "moon_lon": round(moon_lon, 6),
+              "moon_lat": round(moon_lat, 6), "separation": round(diff, 6)}
+
+    if is_new_moon and can_eclipse:
+        result["type"] = "solar"
+        result["details"] = "日食可能（合朔+月亮纬度<1.5°）"
+    elif is_full_moon and can_eclipse:
+        result["type"] = "lunar"
+        result["details"] = "月食可能（望+月亮纬度<1.5°）"
+    elif is_new_moon:
+        result["type"] = "new_moon"
+        result["details"] = "合朔（无食）"
+    elif is_full_moon:
+        result["type"] = "full_moon"
+        result["details"] = "望（无食）"
+
+    return result
+

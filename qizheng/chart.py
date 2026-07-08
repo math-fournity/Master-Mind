@@ -155,6 +155,20 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         "daxian": daxian_list,
         "current_daxian": current_daxian,
         "daxian_stars": _compute_daxian_stars(current_daxian, life_sign, bodies),
+        "daxian_analysis": core.analyze_daxian_full({
+            "life_sign": life_sign,
+            "bodies": bodies,
+            "dignities": dignities,
+            "speed_states": speed_states,
+            "child_limit_years": child_limit_yr,
+            "star_signs": star_signs_result,
+        }),
+        "liunian_analysis": core.analyze_liunian({
+            "life_sign": life_sign,
+            "input": {"date_ut": f"{y:04d}-{mo:02d}-{d:02d}T{h:07.4f}"},
+            "four_poles": four_poles,
+            "child_limit_years": child_limit_yr,
+        }, age),
     }
     return out
 
