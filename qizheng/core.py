@@ -104,8 +104,13 @@ def calc_all_bodies(jd, sidereal=True):
 def calc_houses(jd, lat, lon, house_system='P', sidereal=True):
     """计算 12 宫宫头 + ASC/MC。返回 (cusps, ascmc)。
     pyswisseph 的 houses() 不接受 flag 参数；sidereal 通过全局 set_sid_mode 生效。
+    极区（|lat|>66°）Placidus 失败时回退到整宫制（'W'）。
     """
-    cusps, ascmc = swe.houses(jd, lat, lon, house_system.encode())
+    try:
+        cusps, ascmc = swe.houses(jd, lat, lon, house_system.encode())
+    except Exception:
+        # 极区 Placidus 失败，回退到整宫制
+        cusps, ascmc = swe.houses(jd, lat, lon, b'W')
     return cusps, ascmc
 
 # ---------- 命宫 ----------
@@ -1839,6 +1844,8 @@ def _build_symbol_table(chart_data):
         sym["@身[0]"] = self_branch
         sym["@身[1]"] = _planet_element_by_branch(self_branch)
 
+    # 12宫位变量（@官禄/@福德等）在下方 year_signs_list 循环中统一设置
+
     # 昼夜
     is_day = rise_set.get("is_day_birth", True)
     sym["?昼"] = "t" if is_day else "f"
@@ -1902,8 +1909,11 @@ def _build_symbol_table(chart_data):
                 if n < 0:
                     n += 12
                 if n < len(full_zodiac):
-                    sym[f"@{year_signs_list[i]}"] = full_zodiac[n]
                     fz = full_zodiac[n]
+                    sym[f"@{year_signs_list[i]}"] = fz
+                    if len(fz) >= 2:
+                        sym[f"@{year_signs_list[i]}[0]"] = fz[0]
+                        sym[f"@{year_signs_list[i]}[1]"] = fz[1]
                     if len(fz) > 0:
                         sym[f"${fz[0]}{zodiac_house}"] = year_signs_list[i]
 
@@ -1919,12 +1929,23 @@ def _build_symbol_table(chart_data):
             if key in solid_houses:
                 sym[f"?{solid_label}{key}"] = "t"
 
-        # 神煞表 → ?神煞名 标记
+        # 神煞表 → ?神煞名 标记 + @神煞名 地支变量
         star_table = star_signs.get("table", {})
         for pos, stars in star_table.items():
             for star in stars:
                 if isinstance(star, str) and len(star) > 0:
                     sym[f"?{star}"] = "t"
+                    # 为格局规则需要的神煞创建 @变量（地支+五行）
+                    special_stars = ("紫微", "禄勋", "驿马", "岁驾", "岁殿",
+                                     "斗杓", "唐符", "国印", "卦气", "长生",
+                                     "帝旺", "华盖", "天贵", "玉贵", "天厨",
+                                     "文昌", "天德", "红鸾", "解神", "血刃")
+                    if star in special_stars and pos:
+                        branch = pos[0] if len(pos) > 0 else pos
+                        elem = _planet_element_by_branch(branch)
+                        sym[f"@{star}"] = f"{branch}{elem}"
+                        sym[f"@{star}[0]"] = branch
+                        sym[f"@{star}[1]"] = elem
 
         # 八字十神/纳音/长生
         if eight_char.get("poles"):
