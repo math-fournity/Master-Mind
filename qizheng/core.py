@@ -175,14 +175,15 @@ def calc_all_bodies(jd, sidereal=True):
 
 def calc_houses(jd, lat, lon, house_system='P', sidereal=True):
     """计算 12 宫宫头 + ASC/MC。返回 (cusps, ascmc)。
-    pyswisseph 的 houses() 不接受 flag 参数；sidereal 通过全局 set_sid_mode 生效。
+    使用 houses_ex 支持 sidereal flag。
     极区（|lat|>66°）Placidus 失败时回退到整宫制（'W'）。
     """
+    flag = swe.FLG_SIDEREAL if sidereal else 0
     try:
-        cusps, ascmc = swe.houses(jd, lat, lon, house_system.encode())
+        cusps, ascmc = swe.houses_ex(jd, lat, lon, house_system.encode(), flag)
     except Exception:
         # 极区 Placidus 失败，回退到整宫制
-        cusps, ascmc = swe.houses(jd, lat, lon, b'W')
+        cusps, ascmc = swe.houses_ex(jd, lat, lon, b'W', flag)
     return cusps, ascmc
 
 # ---------- 命宫 ----------
