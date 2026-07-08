@@ -617,6 +617,7 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/11-协纪辨方书目录对照.md" /> | 《钦定协纪辨方书》36 卷目录 + 与七政四余的 10 个交叉点 + 择吉需求 | 理解择吉体系时 |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-03.md" /> | **A3 审计：十干化曜**。发现庚辛壬癸四干化曜错位（天嗣被误当作独立化曜）。已修复。 | 理解十干化曜数据修复时 |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-02.md" /> | **A2 审计：四余定义**。发现紫炁错误使用 MEAN_APOG（改为线性运动）、月孛错误使用 OSCU_APOG（改为 MEAN_APOG）。已修复。 | 理解四余计算修复时 |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/12-四余文献考据资料汇编.md" /> | **四余文献考据资料汇编**：罗睺/计都/紫炁/月孛的历史演变、天文定义、计算方法、典籍出处、学术论文链接、基准点对照。A2 审计期间搜索整理。 | 研究四余相关文献时 |
 
 ### 典籍目录文件（项目根目录）
 
