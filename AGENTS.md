@@ -214,16 +214,47 @@ qizheng/
 
 ### 已知 TODO
 
-#### ⏳ 高优先级：Java 方法审计与翻译缺口表
+#### ✅ Java 方法审计已完成（2026-07-15）
 
-**任务**：对 MOIRA Java 原代码做完整方法级审计，产出翻译状态表 + 未翻译功能块清单 + moira_s.prop key 缺口表，回写本 AGENTS.md。
+**审计文档**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/04-Java方法审计与翻译缺口表.md" />（8个步骤全部完成）
 
-**触发原因**：Phase 1-3 收口后诚实审计发现翻译覆盖率约 30%（Calculate 50% / ChartData 22% / EvalRule 33% / RuleEntry 0% / moira_s.prop 命理key 10%），且本 AGENTS.md 未记录完整未翻译清单，下一个 session 会误判进度。
+**翻译覆盖率精确数据**：
 
-**执行文档**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/04-Java方法审计与翻译缺口表.md" />（含 8 个执行步骤，边做边勾选）
+| 模块 | 总数 | ✅已翻译 | ⚠️部分 | ❌未翻译 | 🗑️不需要 | 核心翻译率 |
+|---|---|---|---|---|---|---|
+| Calculate.java | 65 | 22 | 3 | 33 | 7 | 43% |
+| ChartData.java | 78 | 10 | 3 | 49 | 16 | 21% |
+| EvalRule.java | 20 | 1 | 1 | 16 | 2 | 11% |
+| RuleEntry.java 内置函数 | 24 | 0 | 0 | 24 | 0 | **0%** |
+| RuleEntry.java 求值方法 | 24 | 0 | 5 | 19 | 0 | 21% |
+| moira_s.prop 命理key | 59 | 6 | 0 | 53 | 0 | 10% |
 
-**初步识别的 20 个未翻译功能块**（待审计确认，详见 dev-docs/04）：
-1. 八字系统（computeEightCharData）2. 神煞完整体系（getStarSigns）3. 流年神煞（getYearInfo）4. 流年推演（computeNowData）5. 推运系统（computeTransitData）6. 返照系统 7. 主限/次限推运 8. 日月食 9. 三煞 10. 太岁/年神 11. 大运/小限/月限/飞限完整实现 12. 高格林区位 13. 恒星计算 14. 方位角/高度角 15. 罗盘方位 16. 相位系统 17. 规则引擎24内置函数 18. 规则引擎58条复杂规则 19. 地方视太阳时 20. 地支顺逆
+**20 个未翻译功能块**（按依赖排序，详见 dev-docs/04 §8）：
+
+| 批次 | 优先级 | 功能块 | 层级 | 依赖 |
+|---|---|---|---|---|
+| **第一批** | P12 | 地支顺逆（getZodiacShift） | L1 | 无 |
+| | P13 | 五行索引（getElementalIndex） | L1 | 无 |
+| | P3 | 弱宫/强宫（computeWeakHouse） | L1 | 无 |
+| | P1 | **神煞完整体系（getStarSigns）** | L1 | P12 |
+| **第二批** | P2 | **八字系统（computeEightCharData）** | L2 | P1,P12,P13 |
+| | P4 | **流年神煞（getYearInfo）** | L2 | P1,P2 |
+| | P5 | 规则引擎符号表（setBirthInfo） | L1 | P1,P2,P3,P4 |
+| | P6 | 规则引擎24内置函数 | L1 | P5 |
+| | P7 | 规则引擎求值器 | L2 | P5,P6 |
+| | P8 | 流年推演（computeNowData） | L2 | P4,P5 |
+| | P9 | 大运精确起点 | L2 | 无 |
+| | P10 | 小限/月限完整 | L2 | 无 |
+| | P11 | 三煞（computeThreeDanger） | L2 | P1,P20 |
+| **第三批** | P14 | 相位系统 | L3 | 无 |
+| | P15 | 推运系统 | L3 | 无 |
+| | P16 | 返照系统 | L3 | 无 |
+| | P17 | 主限/次限推运 | L3 | 无 |
+| | P18 | 日月食 | L3 | 无 |
+| **第四批** | P19 | 高格林区位 | L4 | 无 |
+| | P20 | 恒星/方位角/罗盘 | L4 | 无 |
+
+**核心缺口**：神煞完整体系（P1）是最大解锁点，它被八字/流年/规则引擎三个核心功能块依赖。
 
 #### 既有遗留问题
 
@@ -236,7 +267,7 @@ qizheng/
   - 月柱变量 `${月柱}` （影响7条规则）
   - 算术运算 `@命+6=@日`（影响1条规则）
   - 函数调用 `&func()`（影响7条规则）
-- Phase 4+：流年推演待实现（依赖审计完成后的功能块排序）。
+- Phase 4+：按 dev-docs/04 §8.3 推荐顺序实施（第一批 P12/P13/P3/P1 → 第二批 P2/P4/P5/P6/P7/P8/P9/P10/P11 → 第三批 P14-P18 → 第四批 P19/P20）。
 - Phase 5+：完整 Rule.yacc 语法求值器（如果需要 100% 规则覆盖）。
 
 ## 研究资料索引（dev-notes/）
