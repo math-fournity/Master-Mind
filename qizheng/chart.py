@@ -39,6 +39,12 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
     child_limit_yr = core.calc_child_limit_years(life_sign)
     daxian_list = core.daxian_full(life_sign, child_limit_yr)
 
+    # 当前所在大限（基于流年年龄）
+    from datetime import datetime
+    current_year = datetime.now().year
+    age = current_year - y + 1  # 虚岁
+    current_daxian = core.calc_daxian(life_sign, age, child_limit_yr)
+
     # 8. 二十八宿 / 速度状态 / 庙旺平陷
     mansions = {}
     speed_states = {}
@@ -147,8 +153,42 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         "self_sign": round(self_sign, 6),
         "child_limit_years": child_limit_yr,
         "daxian": daxian_list,
+        "current_daxian": current_daxian,
+        "daxian_stars": _compute_daxian_stars(current_daxian, life_sign, bodies),
     }
     return out
+
+
+def _compute_daxian_stars(current_daxian, life_sign, bodies):
+    """计算当前大限宫位内的行星。
+    current_daxian: calc_daxian 返回的 dict
+    life_sign: 命宫黄经
+    bodies: 行星位置 dict
+    返回: [行星名, ...] 在当前大限宫位内的行星列表
+    """
+    if not current_daxian:
+        return []
+    from qizheng.core import normalize_degree, _lon_to_branch
+    # 当前大限的起始度数（相对于命宫）
+    limit_start = current_daxian.get("limit_start_degree", 0)
+    # 大限宫位绝对黄经 = 命宫 + 限内偏移
+    limit_abs_start = normalize_degree(life_sign + limit_start)
+    limit_abs_end = normalize_degree(limit_abs_start + 30.0)
+    # 找出在该宫位范围内的行星
+    stars = []
+    for name, body in bodies.items():
+        if "lon" not in body:
+            continue
+        lon = normalize_degree(body["lon"])
+        # 检查是否在大限宫位范围内
+        if limit_abs_start < limit_abs_end:
+            if limit_abs_start <= lon < limit_abs_end:
+                stars.append(name)
+        else:  # 跨0°
+            if lon >= limit_abs_start or lon < limit_abs_end:
+                stars.append(name)
+    return stars
+
 
 def main():
     ap = argparse.ArgumentParser(description="七政四余排盘")

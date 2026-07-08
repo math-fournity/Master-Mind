@@ -36,6 +36,7 @@ def main():
     parser.add_argument("longitude", type=float, help="地理经度（东经为正）")
     parser.add_argument("latitude", type=float, help="地理纬度（北纬为正）")
     parser.add_argument("--json", action="store_true", help="输出 JSON 格式")
+    parser.add_argument("--svg", action="store_true", help="输出 SVG 图形命盘")
     parser.add_argument("--verbose", action="store_true", help="显示神煞明细")
     parser.add_argument("--output", "-o", type=str, help="输出到文件")
     parser.add_argument("--quiet", action="store_true", help="只输出匹配格局")
@@ -55,6 +56,9 @@ def main():
     # 输出
     if args.json:
         output = export_json(chart, pretty=True)
+    elif args.svg:
+        from qizheng.svg_chart import render_svg
+        output = render_svg(chart)
     elif args.quiet:
         rules = chart.get("rules", {})
         matched = rules.get("matched", []) if isinstance(rules, dict) else []
