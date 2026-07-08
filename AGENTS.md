@@ -632,7 +632,8 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/03-Phase3格局规则引擎完成报告.md" /> | **Phase 3 完成报告：134条格局规则提取 + Python求值器 + 76/134条可求值** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/04-Java方法审计与翻译缺口表.md" /> | Java 方法审计 + 翻译缺口表（历史文档，缺口已被 AGENTS.md "已知缺口"节取代） |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/05-七政四余推命系统建设完成报告.md" /> | **Phase 1-12 最终完成报告：全功能实现 + 20/20回归测试 + 精度验证** |
-| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/06-业务工作流SOP与后续建设规划.md" /> | **8 个业务工作流入口 SOP + Phase 13-19 后续建设规划 + 细化 TODO List** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/06-业务工作流SOP与后续建设规划.md" /> | **8 个业务工作流入口 SOP + Phase 13-19 后续建设规划 + Phase 20-21 两层审计框架 + 细化 TODO List** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> | **四层考据方法论：文献广度普查 + 逐句原文考据 + 历史命例验证 + 历史星空重建。Phase 22-25** |
 
 ## 工作原则
 
