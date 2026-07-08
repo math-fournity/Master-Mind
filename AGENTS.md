@@ -669,8 +669,8 @@ Phase 20 Layer A 审计逐项对照原文核对数据表和算法。已完成的
 |---|---|---|---|---|
 | **A3 十干化曜** | 2026-07-16 | ❌→✅ 发现庚辛壬癸四干化曜错位（天嗣被误当作独立化曜）。已修复。 | `ae1d865` | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-03.md" /> |
 | **A2 四余定义** | 2026-07-16 | ❌→✅ 发现两个严重错误：(1) 紫炁错误使用 MEAN_APOG，改为28年线性运动；(2) 月孛错误使用 OSCU_APOG，改为 MEAN_APOG。另添加 true_as_north 开关。 | `3da1f20` | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-02.md" /> |
-| **A27-A29 拦驾经/倒限详论/一寸金总诀** | 2026-07-08 | 🔄 进行中（TODO 20.23） | — | 待完成 |
-| **A30 星曜入宫/躔宿/照宫/交会吉凶表** | 2026-07-08 | 🔄 进行中（TODO 20.24） | — | 待完成 |
+|| **A27-A29 拦驾经/倒限详论/一寸金总诀** | 2026-07-08 | ✅ PASS（搜索+对照+决策完成；不直接实现代码，作为AI判读参考） | 待本次commit | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-27-29.md" /> |
+|| **A30 星曜入宫/躔宿/照宫/交会吉凶表** | 2026-07-08 | ✅ PASS（搜索+对照+决策完成；部分覆盖，不完整提取三辰通载表） | 待本次commit | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-30.md" /> |
 
 ### Phase 21 天文验证 + Phase 24 端到端验证（2026-07-08）
 
