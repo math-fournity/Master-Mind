@@ -701,6 +701,22 @@ python3 todo.py add --phase 99 --id 99.1 --title "新任务" --search-preset 先
 
 详见 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> §9。
 
+### 执行纪律：同步更新 TODO + keep git clean
+
+执行任何计划的过程中，必须遵守以下纪律：
+
+1. **同步更新 TODO List**：
+   - 开始做某个 TODO 时：`python3 todo.py update <id> --status in_progress`
+   - 完成时：`python3 todo.py update <id> --status completed --result "..." --commit <hash>`
+   - 被阻塞时：`python3 todo.py update <id> --status blocked --note "阻塞原因"`
+   - **禁止只做不更新**——TODO 状态必须实时反映真实进度
+
+2. **keep git clean**：
+   - 完成一个逻辑工作单元后，立即 commit
+   - commit 后确认 `git status` 回到 clean 状态
+   - 禁止积压多个未提交的改动
+   - 禁止在 dirty 状态下开始下一个 TODO
+
 ## 术语备忘
 
 - **"紫气" = 紫炁**：四余之一（紫炁 qì，木之余）。用户输入法打不出"炁"字，日常用"紫气"指代。代码中统一用"炁"（如 `mean_apog_ziqi`、`shen_sha_complete.json` 中的 `qi_stars`），AI 读到用户说"紫气"时应理解为"紫炁"。同理"气"在七政四余语境下通常也指"炁"。
