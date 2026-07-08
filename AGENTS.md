@@ -82,7 +82,7 @@ AI（调度 + 命理分析）
 | 目录/文件 | 角色 | 说明 |
 |---|---|---|
 | `qizheng/` | **Python 接口层（主产物）** | 七政四余排盘/矫正/分析工具集（Phase 1-12 全部完成） |
-| `qizheng/core.py` | 核心计算库（~2759行） | 封装 swisseph + 命理常量 + 60+ 个七政四余算法函数 |
+| `qizheng/core.py` | 核心计算库（~2831行） | 封装 swisseph + 命理常量 + 60+ 个七政四余算法函数 |
 | `qizheng/chart.py` | 排盘主函数 | `build_chart()` 一次调用 → 22 个顶层字段的完整命盘 |
 | `qizheng/render.py` | 文本渲染 + JSON 导出（~515行） | `render_chart()` 文本命盘 + `export_json()` 规范化 JSON |
 | `qizheng/svg_chart.py` | SVG 图形命盘（~200行） | `render_svg()` 12宫圆盘可视化 |
@@ -161,7 +161,9 @@ qizheng/
 | 函数 | 对应 MOIRA 源码 | 状态 |
 |---|---|---|
 | `init_ephe()` | Calculate.setChartMode (Lahiri) | ✅ |
-| `calc_planet()` / `calc_all_bodies()` | Calculate.compute | ✅ |
+| `calc_planet()` / `calc_all_bodies()` | Calculate.compute | ✅ 四余含双模式 |
+| `calc_ziqi()` | ChartData setOrbitData (紫炁自定义轨道) | ✅ 匀速线性运动，28年周期 |
+| `set_four_yu_mode()` | ChartData true_as_north 开关 | ✅ 新法/旧法罗睺 + mean/oscu月孛 |
 | `calc_houses()` | Calculate.computeHouses | ✅ |
 | `calc_life_sign()` | ChartData.computeLifeSign | ✅ |
 | `calc_self_sign_v2()` | ChartData.computeSelfSign | ✅ 日落/月升基准 |
@@ -613,6 +615,8 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/09-星学大成Schema对照.md" /> | 《星学大成》22KB Schema 的 5 项关键补充：星曜性情/长生十二运/庙旺平陷/神煞/断语秘诀 | 理解星学大成理论体系时 |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/10-果老星宗与星学大成目录对照.md" /> | 两部典籍的完整卷章目录 + 9 个共享模块 + 8+5 个独有模块 | 理典籍结构时 |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/11-协纪辨方书目录对照.md" /> | 《钦定协纪辨方书》36 卷目录 + 与七政四余的 10 个交叉点 + 择吉需求 | 理解择吉体系时 |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-03.md" /> | **A3 审计：十干化曜**。发现庚辛壬癸四干化曜错位（天嗣被误当作独立化曜）。已修复。 | 理解十干化曜数据修复时 |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-02.md" /> | **A2 审计：四余定义**。发现紫炁错误使用 MEAN_APOG（改为线性运动）、月孛错误使用 OSCU_APOG（改为 MEAN_APOG）。已修复。 | 理解四余计算修复时 |
 
 ### 典籍目录文件（项目根目录）
 
@@ -635,6 +639,17 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/06-业务工作流SOP与后续建设规划.md" /> | **8 个业务工作流入口 SOP + Phase 13-19 后续建设规划 + Phase 20-21 两层审计框架 + 细化 TODO List** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> | **四层考据方法论：文献广度普查 + 逐句原文考据 + 历史命例验证 + 历史星空重建。Phase 22-25** |
 
+## Layer A 考据审计日志
+
+Phase 20 Layer A 审计逐项对照原文核对数据表和算法。已完成的审计项：
+
+| 审计项 | 日期 | 结果 | commit | 考据记录 |
+|---|---|---|---|---|
+| **A3 十干化曜** | 2026-07-16 | ❌→✅ 发现庚辛壬癸四干化曜错位（天嗣被误当作独立化曜）。已修复。 | `ae1d865` | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-03.md" /> |
+| **A2 四余定义** | 2026-07-16 | ❌→✅ 发现两个严重错误：(1) 紫炁错误使用 MEAN_APOG，改为28年线性运动；(2) 月孛错误使用 OSCU_APOG，改为 MEAN_APOG。另添加 true_as_north 开关。 | `3da1f20` | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-02.md" /> |
+
+**审计教训**：A3 和 A2 都暴露了 Phase 1-4 翻译的方法论缺陷——"只对比输出，不审计计算机制"。A2 尤为严重：紫炁在 Java 中是自定义线性轨道（`sign_computation_type=1`），翻译时直接套用了 `swe.MEAN_APOG`，导致所有涉及紫炁的排盘结果错误。
+
 ## 工作原则
 
 - 代码改动服务于上述排盘 / 矫正 / 分析目标，不是为写代码而写代码。
@@ -644,6 +659,8 @@ qizheng/
 - 编译/运行前先确认依赖（SWT 平台版本、Python 库、星历数据路径）。
 - **项目代码知识落盘规则**：项目的代码知识（结构、机制、定位、踩坑、调查结论等）被发现后，应及时记录到 dev-notes 或本文件，不只活在当前 session 的上下文里。
 - **研究性内容落盘规则**：详细的算法研究、代码耦合分析、典籍目录对照等长内容，放到 `dev-notes/` 目录，AGENTS.md 只保留索引指针。
+- **Java 翻译纪律**：从 Java 源码翻译到 Python 时，不能只对比输出。必须逐行审计 Java 的计算机制——特别是 `sign_computation_type`（自定义轨道 vs Swiss Ephemeris）、`true_as_north`（新旧法开关）等配置项。A2 审计证明：只对比输出会漏掉计算机制层面的错误（紫炁被错误当作 MEAN_APOG，实际是 28 年线性运动）。
+- **Java 不一定是 ground truth**：Java MOIRA 的数据选择有历史依据但不唯一。对于有争议的定义（如紫炁周期、罗睺升/降交点），必须保留双模式，默认与 Java 一致，留待 Phase 24（历史命例验证）做最终判定。
 
 ## TODO 管理（JSON 化 + 脚本化）
 
