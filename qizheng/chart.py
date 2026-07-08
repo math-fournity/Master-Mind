@@ -42,13 +42,17 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
     # 8. 二十八宿 / 速度状态 / 庙旺平陷
     mansions = {}
     speed_states = {}
+    # 获取太阳黄经（用于伏/不见状态计算）
+    sun_lon = bodies.get("sun", {}).get("lon")
+
     dignities = {}
     for name, data in bodies.items():
         if "lon" not in data:
             continue
         mansions[name] = core.calc_lunar_mansion(data["lon"])
         if "lon_speed" in data:
-            speed_states[name] = core.calc_speed_state(name, data["lon_speed"])
+            speed_states[name] = core.calc_speed_state(
+                name, data["lon_speed"], sun_lon=sun_lon, planet_lon=data["lon"])
         dignities[name] = core.calc_dignity_from_lon(name, data["lon"])
 
     # 9. 纳音五行（年命）+ 地支神煞
@@ -85,6 +89,9 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
     current_year = y
     age = current_year - y + 1  # 虚岁
     now_data = core.compute_now_data(y, age, four_poles, life_sign)
+
+    # 10d. 限运系统（童限/小限/飞限）
+    limits = core.compute_limits(life_sign, age)
 
     # 11. 规则引擎判定
     chart_for_rules = {
@@ -128,6 +135,7 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
             "star_signs": now_data["star_signs"],
             "year_stars": now_data["year_info"]["year_stars"],
         },
+        "limits": limits,
         "rules": rule_result,
         "houses": {
             "cusps": [round(c, 6) for c in cusps],

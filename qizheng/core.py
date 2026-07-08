@@ -567,10 +567,24 @@ def calc_rise_set(jd_ut, lon, lat, alt=0.0, body=None, ephe_path="ephe"):
     if rise_jd is not None and set_jd is not None:
         is_day = rise_jd <= jd_ut < set_jd
 
+    # 计算月亮升落（用于昼夜辅助判断）
+    moon_rise = _try_rise_trans(jd_ut - 1.0, swe.MOON | swe.CALC_RISE) if hasattr(swe, 'MOON') else None
+    moon_set = _try_rise_trans(jd_ut - 1.0, swe.MOON | swe.CALC_SET) if hasattr(swe, 'MOON') else None
+
+    # 昼夜标签
+    data = _load_shen_sha()
+    daytime_label = data.get('daytime', '昼')
+    nighttime_label = data.get('nighttime', '夜')
+    day_night_label = daytime_label if is_day else nighttime_label
+
     return {
         "sunrise_jd": round(rise_jd, 6) if rise_jd else None,
         "sunset_jd": round(set_jd, 6) if set_jd else None,
         "is_day_birth": is_day,
+        "is_day": is_day,
+        "day_night": day_night_label,
+        "moonrise_jd": round(moon_rise, 6) if moon_rise else None,
+        "moonset_jd": round(moon_set, 6) if moon_set else None,
     }
 
 # ---------- 二十八宿宿度 ----------
@@ -700,16 +714,20 @@ def calc_sheng_zhang(element, branch, is_yang=True):
 
 # ---------- 逆顺迟疾状态 ----------
 
-def calc_speed_state(planet_name, lon_speed):
+def calc_speed_state(planet_name, lon_speed, sun_lon=None, planet_lon=None):
     """计算行星逆顺迟疾状态。算法来自 Calculate.getSpeedState。
     返回 {state, state_name}
-    state: 0=顺行快, 1=顺行慢, 2=留(迟), 3=逆行
+    state: 0=顺, 1=逆, 2=蚀, 3=留, 4=伏, 5=迟, 6=速
+
+    planet_name: 行星名
+    lon_speed: 黄经速度
+    sun_lon: 太阳黄经（用于计算伏/不见状态）
+    planet_lon: 行星黄经（用于计算伏/不见状态）
     """
     c = _c()
     thresholds = c["speed_thresholds"]
 
     # 行星索引映射到 speed_thresholds 数组
-    # speed_thresholds 数组顺序: [水星, 金星, 火星, 木星, 土星]（5个外行星）
     planet_idx_map = {
         "mercury": 0, "venus": 1, "mars": 2, "jupiter": 3, "saturn": 4
     }
@@ -717,22 +735,32 @@ def calc_speed_state(planet_name, lon_speed):
     if idx is None:
         # 日月不逆行
         if planet_name in ("sun", "moon"):
-            return {"state": 0, "state_name": "顺行"}
-        return {"state": 0, "state_name": "顺行"}
+            return {"state": 0, "state_name": "顺"}
+        return {"state": 0, "state_name": "顺"}
 
     slow = thresholds["slow_speed"][idx]
     fast = thresholds["fast_speed"][idx]
     gap = thresholds["stationary_gap"][idx]
+    invisible_gap = 3.0  # 与太阳合相3°内为伏
 
     abs_speed = abs(lon_speed)
+
+    # 检查伏（与太阳合相）
+    if sun_lon is not None and planet_lon is not None:
+        degree_gap = abs(normalize_degree(planet_lon - sun_lon))
+        if degree_gap > 180.0:
+            degree_gap = 360.0 - degree_gap
+        if degree_gap <= invisible_gap:
+            return {"state": 4, "state_name": "伏"}
+
     if lon_speed < 0:
-        return {"state": 3, "state_name": "逆行"}
+        return {"state": 1, "state_name": "逆"}
     elif abs_speed < gap:
-        return {"state": 2, "state_name": "留"}
+        return {"state": 3, "state_name": "留"}
     elif abs_speed < slow:
-        return {"state": 1, "state_name": "迟"}
+        return {"state": 5, "state_name": "迟"}
     elif abs_speed > fast:
-        return {"state": 0, "state_name": "疾"}
+        return {"state": 6, "state_name": "速"}
     else:
         return {"state": 0, "state_name": "顺"}
 
@@ -1485,6 +1513,147 @@ def compute_now_data(birth_year, age, birth_poles=None, life_sign_pos=0.0):
         },
         "year_info": year_info,
     }
+
+# ---------- 限运系统（翻译 ChartData.getChildLimit/getSmallLimit/getMonthLimit/getFlyLimit）----------
+
+def get_child_limit(cur_age, sep=":"):
+    """童限（翻译 ChartData.getChildLimit）。
+    根据年龄返回童限所在宫位。
+    """
+    data = _load_shen_sha()
+    child_seq = [int(x) for x in data.get('child_seq', '0, 1, 7, 6,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0').replace(' ', '').split(',')]
+    child_limit_label = data.get('child_limit', '童限')
+
+    cur_age = min(cur_age, len(child_seq) - 1)
+    if cur_age < 0:
+        return ""
+
+    # 需要命宫位置，这里用参数传入或从全局获取
+    # 简化版：返回标签+偏移量
+    offset = child_seq[cur_age] if cur_age < len(child_seq) else 0
+    return f"{child_limit_label}{sep}{offset}"
+
+def get_child_limit_with_pos(cur_age, life_sign_pos, sep=":"):
+    """童限（带命宫位置计算）。
+    返回童限所在宫位的地支。
+    """
+    data = _load_shen_sha()
+    child_seq = [int(x) for x in data.get('child_seq', '0, 1, 7, 6,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0').replace(' ', '').split(',')]
+    child_limit_label = data.get('child_limit', '童限')
+
+    cur_age = min(cur_age, len(child_seq) - 1)
+    if cur_age < 0:
+        return ""
+
+    offset = child_seq[cur_age] if cur_age < len(child_seq) else 0
+    pos = normalize_degree(life_sign_pos + 30.0 * offset)
+    zodiac = _lon_to_zodiac_name(pos)
+    return f"{child_limit_label}{sep}{zodiac}"
+
+def get_small_limit(cur_age, life_sign_pos, sep=":"):
+    """小限（翻译 ChartData.getSmallLimit）。
+    从命宫开始，每年逆行一个宫位。
+    """
+    data = _load_shen_sha()
+    small_limit_label = data.get('small_limit', '小限')
+
+    pos = normalize_degree(life_sign_pos + (cur_age - 1) * 30.0)
+    zodiac = _lon_to_zodiac_name(pos)
+    return f"{small_limit_label}{sep}{zodiac}"
+
+def get_month_limit(cur_age, life_sign_pos, now_lunar_month, birth_lunar_month, sep=":"):
+    """月限（翻译 ChartData.getMonthLimit）。
+    """
+    data = _load_shen_sha()
+    month_limit_label = data.get('month_limit', '月限')
+
+    index = now_lunar_month - birth_lunar_month
+    if index < 0:
+        index += 12
+        index += cur_age - 2  # 用去年的小限作为基础
+    else:
+        index += cur_age - 1
+
+    pos = normalize_degree(life_sign_pos + index * 30.0)
+    zodiac = _lon_to_zodiac_name(pos)
+    return f"{month_limit_label}{sep}{zodiac}"
+
+def get_fly_limit(cur_age, life_sign_pos, child_age_limit, sep=":"):
+    """飞限（翻译 ChartData.getFlyLimit）。
+    """
+    data = _load_shen_sha()
+    fly_limit_label = data.get('fly_limit', '飞限')
+    each_half_year = data.get('each_half_year', '各半年')
+
+    fly_seq_yang1 = [int(x) for x in data.get('fly_seq_yang1', '0, 0, 6, 6, 8, 4').replace(' ', '').split(',')]
+    fly_seq_ying1 = [int(x) for x in data.get('fly_seq_ying1', '0, 0, 6, 6, 4, 8').replace(' ', '').split(',')]
+    fly_seq_yang2 = [int(x) for x in data.get('fly_seq_yang2', '').replace(' ', '').split(',') if x.strip()]
+    fly_seq_ying2 = [int(x) for x in data.get('fly_seq_ying2', '').replace(' ', '').split(',') if x.strip()]
+    fly_seq_half_shift = [int(x) for x in data.get('fly_seq_half_shift', '66, 71, 75, 88').split(',')]
+
+    index = int(life_sign_pos / 30.0)
+    result = f"{fly_limit_label}{sep}"
+
+    if 0 <= cur_age < child_age_limit:
+        fly_seq = fly_seq_yang1 if (index % 2) == 0 else fly_seq_ying1
+        pos = normalize_degree(life_sign_pos + 30.0 * fly_seq[cur_age % len(fly_seq)])
+        result += _lon_to_zodiac_name(pos)
+    elif cur_age >= child_age_limit:
+        cur_age -= child_age_limit
+        fly_seq = fly_seq_yang2 if (index % 2) == 0 else fly_seq_ying2
+        if cur_age + 2 < len(fly_seq):
+            last_index, cur_index = 0, 0
+            if fly_seq_half_shift[0] <= cur_age < fly_seq_half_shift[1]:
+                last_index = fly_seq[cur_age]
+                cur_index = fly_seq[cur_age + 1]
+            elif fly_seq_half_shift[2] <= cur_age < fly_seq_half_shift[3]:
+                last_index = fly_seq[cur_age + 1]
+                cur_index = fly_seq[cur_age + 2]
+            elif cur_age >= fly_seq_half_shift[1]:
+                last_index = cur_index = fly_seq[cur_age + 1]
+            else:
+                last_index = cur_index = fly_seq[cur_age]
+
+            if last_index != cur_index:
+                pos1 = normalize_degree(life_sign_pos + 30.0 * last_index)
+                pos2 = normalize_degree(life_sign_pos + 30.0 * cur_index)
+                result += _lon_to_zodiac_name(pos1) + _lon_to_zodiac_name(pos2) + each_half_year
+            else:
+                pos = normalize_degree(life_sign_pos + 30.0 * cur_index)
+                result += _lon_to_zodiac_name(pos)
+        else:
+            return ""
+    else:
+        return ""
+
+    return result
+
+def _lon_to_zodiac_name(lon):
+    """黄经 → 地支名（单字，如"戌"）。"""
+    return _lon_to_branch(lon)
+
+def compute_limits(life_sign_pos, age, lunar_date=None, now_lunar_month=None):
+    """计算所有限运（童限/小限/月限/飞限）。
+    life_sign_pos: 命宫黄经
+    age: 当前虚岁
+    lunar_date: [年, 月, 日] 农历日期
+    now_lunar_month: 当前农历月
+    """
+    data = _load_shen_sha()
+    child_seq = [int(x) for x in data.get('child_seq', '0, 1, 7, 6,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0').replace(' ', '').split(',')]
+    child_age_limit = len(child_seq) - 1  # 童限年龄上限
+
+    result = {
+        "child_limit": get_child_limit_with_pos(age, life_sign_pos),
+        "small_limit": get_small_limit(age, life_sign_pos),
+        "fly_limit": get_fly_limit(age - 1, life_sign_pos, child_age_limit),
+    }
+
+    if lunar_date and now_lunar_month:
+        birth_lunar_month = lunar_date[1] if len(lunar_date) > 1 else 1
+        result["month_limit"] = get_month_limit(age, life_sign_pos, now_lunar_month, birth_lunar_month)
+
+    return result
 
 # ---------- 纳音五行 ----------
 
