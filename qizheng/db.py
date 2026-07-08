@@ -15,8 +15,19 @@ CREATE TABLE IF NOT EXISTS subject (
     birth_lon REAL,
     birth_lat REAL,
     birth_zone TEXT,
+    time_uncertainty TEXT,   -- 时间窗口描述，如 "03:00-05:00 不确定"
     note TEXT,
     created TEXT
+);
+
+CREATE TABLE IF NOT EXISTS life_event (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject_id INTEGER NOT NULL,
+    year INTEGER,
+    event_type TEXT,         -- 'marriage'/'career'/'health'/'move'/'birth'/'death'/'other'
+    description TEXT,
+    created TEXT,
+    FOREIGN KEY(subject_id) REFERENCES subject(id)
 );
 
 CREATE TABLE IF NOT EXISTS chart (
@@ -67,13 +78,57 @@ def get_db(path=None):
     conn.executescript(SCHEMA)
     return conn
 
-def add_subject(conn, name, sex=None, birth_ut=None, birth_lon=None, birth_lat=None, birth_zone=None, note=None):
+def add_subject(conn, name, sex=None, birth_ut=None, birth_lon=None, birth_lat=None, birth_zone=None, time_uncertainty=None, note=None):
     now = datetime.utcnow().isoformat()
     cur = conn.execute(
-        "INSERT INTO subject(name,sex,birth_ut,birth_lon,birth_lat,birth_zone,note,created) VALUES(?,?,?,?,?,?,?,?)",
-        (name, sex, birth_ut, birth_lon, birth_lat, birth_zone, note, now))
+        "INSERT INTO subject(name,sex,birth_ut,birth_lon,birth_lat,birth_zone,time_uncertainty,note,created) VALUES(?,?,?,?,?,?,?,?,?)",
+        (name, sex, birth_ut, birth_lon, birth_lat, birth_zone, time_uncertainty, note, now))
     conn.commit()
     return cur.lastrowid
+
+def update_subject(conn, sid, **fields):
+    """更新命主字段，支持 name/sex/birth_ut/birth_lon/birth_lat/birth_zone/time_uncertainty/note"""
+    allowed = {"name","sex","birth_ut","birth_lon","birth_lat","birth_zone","time_uncertainty","note"}
+    updates = {k: v for k, v in fields.items() if k in allowed}
+    if not updates:
+        return False
+    set_clause = ", ".join(f"{k}=?" for k in updates)
+    values = list(updates.values()) + [sid]
+    cur = conn.execute(f"UPDATE subject SET {set_clause} WHERE id=?", values)
+    conn.commit()
+    return cur.rowcount > 0
+
+def delete_subject(conn, sid):
+    """级联删除命主及其所有关联记录"""
+    for table in ("life_event", "chart", "rectification", "daxian"):
+        conn.execute(f"DELETE FROM {table} WHERE subject_id=?", (sid,))
+    cur = conn.execute("DELETE FROM subject WHERE id=?", (sid,))
+    conn.commit()
+    return cur.rowcount > 0
+
+def add_life_event(conn, sid, year, event_type, description):
+    now = datetime.utcnow().isoformat()
+    cur = conn.execute(
+        "INSERT INTO life_event(subject_id,year,event_type,description,created) VALUES(?,?,?,?,?)",
+        (sid, year, event_type, description, now))
+    conn.commit()
+    return cur.lastrowid
+
+def list_life_events(conn, sid):
+    return [dict(r) for r in conn.execute(
+        "SELECT * FROM life_event WHERE subject_id=? ORDER BY year", (sid,))]
+
+def get_rectification_history(conn, sid):
+    return [dict(r) for r in conn.execute(
+        "SELECT * FROM rectification WHERE subject_id=? ORDER BY id", (sid,))]
+
+def list_charts_for_subject(conn, sid):
+    return [dict(r) for r in conn.execute(
+        "SELECT * FROM chart WHERE subject_id=? ORDER BY id", (sid,))]
+
+def list_daxian_for_subject(conn, sid):
+    return [dict(r) for r in conn.execute(
+        "SELECT * FROM daxian WHERE subject_id=? ORDER BY age", (sid,))]
 
 def add_chart(conn, subject_id, jd, params, bodies, houses, life_sign, child_limit_years):
     now = datetime.utcnow().isoformat()
