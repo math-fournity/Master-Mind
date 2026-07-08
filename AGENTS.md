@@ -184,7 +184,7 @@ qizheng/
 | `calc_ten_god_transform()` | moira_s.prop 十干化曜 | ✅ 天干→化曜星 |
 | `calc_stem_stars()` / `calc_stem_stars_from_branch()` | moira_s.prop 天干星曜 | ✅ 天干×地支→吉凶星曜 |
 | `calc_branch_stars()` / `calc_branch_stars_for_all()` | moira_s.prop 地支神煞 | ✅ 年支×地支→38神曜 |
-| `calc_four_poles()` | ChartData 八字四柱 | ✅ 年月日时四柱干支 |
+| `calc_four_poles()` | ChartData 八字四柱 | ✅ 年月日时四柱干支（`use_solar_terms=True`节气分年月/`False`农历分年月，Phase 24修复） |
 | `compute_eight_char_data()` | ChartData.computeEightCharData | ✅ 四柱/十神/长生/纳音/藏干/弱宫/季节 |
 | `compute_weak_house()` | ChartData.computeWeakHouse | ✅ 弱宫/强宫 |
 | `get_weak_solid_houses()` | ChartData 弱宫强宫 | ✅ |
@@ -619,6 +619,17 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-02.md" /> | **A2 审计：四余定义**。发现紫炁错误使用 MEAN_APOG（改为线性运动）、月孛错误使用 OSCU_APOG（改为 MEAN_APOG）。已修复。 | 理解四余计算修复时 |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/12-四余文献考据资料汇编.md" /> | **四余文献考据资料汇编**：罗睺/计都/紫炁/月孛的历史演变、天文定义、计算方法、典籍出处、学术论文链接、基准点对照。A2 审计期间搜索整理。 | 研究四余相关文献时 |
 
+### 原典文本（dev-docs/原典/）
+
+Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
+
+| 目录 | 来源 | 内容 |
+|---|---|---|
+| `dev-docs/原典/星命溯源/` | 维基文库四库全书本 | **果老星宗鼻祖**，5卷完整：卷1通玄遗书/五星论/四时论/玉衡经，卷2果橙问答，卷3元妙经解(郑希诚注)，卷4观星要诀，卷5观星心传口诀补遗 |
+| `dev-docs/原典/郑氏星案/` | tianyugong.com | **郑氏星案40例完整文本**，每例含四柱干支+性别+命格等级+所喜星格+所忌星格+命理分析。用于Phase 24端到端验证 |
+| `dev-docs/原典/协纪辨方书-kanripo/` | kanripo/GitHub KR3g0051 | **协纪辨方书完整36卷**，卷1-6历法核心(本原/公规/年表/月表)，卷23-36义例(神煞体系) |
+| `dev-docs/原典/果老星宗-IA/` | Internet Archive扫描本 | 1593年大文堂本10卷djvu.txt，OCR质量较差(古籍)，含完整卷次结构 |
+
 ### 典籍目录文件（项目根目录）
 
 | 文件 | 内容 |
@@ -639,6 +650,7 @@ qizheng/
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/05-七政四余推命系统建设完成报告.md" /> | **Phase 1-12 最终完成报告：全功能实现 + 20/20回归测试 + 精度验证** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/06-业务工作流SOP与后续建设规划.md" /> | **8 个业务工作流入口 SOP + Phase 13-19 后续建设规划 + Phase 20-21 两层审计框架 + 细化 TODO List** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> | **四层考据方法论：文献广度普查 + 逐句原文考据 + 历史命例验证 + 历史星空重建。Phase 22-25** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/09-Phase24郑氏星案端到端验证报告.md" /> | **Phase 24 完成报告：郑氏星案40例端到端验证 40/40 全部匹配 + calc_four_poles 4个bug修复（节气分年月/年柱基准/时柱hour_index/早子时）** |
 
 ## Layer A 考据审计日志
 
@@ -649,7 +661,24 @@ Phase 20 Layer A 审计逐项对照原文核对数据表和算法。已完成的
 | **A3 十干化曜** | 2026-07-16 | ❌→✅ 发现庚辛壬癸四干化曜错位（天嗣被误当作独立化曜）。已修复。 | `ae1d865` | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-03.md" /> |
 | **A2 四余定义** | 2026-07-16 | ❌→✅ 发现两个严重错误：(1) 紫炁错误使用 MEAN_APOG，改为28年线性运动；(2) 月孛错误使用 OSCU_APOG，改为 MEAN_APOG。另添加 true_as_north 开关。 | `3da1f20` | <ref_file file="~/MOIRA_chinese_astrology-main/dev-notes/AUDIT-LAYER-A-02.md" /> |
 
-**审计教训**：A3 和 A2 都暴露了 Phase 1-4 翻译的方法论缺陷——"只对比输出，不审计计算机制"。A2 尤为严重：紫炁在 Java 中是自定义线性轨道（`sign_computation_type=1`），翻译时直接套用了 `swe.MEAN_APOG`，导致所有涉及紫炁的排盘结果错误。
+### Phase 21 天文验证 + Phase 24 端到端验证（2026-07-08）
+
+| 验证项 | 结果 | 说明 |
+|---|---|---|
+| **B7 节气UT** | ✅ PASS | 调整UTC→CST 8小时偏移后，误差<分钟级 |
+| **B8 农历转换** | ✅ PASS | 11/11测试用例全部通过 |
+| **B9 朔日** | ✅ PASS | 2024年14个朔日全部正确 |
+| **B4-B5 ASC/MC** | ✅ PASS | 修复calc_houses恒星黄道bug后，与Java MOIRA差异<0.0001° |
+| **B19 四柱干支** | ✅ PASS | 修复calc_four_poles 4个bug后，郑氏星案40/40全部匹配 |
+| **Phase 24 端到端** | ✅ PASS | 郑氏星案40例四柱→公历→排盘，40/40全部匹配（100%） |
+
+**calc_four_poles 修复的4个bug**（Phase 24验证期间发现）：
+1. **节气分年月模式**：新增`use_solar_terms=True`，用回归黄道太阳位置判断节气月（节气基于回归黄道，不是恒星黄道，ayanamsa≈23.7°）
+2. **年柱基准**：用1984=甲子作为基准（原代码用公元4年，错误）
+3. **时柱hour_index**：`((adj_hour+1)//2)%12`（原缺少%12，23时算成12而非0）
+4. **早子时规则**：23时后不跨日（果老星宗用早子时，23-0时属于当日子时）
+
+**审计教训**：A3 和 A2 都暴露了 Phase 1-4 翻译的方法理缺陷——"只对比输出，不审计计算机制"。A2 尤为严重：紫炁在 Java 中是自定义线性轨道（`sign_computation_type=1`），翻译时直接套用了 `swe.MEAN_APOG`，导致所有涉及紫炁的排盘结果错误。Phase 24 进一步证明：四柱计算需要区分节气分年月（果老星宗/传统八字）和农历分年月（琴堂派），节气必须用回归黄道。
 
 ## 工作原则
 
