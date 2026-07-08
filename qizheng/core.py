@@ -2065,6 +2065,21 @@ def _build_derived_facts(chart_data):
     # __sp 行星排序检测（翻译 EvalRule.setBirthSign 中的 __sp 逻辑）
     facts.update(_compute_sp_flags(bodies))
 
+    # 方位标记（翻译 EvalRule.setSign 中的 directions 逻辑）
+    # directions = [西, 南, 东, 北]，每3个宫位一个方位
+    # 宫位从戌=0°开始逆序：戌酉申=西, 未午巳=南, 辰卯寅=东, 丑子亥=北
+    directions = ["西", "南", "东", "北"]
+    for name, body_data in bodies.items():
+        if "lon" not in body_data:
+            continue
+        cn = name_map.get(name)
+        if not cn:
+            continue
+        lon = normalize_degree(body_data["lon"])
+        n = int(lon / 30.0) % 12
+        direction = directions[n // 3]
+        facts[f"?{cn}{direction}"] = "t"
+
     return facts
 
 def _compute_sp_flags(bodies):
@@ -2178,11 +2193,16 @@ def eval_rules(chart_data):
     # 规则引用缓存：避免重复计算 ?{规则名}
     rule_cache = {}
 
-    matched = []
+    # 展开模板规则
+    expanded_rules = []
     for rule in rules:
-        # 跳过模板规则（名称含 {} 占位符的）
         if "{" in rule["name"]:
-            continue
+            expanded_rules.extend(_expand_template_rule(rule))
+        else:
+            expanded_rules.append(rule)
+
+    matched = []
+    for rule in expanded_rules:
         cond = rule["condition"]
         if not cond:
             continue
@@ -2198,7 +2218,45 @@ def eval_rules(chart_data):
                 "excludes": rule.get("excludes", []),
             })
 
-    return {"matched": matched, "total": len(rules), "matched_count": len(matched)}
+    return {"matched": matched, "total": len(expanded_rules), "matched_count": len(matched)}
+
+def _expand_template_rule(rule):
+    """展开模板规则（名称含 {} 占位符的）。
+    支持两种格式：
+    1. {日,月,金} → 简单枚举，{} 替换为枚举值
+    2. {命=命宫,财=财帛} → 键值对，名称用键，条件用值
+    """
+    import re
+    name = rule["name"]
+    cond = rule["condition"]
+
+    # 找到 {枚举列表} 部分
+    match = re.search(r'\{([^}]+)\}', name)
+    if not match:
+        return [rule]
+
+    enum_str = match.group(1)
+    enum_items = [x.strip() for x in enum_str.split(',')]
+
+    # 检查是否是键值对格式
+    is_kv = any('=' in item for item in enum_items)
+
+    expanded = []
+    for item in enum_items:
+        if is_kv and '=' in item:
+            key, val = item.split('=', 1)
+            key, val = key.strip(), val.strip()
+            new_name = name.replace(match.group(0), key)
+            new_cond = cond.replace("{}", val)
+        else:
+            new_name = name.replace(match.group(0), item)
+            new_cond = cond.replace("{}", item)
+        new_rule = dict(rule)
+        new_rule["name"] = new_name
+        new_rule["condition"] = new_cond
+        expanded.append(new_rule)
+
+    return expanded
 
 def _eval_simple_condition(cond, sym, rule_cache=None, depth=0):
     """简化版条件求值器。
@@ -2305,6 +2363,26 @@ def _eval_simple_condition(cond, sym, rule_cache=None, depth=0):
             return f'({expected}=={idx2})'
         return "False"
     expr = re.sub(r'@(\w+)([+\-])(\d+)=@(\w+)', replace_at_arith_eq, expr)
+
+    # 替换 @变量=@变量+N 和 @变量=@变量-N → 反向算术比较
+    def replace_at_arith_eq_rev(m):
+        var1 = m.group(1)
+        var2 = m.group(2)
+        op = m.group(3)
+        n = int(m.group(4))
+        val1 = sym.get(f"@{var1}", "")
+        val2 = sym.get(f"@{var2}", "")
+        branch_order = ["戌","酉","申","未","午","巳","辰","卯","寅","丑","子","亥"]
+        if val1 and val2 and val1[0] in branch_order and val2[0] in branch_order:
+            idx1 = branch_order.index(val1[0])
+            idx2 = branch_order.index(val2[0])
+            if op == '+':
+                expected = (idx2 + n) % 12
+            else:
+                expected = (idx2 - n) % 12
+            return f'({idx1}=={expected})'
+        return "False"
+    expr = re.sub(r'@(\w+)=@(\w+)([+\-])(\d+)', replace_at_arith_eq_rev, expr)
 
     # 替换 @变量[0]=值 → 比较
     def replace_at_index(m):
