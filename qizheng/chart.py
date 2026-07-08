@@ -66,7 +66,7 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         if stars:
             branch_stars_for_bodies[name] = {"branch": body_branch, "stars": stars}
 
-    # 10b. 四柱干支 + 神煞完整体系
+    # 10b. 四柱干支 + 神煞完整体系 + 八字
     four_poles = core.calc_four_poles(y, mo, d, h)
     # sign_pos: [太阳黄经, 月亮黄经] 用于卦气计算
     sign_pos = None
@@ -77,6 +77,14 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         four_poles, sign_pos=sign_pos, day_pole=False,
         day_birth=day_birth, life_sign_pos=life_sign,
         birth_poles=four_poles)
+    # 八字数据
+    birth_date_arr = [y, mo, d, int(h), int((h % 1) * 60)]
+    eight_char = core.compute_eight_char_data(four_poles, birth_date_arr)
+
+    # 10c. 流年推演（当前年）
+    current_year = y
+    age = current_year - y + 1  # 虚岁
+    now_data = core.compute_now_data(y, age, four_poles, life_sign)
 
     # 11. 规则引擎判定
     chart_for_rules = {
@@ -107,10 +115,18 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         "dignities": dignities,
         "branch_stars": branch_stars_for_bodies,
         "four_poles": four_poles,
+        "eight_char": eight_char,
         "star_signs": {
             "table": star_signs_result["table"],
             "weak_houses": star_signs_result["weak_houses"],
             "solid_houses": star_signs_result["solid_houses"],
+        },
+        "now_data": {
+            "age": now_data["age"],
+            "year_pole": now_data["year_pole"],
+            "four_poles": now_data["four_poles"],
+            "star_signs": now_data["star_signs"],
+            "year_stars": now_data["year_info"]["year_stars"],
         },
         "rules": rule_result,
         "houses": {

@@ -800,6 +800,25 @@ def _lon_to_branch(lon):
     idx = int(lon_norm / 30.0) % 12
     return branch_order[idx]
 
+def _get_stellar_sign(degree, chart_data):
+    """找到黄经度数所在的28宿（翻译 Calculate.getStarSign）。
+    返回28宿名（如"昴日"），包含宿名+五行属性。
+    """
+    data = _load_shen_sha()
+    full_stellar_signs = data.get('full_stellar_signs', '').split(', ')
+    if not full_stellar_signs:
+        return ""
+    # 28宿的起始位置需要从星盘数据中获取
+    # 简化版：用 mansions 数据找到最近的28宿
+    mansions = chart_data.get("mansions", {})
+    # mansions 中有每个行星的 mansion 信息，但没有28宿边界
+    # 使用简化算法：按等分28宿计算（实际应从 stellar_sign_pos 获取）
+    lon_norm = normalize_degree(degree)
+    # 28宿等分：360/28 ≈ 12.857°
+    # 但28宿不等分，需要真实数据。暂时用等分近似
+    idx = int(lon_norm / (360.0 / len(full_stellar_signs))) % len(full_stellar_signs)
+    return full_stellar_signs[idx]
+
 # 七政四余地支顺序（戌=0°开始逆序），与 moira_s.prop zodiac 一致
 _ZODIAC_ORDER = ["戌","酉","申","未","午","巳","辰","卯","寅","丑","子","亥"]
 
@@ -1199,6 +1218,274 @@ def calc_four_poles(year, month, day, hour_ut, solar_cal=None):
 
     return [year_pole, month_pole, day_pole, hour_pole]
 
+# ---------- 八字系统（翻译 ChartData.computeEightCharData 核心计算）----------
+
+def get_ten_god_name(name, day_name, plus=False):
+    """十神名（翻译 ChartData.getTenGodName）。
+    name: 天干, day_name: 日柱天干
+    返回十神名（比肩/劫财/食神/伤官/偏财/正财/七杀/正官/偏印/正印）
+    """
+    data = _load_shen_sha()
+    sky_pole_names = data.get('sky_pole_names', '甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸').split(', ')
+    ten_god_seq1 = data.get('ten_god_seq1', '比肩, 劫财, 食神, 伤官, 偏财, 正财, 七杀, 正官, 偏印, 正印').split(', ')
+    ten_god_seq2 = data.get('ten_god_seq2', '劫财, 比肩, 伤官, 食神, 正财, 偏财, 正官, 七杀, 正印, 偏印').split(', ')
+
+    i = sky_pole_names.index(name) if name in sky_pole_names else 0
+    j = sky_pole_names.index(day_name) if day_name in sky_pole_names else 0
+    index = i - 2 * (j // 2)
+    if index < 0:
+        index += 10
+    if (j % 2) == 0:
+        str_val = ten_god_seq1[index] if index < len(ten_god_seq1) else ""
+    else:
+        str_val = ten_god_seq2[index] if index < len(ten_god_seq2) else ""
+    return str_val
+
+def get_long_life_name(name, day_name):
+    """长生十二运名（翻译 ChartData.getLongLifeName）。
+    name: 地支, day_name: 日柱天干
+    返回长生十二运阶段名（长生/养/胎/绝/墓/死/病/衰/帝旺/临官/冠带/沐浴）
+    """
+    data = _load_shen_sha()
+    earth_pole_names = data.get('earth_pole_names', '子, 丑, 寅, 卯, 辰, 巳, 午, 未, 申, 酉, 戌, 亥').split(', ')
+    sky_pole_names = data.get('sky_pole_names', '甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸').split(', ')
+    long_life_signs = data.get('long_life_signs', '长生, 养, 胎, 绝, 墓, 死, 病, 衰, 帝旺, 临官, 冠带, 沐浴').split(', ')
+    day_pole_long_life_seq = [int(x) for x in data.get('day_pole_long_life_seq', '11, 6, 2, 3, 2, 3, 5, 0, 8, 9').split(',')]
+
+    i = earth_pole_names.index(name) if name in earth_pole_names else 0
+    j = sky_pole_names.index(day_name) if day_name in sky_pole_names else 0
+    dir_val = -1 if (j % 2) == 0 else 1
+    index = day_pole_long_life_seq[j] + dir_val * i
+    while index < 0:
+        index += 12
+    while index >= 12:
+        index -= 12
+    return long_life_signs[index] if index < len(long_life_signs) else ""
+
+def get_year_sound_name(name):
+    """纳音名（翻译 ChartData.getYearSoundName）。
+    name: 干支（如"甲子"）
+    返回纳音五行名（如"海中金"）
+    """
+    data = _load_shen_sha()
+    na_yin = data.get('na_yin_60_detail', {})
+    return na_yin.get(name, "")
+
+def get_earth_god_seq(name):
+    """地支藏干（翻译 ChartData.getEarthGodSeq）。
+    name: 地支
+    返回藏干字符串（如"癸辛己"）
+    """
+    data = _load_shen_sha()
+    earth_god_seq = data.get('earth_god_seq', '').split(', ')
+    for entry in earth_god_seq:
+        if ':' in entry:
+            branch, gods = entry.split(':', 1)
+            if branch == name:
+                return gods
+    return ""
+
+def get_birth_season(birth_date_arr, ephe_path="ephe"):
+    """出生季节（翻译 ChartData.getBirthSeason）。
+    根据出生日期判断在哪个节气区间。
+    返回节气名。
+    """
+    y, mo, d = birth_date_arr[0], birth_date_arr[1], birth_date_arr[2]
+    data = _load_shen_sha()
+    season_starts = data.get('season_starts', '').split(', ')
+    solar_terms = calc_solar_terms_v2(y, ephe_path=ephe_path)
+    if not solar_terms:
+        return ""
+    jd = jd_from_ymd_ut(y, mo, d, birth_date_arr[3] if len(birth_date_arr) > 3 else 0.0)
+    # 找到当前 jd 在哪个节气之后
+    for i, term in enumerate(solar_terms):
+        if jd < term['jd']:
+            # 当前在 term[i-1] 和 term[i] 之间
+            prev_idx = (i - 1 + 24) % 24
+            return season_starts[prev_idx]
+    return season_starts[-1] if season_starts else ""
+
+def compute_eight_char_data(four_poles, birth_date_arr=None, ephe_path="ephe"):
+    """八字数据（翻译 ChartData.computeEightCharData 核心计算部分）。
+    返回四柱的完整八字信息：长生/十神/纳音/藏干/弱宫强宫。
+
+    four_poles: ["年柱","月柱","日柱","时柱"]
+    birth_date_arr: [年,月,日,时,分]（用于季节判断）
+    """
+    day_pole_key = four_poles[2][0]  # 日柱天干
+
+    result = {
+        "four_poles": four_poles,
+        "day_master": day_pole_key,  # 日主
+        "poles": [],
+    }
+
+    # 四柱各自的详细信息
+    for i, pole in enumerate(four_poles):
+        pole_info = {
+            "gan_zhi": pole,
+            "stem": pole[0],  # 天干
+            "branch": pole[1],  # 地支
+            "ten_god": get_ten_god_name(pole[0], day_pole_key) if i != 2 else "日主",
+            "long_life": get_long_life_name(pole[1], day_pole_key),
+            "na_yin": get_year_sound_name(pole),
+            "hidden_stems": get_earth_god_seq(pole[1]),
+        }
+        result["poles"].append(pole_info)
+
+    # 弱宫（空亡）
+    weak_both = compute_weak_house(four_poles[2], True)  # 日柱空亡（两个地支）
+    result["day_weak_house"] = weak_both
+
+    # 各柱是否在空亡中
+    result["weak_pole_flags"] = []
+    for pole in four_poles:
+        branch = pole[1]
+        result["weak_pole_flags"].append(branch in weak_both)
+
+    # 出生季节
+    if birth_date_arr:
+        result["birth_season"] = get_birth_season(birth_date_arr, ephe_path)
+
+    return result
+
+# ---------- 流年神煞（翻译 ChartData.getYearInfo 数据层）----------
+
+def get_year_info(four_poles, life_sign_pos, use_birth=True, table=None):
+    """流年神煞（翻译 ChartData.getYearInfo 数据层）。
+    解析 birth_year_info/current_year_info 模板，替换占位符为年星名，
+    把结果中的5字符token解析为神煞加入 table。
+
+    four_poles: 四柱干支
+    life_sign_pos: 命宫黄经
+    use_birth: True=出生年, False=当前年
+    table: 神煞表（会被修改）
+    返回解析后的年星列表。
+    """
+    data = _load_shen_sha()
+    year_names = data.get('birth_year_names', '').split(', ')
+    jiazi_data = data.get('jiazi_data', {})
+
+    # 选择模板
+    if use_birth:
+        template = data.get('birth_year_info', '')
+    else:
+        template = data.get('current_year_info', '')
+
+    # 年柱在60甲子中的索引
+    year_pole = four_poles[0]
+    y_index = 0
+    for i, name in enumerate(year_names):
+        if name == year_pole:
+            y_index = i
+            break
+
+    # year_data: 60甲子对应的数据
+    year_data = jiazi_data.get(year_pole, '').split(', ')
+
+    # 替换模板中的编号占位符（01-20）
+    import re
+    result_str = template
+    for i in range(len(year_data)):
+        field = f"{i+1:02d}"
+        val = year_data[i] if i < len(year_data) else ""
+        result_str = result_str.replace(field, val, 1)
+
+    # 替换年星占位符（90-99）
+    year_star_seq = data.get('year_star_seq', '').split(', ')
+    year_star_map = [int(x) for x in data.get('year_star_map', '0,9,2,1,4,3,6,5,8,7').split(',')]
+    year_star_range = [int(x) for x in data.get('year_star_range', '90,100').split(',')]
+    ten_god_mode = int(data.get('ten_god_mode', '0'))
+
+    year_stars = {}
+    for i in range(year_star_range[0], year_star_range[1]):
+        field = f"{i:02d}"
+        val = _get_year_star(y_index, i, year_star_seq, year_star_map,
+                             year_star_range, ten_god_mode)
+        year_stars[field] = val
+        result_str = result_str.replace(field, val)
+
+    # 解析5字符token为神煞，加入 table
+    star_sign_key = data.get('star_sign_key', '神煞')
+    ten_god_list = data.get('ten_god_list_org', '比肩, 劫财, 食神, 伤官, 偏财, 正财, 七杀, 正官, 偏印, 正印').split(', ')
+
+    parsed_stars = []
+    tokens = re.split(r'[$%| ]', result_str)
+    for token in tokens:
+        token = token.strip()
+        if len(token) == 5:
+            # token 格式: "XX地支Y" → val=token[0:2], pos=token[3], star_sign_key
+            val = token[:2]
+            pos = token[3]
+            s_key = pos + star_sign_key
+            if table is not None:
+                if s_key not in table:
+                    table[s_key] = []
+                if val not in table[s_key]:
+                    if val in ten_god_list:
+                        table[s_key].insert(0, val)
+                    else:
+                        table[s_key].append(val)
+            parsed_stars.append({"value": val, "position": pos})
+
+    return {
+        "year_stars": year_stars,
+        "parsed_stars": parsed_stars,
+        "template_filled": result_str,
+    }
+
+# ---------- 流年推演（翻译 ChartData.computeNowData）----------
+
+def compute_now_data(birth_year, age, birth_poles=None, life_sign_pos=0.0):
+    """流年推演（翻译 ChartData.computeNowData）。
+    根据出生年和当前年龄，计算流年的四柱干支和神煞。
+
+    birth_year: 出生年份
+    age: 当前年龄（虚岁）
+    birth_poles: 出生四柱（用于计算弱宫强宫，可选）
+    life_sign_pos: 命宫黄经位置（用于年神12宫计算）
+
+    返回 {year_pole, four_poles, star_signs}
+    """
+    data = _load_shen_sha()
+    year_names = data.get('birth_year_names', '').split(', ')
+
+    # 年柱索引 = 出生年 + age - 1（虚岁）
+    # 需要找到出生年对应的60甲子索引
+    # 1984年=甲子年=索引0，所以 year_index = (birth_year - 1984) % 60
+    birth_index = (birth_year - 1984) % 60
+    now_index = (birth_index + age - 1) % 60
+    year_pole = year_names[now_index] if now_index < len(year_names) else ""
+
+    # 构建流年四柱（简化版：只有年柱，月日时柱需要完整农历计算）
+    # 这里用出生四柱作为占位，实际应计算当前年的四柱
+    four_poles = [year_pole, "", "", ""]
+    if birth_poles:
+        # 月日时柱暂时用出生的（实际应重新计算）
+        four_poles = [year_pole, birth_poles[1], birth_poles[2], birth_poles[3]]
+
+    # 计算流年神煞
+    star_signs_result = get_star_signs(
+        four_poles, sign_pos=None, day_pole=False,
+        day_birth=True, life_sign_pos=life_sign_pos,
+        birth_poles=None)  # 流年不计算弱宫强宫
+
+    # 流年年星
+    year_info = get_year_info(four_poles, life_sign_pos, use_birth=False,
+                              table=star_signs_result["table"])
+
+    return {
+        "age": age,
+        "year_pole": year_pole,
+        "four_poles": four_poles,
+        "star_signs": {
+            "table": star_signs_result["table"],
+            "weak_houses": star_signs_result["weak_houses"],
+            "solid_houses": star_signs_result["solid_houses"],
+        },
+        "year_info": year_info,
+    }
+
 # ---------- 纳音五行 ----------
 
 def calc_na_yin(gan_zhi):
@@ -1405,6 +1692,140 @@ def _build_symbol_table(chart_data):
     sym["$lunar_day"] = str(lunar.get("lunar_day", ""))
     sym["?leap_month"] = "t" if lunar.get("is_leap") else "f"
 
+    # === setBirthInfo 符号（翻译 EvalRule.setBirthInfo）===
+    ss_data = _load_shen_sha()
+    four_poles = chart_data.get("four_poles")
+    star_signs = chart_data.get("star_signs", {})
+    eight_char = chart_data.get("eight_char", {})
+
+    if four_poles:
+        # 四柱干支: $年柱, $月柱, $日柱, $时柱
+        pole_labels = ['年','月','日','时']
+        for i, label in enumerate(pole_labels):
+            sym[f"${label}柱"] = four_poles[i]
+
+        # 季节（根据月支计算）
+        month_branch = four_poles[1][1]
+        earth_pole_names = ss_data.get('earth_pole_names', '子, 丑, 寅, 卯, 辰, 巳, 午, 未, 申, 酉, 戌, 亥').split(', ')
+        if month_branch in earth_pole_names:
+            mb_idx = earth_pole_names.index(month_branch)
+            season_val = (mb_idx - 2) % 12 // 3
+            sym["$季节"] = str(season_val)
+            four_seasons = ss_data.get('four_seasons', '春, 夏, 秋, 冬').split(', ')
+            if season_val < len(four_seasons):
+                sym[f"?{four_seasons[season_val]}"] = "t"
+
+        # 昼夜
+        is_day = rise_set.get("is_day_birth", True)
+        daytime = ss_data.get('daytime', '昼')
+        nighttime = ss_data.get('nighttime', '夜')
+        sym[f"?{daytime}"] = "t" if is_day else "f"
+        sym[f"?{nighttime}"] = "f" if is_day else "t"
+
+        # 12宫年神 + 弱宫强宫
+        year_signs_list = ss_data.get('birth_year_signs', '').split(', ')
+        full_zodiac = ss_data.get('full_zodiac', '').split(', ')
+        zodiac_house = ss_data.get('zodiac_house', '宫')
+        if life_sign is not None:
+            val = int(normalize_degree(life_sign) / 30.0)
+            for i in range(min(12, len(year_signs_list))):
+                n = val - i
+                if n < 0:
+                    n += 12
+                if n < len(full_zodiac):
+                    sym[f"@{year_signs_list[i]}"] = full_zodiac[n]
+                    fz = full_zodiac[n]
+                    if len(fz) > 0:
+                        sym[f"${fz[0]}{zodiac_house}"] = year_signs_list[i]
+
+        # 弱宫/强宫标记
+        weak_houses = star_signs.get("weak_houses", [])
+        solid_houses = star_signs.get("solid_houses", [])
+        weak_label = ss_data.get('weak', '虚')
+        solid_label = ss_data.get('solid', '实')
+        for i in range(min(12, len(full_zodiac))):
+            key = full_zodiac[i][0] if full_zodiac else ""
+            if key in weak_houses:
+                sym[f"?{weak_label}{key}"] = "t"
+            if key in solid_houses:
+                sym[f"?{solid_label}{key}"] = "t"
+
+        # 神煞表 → ?神煞名 标记
+        star_table = star_signs.get("table", {})
+        for pos, stars in star_table.items():
+            for star in stars:
+                if isinstance(star, str) and len(star) > 0:
+                    sym[f"?{star}"] = "t"
+
+        # 八字十神/纳音/长生
+        if eight_char.get("poles"):
+            for i, pole_info in enumerate(eight_char["poles"]):
+                label = pole_labels[i] if i < 4 else f"pole{i}"
+                sym[f"${label}十神"] = pole_info.get("ten_god", "")
+                sym[f"${label}纳音"] = pole_info.get("na_yin", "")
+                sym[f"${label}长生"] = pole_info.get("long_life", "")
+                sym[f"${label}藏干"] = pole_info.get("hidden_stems", "")
+
+        # 命主/身主
+        life_master = ss_data.get('life_master', '命主')
+        self_master = ss_data.get('self_master', '身主')
+        if life_sign is not None:
+            life_master_key = life_master[0] if life_master else ""
+            sym[f"@{life_master_key}"] = sym.get("@命", "")
+        if self_sign is not None:
+            self_master_key = self_master[0] if self_master else ""
+            sym[f"@{self_master_key}"] = sym.get("@身", "")
+
+        # 难仇恩用（life_helper_key）
+        # Java: sign = cal.getStarSign(life_sign_pos, stellar_sign_pos, full_stellar_signs)
+        # sign 是28宿名（如"昴日"），sign.substring(1) 取五行属性（如"日"）
+        life_helper_key = ss_data.get('life_helper_key', '难仇恩用')
+        life_helper_data = ss_data.get('life_helper_data', {})
+        if life_sign is not None:
+            # 找到命宫所在的28宿
+            stellar_sign = _get_stellar_sign(life_sign, chart_data)
+            if stellar_sign and len(stellar_sign) >= 2:
+                star_elem = stellar_sign[1]  # 五行属性
+                if star_elem in life_helper_data:
+                    helpers = life_helper_data[star_elem].split(', ')
+                    for i, h in enumerate(life_helper_key):
+                        if i < len(helpers):
+                            sym[f"${h}度"] = helpers[i]
+                # 也设置宫位版本
+                life_branch = _lon_to_branch(life_sign)
+                if life_branch in life_helper_data:
+                    helpers = life_helper_data[life_branch].split(', ')
+                    for i, h in enumerate(life_helper_key):
+                        if i < len(helpers):
+                            sym[f"${h}宫"] = helpers[i]
+
+        # 农历闰月
+        if lunar.get("is_leap"):
+            leap = ss_data.get('leap', '闰')
+            month_char = ss_data.get('month_char', '月')
+            sym[f"?{leap}{month_char}"] = "t"
+
+        # 晦朔/弦望
+        lunar_day = lunar.get("lunar_day", 0)
+        try:
+            lunar_day = int(lunar_day)
+        except (ValueError, TypeError):
+            lunar_day = 0
+        lf1_range = [int(x) for x in ss_data.get('lunar_face_1_range', '26, 5').split(',')]
+        lf2_range = [int(x) for x in ss_data.get('lunar_face_2_range', '11, 20').split(',')]
+        if lf1_range[0] > lf1_range[1]:
+            b_val = lunar_day >= lf1_range[0] or lunar_day <= lf1_range[1]
+        else:
+            b_val = lunar_day >= lf1_range[0] and lunar_day <= lf1_range[1]
+        if b_val:
+            sym[f"?{ss_data.get('lunar_face_1', '晦朔')}"] = "t"
+        if lf2_range[0] > lf2_range[1]:
+            b_val = lunar_day >= lf2_range[0] or lunar_day <= lf2_range[1]
+        else:
+            b_val = lunar_day >= lf2_range[0] and lunar_day <= lf2_range[1]
+        if b_val:
+            sym[f"?{ss_data.get('lunar_face_2', '弦望')}"] = "t"
+
     return sym
 
 def _planet_element(name):
@@ -1483,17 +1904,19 @@ def eval_rules(chart_data):
     derived = _build_derived_facts(chart_data)
     sym.update(derived)
 
+    # 规则引用缓存：避免重复计算 ?{规则名}
+    rule_cache = {}
+
     matched = []
     for rule in rules:
         # 跳过模板规则（名称含 {} 占位符的）
         if "{" in rule["name"]:
             continue
-        # 简化判定：只处理不含复杂语法的规则
         cond = rule["condition"]
         if not cond:
             continue
-        # 尝试简单判定
-        result = _eval_simple_condition(cond, sym)
+        # 求值
+        result = _eval_simple_condition(cond, sym, rule_cache)
         if result:
             matched.append({
                 "id": rule["id"],
@@ -1506,39 +1929,80 @@ def eval_rules(chart_data):
 
     return {"matched": matched, "total": len(rules), "matched_count": len(matched)}
 
-def _eval_simple_condition(cond, sym):
+def _eval_simple_condition(cond, sym, rule_cache=None, depth=0):
     """简化版条件求值器。
     支持: ?变量, & (与), | (或), ! (非), = (等于/集合包含)
     支持: @变量[0]=地支, @变量=@变量, %变量[0]=宿名
-    不支持: 算术运算、函数调用、复杂集合操作
+    支持: &函数名(参数) 形式的24个内置函数
+    支持: @{变量} 模板变量, %{变量} 模板变量
+    支持: ?{规则名} 规则引用
+    支持: @变量+N 算术运算
     """
     import re
     expr = cond.strip()
     if not expr:
         return False
 
-    # 跳过含函数调用、__sp、复杂索引的规则
-    if "&(" in expr or "__sp" in expr:
-        return False
-    # 跳过含 + - * / 算术的规则（如 @命+6=@日）
-    if re.search(r'@\w+\s*[+\-*/]', expr):
-        return False
-    # 跳过含 ${...} 复杂变量的规则
-    if "${" in expr:
-        return False
-    # 跳过含 @{...} 模板变量的规则
-    if "@{" in expr:
-        return False
-    # 跳过含 %{...} 模板变量的规则
-    if "%{" in expr:
+    # 防止递归过深
+    if depth > 10:
         return False
 
-    # 替换 ?{变量名} → True/False（规则引用）
-    def replace_qref(m):
+    # 跳过含 __sp 的规则（需要行星位置排序，暂不支持）
+    if "__sp" in expr:
+        return False
+
+    # 替换 ?{规则名} → 规则引用结果
+    def replace_rule_ref(m):
+        rule_name = m.group(1)
+        # 1. 先检查符号表中是否有 ?规则名（如 ?日水会）
+        sym_key = f"?{rule_name}"
+        if sym_key in sym:
+            return "True" if sym[sym_key] == "t" else "False"
+        # 2. 检查规则缓存
+        if rule_cache is not None and rule_name in rule_cache:
+            return "True" if rule_cache[rule_name] else "False"
+        # 3. 尝试从规则库查找该规则
+        if rule_cache is not None:
+            rules = load_rules_library()
+            for r in rules:
+                if r['name'] == rule_name and r['condition']:
+                    result = _eval_simple_condition(r['condition'], sym, rule_cache, depth + 1)
+                    rule_cache[rule_name] = result
+                    return "True" if result else "False"
+        return "False"
+    expr = re.sub(r'\?\{([^}]+)\}', replace_rule_ref, expr)
+
+    # 替换 @{变量} → 模板变量（先取变量值，再用该值作为新变量名）
+    def replace_at_template(m):
         var = m.group(1)
-        val = sym.get(f"?{var}", "f")
-        return "True" if val == "t" else "False"
-    expr = re.sub(r'\?\{(\w+)\}', replace_qref, expr)
+        val = sym.get(f"@{var}", "")
+        return val
+    # 先替换 @{变量}[index] 形式
+    def replace_at_template_index(m):
+        var = m.group(1)
+        idx = m.group(2)
+        val = sym.get(f"@{var}", "")
+        if val:
+            return f'@{val}[{idx}]'
+        return ''
+    expr = re.sub(r'@\{(\w+)\}\[(\d+)\]', replace_at_template_index, expr)
+    # 再替换 @{变量} 形式
+    expr = re.sub(r'@\{(\w+)\}', replace_at_template, expr)
+
+    # 替换 %{变量} → 模板变量
+    def replace_pct_template_index(m):
+        var = m.group(1)
+        idx = m.group(2)
+        val = sym.get(f"%{var}", "")
+        if val:
+            return f'%{val}[{idx}]'
+        return ''
+    expr = re.sub(r'%\{(\w+)\}\[(\d+)\]', replace_pct_template_index, expr)
+    def replace_pct_template(m):
+        var = m.group(1)
+        val = sym.get(f"%{var}", "")
+        return val
+    expr = re.sub(r'%\{(\w+)\}', replace_pct_template, expr)
 
     # 替换 ?变量 → True/False
     def replace_qvar(m):
@@ -1547,8 +2011,31 @@ def _eval_simple_condition(cond, sym):
         return "True" if val == "t" else "False"
     expr = re.sub(r'\?(\w+)', replace_qvar, expr)
 
+    # 替换 &函数名(参数) → 函数调用
+    expr = _replace_functions(expr, sym)
+
+    # 替换 @变量+N=@变量 和 @变量-N=@变量 → 算术比较
+    def replace_at_arith_eq(m):
+        var1 = m.group(1)
+        op = m.group(2)
+        n = int(m.group(3))
+        var2 = m.group(4)
+        val1 = sym.get(f"@{var1}", "")
+        val2 = sym.get(f"@{var2}", "")
+        # 解析地支为索引
+        branch_order = ["戌","酉","申","未","午","巳","辰","卯","寅","丑","子","亥"]
+        if val1 and val2 and val1[0] in branch_order and val2[0] in branch_order:
+            idx1 = branch_order.index(val1[0])
+            idx2 = branch_order.index(val2[0])
+            if op == '+':
+                expected = (idx1 + n) % 12
+            else:
+                expected = (idx1 - n) % 12
+            return f'({expected}=={idx2})'
+        return "False"
+    expr = re.sub(r'@(\w+)([+\-])(\d+)=@(\w+)', replace_at_arith_eq, expr)
+
     # 替换 @变量[0]=值 → 比较
-    # 模式: @name[0]=value
     def replace_at_index(m):
         var = m.group(1)
         idx = m.group(2)
@@ -1577,9 +2064,32 @@ def _eval_simple_condition(cond, sym):
         return f'("{sym_val}"=="{val}")'
     expr = re.sub(r'%(\w+)\[(\d+)\]=(\S+)', replace_pct_index, expr)
 
-    # 如果还有未替换的 @ % $ 变量，跳过
-    if "@" in expr or "%" in expr or "$" in expr:
-        return False
+    # 替换 ${变量名} → 字符串值
+    def replace_sref(m):
+        var = m.group(1)
+        return f'"{sym.get(f"${var}", "")}"'
+    expr = re.sub(r'\$\{(\w+)\}', replace_sref, expr)
+
+    # 替换 $变量 → 字符串值（如果不在引号内）
+    def replace_svar(m):
+        var = m.group(1)
+        val = sym.get(f"${var}", "")
+        return f'"{val}"'
+    expr = re.sub(r'\$(\w+)(?![\w])', replace_svar, expr)
+
+    # 替换 @变量 → 字符串值（如果还有未替换的）
+    def replace_at_var(m):
+        var = m.group(1)
+        val = sym.get(f"@{var}", "")
+        return f'"{val}"'
+    expr = re.sub(r'@(\w+)(?![\w\[])', replace_at_var, expr)
+
+    # 替换 %变量 → 字符串值
+    def replace_pct_var(m):
+        var = m.group(1)
+        val = sym.get(f"%{var}", "")
+        return f'"{val}"'
+    expr = re.sub(r'%(\w+)(?![\w\[])', replace_pct_var, expr)
 
     # 替换逻辑运算符
     expr = expr.replace("&", " and ").replace("|", " or ")
@@ -1590,3 +2100,290 @@ def _eval_simple_condition(cond, sym):
         return bool(eval(expr))
     except Exception:
         return False
+
+def _replace_functions(expr, sym):
+    """替换 &函数名(参数) 为 Python 表达式。
+    支持24个内置函数: if, eval, map, test, set, offset, format, prefix, suffix,
+    intersection, iter, digit, union, complement, contain, trim, entry, split,
+    empty, size, import, int, round, abs
+    """
+    import re
+
+    # 递归处理嵌套函数调用
+    max_iter = 10
+    while max_iter > 0:
+        # 查找最内层的函数调用（没有嵌套其他函数的）
+        pattern = r'&(\w+)\(([^()&]*)\)'
+        match = re.search(pattern, expr)
+        if not match:
+            break
+
+        func_name = match.group(1)
+        args_str = match.group(2)
+
+        # 解析参数
+        args = [a.strip() for a in args_str.split(',')] if args_str.strip() else []
+
+        # 求值参数
+        eval_args = []
+        for arg in args:
+            arg = arg.strip()
+            if arg.startswith('"') and arg.endswith('"'):
+                eval_args.append(arg[1:-1])
+            elif arg in ('True', 'False'):
+                eval_args.append('t' if arg == 'True' else 'f')
+            else:
+                # 尝试从符号表获取
+                if arg.startswith('?'):
+                    eval_args.append(sym.get(arg, 'f'))
+                elif arg.startswith('@') or arg.startswith('$') or arg.startswith('%'):
+                    eval_args.append(sym.get(arg, ''))
+                else:
+                    eval_args.append(arg)
+
+        # 调用内置函数
+        result = _call_builtin_function(func_name, eval_args, sym)
+        if result is None:
+            # 未知函数，替换为 False
+            result_str = "False"
+        elif isinstance(result, bool):
+            result_str = "True" if result else "False"
+        elif isinstance(result, (int, float)):
+            result_str = str(result)
+        else:
+            result_str = f'"{result}"'
+
+        expr = expr[:match.start()] + result_str + expr[match.end():]
+        max_iter -= 1
+
+    return expr
+
+def _call_builtin_function(func_name, args, sym):
+    """调用24个内置函数之一。"""
+    name = func_name.lower()
+
+    if name == "if":
+        # if(cond, then, [else, ...])
+        if len(args) >= 2:
+            i = 0
+            while i + 1 < len(args):
+                if args[i] == "t":
+                    return args[i + 1]
+                i += 2
+            if i < len(args):
+                return args[i]
+        return ""
+
+    if name in ("eval", "map", "test"):
+        # eval/set(arg, [prefix], suffix)
+        if len(args) >= 1:
+            prefix = args[1] if len(args) >= 3 else ""
+            suffix = args[-1] if len(args) >= 2 else ""
+            return _eval_set(args[0], prefix, suffix, name, sym)
+        return ""
+
+    if name == "set":
+        # set(*args) → 集合
+        return ",".join(args)
+
+    if name == "offset":
+        # offset(pos, base, shift, size)
+        if len(args) == 4:
+            try:
+                pos = int(args[0])
+                base = int(args[1])
+                shift = int(args[2])
+                size = int(args[3])
+                return str((base + shift - pos) % size)
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name == "format":
+        # format(template, index, value)
+        if len(args) == 3:
+            try:
+                idx = int(args[1])
+                template = args[0]
+                val = args[2]
+                # 替换模板中第idx个占位符
+                result = template.replace(f"{{{idx}}}", val)
+                return result
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name in ("prefix", "suffix"):
+        # prefix/suffix(set, prefix/suffix, count)
+        if len(args) == 3:
+            try:
+                count = int(args[2])
+                s = args[0]
+                ps = args[1]
+                if name == "prefix":
+                    return ps + s[:count]
+                else:
+                    return s[-count:] + ps if count > 0 else s
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name == "intersection":
+        # intersection(set_a, set_b, [trim])
+        if len(args) >= 2:
+            set_a = set(args[0].split(',')) if args[0] else set()
+            set_b = set(args[1].split(',')) if args[1] else set()
+            result = set_a & set_b
+            if len(args) >= 3:
+                # trim: 只保留指定数量的元素
+                try:
+                    trim = int(args[2])
+                    result = set(list(result)[:trim])
+                except (ValueError, TypeError):
+                    pass
+            return ",".join(sorted(result)) if result else ""
+        return ""
+
+    if name == "union":
+        # union(set_a, set_b)
+        if len(args) == 2:
+            set_a = set(args[0].split(',')) if args[0] else set()
+            set_b = set(args[1].split(',')) if args[1] else set()
+            result = set_a | set_b
+            return ",".join(sorted(result)) if result else ""
+        return ""
+
+    if name == "complement":
+        # complement(set_a, set_b) → set_a - set_b
+        if len(args) == 2:
+            set_a = set(args[0].split(',')) if args[0] else set()
+            set_b = set(args[1].split(',')) if args[1] else set()
+            result = set_a - set_b
+            return ",".join(sorted(result)) if result else ""
+        return ""
+
+    if name == "contain":
+        # contain(set, value)
+        if len(args) == 2:
+            s = set(args[0].split(',')) if args[0] else set()
+            return "t" if args[1] in s else "f"
+        return "f"
+
+    if name == "trim":
+        # trim(set, count)
+        if len(args) == 2:
+            try:
+                count = int(args[1])
+                items = args[0].split(',') if args[0] else []
+                return ",".join(items[:count])
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name == "entry":
+        # entry(set, index)
+        if len(args) == 2:
+            try:
+                idx = int(args[1])
+                items = args[0].split(',') if args[0] else []
+                return items[idx] if 0 <= idx < len(items) else ""
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name == "split":
+        # split(string, separator)
+        if len(args) == 2:
+            sep = args[1] if args[1] else ","
+            return ",".join(args[0].split(sep)) if args[0] else ""
+        return ""
+
+    if name == "empty":
+        # empty(set)
+        if len(args) == 1:
+            s = args[0].strip()
+            return "t" if not s or s == "," else "f"
+        return "f"
+
+    if name == "size":
+        # size(set)
+        if len(args) == 1:
+            items = args[0].split(',') if args[0] else []
+            return str(len([x for x in items if x.strip()]))
+        return "0"
+
+    if name == "import":
+        # import(set) → 导入集合（简化版直接返回）
+        if len(args) == 1:
+            return args[0]
+        return ""
+
+    if name in ("int", "round", "abs"):
+        # int/round/abs(value)
+        if len(args) == 1:
+            try:
+                d = float(args[0])
+                if name == "round":
+                    d += 0.5
+                if name == "abs":
+                    return str(abs(d))
+                return str(int(d))
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name == "digit":
+        # digit(value, int_digits, frac_digits)
+        if len(args) == 3:
+            try:
+                d = float(args[0])
+                int_d = int(args[1])
+                frac_d = int(args[2])
+                return f"{d:.{frac_d}f}".zfill(int_d + frac_d + 1)
+            except (ValueError, TypeError):
+                return ""
+        return ""
+
+    if name == "iter":
+        # iter(set, template, [separator]) → 遍历集合
+        if len(args) >= 2:
+            items = args[0].split(',') if args[0] else []
+            template = args[1]
+            sep = args[2] if len(args) >= 3 else ","
+            results = []
+            for i, item in enumerate(items):
+                result = template.replace("[a]", item).replace("[i]", str(i))
+                results.append(result)
+            return sep.join(results) if results else ""
+        return ""
+
+    return None
+
+def _eval_set(arg, prefix, suffix, func, sym):
+    """eval/map/test 函数的核心逻辑。
+    对集合中的每个元素，构造 prefix+element+suffix，求值后收集结果。
+    """
+    items = arg.split(',') if arg else []
+    results = []
+    for item in items:
+        key = prefix + item + suffix
+        if key.startswith("?"):
+            val = sym.get(key, "f")
+            if func == "test":
+                return val == "t"
+            if val == "t":
+                results.append(item)
+        elif key.startswith("@") or key.startswith("$") or key.startswith("%"):
+            val = sym.get(key, "")
+            if val:
+                results.append(val)
+        else:
+            # 直接求值
+            if func == "test":
+                return False
+    if func == "test":
+        return len(results) > 0
+    if func == "map":
+        return ",".join(results)
+    # eval
+    return ",".join(results) if results else ""
