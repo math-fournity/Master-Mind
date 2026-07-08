@@ -47,6 +47,9 @@ def analyze_daxian_limit(chart: Dict[str, Any], limit_index: int) -> Dict[str, A
     star_signs = chart.get('star_signs', {})
     shen_sha = star_signs.get('table', {}).get(str(limit_house), []) if limit_house else []
 
+    # 格局触发（简化：返回该限可能影响的规则数量，实际可扩展调用 eval_rules）
+    triggered_rules = []  # 可在此扩展对限宫位重新求值
+
     result = {
         "limit_index": limit_index,
         "age_range": f"{limit_data['age_start']:.1f}-{limit_data['age_end']:.1f}",
@@ -55,7 +58,7 @@ def analyze_daxian_limit(chart: Dict[str, Any], limit_index: int) -> Dict[str, A
         "palace_lord": palace_lord,
         "stars_in_limit": stars_in_limit,
         "shen_sha_in_house": shen_sha,
-        "triggered_rules": [],
+        "triggered_rules": triggered_rules,
         "overall_judgment": "待AI综合判断"
     }
     return result
@@ -71,10 +74,6 @@ def analyze_liunian(chart: Dict[str, Any], age: int) -> Dict[str, Any]:
 
 def rectify_multi_point(birth_year: int, birth_month: int, birth_day: int,
                         targets: Dict[str, float], lon: float = 116.4, lat: float = 39.9) -> Dict[str, Any]:
-    """
-    多点矫正：输入多个目标黄经，返回一致性最高的出生时间。
-    targets 示例：{"sun": 30.0, "jupiter": 120.0}
-    """
     results = []
     for planet, target_lon in targets.items():
         try:
@@ -86,7 +85,6 @@ def rectify_multi_point(birth_year: int, birth_month: int, birth_day: int,
         except Exception as e:
             results.append({"planet": planet, "error": str(e)})
 
-    # 简单一致性评分（占位）
     success_count = sum(1 for r in results if "found_ut" in r)
     consistency = success_count / len(targets) if targets else 0
 
