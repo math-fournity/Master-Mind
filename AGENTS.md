@@ -645,6 +645,62 @@ qizheng/
 - **项目代码知识落盘规则**：项目的代码知识（结构、机制、定位、踩坑、调查结论等）被发现后，应及时记录到 dev-notes 或本文件，不只活在当前 session 的上下文里。
 - **研究性内容落盘规则**：详细的算法研究、代码耦合分析、典籍目录对照等长内容，放到 `dev-notes/` 目录，AGENTS.md 只保留索引指针。
 
+## TODO 管理（JSON 化 + 脚本化）
+
+**禁止用 grep 查 TODO 状态。** TODO 的唯一真理源是 `dev-docs/todos.json`，用 `todo.py` 脚本管理。
+
+### 文件
+
+| 文件 | 用途 |
+|---|---|
+| `dev-docs/todos.json` | TODO 数据库（唯一真理源，112 个 TODO） |
+| `todo.py` | 管理脚本：查询/更新/统计/添加 |
+| `dev-docs/generate_todos.py` | 初始化脚本：从 dev-docs/06 和 07 的 Markdown 表格生成 todos.json（只需运行一次） |
+
+### 常用命令
+
+```bash
+# 查询
+python3 todo.py list                          # 列出所有 TODO
+python3 todo.py list --phase 13               # 按 Phase 过滤
+python3 todo.py list --status pending         # 按状态过滤
+python3 todo.py list --search-preset 先搜索     # 按搜索预置过滤
+python3 todo.py show 13.1                     # 查看单个 TODO
+
+# 更新状态（开始做某个 TODO 时）
+python3 todo.py update 13.1 --status in_progress
+python3 todo.py update 20.4 --status completed --result "PASS" --commit abc123
+
+# 统计
+python3 todo.py stats                         # 总览
+python3 todo.py stats --by-phase              # 按 Phase 统计
+python3 todo.py stats --by-search-preset      # 按搜索预置统计
+
+# 找下一个可做的事
+python3 todo.py next                          # pending + 依赖满足的 TODO
+
+# 搜索预置
+python3 todo.py search-preset                 # 列出所有需要搜索的 TODO
+python3 todo.py search-preset --only 先搜索     # 只看"先搜索"级
+
+# 添加新 TODO
+python3 todo.py add --phase 99 --id 99.1 --title "新任务" --search-preset 先搜索
+```
+
+### 搜索预置三级
+
+每个 TODO 都有 `search_preset` 字段，决定动手前是否需要搜索：
+
+| 级别 | 含义 | 数量 |
+|---|---|---|
+| 🔍 **先搜索** | 必须先搜索外部信息源（原文/参考数据/API文档）才能动手。不搜索 = 必然幻觉或用错数据 | 57 项 |
+| 🔄 **边做边搜索** | 主体是工程任务，过程中有特定细节需要核对 | 8 项 |
+| ⚙️ **不需要** | 纯工程任务，不需要搜索 | 47 项 |
+
+**执行 🔍 先搜索 的 TODO 前，必须完成：web_search → webfetch → 记录考据 → 确认充分 → 才能动手。**
+
+详见 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> §9。
+
 ## 术语备忘
 
 - **"紫气" = 紫炁**：四余之一（紫炁 qì，木之余）。用户输入法打不出"炁"字，日常用"紫气"指代。代码中统一用"炁"（如 `mean_apog_ziqi`、`shen_sha_complete.json` 中的 `qi_stars`），AI 读到用户说"紫气"时应理解为"紫炁"。同理"气"在七政四余语境下通常也指"炁"。
