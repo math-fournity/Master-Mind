@@ -66,6 +66,18 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         if stars:
             branch_stars_for_bodies[name] = {"branch": body_branch, "stars": stars}
 
+    # 10b. 四柱干支 + 神煞完整体系
+    four_poles = core.calc_four_poles(y, mo, d, h)
+    # sign_pos: [太阳黄经, 月亮黄经] 用于卦气计算
+    sign_pos = None
+    if "sun" in bodies and "lon" in bodies["sun"] and "moon" in bodies and "lon" in bodies["moon"]:
+        sign_pos = [bodies["sun"]["lon"], bodies["moon"]["lon"]]
+    day_birth = rise_set.get("is_day", True) if rise_set else True
+    star_signs_result = core.get_star_signs(
+        four_poles, sign_pos=sign_pos, day_pole=False,
+        day_birth=day_birth, life_sign_pos=life_sign,
+        birth_poles=four_poles)
+
     # 11. 规则引擎判定
     chart_for_rules = {
         "bodies": bodies, "houses": {"cusps": cusps, "asc": ascmc[0], "mc": ascmc[1]},
@@ -94,6 +106,12 @@ def build_chart(y, mo, d, h, lon, lat, house="P", ephe="ephe", alt=0.0):
         "speed_states": speed_states,
         "dignities": dignities,
         "branch_stars": branch_stars_for_bodies,
+        "four_poles": four_poles,
+        "star_signs": {
+            "table": star_signs_result["table"],
+            "weak_houses": star_signs_result["weak_houses"],
+            "solid_houses": star_signs_result["solid_houses"],
+        },
         "rules": rule_result,
         "houses": {
             "cusps": [round(c, 6) for c in cusps],

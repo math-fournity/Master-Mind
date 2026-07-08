@@ -800,6 +800,405 @@ def _lon_to_branch(lon):
     idx = int(lon_norm / 30.0) % 12
     return branch_order[idx]
 
+# 七政四余地支顺序（戌=0°开始逆序），与 moira_s.prop zodiac 一致
+_ZODIAC_ORDER = ["戌","酉","申","未","午","巳","辰","卯","寅","丑","子","亥"]
+
+def get_zodiac_shift(sign, degree):
+    """地支顺逆偏移（翻译 Calculate.getZodiacShift）。
+    计算从指定地支到当前度数所在地的偏移量（0-11）。
+    用于神煞体系（star_sky_qi_key）计算天干气神煞的顺逆。
+    """
+    idx = int(normalize_degree(degree) / 30.0) % 12
+    for i, z in enumerate(_ZODIAC_ORDER):
+        if z == sign:
+            gap = idx - i
+            if gap < 0:
+                gap += 12
+            return gap
+    return 0
+
+def get_elemental_index(degree):
+    """五行索引（翻译 Calculate.getElementalIndex）。
+    度数→五行索引（0=火,1=金,2=水,3=月/木...按戌火酉金申水...循环）。
+    用于八字系统和规则引擎。
+    """
+    return int(normalize_degree(degree) / 30.0) % 4
+
+def get_elemental_state_index(degree):
+    """五行状态索引（翻译 Calculate.getElementalStateIndex）。
+    度数→五行状态索引（0/1/2，对应长生十二运的三组状态）。
+    用于八字系统和规则引擎。
+    """
+    return int(normalize_degree(degree) / 30.0) % 3
+
+# ---------- 弱宫/强宫（空亡）----------
+
+# 60甲子列表（与 moira_s.prop birth_year_names 一致）
+_60_JIAZI = [
+    "甲子","乙丑","丙寅","丁卯","戊辰","己巳","庚午","辛未","壬申","癸酉",
+    "甲戌","乙亥","丙子","丁丑","戊寅","己卯","庚辰","辛巳","壬午","癸未",
+    "甲申","乙酉","丙戌","丁亥","戊子","己丑","庚寅","辛卯","壬辰","癸巳",
+    "甲午","乙未","丙申","丁酉","戊戌","己亥","庚子","辛丑","壬寅","癸卯",
+    "甲辰","乙巳","丙午","丁未","戊申","己酉","庚戌","辛亥","壬子","癸丑",
+    "甲寅","乙卯","丙辰","丁巳","戊午","己未","庚申","辛酉","壬戌","癸亥",
+]
+
+# 地支名（与 earth_pole_names 一致）
+_EARTH_POLES = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"]
+
+def compute_weak_house(pole, both=False):
+    """空亡地支（翻译 ChartData.computeWeakHouse）。
+    根据干支在60甲子中的索引，计算空亡地支。
+    both=True 返回两个地支，both=False 根据 i%2 返回其中一个。
+    用于八字系统和规则引擎(setBirthInfo)。
+    """
+    for i, name in enumerate(_60_JIAZI):
+        if pole == name:
+            index = 10 - 2 * (i // 10)
+            if both:
+                return _EARTH_POLES[index] + _EARTH_POLES[index + 1]
+            else:
+                if i % 2 == 1:
+                    index += 1
+                return _EARTH_POLES[index]
+    return ""
+
+def get_weak_solid_houses(birth_poles):
+    """计算四柱的弱宫（空亡）和强宫。
+    birth_poles: ["甲子","丙寅","戊午","壬子"] 形式的四柱。
+    返回 {"weak_houses": ["戌","午",...], "solid_houses": ["子","寅",...]}。
+    """
+    weak_houses = []
+    solid_houses = []
+    for pole in birth_poles:
+        weak_houses.append(compute_weak_house(pole, False))
+        solid_houses.append(pole[1] if len(pole) > 1 else "")
+    return {"weak_houses": weak_houses, "solid_houses": solid_houses}
+
+def get_weak_house_label(house, weak_houses):
+    """检查地支是否在空亡列表中（翻译 ChartData.getWeakHouse）。
+    返回 "虚" 或 ""。
+    """
+    if house in weak_houses:
+        return "虚"
+    return ""
+
+def get_solid_house_label(house, solid_houses):
+    """检查地支是否在强宫列表中（翻译 ChartData.getSolidHouse）。
+    返回 "实" 或 ""。
+    """
+    if house in solid_houses:
+        return "实"
+    return ""
+
+# ---------- 神煞完整体系（翻译 ChartData.getStarSigns）----------
+
+import os as _os
+_SHEN_SHA_DATA = None
+
+def _load_shen_sha():
+    """加载神煞完整数据（从 shen_sha_complete.json）。"""
+    global _SHEN_SHA_DATA
+    if _SHEN_SHA_DATA is None:
+        _path = _os.path.join(_os.path.dirname(__file__), 'shen_sha_complete.json')
+        with open(_path, 'r', encoding='utf-8') as f:
+            _SHEN_SHA_DATA = json.load(f)
+    return _SHEN_SHA_DATA
+
+def _parse_star_entries(raw):
+    """解析 '子:岁殿, 午:游奕' 格式 → ['子:岁殿', '午:游奕']"""
+    if not raw:
+        return []
+    return [x.strip() for x in raw.split(',') if x.strip()]
+
+def _add_star_sign(head, entry, prop_data):
+    """翻译 ChartData.addStarSign。
+    entry 格式 '子:岁殿'，如果神煞名是 prop key 则展开分组。
+    """
+    if len(entry) < 3:
+        return
+    key = entry[2:]
+    prefix = entry[:2]
+    head.append(entry)
+    if key in prop_data:
+        group_str = prop_data[key]
+        for item in group_str.split(','):
+            item = item.strip()
+            if item.startswith('+'):
+                head.append(prefix + item[1:])
+            else:
+                head.append(prefix + item)
+
+def get_star_signs(poles, sign_pos=None, day_pole=False, day_birth=True,
+                   life_sign_pos=0.0, birth_poles=None):
+    """神煞完整体系（翻译 ChartData.getStarSigns）。
+    根据四柱干支计算所有神煞，返回 {地支: [神煞名, ...]} 的表。
+
+    poles: 四柱干支 ["甲子","丙寅","戊午","壬子"]
+    sign_pos: 行星黄经位置数组（用于卦气计算）
+    day_pole: True=用日柱, False=用年柱
+    day_birth: True=白天出生（用太阳），False=夜间（用月亮）
+    life_sign_pos: 命宫黄经位置（用于年神12宫计算）
+    birth_poles: 出生四柱（用于弱宫强宫计算，如果 poles==birth_poles 则计算）
+
+    返回 {"table": {地支: [神煞名]}, "weak_houses": [...], "solid_houses": [...]}
+    """
+    data = _load_shen_sha()
+    YEAR_POLE, MONTH_POLE, DAY_POLE, HOUR_POLE = 0, 1, 2, 3
+
+    main_pole = poles[DAY_POLE if day_pole else YEAR_POLE]
+    head = []
+
+    # 1. 长生十二运（根据日柱/年柱的干支查 jiazi_data，取第 long_life_start 个元素作为五行名）
+    jiazi_data = data.get('jiazi_data', {})
+    long_life_start = int(data.get('long_life_start', '11')) - 1
+    if main_pole in jiazi_data:
+        year_data = jiazi_data[main_pole].split(', ')
+        if long_life_start < len(year_data):
+            key = year_data[long_life_start]
+            # long_life_pos 格式: "金:4, 木:10, ..."
+            ll_pos = data.get('long_life_pos', '')
+            twelve_signs = data.get('twelve_signs', '').split(', ')
+            long_life_signs = data.get('long_life_signs', '').split(', ')
+            for entry in ll_pos.split(', '):
+                entry = entry.strip()
+                if ':' in entry:
+                    elem, n_str = entry.split(':')
+                    if elem == key:
+                        n = int(n_str)
+                        for j in range(12):
+                            m = n + j
+                            if m >= 12:
+                                m -= 12
+                            if m < len(twelve_signs) and j < len(long_life_signs):
+                                head.append(f"{twelve_signs[m]}:{long_life_signs[j]}")
+                        break
+
+    # 2. 干支神煞（60甲子，仅年柱）
+    if not day_pole:
+        gan_zhi_stars = data.get('gan_zhi_stars', {})
+        if main_pole in gan_zhi_stars:
+            for entry in _parse_star_entries(gan_zhi_stars[main_pole]):
+                _add_star_sign(head, entry, data)
+
+    # 3. 天干神煞（10天干）
+    stem_stars = data.get('stem_stars_full', {})
+    main_stem = main_pole[0]
+    if main_stem in stem_stars:
+        for entry in _parse_star_entries(stem_stars[main_stem]):
+            _add_star_sign(head, entry, data)
+
+    # 4. 卦气神煞（仅年柱，需要 sign_pos）
+    if not day_pole and sign_pos is not None:
+        qi_stars = data.get('qi_stars', {})
+        sky_pole_names = data.get('sky_pole_names', '').split(', ')
+        year_part = main_pole[0]
+        qi_key = year_part
+        if qi_key in qi_stars:
+            qi_str = qi_stars[qi_key]
+            # qi_str 格式 "亥:寅"，第一个字是地支，用于计算 shift
+            degree = sign_pos[0] if day_birth else sign_pos[1]  # SUN or MOON
+            shift = get_zodiac_shift(qi_str[0], degree)
+            for i, name in enumerate(sky_pole_names):
+                if name == year_part:
+                    index = i + shift
+                    while index >= len(sky_pole_names):
+                        index -= len(sky_pole_names)
+                    qi_key2 = sky_pole_names[index]
+                    if qi_key2 in qi_stars:
+                        str2 = qi_stars[qi_key2]
+                        if len(str2) >= 3:
+                            head.append(f"{str2[2]}:{data.get('star_sky_qi_key', '卦气')}")
+                    break
+
+    # 5. 地支神煞（12地支）
+    branch_stars = data.get('branch_stars_full', {})
+    main_branch = main_pole[1]
+    if main_branch in branch_stars:
+        for entry in _parse_star_entries(branch_stars[main_branch]):
+            _add_star_sign(head, entry, data)
+
+    # 6. 月支神煞 + 月时神煞（仅年柱）
+    if not day_pole and len(poles) > HOUR_POLE and poles[MONTH_POLE]:
+        month_branch_stars = data.get('month_branch_stars', {})
+        mb = poles[MONTH_POLE][1]
+        if mb in month_branch_stars:
+            for entry in _parse_star_entries(month_branch_stars[mb]):
+                _add_star_sign(head, entry, data)
+
+        month_hour_stars = data.get('month_hour_stars', {})
+        hb = poles[HOUR_POLE][1] if poles[HOUR_POLE] else ''
+        mh_key = f"{mb}{hb}"
+        if mh_key in month_hour_stars:
+            for entry in _parse_star_entries(month_hour_stars[mh_key]):
+                _add_star_sign(head, entry, data)
+
+    # 7. 构建 table: {地支: [神煞名, ...]}
+    table = {}
+    for val in head:
+        if len(val) >= 3:
+            pos = val[0]
+            field = val[2:]
+            if pos not in table:
+                table[pos] = []
+            table[pos].append(field)
+
+    # 8. 弱宫/强宫 + 年神12宫（仅年柱且 poles==birth_poles）
+    weak_houses = []
+    solid_houses = []
+    if not day_pole and birth_poles is not None and poles == birth_poles:
+        for i in range(min(4, len(birth_poles))):
+            weak_houses.append(compute_weak_house(birth_poles[i], False))
+            solid_houses.append(birth_poles[i][1] if len(birth_poles[i]) > 1 else "")
+        _compute_year_sign(poles, table, life_sign_pos, weak_houses, solid_houses, data)
+
+    return {"table": table, "weak_houses": weak_houses, "solid_houses": solid_houses}
+
+def _compute_year_sign(poles, table, life_sign_pos, weak_houses, solid_houses, data):
+    """翻译 ChartData.computeYearSign。
+    计算12宫年神并加入神煞表。
+    """
+    year_signs = data.get('birth_year_signs', '').split(', ')
+    year_sign_key = data.get('year_sign_key', '星')
+    year_sign_data = data.get('year_sign_data', {})
+    year_names = data.get('birth_year_names', '').split(', ')
+
+    # 年柱在60甲子中的索引
+    y_index = 0
+    year_pole = poles[0]
+    for i, name in enumerate(year_names):
+        if name == year_pole:
+            y_index = i
+            break
+
+    # 年星计算参数
+    year_star_seq = data.get('year_star_seq', '').split(', ')
+    year_star_map = [int(x) for x in data.get('year_star_map', '0,9,2,1,4,3,6,5,8,7').split(',')]
+    year_star_range = [int(x) for x in data.get('year_star_range', '90,100').split(',')]
+    ten_god_mode = int(data.get('ten_god_mode', '0'))
+
+    for i in range(12):
+        ys = year_signs[i] if i < len(year_signs) else ''
+        ys_key = ys + year_sign_key
+        if ys in year_sign_data:
+            array = year_sign_data[ys].split(', ')
+            if len(array) >= 2:
+                index = int(array[0])
+                if index > 0:
+                    val = _get_year_star(y_index, index, year_star_seq, year_star_map,
+                                         year_star_range, ten_god_mode)
+                    if ten_god_mode:
+                        table[val] = [array[1][1:] + "," + array[1][0]]
+                    else:
+                        table[val] = [array[1][0] + "," + array[1][1:]]
+
+                    # 12宫弱宫强宫标注
+                    house_deg = normalize_degree(life_sign_pos - i * 30.0)
+                    house_idx = int(house_deg / 30.0) % 12
+                    zodiac_order = ["戌","酉","申","未","午","巳","辰","卯","寅","丑","子","亥"]
+                    house = zodiac_order[house_idx]
+                    half_house = house[0]
+                    weak_label = get_weak_house_label(half_house, weak_houses)
+                    solid_label = get_solid_house_label(half_house, solid_houses)
+                    str_val = weak_label + solid_label
+                    if str_val:
+                        str_val += ","
+                    str_val = f"({str_val}{val}): {array[2] if len(array) > 2 else ''}"
+                    table[ys] = [str_val]
+
+                    # 添加到星宿映射
+                    s_key = house[1:] if len(house) > 1 else house
+                    s_key += data.get('star_sign_key', '神煞')
+                    if s_key not in table:
+                        table[s_key] = []
+                    table[s_key].append(f"[{ys}]")
+
+def _get_year_star(year, order, year_star_seq, year_star_map, year_star_range, ten_god_mode):
+    """翻译 ChartData.getYearStar。"""
+    order -= year_star_range[0]
+    if ten_god_mode and (year & 1) == 1:
+        order = year_star_map[order % 10]
+    index = (year + order) % 10
+    return year_star_seq[index] if index < len(year_star_seq) else ""
+
+# ---------- 四柱干支计算（翻译 ChartData.chineseCalendar 的干支部分）----------
+
+_SKY_POLE_NAMES = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"]
+_EARTH_POLE_NAMES_LIST = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"]
+_MONTH_SKY_POLE_SHIFTS = [2, 4, 6, 8, 0, 2, 4, 6, 8, 0]
+_MONTH_EARTH_POLE_SHIFT = 2
+_HOUR_SKY_POLE_SHIFTS = [0, 2, 4, 6, 8, 0, 2, 4, 6, 8]
+_HOUR_EARTH_POLE_SHIFT = 0
+# day_pole_base: 1971年8月7日 = 甲子日（60甲子索引0）
+_DAY_POLE_BASE = [1971, 8, 7]
+
+def _days_between(y1, m1, d1, y2, m2, d2):
+    """计算两个日期之间的天数差（y2-m2-d2 减 y1-m1-d1）。"""
+    import datetime
+    d_start = datetime.date(y1, m1, d1)
+    d_end = datetime.date(y2, m2, d2)
+    return (d_end - d_start).days
+
+def calc_four_poles(year, month, day, hour_ut, solar_cal=None):
+    """计算四柱干支（翻译 ChartData.chineseCalendar 的干支部分）。
+    返回 ["年柱","月柱","日柱","时柱"]。
+
+    year/month/day: 公历
+    hour_ut: UT 小数
+    solar_cal: [chinese_year_num, lunar_month] 或 None（自动计算）
+    """
+    data = _load_shen_sha()
+    year_names = data.get('birth_year_names', '').split(', ')
+
+    # 获取农历年序号和月序号
+    if solar_cal is None:
+        lunar = solar_to_lunar(year, month, day, hour_ut)
+        if lunar is None:
+            return ["", "", "", ""]
+        solar_cal = [lunar.get('chinese_year_num', 1), lunar.get('lunar_month', 1)]
+
+    # 时辰：23:00 后算下一日的时柱天干
+    hour_local = hour_ut + 8.0  # UT → 北京时间
+    if hour_local >= 24:
+        hour_local -= 24
+        # 日期+1
+        import datetime
+        next_day = datetime.date(year, month, day) + datetime.timedelta(days=1)
+        year, month, day = next_day.year, next_day.month, next_day.day
+
+    adj_hour = int(hour_local)
+    adj_min = int((hour_local % 1) * 60)
+
+    # 年柱
+    offset = solar_cal[0] - 1
+    year_pole = year_names[offset % len(year_names)]
+
+    # 月柱
+    year_stem = year_pole[0]
+    y_idx = _SKY_POLE_NAMES.index(year_stem) if year_stem in _SKY_POLE_NAMES else 0
+    month_index = solar_cal[1] - 1
+    m1 = (month_index + _MONTH_SKY_POLE_SHIFTS[y_idx]) % 10
+    m2 = (month_index + _MONTH_EARTH_POLE_SHIFT) % 12
+    month_pole = _SKY_POLE_NAMES[m1] + _EARTH_POLE_NAMES_LIST[m2]
+
+    # 日柱（基于 day_pole_base 的天数差）
+    day_offset = _days_between(_DAY_POLE_BASE[0], _DAY_POLE_BASE[1], _DAY_POLE_BASE[2],
+                               year, month, day)
+    day_pole = year_names[day_offset % len(year_names)]
+
+    # 时柱
+    day_stem = day_pole[0]
+    y2 = _SKY_POLE_NAMES.index(day_stem) if day_stem in _SKY_POLE_NAMES else 0
+    # 23:00 后算下一日的天干（除非 switch_day_at_11_pm=0）
+    if adj_hour == 23:
+        y2 = (y2 + 1) % 10
+    hour_index = (adj_hour + 1) // 2  # 子时=0, 丑时=1, ...
+    h1 = (hour_index + _HOUR_SKY_POLE_SHIFTS[y2]) % 10
+    h2 = (hour_index + _HOUR_EARTH_POLE_SHIFT) % 12
+    hour_pole = _SKY_POLE_NAMES[h1] + _EARTH_POLE_NAMES_LIST[h2]
+
+    return [year_pole, month_pole, day_pole, hour_pole]
+
 # ---------- 纳音五行 ----------
 
 def calc_na_yin(gan_zhi):
