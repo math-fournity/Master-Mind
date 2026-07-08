@@ -198,8 +198,8 @@ qizheng/
 | `get_long_life_name()` / `get_ten_god_name()` | 名称查表 | ✅ |
 | `get_year_sound_name()` | 纳音名称查表 | ✅ |
 | `load_rules_library()` | EvalRule + Rule.yacc | ✅ 加载134条格局规则 |
-| `eval_rules()` | EvalRule.computeRules | ✅ 完整求值器，295/295条可求值（含sign字段，Phase24b扩充至256条） |
-| `score_rules()` | — | ✅ 格局质量评分模型（Phase24b新增：priority权重+关键格局加权+忌格组合惩罚+命格等级建议） |
+| `eval_rules()` | EvalRule.computeRules | ✅ 完整求值器，283条规则可求值（含sign字段，Phase24b扩充） |
+| `score_rules()` | — | ✅ 格局质量评分模型v3（Phase24b：数据驱动权重+关键格局加权+组合惩罚/奖励+命格等级建议，高低命格差14.1分） |
 | `find_date_at_sun_pos()` | ChartData.getDateAtSunPos | ✅ |
 | `find_date_at_planet_pos()` | ChartData.getDateAtPlanetPos | ✅ |
 | `jd_from_ymd_ut()` / `ymd_ut_from_jd()` | Calculate 儒略日转换 | ✅ |
@@ -599,8 +599,9 @@ qizheng/
 | ~~格局引擎忌格完全缺失~~ | ~~入口 4/7~~ | ~~**高**~~ | **已解决(Phase24b)**：新增48条忌格规则，忌格覆盖率从0%→66.7% |
 | ~~格局引擎喜格覆盖不足~~ | ~~入口 4/7~~ | ~~**高**~~ | **已解决(Phase24b)**：新增74条喜格规则，喜格覆盖率从23.3%→92.2% |
 | ~~命格等级判断模型缺失~~ | ~~入口 4/7~~ | ~~中~~ | **已解决(Phase24b)**：新增`score_rules()`评分模型，三层评分(priority权重+关键格局加权+忌格组合惩罚)，高命格vs低命格总分和喜忌比均正相关 |
-| 评分模型差值较小 | 入口 4/7 | 中 | v2b模型方向正确但差值小(总分差0.5/喜忌比差0.07)，需更多关键格局和更精确权重 |
-| 31种星格未覆盖 | 入口 4/7 | 中 | 8种喜格+23种忌格未覆盖，主要是"刃"类(需神煞)和"躔度"类(需宿度数据) |
+| 评分模型差值较小 | 入口 4/7 | ~~中~~ | **已解决(v3)**：数据驱动权重调优后，高低命格总分差14.1/喜忌比差1.49 |
+| 31种星格未覆盖 | 入口 4/7 | ~~中~~ | **已解决(v3)**：补充第二批规则后，喜格99.0%/忌格94.2%，仅剩4种需宿度数据 |
+| 4种星格未覆盖 | 入口 4/7 | 低 | 1种喜格+3种忌格(土躔奎度/斗木等)需精确宿度数据，当前宿度变量未填充 |
 
 **历史审计文档**（翻译缺口表，已被本节取代）：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/04-Java方法审计与翻译缺口表.md" />
 
@@ -657,7 +658,7 @@ Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/06-业务工作流SOP与后续建设规划.md" /> | **8 个业务工作流入口 SOP + Phase 13-19 后续建设规划 + Phase 20-21 两层审计框架 + 细化 TODO List** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> | **四层考据方法论：文献广度普查 + 逐句原文考据 + 历史命例验证 + 历史星空重建。Phase 22-25** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/09-Phase24郑氏星案端到端验证报告.md" /> | **Phase 24 完成报告：郑氏星案40例端到端验证 40/40 全部匹配 + calc_four_poles 4个bug修复（节气分年月/年柱基准/时柱hour_index/早子时）** |
-| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/10-Phase24b命格判断验证报告.md" /> | **Phase 24b v2完成报告：规则库扩充134→256条(喜格92.2%/忌格66.7%) + score_rules()评分模型(三层评分+关键格局加权+忌格组合惩罚) + 高低命格正相关验证** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/10-Phase24b命格判断验证报告.md" /> | **Phase 24b v3完成报告：规则库扩充134→283条(喜格99.0%/忌格94.2%) + score_rules()v3数据驱动评分模型(高低命格总分差14.1/喜忌比差1.49)** |
 
 ## Layer A 考据审计日志
 
