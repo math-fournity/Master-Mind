@@ -2831,6 +2831,143 @@ def _eval_set(arg, prefix, suffix, func, sym):
     return ",".join(results) if results else ""
 
 
+# ---------- Phase 14: 多点矫正 ----------
+
+def rectify_multi_point(targets, start_jd, ephe_path="ephe"):
+    """接受多个 {planet: degree} 目标，对每个目标反推 UT，返回所有结果 + 一致性评分。
+    targets: {"sun": 30.0, "moon": 200.0, ...}
+    start_jd: 搜索起始JD
+    返回 {results: {planet: {jd, date_ut, delta_hours}}, consistency_score}
+    """
+    init_ephe(ephe_path)
+    results = {}
+    jds = []
+
+    for name, deg in targets.items():
+        if name == "sun":
+            jd_found = find_date_at_sun_pos(deg, start_jd)
+        elif name == ZIQI_KEY:
+            base_jd = _ziqi_base_jd()
+            jd_found = base_jd + ((deg - ZIQI_BASE_LON) / ZIQI_SPEED)
+        else:
+            pid = BODIES.get(name)
+            if pid is None:
+                results[name] = {"error": f"unknown body {name}"}
+                continue
+            jd_found = find_date_at_planet_pos(pid, deg, start_jd)
+
+        if jd_found is None:
+            results[name] = {"error": "no solution"}
+        else:
+            fy, fmo, fd, fh = ymd_ut_from_jd(jd_found)
+            results[name] = {
+                "jd": round(jd_found, 8),
+                "date_ut": f"{fy:04d}-{fmo:02d}-{fd:02d}T{fh:07.4f}",
+                "delta_hours": round((jd_found - start_jd) * 24, 4),
+            }
+            jds.append(jd_found)
+
+    # 一致性评分
+    score = _consistency_score(jds)
+
+    return {
+        "results": results,
+        "consistency_score": score,
+        "jd_count": len(jds),
+    }
+
+
+def _consistency_score(jds):
+    """多个反推结果的标准差/极差 → 评分（0-100，越高越一致）。"""
+    if not jds:
+        return 0
+    if len(jds) == 1:
+        return 100
+
+    import statistics
+    mean_jd = statistics.mean(jds)
+    stdev = statistics.stdev(jds) if len(jds) > 1 else 0
+    range_jd = max(jds) - min(jds)
+
+    # 转换为小时
+    stdev_hours = stdev * 24
+    range_hours = range_jd * 24
+
+    # 评分：标准差越小越高，极差越小越高
+    # 0小时差=100分, 24小时差=0分
+    score_stdev = max(0, 100 - stdev_hours * 100 / 24)
+    score_range = max(0, 100 - range_hours * 100 / 24)
+    score = (score_stdev + score_range) / 2
+
+    return {
+        "score": round(score, 2),
+        "stdev_hours": round(stdev_hours, 4),
+        "range_hours": round(range_hours, 4),
+        "mean_jd": round(mean_jd, 6),
+    }
+
+
+def iterative_rectify(birth_info, life_events, ephe_path="ephe"):
+    """完整迭代矫正 SOP 封装：生成初始盘→AI 映射事件→多点反推→一致性检验→返回矫正结果+历史。
+    birth_info: {year, month, day, hour, lon, lat}
+    life_events: [{year, event_type, description, target_planet, target_degree}]
+    返回 {original_ut, corrected_ut, method, history, consistency}
+    """
+    init_ephe(ephe_path)
+    y, mo, d, h = birth_info["year"], birth_info["month"], birth_info["day"], birth_info["hour"]
+    start_jd = jd_from_ymd_ut(y, mo, d, h)
+    original_ut = f"{y:04d}-{mo:02d}-{d:02d}T{h:07.4f}"
+
+    # 收集所有目标
+    targets = {}
+    for ev in life_events:
+        tp = ev.get("target_planet")
+        td = ev.get("target_degree")
+        if tp and td is not None:
+            targets[tp] = td
+
+    if not targets:
+        return {
+            "original_ut": original_ut,
+            "corrected_ut": original_ut,
+            "method": "no_targets",
+            "history": [],
+            "consistency": {"score": 0, "reason": "no targets provided"},
+        }
+
+    # 多点反推
+    result = rectify_multi_point(targets, start_jd, ephe_path)
+
+    # 取一致性最高的JD作为矫正结果
+    jds = [r["jd"] for r in result["results"].values() if isinstance(r, dict) and "jd" in r]
+    if jds:
+        import statistics
+        corrected_jd = statistics.median(jds)
+        cy, cm, cd, ch = ymd_ut_from_jd(corrected_jd)
+        corrected_ut = f"{cy:04d}-{cm:02d}-{cd:02d}T{ch:07.4f}"
+        delta_hours = round((corrected_jd - start_jd) * 24, 4)
+    else:
+        corrected_ut = original_ut
+        delta_hours = 0
+
+    return {
+        "original_ut": original_ut,
+        "corrected_ut": corrected_ut,
+        "corrected_jd": round(corrected_jd, 8) if jds else None,
+        "delta_hours": delta_hours,
+        "method": "multi_point_median",
+        "targets": targets,
+        "results": result["results"],
+        "consistency": result["consistency_score"],
+        "history": [{
+            "step": 1,
+            "action": "multi_point_rectify",
+            "targets_count": len(targets),
+            "consistency": result["consistency_score"],
+        }],
+    }
+
+
 # ---------- Phase 15: 大限综合分析 ----------
 
 def find_daxian_transitions(life_sign_pos, child_limit_years=None):
