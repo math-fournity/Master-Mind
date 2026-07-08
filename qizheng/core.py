@@ -388,7 +388,7 @@ def compute_new_moons(birth_year, ephe_path="ephe"):
         if nm is None:
             break
         nm_trimmed = _trim_hour(nm)
-        if nm_trimmed > winter_solstice_this + 5.0:
+        if nm_trimmed > winter_solstice_this + 35.0:
             break
         if nm_trimmed >= winter_solstice_prev - 35.0:
             new_moons.append(nm_trimmed)
