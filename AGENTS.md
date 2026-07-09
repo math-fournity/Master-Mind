@@ -637,6 +637,7 @@ Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
 | `dev-docs/原典/郑氏星案/` | tianyugong.com | **郑氏星案40例完整文本**，每例含四柱干支+性别+命格等级+所喜星格+所忌星格+命理分析。用于Phase 24端到端验证 |
 | `dev-docs/原典/协纪辨方书-kanripo/` | kanripo/GitHub KR3g0051 | **协纪辨方书完整36卷**，卷1-6历法核心(本原/公规/年表/月表)，卷23-36义例(神煞体系) |
 | `dev-docs/原典/果老星宗-IA/` | Internet Archive扫描本 | 1593年大文堂本10卷djvu.txt，OCR质量较差(古籍)，含完整卷次结构 |
+| `dev-docs/原典/星平会海/` | suanzhun.net | **星平会海完整10卷**，卷1-10含星曜歌诀/入门看法/十二宫论断/赋文/合婚/八字基础/格局等，附 schema.json 结构索引 |
 
 ### 典籍目录文件（项目根目录）
 
@@ -660,6 +661,7 @@ Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/07-文献考据总体规划.md" /> | **四层考据方法论：文献广度普查 + 逐句原文考据 + 历史命例验证 + 历史星空重建。Phase 22-25** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/09-Phase24郑氏星案端到端验证报告.md" /> | **Phase 24 完成报告：郑氏星案40例端到端验证 40/40 全部匹配 + calc_four_poles 4个bug修复（节气分年月/年柱基准/时柱hour_index/早子时）** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/10-Phase24b命格判断验证报告.md" /> | **Phase 24b v3完成报告：规则库扩充134→283条(喜格99.0%/忌格94.2%) + score_rules()v3数据驱动评分模型(高低命格总分差14.1/喜忌比差1.49)** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/13-七政四余形式化体系.md" /> | **七政四余形式化体系：算子(躔/照/会/守/冲/合) + 集合(星/宿/宫) + 命题(X→Y) + 与 rules_library.json 的对应关系** |
 
 ## Layer A 考据审计日志
 
