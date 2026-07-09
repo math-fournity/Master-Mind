@@ -2,10 +2,12 @@
 from .base import TiebanSchool
 from .nanpai import NanpaiSchool
 from .beipai import BeipaiSchool
+from .jiangnan import JiangnanSchool
 
 SCHOOLS = {
     'nanpai': NanpaiSchool,
     'beipai': BeipaiSchool,
+    'jiangnan': JiangnanSchool,
 }
 
 
