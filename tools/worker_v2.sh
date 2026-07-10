@@ -61,6 +61,19 @@ done
 # 默认会话名
 [[ -z "$SESSION_NAME" ]] && SESSION_NAME="worker-${WORKER_ID}"
 
+# 可选：resume 模式（继续之前的 session）
+RESUME_SESSION=""
+RESUME_FLAG=""
+
+# 解析额外参数
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --resume)       RESUME_SESSION="$2"; RESUME_FLAG="--resume"; shift 2 ;;
+    --continue)     RESUME_FLAG="--continue"; shift ;;
+    *) shift ;;
+  esac
+done
+
 # 检查 tmux
 command -v tmux &>/dev/null || { echo "错误: tmux 未安装" >&2; exit 1; }
 
@@ -94,6 +107,18 @@ else
     git worktree add "$WORKTREE_PATH" --detach main
   }
 fi
+
+# ===== 1.5 链接必要文件到 worktree =====
+# git worktree 不会复制 untracked 文件，需要手动链接
+# 注意：不链接 .devin/，因为符号链接会导致 Devin workspace trust 问题
+# Devin 会自动使用全局配置 (~/.config/devin/config.json)
+cd "$WORKTREE_PATH"
+for item in ai-runtime .venv ephe moira_extra_files; do
+  if [[ -e "$PROJECT_DIR/$item" && ! -e "$WORKTREE_PATH/$item" ]]; then
+    ln -s "$PROJECT_DIR/$item" "$WORKTREE_PATH/$item"
+    echo "  链接: $item → $PROJECT_DIR/$item"
+  fi
+done
 
 cd "$WORKTREE_PATH"
 
@@ -158,18 +183,48 @@ echo "  Worktree: $WORKTREE_PATH"
 echo "  模式: dangerous (yolo)"
 echo "  Prompt: $PROMPT_FILE"
 
-# Devin yolo 模式启动命令
-DEVIN_CMD=(
-  devin
-  --permission-mode dangerous
-  --config "$PROJECT_DIR/.devin/config.json"
-  --prompt-file "$PROMPT_FILE"
-  --export "$EXPORT_FILE"
-)
+# Devin yolo 模式启动命令 (--print = 非交互模式，处理完 prompt 就退出)
+# 不用 --config 指向项目配置，Devin 会自动读全局配置 (~/.config/devin/config.json)
+# 项目级 .devin/config.json 中的 permissions 会被 --permission-mode dangerous 覆盖
+#
+# 注意：--print 模式是单轮的，Devin 处理完 prompt 就退出。
+# 如果任务没完成，需要用 --resume <session_id> 继续。
+# watchdog.sh 负责检测退出后是否需要 resume。
+if [[ -n "$RESUME_SESSION" ]]; then
+  # Resume 模式：继续之前的 session
+  DEVIN_CMD=(
+    devin
+    --permission-mode dangerous
+    --print
+    --resume "$RESUME_SESSION"
+    --export "$EXPORT_FILE"
+  )
+  echo "  Resume session: $RESUME_SESSION"
+elif [[ "$RESUME_FLAG" == "--continue" ]]; then
+  # Continue 模式：继续最近的 session
+  DEVIN_CMD=(
+    devin
+    --permission-mode dangerous
+    --print
+    --continue
+    --export "$EXPORT_FILE"
+  )
+  echo "  Continue most recent session"
+else
+  # 首次启动模式
+  DEVIN_CMD=(
+    devin
+    --permission-mode dangerous
+    --print
+    --prompt-file "$PROMPT_FILE"
+    --export "$EXPORT_FILE"
+  )
+fi
 
 # 在 tmux 中启动 devin
+# 设置 remain-on-exit=on，这样 devin 退出后 tmux 会话不消失，watchdog 可以检查退出状态
 tmux new-session -d -s "$SESSION_NAME" -c "$WORKTREE_PATH" \
-  "$(printf '%q ' "${DEVIN_CMD[@]}")"
+  "tmux set-option remain-on-exit on; $(printf '%q ' "${DEVIN_CMD[@]}")"
 
 echo ""
 echo "✅ Worker $WORKER_ID 已启动 (yolo 模式)"

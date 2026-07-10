@@ -75,22 +75,38 @@ check_rate_limited() {
   grep -iE "$RATE_LIMIT_PATTERN" "$pane_file" >/dev/null 2>&1
 }
 
-# 重启 Worker（发"继续"让 Devin 恢复工作）
+# 重启 Worker（用 --resume 继续 Devin 之前的 session）
 restart_worker() {
   local retry_num="$1"
-  log "重启 Worker (重试 $retry_num/$MAX_RETRIES)"
+  local reason="$2"  # "rate_limit" or "incomplete"
+  log "重启 Worker (重试 $retry_num/$MAX_RETRIES, 原因: $reason)"
 
-  # 重新启动 worker_v2.sh（它会重新创建 worktree 并启动 devin）
-  # 但这次用 --resume 方式：如果 worktree 已存在，直接在里面发"继续"
   local worktree_path="$PROJECT_DIR/.worktrees/${SESSION_NAME}"
 
-  if [[ -d "$worktree_path" ]]; then
-    # worktree 已存在，在 tmux 里启动 devin 并发"继续"
+  # 获取之前的 session_id（从 transcript 文件）
+  local transcript_file="$PROJECT_DIR/runtime/transcripts/${SESSION_NAME}_${TASK_ID}.devin.atif.json"
+  local session_id=""
+  if [[ -f "$transcript_file" ]]; then
+    session_id=$(python3 -c "
+import json
+with open('$transcript_file') as f:
+    data = json.load(f)
+print(data.get('session_id', ''))
+" 2>/dev/null || echo "")
+  fi
+
+  if [[ -n "$session_id" ]]; then
+    log "使用 --resume $session_id 继续 Devin session"
+    # 在 tmux 中用 --resume 启动 devin
     tmux new-session -d -s "$SESSION_NAME" -c "$worktree_path" \
-      "devin --permission-mode dangerous --prompt-file /dev/stdin <<'PROMPT'
-继续之前被限流中断的工作。你的任务ID是 $TASK_ID。请检查已有的工作成果，继续完成未完成的部分。
-PROMPT"
-    log "已在 worktree $worktree_path 中重启 devin 并发'继续'"
+      "devin --permission-mode dangerous --print --resume $session_id --export $transcript_file"
+    log "已用 --resume $session_id 重启 devin"
+  elif [[ -d "$worktree_path" ]]; then
+    # worktree 已存在但没有 session_id，用 --continue
+    log "无 session_id，使用 --continue 继续最近的 session"
+    tmux new-session -d -s "$SESSION_NAME" -c "$worktree_path" \
+      "devin --permission-mode dangerous --print --continue --export $transcript_file"
+    log "已用 --continue 重启 devin"
   else
     # worktree 不存在，从头启动
     log "worktree 不存在，从头启动 worker"
@@ -140,7 +156,26 @@ while true; do
   # 检查 tmux 会话是否存在
   if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
     log "tmux 会话 $SESSION_NAME 已退出"
+    SESSION_DEAD=1
+  else
+    # 会话存在，但 devin --print 进程可能已退出
+    # 检查 pane 中的进程是否还活着
+    PANE_PID=$(tmux display-message -t "$SESSION_NAME" -p '#{pane_pid}' 2>/dev/null || echo "")
+    if [[ -n "$PANE_PID" ]]; then
+      if ! kill -0 "$PANE_PID" 2>/dev/null; then
+        log "tmux 会话存在但 devin 进程 (PID $PANE_PID) 已退出"
+        # 杀掉空 tmux 会话
+        tmux kill-session -t "$SESSION_NAME" 2>/dev/null || true
+        SESSION_DEAD=1
+      else
+        SESSION_DEAD=0
+      fi
+    else
+      SESSION_DEAD=0
+    fi
+  fi
 
+  if [[ "$SESSION_DEAD" == "1" ]]; then
     # 会话已结束，检查任务状态
     TASK_STATUS=$(python3 -c "
 import json
@@ -160,14 +195,7 @@ for t in data['tasks']:
     fi
 
     # 任务未完成，检查是否限流
-    # 注意：tmux 会话已退出，无法 capture-pane
-    # 检查最近的 launcher log
-    LATEST_LOG=$(ls -t "$PROJECT_DIR/runtime/launcher_logs/"*.json 2>/dev/null | head -1)
-    if [[ -n "$LATEST_LOG" ]]; then
-      log "检查 launcher log: $LATEST_LOG"
-    fi
-
-    # 由于无法从已退出的 tmux 获取输出，检查 transcript 文件
+    # 检查 transcript 文件
     TRANSCRIPT_FILE="$PROJECT_DIR/runtime/transcripts/${SESSION_NAME}_${TASK_ID}.devin.atif.json"
     if [[ -f "$TRANSCRIPT_FILE" ]]; then
       if grep -iE "$RATE_LIMIT_PATTERN" "$TRANSCRIPT_FILE" >/dev/null 2>&1; then
@@ -193,7 +221,7 @@ for t in data['tasks']:
       sleep "$COOLDOWN"
 
       log "cooldown 结束，重启 Worker"
-      restart_worker "$RETRY_COUNT"
+      restart_worker "$RETRY_COUNT" "rate_limit"
       # 等待新会话启动
       sleep 5
       continue
@@ -203,9 +231,22 @@ for t in data['tasks']:
         complete_task
         exit 0
       else
-        log "非限流异常退出，re-queue 任务"
-        requeue_task "non-rate-limit exit"
-        exit 1
+        # 任务未完成但非限流 — Devin --print 单轮执行完毕但任务可能还没做完
+        # 用 --resume 继续，而不是直接 re-queue
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        if [[ "$RETRY_COUNT" -gt "$MAX_RETRIES" ]]; then
+          log "超过最大重试次数 ($MAX_RETRIES)，re-queue 任务"
+          requeue_task "incomplete after max retries"
+          exit 1
+        fi
+
+        log "任务未完成（非限流），用 --resume 继续 (重试 $RETRY_COUNT/$MAX_RETRIES)"
+        # 短暂等待后 resume（不需要长 cooldown）
+        sleep 10
+        restart_worker "$RETRY_COUNT" "incomplete"
+        # 等待新会话启动
+        sleep 5
+        continue
       fi
     fi
   fi
