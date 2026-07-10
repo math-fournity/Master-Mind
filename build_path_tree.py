@@ -159,8 +159,12 @@ def _find_title_line_fuzzy(lines: List[str], title: str, start: int, end: int) -
         ("暇", "曜"),
         ("曜", "缠"),
         ("缠", "曜"),
+        ("曜", "眼"),
+        ("眼", "曜"),
         ("僧", "憎"),
         ("憎", "僧"),
+        ("宫", "官"),
+        ("官", "宫"),
     ]
 
     variants = set()
