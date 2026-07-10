@@ -184,16 +184,46 @@ def _find_title_line_fuzzy(lines: List[str], title: str, start: int, end: int) -
 def _find_rule_line(lines: List[str], rule_text: str, start: int, end: int) -> Optional[int]:
     """在 lines[start-1:end] 范围内查找规则文本所在行
 
-    rule_text 可能跨多行，取前 10 个字符做匹配。
+    rule_text 可能跨多行，取前 10 个非空格字符做匹配。
     返回 1-based 行号。
     """
-    keyword = rule_text.strip()[:10]
+    # 取前10个非空格字符（忽略空格和换行）
+    keyword = rule_text.replace(" ", "").replace("\n", "")[:10]
     if not keyword:
         return None
 
+    # 策略1：逐行精确匹配（忽略空格）
     for i in range(start - 1, min(end, len(lines))):
-        if keyword in lines[i]:
+        line_no_space = lines[i].replace(" ", "").replace("\n", "")
+        if keyword in line_no_space:
             return i + 1
+
+    # 策略2：跨行匹配（合并多行后搜索）
+    # 把 start 到 end 范围内的所有行合并，搜索 keyword
+    region_text = "".join(lines[start - 1:min(end, len(lines))])
+    region_no_space = region_text.replace(" ", "").replace("\n", "")
+    idx = region_no_space.find(keyword)
+    if idx >= 0:
+        # 找到 keyword 在合并文本中的位置，反推回行号
+        # 计算到 keyword 起始位置为止的原始文本长度
+        raw_pos = 0
+        space_count = 0
+        for i, ch in enumerate(region_text):
+            if ch in " \n":
+                space_count += 1
+            else:
+                if raw_pos == idx:
+                    # 当前位置就是 keyword 起始
+                    # 计算行号：从 start 开始，数换行符
+                    line_num = start
+                    for j in range(i):
+                        if region_text[j] == '\n':
+                            line_num += 1
+                    return line_num
+                raw_pos += 1
+        # fallback: 返回 start
+        return start
+
     return None
 
 
