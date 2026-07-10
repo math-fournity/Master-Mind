@@ -2,22 +2,26 @@
 # auto_dispatch.sh — 自动监控 Worker 完成状态并派发下一批任务
 #
 # 用法：
-#   ./tools/auto_dispatch.sh --max-workers 2 --batch-size 2
+#   ./tools/auto_dispatch.sh --max-workers 2 --poll-interval 120
 #   Ctrl+C 停止
+#
+# 核心逻辑：
+#   1. 启动一批 Worker（最多 --max-workers 个）
+#   2. 每 --poll-interval 秒检查 devin 进程数
+#   3. 当 devin 进程从 >0 变为 0 时，收集结果、清理、启动下一批
+#   4. 重复直到没有 queued 任务
 
-set -euo pipefail
+set -uo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_DIR"
 
 MAX_WORKERS=2
-BATCH_SIZE=2
-POLL_INTERVAL=60
+POLL_INTERVAL=120
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --max-workers) MAX_WORKERS="$2"; shift 2 ;;
-    --batch-size)  BATCH_SIZE="$2"; shift 2 ;;
     --poll-interval) POLL_INTERVAL="$2"; shift 2 ;;
     *) shift ;;
   esac
@@ -27,73 +31,61 @@ log() {
   echo "[$(date '+%H:%M:%S')] $*"
 }
 
-while true; do
-  # 检查 queued 任务数
-  QUEUED=$(python3 -c "
+count_devin() {
+  ps aux 2>/dev/null | grep 'devin --permission' | grep -v grep | wc -l | tr -d ' ' || echo 0
+}
+
+count_queued() {
+  python3 -c "
 import json
 with open('tasks.json') as f: data = json.load(f)
 print(len([t for t in data['tasks'] if t.get('status') == 'queued']))
-" 2>/dev/null || echo 0)
+" 2>/dev/null || echo 0
+}
 
-  if [[ "$QUEUED" == "0" ]]; then
-    log "没有 queued 任务了，检查是否全部完成..."
-    COMPLETED=$(python3 -c "
+count_completed() {
+  python3 -c "
 import json
 with open('tasks.json') as f: data = json.load(f)
 print(len([t for t in data['tasks'] if t.get('status') == 'completed']))
-" 2>/dev/null || echo 0)
-    log "已完成: $COMPLETED"
-    break
-  fi
+" 2>/dev/null || echo 0
+}
 
-  # 检查运行中的 Worker
-  RUNNING=$(tmux list-sessions 2>/dev/null | grep -c "^worker-" 2>/dev/null || true)
-  RUNNING=${RUNNING:-0}
+cleanup_and_collect() {
+  log "收集 AUDIT 文件并清理旧 Worker..."
 
-  # 检查是否有 devin 进程在运行
-  DEVIN_RUNNING=$(ps aux | grep 'devin --permission' | grep -v grep | wc -l | tr -d ' ' || true)
-  DEVIN_RUNNING=${DEVIN_RUNNING:-0}
+  # 复制 AUDIT 文件从 worktree 到主目录
+  for wt in .worktrees/worker-W*; do
+    [[ -d "$wt/dev-docs" ]] || continue
+    for audit in "$wt"/dev-docs/AUDIT-auto.*.md; do
+      [[ -f "$audit" ]] || continue
+      bn=$(basename "$audit")
+      if [[ ! -f "dev-docs/$bn" ]]; then
+        cp "$audit" dev-docs/
+        log "  复制: $bn"
+      fi
+    done
+  done
 
-  log "queued=$QUEUED running_workers=$RUNNING devin_procs=$DEVIN_RUNNING"
+  # 清理 tmux 会话
+  for sess in $(tmux list-sessions 2>/dev/null | grep "^worker-" | awk -F: '{print $1}'); do
+    tmux kill-session -t "$sess" 2>/dev/null || true
+  done
 
-  if [[ "$DEVIN_RUNNING" == "0" ]]; then
-    # 没有 devin 进程在运行
-    if [[ "$RUNNING" -gt 0 ]]; then
-      # Worker tmux 会话存在但 devin 进程已退出 → 任务可能完成了
-      log "Devin 进程已退出，收集结果并清理..."
+  # 清理 worktree
+  git worktree prune 2>/dev/null || true
+  for wt in .worktrees/worker-W*; do
+    [[ -d "$wt" ]] || continue
+    git worktree remove "$wt" --force 2>/dev/null || true
+  done
 
-      # 复制 AUDIT 文件从 worktree 到主目录
-      for wt in .worktrees/worker-W*; do
-        [[ -d "$wt/dev-docs" ]] || continue
-        for audit in "$wt"/dev-docs/AUDIT-auto.*.md; do
-          [[ -f "$audit" ]] || continue
-          basename=$(basename "$audit")
-          if [[ ! -f "dev-docs/$basename" ]]; then
-            cp "$audit" dev-docs/
-            log "  复制: $basename"
-          fi
-        done
-      done
+  # 清理旧分支
+  git branch 2>/dev/null | grep 'worker/' | awk '{print $1}' | while read br; do
+    git branch -D "$br" 2>/dev/null || true
+  done
 
-      # 清理已完成的 Worker
-      for sess in $(tmux list-sessions 2>/dev/null | grep "^worker-" | awk -F: '{print $1}'); do
-        tmux kill-session -t "$sess" 2>/dev/null || true
-      done
-
-      # 清理 worktree
-      git worktree prune 2>/dev/null || true
-      for wt in .worktrees/worker-W*; do
-        [[ -d "$wt" ]] || continue
-        git worktree remove "$wt" --force 2>/dev/null || true
-      done
-
-      # 清理旧分支
-      git branch | grep 'worker/' | awk '{print $1}' | while read br; do
-        git branch -D "$br" 2>/dev/null || true
-      done
-
-      # 重新 lease 已释放的 leased 任务
-      python3 -c "
+  # 重置 leased 任务为 queued
+  python3 -c "
 import json
 with open('tasks.json', 'r') as f: data = json.load(f)
 changed = False
@@ -102,32 +94,71 @@ for t in data['tasks']:
         t['status'] = 'queued'
         t['assigned_to'] = None
         changed = True
-for w in data['workers'].values():
+for w in data.get('workers', {}).values():
     if w.get('status') == 'busy':
         w['status'] = 'idle'
         w['current_task'] = None
 if changed:
     with open('tasks.json', 'w') as f: json.dump(data, f, ensure_ascii=False, indent=2)
 " 2>/dev/null || true
-    fi
+}
 
-    # 启动下一批（无论 RUNNING 是 0 还是 >0，只要没有 devin 在跑就启动）
-    if [[ "$QUEUED" -gt 0 ]]; then
-      log "启动下一批 Worker..."
-      ./tools/launch_workers.sh --max-workers "$MAX_WORKERS" 2>&1 | grep -E "✅|任务:|本次启动|可用槽位" || true
+launch_batch() {
+  local queued=$(count_queued)
+  if [[ "$queued" == "0" ]]; then
+    return 1
+  fi
 
-      # 等待 Worker 启动
-      sleep 15
+  log "启动下一批 Worker (queued=$queued)..."
+  ./tools/launch_workers.sh --max-workers "$MAX_WORKERS" 2>&1 | grep -E "✅|任务:|本次启动|可用槽位|没有" || true
+
+  # 等待 devin 进程启动
+  sleep 10
+
+  local devin=$(count_devin)
+  if [[ "$devin" == "0" ]]; then
+    log "警告: Worker 启动后没有 devin 进程，可能启动失败"
+    sleep 5
+    devin=$(count_devin)
+    if [[ "$devin" == "0" ]]; then
+      log "错误: 仍然没有 devin 进程，清理后重试..."
+      cleanup_and_collect
+      sleep 5
+      return 0  # 重试
     fi
   fi
 
+  log "Worker 已启动 (devin_procs=$devin)，等待完成..."
+  return 0
+}
+
+# ===== 主循环 =====
+
+log "=== MOIRA auto_dispatch 启动 (max_workers=$MAX_WORKERS poll=${POLL_INTERVAL}s) ==="
+
+# 首次启动
+launch_batch
+
+while true; do
   sleep "$POLL_INTERVAL"
+
+  queued=$(count_queued)
+  devin=$(count_devin)
+  completed=$(count_completed)
+
+  log "status: queued=$queued completed=$completed devin_procs=$devin"
+
+  if [[ "$queued" == "0" && "$devin" == "0" ]]; then
+    log "所有任务完成！"
+    log "最终状态: completed=$completed"
+    break
+  fi
+
+  if [[ "$devin" == "0" ]]; then
+    # 所有 devin 进程已退出，收集结果并启动下一批
+    cleanup_and_collect
+    launch_batch
+  fi
 done
 
-log "所有任务完成！"
-python3 -c "
-import json
-from collections import Counter
-with open('tasks.json') as f: data = json.load(f)
-print(f'Final: {dict(Counter(t.get(\"status\") for t in data[\"tasks\"]))}')
-"
+log "=== auto_dispatch 结束 ==="
