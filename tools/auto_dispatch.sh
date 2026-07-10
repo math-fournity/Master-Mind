@@ -98,16 +98,29 @@ cleanup_and_collect() {
     git branch -D "$br" 2>/dev/null || true
   done
 
-  # 重置 leased 任务为 queued
+  # 重置 leased 任务：如果 AUDIT 文件已存在则标记为 completed，否则重置为 queued
   python3 -c "
-import json
+import json, os, glob
 with open('tasks.json', 'r') as f: data = json.load(f)
 changed = False
 for t in data['tasks']:
     if t.get('status') == 'leased':
-        t['status'] = 'queued'
-        t['assigned_to'] = None
-        changed = True
+        task_id = t.get('id', '')
+        # 检查主目录和 worktree 中是否有 AUDIT 文件
+        audit_pattern = f'dev-docs/AUDIT-{task_id}*.md'
+        audit_files = glob.glob(audit_pattern)
+        if not audit_files:
+            # 也检查 worktree
+            for wt in glob.glob('.worktrees/worker-W*'):
+                audit_files.extend(glob.glob(f'{wt}/dev-docs/AUDIT-{task_id}*.md'))
+        if audit_files:
+            t['status'] = 'completed'
+            t['assigned_to'] = None
+            changed = True
+        else:
+            t['status'] = 'queued'
+            t['assigned_to'] = None
+            changed = True
 for w in data.get('workers', {}).values():
     if w.get('status') == 'busy':
         w['status'] = 'idle'
