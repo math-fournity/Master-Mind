@@ -126,23 +126,11 @@ launch_batch() {
   log "启动下一批 Worker (queued=$queued)..."
   ./tools/launch_workers.sh --max-workers "$MAX_WORKERS" 2>&1 | grep -E "✅|任务:|本次启动|可用槽位|没有" || true
 
-  # 等待 devin 进程启动（devin CLI 启动需要一些时间）
-  sleep 20
+  # 等待 devin 进程启动
+  sleep 15
 
   local devin=$(count_devin)
-  if [[ "$devin" == "0" ]]; then
-    log "警告: Worker 启动后没有 devin 进程，可能启动失败"
-    sleep 10
-    devin=$(count_devin)
-    if [[ "$devin" == "0" ]]; then
-      log "错误: 仍然没有 devin 进程，清理后重试..."
-      cleanup_and_collect
-      sleep 5
-      return 0  # 重试
-    fi
-  fi
-
-  log "Worker 已启动 (devin_procs=$devin)，等待完成..."
+  log "Worker 启动完成 (devin_procs=$devin)，等待任务完成..."
   return 0
 }
 
