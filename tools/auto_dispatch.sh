@@ -54,6 +54,14 @@ print(len([t for t in data['tasks'] if t.get('status') == 'completed']))
 cleanup_and_collect() {
   log "收集 AUDIT 文件并清理旧 Worker..."
 
+  # 0. 杀掉所有 watchdog 进程（防止重启 devin）
+  pkill -f 'tools/watchdog.sh' 2>/dev/null || true
+  sleep 1
+
+  # 0b. 杀掉所有 devin 进程
+  pkill -f 'devin --permission-mode dangerous' 2>/dev/null || true
+  sleep 2
+
   # 复制 AUDIT 文件从 worktree 到主目录
   for wt in .worktrees/worker-W*; do
     [[ -d "$wt/dev-docs" ]] || continue
