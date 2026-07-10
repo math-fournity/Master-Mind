@@ -804,6 +804,127 @@ watchdog 脚本（`tools/watchdog.sh`）每 30 秒检查一次 Worker tmux 会�
 | `runtime/transcripts/` | Devin 会话导出文件 |
 | `runtime/watchdog_logs/` | watchdog 日志 |
 
+### 系统脚本架构与调用关系（2026-07-10 补全）
+
+**四个主控脚本的分工**：
+
+| 脚本 | 定位 | 角色 |
+|---|---|---|
+| `master.py` | **手动控制接口** | 分配任务/记录检查点/完成任务/验证完整性/启动Auditor。AI（Master Agent）通过 CLI 命令直接调用 |
+| `master_controller.py` | **自动化循环控制器** | 最高层。循环调用 factory.py + self_iteration.py，实现无人值守运行 |
+| `factory.py` | **Worker 生命周期管理** | 从 schema.json 自动发现任务、动态创建 Worker、分配任务、检查完成 |
+| `self_iteration.py` | **自我迭代引擎** | 从吸收结果中发现新任务、动态调整吸收策略、构建知识图谱 |
+
+**调用关系图**：
+
+```
+AI Master Agent（如 Devin CLI）
+    │
+    │ 直接调用 master.py CLI 命令
+    ↓
+master.py（手动控制）
+    │ 读写 tasks.json, runtime/checkpoints/, runtime/audit_logs/
+    │ subprocess → auditor.py, tools/agent_launcher.py, tmux
+    │
+    │ 或者由自动化控制器接管
+    ↓
+master_controller.py（自动化循环）
+    │ 读写 runtime/master_state.json, tasks.json
+    │ subprocess → factory.py --action run/status
+    │ subprocess → self_iteration.py --action iterate/status
+    ↓
+factory.py（Worker 工厂）
+    │ 读写 tasks.json, runtime/factory_state.json
+    │ 读 dev-docs/原典/星平会海/schema.json → 自动发现 auto.* 任务
+    │ subprocess → worker.sh（旧）或 tools/worker_v2.sh（新）
+    ↓
+self_iteration.py（自我迭代）
+    │ 读写 runtime/iteration_state.json
+    │ 读写 runtime/absorption_strategy.json
+    │ 读写 runtime/knowledge_graph.json（尚未创建）
+    │ 读写 tasks.json → 生成 explore.*/random.* 任务
+```
+
+**非线性状态文件**：
+
+| 文件 | 写入者 | 读取者 | 内容 |
+|---|---|---|---|
+| `runtime/iteration_state.json` | `self_iteration.py` | `self_iteration.py`, `tools/moira_runtime.py` | 迭代次数、发现列表、生成的新任务 |
+| `runtime/absorption_strategy.json` | `self_iteration.py` | `self_iteration.py`, `tools/moira_runtime.py` | 当前阶段(exploration)、6维度覆盖率、非线性权重 |
+| `runtime/knowledge_graph.json` | `self_iteration.py` | `self_iteration.py`, `tools/moira_runtime.py` | 算子/集合/命题/关系/概念/发现（尚未创建，系统未进入知识积累阶段） |
+| `runtime/master_state.json` | `master_controller.py` | `master_controller.py` | 主控状态、周期数、发现数 |
+| `runtime/factory_state.json` | `factory.py` | `factory.py` | 工厂状态 |
+
+**moira_runtime.py 如何使用这些文件**：`tools/moira_runtime.py` 的 `nonlinear_state()` 函数读取 `iteration_state.json`、`absorption_strategy.json`、`knowledge_graph.json`，生成 runtime capsule 中的 `nonlinear_phase`、`iteration_count`、`dimension_coverage`、`lowest_coverage_dimensions` 等字段。这就是 SessionStart/UserPromptSubmit hook 注入的"当前系统状态"的来源。
+
+### 双账本架构：tasks.json vs dev-docs/todos.json（2026-07-10 补全）
+
+**两个文件是平行的，没有映射关系**：
+
+| 账本 | 文件 | 管理工具 | ID 格式 | 用途 |
+|---|---|---|---|---|
+| **执行账本** | `tasks.json` | `master.py`, `factory.py` | `auto.N`, `random.N`, `explore.N` | Worker 实际执行的任务队列（文献考据、探索等） |
+| **规划账本** | `dev-docs/todos.json` | `todo.py` | `phase.N`（如 20.4, 13.1） | 项目建设的长期规划（Phase 1-25） |
+
+**auto.* 任务的来源**：`factory.py` 的 `discover_tasks_from_schema()` 从 `dev-docs/原典/星平会海/schema.json` 自动生成 `auto.N` 考据任务，每个 subsection 生成一个。
+
+**runtime-manifest.json 的定义**：`ai-runtime/protocol/runtime-manifest.json` 中明确标注了 `tasks.json` = execution_tasks，`dev-docs/todos.json` = todo_truth。
+
+### Worker 执行流程与 AUDIT 文件（2026-07-10 补全）
+
+**Worker 提示词**（`worker_prompt.py` 生成，约200行）：
+- **核心思维力提示词**（~150行）：形式化五问、定量化意识、开放性意识、全息意识、时代性意识、PathListGate 硬门
+- **动态任务信息**（~50行）：任务ID、标题、Section ID、行范围、执行步骤、汇报要求
+- **不直接读取数据文件**：提示词要求 Worker 自己确认 `full_path_tree.json` 存在，而不是预加载内容
+
+**Worker 产出物**：`dev-docs/AUDIT-auto.{N}-{section名}.md`，包含：
+- PathListGate 验证（hash 比对）
+- 原始文本内容（来源、文件、行号、歌诀、注释）
+- 形式化五问（每条规则的算子/输入/输出/可求值性/一致性）
+- 维度/成熟度/可计算性汇报（SOP 三要素）
+- 跨文献对照、定量化/开放性/全息/时代性分析
+- 审计判定（PASS + 理由）
+
+**已知缺口**：AUDIT-auto.*.md 文件目前由 Worker 直接产出，**缺少 Auditor 的二次审查**。审计系统脚本已实现但未自动运行。
+
+### 审计系统脚本架构（2026-07-10 补全）
+
+**四个审计脚本的分工**：
+
+| 脚本 | 定位 | 读写文件 | CLI 命令 |
+|---|---|---|---|
+| `auditor.py` | **Auditor Agent 主控** | 读 checkpoints/，写 auditor_prompts/ | `audit-section`, `audit-task`, `generate-report` |
+| `audit.py` | **审计记录管理** | 读写 dev-notes/AUDIT-*.json，读 todos.json | `create`, `validate`, `report`, `list` |
+| `sop_audit.py` | **SOP 汇报审计** | 读 checkpoints/，写 audit_logs/ | `audit-section`, `audit-task`, `report` |
+| `quality_gate.py` | **质量门控** | 读 dev-notes/AUDIT-*.json, todos.json | `check`, `check-all`, `report` |
+
+**审计流程**：
+
+```
+Worker 完成任务 → 汇报 SOP（维度/成熟度/可计算性）→ 保存到 checkpoint
+    ↓
+Master 调用 sop_audit.py 审计 SOP 汇报 → 保存到 runtime/audit_logs/
+    ↓
+Master 调用 master.py launch-auditor 启动 Auditor Agent
+    ↓
+auditor.py 生成审计提示词 → runtime/auditor_prompts/
+    ↓
+Auditor Agent（tmux 中）进行语义审计 → 保存到 runtime/audit_logs/
+    ↓
+Master 读取审计结果 → PASS 则任务完成 / FAIL 则 Worker 重新执行
+```
+
+**`master.py launch-auditor` 已实现**（第 685-798 行），支持 `--provider opencode/devin`，在 tmux 中启动 Auditor Agent。
+
+**审计结果存储位置**：
+- `runtime/audit_logs/` — 自动化审计日志（JSON）
+- `runtime/auditor_prompts/` — 审计提示词（Markdown）
+- `runtime/checkpoints/` — Worker 检查点（JSON）
+- `dev-notes/AUDIT-*.json` — 结构化审计记录（由 audit.py 生成）
+- `dev-docs/AUDIT-*.md` — Worker 手写的详细审计报告（Markdown）
+
+**当前状态**：审计系统脚本已实现，runtime/audit_logs/ 中有 2026-07-09 的运行记录，但目前没有 Auditor 在运行。97 个 auto.* 任务的 AUDIT 文件缺少 Auditor 二次审查。
+
 ### 全 path 列表前置门（PathListGate · 2026-07-10 新增）
 
 任何一本原典在正文处理前，必须先完成全 path 列表。这里的“处理”包括摘要、形式化、规则抽取、考据、审计和系统吸收。没有全 path 列表时，Master 不得派 Worker 读正文，Worker 不得自行开始正文处理，Auditor 不得给正文处理结果 PASS。
