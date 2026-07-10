@@ -49,6 +49,22 @@ def _is_web_metadata(line: str) -> bool:
         return True
     if stripped == "The requested URL was not found on this server.":
         return True
+    # 分页标记碎片（纯数字或符号行）
+    if stripped in ["«", "<", "»", ">"]:
+        return True
+    if stripped.isdigit() and len(stripped) <= 2:
+        return True
+    if stripped == "/" or stripped.startswith("/ "):
+        return True
+    # 导航链接
+    if stripped.startswith("上一篇") or stripped.startswith("下一篇"):
+        return True
+    if stripped.startswith("相关文章"):
+        return True
+    if stripped.startswith("首页") and "典籍" in stripped:
+        return True
+    if stripped.startswith("日期:") and "发布者" in stripped:
+        return True
     return False
 
 
@@ -82,10 +98,11 @@ def _extract_title_from_header(line: str) -> Optional[str]:
 def _find_title_line(lines: List[str], title: str, start: int, end: int) -> Optional[int]:
     """在 lines[start-1:end] 范围内查找标题行
 
-    策略：
-    1. 精确匹配（跳过 web 元数据）
-    2. 子串匹配（标题作为行的子串出现，且行不太长）
-    3. 从 Title: 头提取匹配
+    策略优先级：
+    1. 精确匹配正文中的独立标题行
+    2. 子串匹配（短行）
+    3. 忽略空格匹配
+    4. 从 Title: 头提取（最后才用，因为 Title 头在正文之前）
     返回 1-based 行号。
     """
     # 策略1：精确匹配
@@ -96,7 +113,7 @@ def _find_title_line(lines: List[str], title: str, start: int, end: int) -> Opti
         if line_text == title:
             return i + 1
 
-    # 策略2：子串匹配（标题在行首或独立出现）
+    # 策略2：子串匹配（标题在行首或独立出现，短行）
     for i in range(start - 1, min(end, len(lines))):
         if _is_web_metadata(lines[i]):
             continue
@@ -106,7 +123,16 @@ def _find_title_line(lines: List[str], title: str, start: int, end: int) -> Opti
         if title in line_text:
             return i + 1
 
-    # 策略3：从 Title: 头提取
+    # 策略3：忽略空格匹配（如 "吊 冲 秘 诀" 匹配 "吊冲秘诀"）
+    title_no_space = title.replace(" ", "")
+    for i in range(start - 1, min(end, len(lines))):
+        if _is_web_metadata(lines[i]):
+            continue
+        line_text = lines[i].strip().replace(" ", "")
+        if line_text == title_no_space:
+            return i + 1
+
+    # 策略4：从 Title: 头提取（最后才用）
     for i in range(start - 1, min(end, len(lines))):
         stripped = lines[i].strip()
         if stripped.startswith("Title:"):
@@ -123,12 +149,25 @@ def _find_title_line_fuzzy(lines: List[str], title: str, start: int, end: int) -
     if result:
         return result
 
-    variants = [
-        title.replace("交", "郊"),
-        title.replace("郊", "交"),
-        title.replace("缠", "躔"),
-        title.replace("躔", "缠"),
+    # OCR 变体替换表
+    replacements = [
+        ("交", "郊"),
+        ("郊", "交"),
+        ("缠", "躔"),
+        ("躔", "缠"),
+        ("曜", "暇"),
+        ("暇", "曜"),
+        ("曜", "缠"),
+        ("缠", "曜"),
+        ("僧", "憎"),
+        ("憎", "僧"),
     ]
+
+    variants = set()
+    for old, new in replacements:
+        if old in title:
+            variants.add(title.replace(old, new))
+
     for v in variants:
         if v == title:
             continue
