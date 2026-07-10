@@ -671,6 +671,615 @@ Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/09-Phase24郑氏星案端到端验证报告.md" /> | **Phase 24 完成报告：郑氏星案40例端到端验证 40/40 全部匹配 + calc_four_poles 4个bug修复（节气分年月/年柱基准/时柱hour_index/早子时）** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/10-Phase24b命格判断验证报告.md" /> | **Phase 24b v3完成报告：规则库扩充134→283条(喜格99.0%/忌格94.2%) + score_rules()v3数据驱动评分模型(高低命格总分差14.1/喜忌比差1.49)** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/13-七政四余形式化体系.md" /> | **七政四余形式化体系：算子(躔/照/会/守/冲/合) + 集合(星/宿/宫) + 命题(X→Y) + 与 rules_library.json 的对应关系** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/14-古籍研究SOP脚本化设计.md" /> | **古籍研究SOP脚本化设计：强制检查点 + 审计跟踪 + 质量门控 + 结果验证。渐进式实现，先覆盖四层考据** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/15-Master-Worker架构设计方案.md" /> | **Master-Worker架构设计：主控脚本 + Worker启动脚本 + 任务队列 + 检查点机制 + 停止门。基于MiMo模型20万token上下文限制，推荐宿级粒度** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/46-Devin-CLI非线性运行时改造.md" /> | **Devin CLI 非线性运行时改造：在不破坏 opencode 工作面的前提下，新增 Devin 项目配置、hooks、skills、runtime capsule、provider adapter 和 stop gate** |
+
+### Master-Worker架构与完整性审计（2026-07-09 新增）
+
+**架构目标**：用Master Agent控制sub-agents在tmux中执行古籍研究任务，确保内容完整性。
+
+**核心组件**：
+
+| 组件 | 文件 | 功能 |
+|---|---|---|
+| **Master Agent** | `master.py` | 主控脚本：分配任务/记录检查点/完成任务/验证完整性 |
+| **Worker Agent** | `worker.sh` | 启动脚本：在tmux中启动 opencode 或 Devin CLI 执行任务 |
+| **任务队列** | `tasks.json` | 任务状态管理：queued/leased/completed |
+| **Path树** | `build_path_tree.py` | 构建《星平会海》完整path树（精确到每一行） |
+| **完整性验证** | `verify_integrity.py` | 全量验证/行级验证/审计日志 |
+
+**Master命令**：
+```bash
+# 查看系统状态
+python3 master.py status
+
+# 分配任务
+python3 master.py assign --task-id 20.4 --worker-id W1
+
+# 记录检查点
+python3 master.py checkpoint --worker-id W1 --task-id 20.4 --phase <PHASE> --cursor-line <LINE> --evidence-count <COUNT> --note '<NOTE>'
+
+# 完成任务
+python3 master.py complete --task-id 20.4 --result '<RESULT>'
+
+# 报告行级覆盖
+python3 master.py report-line-coverage --worker-id W1 --task-id 20.4 --section-id 卷一/星曜躔度歌 --start-line 1 --end-line 130 --content-hash <SHA256>
+
+# 验证section完整性
+python3 master.py verify-section --worker-id W1 --task-id 20.4 --section-id 卷一/星曜躔度歌
+
+# 全量验证
+python3 master.py verify-complete --document 星平会海
+
+# 停止门检查
+python3 master.py may-stop
+```
+
+**Worker启动**：
+```bash
+# 基本启动
+./worker.sh --worker-id W1 --task-id 20.4
+
+# 带行级参数启动
+./worker.sh --worker-id W1 --task-id 20.4 --start-line 1 --end-line 130 --section-id 卷一/星曜躔度歌
+
+# 使用 Devin CLI
+./worker.sh --provider devin --worker-id W1 --task-id 20.4
+```
+
+**完整性审计结果**（2026-07-09 测试）：
+- Path树：10卷 / 246节 / 79子节 / 307规则
+- 卷覆盖：10/10 (100%)
+- 节覆盖：246/246 (100%)
+- 规则覆盖：307/307 (100%)
+- 行级报告：1-130 (130行) 已验证
+
+**审计日志位置**：`runtime/audit_logs/`
+
+### Devin CLI 非线性运行时支撑（2026-07-10 新增）
+
+本项目未来可以由 Devin CLI 支撑，但不能把这个迁移理解成简单替换命令行工具。MOIRA 的运行时是非线性的：系统会从 `S-n` 吸收经验包，发现新维度，提升成熟度，改变可计算性，再反过来生成新的任务和审计要求。
+
+因此，Devin 进入本项目时必须先读取 runtime capsule，而不是只依赖上下文记忆。项目已新增 `.devin/config.json`、`.devin/hooks.v1.json`、`.devin/skills/`、`ai-runtime/protocol/`、`tools/moira_runtime.py` 和 `tools/agent_launcher.py`。Devin 的 `SessionStart` 与 `UserPromptSubmit` 会注入当前任务状态、Worker 状态、非线性维度覆盖、协议锚点和下一步动作；`Stop` hook 会在仍有 queued、leased、busy 或协议漂移时阻止过早停止。
+
+默认 provider 仍是 opencode，以保护当前工作面。未来启动 Devin Worker 或 Auditor 时，使用 `--provider devin`，或设置 `MOIRA_AGENT_PROVIDER=devin`。无论 provider 是谁，Worker 仍必须输出维度、成熟度和可计算性，Auditor 仍必须把执行完成和语义通过分开。
+
+### Devin Worker yolo 模式 + git worktree + 限流恢复（2026-07-10 新增）
+
+**核心约束：最多 2 个 Devin Worker 实例**（算上 Master 共 3 个 Devin 进程）。超过会触发 API 限流，导致全部 Worker 白费工作。
+
+**禁止用 subagent 派 Worker**。subagent 共享 Master 的 rate limit，10 个 subagent 同时跑会瞬间触发限流。Worker 必须用独立的 Devin CLI 进程，在独立 tmux 会话中运行。
+
+**Worker 启动方式**：
+
+```bash
+# 方式一：用 launch_workers.sh 自动从 tasks.json 取任务并启动
+./tools/launch_workers.sh                    # 启动 2 个 Worker
+./tools/launch_workers.sh --max-workers 1    # 只启动 1 个
+
+# 方式二：手动启动单个 Worker
+./tools/worker_v2.sh --worker-id W1 --task-id auto.40 \
+  --section-id 卷一/星曜照宫歌/兄弟宫 --start-line 302 --end-line 303
+```
+
+**worker_v2.sh 做了什么**：
+
+1. **git worktree 隔离**：每个 Worker 在 `.worktrees/worker-<WID>/` 独立工作目录中运行，避免文件冲突。worktree 基于 main 分支创建，分支名 `worker/<WID>/<TID>`。
+2. **Devin yolo 模式**：`devin --permission-mode dangerous --prompt-file <prompt> --export <transcript>`。dangerous 模式自动批准所有操作，无需人工确认。
+3. **tmux 会话**：Worker 在 `tmux new-session -d -s worker-<WID>` 中运行，可 `tmux attach -t worker-<WID>` 查看。
+4. **watchdog 监控**：`tools/watchdog.sh` 在后台监控 Worker tmux 会话状态。
+
+**限流检测和自动恢复**：
+
+watchdog 脚本（`tools/watchdog.sh`）每 30 秒检查一次 Worker tmux 会话：
+
+| 情况 | watchdog 行为 |
+|---|---|
+| tmux 会话正常运行 | 继续监控 |
+| tmux 会话退出 + 任务已完成 | 标记完成，watchdog 退出 |
+| tmux 会话退出 + 检测到限流 | 等待 cooldown（默认 1800 秒 = 30 分钟）→ 重启 Worker 并发"继续" |
+| tmux 会话退出 + 非限流错误 | re-queue 任务，watchdog 退出 |
+| 超过最大重试次数（默认 5 次） | re-queue 任务，watchdog 退出 |
+
+**限流检测方式**：检查 transcript 文件（`runtime/transcripts/*.devin.atif.json`）和 tmux pane 输出中是否包含 `rate limit` / `Reached overall message rate limit` / `limit will reset` 等关键词。
+
+**"继续"机制**：限流恢复后，watchdog 在 worktree 目录中重新启动 devin，并发送"继续之前被限流中断的工作"提示词。Devin 会检查已有工作成果（AUDIT 文件、checkpoint），继续完成未完成的部分。
+
+**检测间隔合理性**：
+
+- **poll_interval = 30 秒**：tmux 会话状态检查间隔。30 秒足够及时检测到 Worker 退出，又不会过于频繁。
+- **cooldown = 1800 秒（30 分钟）**：限流恢复等待时间。API 限流通常提示"28-30 分钟后重置"，30 分钟留足余量。
+- **max_retries = 5 次**：最多重试 5 次限流恢复。超过则 re-queue，避免无限循环。
+
+**关键文件**：
+
+| 文件 | 功能 |
+|---|---|
+| `tools/launch_workers.sh` | 启动器：从 tasks.json 取任务，启动最多 2 个 Worker |
+| `tools/worker_v2.sh` | Worker 启动脚本 v2：git worktree + Devin yolo + tmux + watchdog |
+| `tools/watchdog.sh` | 监控脚本：限流检测 + cooldown + 自动重启 + "继续" |
+| `.worktrees/worker-<WID>/` | Worker 独立工作目录（git worktree） |
+| `runtime/prompts/` | Worker 提示词文件 |
+| `runtime/transcripts/` | Devin 会话导出文件 |
+| `runtime/watchdog_logs/` | watchdog 日志 |
+
+### 全 path 列表前置门（PathListGate · 2026-07-10 新增）
+
+任何一本原典在正文处理前，必须先完成全 path 列表。这里的“处理”包括摘要、形式化、规则抽取、考据、审计和系统吸收。没有全 path 列表时，Master 不得派 Worker 读正文，Worker 不得自行开始正文处理，Auditor 不得给正文处理结果 PASS。
+
+全 path 列表至少要覆盖：源文件、卷、篇、章、节、子节、规则、行号范围、稳定 path ID、原文定位和可复核 hash。对当前《星平会海》，已有入口是 `dev-docs/原典/星平会海/schema.json` 和 `dev-docs/原典/星平会海/full_path_tree.json`，构建脚本是 `build_path_tree.py`。后续处理其他书时，也必须先在该书目录下建立 `full_path_tree.json` 和 path 审计记录。
+
+PathListGate 的判定口径是 remainder=0。也就是说，Master 要先证明这本书的 path list 覆盖完整、没有断裂、没有重复、能回到原文行号和内容 hash，再进入 Worker 分包。Worker 只能处理 Master 分配的 path ID 和行号范围；发现 path list 缺失、错位或无法定位时，必须停止正文处理并回报 Master 修 path。
+
+### 优雅停止机制（2026-07-09 新增）
+
+**停止命令**：
+
+| 命令 | 功能 | 参数 |
+|---|---|---|
+| `shutdown` | 优雅停止系统 | `--force` 强制停止 |
+| `cleanup` | 清理临时文件和会话 | 无 |
+| `status-report` | 生成状态报告 | 无 |
+
+**优雅停止流程**：
+
+```
+用户请求停止
+    ↓
+执行停止门检查 (may-stop)
+    ↓
+├── STOP_ALLOWED → 执行清理流程
+└── CONTINUE_REQUIRED → 提示未完成任务
+    ↓
+清理流程
+    ├── 终止所有Worker tmux会话
+    ├── 保存检查点状态
+    ├── 更新任务状态
+    ├── 生成停止报告
+    └── 清理临时文件
+    ↓
+系统停止完成
+```
+
+**停止报告内容**：
+
+```json
+{
+  "shutdown_time": "2026-07-09T10:30:00",
+  "shutdown_type": "graceful",
+  "tasks_summary": {
+    "total": 3,
+    "completed": 2,
+    "in_progress": 1,
+    "queued": 0
+  },
+  "workers_summary": {
+    "W1": {"status": "idle", "last_task": "20.4"},
+    "W2": {"status": "idle", "last_task": "30.11"}
+  },
+  "checkpoints_saved": 5,
+  "audit_logs_generated": 3
+}
+```
+
+**资源清理清单**：
+
+| 资源类型 | 清理方式 | 命令 |
+|---|---|---|
+| tmux会话 | 终止所有Worker会话 | `tmux kill-session -t worker-W1` |
+| 检查点文件 | 保留在`runtime/checkpoints/` | 不清理（用于恢复） |
+| 任务状态 | 更新为最终状态 | `tasks.json` |
+| 审计日志 | 保留在`runtime/audit_logs/` | 不清理（用于审计） |
+| 临时文件 | 清理`runtime/`下的临时文件 | `rm -rf runtime/temp/*` |
+
+**使用示例**：
+
+```bash
+# 优雅停止（等待所有任务完成）
+python3 master.py shutdown
+
+# 强制停止（立即停止所有Worker）
+python3 master.py shutdown --force
+
+# 清理临时文件和会话
+python3 master.py cleanup
+
+# 生成状态报告
+python3 master.py status-report
+```
+
+### 自动化系统设计（2026-07-09 新增）
+
+**核心问题**：如何确保系统以非线性模式吸收目标文集，而不是沦为线性模式？
+
+**解决方案**：三个核心脚本协同工作，实现完全自动化的非线性吸收。
+
+#### 1. 工厂脚本 (factory.py)
+
+**功能**：管理Worker/Auditor的生命周期
+
+**核心特性**：
+- **动态Worker创建**：根据任务量自动创建Worker
+- **自动任务分配**：将排队任务分配给空闲Worker
+- **任务发现**：从schema.json和文本文件自动发现任务
+- **完成检查**：定期检查Worker完成情况
+
+**非线性策略**：
+- **随机打乱卷顺序**：不按卷1→卷10的顺序处理
+- **随机选择起始行**：在每个卷内随机选择处理区间
+- **多区间处理**：每个卷处理3-5个随机区间，而不是整体处理
+
+**使用方式**：
+```bash
+# 自动发现任务
+python3 factory.py --action discover
+
+# 创建Worker
+python3 factory.py --action spawn-worker
+
+# 运行工厂
+python3 factory.py --action run --max-cycles 100
+```
+
+#### 2. 自我迭代引擎 (self_iteration.py)
+
+**功能**：实现系统的自我迭代机制
+
+**核心特性**：
+- **知识图谱构建**：记录已吸收的内容和发现的新概念
+- **吸收策略调整**：动态调整吸收方式（探索→深化→整合）
+- **新任务生成**：从吸收过程中发现新任务
+- **跨体系关联**：发现七政四余与其他体系的关联
+
+**非线性策略**：
+- **探索新维度**：优先探索覆盖率低的维度
+- **深化未完成内容**：研究未完成的算子和未知概念
+- **随机探索**：随机选择新内容进行探索
+- **跨体系关联**：发现不同体系之间的关联
+
+**使用方式**：
+```bash
+# 运行迭代
+python3 self_iteration.py --action iterate
+
+# 查看状态
+python3 self_iteration.py --action status
+
+# 发现新任务
+python3 self_iteration.py --action discover --count 5
+```
+
+#### 3. 主控脚本 (master_controller.py)
+
+**功能**：实现系统的完全自动化运行
+
+**核心特性**：
+- **周期运行**：定期运行迭代和工厂
+- **优雅停止**：支持SIGINT/SIGTERM信号处理
+- **状态监控**：实时监控系统状态
+- **统计更新**：更新系统统计信息
+
+**使用方式**：
+```bash
+# 运行主控
+python3 master_controller.py --action run --max-cycles 100
+
+# 查看状态
+python3 master_controller.py --action status
+
+# 优雅停止
+python3 master_controller.py --action shutdown
+```
+
+### 非线性吸收策略
+
+**核心思想**：不按线性顺序处理，而是根据多维度优先级和随机性动态选择处理内容。
+
+**策略实现**：
+
+1. **维度优先级**：
+   - 算子维度（优先级1）
+   - 集合维度（优先级2）
+   - 命题维度（优先级3）
+   - 状态维度（优先级4）
+   - 时间维度（优先级5）
+   - 体系维度（优先级6）
+
+2. **吸收阶段**：
+   - **探索阶段**：优先发现新维度和新概念
+   - **深化阶段**：深化已发现但未完成的内容
+   - **整合阶段**：整合各维度内容，构建完整体系
+
+3. **非线性权重**：
+   - **随机性**（0.3）：引入随机因素，避免线性处理
+   - **优先级**（0.4）：根据维度优先级选择内容
+   - **覆盖率**（0.3）：优先选择覆盖率低的维度
+
+**自检机制**：
+
+每次迭代后，系统必须自检：
+1. **是否发现了新维度？**（新算子/新集合/新命题）
+2. **各维度覆盖率是否提升？**（不是简单的数量增加）
+3. **是否构建了新的可计算模型？**（形式/定量/推演）
+4. **是否发现了跨体系关联？**（七政四余与八字/紫微/周易）
+5. **是否发现了新问题？**（开放性，不预设终点）
+
+### 使用流程
+
+**1. 启动系统**：
+```bash
+# 方式1：使用主控脚本（推荐）
+python3 master_controller.py --action run --max-cycles 100
+
+# 方式2：手动启动各组件
+python3 factory.py --action run --max-cycles 100 &
+python3 self_iteration.py --action iterate
+```
+
+**2. 监控系统**：
+```bash
+# 查看主控状态
+python3 master_controller.py --action status
+
+# 查看工厂状态
+python3 factory.py --action status
+
+# 查看迭代状态
+python3 self_iteration.py --action status
+```
+
+**3. 停止系统**：
+```bash
+# 优雅停止
+python3 master_controller.py --action shutdown
+
+# 或使用Ctrl+C
+```
+
+### SOP汇报审计（2026-07-09 新增）
+
+**审计目标**：确保Worker按照SOP要求汇报了维度/成熟度/可计算性三要素。
+
+**SOP汇报要求**：
+
+Worker在检查点中必须包含`sop_report`字段：
+
+```json
+{
+  "dimensions": ["算子维度", "集合维度", "命题维度", "状态维度", "时间维度", "体系维度"],
+  "maturity": {
+    "coverage": "已提升",
+    "consistency": "已验证",
+    "evaluability": "已实现",
+    "explanatory": "待建设",
+    "quantitative": "待建设",
+    "cross_system": "待建设",
+    "verifiability": "已验证"
+  },
+  "computability": {
+    "formal": "已实现",
+    "quantitative": "待建设",
+    "deductive": "待建设"
+  }
+}
+```
+
+**审计命令**：
+
+```bash
+# 审计单个section的SOP汇报
+python3 master.py sop-audit --worker-id W1 --task-id 20.4 --section-id 卷一/星曜躔度歌
+
+# 审计整个任务的SOP汇报
+python3 master.py sop-audit --worker-id W1 --task-id 20.4
+```
+
+**审计维度**：
+
+| 维度类型 | 说明 | 例子 |
+|---|---|---|
+| 算子维度 | 新发现的算子 | 躔/照/会/守/冲/合/拱/夹/刑 |
+| 集合维度 | 新发现的集合 | Star/Mansion/Palace/Dignity |
+| 命题维度 | 新发现的命题类型 | 躔度命题/照宫命题/交会命题 |
+| 状态维度 | 新发现的状态 | 吉凶/强弱/旺衰/多少 |
+| 时间维度 | 新发现的时间切片 | 原盘/大限/流年/小限 |
+| 体系维度 | 新发现的体系 | 七政四余/八字/紫微/周易 |
+
+**审计成熟度指标**：
+
+| 指标 | 说明 |
+|---|---|
+| 覆盖率 | 系统能描述的现象范围 |
+| 一致性 | 规则之间是否矛盾 |
+| 可求值性 | 规则能否判定真假 |
+| 解释力 | 能否说"为什么" |
+| 定量化 | 能否给出数值结果 |
+| 跨体系 | 能否与其他体系对接 |
+| 可验证性 | 能否用命例验证 |
+
+**审计可计算性层次**：
+
+| 层次 | 问题 |
+|---|---|
+| 形式可计算 | 给定输入，能否算法化地得到输出？ |
+| 定量可计算 | 能否给出数值结果？ |
+| 推演可计算 | 能否从已知推出未知？ |
+
+**审计结果示例**：
+
+```json
+{
+  "status": "incomplete",
+  "worker_id": "W1",
+  "task_id": "20.4",
+  "section_id": "卷一/星曜躔度歌",
+  "dimension_audit": {
+    "reported": false,
+    "count": 0,
+    "types": [],
+    "missing": ["operator", "set", "proposition", "state", "time", "system"]
+  },
+  "maturity_audit": {
+    "reported": false,
+    "metrics": {},
+    "missing": ["coverage", "consistency", "evaluability", "explanatory", "quantitative", "cross_system", "verifiability"]
+  },
+  "computability_audit": {
+    "reported": false,
+    "levels": {},
+    "missing": ["formal", "quantitative", "deductive"]
+  },
+  "all_reported": false
+}
+```
+
+### Auditor Agent（语义审计）
+
+**架构目标**：实现职责分离，Master负责调度，Auditor负责语义审计。
+
+**核心组件**：
+
+| 组件 | 文件 | 功能 |
+|---|---|---|
+| **Auditor Agent** | `auditor.py` | 语义审计脚本：生成审计提示词/启动审计 |
+| **审计提示词** | `runtime/auditor_prompts/` | 审计任务的详细提示词 |
+| **审计结果** | `runtime/audit_logs/` | 审计结果和报告 |
+
+**Auditor命令**：
+
+```bash
+# 审计单个section
+python3 auditor.py audit-section --worker-id W1 --task-id 20.4 --section-id 卷一/星曜躔度歌
+
+# 审计整个任务
+python3 auditor.py audit-task --worker-id W1 --task-id 20.4
+
+# 生成审计报告
+python3 auditor.py generate-report
+```
+
+**Master启动Auditor**：
+
+```bash
+# 启动Auditor Agent进行语义审计
+python3 master.py launch-auditor --worker-id W1 --task-id 20.4 --section-id 卷一/星曜躔度歌
+```
+
+**语义审计标准**：
+
+| 审计维度 | 审计标准 | 评分标准 |
+|---|---|---|
+| **维度审计** | 维度类型是否正确分类？每个维度是否有具体例子？ | 0-10分 |
+| **成熟度审计** | 每个指标是否有具体说明？指标之间是否有逻辑关系？ | 0-10分 |
+| **可计算性审计** | 每个层次是否有具体说明？是否有可执行的算法？ | 0-10分 |
+
+**审计流程**：
+
+```
+Worker完成任务
+    ↓
+Worker汇报SOP（维度/成熟度/可计算性）
+    ↓
+Master生成审计提示词
+    ↓
+Master启动Auditor Agent
+    ↓
+Auditor Agent进行语义审计
+    ↓
+Auditor生成审计结果
+    ↓
+Master读取审计结果
+    ↓
+审计通过 → 任务完成
+审计不通过 → Worker重新执行
+```
+
+**使用示例**：
+
+```bash
+# 1. Worker完成任务并汇报SOP
+python3 master.py checkpoint --worker-id W1 --task-id 20.4 --phase "考据完成" --cursor-line 130 --evidence-count 10 --note "已完成角宿11条规则的考据"
+
+# 2. Master启动Auditor进行语义审计
+python3 master.py launch-auditor --worker-id W1 --task-id 20.4 --section-id 卷一/星曜躔度歌
+
+# 3. 查看审计结果
+tmux attach -t auditor-W1-20.4
+
+# 4. 审计通过后，完成任务
+python3 master.py complete --task-id 20.4 --result "PASS"
+```
+
+### Worker提示词设计（思维力内化）
+
+**核心问题**：如何确保Worker真正具备了AGENTS.md中的思维力要求？
+
+**解决方案**：将思维力要求内化到Worker提示词中，而不仅仅是告诉Worker执行步骤。
+
+**提示词生成器**：`worker_prompt.py`
+
+```bash
+# 生成Worker提示词
+python3 worker_prompt.py --task-id 20.4 --task-title "审计A4：天干神煞" --section-id 卷一/星曜躔度歌/角 --start-line 1 --end-line 130
+```
+
+**思维力内化要求**：
+
+| 思维力 | 内化方式 | 质量标准 |
+|---|---|---|
+| **形式化思维** | 每遇到命理规则，自动进行形式化五问 | 每条规则必须有明确的算子/输入/输出，必须可求值，必须与已有规则一致 |
+| **定量化意识** | 每遇到程度描述，自动思考量化可能性 | 每个程度描述必须思考量化可能性，能量化必须给出公式，不能能量化必须说明原因 |
+| **开放性意识** | 每遇到新概念，自动记录为"待发现" | 每个新概念必须记录为"待发现"，每个新算子/新工具必须保持敏感 |
+| **全息意识** | 每遇到跨体系描述，自动思考同构关系 | 每个跨体系描述必须思考同构关系，每个同构关系必须记录并验证 |
+| **时代性意识** | 每遇到具体事件，自动思考时代背景 | 每个具体事件结论必须思考时代背景，每个能量单位必须思考兑现方式 |
+
+**汇报要求**：
+
+Worker汇报SOP时，不仅仅是字段填充，而是**思维过程的外化**：
+
+```json
+{
+  "dimensions": [
+    {
+      "type": "operator",
+      "found": "拱",
+      "input": "两颗星",
+      "output": "拱格",
+      "semantic": "两颗星形成特定角度关系"
+    }
+  ],
+  "maturity": {
+    "coverage": "从只能描述躔/照/会，到能描述躔/照/会/拱",
+    "consistency": "验证了拱与躔/照/会不矛盾",
+    "evaluability": "拱格现在可以判定真假"
+  },
+  "computability": {
+    "formal": "给定两颗星的黄经，可以算法化判定是否形成拱格",
+    "quantitative": "拱的紧密程度可以用角度差量化",
+    "deductive": "从原盘可以推演出大限/流年是否激活拱格"
+  }
+}
+```
+
+**使用流程**：
+
+```bash
+# 1. 启动Worker（使用新的提示词）
+./worker.sh --worker-id W1 --task-id 20.4 --start-line 1 --end-line 130 --section-id 卷一/星曜躔度歌/角
+
+# 2. Worker执行任务时会自动进行思维力内化
+#    - 形式化思维：每遇到命理规则，自动进行形式化五问
+#    - 定量化意识：每遇到程度描述，自动思考量化可能性
+#    - 开放性意识：每遇到新概念，自动记录为"待发现"
+#    - 全息意识：每遇到跨体系描述，自动思考同构关系
+#    - 时代性意识：每遇到具体事件，自动思考时代背景
+
+# 3. Worker汇报SOP时会外化思维过程
+#    - 不是简单列出"算子维度"，而是具体说明发现了什么新算子
+#    - 不是简单说"已提升"，而是具体说明提升了什么
+#    - 不是简单说"已实现"，而是具体说明实现了什么
+```
 
 ## Layer A 考据审计日志
 
