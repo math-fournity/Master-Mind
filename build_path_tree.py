@@ -181,37 +181,41 @@ def _find_title_line_fuzzy(lines: List[str], title: str, start: int, end: int) -
     return None
 
 
+def _normalize_for_match(s: str) -> str:
+    """归一化文本用于匹配：去掉空格、换行、常见标点（句号/逗号/分号等）"""
+    import re
+    # 去掉所有空格、换行、中文标点、英文标点
+    return re.sub(r'[\s，。；：、！？·.,;:!?\u200b\u200c\u200d\ufeff«»<>/\d]', '', s)
+
+
 def _find_rule_line(lines: List[str], rule_text: str, start: int, end: int) -> Optional[int]:
     """在 lines[start-1:end] 范围内查找规则文本所在行
 
-    rule_text 可能跨多行，取前 10 个非空格字符做匹配。
+    rule_text 可能跨多行，取前 10 个非空格非标点字符做匹配。
     返回 1-based 行号。
     """
-    # 取前10个非空格字符（忽略空格和换行）
-    keyword = rule_text.replace(" ", "").replace("\n", "")[:10]
+    # 取前10个归一化字符（忽略空格、换行、标点）
+    keyword = _normalize_for_match(rule_text)[:10]
     if not keyword:
         return None
 
-    # 策略1：逐行精确匹配（忽略空格）
+    # 策略1：逐行匹配（归一化后比较）
     for i in range(start - 1, min(end, len(lines))):
-        line_no_space = lines[i].replace(" ", "").replace("\n", "")
-        if keyword in line_no_space:
+        line_norm = _normalize_for_match(lines[i])
+        if keyword in line_norm:
             return i + 1
 
     # 策略2：跨行匹配（合并多行后搜索）
     # 把 start 到 end 范围内的所有行合并，搜索 keyword
     region_text = "".join(lines[start - 1:min(end, len(lines))])
-    region_no_space = region_text.replace(" ", "").replace("\n", "")
-    idx = region_no_space.find(keyword)
+    region_norm = _normalize_for_match(region_text)
+    idx = region_norm.find(keyword)
     if idx >= 0:
-        # 找到 keyword 在合并文本中的位置，反推回行号
-        # 计算到 keyword 起始位置为止的原始文本长度
+        # 找到 keyword 在归一化文本中的位置，反推回行号
+        # 遍历原始文本，跳过被归一化掉的字符，找到第 idx 个有效字符
         raw_pos = 0
-        space_count = 0
         for i, ch in enumerate(region_text):
-            if ch in " \n":
-                space_count += 1
-            else:
+            if _normalize_for_match(ch):
                 if raw_pos == idx:
                     # 当前位置就是 keyword 起始
                     # 计算行号：从 start 开始，数换行符
