@@ -32,23 +32,29 @@ log() {
 }
 
 count_devin() {
-  ps aux 2>/dev/null | grep 'devin --permission' | grep -v grep | wc -l | tr -d ' ' || echo 0
+  local n
+  n=$(ps aux 2>/dev/null | grep 'devin --permission' | grep -v grep | wc -l | tr -d ' \n')
+  echo "${n:-0}"
 }
 
 count_queued() {
-  python3 -c "
+  local n
+  n=$(python3 -c "
 import json
 with open('tasks.json') as f: data = json.load(f)
 print(len([t for t in data['tasks'] if t.get('status') == 'queued']))
-" 2>/dev/null || echo 0
+" 2>/dev/null)
+  echo "${n:-0}"
 }
 
 count_completed() {
-  python3 -c "
+  local n
+  n=$(python3 -c "
 import json
 with open('tasks.json') as f: data = json.load(f)
 print(len([t for t in data['tasks'] if t.get('status') == 'completed']))
-" 2>/dev/null || echo 0
+" 2>/dev/null)
+  echo "${n:-0}"
 }
 
 cleanup_and_collect() {
