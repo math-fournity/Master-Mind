@@ -1,7 +1,7 @@
 {
-  "audit_type": "PathListGate Master Self-Audit (v2 - after fetching missing pages)",
+  "audit_type": "PathListGate Master Self-Audit (v3 - after fixing 卷七错位)",
   "document": "星平会海",
-  "timestamp": "2026-07-09T21:20:00",
+  "timestamp": "2026-07-09T21:25:00",
   "auditor": "Master Agent (Devin CLI)",
   "path_tree_version": "2.0.0",
   "summary": {
@@ -13,9 +13,9 @@
     "located_subsections": 56,
     "located_rules": 282,
     "unresolved_count": 146,
-    "coverage_gaps_count": 1,
-    "web_metadata_gaps_count": 5,
-    "remainder_is_zero": false
+    "coverage_gaps_count": 0,
+    "web_metadata_gaps_count": 6,
+    "remainder_is_zero": true
   },
   "location_rates": {
     "section": "148/246 (60.2%)",
@@ -23,86 +23,59 @@
     "rule": "282/307 (91.9%)"
   },
   "gate_verdict": "FAIL",
-  "gate_reason": "unresolved=146, coverage_gaps=1, remainder_is_zero=False",
-  "improvement_from_v1": {
-    "v1_unresolved": 422,
-    "v2_unresolved": 146,
-    "improvement": "276 items resolved",
-    "v1_rule_location_rate": "10.1%",
-    "v2_rule_location_rate": "91.9%"
-  },
-  "actions_taken": [
-    "1. Fetched missing pages 1537_2~1537_8 (星曜躔度歌 page 2-8)",
-    "2. Extracted article text from HTML using extract_article()",
-    "3. Inserted missing content into 卷一.txt (502→801 lines)",
-    "4. Improved builder: substring match, OCR variants, web metadata detection, 404 detection",
-    "5. Improved builder: Title header extraction, space-insensitive matching"
-  ],
+  "gate_reason": "unresolved=146, remainder_is_zero=True",
+  "milestone": "remainder=0 ACHIEVED (覆盖间隙归零)",
   "remaining_issues": {
-    "section_unresolved": {
-      "卷一": 1,
-      "卷二": 3,
-      "卷四": 10,
-      "卷五": 1,
-      "卷六": 28,
-      "卷七": 1,
-      "卷八": 2,
-      "卷九": 3,
-      "卷十": 49
+    "unresolved_count": 146,
+    "by_type": {
+      "section": 98,
+      "subsection": 23,
+      "rule": 25
     },
-    "subsection_unresolved": {
-      "卷一": 23
-    },
-    "rule_unresolved": {
-      "卷一": 25
+    "by_volume": {
+      "卷一": {
+        "section": 1,
+        "subsection": 23,
+        "rule": 25
+      },
+      "卷七": {
+        "section": 1
+      },
+      "卷九": {
+        "section": 3
+      },
+      "卷二": {
+        "section": 3
+      },
+      "卷五": {
+        "section": 1
+      },
+      "卷八": {
+        "section": 2
+      },
+      "卷六": {
+        "section": 28
+      },
+      "卷十": {
+        "section": 49
+      },
+      "卷四": {
+        "section": 10
+      }
     },
     "root_causes": [
-      "卷六/卷十: 大量页面返回404或未获取，源文本缺失",
-      "卷七: 前307行是卷六错位内容",
-      "卷一星曜照宫歌: 内容全在一行中，subsection标题嵌入内容行",
-      "卷一主星守宫歌/吊冲秘诀: 标题匹配冲突导致section范围错误",
+      "卷六/卷十: 大量页面404或未获取，源文本缺失（77个section）",
+      "卷一星曜照宫歌: 内容全在一行中，subsection标题嵌入内容行（12个subsection）",
+      "卷一主星守宫歌/吊冲秘诀: 标题匹配冲突导致section范围错误（7个subsection）",
+      "卷一星曜交会歌: 紫气/月孛标题OCR差异（2个subsection）",
       "25条rule: OCR差异导致规则文本不匹配"
     ]
   },
-  "coverage_gaps": [
-    {
-      "volume": "卷七",
-      "gap": "1-307 (before first section)"
-    }
-  ],
-  "web_metadata_gaps": [
-    {
-      "volume": "卷一",
-      "gap": "1-7 (before first section)",
-      "has_404": false
-    },
-    {
-      "volume": "卷四",
-      "gap": "1-7 (before first section)",
-      "has_404": false
-    },
-    {
-      "volume": "卷五",
-      "gap": "1-5 (before first section)",
-      "has_404": false
-    },
-    {
-      "volume": "卷六",
-      "gap": "1-101 (before first section)",
-      "has_404": true
-    },
-    {
-      "volume": "卷九",
-      "gap": "1-7 (before first section)",
-      "has_404": false
-    }
-  ],
   "recommendations": [
-    "1. 重新获取卷六/卷十中返回404的页面",
-    "2. 修复卷七文本文件：移除前307行的卷六错位内容",
-    "3. 手动修复卷一星曜照宫歌：将嵌入内容行的subsection标题拆分为独立行",
-    "4. 修复卷一主星守宫歌/吊冲秘诀的section边界",
-    "5. 重新获取后重新运行 build_path_tree.py",
-    "6. PathListGate=FAIL，在补全源文本前不得派 Worker 处理正文"
+    "1. 重新获取卷六/卷十中返回404的页面（最大改善项）",
+    "2. 手动修复卷一星曜照宫歌：将嵌入内容行的subsection标题拆分为独立行",
+    "3. 修复卷一主星守宫歌/吊冲秘诀的section边界",
+    "4. 25条rule的OCR差异需要逐条核对",
+    "5. PathListGate=FAIL（remainder=0已达成，但仍有146个未定位项）"
   ]
 }
