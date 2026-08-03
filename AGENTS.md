@@ -406,6 +406,14 @@ study-notes 中的每一部分内容都必须可反查出处。无论是 AI 内�
 | 16 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/16-地支五行与宫主对照.md" /> | 地支五行与宫主对照 |
 | 17 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/17-流程总图与待确认事项.md" /> | 流程总图与待确认事项 |
 
+**专题（18-20，星平会海卷二专题）**：
+
+| 编号 | 文件 | 内容 | 典籍来源 |
+|---|---|---|---|
+| 18 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/18-女命专论.md" /> | 女命专论：女命警诀16条 + 女命总诀20条 + 喜忌总结 | 星平会海卷二 |
+| 19 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/19-凶死与疾病断法.md" /> | 凶死与疾病断法：碎金总诀40条（非正常死亡/精神疾病/身体疾病/残疾） | 星平会海卷二 |
+| 20 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/20-琴堂断法歌诀.md" /> | 琴堂断法歌诀：琴堂总诀36条完整记录 | 星平会海卷二 |
+
 ## 工作原则
 
 - 代码改动服务于上述排盘 / 矫正 / 分析目标，不是为写代码而写代码。
