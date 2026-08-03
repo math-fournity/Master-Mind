@@ -676,6 +676,38 @@ Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/46-Devin-CLI非线性运行时改造.md" /> | **Devin CLI 非线性运行时改造：在不破坏 opencode 工作面的前提下，新增 Devin 项目配置、hooks、skills、runtime capsule、provider adapter 和 stop gate** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/47-星盘矫正技术说明书.md" /> | **星盘矫正技术说明书：单点/多点反推 + 一致性评分 + 完整迭代SOP + life_event表 + 矫正历史。更正06文档过时的"待实现"标注（rectify_multi_point/iterative_rectify等已全部实现）** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/48-推限技术说明书.md" /> | **推限技术说明书：洞微大限 + 童限/小限/飞限/月限四系 + 流年太岁 + 12限全量分析 + 交接期识别 + 逐年推演。更正06文档过时的"待实现"标注（analyze_daxian_limit/analyze_daxian_full/progress_daxian_years等已全部实现）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/49-规则库反向映射分析.md" /> | **规则库反向映射：283条规则 × 134个AUDIT文件覆盖矩阵。已覆盖166条(58.7%)，未覆盖117条。117条中96条可能在179个queued章节有出处，21条需考据其他典籍。凶格局覆盖率(52.2%)低于吉格局(60.7%)** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/50-下一阶段方案-AI判读层优先.md" /> | **AI判读层方案（⏸暂停）：推荐先做analyze.py+report.py，用真实命例验证再反馈考据优先级。6阶段20+项check list。因项目方向转向暂停，待认知积累完成后重新审视** |
+
+## 项目方向转向（2026-08-03）
+
+### 转向决策
+
+2026-08-03，用户决定项目方向转向：**先暂停工程开发（AI判读层、考据任务），转而学习和积累对七政四余本身的认知。**
+
+转向原因：用户认为自己对七政四余的认知不够，需要在和AI的对话中一起积累对七政四余的理解，把认知落盘到项目文档中，并被AGENTS.md索引。
+
+### 转向时各工作线中断状态
+
+| 工作线 | 中断时状态 | 中断记录位置 |
+|---|---|---|
+| AI判读层（analyze.py + report.py） | 方案已写完（dev-docs/50），check list 20+项全部未开始 | dev-docs/50 头部"中断说明" |
+| 179个考据任务 | 方向未定（A/B/C/D四选项讨论后未决策），queued=179 | dev-docs/49 + dev-docs/工作日志 |
+| stop gate修复 | 根因已分析落盘，stop hook已移除，修复方向已记录但未实施 | dev-docs/46 "Stop gate根因分析" |
+
+### 认知积累的工作方式
+
+- 用户和AI在对话中一起学习和探讨七政四余
+- 认知落盘到 `dev-docs/` 中的带编号文档
+- 新文档被本节的建设计划索引表索引
+- 积累是有机的：后期认知结合到前期认知中，形成对七政四余的系统性理解
+- 认知积累到一定程度后，再回来审视工程方案（dev-docs/50 等）的优先级和内容
+
+### 认知积累文档索引
+
+> 以下记录认知积累阶段产出的文档，随产随更新。
+
+（待积累开始后填充）
 
 ### Master-Worker架构与完整性审计（2026-07-09 新增）
 
