@@ -367,6 +367,7 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/63-星学意识与螺旋上升的稀疏矩阵.md" /> | **星学意识与螺旋上升的稀疏矩阵：AI 思考依赖追溯中的两种环路（平面环路 vs 螺旋上升环路）、星学意识作为第三维垂直维度、意识-步骤调用图是 AGENTS.md 中缺失的第三种结构、xishujuzhen 系统的哲学（数字化的大师提示词）、核心信念（完美提示词可通过经典计算产生）、认识论综合** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/64-xishujuzhen-POC验证方案.md" /> | **xishujuzhen POC-1 验证方案：对照实验设计（依赖图提示 vs 直接读文档）、简化盘+命宫分析、5节点7边依赖图、螺旋环路检测、5维度结构化评分、成功/失败定义、后续扩展路径** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/65-xishujuzhen-POC2验证方案.md" /> | **xishujuzhen POC-2 验证方案：针对POC-1三个教训（图太小/知识指针缺失/无审计）的改进方案——12节点16边扩展依赖图、知识内容嵌入提示、配对审计文件（节点/边/环路覆盖自证）、修订成功标准（含审计覆盖≥90%）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/66-xishujuzhen-POC3验证方案.md" /> | **xishujuzhen POC-3 验证方案：针对POC-2"边际增益有限"的改进——引入AI自解读环节（JSON→大师级提示词Markdown）、双重提示（JSON+大师级提示词共同提示）、双重对照审计（JSON覆盖完备性+思考路径忠实性）、三步流程（系统生成JSON→AI解读→AI分析）、解读文件风格判别标准（清单式 vs 大师级循循善诱）** |
 
 ## 项目方向转向（2026-08-03）
 
