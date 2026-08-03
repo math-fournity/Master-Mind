@@ -335,17 +335,44 @@
 - 用户和AI在对话中一起学习和探讨七政四余
 - **学习笔记落盘到 `study-notes/` 子目录**，与工程文档（`dev-docs/`）分离
 - 工程方案、建设计划等仍落盘到 `dev-docs/` 中的带编号文档
-- 新文档被本节的建设计划索引表索引
 - 积累是有机的：后期认知结合到前期认知中，形成对七政四余的系统性理解
 - 认知积累到一定程度后，再回来审视工程方案（dev-docs/50 等）的优先级和内容
 
-### 认知积累文档索引
+### study-notes 目录结构
 
-> 以下记录认知积累阶段产出的文档，随产随更新。
+`study-notes/` 的编号对应古代钦天监顶级命理师给皇室成员看七政四余时的细化工作步骤，按"命盘"（静态分析）和"推限"（动态推演）两大块组织：
 
-| 文件 | 内容 |
-|---|---|
-| <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/01-七政四余完整分析流程.md" /> | **七政四余完整分析流程：从排盘到推限的十三个步骤**。历法→星历→宫位→安命安身→四柱八字→化曜→神煞→状态判断→格局分析→限运系统→推限分析→流年推演→综合判读。含星曜性情、二十八宿五行禽名、地支五行宫主对照、流程总图 |
+**命盘部分（01-09，看盘）**：
+
+| 编号 | 文件 | 工作步骤 |
+|---|---|---|
+| 01 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/01-历法基础.md" /> | 历法基础：公历转农历、二十四节气、昼夜判定、月将确定 |
+| 02 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/02-星历计算.md" /> | 星历计算：十一天体黄经、二十八宿宿度、逆顺迟疾、升落 |
+| 03 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/03-宫位系统.md" /> | 宫位系统：十二宫、整宫制、ASC/MC、三方四正 |
+| 04 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/04-安命安身.md" /> | 安命安身：命宫公式、身宫、命主星/度主星/身主星 |
+| 05 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/05-四柱八字.md" /> | 四柱八字：四柱起算、十神、藏干、纳音、长生十二运 |
+| 06 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/06-化曜.md" /> | 化曜：十干化曜（天禄/天暗/.../天权） |
+| 07 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/07-神煞.md" /> | 神煞：天干/地支/年支神煞体系 |
+| 08 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/08-状态判断.md" /> | 状态判断：庙旺平陷、长生十二运、纳音五行、恩用仇难 |
+| 09 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/09-格局分析.md" /> | 格局分析：躔/照/会/守/冲/合、吉格忌格、命格等级 |
+
+**推限部分（10-13，推演）**：
+
+| 编号 | 文件 | 工作步骤 |
+|---|---|---|
+| 10 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/10-限运系统.md" /> | 限运系统：童限、洞微大限12限、小限、飞限、月限 |
+| 11 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/11-推限分析.md" /> | 推限分析：逐限分析六要素、当前限深入、限内逐年、交接期 |
+| 12 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/12-流年推演.md" /> | 流年推演：太岁关系、流年神煞、流年-大限叠加、行运星 |
+| 13 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/13-综合判读.md" /> | 综合判读：七维度判读原则、输出领域、注意事项 |
+
+**附录（14-17，参考表）**：
+
+| 编号 | 文件 | 内容 |
+|---|---|---|
+| 14 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/14-星曜性情详表.md" /> | 星曜性情详表 |
+| 15 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/15-二十八宿五行禽名表.md" /> | 二十八宿五行禽名表 |
+| 16 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/16-地支五行与宫主对照.md" /> | 地支五行与宫主对照 |
+| 17 | <ref_file file="~/MOIRA_chinese_astrology-main/study-notes/17-流程总图与待确认事项.md" /> | 流程总图与待确认事项 |
 
 ## 工作原则
 
