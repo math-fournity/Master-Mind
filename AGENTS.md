@@ -368,6 +368,7 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/64-xishujuzhen-POC验证方案.md" /> | **xishujuzhen POC-1 验证方案：对照实验设计（依赖图提示 vs 直接读文档）、简化盘+命宫分析、5节点7边依赖图、螺旋环路检测、5维度结构化评分、成功/失败定义、后续扩展路径** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/65-xishujuzhen-POC2验证方案.md" /> | **xishujuzhen POC-2 验证方案：针对POC-1三个教训（图太小/知识指针缺失/无审计）的改进方案——12节点16边扩展依赖图、知识内容嵌入提示、配对审计文件（节点/边/环路覆盖自证）、修订成功标准（含审计覆盖≥90%）** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/66-xishujuzhen-POC3验证方案.md" /> | **xishujuzhen POC-3 验证方案：针对POC-2"边际增益有限"的改进——引入AI自解读环节（JSON→大师级提示词Markdown）、双重提示（JSON+大师级提示词共同提示）、双重对照审计（JSON覆盖完备性+思考路径忠实性）、三步流程（系统生成JSON→AI解读→AI分析）、解读文件风格判别标准（清单式 vs 大师级循循善诱）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/67-Subagent对照实验执行模式.md" /> | **Subagent对照实验执行模式：模式一（双subagent并行对照，POC-1/POC-2使用）、模式二（分阶段subagent+并行对照，POC-3使用）、通用原则（盲评、输入材料由主Agent准备、background模式、输出保存到文件、task prompt完整自含）、复用建议** |
 
 ## 项目方向转向（2026-08-03）
 
