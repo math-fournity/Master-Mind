@@ -338,6 +338,7 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/59-AGENTS重构纠偏与高价值规则回收.md" /> | **AGENTS 重构纠偏审计：列出被删除/弱化内容、评估后续价值，并确立高价值规则不得直接删除的保全纪律** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/60-外部系统收敛与暂存规划.md" /> | **外部系统收敛决策：当前只吸收星平会海+星学大成，其他外部系统（印度占星/果老星宗/七政推步等）规划暂存** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/61-星平会海完整性审计与补全记录.md" /> | **星平会海完整性审计：原书十卷首一卷，补全卷首19篇+卷一4篇+卷三6篇，suanzhun.net book ID 映射表，名字映射关系，审计方法论** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/62-星平会海纸质书目录OCR审计与缺失分析.md" /> | **纸质书目录OCR审计：22张照片MinerU识别，发现卷首12篇+卷三1篇+卷六2图表内容在suanzhun.net上不存在，需从其他来源补全** |
 
 ## 项目方向转向（2026-08-03）
 
@@ -451,6 +452,7 @@
 **重构纠偏**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/59-AGENTS重构纠偏与高价值规则回收.md" />
 **外部系统收敛**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/60-外部系统收敛与暂存规划.md" />
 **星平会海完整性审计**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/61-星平会海完整性审计与补全记录.md" />
+**纸质书目录OCR审计**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/62-星平会海纸质书目录OCR审计与缺失分析.md" />
 
 > **当前吸收范围（2026-08-03 收敛）**：本项目当前只吸收《星平会海》和《星学大成》两部典籍。其他外部系统（印度占星学、果老星宗、七政推步、协纪辨方书、星命溯源、郑氏星案、回回历法、天步真原、乾元秘旨）的吸收规划暂存于 60 号文档，当前不执行。多体系比较、多圈层设计等跨体系规划同样暂存。恢复条件见 60 号文档 §5。
 
