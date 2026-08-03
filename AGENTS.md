@@ -674,6 +674,8 @@ Phase 20 原典收集成果，用于 Layer A 审计和 Phase 24 验证：
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/14-古籍研究SOP脚本化设计.md" /> | **古籍研究SOP脚本化设计：强制检查点 + 审计跟踪 + 质量门控 + 结果验证。渐进式实现，先覆盖四层考据** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/15-Master-Worker架构设计方案.md" /> | **Master-Worker架构设计：主控脚本 + Worker启动脚本 + 任务队列 + 检查点机制 + 停止门。基于MiMo模型20万token上下文限制，推荐宿级粒度** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/46-Devin-CLI非线性运行时改造.md" /> | **Devin CLI 非线性运行时改造：在不破坏 opencode 工作面的前提下，新增 Devin 项目配置、hooks、skills、runtime capsule、provider adapter 和 stop gate** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/47-星盘矫正技术说明书.md" /> | **星盘矫正技术说明书：单点/多点反推 + 一致性评分 + 完整迭代SOP + life_event表 + 矫正历史。更正06文档过时的"待实现"标注（rectify_multi_point/iterative_rectify等已全部实现）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/48-推限技术说明书.md" /> | **推限技术说明书：洞微大限 + 童限/小限/飞限/月限四系 + 流年太岁 + 12限全量分析 + 交接期识别 + 逐年推演。更正06文档过时的"待实现"标注（analyze_daxian_limit/analyze_daxian_full/progress_daxian_years等已全部实现）** |
 
 ### Master-Worker架构与完整性审计（2026-07-09 新增）
 
