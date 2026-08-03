@@ -364,7 +364,8 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/61-星平会海完整性审计与补全记录.md" /> | **星平会海完整性审计：原书十卷首一卷，补全卷首19篇+卷一4篇+卷三6篇，suanzhun.net book ID 映射表，名字映射关系，审计方法论** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/62-星平会海纸质书目录OCR审计与缺失分析.md" /> | **纸质书目录OCR审计：22张照片MinerU识别，发现卷首12篇+卷三1篇+卷六2图表内容在suanzhun.net上不存在，需从其他来源补全** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/原典/星平会海-结构化版/README.md" /> | **星平会海结构化版 README：全卷规整化记录、星学/子平分界说明（卷首~卷五=星学核心，卷六=辅助，卷七~九=子平赋文，卷十=纯子平不关注）、篇目列表、完整性状态** |
-| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/63-星学意识与螺旋上升的稀疏矩阵.md" /> | **星学意识与螺旋上升的稀疏矩阵：AI 思考依赖追溯中的两种环路（平面环路 vs 螺旋上升环路）、星学意识作为第三维垂直维度、意识-步骤调用图是 AGENTS.md 中缺失的第三种结构** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/63-星学意识与螺旋上升的稀疏矩阵.md" /> | **星学意识与螺旋上升的稀疏矩阵：AI 思考依赖追溯中的两种环路（平面环路 vs 螺旋上升环路）、星学意识作为第三维垂直维度、意识-步骤调用图是 AGENTS.md 中缺失的第三种结构、xishujuzhen 系统的哲学（数字化的大师提示词）、核心信念（完美提示词可通过经典计算产生）、认识论综合** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/64-xishujuzhen-POC验证方案.md" /> | **xishujuzhen POC 验证方案：对照实验设计（依赖图提示 vs 直接读文档）、简化盘+命宫分析、5节点7边依赖图、螺旋环路检测、5维度结构化评分、成功/失败定义、后续扩展路径** |
 
 ## 项目方向转向（2026-08-03）
 
