@@ -743,7 +743,9 @@ python3 master.py may-stop
 
 本项目未来可以由 Devin CLI 支撑，但不能把这个迁移理解成简单替换命令行工具。MOIRA 的运行时是非线性的：系统会从 `S-n` 吸收经验包，发现新维度，提升成熟度，改变可计算性，再反过来生成新的任务和审计要求。
 
-因此，Devin 进入本项目时必须先读取 runtime capsule，而不是只依赖上下文记忆。项目已新增 `.devin/config.json`、`.devin/hooks.v1.json`、`.devin/skills/`、`ai-runtime/protocol/`、`tools/moira_runtime.py` 和 `tools/agent_launcher.py`。Devin 的 `SessionStart` 与 `UserPromptSubmit` 会注入当前任务状态、Worker 状态、非线性维度覆盖、协议锚点和下一步动作；`Stop` hook 会在仍有 queued、leased、busy 或协议漂移时阻止过早停止。
+因此，Devin 进入本项目时必须先读取 runtime capsule，而不是只依赖上下文记忆。项目已新增 `.devin/config.json`、`.devin/hooks.v1.json`、`.devin/skills/`、`ai-runtime/protocol/`、`tools/moira_runtime.py` 和 `tools/agent_launcher.py`。Devin 的 `SessionStart` 与 `UserPromptSubmit` 会注入当前任务状态、Worker 状态、非线性维度覆盖、协议锚点和下一步动作。
+
+**关于 Stop hook（2026-08-03 修订）**：本项目一般而言不需要 Stop hook。Stop hook 的设计初衷是防止 Worker 在任务没干完时就停，但装在项目级配置会对 Master session 也生效，导致 Master 在等待用户决策时被死循环拦截（详见 dev-docs/46 根因分析）。更智能的 stop hook 是让 Master agent 持续在 tmux 中监控 Worker 的运行——Master 主动观察 Worker 状态、任务账本和审计结果，在对话中判断是否该继续或停止，而不是用一个机械的 hook 强制拦截。Stop hook 已从 `.devin/hooks.v1.json` 移除，后续不要加回来。
 
 默认 provider 仍是 opencode，以保护当前工作面。未来启动 Devin Worker 或 Auditor 时，使用 `--provider devin`，或设置 `MOIRA_AGENT_PROVIDER=devin`。无论 provider 是谁，Worker 仍必须输出维度、成熟度和可计算性，Auditor 仍必须把执行完成和语义通过分开。
 
