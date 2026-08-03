@@ -365,7 +365,8 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/62-星平会海纸质书目录OCR审计与缺失分析.md" /> | **纸质书目录OCR审计：22张照片MinerU识别，发现卷首12篇+卷三1篇+卷六2图表内容在suanzhun.net上不存在，需从其他来源补全** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/原典/星平会海-结构化版/README.md" /> | **星平会海结构化版 README：全卷规整化记录、星学/子平分界说明（卷首~卷五=星学核心，卷六=辅助，卷七~九=子平赋文，卷十=纯子平不关注）、篇目列表、完整性状态** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/63-星学意识与螺旋上升的稀疏矩阵.md" /> | **星学意识与螺旋上升的稀疏矩阵：AI 思考依赖追溯中的两种环路（平面环路 vs 螺旋上升环路）、星学意识作为第三维垂直维度、意识-步骤调用图是 AGENTS.md 中缺失的第三种结构、xishujuzhen 系统的哲学（数字化的大师提示词）、核心信念（完美提示词可通过经典计算产生）、认识论综合** |
-| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/64-xishujuzhen-POC验证方案.md" /> | **xishujuzhen POC 验证方案：对照实验设计（依赖图提示 vs 直接读文档）、简化盘+命宫分析、5节点7边依赖图、螺旋环路检测、5维度结构化评分、成功/失败定义、后续扩展路径** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/64-xishujuzhen-POC验证方案.md" /> | **xishujuzhen POC-1 验证方案：对照实验设计（依赖图提示 vs 直接读文档）、简化盘+命宫分析、5节点7边依赖图、螺旋环路检测、5维度结构化评分、成功/失败定义、后续扩展路径** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/65-xishujuzhen-POC2验证方案.md" /> | **xishujuzhen POC-2 验证方案：针对POC-1三个教训（图太小/知识指针缺失/无审计）的改进方案——12节点16边扩展依赖图、知识内容嵌入提示、配对审计文件（节点/边/环路覆盖自证）、修订成功标准（含审计覆盖≥90%）** |
 
 ## 项目方向转向（2026-08-03）
 
