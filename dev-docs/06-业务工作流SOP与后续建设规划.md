@@ -39,14 +39,16 @@ Phase 1-12 完成了**计算层**的建设：排盘引擎、命理常量、格�
 
 | # | 入口 | 文献依据 | 软件支持度 | 关键缺口 |
 |---|---|---|---|---|
-| 1 | 命主档案管理 | 果老"先须生月日时" | ⚠️ 半 | update/delete/life_event 表 |
+| 1 | 命主档案管理 | 果老"先须生月日时" | ✅ 完整 | 矫正历史查询无专门封装（可SQL查） |
 | 2 | 排盘（定盘） | 果老"安命安身" | ✅ 完整 | — |
-| 3 | 出生时间矫正（考刻定分） | 类铁板神数考刻定分 | ⚠️ 半 | 多点迭代 SOP 封装 |
+| 3 | 出生时间矫正（考刻定分） | 类铁板神数考刻定分 | ✅ 完整 | 矫正历史查询无专门封装（可SQL查） |
 | 4 | 格局分析 | 星学大成卷十二-十七 | ✅ 完整 | 断语秘诀库（可选） |
-| 5 | 洞微大限推演 | 果老"洞微大限"/星学大成卷十八 | ⚠️ 半 | 逐限分析/逐年推演封装 |
-| 6 | 流年推演 | 果老"流年"/星学大成卷十九 | ⚠️ 半 | 综合分析/多年推演封装 |
+| 5 | 洞微大限推演 | 果老"洞微大限"/星学大成卷十八 | ✅ 完整 | 逐限格局触发分析（对限宫位求值规则） |
+| 6 | 流年推演 | 果老"流年"/星学大成卷十九 | ✅ 完整 | — |
 | 7 | 综合判读 | 星学大成卷二十-二十二 | ✅ 原料完整 | —（AI 智能层） |
 | 8 | 主数据维护 | 命理常量源自典籍 | ⚠️ 半 | 扩展指南文档 |
+
+> **2026-08-02 更正**：入口 1/3/5/6 原标注"⚠️ 半"经源码核对已升级为"✅ 完整"。原标注的缺口（life_event 表、rectify_multi_point、analyze_daxian_limit、progress_daxian_years、analyze_liunian、progress_liunian_years、update/delete、time_uncertainty 字段等）已全部实现。详见各入口详述节的更新后软件支持度矩阵，以及 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/47-星盘矫正技术说明书.md" /> 和 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/48-推限技术说明书.md" />。
 
 ---
 
@@ -67,13 +69,16 @@ Phase 1-12 完成了**计算层**的建设：排盘引擎、命理常量、格�
 |---|---|---|
 | 录入基本信息 | `db.add_subject()` | ✅ |
 | 查询命主 | `db.get_subject()` / `db.list_subjects()` | ✅ |
-| 记录时间不确定性 | — | ❌ 无字段 |
-| 记录人生事件 | — | ❌ 无表 |
-| 更新/删除 | — | ❌ 无函数 |
-| 关联矫正历史 | `db.add_rectification()` 可写入，无查询 | ⚠️ |
-| 关联大限结果 | `db.add_daxian()` 可写入，无查询 | ⚠️ |
+| 记录时间不确定性 | `db.add_subject(time_uncertainty=...)` | ✅ 已实现（db.py:18, 81） |
+| 记录人生事件 | `db.add_life_event()` / `db.list_life_events()` | ✅ 已实现（db.py:109-119） |
+| 更新/删除 | `db.update_subject()` / `db.delete_subject()` | ✅ 已实现（db.py:89, 101） |
+| 关联矫正历史 | `db.add_rectification()` / `db.add_rectification_multi()` 可写入 | ⚠️ 无专门查询封装（可SQL查） |
+| 关联大限结果 | `db.add_daxian()` / `db.list_daxian_for_subject()` | ✅ 已实现（db.py:149, 127） |
+| 关联排盘记录 | `db.list_charts_for_subject()` | ✅ 已实现（db.py:123） |
 
-**缺口**：`db.py` 缺少 `update_subject`/`delete_subject`/`add_life_event`/`get_rectification_history`/`list_charts_for_subject`/`list_daxian_for_subject`。需要扩展 `life_event` 表和 subject 的 `time_uncertainty` 字段。
+**缺口**：命主档案管理功能链路完整可跑，无阻断性缺口。唯一小缺口是矫正历史查询无专门封装函数（可用 SQL 直接查 rectification 表）。
+
+> **2026-08-02 更正**：本节原标注的"无 time_uncertainty 字段"、"无 life_event 表"、"无 update/delete 函数"等缺口经源码核对已全部实现。上表已更新为实际状态。
 
 ---
 
@@ -116,14 +121,16 @@ Phase 1-12 完成了**计算层**的建设：排盘引擎、命理常量、格�
 | SOP 步骤 | 软件支持 | 状态 |
 |---|---|---|
 | 生成初始命盘 | `build_chart()` | ✅ |
-| 收集校准事件 | — | ❌ 无 life_event 表 |
+| 收集校准事件 | `db.add_life_event()` / `db.list_life_events()` | ✅ 已实现（db.py:109-119） |
 | AI 事件-星象映射 | AI 智能 | ⚠️ AI 能力 |
 | 反推计算（单点） | `rectify.py` / `core.find_date_at_sun_pos()` / `find_date_at_planet_pos()` | ✅ |
-| 多点一致性检验 | — | ❌ 无函数 |
-| 存储矫正历史 | `db.add_rectification()` | ✅ |
-| 查询矫正历史 | — | ❌ 无查询函数 |
+| 多点一致性检验 | `core.rectify_multi_point()` + `core.iterative_rectify()` | ✅ 已实现（core.py:3136, 3210） |
+| 存储矫正历史 | `db.add_rectification()` / `db.add_rectification_multi()` | ✅ 已实现（db.py:140, 169） |
+| 查询矫正历史 | SQL 直接查 rectification 表 | ⚠️ 无专门封装函数 |
 
-**缺口**：`rectify.py` 只做单点反推，缺少多点校准的迭代 SOP 封装。需要：`life_event` 表、`rectify_multi_point()` 函数、矫正历史查询函数。
+**缺口**：矫正功能链路完整可跑，无阻断性缺口。唯一小缺口是矫正历史查询无专门封装函数（可用 SQL 直接查）。详见 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/47-星盘矫正技术说明书.md" />。
+
+> **2026-08-02 更正**：本节原标注的"无 life_event 表"、"无 rectify_multi_point 函数"等缺口经源码核对已全部实现。上表已更新为实际状态。
 
 ---
 
@@ -188,12 +195,14 @@ Phase 1-12 完成了**计算层**的建设：排盘引擎、命理常量、格�
 | 当前限 | `chart['current_daxian']` | ✅ |
 | 当前限内行运星 | `chart['daxian_stars']` | ✅ |
 | 小限/飞限 | `chart['limits']` | ✅ |
-| 逐限分析（宫位/宫主/星曜/神煞） | 原料齐备，需 AI 手动交叉查询 | ⚠️ 无封装 |
+| 逐限分析（宫位/宫主/星曜/神煞） | `core.analyze_daxian_limit()` / `core.analyze_daxian_full()` | ✅ 已实现（core.py:3295, 3402） |
 | 逐限格局触发分析 | — | ❌ 无"对限宫位求值规则"函数 |
-| 限内逐年推演 | `core.compute_now_data()` 可逐年调用 | ✅ 但需循环 |
-| 大限交接期识别 | — | ❌ 无函数 |
+| 限内逐年推演 | `core.progress_daxian_years()` | ✅ 已实现（core.py:3380） |
+| 大限交接期识别 | `core.find_daxian_transitions()` | ✅ 已实现（core.py:3273） |
 
-**缺口**：缺少 `analyze_daxian_limit(chart, limit_index)` 封装函数、`progress_daxian_years(chart, age_start, age_end)` 封装函数。
+**缺口**：推限功能链路完整可跑，唯一缺口是"对限宫位重新求值格局规则"——目前格局求值只针对原盘，不限宫位。可由 AI 手动交叉查询 `daxian_analysis.limits[i].stars_in_limit` 与 `rules_library` 做近似判断。详见 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/48-推限技术说明书.md" />。
+
+> **2026-08-02 更正**：本节原标注的"无 analyze_daxian_limit 封装"、"无 progress_daxian_years 封装"、"无大限交接期识别函数"等缺口经源码核对已全部实现。上表已更新为实际状态。
 
 ---
 
@@ -218,11 +227,13 @@ Phase 1-12 完成了**计算层**的建设：排盘引擎、命理常量、格�
 |---|---|---|
 | 流年基础计算 | `core.compute_now_data()` | ✅ |
 | 流年四柱/神煞/年星 | 同上 | ✅ |
-| 流年-原盘叠加 | 原料齐备，AI 手动交叉 | ⚠️ 无封装 |
-| 流年-大限叠加 | 原料齐备，AI 手动交叉 | ⚠️ 无封装 |
-| 多年连续推演 | 需循环调用 | ⚠️ 无封装 |
+| 流年-原盘叠加 | `core.analyze_liunian()`（含太岁关系/小限/大限叠加） | ✅ 已实现（core.py:3467） |
+| 流年-大限叠加 | `core.analyze_liunian()` 内含 current_daxian | ✅ 已实现（core.py:3467-3502） |
+| 多年连续推演 | `core.progress_liunian_years()` | ✅ 已实现（core.py:3505） |
 
-**缺口**：缺少 `analyze_liunian(chart, age)` 封装函数、`progress_liunian_years(chart, age_start, age_end)` 封装函数。
+**缺口**：流年功能链路完整可跑，无阻断性缺口。详见 <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/48-推限技术说明书.md" />。
+
+> **2026-08-02 更正**：本节原标注的"无 analyze_liunian 封装"、"无 progress_liunian_years 封装"等缺口经源码核对已全部实现。上表已更新为实际状态。
 
 ---
 
