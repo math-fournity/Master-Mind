@@ -417,6 +417,8 @@ study-notes 中的每一部分内容都必须可反查出处。无论是 AI 内�
 ### study-notes 新系统/老系统吸收范式（哲学）
 
 **方案文档**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/56-新系统老系统吸收范式.md" />
+**方案迭代**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/57-新系统方案迭代与老方案更新.md" />（8问审视与诊断）
+**执行CheckList**：<ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/58-新系统迭代执行CheckList.md" />（60条item，Phase 5-9，持续追踪）
 
 #### 核心思想
 
@@ -735,3 +737,5 @@ S-0 → [T-0] → S-1 → [T-1] → S-2 → [T-2] → S-3 → ...
 |---|---|
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/54-工程实现细节.md" /> | Python接口层实现细节：core.py 60+算法表、常量提取、规则库语法、build_chart完整输出表、8个业务工作流软件支持度矩阵、已知缺口表 |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/55-Master-Worker与自动化系统.md" /> | Master-Worker架构、Devin CLI运行时、Worker yolo/限流恢复、系统脚本架构、双账本、AUDIT/审计系统、PathListGate、自动化设计、非线性吸收策略、SOP汇报审计、Auditor Agent、Worker提示词设计、Layer A审计日志、TODO管理 |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/57-新系统方案迭代与老方案更新.md" /> | 对56号方案的8问审视与诊断：步骤化不彻底/不是DAG/反查有缺口/吸收远未完成/多指向不够系统化/步骤框架需迭代/印度占星+多圈层/文献获取四策略 |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/58-新系统迭代执行CheckList.md" /> | 基于57号诊断的可执行CheckList：60条item，分Phase 5-9（步骤框架迭代/反查覆盖率提升/卷三-卷五吸收/多体系吸收启动/文献获取与还原），持续追踪 |
