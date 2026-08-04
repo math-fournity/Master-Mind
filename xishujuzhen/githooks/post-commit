@@ -1,0 +1,52 @@
+#!/data/master-mind/.venv/bin/python3
+#!/usr/bin/env python3
+"""Git post-commit hook —— CP4检查清单提醒
+
+每次git commit后触发。通过SDK查询stop_hook认知单元的依赖，
+打印CP4检查清单到stdout（Devin在exec输出中可见）。
+
+不影响subagent：subagent不commit，所以不触发此hook。
+检查清单不硬编码，从稀疏矩阵动态获取。
+"""
+import sys
+import os
+import subprocess
+
+
+def main():
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True
+    )
+    project_dir = result.stdout.strip()
+    if not project_dir:
+        return
+
+    checklist = get_checklist(project_dir)
+    if not checklist:
+        return  # SDK不可用时graceful降级
+
+    print("\n" + "=" * 60)
+    print("CP4工作结束检查清单（从认知图稀疏矩阵查询）")
+    print("=" * 60)
+    for i, item in enumerate(checklist, 1):
+        title = item.get("title", item.get("cog_id", ""))
+        cognition = item.get("key_cognition", "")
+        docs = item.get("source_docs", [])
+        doc_str = f"（载体文档: {', '.join(str(d) for d in docs)}）" if docs else ""
+        print(f"  □ {i}. {title}: {cognition} {doc_str}")
+    print("=" * 60 + "\n")
+
+
+def get_checklist(project_dir):
+    try:
+        sys.path.insert(0, os.path.join(project_dir, "xishujuzhen"))
+        from cognition_sdk_math import CognitionSDK
+        sdk = CognitionSDK()
+        return sdk.get_stop_checklist("stop_hook")
+    except Exception:
+        return []  # 静默降级
+
+
+if __name__ == "__main__":
+    main()
