@@ -174,6 +174,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `dev-docs/101-UserPromptSubmit提醒机制方案.md` | **提醒机制方案**：模仿星学97号文档的v3方案（纯提醒无硬门禁），给数学项目加UserPromptSubmit hook。每次用户提问时从`UserPromptSubmit.txt`读取提醒注入AI上下文。数学项目独有内容：数学问题额外提醒查种子推荐表+七步骤工作流。**5/5 Check List通过** | 工作系统提醒机制 |
 | `dev-docs/102-AGENTS.md技术说明内联方案.md` | **内联方案**：把工作系统和数学大师系统的操作级技术说明内联到AGENTS.md中，确保跨session/压缩后AI不丢失"怎么用"的认知。每节末尾加"依赖维护"标注——当依赖的dev-docs更新时同步更新AGENTS.md对应内容。**6/6 Check List通过** | AGENTS.md维护 |
 | `dev-docs/103-AGENTS.md技术说明依赖入稀疏矩阵方案.md` | **依赖入图方案**：纠正102号的纯Markdown依赖表——依赖关系应该存储在稀疏矩阵中。新增2个认知单元（agents_tech_worksystem, agents_tech_mathmaster）+ 11条depends_on边 + SDK新增find_dependents_by_doc方法（反向查询：给定dev-docs编号返回依赖它的认知单元）。AGENTS.md中Markdown依赖表改为指向稀疏矩阵。**6/6 Check List通过** | AGENTS.md维护 |
+| `dev-docs/104-CP4检查清单补全-对照星学98-99号方案.md` | **CP4补全方案**：对照星学98号（CP4动态查询技术说明书）和99号（CP4补全两个稀疏矩阵更新纪律），补全数学项目CP4检查清单。新增3个纪律认知单元（doc_sync_discipline, work_matrix_update, math_master_matrix_update）+ 加3条stop_hook依赖边 + 移除3条错误依赖边（arangodb_infra, work_system_upgrade, agents_management不是纪律）。修复后CP4检查清单5项纪律，与星学项目完全对称。AGENTS.md中"检查依赖"纪律改为指向稀疏矩阵中的work_matrix_update和math_master_matrix_update。 | **必读**。CP4检查清单纪律 |
 
 ### 星学知识系统结构参考
 
@@ -451,10 +452,10 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 3. **必须 commit**：工作结束后必须 commit。commit 后 git post-commit hook 会打印 CP4 检查清单（从认知图稀疏矩阵动态查询）。
 4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。
 5. **认知图变更后跑回归验证**：认知图每次变更（新增/修改/删除认知单元或依赖边）后，运行 `cognition_audit_math.py poc-regression`。
-6. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 必须检查刚刚发生的对话中：
-   - **是否有依赖应该被加入工作系统的稀疏矩阵中？**——对话中是否产生了新的工作认知、新的工作认知之间的依赖关系、新的dev-docs与认知单元的source_docs关系。如果有，用`cognition_sdk_math.py`的`add_unit`/`add_edge`写入认知图。
-   - **是否有依赖应该被加入目标系统的稀疏矩阵中？**——对话中是否产生了新的数学知识依赖（定理→引理、方法→工具、意识→问题类型）、新的数学意识节点、新的版本链。如果有，写入`dg_nodes`/`dg_edges`。
-   - 检查方法：回顾本轮对话，对照两个稀疏矩阵的现有内容，找出"对话中提到但尚未入图"的依赖关系。
+6. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 立即执行CP4检查清单中的第2、3项（`work_matrix_update` + `math_master_matrix_update`）——这是CP4的按需触发版本，不等到git commit：
+   - **工作系统稀疏矩阵更新纪律**（`work_matrix_update`）：回顾本轮对话，是否产生了新的工作认知、新的工作认知之间的依赖关系、新的dev-docs与认知单元的source_docs关系？如果有，用`cognition_sdk_math.py`的`add_unit`/`add_edge`写入认知图。
+   - **数学大师系统稀疏矩阵更新纪律**（`math_master_matrix_update`）：回顾本轮对话，是否产生了新的数学知识依赖（定理→引理、方法→工具、意识→问题类型）、新的数学意识节点、新的版本链？如果有，写入`dg_nodes`/`dg_edges`。
+   - 这两项纪律也是CP4检查清单的一部分（stop_hook的depends_on边），每次git commit后post-commit hook会自动提醒。
 
 ### Subagent 写文件能力与 /yolo 模式
 
@@ -496,7 +497,8 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 **ArangoDB状态**：
 - 数据库：xishujuzhen_math
-- 认知图：30个认知单元（含cayley_hamilton + agents_tech_worksystem + agents_tech_mathmaster），42条边
+- 认知图：33个认知单元（含cayley_hamilton + agents_tech_worksystem + agents_tech_mathmaster + doc_sync_discipline + work_matrix_update + math_master_matrix_update），42条边
+- CP4检查清单5项纪律（与星学项目对称）：doc_sync_discipline, work_matrix_update, math_master_matrix_update, sdk_maintenance, glossary
 - 5个意识节点版本链：v1(POC-1发现)→v2(POC-2深化)，current_version=v2
 - cayley_hamilton三层版本链：v1(L1)→v2(L2)→v3(L3)，current_version=v3
 - AGENTS.md技术说明依赖已入稀疏矩阵：agents_tech_worksystem(source_docs=[91,94,97,100,101]) + agents_tech_mathmaster(source_docs=[83,85,86,88,90,92,99,100])
