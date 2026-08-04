@@ -1,0 +1,646 @@
+[
+  {
+    "problem_id": "MATH-004",
+    "title": "费马小定理",
+    "source": "MathLib 100 Theorems #4",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory"],
+    "statement": "若p是素数，a不被p整除，则 a^(p-1) ≡ 1 (mod p)。",
+    "solutions": [
+      {
+        "solution_id": "MATH-004-S1",
+        "method": "group_action_lagrange",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "multiplicative_group_mod_p", "action": "construct"},
+          {"step": 2, "concept": "group_order_equals_p_minus_1", "action": "verify"},
+          {"step": 3, "concept": "lagrange_theorem", "action": "apply"},
+          {"step": 4, "concept": "subgroup_order_divides_group_order", "action": "derive"},
+          {"step": 5, "concept": "element_order_divides_group_order", "action": "derive"},
+          {"step": 6, "concept": "a^(p-1)_equals_identity", "action": "conclude"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "不变量思维——用群阶约束元素行为", "evidence_step": 3, "applicable_domains": ["algebra","number_theory","topology","geometry"]},
+          {"pattern": "局部-全局思维——单个元素的性质由整体结构决定", "evidence_step": 4, "applicable_domains": ["algebra","topology","number_theory","combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "群作用统一计数与同余", "domains_connected": ["number_theory","group_theory","combinatorics"], "graph_restructure": "将整数模p的乘法结构识别为群，增加数论↔群论↔组合的跨领域边"}
+        ],
+        "cross_domain_edges": [
+          {"from": "number_theory:modular_arithmetic", "to": "group_theory:finite_group", "type": "equivalence"},
+          {"from": "group_theory:group_action", "to": "combinatorics:counting_orbit", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-004-S2",
+        "method": "combinatorial_polynomial",
+        "domain": "combinatorics",
+        "path": [
+          {"step": 1, "concept": "enumerate_nonzero_residues_mod_p", "action": "list"},
+          {"step": 2, "concept": "multiply_by_a_permutes_residues", "action": "verify"},
+          {"step": 3, "concept": "product_of_residues_invariant", "action": "establish"},
+          {"step": 4, "concept": "a^(p-1)_times_factorial_equals_factorial", "action": "derive"},
+          {"step": 5, "concept": "cancel_factorial_mod_p", "action": "cancel"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "置换不变量——乘以a是对剩余类的置换，置换不改变整体乘积", "evidence_step": 2, "applicable_domains": ["number_theory","combinatorics","algebra","analysis"]},
+          {"pattern": "对称性思维——利用对称变换的不变量", "evidence_step": 3, "applicable_domains": ["algebra","geometry","topology","physics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "置换不变量作为同余证明引擎", "domains_connected": ["number_theory","combinatorics"], "graph_restructure": "增加置换群↔模运算的边，将'乘以a是置换'识别为跨领域桥梁"}
+        ],
+        "cross_domain_edges": [
+          {"from": "combinatorics:permutation_invariant", "to": "number_theory:congruence", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-004-S3",
+        "method": "induction_binomial",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "binomial_theorem_mod_p", "action": "expand"},
+          {"step": 2, "concept": "p_divides_binomial_coefficients_interior", "action": "verify"},
+          {"step": 3, "concept": "freshmans_dream_a_plus_1_p_equals_a_p_plus_1", "action": "derive"},
+          {"step": 4, "concept": "induction_base_a_equals_1", "action": "verify"},
+          {"step": 5, "concept": "induction_step_a_p_equals_a_mod_p", "action": "induct"},
+          {"step": 6, "concept": "cancel_a_when_coprime", "action": "cancel"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "归纳递推——将全局命题归约为局部递推", "evidence_step": 5, "applicable_domains": ["number_theory","algebra","combinatorics","analysis"]},
+          {"pattern": "特征消除——素数在组合系数中的整除性消除中间项", "evidence_step": 2, "applicable_domains": ["number_theory","combinatorics","algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Freshman's Dream作为素数特征域的万能模式", "domains_connected": ["number_theory","algebra","category_theory"], "graph_restructure": "增加组合系数整除性↔素数特征域↔Frobenius自同态的跨领域边，识别'素数=特征'为统一桥"}
+        ],
+        "cross_domain_edges": [
+          {"from": "number_theory:prime_divisibility", "to": "algebra:field_characteristic", "type": "equivalence"},
+          {"from": "algebra:frobenius_endomorphism", "to": "number_theory:fermat_little_theorem", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: FermatLittleTheorem"
+  },
+  {
+    "problem_id": "MATH-005",
+    "title": "二项式定理",
+    "source": "MathLib 100 Theorems #16",
+    "difficulty": "undergraduate",
+    "domain": ["combinatorics", "algebra"],
+    "statement": "(a+b)^n = Σ_{k=0}^{n} C(n,k) a^k b^(n-k)，其中 C(n,k) = n!/(k!(n-k)!)。",
+    "solutions": [
+      {
+        "solution_id": "MATH-005-S1",
+        "method": "combinatorial_counting",
+        "domain": "combinatorics",
+        "path": [
+          {"step": 1, "concept": "expand_product_of_n_factors", "action": "expand"},
+          {"step": 2, "concept": "each_factor_contributes_a_or_b", "action": "identify"},
+          {"step": 3, "concept": "choose_k_positions_for_a", "action": "count"},
+          {"step": 4, "concept": "binomial_coefficient_counting", "action": "compute"},
+          {"step": 5, "concept": "sum_over_all_k", "action": "sum"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "组合计数——乘积展开=选择路径枚举", "evidence_step": 3, "applicable_domains": ["combinatorics","algebra","probability","analysis"]},
+          {"pattern": "对称性思维——a和b的对等角色", "evidence_step": 2, "applicable_domains": ["algebra","geometry","combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "代数展开=路径计数=多项式系数", "domains_connected": ["combinatorics","algebra","probability"], "graph_restructure": "将多项式展开识别为组合路径枚举，增加代数↔组合↔概率的三边桥"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:polynomial_expansion", "to": "combinatorics:path_counting", "type": "equivalence"},
+          {"from": "combinatorics:binomial_coefficient", "to": "probability:bernoulli_distribution", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-005-S2",
+        "method": "induction_pascal",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "base_case_n_equals_0", "action": "verify"},
+          {"step": 2, "concept": "pascal_identity", "action": "establish"},
+          {"step": 3, "concept": "induction_hypothesis", "action": "assume"},
+          {"step": 4, "concept": "multiply_by_a_plus_b", "action": "multiply"},
+          {"step": 5, "concept": "split_sum_into_two_parts", "action": "split"},
+          {"step": 6, "concept": "reindex_and_apply_pascal", "action": "reindex"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "归纳递推——Pascal恒等式驱动递推", "evidence_step": 6, "applicable_domains": ["algebra","number_theory","combinatorics","analysis"]},
+          {"pattern": "指标重编——和式中求和指标的平移合并", "evidence_step": 6, "applicable_domains": ["analysis","combinatorics","algebra","probability"]}
+        ],
+        "l3_paradigms": [],
+        "cross_domain_edges": [],
+        "elegant": false,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-005-S3",
+        "method": "generating_function_formal_power",
+        "domain": "analysis",
+        "path": [
+          {"step": 1, "concept": "formal_power_series_ring", "action": "construct"},
+          {"step": 2, "concept": "exponential_generating_function", "action": "define"},
+          {"step": 3, "concept": "product_of_two_exponential_generating_functions", "action": "multiply"},
+          {"step": 4, "concept": "cauchy_product_formula", "action": "apply"},
+          {"step": 5, "concept": "binomial_coefficient_appears_as_convolution", "action": "identify"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "卷积思维——乘积的系数=两个序列的卷积", "evidence_step": 4, "applicable_domains": ["analysis","algebra","combinatorics","signal_processing","probability"]},
+          {"pattern": "生成函数编码——序列信息编码为幂级数系数", "evidence_step": 2, "applicable_domains": ["combinatorics","analysis","algebra","number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "生成函数将离散组合问题转化为连续分析问题", "domains_connected": ["combinatorics","analysis","algebra"], "graph_restructure": "增加组合↔分析↔代数三边桥，将Cauchy卷积识别为跨领域不变量"}
+        ],
+        "cross_domain_edges": [
+          {"from": "combinatorics:sequence", "to": "analysis:power_series_coefficient", "type": "equivalence"},
+          {"from": "algebra:cauchy_product", "to": "combinatorics:convolution", "type": "equivalence"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Nat.choose"
+  },
+  {
+    "problem_id": "MATH-006",
+    "title": "Cauchy-Schwarz不等式",
+    "source": "MathLib 100 Theorems #21",
+    "difficulty": "undergraduate",
+    "domain": ["analysis", "linear_algebra"],
+    "statement": "对任意内积空间中的向量u,v，有 |<u,v>|² ≤ <u,u>·<v,v>，等号成立当且仅当u,v线性相关。",
+    "solutions": [
+      {
+        "solution_id": "MATH-006-S1",
+        "method": "discriminant_quadratic",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "construct_quadratic_in_t", "action": "construct"},
+          {"step": 2, "concept": "inner_product_nonnegativity", "action": "use"},
+          {"step": 3, "concept": "expand_norm_squared", "action": "expand"},
+          {"step": 4, "concept": "quadratic_at_plus_bt_nonnegative_for_all_t", "action": "establish"},
+          {"step": 5, "concept": "nonnegative_quadratic_has_nonpositive_discriminant", "action": "apply"},
+          {"step": 6, "concept": "discriminant_inequality_yields_cauchy_schwarz", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "非负性约束——非负函数的全局约束导出不等式", "evidence_step": 4, "applicable_domains": ["analysis","algebra","geometry","probability","number_theory"]},
+          {"pattern": "辅助函数构造——引入参数化辅助对象以暴露隐藏结构", "evidence_step": 1, "applicable_domains": ["analysis","algebra","number_theory","combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "非负性→判别式≤0→不等式：二次型作为不等式生成器", "domains_connected": ["algebra","analysis","geometry"], "graph_restructure": "增加二次型↔不等式↔几何凸性的跨领域边，识别'非负二次型'为统一不变量"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:quadratic_form_nonnegativity", "to": "analysis:inequality", "type": "equivalence"},
+          {"from": "algebra:discriminant", "to": "geometry:convexity", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-006-S2",
+        "method": "projection_geometry",
+        "domain": "geometry",
+        "path": [
+          {"step": 1, "concept": "orthogonal_decomposition", "action": "decompose"},
+          {"step": 2, "concept": "project_u_onto_v", "action": "project"},
+          {"step": 3, "concept": "parallel_component", "action": "compute"},
+          {"step": 4, "concept": "perpendicular_component", "action": "compute"},
+          {"step": 5, "concept": "pythagorean_theorem_for_inner_product", "action": "apply"},
+          {"step": 6, "concept": "perpendicular_component_norm_nonnegative", "action": "use"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "正交分解——将向量拆为平行与垂直分量", "evidence_step": 1, "applicable_domains": ["geometry","algebra","analysis","signal_processing"]},
+          {"pattern": "勾股约束——垂直分量的范数非负导出主不等式", "evidence_step": 6, "applicable_domains": ["geometry","algebra","analysis","number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "投影=最优逼近=不等式", "domains_connected": ["geometry","analysis","linear_algebra"], "graph_restructure": "增加几何投影↔最优逼近↔不等式的跨领域边，识别投影为连接几何与分析的统一桥"}
+        ],
+        "cross_domain_edges": [
+          {"from": "geometry:orthogonal_projection", "to": "analysis:best_approximation", "type": "equivalence"},
+          {"from": "geometry:pythagorean_theorem", "to": "algebra:inner_product_inequality", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-006-S3",
+        "method": "normalization_homogeneity",
+        "domain": "analysis",
+        "path": [
+          {"step": 1, "concept": "homogeneity_of_inner_product", "action": "identify"},
+          {"step": 2, "concept": "normalize_vectors_to_unit_length", "action": "normalize"},
+          {"step": 3, "concept": "reduce_to_unit_vectors", "action": "reduce"},
+          {"step": 4, "concept": "triangle_inequality_or_jensen", "action": "apply"},
+          {"step": 5, "concept": "equality_condition_linear_dependence", "action": "verify"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "归一化降维——利用齐次性消除参数自由度", "evidence_step": 2, "applicable_domains": ["analysis","algebra","geometry","number_theory","physics"]},
+          {"pattern": "不变量思维——归一化后问题结构暴露本质约束", "evidence_step": 3, "applicable_domains": ["algebra","topology","geometry","analysis"]}
+        ],
+        "l3_paradigms": [],
+        "cross_domain_edges": [],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: InnerProduct.cauchy_schwarz"
+  },
+  {
+    "problem_id": "MATH-007",
+    "title": "中国剩余定理",
+    "source": "MathLib 100 Theorems #39",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebra"],
+    "statement": "若 m_1,...,m_k 两两互素，则同余方程组 x≡a_i (mod m_i) (i=1,...,k) 在 mod M=m_1·...·m_k 下有唯一解。",
+    "solutions": [
+      {
+        "solution_id": "MATH-007-S1",
+        "method": "explicit_construction",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "define_M_equals_product_of_moduli", "action": "define"},
+          {"step": 2, "concept": "define_M_i_equals_M_over_m_i", "action": "define"},
+          {"step": 3, "concept": "bezout_identity_for_coprime", "action": "apply"},
+          {"step": 4, "concept": "find_inverse_N_i_of_M_i_mod_m_i", "action": "compute"},
+          {"step": 5, "concept": "construct_x_equals_sum_a_i_M_i_N_i", "action": "construct"},
+          {"step": 6, "concept": "verify_congruence_for_each_i", "action": "verify"},
+          {"step": 7, "concept": "uniqueness_by_mod_M_argument", "action": "prove"},
+          {"step": 8, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "显式构造——用逆元拼接各局部解", "evidence_step": 5, "applicable_domains": ["number_theory","algebra","combinatorics","cryptography"]},
+          {"pattern": "局部-全局思维——M_i在各模下消去、在其他模下存活", "evidence_step": 6, "applicable_domains": ["algebra","topology","number_theory","analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "局部解的正交拼接=全局解", "domains_connected": ["number_theory","algebra","signal_processing"], "graph_restructure": "增加CRT构造↔正交分解↔插值的跨领域边，识别M_i为'投影到局部坐标'的算子"}
+        ],
+        "cross_domain_edges": [
+          {"from": "number_theory:crt_construction", "to": "algebra:ring_isomorphism", "type": "equivalence"},
+          {"from": "number_theory:crt_construction", "to": "signal_processing:orthogonal_projection", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-007-S2",
+        "method": "ring_isomorphism",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "natural_map_z_to_product_of_quotient_rings", "action": "construct"},
+          {"step": 2, "concept": "kernel_equals_intersection_of_ideals", "action": "compute"},
+          {"step": 3, "concept": "coprime_ideals_intersection_equals_product", "action": "apply"},
+          {"step": 4, "concept": "kernel_equals_MZ", "action": "derive"},
+          {"step": 5, "concept": "first_isomorphism_theorem", "action": "apply"},
+          {"step": 6, "concept": "surjectivity_from_crt_construction", "action": "prove"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "环同态思维——用自然映射+核=理想的结构定理", "evidence_step": 5, "applicable_domains": ["algebra","number_theory","topology","geometry"]},
+          {"pattern": "局部-全局思维——商环分解=局部结构拼接", "evidence_step": 1, "applicable_domains": ["algebra","topology","number_theory","analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Z/MZ ≅ ∏Z/m_iZ：环分解=几何局部化", "domains_connected": ["number_theory","algebra","topology"], "graph_restructure": "增加环论↔拓扑局部化↔数论的跨领域边，将CRT识别为'局部-全局'范式在环论中的实例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:ring_isomorphism_theorem", "to": "topology:local_to_global", "type": "structural_analogy"},
+          {"from": "number_theory:crt", "to": "algebra:chinese_remainder_for_ideals", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-007-S3",
+        "method": "successive_substitution",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "start_with_first_congruence", "action": "solve"},
+          {"step": 2, "concept": "substitute_into_second_congruence", "action": "substitute"},
+          {"step": 3, "concept": "obtain_linear_congruence_in_one_variable", "action": "simplify"},
+          {"step": 4, "concept": "solve_using_modular_inverse", "action": "solve"},
+          {"step": 5, "concept": "combine_two_congruences_into_one", "action": "merge"},
+          {"step": 6, "concept": "iterate_for_remaining_moduli", "action": "iterate"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "逐步消元——每次合并一个约束，降低维度", "evidence_step": 5, "applicable_domains": ["number_theory","algebra","analysis","combinatorics"]},
+          {"pattern": "归纳递推——k个同余合并为1个同余的迭代", "evidence_step": 6, "applicable_domains": ["algebra","number_theory","analysis","combinatorics"]}
+        ],
+        "l3_paradigms": [],
+        "cross_domain_edges": [],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Int.ModEq.chineseRemainder"
+  },
+  {
+    "problem_id": "MATH-008",
+    "title": "Bezout定理（代数曲线相交数）",
+    "source": "MathLib 100 Theorems #71 / 代数几何经典",
+    "difficulty": "graduate",
+    "domain": ["algebraic_geometry"],
+    "statement": "在射影平面 P² 上，次数分别为 d 和 e 且无公共分量（无公共曲线分量）的两条代数曲线 C, D 的相交数（计入重数）等于 d·e。",
+    "solutions": [
+      {
+        "solution_id": "MATH-008-S1",
+        "method": "resultant_elimination",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "homogenize_both_curves_in_p2", "action": "homogenize"},
+          {"step": 2, "concept": "choose_coordinate_avoiding_common_component", "action": "choose"},
+          {"step": 3, "concept": "write_f_and_g_as_polynomials_in_one_variable", "action": "represent"},
+          {"step": 4, "concept": "resultant_definition", "action": "define"},
+          {"step": 5, "concept": "resultant_degree_equals_product_of_degrees", "action": "compute"},
+          {"step": 6, "concept": "roots_of_resultant_correspond_to_intersection_points", "action": "identify"},
+          {"step": 7, "concept": "multiplicity_counting_via_resultant", "action": "verify"},
+          {"step": 8, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "消元思维——消去一个变量将二维问题降为一维", "evidence_step": 3, "applicable_domains": ["algebra","algebraic_geometry","differential_equations","combinatorics"]},
+          {"pattern": "不变量思维——相交数不依赖于坐标选取", "evidence_step": 2, "applicable_domains": ["algebra","topology","geometry","number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "结式作为消元不变量连接代数与几何", "domains_connected": ["algebra","algebraic_geometry","differential_equations"], "graph_restructure": "增加结式↔相交计数↔判别式的跨领域边，将结式识别为'消元=投影'的统一算子"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:resultant", "to": "algebraic_geometry:intersection_number", "type": "equivalence"},
+          {"from": "algebra:resultant", "to": "differential_equations:characteristic_polynomial", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-008-S2",
+        "method": "hilbert_polynomial_intersection_multiplicity",
+        "domain": "algebraic_geometry",
+        "path": [
+          {"step": 1, "concept": "local_ring_at_intersection_point", "action": "construct"},
+          {"step": 2, "concept": "intersection_multiplicity_as_length_of_quotient", "action": "define"},
+          {"step": 3, "concept": "hilbert_samuel_polynomial", "action": "compute"},
+          {"step": 4, "concept": "serre_intersection_formula_tor", "action": "apply"},
+          {"step": 5, "concept": "dimension_counting_in_projective_space", "action": "verify"},
+          {"step": 6, "concept": "degree_product_formula", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "局部化思维——在交点处局部化环，将全局相交数归约为局部长度", "evidence_step": 1, "applicable_domains": ["algebra","algebraic_geometry","topology","number_theory"]},
+          {"pattern": "同调思维——用Tor群刻画相交重数", "evidence_step": 4, "applicable_domains": ["algebra","topology","algebraic_geometry","category_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "相交=Tor=上同调杯积：代数几何相交数与拓扑上同调的统一", "domains_connected": ["algebraic_geometry","topology","category_theory"], "graph_restructure": "增加相交重数↔Tor↔杯积的跨领域边，将Serre公式识别为连接代数几何与代数拓扑的结构同构"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebraic_geometry:intersection_multiplicity", "to": "topology:cohomology_cup_product", "type": "equivalence"},
+          {"from": "algebra:tor functor", "to": "algebraic_geometry:serre_formula", "type": "equivalence"},
+          {"from": "topology:intersection_number", "to": "algebraic_geometry:bezout_theorem", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-008-S3",
+        "method": "noether_normalization_degree",
+        "domain": "commutative_algebra",
+        "path": [
+          {"step": 1, "concept": "coordinate_ring_of_intersection", "action": "construct"},
+          {"step": 2, "concept": "quotient_ring_by_ideal_sum", "action": "form"},
+          {"step": 3, "concept": "hilbert_function_of_quotient", "action": "compute"},
+          {"step": 4, "concept": "leading_term_ideal_and_groebner_basis", "action": "apply"},
+          {"step": 5, "concept": "degree_equals_number_of_standard_monomials", "action": "count"},
+          {"step": 6, "concept": "standard_monomial_count_equals_de_times_e", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Groebner基思维——用标准单项式计数替代几何计数", "evidence_step": 5, "applicable_domains": ["algebra","algebraic_geometry","combinatorics","computer_science"]},
+          {"pattern": "不变量思维——Hilbert函数不依赖Groebner基选取", "evidence_step": 3, "applicable_domains": ["algebra","topology","geometry"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Groebner基=标准型=计算桥：将几何相交问题转化为组合计数", "domains_connected": ["algebra","algebraic_geometry","combinatorics","computer_science"], "graph_restructure": "增加Groebner基↔标准单项式↔相交计数的跨领域边，识别'标准型'为连接几何与组合计算的统一范式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:groebner_basis", "to": "algebraic_geometry:intersection_computation", "type": "equivalence"},
+          {"from": "combinatorics:monomial_counting", "to": "algebraic_geometry:degree", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [
+      "相交重数的定义需要在正则环和链复形层面才能严格处理",
+      "有公共分量时的退化情况需要用移动引理处理"
+    ],
+    "lean_formalized": false,
+    "lean_proof": null
+  },
+  {
+    "problem_id": "MATH-009",
+    "title": "Wilson定理",
+    "source": "MathLib 100 Theorems #5",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory"],
+    "statement": "p是素数 ⟺ (p-1)! ≡ -1 (mod p)。",
+    "solutions": [
+      {
+        "solution_id": "MATH-009-S1",
+        "method": "inverse_pairing",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "enumerate_residues_1_to_p_minus_1", "action": "list"},
+          {"step": 2, "concept": "each_residue_has_unique_inverse_mod_p", "action": "establish"},
+          {"step": 3, "concept": "self_inverse_elements_satisfy_x_squared_equals_1", "action": "identify"},
+          {"step": 4, "concept": "only_1_and_minus_1_are_self_inverse", "action": "derive"},
+          {"step": 5, "concept": "pair_up_remaining_elements_with_inverse", "action": "pair"},
+          {"step": 6, "concept": "paired_product_equals_1_mod_p", "action": "compute"},
+          {"step": 7, "concept": "unpaired_elements_contribute_minus_1", "action": "derive"},
+          {"step": 8, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "配对消元——用逆元配对使乘积消为1，仅余自逆元", "evidence_step": 5, "applicable_domains": ["number_theory","algebra","combinatorics","analysis"]},
+          {"pattern": "不动点思维——自逆元是群作用的不动点，决定整体结构", "evidence_step": 4, "applicable_domains": ["algebra","topology","differential_equations","dynamical_systems"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "群元素配对消元=乘积由不动点决定", "domains_connected": ["number_theory","group_theory","combinatorics"], "graph_restructure": "增加逆元配对↔群作用不动点↔组合消元的跨领域边，识别'配对消去群作用'为跨领域范式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "number_theory:inverse_pairing", "to": "group_theory:fixed_point_of_involution", "type": "equivalence"},
+          {"from": "group_theory:involution_pairing", "to": "combinatorics:involution_principle", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-009-S2",
+        "method": "polynomial_root_argument",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "polynomial_x_p_minus_1_minus_1_over_finite_field", "action": "construct"},
+          {"step": 2, "concept": "roots_are_all_nonzero_elements", "action": "identify"},
+          {"step": 3, "concept": "factor_as_product_of_x_minus_root", "action": "factor"},
+          {"step": 4, "concept": "evaluate_at_x_equals_0", "action": "evaluate"},
+          {"step": 5, "concept": "product_of_roots_equals_constant_term", "action": "apply"},
+          {"step": 6, "concept": "vieta_formula_yields_minus_1", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "多项式根分解——用多项式的根分解代替逐元素枚举", "evidence_step": 3, "applicable_domains": ["algebra","number_theory","analysis","combinatorics"]},
+          {"pattern": "特殊赋值——在关键点赋值暴露隐藏的乘积关系", "evidence_step": 4, "applicable_domains": ["algebra","analysis","number_theory","combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Vieta公式=根与系数=群元素乘积：多项式分解作为群论计数引擎", "domains_connected": ["algebra","number_theory","group_theory"], "graph_restructure": "增加多项式分解↔Vieta↔群元素乘积的跨领域边，识别'多项式=群的生成函数'为统一桥"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:polynomial_factorization", "to": "number_theory:product_of_residues", "type": "equivalence"},
+          {"from": "algebra:vieta_formula", "to": "group_theory:element_product", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-009-S3",
+        "method": "cyclic_group_generator",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "multiplicative_group_is_cyclic", "action": "establish"},
+          {"step": 2, "concept": "choose_primitive_root_g", "action": "choose"},
+          {"step": 3, "concept": "factorial_equals_product_of_powers_of_g", "action": "represent"},
+          {"step": 4, "concept": "sum_of_exponents_0_to_p_minus_2", "action": "compute"},
+          {"step": 5, "concept": "geometric_series_sum", "action": "evaluate"},
+          {"step": 6, "concept": "g_power_sum_yields_g_power_p_minus_1", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "生成元思维——用循环群生成元将乘法问题转化为加法问题", "evidence_step": 3, "applicable_domains": ["number_theory","algebra","analysis","cryptography"]},
+          {"pattern": "对数化——乘法群→加法群的结构映射", "evidence_step": 4, "applicable_domains": ["analysis","algebra","number_theory","topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "离散对数=生成元=乘法转加法", "domains_connected": ["number_theory","group_theory","cryptography"], "graph_restructure": "增加循环群生成元↔离散对数↔指数和的跨领域边，识别'乘法→加法的结构映射'为统一范式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "number_theory:primitive_root", "to": "group_theory:cyclic_generator", "type": "equivalence"},
+          {"from": "group_theory:discrete_logarithm", "to": "analysis:logarithm", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Nat.wilson"
+  },
+  {
+    "problem_id": "MATH-010",
+    "title": "Pythagoras定理（勾股定理）",
+    "source": "MathLib 100 Theorems #47",
+    "difficulty": "high_school",
+    "domain": ["geometry"],
+    "statement": "直角三角形中，两直角边的平方和等于斜边的平方：a² + b² = c²。",
+    "solutions": [
+      {
+        "solution_id": "MATH-010-S1",
+        "method": "similar_triangles",
+        "domain": "geometry",
+        "path": [
+          {"step": 1, "concept": "drop_altitude_from_right_angle_to_hypotenuse", "action": "construct"},
+          {"step": 2, "concept": "two_sub_triangles_similar_to_original", "action": "prove"},
+          {"step": 3, "concept": "similarity_ratio_a_over_c_and_b_over_c", "action": "compute"},
+          {"step": 4, "concept": "projection_lengths_on_hypotenuse", "action": "derive"},
+          {"step": 5, "concept": "a_squared_equals_c_times_projection_of_a", "action": "establish"},
+          {"step": 6, "concept": "b_squared_equals_c_times_projection_of_b", "action": "establish"},
+          {"step": 7, "concept": "sum_projections_equals_c", "action": "add"},
+          {"step": 8, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "自相似分解——大三角形分解为与自己相似的小三角形", "evidence_step": 2, "applicable_domains": ["geometry","analysis","fractal_theory","dynamical_systems"]},
+          {"pattern": "比例不变量——相似比作为连接局部与全局的桥梁", "evidence_step": 3, "applicable_domains": ["geometry","algebra","analysis","physics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "自相似=尺度不变性=分形结构", "domains_connected": ["geometry","analysis","fractal_theory"], "graph_restructure": "增加相似三角形↔自相似↔尺度不变性的跨领域边，将勾股定理识别为自相似结构的必然推论"}
+        ],
+        "cross_domain_edges": [
+          {"from": "geometry:similar_triangles", "to": "analysis:scale_invariance", "type": "structural_analogy"},
+          {"from": "geometry:self_similar_decomposition", "to": "fractal_theory:iterative_function_system", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-010-S2",
+        "method": "area_dissection",
+        "domain": "geometry",
+        "path": [
+          {"step": 1, "concept": "construct_square_on_each_side", "action": "construct"},
+          {"step": 2, "concept": "dissect_squares_on_legs_into_pieces", "action": "dissect"},
+          {"step": 3, "concept": "rearrange_pieces_to_fill_square_on_hypotenuse", "action": "rearrange"},
+          {"step": 4, "concept": "area_preservation_under_rigid_motion", "action": "verify"},
+          {"step": 5, "concept": "area_of_squares_proportional_to_side_squared", "action": "identify"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "面积守恒——图形分割重组不改变面积", "evidence_step": 4, "applicable_domains": ["geometry","algebra","analysis","combinatorics"]},
+          {"pattern": "不变量思维——面积作为刚体变换的不变量", "evidence_step": 4, "applicable_domains": ["geometry","topology","algebra","physics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "割补=不变量=等式：几何分解重组作为等式证明引擎", "domains_connected": ["geometry","combinatorics","algebra"], "graph_restructure": "增加面积割补↔组合恒等式↔不变量的跨领域边，识别'分解重组'为跨领域证明范式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "geometry:area_dissection", "to": "combinatorics:bijective_proof", "type": "structural_analogy"},
+          {"from": "geometry:rigid_motion_invariant", "to": "algebra:invariant_theory", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-010-S3",
+        "method": "coordinate_analytic",
+        "domain": "analytic_geometry",
+        "path": [
+          {"step": 1, "concept": "place_right_angle_at_origin", "action": "position"},
+          {"step": 2, "concept": "legs_along_axes_lengths_a_and_b", "action": "align"},
+          {"step": 3, "concept": "vertices_at_origin_a_0_and_0_b", "action": "assign"},
+          {"step": 4, "concept": "distance_formula", "action": "apply"},
+          {"step": 5, "concept": "c_squared_equals_a_squared_plus_b_squared", "action": "compute"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "坐标化——几何问题代数化，选择坐标系简化计算", "evidence_step": 1, "applicable_domains": ["geometry","algebra","analysis","physics","number_theory"]},
+          {"pattern": "不变量思维——距离公式不依赖坐标选取", "evidence_step": 4, "applicable_domains": ["geometry","topology","algebra","physics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "坐标化=几何代数化=计算化", "domains_connected": ["geometry","algebra","analysis"], "graph_restructure": "增加几何↔代数↔分析的跨领域边，将距离公式识别为连接几何与代数的统一桥梁，笛卡尔范式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "geometry:pythagorean_theorem", "to": "algebra:distance_formula", "type": "equivalence"},
+          {"from": "analytic_geometry:coordinate_system", "to": "linear_algebra:inner_product", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: EuclideanGeometry.pythagorean_theorem"
+  }
+]
