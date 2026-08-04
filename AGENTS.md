@@ -172,6 +172,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `dev-docs/99-工作系统经验反哺大师系统升级方案.md` | **反哺方案**：工作系统升级（89-98号）的6个机制反哺数学大师系统。反哺1：经典计算展开替代七步骤步骤2（topo_generator已实现，P0立即执行）/ 反哺2：CP1-CP3加载数学意识作为做证明的前置认知（系统化POC-1的发现）/ 反哺3：版本链管理数学意识演化（POC-1发现→POC-2深化→POC-3验证）/ 反哺4：回归验证保障依赖图变更后已有功能不被破坏 / 反哺5：从POC结果中自动发现新数学意识（半自动，长期）/ 反哺6：三层提取L1/L2/L3用版本链管理（v1=具体步骤→v2=思维模式→v3=范式思维）。含实现优先级（P0-P3）+ Check List + 与POC-3的关系 | **必读**。数学大师系统的下一代升级方向 |
 | `dev-docs/100-反哺方案执行计划-细化CheckList与测试方案.md` | **执行计划**：99号反哺方案的执行级文档。6个反哺点的Check List全部细化+10个测试方案。**执行结果：10/10测试通过**。反哺1（R1-1/R1-2）：seven_step_pipeline.py集成topo_generator，1次通过100%覆盖 / 反哺2（R2-1/R2-2/R2-3）：种子推荐表5种问题类型+CP1-CP3覆盖率100% / 反哺3（R3-1/R3-2）：5个意识节点v1(POC-1)→v2(POC-2)版本链 / 反哺4（R4-1/R4-2）：POC-1回归94/100+POC-2回归100/100+敏感性验证通过 / 反哺6（R6-1）：Cayley-Hamilton三层版本链v1→v2→v3 | **必读**。反哺方案执行结果 |
 | `dev-docs/101-UserPromptSubmit提醒机制方案.md` | **提醒机制方案**：模仿星学97号文档的v3方案（纯提醒无硬门禁），给数学项目加UserPromptSubmit hook。每次用户提问时从`UserPromptSubmit.txt`读取提醒注入AI上下文。数学项目独有内容：数学问题额外提醒查种子推荐表+七步骤工作流。**5/5 Check List通过** | 工作系统提醒机制 |
+| `dev-docs/102-AGENTS.md技术说明内联方案.md` | **内联方案**：把工作系统和数学大师系统的操作级技术说明内联到AGENTS.md中，确保跨session/压缩后AI不丢失"怎么用"的认知。每节末尾加"依赖维护"标注——当依赖的dev-docs更新时同步更新AGENTS.md对应内容。**6/6 Check List通过** | AGENTS.md维护 |
 
 ### 星学知识系统结构参考
 
@@ -223,6 +224,178 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - AI 在对话中发现的新数学认知，不能只留在上下文中；经审查后，应有机融入知识系统的正确位置。
 - **依赖图构建需要数学功力**：判断"代数拓扑依赖范畴论"是一条边、"数论依赖调和分析"是不是一条边——这个判断需要数学水平。依赖图的构建阶段需要"综述博士"参与。
 - **方法论迁移不是照搬**：星学的依赖图结构（命宫/官禄/大限/流年）不适用于数学。数学的依赖图需要重新设计——可能是按数学领域（代数/几何/分析/拓扑/数论...）、按数学工具（范畴论/同调/表示论...）、按问题类型（分类/计算/存在性/构造...）组织。
+
+## 工作系统技术说明
+
+> 本节是工作系统（AI自己的工作认知管理）的操作级技术说明。跨session/压缩后AI通过本节恢复"怎么用工作系统"的认知。完整方案见依赖文档。
+
+### CP1-CP6工作流
+
+工作系统的核心是CP1-CP6六个检查点，通过`cognition_checkpoint_math.py`执行：
+
+| CP | 时机 | 内容 | 命令 |
+|---|---|---|---|
+| CP1 | 工作开始前 | 种子选择：确定本次任务需要哪些种子认知单元 | `cognition_checkpoint_math.py start --seeds <cog_id1>,<cog_id2>` |
+| CP2 | 工作开始前 | 认知加载：AQL图遍历，从种子出发沿depends_on边找到所有前置认知 | CP1命令自动执行 |
+| CP3 | 工作开始前 | 缺口检查：验证已加载的认知是否覆盖任务所需 | CP1命令自动执行 |
+| CP4 | 工作结束时 | 认知捕获：检查本次工作是否产生新方法论/新依赖/新版本/新术语/临场脚本 | git post-commit hook自动打印 |
+| CP5 | 工作结束时 | 认知图更新：新版本/新边写入ArangoDB | `cognition_sdk_math.py`的add_version/add_edge |
+| CP6 | 工作结束时 | 任务-认知映射：记录"这个任务用了哪些种子" | `cognition_sdk_math.py`的record_task |
+
+**关键参数**：max_depth=7（数学项目路径比星学长，星学用5）
+
+### 种子推荐表
+
+`xishujuzhen/seed_recommendation_table.json`——数学问题类型→推荐意识种子映射：
+
+| 问题类型 | 推荐种子 |
+|---|---|
+| 极值/上下界问题 | numerical_check, extreme_testing, invariant_thinking, approximation_thinking |
+| 证明构造问题 | invariant_thinking, local_global_thinking, seven_step_workflow |
+| 跨领域问题 | local_global_thinking, invariant_thinking, spiral_cognition, three_layer_extraction |
+| 逼近/误差分析 | approximation_thinking, numerical_check, extreme_testing |
+| 一般证明问题 | seven_step_workflow, math_awareness_nodes |
+
+**用法**：AI接到数学问题后，先查此表确定种子，再执行CP1-CP3。
+
+### 认知图查询与审计
+
+```bash
+# 查统计
+.venv/bin/python3 -c "from cognition_sdk_math import CognitionSDK; sdk=CognitionSDK(); print(sdk.get_stats())"
+
+# 图遍历（从种子出发）
+.venv/bin/python3 -c "from cognition_sdk_math import CognitionSDK; sdk=CognitionSDK(); print(sdk.traverse(['seven_step_workflow'], max_depth=7))"
+
+# 全量审计
+.venv/bin/python3 xishujuzhen/cognition_audit_math.py all
+
+# POC回归验证
+.venv/bin/python3 xishujuzhen/cognition_audit_math.py poc-regression --seeds <seeds> --ground-truth <cog_ids>
+```
+
+### 回归验证
+
+每次认知图变更（新增/修改/删除认知单元或依赖边）后，运行回归验证：
+- D1覆盖率：图遍历是否覆盖ground truth
+- D3版本链：current_version是否指向latest
+- D4图遍历完整性：depth=7 vs depth=9是否一致
+- 满分100，低于95需排查
+
+### Hook机制
+
+三个hook的分工（均为纯提醒，无硬门禁）：
+
+| hook | 触发时机 | 脚本 | 作用 |
+|---|---|---|---|
+| SessionStart | 新session/压缩后 | `session_start_hook_math.py` | 注入认知图统计+工作纪律 |
+| UserPromptSubmit | 每次用户提问 | `user_prompt_submit_hook_math.py` | 从`UserPromptSubmit.txt`读取提醒注入 |
+| git post-commit | 每次commit后 | `githooks/post-commit` | 打印CP4检查清单（从稀疏矩阵动态查询） |
+
+**改提醒内容**：直接编辑`xishujuzhen/UserPromptSubmit.txt`，不用改代码，下次提问立即生效。
+
+**不要用Stop hook**：Stop hook会影响subagent（星学项目实测证实）。
+
+### 依赖维护
+
+| 本节内容 | 依赖文档 | 更新触发条件 |
+|---|---|---|
+| CP1-CP6工作流 | 91号文档 | CP流程变更时 |
+| 种子推荐表 | 100号文档 | 推荐表内容变更时 |
+| 认知图查询与审计 | 91号文档 | SDK方法变更时 |
+| 回归验证 | 94号文档 | 评分维度变更时 |
+| Hook机制 | 97号、101号文档 | Hook配置变更时 |
+
+## 数学大师系统技术说明
+
+> 本节是数学大师系统（目标系统——数学证明的依赖结构管理）的操作级技术说明。跨session/压缩后AI通过本节恢复"怎么用数学大师系统"的认知。完整方案见依赖文档。
+
+### 七步骤工作流
+
+数学大师系统的核心是七步骤工作流，通过`seven_step_pipeline.py`执行：
+
+| 步骤 | 执行者 | 内容 | 命令 |
+|---|---|---|---|
+| 1 | 代码 | 依赖图G导入ArangoDB | `seven_step_pipeline.py --steps 1` |
+| 2 | **经典计算** | **topo_generator.py生成G'_topo骨架（L0+L1+L2）** + AI语义细化（L3） | `seven_step_pipeline.py --steps 2` |
+| 3 | 代码 | TopologyVerifier拓扑覆盖验证（1次通过100%覆盖） | `seven_step_pipeline.py --steps 3` |
+| 4 | normal AI | 按G'_topo转译为大师提示词 | `seven_step_pipeline.py --steps 4` |
+| 5 | meta AI | KC忠实审计（转译是否忠实于知识内容） | `seven_step_pipeline.py --steps 5` |
+| 6 | normal AI | 在大师提示词引导下做数学证明 | `seven_step_pipeline.py --steps 6` |
+| 7 | meta AI | 分析覆盖审计（分析是否覆盖G'_topo所有节点和边） | `seven_step_pipeline.py --steps 7` |
+
+**一键执行步骤1-3**（经典计算部分）：
+```bash
+.venv/bin/python3 xishujuzhen/seven_step_pipeline.py --steps 1,2,3
+```
+
+**步骤2的升级**（反哺1）：从"meta AI生成G'_topo"升级为"经典计算生成骨架+AI语义细化"。经典计算保证全覆盖，AI只做L3语义标注（section命名、spiral类型确认）。
+
+### 依赖图导入ArangoDB
+
+依赖图G存储在ArangoDB的`xishujuzhen_math`数据库中：
+- `dg_nodes`：节点集（step/substep/意识三种类型）
+- `dg_edges`：边集（depends_on/calls两种类型）
+- `loops`：螺旋环路（含圈数）
+
+### G'_topo生成（经典计算展开）
+
+`topo_generator.py`从G自动生成G'_topo骨架：
+- L0骨架展开：节点集+边集直接拷贝（拓扑同构保证全覆盖）+ Kahn拓扑排序确定traversal_order
+- L1类型推断：static/dynamic + connection类型（linear/shortcut/cross_section）
+- L2 section划分：按依赖链长度分段+意识节点处理
+- L3语义标注（AI）：section命名、spiral_static/dynamic最终确认
+
+### TopologyVerifier拓扑覆盖验证
+
+`topology_verifier.py`验证G'_topo是否覆盖G：
+- 节点覆盖：ut_nodes vs dg_nodes的集合差集
+- 边覆盖：ut_edges vs dg_edges的集合差集
+- 螺旋环路：圈数是否保持
+- 结果：passed=True + 100%覆盖 = 通过
+
+### 三层提取（L1/L2/L3）+ 版本链管理
+
+83号文档设计的三层提取，用版本链管理演化：
+
+| 层次 | 版本 | 内容 | 复用范围 |
+|---|---|---|---|
+| L1解题思路 | v1 | 具体步骤序列 | 类似题 |
+| L2数学思维 | v2 | 从L1抽象出的思维模式（AI二次分析） | 跨题、跨领域 |
+| L3范式思维 | v3 | 从多个L2综合出的范式（AI三次分析） | 改变图结构 |
+
+**版本链操作**：
+```bash
+# 添加新版本
+.venv/bin/python3 -c "from cognition_sdk_math import CognitionSDK; sdk=CognitionSDK(); sdk.add_version('<cog_id>', 'v2', '<doc>', '<summary>', version_order=2); sdk.update_current_version('<cog_id>', 'v2')"
+```
+
+**current_version反映当前提取层级**：v1=类似题复用，v2=跨题复用，v3=跨领域复用。
+
+### 数学意识节点（5个）
+
+| 意识节点 | cog_id | 说明 |
+|---|---|---|
+| 不变量思维 | invariant_thinking | 识别什么是不变量，在扰动下保持 |
+| 局部-全局思维 | local_global_thinking | 局部性质推出全局性质 |
+| 逼近论思维 | approximation_thinking | 分析逼近精度和误差阶 |
+| 极端检验 | extreme_testing | 在极端构型下验证命题 |
+| 数值检验意识 | numerical_check | 用数值例子检验命题自洽性 |
+
+**双重身份**：每个意识节点同时在cognition_units（工作认知）和dg_nodes（数学依赖图）中有记录。
+
+**版本链状态**：5个意识节点都有v1(POC-1发现)→v2(POC-2深化)版本链，current_version=v2。
+
+### 依赖维护
+
+| 本节内容 | 依赖文档 | 更新触发条件 |
+|---|---|---|
+| 七步骤工作流 | 86号、88号、99号文档 | 工作流步骤变更时 |
+| 依赖图导入 | 86号文档 | 导入方式变更时 |
+| G'_topo生成 | 90号、92号文档 | topo_generator变更时 |
+| TopologyVerifier | 86号文档 | 验证逻辑变更时 |
+| 三层提取+版本链 | 83号、99号、100号文档 | 三层提取流程变更时 |
+| 数学意识节点 | 85号、88号文档 | 意识节点增减或版本升级时 |
 
 ## 形式化思维规则（从星学继承，适配数学）
 
@@ -285,22 +458,28 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 > 本节在压缩前更新，确保压缩后不丢认知。
 
-### 工作系统实现状态（2026-01-29）
+### 工作系统实现状态（2026-08-04）
 
 **已实现并测试通过**：
 - `xishujuzhen/cognition_init_math.py`：ArangoDB初始化（5个新collections + 索引 + graph）
-- `xishujuzhen/cognition_import_math.py`：认知单元导入（27个认知单元 + 31条边 + 30条版本记录）
+- `xishujuzhen/cognition_import_math.py`：认知单元导入
 - `xishujuzhen/cognition_verifier_math.py`：认知图遍历引擎（AQL图遍历 + 集合差集覆盖验证）
 - `xishujuzhen/cognition_sdk_math.py`：认知图SDK（CRUD + 审计 + 拓扑覆盖验证 + 交叉引用）
 - `xishujuzhen/cognition_checkpoint_math.py`：CP1-CP6工作流入口
 - `xishujuzhen/cognition_audit_math.py`：审计CLI（全量审计 + POC回归评分 + 拓扑覆盖验证）
 - `xishujuzhen/topo_generator.py`：经典计算展开G'_topo（L0+L1+L2，1次通过100%覆盖）
+- `xishujuzhen/seven_step_pipeline.py`：七步骤工作流集成脚本（步骤2调用topo_generator）
+- `xishujuzhen/seed_recommendation_table.json`：种子推荐表（5种问题类型→推荐意识种子）
 - `xishujuzhen/session_start_hook_math.py`：SessionStart + PostCompaction hook
+- `xishujuzhen/user_prompt_submit_hook_math.py`：UserPromptSubmit hook（从txt读取提醒注入）
+- `xishujuzhen/UserPromptSubmit.txt`：提醒内容文件（可随时编辑定制）
 - `xishujuzhen/githooks/post-commit`：git post-commit hook（CP4检查清单）
-- `xishujuzhen/poc/cognition_units_math.json`：27个认知单元定义
-- `.devin/hooks.v1.json`：Devin hooks配置（SessionStart + PostCompaction，不含Stop/UserPromptSubmit）
+- `xishujuzhen/poc/cognition_units_math.json`：认知单元定义
+- `.devin/hooks.v1.json`：Devin hooks配置（SessionStart + PostCompaction + UserPromptSubmit，不含Stop）
 
-**测试结果**：14/16通过。T1-T13 + T15通过；T11b未执行（topo_generator已覆盖meta AI版G'_topo数据，无法对比，需恢复历史数据才能补做）；T14 A/B组对照待执行（需真实任务场景）。详见98号测试报告。
+**测试结果**：
+- 工作系统测试：14/16通过（98号报告）。T11b未执行，T14待真实任务场景。
+- 反哺方案测试：10/10通过（100号报告）。R1-1~R6-1全部通过。
 
 **关键参数**：
 - max_depth默认值：7（数学项目路径比星学长，星学用5）
@@ -309,9 +488,12 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 **ArangoDB状态**：
 - 数据库：xishujuzhen_math
-- 认知图：27个认知单元，31条边，30条版本记录
+- 认知图：28个认知单元（含cayley_hamilton），31条边
+- 5个意识节点版本链：v1(POC-1发现)→v2(POC-2深化)，current_version=v2
+- cayley_hamilton三层版本链：v1(L1)→v2(L2)→v3(L3)，current_version=v3
 - 数学依赖图：18节点，25边，2环路（POC-2）
 - G'_topo（经典计算生成）：18节点，25边，2环路，TopologyVerifier 1次通过100%覆盖
+- POC回归验证基线：POC-1=94/100，POC-2=100/100
 
 ## 术语备忘
 
