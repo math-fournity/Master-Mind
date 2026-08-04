@@ -51,9 +51,12 @@ class TopoGenerator:
             in_degree[n] = 0
 
         for e in edges:
-            if e.get("edge_type") == "depends_on":
-                src = e["from_node_id"]
-                dst = e["to_node_id"]
+            etype = e.get("edge_type", e.get("type", "depends_on"))
+            # 拓扑排序考虑所有有向边类型（depends_on/solution_path/cross_domain等）
+            # 但invokes边指向cognition_units，不在当前node_ids中，自然被跳过
+            if etype != "invokes":
+                src = e.get("from_node_id", "")
+                dst = e.get("to_node_id", "")
                 if src in node_ids and dst in node_ids:
                     adj[src].append(dst)
                     in_degree[dst] += 1
@@ -72,9 +75,11 @@ class TopoGenerator:
         # 检查是否有环
         if len(order) != len(node_ids):
             remaining = node_ids - set(order)
-            raise ValueError(
-                f"depends_on图中有环！无法拓扑排序。涉及节点: {remaining}"
-            )
+            # 螺旋环路是允许的——把环路中的节点按字母序加入
+            # （环路结构通过loops集合单独记录，不影响骨架展开的覆盖性）
+            print(f"  [信息] 检测到环路，涉及{len(remaining)}个节点: {remaining}")
+            print(f"  [处理] 环路节点按字母序加入拓扑排序，环路结构通过loops集合保留")
+            order.extend(sorted(remaining))
 
         return order
 
@@ -100,10 +105,13 @@ class TopoGenerator:
         # 边拷贝
         ut_edges = []
         for e in edges:
+            etype = e.get("edge_type", e.get("type", "depends_on"))
+            if etype == "invokes":
+                continue  # invokes边指向认知图，不在依赖图展开范围内
             ut_edge = {
-                "from_node_id": e["from_node_id"],
-                "to_node_id": e["to_node_id"],
-                "edge_type": e["edge_type"],
+                "from_node_id": e.get("from_node_id", ""),
+                "to_node_id": e.get("to_node_id", ""),
+                "edge_type": etype,
             }
             ut_edges.append(ut_edge)
 
@@ -288,8 +296,36 @@ class TopoGenerator:
         """完整生成G'_topo（L0+L1+L2+loops拷贝）"""
         # 读取G
         nodes = list(self.db.collection("dg_nodes").all())
-        edges = list(self.db.collection("dg_edges").all())
+        raw_edges = list(self.db.collection("dg_edges").all())
         loops = list(self.db.collection("loops").find({"graph": "dependency_graph"}))
+
+        # 兼容两种边格式：
+        # POC-2格式: from_node_id/to_node_id/edge_type
+        # Phase A格式: _from/_to/type（ArangoDB标准）
+        edges = []
+        for e in raw_edges:
+            if "from_node_id" in e:
+                edges.append(e)
+            else:
+                # Phase A格式 → 标准化
+                from_id = e.get("_from", "").split("/")[-1]
+                to_id = e.get("_to", "").split("/")[-1]
+                # _from可能是dg_nodes/xxx或cognition_units/xxx
+                # 需要用node_id查实际名称
+                from_node = list(self.db.aql.execute(
+                    'FOR n IN dg_nodes FILTER n._key == @k RETURN n.node_id',
+                    bind_vars={"k": from_id}))
+                to_node = list(self.db.aql.execute(
+                    'FOR n IN dg_nodes FILTER n._key == @k RETURN n.node_id',
+                    bind_vars={"k": to_id}))
+                from_name = from_node[0] if from_node else from_id
+                to_name = to_node[0] if to_node else to_id
+                edges.append({
+                    "from_node_id": from_name,
+                    "to_node_id": to_name,
+                    "edge_type": e.get("type", e.get("edge_type", "depends_on")),
+                    "_source": e.get("source", ""),
+                })
 
         print(f"读取G: {len(nodes)}节点, {len(edges)}边, {len(loops)}环路")
 
