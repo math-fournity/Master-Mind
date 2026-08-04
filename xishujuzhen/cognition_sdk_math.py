@@ -62,6 +62,15 @@ class CognitionSDK:
         """统计"""
         return self.cv.get_cognition_stats()
 
+    def find_dependents_by_doc(self, doc_id):
+        """反向查询：给定dev-docs编号，返回所有source_docs包含该编号的认知单元。
+
+        用途：当某个dev-docs更新时，查哪些认知单元（含AGENTS.md技术说明节）
+        依赖它，需要同步更新。
+        """
+        aql = "FOR u IN cognition_units FILTER @doc IN u.source_docs RETURN {cog_id: u.cog_id, title: u.title, source_docs: u.source_docs}"
+        return list(self.db.aql.execute(aql, bind_vars={"doc": doc_id}))
+
     def get_stop_checklist(self, cog_id="stop_hook"):
         """获取Stop hook的CP4检查清单（从稀疏矩阵动态查询）
 

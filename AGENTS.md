@@ -173,6 +173,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `dev-docs/100-反哺方案执行计划-细化CheckList与测试方案.md` | **执行计划**：99号反哺方案的执行级文档。6个反哺点的Check List全部细化+10个测试方案。**执行结果：10/10测试通过**。反哺1（R1-1/R1-2）：seven_step_pipeline.py集成topo_generator，1次通过100%覆盖 / 反哺2（R2-1/R2-2/R2-3）：种子推荐表5种问题类型+CP1-CP3覆盖率100% / 反哺3（R3-1/R3-2）：5个意识节点v1(POC-1)→v2(POC-2)版本链 / 反哺4（R4-1/R4-2）：POC-1回归94/100+POC-2回归100/100+敏感性验证通过 / 反哺6（R6-1）：Cayley-Hamilton三层版本链v1→v2→v3 | **必读**。反哺方案执行结果 |
 | `dev-docs/101-UserPromptSubmit提醒机制方案.md` | **提醒机制方案**：模仿星学97号文档的v3方案（纯提醒无硬门禁），给数学项目加UserPromptSubmit hook。每次用户提问时从`UserPromptSubmit.txt`读取提醒注入AI上下文。数学项目独有内容：数学问题额外提醒查种子推荐表+七步骤工作流。**5/5 Check List通过** | 工作系统提醒机制 |
 | `dev-docs/102-AGENTS.md技术说明内联方案.md` | **内联方案**：把工作系统和数学大师系统的操作级技术说明内联到AGENTS.md中，确保跨session/压缩后AI不丢失"怎么用"的认知。每节末尾加"依赖维护"标注——当依赖的dev-docs更新时同步更新AGENTS.md对应内容。**6/6 Check List通过** | AGENTS.md维护 |
+| `dev-docs/103-AGENTS.md技术说明依赖入稀疏矩阵方案.md` | **依赖入图方案**：纠正102号的纯Markdown依赖表——依赖关系应该存储在稀疏矩阵中。新增2个认知单元（agents_tech_worksystem, agents_tech_mathmaster）+ 11条depends_on边 + SDK新增find_dependents_by_doc方法（反向查询：给定dev-docs编号返回依赖它的认知单元）。AGENTS.md中Markdown依赖表改为指向稀疏矩阵。**6/6 Check List通过** | AGENTS.md维护 |
 
 ### 星学知识系统结构参考
 
@@ -298,13 +299,15 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 ### 依赖维护
 
-| 本节内容 | 依赖文档 | 更新触发条件 |
-|---|---|---|
-| CP1-CP6工作流 | 91号文档 | CP流程变更时 |
-| 种子推荐表 | 100号文档 | 推荐表内容变更时 |
-| 认知图查询与审计 | 91号文档 | SDK方法变更时 |
-| 回归验证 | 94号文档 | 评分维度变更时 |
-| Hook机制 | 97号、101号文档 | Hook配置变更时 |
+本节的依赖关系存储在认知图稀疏矩阵中（认知单元 `agents_tech_worksystem`）：
+- source_docs: [91, 94, 97, 100, 101]
+- depends_on: sdk_maintenance, work_system_upgrade, math_awareness_nodes, stop_hook
+
+**查依赖**：`cognition_sdk_math.py traverse(['agents_tech_worksystem'])`
+**反向查询**（当某个dev-docs更新时，查哪些技术说明节需要同步）：
+```bash
+.venv/bin/python3 -c "import sys; sys.path.insert(0,'xishujuzhen'); from cognition_sdk_math import CognitionSDK; [print(u['cog_id'],u['title']) for u in CognitionSDK().find_dependents_by_doc(91)]"
+```
 
 ## 数学大师系统技术说明
 
@@ -388,14 +391,15 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 ### 依赖维护
 
-| 本节内容 | 依赖文档 | 更新触发条件 |
-|---|---|---|
-| 七步骤工作流 | 86号、88号、99号文档 | 工作流步骤变更时 |
-| 依赖图导入 | 86号文档 | 导入方式变更时 |
-| G'_topo生成 | 90号、92号文档 | topo_generator变更时 |
-| TopologyVerifier | 86号文档 | 验证逻辑变更时 |
-| 三层提取+版本链 | 83号、99号、100号文档 | 三层提取流程变更时 |
-| 数学意识节点 | 85号、88号文档 | 意识节点增减或版本升级时 |
+本节的依赖关系存储在认知图稀疏矩阵中（认知单元 `agents_tech_mathmaster`）：
+- source_docs: [83, 85, 86, 88, 90, 92, 99, 100]
+- depends_on: seven_step_workflow, classic_expansion, topology_verifier, topology_coverage, three_layer_extraction, math_awareness_nodes, spiral_cognition
+
+**查依赖**：`cognition_sdk_math.py traverse(['agents_tech_mathmaster'])`
+**反向查询**（当某个dev-docs更新时，查哪些技术说明节需要同步）：
+```bash
+.venv/bin/python3 -c "import sys; sys.path.insert(0,'xishujuzhen'); from cognition_sdk_math import CognitionSDK; [print(u['cog_id'],u['title']) for u in CognitionSDK().find_dependents_by_doc(88)]"
+```
 
 ## 形式化思维规则（从星学继承，适配数学）
 
@@ -488,9 +492,10 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 **ArangoDB状态**：
 - 数据库：xishujuzhen_math
-- 认知图：28个认知单元（含cayley_hamilton），31条边
+- 认知图：30个认知单元（含cayley_hamilton + agents_tech_worksystem + agents_tech_mathmaster），42条边
 - 5个意识节点版本链：v1(POC-1发现)→v2(POC-2深化)，current_version=v2
 - cayley_hamilton三层版本链：v1(L1)→v2(L2)→v3(L3)，current_version=v3
+- AGENTS.md技术说明依赖已入稀疏矩阵：agents_tech_worksystem(source_docs=[91,94,97,100,101]) + agents_tech_mathmaster(source_docs=[83,85,86,88,90,92,99,100])
 - 数学依赖图：18节点，25边，2环路（POC-2）
 - G'_topo（经典计算生成）：18节点，25边，2环路，TopologyVerifier 1次通过100%覆盖
 - POC回归验证基线：POC-1=94/100，POC-2=100/100
