@@ -177,7 +177,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `dev-docs/104-CP4检查清单补全-对照星学98-99号方案.md` | **CP4补全方案**：对照星学98号（CP4动态查询技术说明书）和99号（CP4补全两个稀疏矩阵更新纪律），补全数学项目CP4检查清单。新增3个纪律认知单元（doc_sync_discipline, work_matrix_update, math_master_matrix_update）+ 加3条stop_hook依赖边 + 移除3条错误依赖边（arangodb_infra, work_system_upgrade, agents_management不是纪律）。修复后CP4检查清单5项纪律，与星学项目完全对称。AGENTS.md中"检查依赖"纪律改为指向稀疏矩阵中的work_matrix_update和math_master_matrix_update。 | **必读**。CP4检查清单纪律 |
 | `dev-docs/105-大师-POC-3验证方案.md` | **POC-3方案**：三层提取跨题复用验证。题1(Cayley-Hamilton)提取L1/L2/L3→题2(谱定理,近迁移)+题3(Euler公式,远迁移)。三组对照(A=仅L1/B=L1+L2/C=L1+L2+L3)。8维15分制评分。成功标准：题3远迁移C vs B L3增量≥+1.5 | POC-3验证方案 |
 | `dev-docs/106-大师-POC-3验证结果.md` | **POC-3结果**：**三层提取跨题复用价值验证成立**。题2(近迁移)：C>A +4.1, C>B(L3增量) +2.1。题3(远迁移)：C>A +3.9, **C>B(L3增量) +2.6≥+1.5成功**。L2审计4/4通过，L3审计1/2通过(L3-2应降级为L2——元思维不是具体范式)。H1-H4验证通过，H5部分通过。核心发现：L3在远迁移中增量大于近迁移(+2.6>+2.1)，L3范式思维跨领域迁移价值成立。C组在题3中给出组合+拓扑两条证明路径并建立结构同构 | **必读**。L3跨领域迁移验证成功 |
-| `dev-docs/107-题库Phase-A建设方案.md` | **题库Phase A方案**：从Proofs from THE BOOK + MathLib 100 Theorems +经典教材中手工结构化20-50道标杆题。10道题分3批：POC-3已有3道(MathLib)+MathLib 100定理7道+Proofs from THE BOOK 3-5道。每道题提取L1/L2/L3导入ArangoDB。**阶段1完成**：3道题导入，依赖图62节点71边。**阶段2完成**：7道MathLib定理导入，依赖图276节点235边(含39条跨领域映射边) | 题库建设 |
+| `dev-docs/107-题库Phase-A建设方案.md` | **题库Phase A方案+执行结果**：从Proofs from THE BOOK + MathLib 100 Theorems +经典教材中手工结构化标杆题。**Phase A完成**：15道题42个解法已导入ArangoDB。3批：POC-3已有3道+MathLib 100定理7道+Proofs from THE BOOK 5道。依赖图452节点393边(含69条跨领域映射边)。认知图57个认知单元(新增21个意识节点)。领域覆盖：线性代数/拓扑/组合/数论/分析/代数几何/几何 | **必读**。题库Phase A完成 |
 
 ### 星学知识系统结构参考
 
@@ -438,7 +438,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - [x] 设计数学版 POC 验证方案（参考星学 POC1-8 实验设计）——大师-POC-1 正式方案已落盘到 84 号文档；题库难度梯度与 POC 阶梯的对应关系见 82 号文档第七节
 - [x] 确定第一个数学研究场景作为 POC 实验场——矩条件极差题（84号文档）
 - [x] **大师-POC-1 执行完成**：B组显著优于A组（边际增益+1.75/5分制），核心信念在数学领域成立。结果见 85 号文档
-- [ ] 题库建设：Phase A 标杆题库（Proofs from THE BOOK + MathLib 100 Theorems，手工结构化 20-50 道）——见 82 号文档第六节。**阶段1+2完成**：10道题27个解法已导入ArangoDB，依赖图276节点235边(含39条跨领域映射边)。阶段3（Proofs from THE BOOK 3-5道）待执行。见 107 号文档
+- [x] 题库建设：Phase A 标杆题库（Proofs from THE BOOK + MathLib 100 Theorems，手工结构化 20-50 道）——见 82 号文档第六节。**Phase A完成**：15道题42个解法已导入ArangoDB，依赖图452节点393边(含69条跨领域映射边)，认知图57个认知单元。见 107 号文档
 - [x] **三层提取 POC**：验证 L1/L2/L3 三层提取的跨题复用增益（A=仅L1 / B=L1+L2 / C=L1+L2+L3 三组对照）——见 83 号文档第六节。**POC-3完成**：题3远迁移C vs B L3增量+2.6≥+1.5成功。结果见 106 号文档
 - [x] **部署 ArangoDB 基础设施**：共用星学项目 ArangoDB 实例（端口8529），创建 `xishujuzhen_math` 数据库，运行 `arangodb_init.py`（已复制到数学项目 `xishujuzhen/`）——见 86 号文档
 - [x] **大师-POC-2 采用七步骤工作流**：矩条件极差题第二问完整证明，使用 ArangoDB + G'_topo + TopologyVerifier，从文字对照升级为拓扑确定性验证。B组显著优于A组（+3.27/10分制）和B'组（+2.34/10分制），H1-H5全部验证通过。结果见 88 号文档
@@ -501,14 +501,14 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 **ArangoDB状态**：
 - 数据库：xishujuzhen_math
-- 认知图：34个认知单元（含poc3_execution），44条边
+- 认知图：57个认知单元（含21个从题库提取的意识节点），44条边
 - CP4检查清单5项纪律（与星学项目对称）：doc_sync_discipline, work_matrix_update, math_master_matrix_update, sdk_maintenance, glossary
 - 5个意识节点版本链：v1(POC-1发现)→v2(POC-2深化)，current_version=v2
 - cayley_hamilton三层版本链：v1(L1)→v2(L2)→v3(L3)，current_version=v3
 - three_layer_extraction版本链：v1(83号方案)→v2(POC-3验证L3跨领域迁移价值成立)，current_version=v2
 - AGENTS.md技术说明依赖已入稀疏矩阵：agents_tech_worksystem(source_docs=[91,94,97,100,101]) + agents_tech_mathmaster(source_docs=[83,85,86,88,90,92,99,100])
-- 数学依赖图：276节点，235边（含39条跨领域映射边）——题库Phase A阶段1+2积累
-- 题库：10道题，27个解法（problems + solutions集合）
+- 数学依赖图：452节点，393边（含69条跨领域映射边）——题库Phase A积累
+- 题库：15道题，42个解法（problems + solutions集合）——Phase A完成
 - G'_topo（经典计算生成）：18节点，25边，2环路，TopologyVerifier 1次通过100%覆盖（POC-2场景）
 - POC回归验证基线：POC-1=94/100，POC-2=100/100
 
