@@ -376,6 +376,9 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/73-xishujuzhen-POC6验证结果.md" /> | **xishujuzhen POC-6 验证结果：边际增益+5.92（Situation A+超预期）。A组6个错误/遗漏（宿位五行错误+5个动态分析遗漏），B组全部正确。交叉审计发现4个KC部分遗漏（93% vs POC-5自审100%）——交叉审计比AI自审更严格** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/74-xishujuzhen-POC7验证方案.md" /> | **xishujuzhen POC-7 验证方案：12限全量+动态螺旋环路——71节点106边10跨宫边2螺旋环路（静态螺旋+动态螺旋）、A组知识恢复充分（隔离规模变量）、动态螺旋三圈修正** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/75-xishujuzhen-POC7验证结果.md" /> | **xishujuzhen POC-7 验证结果：边际增益+4.08（Situation A成功）。大规模依赖图可行（71节点100%覆盖），动态螺旋环路有效（三圈修正），交叉审计98.8%忠实度。A组横向交叉比较可超过B组（6个关键组合+走势图）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/76-xishujuzhen闭环审计纠正流程优化方案.md" /> | **闭环审计-纠正流程优化方案：审计不是终点是循环起点。审计→反馈→修正→再审→直到无瑕疵。最大3轮修正上限。新增维度7闭环效率。POC-7闭环验证：3轮修正从98.8%提升到100%忠实度，多发现5处遗漏瑕疵** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/77-xishujuzhen-POC8验证方案.md" /> | **xishujuzhen POC-8 验证方案：闭环审计标准流程化——从头实施闭环（不是事后补救），开环组vs闭环组对照。复用POC-7的12限全量场景。预期闭环vs开环边际增益小但过程保证价值大** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/78-xishujuzhen下一代工作流-从文字随机到拓扑覆盖.md" /> | **下一代工作流数学本质分析：依赖图G是规范化拓扑结构，展开图G'是G的覆盖，审计是覆盖验证φ:G'→G。当前系统"文字随机匹配"→下一代"拓扑确定性验证"。核心改进：转译前先规划展开图拓扑骨架G'_topo，拓扑覆盖由数学保证，审计只做一次。HoTT框架：类型=节点，函数=边，路径=同伦，覆盖映射=同伦等价。meta operation（拓扑规划/验证）与normal operation（转译/分析）分离** |
 
 ## 项目方向转向（2026-08-03）
 
