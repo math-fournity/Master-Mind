@@ -370,6 +370,12 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/66-xishujuzhen-POC3验证方案.md" /> | **xishujuzhen POC-3 验证方案：针对POC-2"边际增益有限"的改进——引入AI自解读环节（JSON→大师级提示词Markdown）、双重提示（JSON+大师级提示词共同提示）、双重对照审计（JSON覆盖完备性+思考路径忠实性）、三步流程（系统生成JSON→AI解读→AI分析）、解读文件风格判别标准（清单式 vs 大师级循循善诱）** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/67-Subagent对照实验执行模式.md" /> | **Subagent对照实验执行模式：模式一（双subagent并行对照，POC-1/POC-2使用）、模式二（分阶段subagent+并行对照，POC-3使用）、通用原则（盲评、输入材料由主Agent准备、background模式、输出保存到文件、task prompt完整自含）、复用建议** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/68-xishujuzhen-POC4验证方案.md" /> | **xishujuzhen POC-4 验证方案：换更复杂场景——双宫联动（命宫+官禄）、19节点25边扩展依赖图（含5条跨宫依赖）、官禄宫空宫设计（分析完全依赖跨宫传递）、命官同主（木星）、三步流程+双重对照审计不变、新增跨宫依赖覆盖审计维度、核心假设（A组不知道何时分析官禄宫→B组完整性优势放大）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/70-xishujuzhen-POC5验证方案.md" /> | **xishujuzhen POC-5 验证方案：静态+动态分析——30节点40边8跨宫依赖、大限流年分析、静态螺旋环路（五行生克↔阴阳昼夜）、4条静态→动态跨宫依赖边、AI自审报告** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/71-xishujuzhen-POC5验证结果.md" /> | **xishujuzhen POC-5 验证结果：边际增益+3.95，B组9.75 vs A组5.8（10分制）。B组优势主要在过程可审计性。转译忠实性100%（AI自审）** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/72-xishujuzhen-POC6验证方案.md" /> | **xishujuzhen POC-6 验证方案：A组知识缺失+交叉审计——A组无大限流年知识、第2步改为交叉审计（独立AI实例）、测试B组能否产生A组无法产生的分析** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/73-xishujuzhen-POC6验证结果.md" /> | **xishujuzhen POC-6 验证结果：边际增益+5.92（Situation A+超预期）。A组6个错误/遗漏（宿位五行错误+5个动态分析遗漏），B组全部正确。交叉审计发现4个KC部分遗漏（93% vs POC-5自审100%）——交叉审计比AI自审更严格** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/74-xishujuzhen-POC7验证方案.md" /> | **xishujuzhen POC-7 验证方案：12限全量+动态螺旋环路——71节点106边10跨宫边2螺旋环路（静态螺旋+动态螺旋）、A组知识恢复充分（隔离规模变量）、动态螺旋三圈修正** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/75-xishujuzhen-POC7验证结果.md" /> | **xishujuzhen POC-7 验证结果：边际增益+4.08（Situation A成功）。大规模依赖图可行（71节点100%覆盖），动态螺旋环路有效（三圈修正），交叉审计98.8%忠实度。A组横向交叉比较可超过B组（6个关键组合+走势图）** |
 
 ## 项目方向转向（2026-08-03）
 
