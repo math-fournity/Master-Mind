@@ -1,0 +1,1151 @@
+[
+  {
+    "problem_id": "MATH-031",
+    "title": "Dirichlet定理",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "graduate",
+    "domain": ["number_theory", "analytic_number_theory"],
+    "statement": "若gcd(a,q)=1，则等差数列a, a+q, a+2q, ...中有无穷多个素数",
+    "solutions": [
+      {
+        "solution_id": "MATH-031-S1",
+        "method": "Dirichlet L函数解析方法",
+        "domain": "analytic_number_theory",
+        "path": [
+          {"step": 1, "concept": "等差数列与素数分布", "action": "将问题转化为证明在模q的缩系中每个剩余类包含无穷多素数"},
+          {"step": 2, "concept": "Dirichlet特征标", "action": "构造模q的Dirichlet特征标群，建立特征标的正交性关系"},
+          {"step": 3, "concept": "L函数定义", "action": "对每个特征标χ定义Dirichlet L函数L(s,χ)=Σχ(n)/n^s"},
+          {"step": 4, "concept": "L函数的解析延拓", "action": "证明L(s,χ)可延拓到Re(s)>0，并在s=1处非零（非主特征标时）"},
+          {"step": 5, "concept": "特征标滤波", "action": "利用特征标正交性提取特定剩余类的素数贡献：Σ_{p≡a(mod q)} 1/p^s = (1/φ(q))Σ_χ χ(a)̄ log L(s,χ)"},
+          {"step": 6, "concept": "渐近分析", "action": "当s→1+时主特征标的L函数对数发散，非主特征标有限，推出特定剩余类素数发散"}
+        ],
+        "l2_patterns": [
+          {"pattern": "特征标滤波——用正交基分离混合信号中的分量", "evidence_step": 2, "applicable_domains": ["number_theory", "representation_theory", "signal_processing", "harmonic_analysis"]},
+          {"pattern": "解析延拓作为信息扩展——将局部定义的对象扩展到更大区域以获取s=1处的信息", "evidence_step": 4, "applicable_domains": ["analytic_number_theory", "complex_analysis", "algebraic_geometry"]},
+          {"pattern": "主项发散与非主项收敛的对偶——通过区分主特征与非主特征提取信息", "evidence_step": 6, "applicable_domains": ["analytic_number_theory", "spectral_theory", "ergodic_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "调和分析在数论中的嵌入——将素数在剩余类中的分布问题转化为L函数在s=1处的奇性问题，本质是用傅里叶分析（特征标=有限群上的傅里叶基）处理算术分布", "domains_connected": ["number_theory", "harmonic_analysis", "representation_theory"], "graph_restructure": "在依赖图中新增边：analytic_number_theory→harmonic_analysis（特征标=有限阿贝尔群上的傅里叶分析），L函数零点分布→spectral_theory（非零性等价于谱条件）"},
+          {"paradigm": "解析延拓作为信息桥梁——L函数在Re(s)>1收敛级数定义的局部信息不足以回答s=1处的问题，必须通过延拓扩展定义域才能获取关键点的信息", "domains_connected": ["analytic_number_theory", "complex_analysis"], "graph_restructure": "新增节点'解析延拓作为信息扩展范式'，连接analytic_number_theory和complex_analysis，同时连接到Riemann zeta的函数方程"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Dirichlet特征标", "to": "有限阿贝尔群的傅里叶分析", "type": "structural_isomorphism"},
+          {"from": "L函数在s=1的非零性", "to": "谱理论中的非退化条件", "type": "analogy"},
+          {"from": "特征标正交关系", "to": "傅里叶正交性", "type": "direct_correspondence"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-031-S2",
+        "method": "初等证明思路（Euclid风格特例）",
+        "domain": "elementary_number_theory",
+        "path": [
+          {"step": 1, "concept": "Euclid反证法框架", "action": "假设等差数列中只有有限个素数p1,...,pk"},
+          {"step": 2, "concept": "构造新数", "action": "构造N = q·p1·p2·...·pk + a，使N≡a(mod q)且N不被任何pi整除"},
+          {"step": 3, "concept": "障碍分析", "action": "N的素因子不一定≡a(mod q)，可能落在其他剩余类——Euclid方法在此失效"},
+          {"step": 4, "concept": "修正构造", "action": "对特定q（如q=4, a=1或a=3）利用二次型或多项式恒等式构造适当的辅助数"},
+          {"step": 5, "concept": "特例验证", "action": "对q=4用形如4n+1的素数无穷（利用n²+1的素因子性质）等特例验证"}
+        ],
+        "l2_patterns": [
+          {"pattern": "反证法+构造性反驳——假设有限然后构造矛盾", "evidence_step": 1, "applicable_domains": ["number_theory", "combinatorics", "logic"]},
+          {"pattern": "构造性障碍识别——Euclid方法的自然推广在此遇到障碍，需要识别哪些q允许初等处理", "evidence_step": 3, "applicable_domains": ["number_theory", "proof_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "方法的适用边界作为数学信息——Euclid方法在q=1时成功但在一般q时失败，这个失败本身揭示了素数分布的深层结构（需要解析工具），失败不终止研究而是指向新工具", "domains_connected": ["elementary_number_theory", "analytic_number_theory", "proof_theory"], "graph_restructure": "新增边：elementary_methods→analytic_methods，标注'方法边界触发工具升级'，连接到'初等证明的局限性'节点"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Euclid构造", "to": "反证法通用框架", "type": "specialization"},
+          {"from": "初等方法在一般q的失败", "to": "解析工具的必要性", "type": "necessity_edge"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-031-S3",
+        "method": "类域论视角",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "分圆域", "action": "考虑q次分圆域K=Q(ζ_q)，其Galois群同构于(Z/qZ)*"},
+          {"step": 2, "concept": "素数在分圆域中的分裂", "action": "素数p∤q在K中的分裂行为由Frobenius决定，p≡a(mod q)对应Frobenius=σ_a"},
+          {"step": 3, "concept": "Dedekind zeta函数分解", "action": "K的Dedekind zeta函数分解为Dirichlet L函数的乘积ζ_K(s)=∏L(s,χ)"},
+          {"step": 4, "concept": "解析性质传递", "action": "ζ_K(s)在s=1处的极点阶数为1，推出每个L(s,χ)在s=1处非零"},
+          {"step": 5, "concept": "Chebotarev密度定理特例", "action": "Dirichlet定理成为Chebotarev密度定理在交换扩张中的特例"}
+        ],
+        "l2_patterns": [
+          {"pattern": "从交换到非交换的推广——Dirichlet定理是Chebotarev在交换情形的特例，用更高视角统一", "evidence_step": 5, "applicable_domains": ["algebraic_number_theory", "representation_theory", "class_field_theory"]},
+          {"pattern": "zeta函数因式分解——将整体zeta分解为局部因子的乘积，从因子的性质反推整体", "evidence_step": 3, "applicable_domains": ["algebraic_number_theory", "algebraic_geometry"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Galois表示编码算术信息——素数在域扩张中的分裂行为被Frobenius共轭类编码，将素数分布问题转化为Galois群的表示论问题", "domains_connected": ["algebraic_number_theory", "representation_theory", "class_field_theory"], "graph_restructure": "新增边：prime_distribution→Galois_representation（素数分布被Galois表示编码），Chebotarev→Dirichlet（推广关系），L函数→Artin_L_function（非交换推广）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Dirichlet特征标", "to": "Galois群的一维表示", "type": "identification"},
+          {"from": "Dirichlet L函数", "to": "Artin L函数（一维情形）", "type": "specialization"},
+          {"from": "素数在剩余类的分布", "to": "Frobenius共轭类的分布", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "L(s,χ)在s=1非零的证明", "description": "非主特征标的L函数在s=1处非零是整个证明的核心难点，需要细致的估计"},
+      {"concept": "从q=1的Euclid方法到一般q需要解析工具的跃迁", "description": "初等方法在一般q失效，识别何时必须升级工具是关键判断"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.NumberTheory.LFunctions.DirichletTheorem"
+  },
+  {
+    "problem_id": "MATH-032",
+    "title": "素数定理",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "graduate",
+    "domain": ["number_theory", "analytic_number_theory"],
+    "statement": "π(x) ~ x/ln(x)",
+    "solutions": [
+      {
+        "solution_id": "MATH-032-S1",
+        "method": "复分析方法（Hadamard-de la Vallée-Poussin）",
+        "domain": "analytic_number_theory",
+        "path": [
+          {"step": 1, "concept": "Riemann zeta函数", "action": "定义ζ(s)=Σ1/n^s，研究其解析性质"},
+          {"step": 2, "concept": "Euler乘积", "action": "利用ζ(s)=∏(1-p^(-s))^(-1)建立ζ与素数分布的联系"},
+          {"step": 3, "concept": "对数导数与Chebyshev函数", "action": "引入ψ(x)=Σ_{p^k≤x} log p，建立-ζ'(s)/ζ(s)=ΣΛ(n)/n^s的联系"},
+          {"step": 4, "concept": "Perron公式", "action": "用Perron积分公式将ψ(x)表示为ζ(s)沿线Re(s)=c的复积分"},
+          {"step": 5, "concept": "零点估计", "action": "证明ζ(s)在Re(s)=1上无零点（关键步骤），由此控制围道移动时的余项"},
+          {"step": 6, "concept": "围道积分与渐近", "action": "移动积分围道到Re(s)<1，利用s=1处的极点贡献得到ψ(x)~x，推出π(x)~x/ln(x)"}
+        ],
+        "l2_patterns": [
+          {"pattern": "母函数编码——用zeta函数的解析性质编码素数的离散分布信息", "evidence_step": 2, "applicable_domains": ["analytic_number_theory", "combinatorics", "probability"]},
+          {"pattern": "围道移动提取渐近——通过移动复积分路径，极点贡献主项，远离的积分贡献余项", "evidence_step": 6, "applicable_domains": ["analytic_number_theory", "complex_analysis", "asymptotic_analysis"]},
+          {"pattern": "零点信息决定分布——zeta函数零点的位置决定了素数分布的精确程度", "evidence_step": 5, "applicable_domains": ["analytic_number_theory", "spectral_theory", "dynamical_systems"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "解析延拓+零点分布=渐近信息的范式——离散对象的渐近行为被编码在生成函数的解析延拓中，极点给出主项，零点位置给出误差项精度。这个范式从素数定理延伸到Riemann猜想、算术子群的迹公式、甚至量子混沌", "domains_connected": ["analytic_number_theory", "complex_analysis", "spectral_theory", "quantum_chaos"], "graph_restructure": "新增核心节点'零点-渐近对偶范式'，连接：zeta零点→prime_distribution误差项，Riemann_hypothesis→error_term_optimal_bound，同时连接到trace_formula（Selberg zeta的零点=几何谱）"},
+          {"paradigm": "Perron公式作为离散-连续桥梁——将离散求和Σ_{n≤x} f(n)转化为复积分，实现从离散到连续的跨域映射，使得复分析工具可以处理离散分布", "domains_connected": ["analytic_number_theory", "complex_analysis"], "graph_restructure": "新增边：discrete_summation→contour_integration（Perron公式作为桥梁），Mellin_transform→Perron_formula（统一为积分变换框架）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "zeta零点位置", "to": "素数计数函数误差项", "type": "quantitative_determination"},
+          {"from": "围道移动", "to": "驻相法/最速下降法", "type": "methodological_analogy"},
+          {"from": "zeta的函数方程", "to": "Poisson求和公式", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-032-S2",
+        "method": "初等证明（Erdős-Selberg）",
+        "domain": "elementary_number_theory",
+        "path": [
+          {"step": 1, "concept": "Chebyshev估计", "action": "建立ψ(x)的上界和下界估计，使用初等的组合方法"},
+          {"step": 2, "concept": "Selberg对称公式", "action": "证明Selberg对称公式：Σ_{n≤x}Λ(n)ψ(x/n) = 2x·log(x) + O(x)"},
+          {"step": 3, "concept": "Erdős不等式", "action": "利用Selberg公式和反证法证明ψ(x)/x的上下极限同时为1"},
+          {"step": 4, "concept": "初等渐近推导", "action": "从ψ(x)~x推出π(x)~x/ln(x)，全程不使用复分析"}
+        ],
+        "l2_patterns": [
+          {"pattern": "对偶权重求和——用Selberg对称公式中的双重求和替代围道积分", "evidence_step": 2, "applicable_domains": ["number_theory", "combinatorics", "probability"]},
+          {"pattern": "上下极限夹逼——不直接证明极限存在，而是证明上下极限相等", "evidence_step": 3, "applicable_domains": ["analysis", "probability", "ergodic_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "解析工具的初等替代——Selberg对称公式是Perron公式的'初等影子'，揭示了围道积分中极点贡献的离散对应物。这提出了'每个解析论证是否有初等对应'的范式问题", "domains_connected": ["analytic_number_theory", "elementary_number_theory"], "graph_restructure": "新增边：Perron_formula→Selberg_symmetry_formula（初等-解析对偶），contour_integral→double_summation（离散对应物），标注'方法对偶性'"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Selberg对称公式", "to": "Perron公式的离散对应", "type": "elementary_analytic_duality"},
+          {"from": "Chebyshev函数的组合估计", "to": "筛法中的组合恒等式", "type": "methodological_connection"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-032-S3",
+        "method": "Tauberian定理方法",
+        "domain": "analytic_number_theory",
+        "path": [
+          {"step": 1, "concept": "Mellin变换", "action": "将素数计数问题转化为ζ(s)的Mellin变换：-ζ'(s)/ζ(s) = s∫ψ(x)x^{-s-1}dx"},
+          {"step": 2, "concept": "Ikehara-Tauberian定理", "action": "若F(s)在Re(s)≥1解析除s=1处单极点，则其逆Mellin变换的累加函数~Cx"},
+          {"step": 3, "concept": "验证条件", "action": "证明-ζ'(s)/ζ(s)在Re(s)=1上除s=1外无奇点（即ζ在Re(s)=1无零点）"},
+          {"step": 4, "concept": "直接结论", "action": "由Ikehara定理直接得出ψ(x)~x，无需围道积分的具体估计"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Tauberian定理——从生成函数在边界上的解析性质推断系数的渐近行为", "evidence_step": 2, "applicable_domains": ["analytic_number_theory", "harmonic_analysis", "probability"]},
+          {"pattern": "条件验证替代直接计算——将渐近问题转化为验证几个充分条件", "evidence_step": 3, "applicable_domains": ["number_theory", "functional_analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Tauberian对偶——Abel型定理（从系数渐近推函数性质）与Tauberian型定理（从函数性质推系数渐近）构成对偶对，这个对偶在素数定理、Wienner的陶伯定理、概率论中反复出现", "domains_connected": ["analytic_number_theory", "harmonic_analysis", "probability_theory"], "graph_restructure": "新增节点'Tauberian对偶范式'，连接：prime_theorem→Ikehara_theorem，Wiener_Tauberian→ergodic_theory（个体遍历定理的Tauberian证明），标注'Abel-Tauberian对偶'"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Ikehara定理", "to": "Wiener Tauberian定理", "type": "generalization"},
+          {"from": "Mellin变换方法", "to": "Fourier变换在概率论中的应用", "type": "structural_analogy"},
+          {"from": "zeta在Re(s)=1无零点", "to": "谱无零条件", "type": "condition_analogy"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "ζ(s)在Re(s)=1上无零点的证明", "description": "这是素数定理的核心难点，Hadamard和de la Vallée-Poussin独立克服"},
+      {"concept": "从ψ(x)~x到π(x)~x/ln(x)的分部积分", "description": "需要处理对数权重与计数函数之间的转换"}
+    ],
+    "lean_formalized": false,
+    "lean_proof": null
+  },
+  {
+    "problem_id": "MATH-033",
+    "title": "二次互反律",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebraic_number_theory"],
+    "statement": "(p/q)(q/p) = (-1)^((p-1)(q-1)/4)",
+    "solutions": [
+      {
+        "solution_id": "MATH-033-S1",
+        "method": "Gauss引理方法",
+        "domain": "elementary_number_theory",
+        "path": [
+          {"step": 1, "concept": "Legendre符号", "action": "定义(p/q)为p模q的二次剩余符号，目标化为符号的乘法关系"},
+          {"step": 2, "concept": "Gauss引理", "action": "证明(p/q) = (-1)^μ，其中μ是1,2,...,(q-1)/2中模p最小正剩余超过p/2的个数"},
+          {"step": 3, "concept": "格点计数", "action": "将μ的奇偶性转化为计算矩形(0,p/2)×(0,q/2)内格点的个数的奇偶性"},
+          {"step": 4, "concept": "对称性论证", "action": "利用矩形的对称性和Gauss引理对(p/q)和(q/p)同时应用，得到μ_p + μ_q的奇偶性"},
+          {"step": 5, "concept": "组合恒等式", "action": "证明μ_p + μ_q ≡ (p-1)(q-1)/4 (mod 2)，得出互反律"}
+        ],
+        "l2_patterns": [
+          {"pattern": "组合编码——将代数对象（Legendre符号）的乘法关系编码为几何对象（格点计数）的奇偶性", "evidence_step": 3, "applicable_domains": ["number_theory", "combinatorics", "algebraic_geometry"]},
+          {"pattern": "对称性提取——利用几何对称性将两个独立量的关系转化为单一量的计算", "evidence_step": 4, "applicable_domains": ["number_theory", "geometry", "group_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "代数-几何对偶：Legendre符号的乘法规则被格点的几何排列编码——二次剩余的代数判定被转化为格点在矩形中的几何分布，这是更一般的'算术信息被几何排列编码'范式的实例", "domains_connected": ["number_theory", "algebraic_geometry", "combinatorics"], "graph_restructure": "新增边：Legendre_symbol→lattice_point_counting（代数到几何），Gauss_lemma→geometry_of_numbers（格点方法），连接到Ehrhart理论（格点计数与多项式的关系）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Gauss引理中的格点计数", "to": "Ehrhart多项式", "type": "methodological_connection"},
+          {"from": "Legendre符号的乘法性", "to": "特征标的乘法性", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-033-S2",
+        "method": "Gauss和方法",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "二次Gauss和", "action": "定义G = Σ_{n=0}^{q-1} ζ_q^{n²}，计算其精确值G = ε·√q（ε依赖于q mod 4）"},
+          {"step": 2, "concept": "Gauss和的符号确定", "action": "确定Gauss和的符号ε是证明的核心难点（Gauss称其为'黄金桥'）"},
+          {"step": 3, "concept": "两种方式计算G^p", "action": "用Frobenius作用计算G^p mod p，同时用G^p = G·(G/p)直接展开"},
+          {"step": 4, "concept": "对比提取", "action": "对比两种计算结果得到(G/p) = (p/q)·符号修正，即互反律"}
+        ],
+        "l2_patterns": [
+          {"pattern": "双重计算——用两种不同方式计算同一个量，对比结果提取信息", "evidence_step": 3, "applicable_domains": ["number_theory", "combinatorics", "algebra"]},
+          {"pattern": "Frobenius作为探测工具——用Frobenius自同构的作用提取Galois信息", "evidence_step": 3, "applicable_domains": ["algebraic_number_theory", "representation_theory", "finite_fields"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Gauss和作为Galois作用的迹——Gauss和是二次扩张中的Frobenius迹，互反律本质上是Frobenius在不同域中的交换关系。这个视角将初等的互反律嵌入到类域论的框架中", "domains_connected": ["algebraic_number_theory", "representation_theory", "class_field_theory"], "graph_restructure": "新增边：quadratic_Gauss_sum→Frobenius_trace（Gauss和=迹），Gauss_sum_sign→Stickelberger_theorem（符号由更一般的定理决定），reciprocity_law→Artin_reciprocity（推广）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "二次Gauss和", "to": "Frobenius在二次扩张中的迹", "type": "identification"},
+          {"from": "Gauss和的符号确定", "to": "Stickelberger定理", "type": "generalization"},
+          {"from": "二次互反律", "to": "Artin互反律", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      },
+      {
+        "solution_id": "MATH-033-S3",
+        "method": "Zolotarev引理方法",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "排列的符号", "action": "将乘法映射x→px mod q视为{0,1,...,q-1}上的排列σ_p"},
+          {"step": 2, "concept": "Zolotarev引理", "action": "证明sgn(σ_p) = (p/q)，即排列的符号等于Legendre符号"},
+          {"step": 3, "concept": "排列复合", "action": "考虑σ_p∘σ_q与σ_q∘σ_p，它们的符号关系给出(p/q)(q/p)"},
+          {"step": 4, "concept": "逆序数计算", "action": "直接计算排列复合的符号差，得出sgn(σ_p)·sgn(σ_q) = (-1)^((p-1)(q-1)/4)"}
+        ],
+        "l2_patterns": [
+          {"pattern": "算术-排列对偶——将模算术中的乘法映射转化为排列群的符号", "evidence_step": 2, "applicable_domains": ["number_theory", "combinatorics", "group_theory"]},
+          {"pattern": "符号的乘法性——利用群同态（符号映射）的乘法性提取信息", "evidence_step": 3, "applicable_domains": ["group_theory", "algebra", "topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "排列符号作为Galois作用的判据——Zolotarev引理揭示了Legendre符号=排列符号=Frobenius在Galois表示中的行列式，三个不同领域的'符号'概念在二次互反律中统一", "domains_connected": ["number_theory", "group_theory", "representation_theory"], "graph_restructure": "新增边：Legendre_symbol→permutation_sign（Zolotarev），permutation_sign→determinant_of_Frobenius（表示论统一），形成三域统一节点'sign_in_three_domains'"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Legendre符号", "to": "排列的符号", "type": "identification"},
+          {"from": "排列符号", "to": "Galois表示的行列式", "type": "representation_theoretic_interpretation"},
+          {"from": "Zolotarev引理", "to": "Frobenius作为排列的概念", "type": "conceptual_bridge"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "Gauss引理中μ的奇偶性计算", "description": "从格点计数到组合恒等式的转化需要细致的对称性分析"},
+      {"concept": "Gauss和符号的确定", "description": "Gauss本人认为确定Gauss和的符号是最困难的步骤之一"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.NumberTheory.LegendreSymbol.QuadraticReciprocity"
+  },
+  {
+    "problem_id": "MATH-034",
+    "title": "Fermat三平方定理",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "graduate",
+    "domain": ["number_theory"],
+    "statement": "n是三个平方数之和当且仅当n ≠ 4^a(8b+7)",
+    "solutions": [
+      {
+        "solution_id": "MATH-034-S1",
+        "method": "Legendre三平方定理经典证明",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "必要性", "action": "证明8b+7型数不能表为三平方和：模8分析平方数只能是0,1,4，三平方和模8≠7"},
+          {"step": 2, "concept": "4^a因子的处理", "action": "证明若n=4^a·m且m可表为三平方和，则n也可（乘以4=各平方数乘2），反之亦然"},
+          {"step": 3, "concept": "充分性核心", "action": "证明若n≠4^a(8b+7)则存在x,y,z使x²+y²+z²=n"},
+          {"step": 4, "concept": "Minkowski几何数论", "action": "构造三维格Λ，使其行列式与n相关，用Minkowski定理保证格中有短向量"},
+          {"step": 5, "concept": "体积论证", "action": "计算椭球体积与格的基本域体积之比，验证Minkowski条件满足"},
+          {"step": 6, "concept": "排除排除", "action": "验证找到的格向量确实给出x²+y²+z²=n的解，排除退化为更少平方数的情形"}
+        ],
+        "l2_patterns": [
+          {"pattern": "模 obstruction 分析——用模算术识别不可表示的必要条件", "evidence_step": 1, "applicable_domains": ["number_theory", "algebra", "combinatorics"]},
+          {"pattern": "几何数论——用Minkowski定理将'表示存在性'转化为'格中有短向量'的体积论证", "evidence_step": 4, "applicable_domains": ["number_theory", "geometry_of_numbers", "algebraic_geometry"]},
+          {"pattern": "局部-全局原则——模8的局部障碍加上4^a的幂次分离构成完整的判定条件", "evidence_step": 3, "applicable_domains": ["number_theory", "algebraic_geometry", "model_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Minkowski几何数论范式——将算术表示问题（n是否能表为平方和）转化为几何问题（格中是否存在短向量），用凸体体积与格行列式的关系保证解的存在性。这个范式从Legendre三平方定理延伸到类数公式、丢番图逼近", "domains_connected": ["number_theory", "geometry_of_numbers", "convex_geometry"], "graph_restructure": "新增核心节点'Minkowski范式'，连接：sum_of_squares→lattice_short_vector，volume_argument→existence_guarantee，同时连接到geometry_of_numbers的更广泛应用（类数计算、逼近常数）"},
+          {"paradigm": "局部-全局原则的首次实例——模8给出局部障碍，整个定理给出全局判定。虽然三平方和不是Hasse原理的直接实例（因为三变量的二次型不需要Hasse原理），但其结构'局部障碍=全局障碍'是Hasse-Minkowski原理的精神先驱", "domains_connected": ["number_theory", "algebraic_geometry", "p_adic_analysis"], "graph_restructure": "新增边：local_obstruction_mod_8→global_representability（局部-全局），Fermat_three_squares→Hasse_Minkowski（精神先驱），modular_arithmetic→p_adic_methods（从模p到p-adic的推广路径）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "三平方和表示", "to": "格中短向量存在性", "type": "geometric_translation"},
+          {"from": "Minkowski体积论证", "to": "凸几何中的体积比定理", "type": "methodological_connection"},
+          {"from": "模8的局部障碍", "to": "p-adic障碍的特例", "type": "specialization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-034-S2",
+        "method": "三元二次型理论方法",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "三元二次型", "action": "将x²+y²+z²=n视为三元正定二次型q(x,y,z)=x²+y²+z²表示n的问题"},
+          {"step": 2, "concept": "spinor genus理论", "action": "利用三元二次型的spinor genus理论分析表示数r_q(n)"},
+          {"step": 3, "concept": "theta函数", "action": "引入theta级数θ(q;z)=Σq(x,y,z)的生成函数，建立与模形式的联系"},
+          {"step": 4, "concept": "模形式系数", "action": "利用θ函数是权重3/2的模形式，其Fourier系数给出r_q(n)"},
+          {"step": 5, "concept": "系数非零判定", "action": "通过模形式的性质分析r_q(n)何时非零，得出恰好n≠4^a(8b+7)时非零"}
+        ],
+        "l2_patterns": [
+          {"pattern": "theta函数编码——用模形式的Fourier系数编码二次型的表示数", "evidence_step": 3, "applicable_domains": ["number_theory", "modular_forms", "representation_theory"]},
+          {"pattern": "权重1/2模形式——半整数权重模形式的理论给出表示数的精确公式", "evidence_step": 4, "applicable_domains": ["modular_forms", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "模形式作为表示数的生成函数——theta级数将'二次型表示数'编码为模形式的Fourier系数，使得模形式的强大工具（Hecke算子、L函数）可以分析表示问题。这是'将算术计数问题提升到自守形式理论'的范式实例", "domains_connected": ["number_theory", "modular_forms", "representation_theory"], "graph_restructure": "新增边：representation_number→Fourier_coefficient_of_modular_form，sum_of_squares→theta_series，连接到Siegel_Mass_formula（更高维的表示数公式）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "theta级数", "to": "权重1/2模形式", "type": "identification"},
+          {"from": "表示数r_q(n)", "to": "模形式Fourier系数", "type": "encoding"},
+          {"from": "三平方和", "to": "Siegel质量公式（高维推广）", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "充分性证明中Minkowski条件的验证", "description": "需要精确计算椭球体积与格行列式的关系，边界情况需要细致处理"},
+      {"concept": "排除退化为两平方和的情形", "description": "Minkowski给出的向量可能落在低维子空间上，需要排除"}
+    ],
+    "lean_formalized": false,
+    "lean_proof": null
+  },
+  {
+    "problem_id": "MATH-035",
+    "title": "Dirichlet逼近定理",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "diophantine_approximation"],
+    "statement": "对任意无理数α，存在无穷多p/q使|α-p/q|<1/q²",
+    "solutions": [
+      {
+        "solution_id": "MATH-035-S1",
+        "method": "鸽巢原理方法",
+        "domain": "diophantine_approximation",
+        "path": [
+          {"step": 1, "concept": "分数部分", "action": "考虑{0}, {α}, {2α}, ..., {Nα}这N+1个[0,1)中的数"},
+          {"step": 2, "concept": "鸽巢原理", "action": "将[0,1)分成N个长度为1/N的区间，由鸽巢原理必有两个{mα},{nα}落在同一区间"},
+          {"step": 3, "concept": "差值估计", "action": "令q=|m-n|≤N，则|qα-p|<1/N对某整数p成立，即|α-p/q|<1/(Nq)"},
+          {"step": 4, "concept": "q≤N的约束", "action": "由q≤N得|α-p/q|<1/q²"},
+          {"step": 5, "concept": "无穷性", "action": "令N→∞，由于α无理，p/q≠α恒成立，但逼近可以任意好，故有无穷多不同的p/q"}
+        ],
+        "l2_patterns": [
+          {"pattern": "鸽巢原理作为存在性保证——通过计数论证保证有两个对象足够接近", "evidence_step": 2, "applicable_domains": ["number_theory", "combinatorics", "computer_science", "probability"]},
+          {"pattern": "分数部分的等分分布——无理数倍数的分数部分在单位区间中散布", "evidence_step": 1, "applicable_domains": ["diophantine_approximation", "ergodic_theory", "dynamical_systems"]},
+          {"pattern": "从有限到无穷的推进——固定N得到一个逼近，令N增大得到无穷多逼近", "evidence_step": 5, "applicable_domains": ["number_theory", "analysis", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "鸽巢原理作为度量空间的密度论证——鸽巢原理本质上是说'N+1个点放入N个区间必有两个接近'，这是一个关于度量空间中点集密度的离散化论证。在连续版本中它变为'测度论中的密度论证'，在动力学版本中它变为'Poincaré回归定理'。三者共享'有限空间中点的聚集'这一底层结构", "domains_connected": ["number_theory", "combinatorics", "ergodic_theory", "measure_theory"], "graph_restructure": "新增节点'鸽巢-密度-回归统一范式'，连接：pigeonhole→density_argument（连续化），pigeonhole→Poincare_recurrence（动力学化），diophantine_approximation→ergodic_theory（无理旋转的回归）"},
+          {"paradigm": "旋转的动力系统与逼近——{nα}的分数部分对应单位圆上无理旋转α的轨道，Dirichlet逼近等价于轨道的回归性。这建立了丢番图逼近与动力系统回归之间的精确对应", "domains_connected": ["diophantine_approximation", "ergodic_theory", "dynamical_systems"], "graph_restructure": "新增边：fractional_parts→irrational_rotation（轨道=分数部分），Dirichlet_approximation→Poincare_recurrence（逼近=回归），连接到Weyl等分布定理"}
+        ],
+        "cross_domain_edges": [
+          {"from": "鸽巢原理", "to": "Poincaré回归定理", "type": "discrete_continuous_duality"},
+          {"from": "{nα}的分数部分", "to": "无理旋转的轨道", "type": "identification"},
+          {"from": "Dirichlet逼近", "to": "Weyl等分布定理", "type": "strengthening"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-035-S2",
+        "method": "连分数方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "连分数展开", "action": "计算α的连分数展开α=[a_0; a_1, a_2, ...]"},
+          {"step": 2, "concept": "收敛子", "action": "定义第n个收敛子p_n/q_n = [a_0; a_1, ..., a_n]"},
+          {"step": 3, "concept": "收敛子的逼近性质", "action": "证明|α - p_n/q_n| < 1/(q_n·q_{n+1})"},
+          {"step": 4, "concept": "递推关系", "action": "利用q_{n+1} = a_{n+1}·q_n + q_{n-1} > q_n，得|α-p_n/q_n| < 1/q_n²"},
+          {"step": 5, "concept": "无穷性", "action": "连分数展开无限（α无理），故收敛子序列无限，给出无穷多逼近"}
+        ],
+        "l2_patterns": [
+          {"pattern": "连分数作为最优逼近——收敛子给出分母不超过q_n的最佳有理逼近", "evidence_step": 3, "applicable_domains": ["number_theory", "diophantine_approximation", "dynamical_systems"]},
+          {"pattern": "递推结构——连分数的递推关系保证了收敛子的指数增长和逼近质量", "evidence_step": 4, "applicable_domains": ["number_theory", "combinatorics", "recursion_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "连分数作为动力系统的符号编码——连分数展开是无理数在Gauss映射T(x)=1/x-⌊1/x⌋下的轨道的符号记录，Dirichlet逼近的连分数证明本质上是利用了Gauss映射的动力学性质。这建立了连分数理论与动力系统之间的深层联系", "domains_connected": ["number_theory", "dynamical_systems", "ergodic_theory"], "graph_restructure": "新增边：continued_fraction→Gauss_map（连分数=Gauss映射的符号动力学），Gauss_map→ergodic_theory（Gauss测度是T的不变测度），convergents→periodic_orbits（二次无理数的周期连分数）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "连分数展开", "to": "Gauss映射的轨道", "type": "symbolic_encoding"},
+          {"from": "收敛子序列", "to": "Gauss映射的回归时间", "type": "dynamical_interpretation"},
+          {"from": "二次无理数的周期连分数", "to": "双曲动力系统的周期轨道", "type": "analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-035-S3",
+        "method": "Minkowski定理方法",
+        "domain": "geometry_of_numbers",
+        "path": [
+          {"step": 1, "concept": "格构造", "action": "在R²中构造格Λ = {(m, n) : m-nα ∈ Z, m,n ∈ Z}的变形版本"},
+          {"step": 2, "concept": "凸体选择", "action": "选择对称凸体B = {(x,y) : |x|≤Q, |y|≤1/Q}，面积为4"},
+          {"step": 3, "concept": "Minkowski定理", "action": "当格行列式为1时，面积4>4·1=4不满足，需调整为面积>4的修正版本"},
+          {"step": 4, "concept": "短向量提取", "action": "Minkowski定理保证B中有非零格点(q,p)，满足|q|≤Q且|p-qα|≤1/Q"},
+          {"step": 5, "concept": "逼近结论", "action": "由|p/q-α|≤1/(qQ)≤1/q²（因q≤Q），得到Dirichlet逼近"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Minkowski几何数论——用凸体中的格点存在性保证逼近的存在", "evidence_step": 4, "applicable_domains": ["geometry_of_numbers", "number_theory", "diophantine_approximation"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "几何数论统一逼近与表示——Minkowski方法将丢番图逼近（Dirichlet定理）和二次型表示（三平方和定理）统一在'格中短向量存在性'这一几何框架下。同一个几何原理在不同问题中以不同的格和凸体出现", "domains_connected": ["geometry_of_numbers", "diophantine_approximation", "quadratic_forms"], "graph_restructure": "新增统一节点'Minkowski短向量范式'，连接：Dirichlet_approximation→lattice_point_in_strip，three_squares→lattice_point_in_ellipsoid，标注'同一几何原理的不同实例'"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Dirichlet逼近的Minkowski证明", "to": "Fermat三平方和的Minkowski证明", "type": "shared_method"},
+          {"from": "条形凸体中的格点", "to": "椭球中的格点", "type": "convex_body_variation"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "从单个逼近到无穷多逼近的推进", "description": "需要利用α的无理性排除逼近序列有限终止的情况"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.NumberTheory.DiophantineApproximation.Dirichlet"
+  },
+  {
+    "problem_id": "MATH-036",
+    "title": "Pell方程",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebraic_number_theory"],
+    "statement": "x²-Dy²=1有正整数解（D非完全平方数）",
+    "solutions": [
+      {
+        "solution_id": "MATH-036-S1",
+        "method": "连分数方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "√D的连分数", "action": "计算√D的连分数展开，证明其为周期连分数"},
+          {"step": 2, "concept": "周期性", "action": "证明√D = [a_0; a_1, a_2, ..., a_2, a_1, 2a_0]（回文周期）"},
+          {"step": 3, "concept": "周期收敛子", "action": "计算周期长度为k时的收敛子p_{k-1}/q_{k-1}"},
+          {"step": 4, "concept": "Pell解的提取", "action": "证明(p_{k-1}, q_{k-1})给出x²-Dy²=1的解"},
+          {"step": 5, "concept": "基础解的乘法", "action": "证明所有解由基础解(x_1,y_1)的幂次生成：x_n+y_n√D = (x_1+y_1√D)^n"}
+        ],
+        "l2_patterns": [
+          {"pattern": "周期性编码解——连分数的周期结构直接给出方程的解", "evidence_step": 2, "applicable_domains": ["number_theory", "dynamical_systems", "combinatorics"]},
+          {"pattern": "乘法群结构——所有解由基础解的幂次生成，解集形成循环群", "evidence_step": 5, "applicable_domains": ["algebraic_number_theory", "group_theory", "algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Pell方程解群=实二次域的单位群——Pell方程的解对应Q(√D)中范数为1的单位元，解群的循环性等价于Dirichlet单位定理在实二次域的特例。连分数的周期性=单位群的有限生成性", "domains_connected": ["number_theory", "algebraic_number_theory", "group_theory"], "graph_restructure": "新增边：Pell_equation→unit_group_of_quadratic_field（解=单位），continued_fraction_periodicity→Dirichlet_unit_theorem（周期性=有限生成），fundamental_solution→fundamental_unit（基础解=基本单位）"},
+          {"paradigm": "周期连分数作为双曲动力系统的周期轨道——√D的周期连分数对应Gauss映射的周期轨道，Pell方程的解对应周期轨道的回归时间。这将丢番图方程的求解与动力系统的周期结构联系起来", "domains_connected": ["number_theory", "dynamical_systems", "ergodic_theory"], "graph_restructure": "新增边：Pell_solution→periodic_orbit_of_Gauss_map，periodic_continued_fraction→closed_geodesic（连接到模曲面上闭测地线的理论）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Pell方程解", "to": "实二次域的单位群", "type": "identification"},
+          {"from": "连分数周期性", "to": "Dirichlet单位定理（秩1情形）", "type": "specialization"},
+          {"from": "周期连分数", "to": "Gauss映射的周期轨道", "type": "dynamical_interpretation"},
+          {"from": "Pell方程的闭测地线解释", "to": "模曲面上的闭测地线", "type": "geometric_interpretation"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-036-S2",
+        "method": "Brauer撞锤方法（乘法群方法）",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "范数映射", "action": "在Q(√D)中考虑范数映射N(a+b√D)=a²-Db²，Pell方程即N(ε)=1"},
+          {"step": 2, "concept": "单位群", "action": "Q(√D)的整数环O_K的单位群结构由Dirichlet单位定理决定"},
+          {"step": 3, "concept": "Dirichlet单位定理", "action": "实二次域的单位群同构于{±1}×Z，即存在基本单位ε_1"},
+          {"step": 4, "concept": "基本单位的存在", "action": "Dirichlet单位定理保证基本单位存在，即Pell方程有解"},
+          {"step": 5, "concept": "对数嵌入", "action": "通过对数嵌入σ: O_K*→R，证明单位群的离散性保证基本单位有限"}
+        ],
+        "l2_patterns": [
+          {"pattern": "范数-单位对偶——Pell方程是范数条件，解的存在性由单位群结构保证", "evidence_step": 1, "applicable_domains": ["algebraic_number_theory", "algebra", "group_theory"]},
+          {"pattern": "Dirichlet单位定理作为存在性保证——从域的解析结构推出代数对象的存在", "evidence_step": 3, "applicable_domains": ["algebraic_number_theory", "algebraic_geometry"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "范数方程=单位方程的统一——Pell方程x²-Dy²=N本质上是范数方程N(α)=N在Q(√D)中的求解，而N=1的情形对应单位群。这建立了'丢番图方程→范数方程→单位群'的统一通道", "domains_connected": ["number_theory", "algebraic_number_theory", "algebra"], "graph_restructure": "新增统一节点'范数-单位通道'，连接：Pell_equation→norm_equation→unit_group，同时连接到更一般的norm_equation_problem（Hasse范数定理）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Pell方程", "to": "范数方程N_{K/Q}(α)=1", "type": "identification"},
+          {"from": "解的循环群结构", "to": "Dirichlet单位定理", "type": "specialization"},
+          {"from": "对数嵌入", "to": "Minkowski嵌入", "type": "shared_technique"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "√D连分数的周期性证明", "description": "需要证明连分数确实为周期且回文结构正确"},
+      {"concept": "基础解的最小性验证", "description": "需要验证连分数给出的解确实是最小的正整数解"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.NumberTheory.Pell"
+  },
+  {
+    "problem_id": "MATH-037",
+    "title": "算术基本定理",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebra"],
+    "statement": "每个正整数唯一分解为素数乘积",
+    "solutions": [
+      {
+        "solution_id": "MATH-037-S1",
+        "method": "Euclid引理+强归纳法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "存在性", "action": "对n用强归纳法：若n为素数则已完成，若n=ab则由归纳a,b可分解，合并得n的分解"},
+          {"step": 2, "concept": "Euclid引理", "action": "证明若p|ab则p|a或p|b，关键步骤利用Bezout等式gcd(p,a)=1→∃x,y: xp+ya=1"},
+          {"step": 3, "concept": "唯一性", "action": "设n=p_1...p_k=q_1...q_l，由Euclid引理p_1|某q_j，两者皆素数故p_1=q_j"},
+          {"step": 4, "concept": "归纳消去", "action": "消去p_1=q_j后对n/p_1用归纳法，逐步匹配所有素因子"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Bezout等式作为可消去性的代数基础——gcd=1推出Bezout等式推出Euclid引理推出唯一分解", "evidence_step": 2, "applicable_domains": ["number_theory", "algebra", "commutative_algebra"]},
+          {"pattern": "存在性+唯一性的分离证明——先证存在再证唯一，唯一性依赖Euclid引理", "evidence_step": 3, "applicable_domains": ["number_theory", "algebra", "logic"]},
+          {"pattern": "归纳消去——通过逐个消去已匹配的因子对剩余部分归纳", "evidence_step": 4, "applicable_domains": ["number_theory", "combinatorics", "algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Euclid整环范式——唯一分解定理的证明揭示了'PID→UFD'这条代数链的本质：Bezout等式（PID性质）→Euclid引理→素元素=不可约元素→UFD。Z的算术基本定理是这条链的最基本实例，推广到任意PID和更一般的UFD", "domains_connected": ["number_theory", "commutative_algebra", "algebra"], "graph_restructure": "新增核心节点'Euclid整域范式'，连接：FTA→PID→UFD（代数推广链），Euclid_lemma→prime_equals_irreducible（在PID中成立），连接到Dedekind_domain（理想唯一分解替代元素唯一分解）"},
+          {"paradigm": "唯一分解失败的后果——当唯一分解不成立时（如Z[√-5]），需要用理想分解替代元素分解，这引出Dedekind整域和类数理论。唯一分解定理的'存在性'部分在更广的环中总成立，但'唯一性'是Z的特权", "domains_connected": ["number_theory", "algebraic_number_theory", "commutative_algebra"], "graph_restructure": "新增边：FTA_uniqueness_failure→ideal_factorization（Dedekind的理想理论），class_number→obstruction_to_UFD（类数衡量偏离UFD的程度）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Z的唯一分解", "to": "PID的唯一分解", "type": "specialization"},
+          {"from": "Euclid引理", "to": "PID中素=不可约", "type": "generalization"},
+          {"from": "Z[√-5]唯一分解失败", "to": "Dedekind理想理论", "type": "necessity_edge"},
+          {"from": "Bezout等式", "to": "PID中gcd存在", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-037-S2",
+        "method": "Jordan-Hölder定理视角",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "Z的正则表示", "action": "将n的分解视为Z/nZ作为Z-模的合成列分析"},
+          {"step": 2, "concept": "合成列", "action": "n=p_1^{a_1}...p_k^{a_k}对应Z/nZ的合成列，每步商群为Z/p_iZ"},
+          {"step": 3, "concept": "Jordan-Hölder定理", "action": "Jordan-Hölder定理保证合成列的合成因子在同构意义下唯一（含重数）"},
+          {"step": 4, "concept": "翻译回算术", "action": "合成因子的唯一性恰对应素因子分解的唯一性"}
+        ],
+        "l2_patterns": [
+          {"pattern": "模论编码算术——整数分解对应模的合成列，算术唯一性对应代数唯一性", "evidence_step": 2, "applicable_domains": ["algebra", "number_theory", "representation_theory"]},
+          {"pattern": "Jordan-Hölder作为唯一性保证——合成因子的唯一性定理保证分解的唯一性", "evidence_step": 3, "applicable_domains": ["algebra", "group_theory", "representation_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "算术基本定理=Z上模的Jordan-Hölder定理——整数唯一分解不是孤立的算术事实，而是Jordan-Hölder定理在最简单的环Z上的投影。这个视角将算术嵌入到模论和群论的一般框架中，揭示了'分解的唯一性'本质上是关于合成列的代数定理", "domains_connected": ["number_theory", "algebra", "representation_theory"], "graph_restructure": "新增边：FTA→Jordan_Holder_theorem（算术=模论），prime_factorization→composition_series（素分解=合成列），connecting to group_theory（有限群的合成列）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "素数分解", "to": "模的合成列", "type": "identification"},
+          {"from": "算术基本定理", "to": "Jordan-Hölder定理", "type": "specialization"},
+          {"from": "素数", "to": "单模/合成因子", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "Euclid引理的证明依赖Bezout等式", "description": "学生常忽略Bezout等式是关键步骤，直接假设Euclid引理显然成立"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.Data.Int.Basic (UniqueFactorizationMonoid Int)"
+  },
+  {
+    "problem_id": "MATH-038",
+    "title": "Fermat大定理n=4",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory"],
+    "statement": "x⁴+y⁴=z⁴无正整数解",
+    "solutions": [
+      {
+        "solution_id": "MATH-038-S1",
+        "method": "无穷递降法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "转化为x⁴+y⁴=z²", "action": "证明x⁴+y⁴=z⁴无解等价于x⁴+y⁴=z²无解（若x⁴+y⁴=z⁴则x⁴+y⁴=(z²)²）"},
+          {"step": 2, "concept": "假设最小解", "action": "假设x⁴+y⁴=z²有正整数解，取z最小的解"},
+          {"step": 3, "concept": "互素化简", "action": "由gcd(x,y)=1（否则约简），x,y一奇一偶"},
+          {"step": 4, "concept": "Pythagorean三参数化", "action": "x²,y²,z构成本原Pythagorean三元组：x²=2uv, y²=u²-v², z=u²+v²"},
+          {"step": 5, "concept": "递归分解", "action": "从y²=u²-v²再次得到Pythagorean结构，分解出更小的解"},
+          {"step": 6, "concept": "无穷递降矛盾", "action": "构造出z'<z的新解，与z最小矛盾，故无解"}
+        ],
+        "l2_patterns": [
+          {"pattern": "无穷递降——从假设的解构造更小的解，与最小性矛盾", "evidence_step": 6, "applicable_domains": ["number_theory", "logic", "combinatorics"]},
+          {"pattern": "Pythagorean三元组参数化——将平方关系转化为乘积关系，暴露新的结构", "evidence_step": 4, "applicable_domains": ["number_theory", "algebraic_geometry"]},
+          {"pattern": "问题的等价转化——将n=4的Fermat问题转化为更强的x⁴+y⁴=z²问题", "evidence_step": 1, "applicable_domains": ["number_theory", "logic"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "无穷递降作为'良序即无解'范式——Fermat无穷递降法本质上是利用自然数的良序性：若解的存在蕴含更小解的存在，则解集空。这个范式与反证法不同——它不直接导出逻辑矛盾，而是构造一个无限递减的自然数序列，违反良序性。在更广的视角下，它是'赋值论中的离散赋值环'和'博弈论中的Nash均衡存在性证明'中'递减量'思想的数论版本", "domains_connected": ["number_theory", "logic", "game_theory", "order_theory"], "graph_restructure": "新增核心节点'无穷递降=良序禁止范式'，连接：Fermat_descent→well_ordering_principle，descent→discrete_valuation（p-adic赋值的三角不等式），connecting to termination_of_rewriting_systems（项重写系统的终止性）"},
+          {"paradigm": "Pythagorean参数化作为椭圆曲线的退化——x⁴+y⁴=z²可以看作亏格1曲线（在非退化情形），Fermat的递降法本质上是在这条曲线上找到了一个自映射（递降映射），这个自映射没有不动点因此不可能有有理点。这预见了椭圆曲线上的高度理论", "domains_connected": ["number_theory", "algebraic_geometry"], "graph_restructure": "新增边：Fermat_n4→elliptic_curve（亏格1曲线），descent_map→height_function（递降=高度下降），connecting to Mordell_Weil_theorem（弱定理用递降法证明）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Fermat无穷递降", "to": "自然数良序性", "type": "foundational_connection"},
+          {"from": "无穷递降", "to": "Mordell-Weil定理的弱形式证明", "type": "methodological_generalization"},
+          {"from": "x⁴+y⁴=z²", "to": "亏格1曲线的有理点问题", "type": "geometric_interpretation"},
+          {"from": "递降映射", "to": "椭圆曲线上的高度下降", "type": "conceptual_bridge"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-038-S2",
+        "method": "Gaussian整数方法",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "Gaussian整数环", "action": "在Z[i]中考虑x⁴+y⁴=z⁴，利用Z[i]是UFD的性质"},
+          {"step": 2, "concept": "因子分解", "action": "将x⁴+y⁴=(x²+iy²)(x²-iy²)在Z[i]中分解"},
+          {"step": 3, "concept": "gcd分析", "action": "分析两个因子的gcd，在互素条件下利用Z[i]的UFD性质"},
+          {"step": 4, "concept": "四次幂条件", "action": "每个因子必须为四次幂（在Z[i]中），导出矛盾"},
+          {"step": 5, "concept": "无穷递降", "action": "从Z[i]中的分解导出更小的Z中的解，回到无穷递降"}
+        ],
+        "l2_patterns": [
+          {"pattern": "代数整数环中的因子分解——利用UFD性质在更大的环中分解", "evidence_step": 2, "applicable_domains": ["algebraic_number_theory", "commutative_algebra"]},
+          {"pattern": "从代数整数环回到有理整数的递降——在扩环中获得的信息导出原环中的矛盾", "evidence_step": 5, "applicable_domains": ["algebraic_number_theory", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "代数整数环作为丢番图方程的'放大镜'——在Z中无法分解的式子在Z[i]中可以分解，这提供了新的信息通道。Kummer对Fermat大定理的尝试正是这个范式的系统化：在分圆整数环中分解x^n+y^n。虽然分圆整数环不总是UFD，但'在扩环中寻找因子分解'的范式开创了代数数论", "domains_connected": ["number_theory", "algebraic_number_theory", "commutative_algebra"], "graph_restructure": "新增核心节点'代数整数环放大镜范式'，连接：Fermat_n4→Gaussian_integers，Kummer_Fermat→cyclotomic_integers，UFD_failure→ideal_theory（非UFD引出理想理论）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Z中的x⁴+y⁴", "to": "Z[i]中的因子分解", "type": "ring_extension"},
+          {"from": "Z[i]的UFD性质", "to": "分圆整数环的因子分解", "type": "generalization"},
+          {"from": "Kummer的理想理论", "to": "Dedekind的理想理论", "type": "historical_development"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "从x⁴+y⁴=z⁴到x⁴+y⁴=z²的转化", "description": "学生可能不理解为什么证明更强的命题反而更容易——这是因为z²作为新的变量引入了Pythagorean结构"}
+    ],
+    "lean_formalized": false,
+    "lean_proof": null
+  },
+  {
+    "problem_id": "MATH-039",
+    "title": "Mersenne素数性质",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory"],
+    "statement": "若2^p-1是素数则p是素数",
+    "solutions": [
+      {
+        "solution_id": "MATH-039-S1",
+        "method": "直接反证法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "逆否命题", "action": "证明等价的逆否命题：若p合数则2^p-1合数"},
+          {"step": 2, "concept": "p的因子分解", "action": "设p=ab（a,b>1），引入几何级数因子"},
+          {"step": 3, "concept": "几何级数恒等式", "action": "利用(2^a-1)(1+2^a+2^{2a}+...+2^{(b-1)a}) = 2^{ab}-1 = 2^p-1"},
+          {"step": 4, "concept": "非平凡因子", "action": "证明2^a-1>1且几何级数和>1，故2^p-1有两个非平凡因子"},
+          {"step": 5, "concept": "结论", "action": "因此2^p-1合数，逆否命题成立，原命题得证"}
+        ],
+        "l2_patterns": [
+          {"pattern": "逆否命题转化——将'若A则B'转化为'若非B则非A'，选择更容易证明的方向", "evidence_step": 1, "applicable_domains": ["number_theory", "logic", "all_mathematics"]},
+          {"pattern": "代数恒等式作为因子分解工具——几何级数公式暴露隐藏的因子结构", "evidence_step": 3, "applicable_domains": ["number_theory", "algebra", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "代数恒等式揭示隐含因子——2^{ab}-1总是被2^a-1整除，这不是数论的特殊现象而是多项式代数的普遍性质：x^n-1总被x^d-1整除（d|n）。这个'因子隐藏在指数的因子中'的结构在分圆多项式、有限域理论、编码理论中反复出现", "domains_connected": ["number_theory", "algebra", "finite_fields", "coding_theory"], "graph_restructure": "新增核心节点'指数因子=代数因子范式'，连接：Mersenne→cyclotomic_polynomial（x^n-1的因子分解），finite_field_construction→irreducibility_of_x^n-1（有限域构造），connecting to cyclic_codes（循环码基于x^n-1的因子）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "2^{ab}-1被2^a-1整除", "to": "x^n-1被x^d-1整除", "type": "polynomial_analogy"},
+          {"from": "Mersenne数的因子结构", "to": "分圆多项式的因子分解", "type": "structural_connection"},
+          {"from": "指数的因子→基数的因子", "to": "循环码的构造", "type": "application"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-039-S2",
+        "method": "多项式环视角",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "多项式类比", "action": "考虑多项式x^p-1在F_2[x]中的因子分解"},
+          {"step": 2, "concept": "复合指数的分解", "action": "若p=ab则x^p-1=(x^a)^b-1在F_2[x]中可分解"},
+          {"step": 3, "concept": "代入x=2", "action": "将多项式恒等式代入x=2得到整数因子分解"},
+          {"step": 4, "concept": "不可约性传递", "action": "2^p-1的素性要求x^p-1在适当意义下不可约，这要求p素"}
+        ],
+        "l2_patterns": [
+          {"pattern": "多项式-整数类比——在多项式环中分析结构，代入特殊值得到整数结论", "evidence_step": 3, "applicable_domains": ["number_theory", "algebra", "finite_fields"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "多项式环作为整数的'泛化'——x^n-1在多项式环中的因子分解结构在代入x=2后给出2^n-1的因子分解。这个'先在多项式环中分析，再代入特殊值'的范式在Mersenne素数、分圆域理论、有限域构造中都是核心方法", "domains_connected": ["number_theory", "algebra", "finite_fields"], "graph_restructure": "新增边：integer_factorization→polynomial_factorization（泛化），cyclotomic_polynomial→Mersenne_structure，connecting to L_function_of_varieties（多项式的zeta函数）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "2^p-1的因子", "to": "x^p-1在F_2[x]的因子", "type": "specialization"},
+          {"from": "Mersenne素数", "to": "分圆多项式的不可约性", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.Data.Nat.Mersenne"
+  },
+  {
+    "problem_id": "MATH-040",
+    "title": "模p的乘法群循环",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebra"],
+    "statement": "(Z/pZ)*是循环群（p素数）",
+    "solutions": [
+      {
+        "solution_id": "MATH-040-S1",
+        "method": "元素阶的计数方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "循环群的刻画", "action": "有限群G循环当且仅当∀d|n, G中阶为d的元素至多φ(d)个"},
+          {"step": 2, "concept": "多项式根的计数", "action": "在F_p中，方程x^d=1至多有d个根（域上多项式）"},
+          {"step": 3, "concept": "阶d元素与d次根", "action": "若F_p*中有阶d元素，则恰好有φ(d)个（所有d次单位原根）"},
+          {"step": 4, "concept": "不等式链", "action": "记ψ(d)=F_p*中阶d元素的个数，则Σ_{d|p-1}ψ(d)=p-1，且ψ(d)≤φ(d)"},
+          {"step": 5, "concept": "等式强迫", "action": "因Σ_{d|p-1}φ(d)=p-1且ψ(d)≤φ(d)且Σψ(d)=Σφ(d)，故ψ(d)=φ(d)对所有d|p-1"},
+          {"step": 6, "concept": "生成元存在", "action": "取d=p-1得ψ(p-1)=φ(p-1)≥1，存在阶p-1元素，即生成元"}
+        ],
+        "l2_patterns": [
+          {"pattern": "计数不等式强迫等式——Σf(d)≤Σg(d)且两个和相等则逐项相等", "evidence_step": 5, "applicable_domains": ["number_theory", "combinatorics", "algebra"]},
+          {"pattern": "多项式根数控制——域上d次多项式至多d个根，限制群结构", "evidence_step": 2, "applicable_domains": ["algebra", "number_theory", "finite_fields"]},
+          {"pattern": "φ函数的求和恒等式——Σ_{d|n}φ(d)=n作为关键恒等式", "evidence_step": 5, "applicable_domains": ["number_theory", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "域的乘法群循环性=多项式根数控制+数论恒等式——这个证明的精妙之处在于用两个不同域的性质（代数：多项式根数；数论：φ的求和）联合强迫出群论结论（循环性）。这揭示了'域的乘法群的循环性'本质上是'域上多项式根数有限'和'φ函数的算术性质'的代数后果", "domains_connected": ["number_theory", "algebra", "finite_fields"], "graph_restructure": "新增节点'多项式根数控制+φ恒等式=循环性'，连接：polynomial_root_bound→cyclic_group，Euler_phi_summation→group_structure，标注'两个不同域的性质联合强迫群论结论'"},
+          {"paradigm": "φ(d)作为'容许元素数'——φ(d)既是数论函数（计数与d互素的数），又是群论量（循环群中阶d元素数），还是多项式论量（x^d-1的原根数）。三个领域的φ(d)在循环群定理中统一", "domains_connected": ["number_theory", "group_theory", "finite_fields"], "graph_restructure": "新增统一节点'φ函数的三域统一'，连接：number_theory_phi→group_theory_generator_count→polynomial_primitive_root_count"}
+        ],
+        "cross_domain_edges": [
+          {"from": "φ(d)作为数论函数", "to": "φ(d)作为循环群中阶d元素数", "type": "identification"},
+          {"from": "域上多项式根数≤d", "to": "F_p*中阶d元素≤φ(d)", "type": "implication"},
+          {"from": "F_p*循环", "to": "有限域F_{p^n}*循环（一般化）", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-040-S2",
+        "method": "Sylow定理方法",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "Sylow分解", "action": "设p-1=q_1^{a_1}...q_k^{a_k}，分析F_p*的Sylow子群"},
+          {"step": 2, "concept": "Sylow q_i-子群", "action": "F_p*的Sylow q_i-子群存在且阶为q_i^{a_i}"},
+          {"step": 3, "concept": "交换群结构", "action": "F_p*是交换群，其Sylow子群也是交换群"},
+          {"step": 4, "concept": "循环性验证", "action": "证明每个Sylow q_i-子群循环（利用多项式x^{q_i^{a_i}}-1的根数控制）"},
+          {"step": 5, "concept": "直积循环", "action": "互素阶循环群的直积循环，故F_p*循环"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Sylow分解+直积合成——将群分解为准素部分再合成", "evidence_step": 4, "applicable_domains": ["group_theory", "algebra", "number_theory"]},
+          {"pattern": "互素阶的循环性传递——互素阶循环群直积仍循环", "evidence_step": 5, "applicable_domains": ["group_theory", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "有限交换群的准素分解——F_p*的循环性证明利用了有限交换群=准素分支的直积这一结构定理。每个准素分支的循环性由域的代数性质保证，整体的循环性由互素性保证。这是'分解-验证-合成'范式在群论中的实例", "domains_connected": ["group_theory", "algebra", "number_theory"], "graph_restructure": "新增节点'分解-验证-合成范式'，连接：Sylow_decomposition→primary_decomposition→direct_product_synthesis，connecting to structure_theorem_of_finitely_generated_abelian_groups"}
+        ],
+        "cross_domain_edges": [
+          {"from": "F_p*的Sylow分解", "to": "有限生成阿贝尔群结构定理", "type": "specialization"},
+          {"from": "准素分支的循环性", "to": "域上多项式根数控制", "type": "algebraic_guarantee"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "Σφ(d)=p-1和ψ(d)≤φ(d)联合强迫ψ(d)=φ(d)的逻辑", "description": "学生需要理解'不等式链中两边相等则逐项相等'的逻辑"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.FieldTheory.Finite.GaloisField (ZMod.unit_group_cyclic)"
+  },
+  {
+    "problem_id": "MATH-041",
+    "title": "Euler定理",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebra"],
+    "statement": "a^φ(n)≡1(mod n)（gcd(a,n)=1）",
+    "solutions": [
+      {
+        "solution_id": "MATH-041-S1",
+        "method": "群论方法",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "乘法群结构", "action": "识别(Z/nZ)*为阶φ(n)的有限群"},
+          {"step": 2, "concept": "Lagrange定理", "action": "有限群中元素阶整除群阶，故ord(a)|φ(n)"},
+          {"step": 3, "concept": "阶的推论", "action": "由ord(a)|φ(n)得φ(n)=k·ord(a)对某整数k"},
+          {"step": 4, "concept": "幂次计算", "action": "a^φ(n) = (a^{ord(a)})^k ≡ 1^k = 1 (mod n)"}
+        ],
+        "l2_patterns": [
+          {"pattern": "算术问题群论化——将模算术问题转化为有限群的问题", "evidence_step": 1, "applicable_domains": ["number_theory", "algebra", "cryptography"]},
+          {"pattern": "Lagrange定理作为阶约束——群元素阶整除群阶是普适约束", "evidence_step": 2, "applicable_domains": ["group_theory", "algebra", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Euler定理=Lagrange定理的数论投影——a^φ(n)≡1(mod n)不是数论的特殊事实，而是Lagrange定理在(Z/nZ)*上的直接投影。Fermat小定理是n=p的特例。这揭示了模算术的'隐藏群论结构'，将孤立的数论定理统一到群论的框架中", "domains_connected": ["number_theory", "group_theory", "cryptography"], "graph_restructure": "新增核心节点'Euler定理=Lagrange投影'，连接：Euler_theorem→Lagrange_theorem，Fermat_little_theorem→Euler_theorem（特例），RSA_cryptography→Euler_theorem（应用）"},
+          {"paradigm": "群结构作为密码学基础——RSA的安全性依赖于(Z/nZ)*的群结构中离散对数的困难性，Euler定理给出了群的结构信息但同时定义了'容易'和'困难'的边界", "domains_connected": ["number_theory", "group_theory", "cryptography"], "graph_restructure": "新增边：Euler_theorem→RSA（密码学应用），discrete_log_problem→group_structure（困难性依赖群结构）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Euler定理", "to": "Lagrange定理", "type": "specialization"},
+          {"from": "Fermat小定理", "to": "Euler定理", "type": "specialization"},
+          {"from": "Euler定理", "to": "RSA加密", "type": "application"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-041-S2",
+        "method": "置换/组合方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "缩剩余系", "action": "取模n的缩剩余系r_1,...,r_{φ(n)}，皆与n互素"},
+          {"step": 2, "concept": "乘法置换", "action": "证明a·r_1, a·r_2, ..., a·r_{φ(n)}也是缩剩余系（排列）"},
+          {"step": 3, "concept": "乘积等式", "action": "由置换性质：∏(a·r_i) ≡ ∏r_i (mod n)"},
+          {"step": 4, "concept": "提取因子", "action": "a^{φ(n)}·∏r_i ≡ ∏r_i (mod n)，因∏r_i与n互素可消去"},
+          {"step": 5, "concept": "结论", "action": "得a^{φ(n)}≡1(mod n)"}
+        ],
+        "l2_patterns": [
+          {"pattern": "乘法作用保持集合——a乘以缩剩余系给出排列", "evidence_step": 2, "applicable_domains": ["number_theory", "group_theory", "combinatorics"]},
+          {"pattern": "整体乘积的置换不变性——排列不改变乘积，提取公因子得幂次关系", "evidence_step": 3, "applicable_domains": ["number_theory", "algebra", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "置换不变性作为群作用的基本工具——乘以a是缩剩余系上的置换，置换不改变整体乘积，从中提取出a^{φ(n)}=1。这个'群作用→置换不变性→提取信息'的范式在Wilson定理、对称多项式理论、特征标理论中反复出现", "domains_connected": ["number_theory", "group_theory", "invariant_theory"], "graph_restructure": "新增节点'置换不变性范式'，连接：Euler_theorem→permutation_invariance，Wilson_theorem→same_paradigm（(p-1)!≡-1也用置换不变性），connecting to symmetric_functions（对称多项式=置换不变多项式）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Euler定理的置换证明", "to": "Wilson定理", "type": "shared_paradigm"},
+          {"from": "置换不变性", "to": "对称多项式理论", "type": "structural_connection"},
+          {"from": "群作用的置换不变性", "to": "特征标的正交性", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.NumberTheory.ModularUnits (Euler's theorem via ZMod.unit_group)"
+  },
+  {
+    "problem_id": "MATH-042",
+    "title": "Fermat二平方补完",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "graduate",
+    "domain": ["number_theory", "algebraic_number_theory"],
+    "statement": "n是两平方数之和当且仅当n的4k+3型素因子都有偶指数",
+    "solutions": [
+      {
+        "solution_id": "MATH-042-S1",
+        "method": "Gaussian整数方法",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "Z[i]的唯一分解", "action": "在Gaussian整数环Z[i]中利用UFD性质，n=x²+y²=N(x+iy)"},
+          {"step": 2, "concept": "Gaussian素数分类", "action": "Z[i]中素数分类：2=(1+i)(1-i)分歧，p≡1(4)分裂为ππ̄，p≡3(4)保持素数（惯性）"},
+          {"step": 3, "concept": "范数条件", "action": "n=N(α)要求α的范数中，惯性素数p≡3(4)必须以偶次出现（因αᾱ中p贡献对称）"},
+          {"step": 4, "concept": "充分性构造", "action": "若条件满足，由Z[i]的UFD性质可构造α使N(α)=n"},
+          {"step": 5, "concept": "翻译回Z", "action": "将Z[i]中的范数等式N(x+iy)=n翻译回Z中的x²+y²=n"}
+        ],
+        "l2_patterns": [
+          {"pattern": "代数整数环的UFD性质——在Z[i]中的唯一分解给出Z中无法直接看到的信息", "evidence_step": 1, "applicable_domains": ["algebraic_number_theory", "commutative_algebra", "number_theory"]},
+          {"pattern": "素数分裂分类——素数在扩环中的行为（分歧/分裂/惯性）决定表示可能性", "evidence_step": 2, "applicable_domains": ["algebraic_number_theory", "class_field_theory", "algebraic_geometry"]},
+          {"pattern": "范数作为桥梁——n=x²+y²等价于n=N_{Q(i)/Q}(x+iy)，范数映射连接两个环", "evidence_step": 1, "applicable_domains": ["algebraic_number_theory", "algebra", "quadratic_forms"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "素数分裂类型决定表示论——素数p在Z[i]中的分裂行为（由p mod 4决定）完全决定了哪些n可表为两平方和。这是更一般的'局部行为决定全局表示'范式的最简单实例：素数在代数整数环中的分裂/惯性/分歧分类（由Frobenius决定）控制了二次型的表示数", "domains_connected": ["algebraic_number_theory", "quadratic_forms", "class_field_theory"], "graph_restructure": "新增核心节点'分裂类型→表示论范式'，连接：two_squares→Gaussian_splitting，prime_splitting_in_Z[i]→Frobenius_in_quadratic_extension，connecting to Chebotarev（分裂类型的密度）和到更一般的norm_equation"},
+          {"paradigm": "Z[i]作为Z的'几何扩展'——在Z中x²+y²=n是一个非线性的丢番图方程，但在Z[i]中它变成线性条件N(α)=n。代数整数环的引入将非线性问题线性化，这是'升维简化'范式的代数数论版本", "domains_connected": ["number_theory", "algebraic_number_theory", "algebra"], "graph_restructure": "新增节点'代数数论升维简化范式'，连接：nonlinear_diophantine→linear_in_extension_ring，two_squares→norm_in_Z[i]，connecting to similar pattern in Kummer's Fermat approach"}
+        ],
+        "cross_domain_edges": [
+          {"from": "p≡1(4)在Z[i]中分裂", "to": "Frobenius在Q(i)/Q中的阶为1", "type": "identification"},
+          {"from": "p≡3(4)在Z[i]中惯性", "to": "Frobenius在Q(i)/Q中的阶为2", "type": "identification"},
+          {"from": "两平方和定理", "to": "更一般的范数方程", "type": "generalization"},
+          {"from": "Z[i]中的UFD", "to": "PID→UFD→范数方程可解", "type": "methodological_chain"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-042-S2",
+        "method": "模形式/theta函数方法",
+        "domain": "modular_forms",
+        "path": [
+          {"step": 1, "concept": "theta函数", "action": "定义θ(z)=Σ_{n∈Z} q^{n²}，则θ(z)²=Σ r_2(n)q^n其中r_2(n)计算n的两平方表示数"},
+          {"step": 2, "concept": "模形式性质", "action": "证明θ(z)是Γ_0(4)上权重1/2的模形式"},
+          {"step": 3, "concept": "Eisenstein级数分解", "action": "将θ²分解为Eisenstein级数部分（主项）和cusp form部分"},
+          {"step": 4, "concept": "系数公式", "action": "Eisenstein部分的系数给出r_2(n)=4Σ_{d|n,d奇}(-1)^{(d-1)/2}，即4倍类数函数"},
+          {"step": 5, "concept": "非零判定", "action": "分析r_2(n)何时非零：4k+3型素因子偶指数时和式非零，否则为零"}
+        ],
+        "l2_patterns": [
+          {"pattern": "表示数作为模形式系数——r_2(n)是theta级数平方的Fourier系数", "evidence_step": 1, "applicable_domains": ["modular_forms", "number_theory", "representation_theory"]},
+          {"pattern": "Eisenstein-cusp分解——模形式=主项(Eisenstein)+修正项(cusp)，主项给出渐近/判定", "evidence_step": 3, "applicable_domains": ["modular_forms", "analytic_number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "表示数=自守形式的Fourier系数——两平方和的表示数r_2(n)是theta模形式的系数，其精确公式由Eisenstein级数给出。这是'将二次型的表示问题提升到自守形式理论'的范式实例，与Fermat三平方和定理的theta级数方法共享同一范式", "domains_connected": ["number_theory", "modular_forms", "representation_theory"], "graph_restructure": "新增统一节点'theta级数=表示数生成函数'，连接：two_squares→theta_squared，three_squares→theta_cubed，connecting to Siegel_Mass_formula（多变量推广）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "r_2(n)的公式", "to": "Dirichlet L函数L(s,χ_4)", "type": "identification"},
+          {"from": "θ²的Eisenstein分解", "to": "更一般的模形式分解", "type": "specialization"},
+          {"from": "两平方表示数", "to": "Siegel质量公式", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "从Z[i]的UFD性质到充分性的构造", "description": "需要明确构造α使N(α)=n，利用Z[i]中素因子的配对"},
+      {"concept": "p≡3(4)惯性导致偶指数要求", "description": "理解为什么惯性素数必须在范数中以偶次出现"}
+    ],
+    "lean_formalized": false,
+    "lean_proof": null
+  },
+  {
+    "problem_id": "MATH-043",
+    "title": "二次互反律补充定律",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "algebraic_number_theory"],
+    "statement": "(-1/p)=(-1)^((p-1)/2), (2/p)=(-1)^((p²-1)/8)",
+    "solutions": [
+      {
+        "solution_id": "MATH-043-S1",
+        "method": "Euler准则直接计算",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "Euler准则", "action": "应用(a/p)≡a^{(p-1)/2}(mod p)将Legendre符号转化为幂次计算"},
+          {"step": 2, "concept": "-1的计算", "action": "直接计算(-1)^{(p-1)/2}：若p≡1(4)则(p-1)/2偶得+1，若p≡3(4)则(p-1)/2奇得-1"},
+          {"step": 3, "concept": "2的计算", "action": "计算2^{(p-1)/2} mod p需要更精细的工具"},
+          {"step": 4, "concept": "Gauss引理应用", "action": "对a=2应用Gauss引理：μ=⌊(p-1)/4⌋+⌊(p-1)/2⌋类型的计数"},
+          {"step": 5, "concept": "模8分析", "action": "根据p mod 8的值（±1或±3）确定μ的奇偶性，得出(2/p)=(-1)^{(p²-1)/8}"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Euler准则作为符号计算工具——将二次剩余判定转化为幂次计算", "evidence_step": 1, "applicable_domains": ["number_theory", "algebra", "finite_fields"]},
+          {"pattern": "模8分类——p mod 8的四个类完全决定(2/p)的值", "evidence_step": 5, "applicable_domains": ["number_theory", "algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "补充定律=分裂行为的显式化——(-1/p)和(2/p)分别描述了-1和2在Q(√p)的相关扩张中的分裂行为。(-1/p)编码了Q(i)/Q中p的分裂，(2/p)编码了Q(√2)/Q中p的分裂。补充定律不是互反律的附属品，而是'最简单的类域论互反律'", "domains_connected": ["number_theory", "algebraic_number_theory", "class_field_theory"], "graph_restructure": "新增边：supplement_law→splitting_in_quadratic_extension（(-1/p)=Q(i)中的分裂，(2/p)=Q(√2)中的分裂），connecting to Hilbert_symbol（局部互反律的特例）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "(-1/p)", "to": "p在Q(i)/Q中的分裂", "type": "identification"},
+          {"from": "(2/p)", "to": "p在Q(√2)/Q中的分裂", "type": "identification"},
+          {"from": "补充定律", "to": "Hilbert符号的特例", "type": "specialization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-043-S2",
+        "method": "Gauss和的8次根方法",
+        "domain": "algebraic_number_theory",
+        "path": [
+          {"step": 1, "concept": "8次Gauss和", "action": "定义τ=Σ_{n=0}^{p-1} ζ_p^{n²}，计算τ²=(-1)^{(p-1)/2}·p"},
+          {"step": 2, "concept": "τ²的确定", "action": "由τ²=(-1)^{(p-1)/2}p直接给出(-1/p)=(-1)^{(p-1)/2}"},
+          {"step": 3, "concept": "四次Gauss和", "action": "对(2/p)引入四次Gauss和或利用τ在Z[ζ_8]中的分解"},
+          {"step": 4, "concept": "Frobenius作用", "action": "计算Frobenius对ζ_8的作用：σ_2(ζ_8)=ζ_8^2，提取(2/p)的值"},
+          {"step": 5, "concept": "符号确定", "action": "由Frobenius作用的符号得出(2/p)=(-1)^{(p²-1)/8}"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Gauss和的平方=Legendre符号×p——τ²=(-1/p)·p给出直接计算", "evidence_step": 2, "applicable_domains": ["algebraic_number_theory", "number_theory"]},
+          {"pattern": "Frobenius作用提取符号——在分圆域中用Frobenius作用确定分裂行为", "evidence_step": 4, "applicable_domains": ["algebraic_number_theory", "representation_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Gauss和=分圆域中的迹——二次Gauss和τ=Σζ_p^{n²}是Q(ζ_p)/Q中某个子域的迹，τ²=(-1/p)·p这个等式将Legendre符号、Gauss和、分圆域三者统一。补充定律的本质是Frobenius在分圆域中的作用规律", "domains_connected": ["algebraic_number_theory", "representation_theory", "class_field_theory"], "graph_restructure": "新增统一节点'Gauss和-迹-Frobenius三位一体'，连接：Gauss_sum→trace_in_cyclotomic_field，Gauss_sum_squared→Legendre_symbol，Frobenius_action→supplement_law"}
+        ],
+        "cross_domain_edges": [
+          {"from": "二次Gauss和τ", "to": "Q(ζ_p)中的迹", "type": "identification"},
+          {"from": "τ²=(-1/p)·p", "to": "Legendre符号的Gauss和表示", "type": "encoding"},
+          {"from": "Frobenius在Z[ζ_8]上的作用", "to": "(2/p)的值", "type": "determination"}
+        ],
+        "elegant": true,
+        "source": "advanced"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "(2/p)的Gauss引理计算中μ的奇偶性", "description": "需要根据p mod 8分四种情况讨论"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.NumberTheory.LegendreSymbol (supplement to QuadraticReciprocity)"
+  },
+  {
+    "problem_id": "MATH-044",
+    "title": "Liouville数（超越数构造）",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "graduate",
+    "domain": ["number_theory", "transcendental_number_theory"],
+    "statement": "Σ10^(-n!)是超越数",
+    "solutions": [
+      {
+        "solution_id": "MATH-044-S1",
+        "method": "Liouville逼近定理方法",
+        "domain": "transcendental_number_theory",
+        "path": [
+          {"step": 1, "concept": "代数数的逼近上界", "action": "证明若α是次数d≥2的代数数，则存在C(α)>0使|α-p/q|>C/q^d对所有p/q成立"},
+          {"step": 2, "concept": "Liouville数的构造", "action": "定义L=Σ10^(-n!)，计算其截断p_n/q_n其中q_n=10^{n!}"},
+          {"step": 3, "concept": "逼近质量估计", "action": "证明|L-p_n/q_n|<2/10^{(n+1)!}=2/q_n^{n+1}，逼近指数随n增长"},
+          {"step": 4, "concept": "矛盾论证", "action": "若L是次数d的代数数，则|L-p_n/q_n|>C/q_n^d，但当n>d时2/q_n^{n+1}<C/q_n^d矛盾"},
+          {"step": 5, "concept": "超越性结论", "action": "L不满足任何代数数的逼近上界，故L超越"}
+        ],
+        "l2_patterns": [
+          {"pattern": "逼近上界作为代数性的特征——代数数不能被有理数逼近得太好", "evidence_step": 1, "applicable_domains": ["transcendental_number_theory", "diophantine_approximation", "number_theory"]},
+          {"pattern": "构造性反例——通过构造逼近过好的数来违反代数数的必要条件", "evidence_step": 3, "applicable_domains": ["number_theory", "logic", "constructive_mathematics"]},
+          {"pattern": "逼近指数的层次——d次代数数的逼近指数≤d，超越数可以有任意高逼近指数", "evidence_step": 4, "applicable_domains": ["diophantine_approximation", "transcendental_number_theory", "dynamical_systems"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "逼近质量定义代数/超越的边界——Liouville的核心洞见是'代数数有逼近上界'，这给出了代数性的必要条件。通过构造违反这个条件的数，可以证明超越性。这开创了'用逼近质量分类数'的范式，后来被Roth定理（代数数逼近指数=2最优）和Thue-Siegel-Roth定理深化", "domains_connected": ["transcendental_number_theory", "diophantine_approximation", "algebraic_number_theory"], "graph_restructure": "新增核心节点'逼近质量=代数性标尺范式'，连接：Liouville_theorem→algebraic_approximation_bound，Liouville_number→violation_of_bound，connecting to Roth_theorem（最优逼近指数=2）和到Schmidt_subspace_theorem（多变量推广）"},
+          {"paradigm": "构造性存在证明——Liouville数的构造不是纯存在性的，它给出了第一个被显式证明超越的数。这在方法论上开创了'显式构造超越数'的方向，后来产生了e, π的超越性证明（Hermite, Lindemann）和Mahler的分类理论", "domains_connected": ["transcendental_number_theory", "constructive_mathematics", "number_theory"], "graph_restructure": "新增边：Liouville_number→first_explicit_transcendental，Liouville_method→Hermite_method（e的超越性），connecting to Mahler_classification（超越数的分类理论）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Liouville逼近上界", "to": "Roth定理", "type": "strengthening"},
+          {"from": "Liouville数的构造", "to": "e和π的超越性证明", "type": "methodological_predecessor"},
+          {"from": "逼近指数分类", "to": "Mahler的S/T/U数分类", "type": "generalization"},
+          {"from": "代数数的逼近上界", "to": "Thue-Siegel-Roth定理", "type": "improvement_chain"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-044-S2",
+        "method": "连分数显式构造方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "连分数展开", "action": "计算Liouville数的连分数展开，其部分商增长极快"},
+          {"step": 2, "concept": "大部分商", "action": "证明连分数的部分商a_{n+1}远大于之前所有部分商的乘积"},
+          {"step": 3, "concept": "超优逼近", "action": "大部分商导致收敛子给出超优逼近|L-p_n/q_n|<1/(a_{n+1}·q_n²)"},
+          {"step": 4, "concept": "逼近指数无界", "action": "部分商的无界增长导致逼近指数无界，违反代数数的Liouville上界"},
+          {"step": 5, "concept": "超越性", "action": "由逼近指数无界推出L超越"}
+        ],
+        "l2_patterns": [
+          {"pattern": "大连分数部分商→超优逼近→超越性——连分数的显式结构给出逼近质量", "evidence_step": 3, "applicable_domains": ["number_theory", "diophantine_approximation", "dynamical_systems"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "连分数部分商作为逼近质量的直接度量——部分商的大小直接决定收敛子的逼近质量，Liouville数通过构造极大的部分商获得无界逼近指数。这与Markov谱理论（部分商的双Lagrange谱）和双曲动力系统（大返回时间=大部分商）相连接", "domains_connected": ["number_theory", "diophantine_approximation", "dynamical_systems"], "graph_restructure": "新增边：partial_quotients→approximation_quality（部分商=逼近质量），large_partial_quotients→slow_return_in_dynamics（大部分商=慢回归），connecting to Markov_spectrum"}
+        ],
+        "cross_domain_edges": [
+          {"from": "大连分数部分商", "to": "Gauss映射中的慢回归", "type": "dynamical_interpretation"},
+          {"from": "部分商的增长", "to": "Markov谱", "type": "spectral_connection"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "代数数逼近上界的证明", "description": "需要利用代数数满足的极小多项式给出逼近下界，涉及中值定理的应用"}
+    ],
+    "lean_formalized": false,
+    "lean_proof": null
+  },
+  {
+    "problem_id": "MATH-045",
+    "title": "素数无穷多个（解析证明）",
+    "source": "MathLib 100 Theorems",
+    "difficulty": "undergraduate",
+    "domain": ["number_theory", "analytic_number_theory"],
+    "statement": "素数有无穷多个——通过Euler乘积发散的解析证明",
+    "solutions": [
+      {
+        "solution_id": "MATH-045-S1",
+        "method": "Euler乘积发散方法",
+        "domain": "analytic_number_theory",
+        "path": [
+          {"step": 1, "concept": "Euler乘积", "action": "建立ζ(1)的Euler乘积表示：Σ1/n = ∏(1-1/p)^(-1)（形式上）"},
+          {"step": 2, "concept": "调和级数发散", "action": "证明Σ1/n=∞（调和级数发散，可用积分比较或Cauchy凝聚）"},
+          {"step": 3, "concept": "反证法", "action": "假设素数有限，则∏(1-1/p)^(-1)是有限乘积，必为有限数"},
+          {"step": 4, "concept": "矛盾", "action": "有限乘积≠∞，但Σ1/n=∞，与Euler乘积等式矛盾"},
+          {"step": 5, "concept": "结论", "action": "素数必须无穷多"}
+        ],
+        "l2_patterns": [
+          {"pattern": "解析发散作为无穷性的判据——用级数发散证明集合无穷", "evidence_step": 2, "applicable_domains": ["analytic_number_theory", "analysis", "number_theory"]},
+          {"pattern": "Euler乘积作为素数-级数桥梁——将素数的离散信息编码为连续级数", "evidence_step": 1, "applicable_domains": ["analytic_number_theory", "algebraic_geometry", "representation_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Euler乘积作为素数的解析编码——Euler乘积ζ(s)=∏(1-p^{-s})^{-1}将素数的离散分布编码为解析函数。素数无穷↔ζ(1)发散。这是将算术信息提升到解析对象的范式的最基本实例，直接通向素数定理、Riemann猜想、Dirichlet定理。整个解析数论建立在这个编码之上", "domains_connected": ["analytic_number_theory", "complex_analysis", "number_theory"], "graph_restructure": "新增核心节点'Euler乘积=解析编码范式'，连接：prime_infinitude→Euler_product_divergence，Euler_product→Riemann_zeta（从s=1到全平面），connecting to prime_number_theorem（同一编码的不同信息提取）"},
+          {"paradigm": "发散作为无穷的解析签名——级数的发散不是消极现象，而是编码了底层集合的无穷性。调和级数发散=自然数无穷（平凡），Euler乘分发散=素数无穷（非平凡）。'从发散中提取无穷性信息'这个范式在Tauberian定理、Dirichlet级数理论中深化", "domains_connected": ["analytic_number_theory", "analysis", "harmonic_analysis"], "graph_restructure": "新增节点'发散=无穷签名范式'，连接：divergence→infinitude，harmonic_divergence→natural_numbers_infinite（平凡实例），Euler_product_divergence→primes_infinite（非平凡实例），connecting to Tauberian_theorems"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Euler乘积在s=1发散", "to": "素数无穷", "type": "analytic_encoding"},
+          {"from": "Euler乘积", "to": "Riemann zeta函数", "type": "generalization"},
+          {"from": "调和级数发散", "to": "Euler乘分发散", "type": "bridge"},
+          {"from": "解析证明", "to": "素数定理", "type": "methodological_predecessor"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-045-S2",
+        "method": "Euclid经典方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "反证假设", "action": "假设素数有限：p_1, p_2, ..., p_k"},
+          {"step": 2, "concept": "构造新数", "action": "令N = p_1·p_2·...·p_k + 1"},
+          {"step": 3, "concept": "因子分析", "action": "N不被任何p_i整除（余数均为1）"},
+          {"step": 4, "concept": "素因子存在", "action": "N>1必有素因子q，q不在列表中"},
+          {"step": 5, "concept": "矛盾", "action": "q是新素数，与假设矛盾，故素数无穷"}
+        ],
+        "l2_patterns": [
+          {"pattern": "构造性反证——假设有限后构造出不在列表中的新对象", "evidence_step": 2, "applicable_domains": ["number_theory", "logic", "combinatorics"]},
+          {"pattern": "乘积+1构造——p_1...p_k+1保证不被任何已知素数整除", "evidence_step": 2, "applicable_domains": ["number_theory", "algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "构造性反证作为无穷性证明的通用范式——Euclid的'假设有限→构造新对象→矛盾'不是数论专属的，而是证明无穷性的通用范式。在集合论中（Cantor对角线法证明实数不可数）、在群论中（生成新元素）、在拓扑学中（构造不在覆盖中的点）都有相同结构。对角线法和Euclid构造在'有限假设中制造逃逸者'这一底层逻辑上同构", "domains_connected": ["number_theory", "logic", "set_theory", "topology"], "graph_restructure": "新增核心节点'构造性反证=制造逃逸者范式'，连接：Euclid_primes→Cantor_diagonal（制造逃逸者），constructive_contradiction→incompleteness_proof（Gödel的构造性反证），connecting to Baire_category_theorem（在可数覆盖中制造逃逸点）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Euclid构造p_1...p_k+1", "to": "Cantor对角线法", "type": "structural_analogy"},
+          {"from": "构造性反证", "to": "Gödel不完备性定理", "type": "shared_paradigm"},
+          {"from": "Euclid方法", "to": "Baire纲定理", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-045-S3",
+        "method": "Fermat数方法",
+        "domain": "number_theory",
+        "path": [
+          {"step": 1, "concept": "Fermat数定义", "action": "定义F_n = 2^{2^n}+1（第n个Fermat数）"},
+          {"step": 2, "concept": "互素性", "action": "证明任意两个Fermat数互素：F_n = F_0·F_1·...·F_{n-1} + 2"},
+          {"step": 3, "concept": "素因子提取", "action": "每个F_n至少有一个素因子p_n，且p_n各不相同（因F_n互素）"},
+          {"step": 4, "concept": "无穷性", "action": "无穷个Fermat数给出无穷个不同素因子p_n"}
+        ],
+        "l2_patterns": [
+          {"pattern": "互素序列提取无穷素数——构造无穷个两两互素的数，每个贡献至少一个新素数", "evidence_step": 2, "applicable_domains": ["number_theory", "combinatorics"]},
+          {"pattern": "递推关系保证互素——F_n=F_0...F_{n-1}+2的递推保证互素性", "evidence_step": 2, "applicable_domains": ["number_theory", "algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "互素序列作为素数无穷的'工厂'——任何无穷的两两互素序列都给出素数无穷的证明。Fermat数、Sylow序列、Euclid数都是这个范式的实例。这揭示了'互素性'与'素数无穷'之间的深层等价：素数无穷当且仅当存在无穷的两两互素序列", "domains_connected": ["number_theory", "algebra"], "graph_restructure": "新增节点'互素序列=素数工厂范式'，连接：Fermat_numbers→coprime_sequence→prime_infiniteness，Euclid_numbers→same_paradigm，connecting to Chinese_Remainder_Theorem（互素= CRT可用）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "Fermat数互素", "to": "中国剩余定理的条件", "type": "structural_connection"},
+          {"from": "互素序列方法", "to": "Euclid构造（也是一种互素序列）", "type": "shared_paradigm"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [
+      {"concept": "Euler乘积在s=1的严格处理", "description": "s=1时Euler乘积不收敛，需要取s→1+的极限来严格化"}
+    ],
+    "lean_formalized": true,
+    "lean_proof": "Mathlib.Data.Nat.Prime (Nat.primes_infinite)"
+  }
+]

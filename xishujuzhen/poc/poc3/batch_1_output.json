@@ -1,0 +1,1171 @@
+[
+  {
+    "problem_id": "MATH-016",
+    "title": "Sylow第一定理",
+    "source": "POC-3提取题 / 代数定理#1",
+    "difficulty": "graduate",
+    "domain": ["algebra", "group_theory"],
+    "statement": "若G是有限群，p^k整除|G|且p^(k+1)不整除|G|，则G有p^k阶子群。",
+    "solutions": [
+      {
+        "solution_id": "MATH-016-S1",
+        "method": "group_action_on_subsets",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "set_of_p^k_subsets_of_G", "action": "construct"},
+          {"step": 2, "concept": "G_acts_by_left_translation", "action": "define"},
+          {"step": 3, "concept": "orbit_stabilizer_theorem", "action": "apply"},
+          {"step": 4, "concept": "orbit_size_divides_|G|", "action": "derive"},
+          {"step": 5, "concept": "count_orbits_mod_p", "action": "compute"},
+          {"step": 6, "concept": "fixed_point_with_stabilizer_p^k", "action": "identify"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "群作用计数——通过群在集合上的作用提取结构信息", "evidence_step": 5, "applicable_domains": ["algebra", "combinatorics", "topology", "number_theory"]},
+          {"pattern": "不动点原理——在群作用下寻找不动点获取子结构", "evidence_step": 6, "applicable_domains": ["algebra", "topology", "analysis", "geometry"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "群作用=子结构探测器", "domains_connected": ["group_theory", "combinatorics"], "graph_restructure": "增加群作用↔组合计数跨领域边，将'群在子集集合上的作用'识别为提取子群的通用引擎"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:group_action", "to": "combinatorics:orbit_counting", "type": "structural_analogy"},
+          {"from": "group_theory:fixed_point", "to": "topology:fixed_point_theorem", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-016-S2",
+        "method": "induction_on_group_order",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "induction_on_|G|", "action": "setup"},
+          {"step": 2, "concept": "normal_subgroup_or_sylow_subgroup_in_centralizer", "action": "analyze"},
+          {"step": 3, "concept": "quotient_group_reduction", "action": "reduce"},
+          {"step": 4, "concept": "induction_hypothesis_on_quotient", "action": "apply"},
+          {"step": 5, "concept": "lift_subgroup_from_quotient", "action": "construct"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "商结构归纳——在商群上归纳后提升回原结构", "evidence_step": 4, "applicable_domains": ["algebra", "topology", "number_theory"]},
+          {"pattern": "局部-全局思维——从子群的中心化子获取局部信息再推全局", "evidence_step": 2, "applicable_domains": ["algebra", "topology", "geometry"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "商结构=归纳降维器", "domains_connected": ["group_theory", "ring_theory", "topology"], "graph_restructure": "增加群论↔环论↔拓扑的'商结构归纳'公共边，将商群/商环/商空间统一为归纳降维工具"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:quotient_group", "to": "ring_theory:quotient_ring", "type": "structural_analogy"},
+          {"from": "group_theory:normal_subgroup", "to": "topology:quotient_space", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-016-S3",
+        "method": "permutation_group_embedding",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "Cayley_theorem_embed_G_in_S_n", "action": "embed"},
+          {"step": 2, "concept": "S_n_has_p_sylow_subgroup", "action": "establish"},
+          {"step": 3, "concept": "Sylow_in_S_n_construction", "action": "construct"},
+          {"step": 4, "concept": "intersect_with_G", "action": "compute"},
+          {"step": 5, "concept": "order_of_intersection_analysis", "action": "verify"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "嵌入-限制——先嵌入大结构再限制回小结构", "evidence_step": 4, "applicable_domains": ["algebra", "topology", "analysis", "geometry"]},
+          {"pattern": "不变量思维——利用置换群的已知结构作为不变量", "evidence_step": 2, "applicable_domains": ["algebra", "combinatorics", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "嵌入大已知结构再限制", "domains_connected": ["group_theory", "combinatorics", "linear_algebra"], "graph_restructure": "增加群论↔组合的'嵌入-限制'跨领域边，将Cayley嵌入识别为通用降维模式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:cayley_embedding", "to": "combinatorics:permutation_group", "type": "equivalence"},
+          {"from": "group_theory:embedding_restriction", "to": "linear_algebra:subspace_restriction", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Sylow.exists_subgroup"
+  },
+  {
+    "problem_id": "MATH-017",
+    "title": "群同构基本定理",
+    "source": "POC-3提取题 / 代数定理#2",
+    "difficulty": "undergraduate",
+    "domain": ["algebra", "group_theory"],
+    "statement": "若φ:G→H是满同态，则G/ker(φ)≅H。",
+    "solutions": [
+      {
+        "solution_id": "MATH-017-S1",
+        "method": "direct_construction_isomorphism",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "define_psi:G/ker(phi)_to_H", "action": "construct"},
+          {"step": 2, "concept": "well_definedness_check", "action": "verify"},
+          {"step": 3, "concept": "homomorphism_verification", "action": "verify"},
+          {"step": 4, "concept": "injectivity_from_kernel_trivial", "action": "prove"},
+          {"step": 5, "concept": "surjectivity_from_phi_surjective", "action": "prove"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "良定义性检验——商结构上映射的良定义是核心验证点", "evidence_step": 2, "applicable_domains": ["algebra", "topology", "analysis"]},
+          {"pattern": "双射构造——同时验证单射和满射来建立同构", "evidence_step": 4, "applicable_domains": ["algebra", "topology", "set_theory", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "核=同态的不可见信息载体", "domains_connected": ["group_theory", "ring_theory", "linear_algebra"], "graph_restructure": "增加群论↔环论↔线性代数的'核-商-像'三角公共边，将核识别为跨代数结构的统一概念"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:kernel", "to": "linear_algebra:null_space", "type": "equivalence"},
+          {"from": "group_theory:quotient_group", "to": "ring_theory:quotient_ring", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-017-S2",
+        "method": "quotient_group_definition_universal_property",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "quotient_group_as_cosets", "action": "define"},
+          {"step": 2, "concept": "natural_projection_pi:G_to_G/ker", "action": "construct"},
+          {"step": 3, "concept": "universal_property_of_quotient", "action": "state"},
+          {"step": 4, "concept": "unique_factorization_through_quotient", "action": "derive"},
+          {"step": 5, "concept": "isomorphism_from_universal_property", "action": "conclude"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "泛性质思维——通过泛性质唯一确定同构", "evidence_step": 3, "applicable_domains": ["algebra", "topology", "category_theory", "analysis"]},
+          {"pattern": "分解-因子化——将同态分解为投影×同构×包含", "evidence_step": 4, "applicable_domains": ["algebra", "topology", "linear_algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "泛性质=跨范畴统一语言", "domains_connected": ["group_theory", "ring_theory", "topology", "category_theory"], "graph_restructure": "增加群论↔范畴论的泛性质边，将商群的泛性质识别为范畴论中余极限的实例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:quotient_universal_property", "to": "category_theory:colimit", "type": "generalization"},
+          {"from": "group_theory:first_isomorphism", "to": "ring_theory:first_isomorphism", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: QuotientGroup.lift"
+  },
+  {
+    "problem_id": "MATH-018",
+    "title": "Jordan标准型存在性",
+    "source": "POC-3提取题 / 代数定理#3",
+    "difficulty": "graduate",
+    "domain": ["linear_algebra", "algebra"],
+    "statement": "复数域上任何方阵相似于Jordan矩阵。",
+    "solutions": [
+      {
+        "solution_id": "MATH-018-S1",
+        "method": "invariant_subspace_decomposition",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "generalized_eigenspace_decomposition", "action": "construct"},
+          {"step": 2, "concept": "nilpotent_part_extraction", "action": "extract"},
+          {"step": 3, "concept": "nilpotent_operator_cyclic_decomposition", "action": "decompose"},
+          {"step": 4, "concept": "cyclic_subspace_basis", "action": "construct"},
+          {"step": 5, "concept": "jordan_block_from_cyclic_basis", "action": "derive"},
+          {"step": 6, "concept": "direct_sum_of_jordan_blocks", "action": "assemble"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "分解-直和——将空间分解为不变子空间的直和", "evidence_step": 1, "applicable_domains": ["linear_algebra", "algebra", "topology", "representation_theory"]},
+          {"pattern": "幂零结构提取——将复杂算子分解为可逆部分与幂零部分", "evidence_step": 2, "applicable_domains": ["linear_algebra", "algebra", "analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "循环子空间=不可约块", "domains_connected": ["linear_algebra", "module_theory", "representation_theory"], "graph_restructure": "增加线性代数↔模论↔表示论的'循环分解'跨领域边，将Jordan块识别为模论中循环模的线性代数实例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:jordan_block", "to": "module_theory:cyclic_module", "type": "equivalence"},
+          {"from": "linear_algebra:invariant_subspace", "to": "representation_theory:subrepresentation", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-018-S2",
+        "method": "module_theory_rational_canonical",
+        "domain": "module_theory",
+        "path": [
+          {"step": 1, "concept": "V_as_C[x]-module", "action": "construct"},
+          {"step": 2, "concept": "C[x]_is_PID", "action": "verify"},
+          {"step": 3, "concept": "structure_theorem_finitely_generated_module_over_PID", "action": "apply"},
+          {"step": 4, "concept": "primary_decomposition_of_module", "action": "decompose"},
+          {"step": 5, "concept": "cyclic_module_to_jordan_block", "action": "translate"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "结构定理调用——在PID上有限生成模有标准型", "evidence_step": 3, "applicable_domains": ["algebra", "module_theory", "linear_algebra", "number_theory"]},
+          {"pattern": "视角转换——将线性代数问题转化为模论问题", "evidence_step": 1, "applicable_domains": ["linear_algebra", "algebra", "topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "线性代数=PID上的模论", "domains_connected": ["linear_algebra", "module_theory", "ring_theory"], "graph_restructure": "增加线性代数↔模论的结构等价边，将'矩阵=C[x]模的自同态'识别为跨领域等价桥"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:matrix_similarity", "to": "module_theory:module_isomorphism", "type": "equivalence"},
+          {"from": "module_theory:PID_structure_theorem", "to": "number_theory:finitely_generated_abelian_group", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-018-S3",
+        "method": "lambda_matrix_elementary_divisors",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "lambdaI_minus_A_characteristic_matrix", "action": "construct"},
+          {"step": 2, "concept": "elementary_operations_on_lambda_matrix", "action": "reduce"},
+          {"step": 3, "concept": "smith_normal_form", "action": "derive"},
+          {"step": 4, "concept": "invariant_factors_extraction", "action": "extract"},
+          {"step": 5, "concept": "elementary_divisors_from_prime_factorization", "action": "factorize"},
+          {"step": 6, "concept": "jordan_form_from_elementary_divisors", "action": "construct"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "标准型化归——通过初等变换化矩阵为标准型", "evidence_step": 3, "applicable_domains": ["linear_algebra", "algebra", "number_theory", "combinatorics"]},
+          {"pattern": "因子分解——将不变因子分解为初等因子", "evidence_step": 5, "applicable_domains": ["algebra", "number_theory", "linear_algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Smith标准型=PID上矩阵的万能化归", "domains_connected": ["linear_algebra", "ring_theory", "number_theory"], "graph_restructure": "增加线性代数↔数论的'Smith标准型'跨领域边，将多项式矩阵的初等变换识别为整数矩阵初等变换的推广"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:smith_normal_form", "to": "number_theory:integer_matrix_normal_form", "type": "generalization"},
+          {"from": "linear_algebra:elementary_divisors", "to": "number_theory:prime_factorization", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: JordanNormalForm"
+  },
+  {
+    "problem_id": "MATH-019",
+    "title": "Hilbert基定理",
+    "source": "POC-3提取题 / 代数定理#4",
+    "difficulty": "graduate",
+    "domain": ["algebra", "commutative_algebra"],
+    "statement": "若R是Noether环，则R[x]也是Noether环。",
+    "solutions": [
+      {
+        "solution_id": "MATH-019-S1",
+        "method": "ideal_generating_set_construction",
+        "domain": "commutative_algebra",
+        "path": [
+          {"step": 1, "concept": "ideal_I_in_R[x]", "action": "take"},
+          {"step": 2, "concept": "leading_coefficient_ideal_in_R", "action": "construct"},
+          {"step": 3, "concept": "R_noetherian_finite_generation", "action": "use"},
+          {"step": 4, "concept": "choose_generators_a1_to_an", "action": "select"},
+          {"step": 5, "concept": "lift_to_polynomials_f1_to_fn_in_I", "action": "lift"},
+          {"step": 6, "concept": "induction_on_degree_for_remaining_generators", "action": "induct"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "首项系数降维——将多项式环的理想问题降维到系数环的理想问题", "evidence_step": 2, "applicable_domains": ["algebra", "commutative_algebra", "linear_algebra", "number_theory"]},
+          {"pattern": "归纳递推——对多项式次数做归纳", "evidence_step": 6, "applicable_domains": ["algebra", "number_theory", "combinatorics", "analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "首项理想=降维投影器", "domains_connected": ["commutative_algebra", "linear_algebra", "algebra"], "graph_restructure": "增加交换代数↔线性代数的'首项系数投影'跨领域边，将多项式理想的首项系数理想识别为线性代数中投影的代数推广"}
+        ],
+        "cross_domain_edges": [
+          {"from": "commutative_algebra:leading_coefficient_ideal", "to": "linear_algebra:projection", "type": "structural_analogy"},
+          {"from": "commutative_algebra:noetherian_induction", "to": "number_theory:induction_on_degree", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-019-S2",
+        "method": "groebner_basis_approach",
+        "domain": "commutative_algebra",
+        "path": [
+          {"step": 1, "concept": "monomial_ordering_on_R[x]", "action": "choose"},
+          {"step": 2, "concept": "ideal_I_with_finite_generating_set", "action": "assume"},
+          {"step": 3, "concept": "hilbert_ascending_chain_condition", "action": "apply"},
+          {"step": 4, "concept": "S_polynomial_criterion", "action": "verify"},
+          {"step": 5, "concept": "buchberger_algorithm_termination", "action": "establish"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "升链条件——利用Noether性质保证算法终止", "evidence_step": 3, "applicable_domains": ["algebra", "commutative_algebra", "logic", "computer_science"]},
+          {"pattern": "序结构驱动——单项式序驱动化归过程", "evidence_step": 1, "applicable_domains": ["algebra", "combinatorics", "analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Groebner基=多项式理想的消元引擎", "domains_connected": ["commutative_algebra", "algebraic_geometry", "computer_science"], "graph_restructure": "增加交换代数↔计算代数几何↔计算机科学的'Groebner基'三边桥，将算法终止性识别为Noether性质的算法体现"}
+        ],
+        "cross_domain_edges": [
+          {"from": "commutative_algebra:groebner_basis", "to": "algebraic_geometry:ideal_membership", "type": "equivalence"},
+          {"from": "commutative_algebra:ascending_chain_condition", "to": "computer_science:algorithm_termination", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: HilbertBasisTheorem"
+  },
+  {
+    "problem_id": "MATH-020",
+    "title": "线性无关与基",
+    "source": "POC-3提取题 / 代数定理#5",
+    "difficulty": "graduate",
+    "domain": ["linear_algebra", "algebra"],
+    "statement": "向量空间中任意线性无关集可扩充为基。",
+    "solutions": [
+      {
+        "solution_id": "MATH-020-S1",
+        "method": "zorn_lemma_maximal_element",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "partially_ordered_set_of_linearly_independent_sets", "action": "construct"},
+          {"step": 2, "concept": "every_chain_has_upper_bound", "action": "verify"},
+          {"step": 3, "concept": "zorn_lemma_application", "action": "apply"},
+          {"step": 4, "concept": "maximal_linearly_independent_set_exists", "action": "derive"},
+          {"step": 5, "concept": "maximal_implies_spanning", "action": "prove"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "极大性论证——用Zorn引理找极大元再证明极大元满足目标性质", "evidence_step": 3, "applicable_domains": ["algebra", "topology", "analysis", "set_theory"]},
+          {"pattern": "链的上界验证——证明偏序集中每条链有上界", "evidence_step": 2, "applicable_domains": ["algebra", "topology", "analysis", "logic"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Zorn引理=无穷维结构的基存在性引擎", "domains_connected": ["linear_algebra", "topology", "algebra"], "graph_restructure": "增加线性代数↔拓扑↔泛函分析的'Zorn引理'跨领域边，将基存在性识别为选择公理的代数体现"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:basis_existence", "to": "topology:basis_of_topological_space", "type": "structural_analogy"},
+          {"from": "linear_algebra:zorn_lemma", "to": "analysis:hahn_banach", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-020-S2",
+        "method": "transfinite_induction_extension",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "start_with_linearly_independent_set_S", "action": "setup"},
+          {"step": 2, "concept": "well_order_remaining_vectors", "action": "well_order"},
+          {"step": 3, "concept": "transfinite_induction_process", "action": "induct"},
+          {"step": 4, "concept": "add_vector_if_independent_from_current_set", "action": "extend"},
+          {"step": 5, "concept": "termination_when_spanning", "action": "verify"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "超限归纳——在不可数集上用良序进行归纳", "evidence_step": 3, "applicable_domains": ["set_theory", "algebra", "topology", "analysis"]},
+          {"pattern": "逐步扩充——每次添加一个不破坏独立性的元素", "evidence_step": 4, "applicable_domains": ["algebra", "combinatorics", "linear_algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "良序扩充=选择公理的构造性体现", "domains_connected": ["linear_algebra", "set_theory", "topology"], "graph_restructure": "增加线性代数↔集合论的'良序扩充'跨领域边，将超限归纳识别为Zorn引理的构造性对偶"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:transfinite_extension", "to": "set_theory:well_ordering_principle", "type": "equivalence"},
+          {"from": "linear_algebra:basis_extension", "to": "topology:open_cover_refinement", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Basis.exists"
+  },
+  {
+    "problem_id": "MATH-021",
+    "title": "环的理想与商环",
+    "source": "POC-3提取题 / 代数定理#6",
+    "difficulty": "undergraduate",
+    "domain": ["algebra", "ring_theory"],
+    "statement": "若I是环R的理想，则R/I是环且自然映射是满同态。",
+    "solutions": [
+      {
+        "solution_id": "MATH-021-S1",
+        "method": "direct_verification_ring_axioms",
+        "domain": "ring_theory",
+        "path": [
+          {"step": 1, "concept": "cosets_r+I_as_elements", "action": "define"},
+          {"step": 2, "concept": "addition_of_cosets", "action": "define"},
+          {"step": 3, "concept": "multiplication_of_cosets", "action": "define"},
+          {"step": 4, "concept": "well_definedness_uses_ideal_property", "action": "verify"},
+          {"step": 5, "concept": "ring_axioms_verification", "action": "verify"},
+          {"step": 6, "concept": "natural_map_surjective_homomorphism", "action": "prove"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "良定义性检验——理想性质保证商运算良定义", "evidence_step": 4, "applicable_domains": ["algebra", "topology", "analysis"]},
+          {"pattern": "公理逐条验证——系统地检验每个环公理", "evidence_step": 5, "applicable_domains": ["algebra", "topology", "logic"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "理想=商结构良定义的充要条件", "domains_connected": ["ring_theory", "group_theory", "topology"], "graph_restructure": "增加环论↔群论↔拓扑的'正规子结构→商结构'跨领域边，将理想识别为环论中正规子群的类比"}
+        ],
+        "cross_domain_edges": [
+          {"from": "ring_theory:ideal", "to": "group_theory:normal_subgroup", "type": "structural_analogy"},
+          {"from": "ring_theory:quotient_ring", "to": "topology:quotient_space", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-021-S2",
+        "method": "homomorphism_theorem_application",
+        "domain": "ring_theory",
+        "path": [
+          {"step": 1, "concept": "natural_projection_pi:R_to_R/I", "action": "construct"},
+          {"step": 2, "concept": "kernel_of_pi_equals_I", "action": "verify"},
+          {"step": 3, "concept": "ring_homomorphism_first_theorem", "action": "apply"},
+          {"step": 4, "concept": "R/I_is_ring_as_quotient_of_homomorphism", "action": "derive"},
+          {"step": 5, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "核-商-像三角——同态的核确定商结构与像的同构", "evidence_step": 3, "applicable_domains": ["algebra", "topology", "linear_algebra"]},
+          {"pattern": "自然映射构造——利用自然投影的同态性质", "evidence_step": 1, "applicable_domains": ["algebra", "topology", "category_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "同态基本定理=代数结构的统一分解律", "domains_connected": ["ring_theory", "group_theory", "linear_algebra"], "graph_restructure": "增加环论↔群论↔线性代数的'同态基本定理'三边桥，将不同代数结构的同构定理统一为同一范式"}
+        ],
+        "cross_domain_edges": [
+          {"from": "ring_theory:first_isomorphism_theorem", "to": "group_theory:first_isomorphism_theorem", "type": "structural_analogy"},
+          {"from": "ring_theory:quotient_ring", "to": "linear_algebra:quotient_space", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Ideal.Quotient"
+  },
+  {
+    "problem_id": "MATH-022",
+    "title": "线性映射的秩-零度定理",
+    "source": "POC-3提取题 / 代数定理#7",
+    "difficulty": "undergraduate",
+    "domain": ["linear_algebra", "algebra"],
+    "statement": "dim(ker T) + dim(im T) = dim V。",
+    "solutions": [
+      {
+        "solution_id": "MATH-022-S1",
+        "method": "basis_extension_of_kernel",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "basis_of_kernel_v1_to_vk", "action": "choose"},
+          {"step": 2, "concept": "extend_to_basis_of_V_adding_w1_to_wm", "action": "extend"},
+          {"step": 3, "concept": "T_wi_are_linearly_independent", "action": "prove"},
+          {"step": 4, "concept": "T_wi_span_image", "action": "prove"},
+          {"step": 5, "concept": "T_wi_form_basis_of_image", "action": "conclude"},
+          {"step": 6, "concept": "dim_ker_plus_dim_im_equals_dim_V", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "基扩充——从子空间基扩充到全空间基", "evidence_step": 2, "applicable_domains": ["linear_algebra", "algebra", "topology"]},
+          {"pattern": "维数计数——通过基的基数关系计算维数", "evidence_step": 6, "applicable_domains": ["linear_algebra", "algebra", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "核+像=全空间维数守恒", "domains_connected": ["linear_algebra", "algebra", "topology"], "graph_restructure": "增加线性代数↔拓扑的'维数-亏格'跨领域边，将秩-零度定理识别为Euler示性数在线性代数中的类比"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:rank_nullity", "to": "topology:euler_characteristic", "type": "structural_analogy"},
+          {"from": "linear_algebra:kernel_image_splitting", "to": "algebra:exact_sequence", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-022-S2",
+        "method": "orthogonal_complement_decomposition",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "inner_product_on_V", "action": "construct"},
+          {"step": 2, "concept": "kernel_orthogonal_complement", "action": "define"},
+          {"step": 3, "concept": "V_equals_ker_orthogonal_sum_ker_perp", "action": "prove"},
+          {"step": 4, "concept": "T_restricted_to_ker_perp_is_injective", "action": "prove"},
+          {"step": 5, "concept": "T_maps_ker_perp_isomorphically_to_image", "action": "derive"},
+          {"step": 6, "concept": "dim_ker_perp_equals_dim_image", "action": "conclude"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "正交分解——利用内积结构将空间正交分解", "evidence_step": 3, "applicable_domains": ["linear_algebra", "analysis", "geometry", "topology"]},
+          {"pattern": "限制-同构——将映射限制到补空间上获得同构", "evidence_step": 5, "applicable_domains": ["linear_algebra", "algebra", "topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "正交补=线性映射的隐式逆", "domains_connected": ["linear_algebra", "functional_analysis", "geometry"], "graph_restructure": "增加线性代数↔泛函分析的'正交补-伪逆'跨领域边，将正交补上的同构识别为最小二乘解的代数基础"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:orthogonal_complement", "to": "functional_analysis:pseudoinverse", "type": "generalization"},
+          {"from": "linear_algebra:orthogonal_decomposition", "to": "geometry:hodge_decomposition", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: LinearMap.rank_nullity"
+  },
+  {
+    "problem_id": "MATH-023",
+    "title": "矩阵的可对角化判定",
+    "source": "POC-3提取题 / 代数定理#8",
+    "difficulty": "undergraduate",
+    "domain": ["linear_algebra", "algebra"],
+    "statement": "A可对角化⟺ A有n个线性无关特征向量⟺ 最小多项式无重根。",
+    "solutions": [
+      {
+        "solution_id": "MATH-023-S1",
+        "method": "characteristic_polynomial_eigenvector_counting",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "characteristic_polynomial_factorization", "action": "compute"},
+          {"step": 2, "concept": "algebraic_multiplicity_of_each_eigenvalue", "action": "determine"},
+          {"step": 3, "concept": "eigenspace_dimension_equals_geometric_multiplicity", "action": "compute"},
+          {"step": 4, "concept": "geometric_multiplicity_le_algebraic_multiplicity", "action": "establish"},
+          {"step": 5, "concept": "diagonalizable_iff_geometric_equals_algebraic_for_all", "action": "derive"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "代数重数vs几何重数——比较两个不变量判断可对角化", "evidence_step": 4, "applicable_domains": ["linear_algebra", "algebra", "representation_theory"]},
+          {"pattern": "不变量比较——通过两个不变量的相等性判定结构性质", "evidence_step": 5, "applicable_domains": ["algebra", "topology", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "代数重数=几何重数=可分解性判据", "domains_connected": ["linear_algebra", "representation_theory", "algebra"], "graph_restructure": "增加线性代数↔表示论的'重数对等'跨领域边，将特征值重数对等识别为表示完全可约的线性代数类比"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:algebraic_geometric_multiplicity", "to": "representation_theory:completely_reducible", "type": "structural_analogy"},
+          {"from": "linear_algebra:diagonalization", "to": "algebra:splitting_field", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-023-S2",
+        "method": "invariant_subspace_direct_sum",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "invariant_subspace_decomposition", "action": "construct"},
+          {"step": 2, "concept": "eigenspaces_are_invariant", "action": "verify"},
+          {"step": 3, "concept": "V_equals_direct_sum_of_eigenspaces", "action": "establish"},
+          {"step": 4, "concept": "each_eigenspace_contributes_diagonal_block", "action": "derive"},
+          {"step": 5, "concept": "diagonal_form_from_eigenbasis", "action": "construct"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "不变子空间直和分解——空间分解为不变子空间的直和", "evidence_step": 3, "applicable_domains": ["linear_algebra", "algebra", "topology", "representation_theory"]},
+          {"pattern": "对角化=直和分解——可对角化等价于空间完全分解", "evidence_step": 5, "applicable_domains": ["linear_algebra", "algebra", "representation_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "直和分解=完全可约", "domains_connected": ["linear_algebra", "representation_theory", "topology"], "graph_restructure": "增加线性代数↔表示论的'直和分解'跨领域边，将对角化识别为表示论完全可约性的1维特例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:eigenspace_decomposition", "to": "representation_theory:irreducible_decomposition", "type": "generalization"},
+          {"from": "linear_algebra:invariant_subspace", "to": "topology:invariant_subset", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-023-S3",
+        "method": "minimal_polynomial_square_free",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "minimal_polynomial_definition", "action": "define"},
+          {"step": 2, "concept": "minimal_polynomial_divides_characteristic", "action": "establish"},
+          {"step": 3, "concept": "square_free_implies_distinct_roots", "action": "analyze"},
+          {"step": 4, "concept": "chinese_remainder_decomposition_of_V", "action": "apply"},
+          {"step": 5, "concept": "each_component_is_eigenspace", "action": "derive"},
+          {"step": 6, "concept": "diagonalizable_iff_minimal_square_free", "action": "conclude"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "多项式结构决定线性结构——最小多项式的根重数决定可对角化", "evidence_step": 3, "applicable_domains": ["algebra", "linear_algebra", "number_theory"]},
+          {"pattern": "CRT分解——用中国剩余定理将空间分解为特征子空间", "evidence_step": 4, "applicable_domains": ["algebra", "number_theory", "linear_algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "无重根=多项式可分=矩阵可对角化", "domains_connected": ["linear_algebra", "algebra", "number_theory"], "graph_restructure": "增加线性代数↔数论的'可分多项式-可对角化矩阵'跨领域边，将矩阵可对角化识别为多项式可分性的线性代数体现"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:minimal_polynomial_square_free", "to": "number_theory:separable_polynomial", "type": "equivalence"},
+          {"from": "linear_algebra:CRT_decomposition", "to": "number_theory:chinese_remainder_theorem", "type": "equivalence"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Matrix.diagonalizable_iff"
+  },
+  {
+    "problem_id": "MATH-024",
+    "title": "中国剩余定理（环论版）",
+    "source": "POC-3提取题 / 代数定理#9",
+    "difficulty": "graduate",
+    "domain": ["algebra", "ring_theory"],
+    "statement": "若I_1,...,I_k是环R的两两互素理想，则R/∩I_i≅∏R/I_i。",
+    "solutions": [
+      {
+        "solution_id": "MATH-024-S1",
+        "method": "homomorphism_construction",
+        "domain": "ring_theory",
+        "path": [
+          {"step": 1, "concept": "natural_map_phi:R_to_product_of_R/I_i", "action": "construct"},
+          {"step": 2, "concept": "phi_is_ring_homomorphism", "action": "verify"},
+          {"step": 3, "concept": "kernel_of_phi_equals_intersection_of_I_i", "action": "compute"},
+          {"step": 4, "concept": "pairwise_coprime_implies_surjectivity", "action": "prove"},
+          {"step": 5, "concept": "first_isomorphism_theorem_application", "action": "apply"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "单同态构造——从自然映射出发构造同态并计算核", "evidence_step": 3, "applicable_domains": ["algebra", "topology", "number_theory"]},
+          {"pattern": "互素性→满射性——理想两两互素保证同态满射", "evidence_step": 4, "applicable_domains": ["algebra", "number_theory", "ring_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "CRT=局部-全局分解的代数引擎", "domains_connected": ["ring_theory", "number_theory", "topology"], "graph_restructure": "增加环论↔数论↔拓扑的'CRT分解'跨领域边，将环的直积分解识别为拓扑空间连通分支分解的代数类比"}
+        ],
+        "cross_domain_edges": [
+          {"from": "ring_theory:CRT_ring", "to": "number_theory:CRT_integer", "type": "generalization"},
+          {"from": "ring_theory:product_decomposition", "to": "topology:connected_components", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-024-S2",
+        "method": "projection_mapping_inverse",
+        "domain": "ring_theory",
+        "path": [
+          {"step": 1, "concept": "projection_maps_pi_i:R/I_to_R/I_i", "action": "construct"},
+          {"step": 2, "concept": "fiber_product_structure", "action": "analyze"},
+          {"step": 3, "concept": "construct_explicit_inverse_psi", "action": "construct"},
+          {"step": 4, "concept": "bezout_identity_generalization_to_ideals", "action": "use"},
+          {"step": 5, "concept": "psi_is_inverse_of_phi", "action": "verify"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "逆映射构造——显式构造同构的逆映射", "evidence_step": 3, "applicable_domains": ["algebra", "topology", "analysis"]},
+          {"pattern": "Bezout推广——将整数Bezout恒等式推广到理想", "evidence_step": 4, "applicable_domains": ["algebra", "number_theory", "ring_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Bezout恒等式=理想互素的构造性保证", "domains_connected": ["ring_theory", "number_theory", "algebra"], "graph_restructure": "增加环论↔数论的'Bezout推广'跨领域边，将理想互素识别为整数互素的环论推广，打通构造性证明路径"}
+        ],
+        "cross_domain_edges": [
+          {"from": "ring_theory:coprime_ideals_bezout", "to": "number_theory:coprime_integers_bezout", "type": "generalization"},
+          {"from": "ring_theory:explicit_inverse_CRT", "to": "number_theory:extended_euclidean", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Ideal.quotientInfRingEquivPi"
+  },
+  {
+    "problem_id": "MATH-025",
+    "title": "对称多项式基本定理",
+    "source": "POC-3提取题 / 代数定理#10",
+    "difficulty": "undergraduate",
+    "domain": ["algebra"],
+    "statement": "每个对称多项式可唯一表为初等对称多项式的多项式。",
+    "solutions": [
+      {
+        "solution_id": "MATH-025-S1",
+        "method": "induction_on_lex_order",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "lexicographic_order_on_monomials", "action": "define"},
+          {"step": 2, "concept": "leading_term_of_symmetric_polynomial", "action": "identify"},
+          {"step": 3, "concept": "leading_term_determined_by_eigenvalue_exponents", "action": "analyze"},
+          {"step": 4, "concept": "construct_e_polynomial_with_matching_leading_term", "action": "construct"},
+          {"step": 5, "concept": "subtract_and_reduce_leading_term", "action": "reduce"},
+          {"step": 6, "concept": "induction_on_lex_order_termination", "action": "induct"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "字典序消元——用序结构驱动逐步消元", "evidence_step": 5, "applicable_domains": ["algebra", "combinatorics", "commutative_algebra", "analysis"]},
+          {"pattern": "首项匹配——构造匹配多项式的首项来消元", "evidence_step": 4, "applicable_domains": ["algebra", "commutative_algebra", "linear_algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "初等对称多项式=对称函数的坐标", "domains_connected": ["algebra", "combinatorics", "representation_theory"], "graph_restructure": "增加代数↔组合的'对称函数坐标化'跨领域边，将初等对称多项式识别为对称函数空间的基，连接到表示论中的对称函数理论"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:elementary_symmetric_polynomial", "to": "combinatorics:symmetric_functions", "type": "generalization"},
+          {"from": "algebra:lex_order_elimination", "to": "commutative_algebra:groebner_basis_reduction", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-025-S2",
+        "method": "induction_on_degree_and_variables",
+        "domain": "algebra",
+        "path": [
+          {"step": 1, "concept": "induction_on_total_degree", "action": "setup"},
+          {"step": 2, "concept": "fix_one_variable_and_induct", "action": "reduce"},
+          {"step": 3, "concept": "symmetry_constraints_on_form", "action": "use"},
+          {"step": 4, "concept": "express_in_terms_of_e1_through_ek", "action": "construct"},
+          {"step": 5, "concept": "uniqueness_via_degree_comparison", "action": "prove"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "对称性约束——对称性限制了多项式的形式", "evidence_step": 3, "applicable_domains": ["algebra", "geometry", "topology", "physics"]},
+          {"pattern": "归纳递推——对次数和变量数双重归纳", "evidence_step": 1, "applicable_domains": ["algebra", "combinatorics", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "对称群作用下的不变量环由初等对称生成", "domains_connected": ["algebra", "representation_theory", "geometry"], "graph_restructure": "增加代数↔表示论的不变量环跨领域边，将对称多项式环识别为对称群作用下的不变量环，连接到几何中的不变量理论"}
+        ],
+        "cross_domain_edges": [
+          {"from": "algebra:symmetric_polynomial_ring", "to": "representation_theory:invariant_ring", "type": "generalization"},
+          {"from": "algebra:symmetry_constraint", "to": "geometry:invariant_theory", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Symmetric.polynomial"
+  },
+  {
+    "problem_id": "MATH-026",
+    "title": "Cauchy定理（群论）",
+    "source": "POC-3提取题 / 代数定理#11",
+    "difficulty": "undergraduate",
+    "domain": ["algebra", "group_theory"],
+    "statement": "若素数p整除|G|，则G中有p阶元素。",
+    "solutions": [
+      {
+        "solution_id": "MATH-026-S1",
+        "method": "sylow_theorem_corollary",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "p_divides_|G|", "action": "assume"},
+          {"step": 2, "concept": "sylow_first_theorem_guarantees_p_subgroup", "action": "apply"},
+          {"step": 3, "concept": "p_subgroup_has_order_p", "action": "derive"},
+          {"step": 4, "concept": "cyclic_subgroup_of_prime_order", "action": "construct"},
+          {"step": 5, "concept": "generator_has_order_p", "action": "conclude"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "定理调用——将已有定理作为黑盒使用推导推论", "evidence_step": 2, "applicable_domains": ["algebra", "number_theory", "topology", "analysis"]},
+          {"pattern": "素数阶即循环——素数阶群必循环的结构性质", "evidence_step": 4, "applicable_domains": ["algebra", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Sylow定理=Cauchy定理的强化版", "domains_connected": ["group_theory", "algebra"], "graph_restructure": "增加群论内部'Sylow→Cauchy'的推论边，将Cauchy定理识别为Sylow定理在k=1时的特例，建立强弱定理层级"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:sylow_theorem", "to": "group_theory:cauchy_theorem", "type": "generalization"},
+          {"from": "group_theory:prime_order_cyclic", "to": "number_theory:prime_structure", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-026-S2",
+        "method": "group_action_on_p_tuples",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "set_S_of_p_tuples_with_product_identity", "action": "construct"},
+          {"step": 2, "concept": "|S|_equals_|G|^(p-1)", "action": "compute"},
+          {"step": 3, "concept": "cyclic_rotation_action_of_Z_p_on_S", "action": "define"},
+          {"step": 4, "concept": "fixed_points_are_constant_tuples", "action": "identify"},
+          {"step": 5, "concept": "orbit_counting_mod_p", "action": "compute"},
+          {"step": 6, "concept": "nontrivial_fixed_point_gives_order_p_element", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "群作用计数——通过群在特殊集合上的作用计数提取信息", "evidence_step": 5, "applicable_domains": ["algebra", "combinatorics", "number_theory"]},
+          {"pattern": "不动点原理——在群作用下利用不动点获取特殊元素", "evidence_step": 6, "applicable_domains": ["algebra", "topology", "analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "p元组+循环作用=元素阶探测器", "domains_connected": ["group_theory", "combinatorics"], "graph_restructure": "增加群论↔组合的'p元组作用'跨领域边，将循环群在p元组上的作用识别为提取p阶元素的组合工具"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:cyclic_action_on_tuples", "to": "combinatorics:burnside_lemma", "type": "structural_analogy"},
+          {"from": "group_theory:fixed_point_extraction", "to": "topology:fixed_point_theorem", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-026-S3",
+        "method": "induction_on_group_order",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "induction_on_|G|", "action": "setup"},
+          {"step": 2, "concept": "case_p_divides_center", "action": "analyze"},
+          {"step": 3, "concept": "quotient_by_central_element", "action": "reduce"},
+          {"step": 4, "concept": "induction_hypothesis_on_quotient", "action": "apply"},
+          {"step": 5, "concept": "lift_element_of_order_p", "action": "construct"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "中心分析——分p是否整除中心的两类情况讨论", "evidence_step": 2, "applicable_domains": ["algebra", "topology", "number_theory"]},
+          {"pattern": "商结构归纳——在商群上归纳再提升", "evidence_step": 4, "applicable_domains": ["algebra", "topology", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "中心-商群归纳=群论万能降维", "domains_connected": ["group_theory", "algebra", "topology"], "graph_restructure": "增加群论内部的'中心-商群归纳'范式边，将此模式识别为有限群证明的通用降维工具"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:center_quotient_induction", "to": "topology:covering_space_induction", "type": "structural_analogy"},
+          {"from": "group_theory:central_element_case_split", "to": "algebra:case_analysis_by_center", "type": "equivalence"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: CauchyTheorem"
+  },
+  {
+    "problem_id": "MATH-027",
+    "title": "有限生成Abel群结构定理",
+    "source": "POC-3提取题 / 代数定理#12",
+    "difficulty": "graduate",
+    "domain": ["algebra", "group_theory"],
+    "statement": "有限生成Abel群≅Z^r × Z/n1 × ... × Z/nk。",
+    "solutions": [
+      {
+        "solution_id": "MATH-027-S1",
+        "method": "matrix_elementary_transformation",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "presentation_of_abelian_group_as_Z_m_to_Z_n", "action": "construct"},
+          {"step": 2, "concept": "relation_matrix_construction", "action": "form"},
+          {"step": 3, "concept": "elementary_row_and_column_operations", "action": "perform"},
+          {"step": 4, "concept": "smith_normal_form_achieved", "action": "derive"},
+          {"step": 5, "concept": "diagonal_entries_give_invariant_factors", "action": "read"},
+          {"step": 6, "concept": "decomposition_into_cyclic_factors", "action": "conclude"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "矩阵初等变换=群结构化归——通过初等行列变换化矩阵为对角型", "evidence_step": 3, "applicable_domains": ["algebra", "linear_algebra", "number_theory"]},
+          {"pattern": "标准型读取——从标准型的对角元直接读出不变量", "evidence_step": 5, "applicable_domains": ["algebra", "linear_algebra", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Smith标准型=Abel群分类引擎", "domains_connected": ["group_theory", "linear_algebra", "number_theory"], "graph_restructure": "增加群论↔线性代数↔数论的'Smith标准型'三边桥，将Abel群分类识别为整数矩阵Smith标准型的群论翻译"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:abelian_group_classification", "to": "linear_algebra:smith_normal_form", "type": "equivalence"},
+          {"from": "group_theory:elementary_operations", "to": "number_theory:euclidean_algorithm", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-027-S2",
+        "method": "module_theory_over_PID",
+        "domain": "module_theory",
+        "path": [
+          {"step": 1, "concept": "finitely_generated_abelian_group_as_Z_module", "action": "recognize"},
+          {"step": 2, "concept": "Z_is_PID", "action": "verify"},
+          {"step": 3, "concept": "structure_theorem_finitely_generated_module_over_PID", "action": "apply"},
+          {"step": 4, "concept": "free_part_Z^r", "action": "extract"},
+          {"step": 5, "concept": "torsion_part_decomposition", "action": "decompose"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "视角转换——将群论问题转化为模论问题", "evidence_step": 1, "applicable_domains": ["algebra", "module_theory", "topology"]},
+          {"pattern": "结构定理调用——PID上模有标准分解", "evidence_step": 3, "applicable_domains": ["algebra", "module_theory", "linear_algebra", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Abel群=Z上的模=PID模的特例", "domains_connected": ["group_theory", "module_theory", "ring_theory"], "graph_restructure": "增加群论↔模论的结构等价边，将Abel群识别为Z-模，将结构定理统一为PID上模分解定理的特例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:abelian_group", "to": "module_theory:Z_module", "type": "equivalence"},
+          {"from": "module_theory:PID_structure_theorem", "to": "linear_algebra:rational_canonical_form", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-027-S3",
+        "method": "induction_on_group_order",
+        "domain": "group_theory",
+        "path": [
+          {"step": 1, "concept": "induction_on_order_of_group", "action": "setup"},
+          {"step": 2, "concept": "find_element_of_maximal_order", "action": "find"},
+          {"step": 3, "concept": "split_off_cyclic_subgroup", "action": "decompose"},
+          {"step": 4, "concept": "verify_complement_exists", "action": "prove"},
+          {"step": 5, "concept": "induction_on_complement", "action": "apply"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "分裂归纳——分离出循环子群后对余下部分归纳", "evidence_step": 3, "applicable_domains": ["algebra", "topology", "combinatorics"]},
+          {"pattern": "极大阶元素——用极大阶元素作为分裂起点", "evidence_step": 2, "applicable_domains": ["algebra", "number_theory"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "极大阶分裂=直和分解的归纳引擎", "domains_connected": ["group_theory", "module_theory", "linear_algebra"], "graph_restructure": "增加群论↔线性代数的'极大阶分裂'跨领域边，将此归纳模式识别为空间直和分解的群论类比"}
+        ],
+        "cross_domain_edges": [
+          {"from": "group_theory:maximal_order_splitting", "to": "linear_algebra:complement_subspace", "type": "structural_analogy"},
+          {"from": "group_theory:inductive_decomposition", "to": "module_theory:splitting_lemma", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: AbelianGroup.structure"
+  },
+  {
+    "problem_id": "MATH-028",
+    "title": "行列式的乘性",
+    "source": "POC-3提取题 / 代数定理#13",
+    "difficulty": "undergraduate",
+    "domain": ["linear_algebra", "algebra"],
+    "statement": "det(AB)=det(A)det(B)。",
+    "solutions": [
+      {
+        "solution_id": "MATH-028-S1",
+        "method": "permutation_expansion",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "leibniz_formula_for_det", "action": "expand"},
+          {"step": 2, "concept": "expand_det_AB_by_definition", "action": "expand"},
+          {"step": 3, "concept": "reindex_sum_by_composition_of_permutations", "action": "reindex"},
+          {"step": 4, "concept": "sign_of_composition_equals_product_of_signs", "action": "use"},
+          {"step": 5, "concept": "separate_into_det_A_times_det_B", "action": "factor"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "置换重组标——通过置换复合重新标号分离双重求和", "evidence_step": 3, "applicable_domains": ["algebra", "combinatorics", "number_theory"]},
+          {"pattern": "符号乘性——置换符号的同态性质", "evidence_step": 4, "applicable_domains": ["algebra", "combinatorics", "topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "行列式=符号的交错化=群同态", "domains_connected": ["linear_algebra", "combinatorics", "group_theory"], "graph_restructure": "增加线性代数↔群论的'符号同态'跨领域边，将行列式识别为对称群到乘法群的符号同态，乘性来自群同态性质"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:determinant_multiplicativity", "to": "group_theory:sign_homomorphism", "type": "equivalence"},
+          {"from": "linear_algebra:permutation_reindexing", "to": "combinatorics:double_counting", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-028-S2",
+        "method": "multilinearity_and_alternating",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "det_as_multilinear_alternating_form", "action": "characterize"},
+          {"step": 2, "concept": "normalize_det_I_equals_1", "action": "fix"},
+          {"step": 3, "concept": "columns_of_AB_as_linear_combinations", "action": "expand"},
+          {"step": 4, "concept": "multilinearity_expand_each_column", "action": "expand"},
+          {"step": 5, "concept": "alternating_kills_repeated_columns", "action": "simplify"},
+          {"step": 6, "concept": "surviving_terms_give_det_A_times_det_B", "action": "derive"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "公理化刻画——用多重线性+交错+归一化唯一刻画行列式", "evidence_step": 1, "applicable_domains": ["algebra", "linear_algebra", "topology", "differential_geometry"]},
+          {"pattern": "多重线性展开——逐列展开消去冗余项", "evidence_step": 4, "applicable_domains": ["linear_algebra", "algebra", "combinatorics"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "行列式=唯一的多重线性交错形式", "domains_connected": ["linear_algebra", "differential_geometry", "topology"], "graph_restructure": "增加线性代数↔微分几何的'多重线性形式'跨领域边，将行列式识别为微分形式的外积的特例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:determinant_as_multilinear_form", "to": "differential_geometry:wedge_product", "type": "generalization"},
+          {"from": "linear_algebra:alternating_form", "to": "topology:exterior_algebra", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-028-S3",
+        "method": "volume_argument",
+        "domain": "geometry",
+        "path": [
+          {"step": 1, "concept": "det_as_signed_volume_of_parallelepiped", "action": "interpret"},
+          {"step": 2, "concept": "B_maps_unit_cube_to_parallelepiped", "action": "visualize"},
+          {"step": 3, "concept": "A_maps_B_image_by_linear_transformation", "action": "visualize"},
+          {"step": 4, "concept": "volume_scales_by_det_of_transformation", "action": "derive"},
+          {"step": 5, "concept": "composed_volume_equals_det_A_times_det_B", "action": "conclude"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "几何解释——将代数运算翻译为几何变换", "evidence_step": 1, "applicable_domains": ["linear_algebra", "geometry", "topology", "analysis"]},
+          {"pattern": "体积缩放——线性变换对体积的缩放因子是行列式", "evidence_step": 4, "applicable_domains": ["geometry", "linear_algebra", "analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "行列式=体积缩放因子=雅可比行列式", "domains_connected": ["linear_algebra", "geometry", "analysis"], "graph_restructure": "增加线性代数↔分析↔几何的'体积缩放'三边桥，将行列式乘性识别为变量替换公式中雅可比行列式的有限维特例"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:determinant_volume", "to": "analysis:jacobian_determinant", "type": "generalization"},
+          {"from": "linear_algebra:determinant_multiplicativity", "to": "geometry:volume_composition", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Matrix.det_mul"
+  },
+  {
+    "problem_id": "MATH-029",
+    "title": "正定矩阵的判定",
+    "source": "POC-3提取题 / 代数定理#14",
+    "difficulty": "undergraduate",
+    "domain": ["linear_algebra", "algebra"],
+    "statement": "实对称矩阵A正定⟺ 所有特征值为正⟺ 所有顺序主子式为正。",
+    "solutions": [
+      {
+        "solution_id": "MATH-029-S1",
+        "method": "spectral_theorem_eigenvalue",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "symmetric_matrix_spectral_theorem", "action": "apply"},
+          {"step": 2, "concept": "A_equals_Q_D_Q_transpose", "action": "decompose"},
+          {"step": 3, "concept": "xT_A_x_equals_yT_D_y_with_y=QTx", "action": "transform"},
+          {"step": 4, "concept": "quadratic_form_as_sum_of_lambda_i_y_i_squared", "action": "express"},
+          {"step": 5, "concept": "all_positive_lambda_implies_positive_form", "action": "derive"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "谱分解——利用实对称矩阵的谱分解将二次型对角化", "evidence_step": 2, "applicable_domains": ["linear_algebra", "analysis", "differential_geometry"]},
+          {"pattern": "对角化判读——在对角基下直接读出正定性", "evidence_step": 4, "applicable_domains": ["linear_algebra", "algebra", "analysis"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "谱分解=二次型对角化=正定性判读", "domains_connected": ["linear_algebra", "analysis", "differential_geometry"], "graph_restructure": "增加线性代数↔微分几何的'谱分解-主曲率'跨领域边，将矩阵特征值识别为流形主曲率的代数类比"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:eigenvalue_positive", "to": "differential_geometry:principal_curvature", "type": "structural_analogy"},
+          {"from": "linear_algebra:spectral_decomposition", "to": "analysis:functional_calculus", "type": "generalization"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-029-S2",
+        "method": "sylvester_criterion_principal_minors",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "sequential_principal_minors_definition", "action": "define"},
+          {"step": 2, "concept": "induction_on_matrix_dimension", "action": "setup"},
+          {"step": 3, "concept": "block_decomposition_A_equals_a11_vT_v_B", "action": "decompose"},
+          {"step": 4, "concept": "schur_complement_positive_definite", "action": "compute"},
+          {"step": 5, "concept": "det_A_equals_a1_times_det_schur_complement", "action": "derive"},
+          {"step": 6, "concept": "induction_hypothesis_on_schur_complement", "action": "apply"},
+          {"step": 7, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "Schur补归纳——分块后对Schur补做归纳", "evidence_step": 4, "applicable_domains": ["linear_algebra", "algebra", "combinatorics"]},
+          {"pattern": "分块分解——将矩阵分块后利用子块性质", "evidence_step": 3, "applicable_domains": ["linear_algebra", "algebra", "topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Schur补=分块正定性的归纳降维器", "domains_connected": ["linear_algebra", "algebra", "statistics"], "graph_restructure": "增加线性代数↔统计学的'Schur补'跨领域边，将Schur补识别为多元统计中条件协方差矩阵的代数基础"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:schur_complement", "to": "statistics:conditional_covariance", "type": "equivalence"},
+          {"from": "linear_algebra:principal_minor_positive", "to": "algebra:substructure_positivity", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-029-S3",
+        "method": "cholesky_decomposition",
+        "domain": "linear_algebra",
+        "path": [
+          {"step": 1, "concept": "assume_A_positive_definite", "action": "assume"},
+          {"step": 2, "concept": "construct_lower_triangular_L", "action": "construct"},
+          {"step": 3, "concept": "A_equals_L_L_transpose", "action": "derive"},
+          {"step": 4, "concept": "diagonal_entries_of_L_positive", "action": "verify"},
+          {"step": 5, "concept": "xT_A_x_equals_LT_x_squared_positive", "action": "derive"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "分解构造——将正定矩阵分解为三角矩阵与其转置的乘积", "evidence_step": 3, "applicable_domains": ["linear_algebra", "analysis", "numerical_analysis"]},
+          {"pattern": "平方和表示——将二次型表示为平方和保证非负", "evidence_step": 5, "applicable_domains": ["algebra", "number_theory", "linear_algebra"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "Cholesky分解=正定性的平方和证书", "domains_connected": ["linear_algebra", "number_theory", "numerical_analysis"], "graph_restructure": "增加线性代数↔数论的'平方和表示'跨领域边，将Cholesky分解识别为Lagrange四平方和定理的矩阵推广"}
+        ],
+        "cross_domain_edges": [
+          {"from": "linear_algebra:cholesky_decomposition", "to": "number_theory:sum_of_squares", "type": "generalization"},
+          {"from": "linear_algebra:cholesky_factorization", "to": "numerical_analysis:matrix_factorization", "type": "equivalence"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: Matrix.PosDef"
+  },
+  {
+    "problem_id": "MATH-030",
+    "title": "Noether环的等价条件",
+    "source": "POC-3提取题 / 代数定理#15",
+    "difficulty": "graduate",
+    "domain": ["algebra", "commutative_algebra"],
+    "statement": "R是Noether环⟺ 每个理想有限生成⟺ 升链条件。",
+    "solutions": [
+      {
+        "solution_id": "MATH-030-S1",
+        "method": "equivalence_chain_proof",
+        "domain": "commutative_algebra",
+        "path": [
+          {"step": 1, "concept": "direction_1_acc_implies_finitely_generated", "action": "prove"},
+          {"step": 2, "concept": "ascending_chain_union_is_ideal", "action": "construct"},
+          {"step": 3, "concept": "finitely_generated_ideal_stabilizes_chain", "action": "derive"},
+          {"step": 4, "concept": "direction_2_finitely_generated_implies_acc", "action": "prove"},
+          {"step": 5, "concept": "union_of_chain_finitely_generated_stabilizes", "action": "derive"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "循环等价证明——证明三个条件的两两等价", "evidence_step": 1, "applicable_domains": ["algebra", "logic", "topology", "analysis"]},
+          {"pattern": "链稳定性——有限生成性保证升链稳定", "evidence_step": 3, "applicable_domains": ["algebra", "commutative_algebra", "topology"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "有限生成=升链稳定=Noether性", "domains_connected": ["commutative_algebra", "topology", "logic"], "graph_restructure": "增加交换代数↔拓扑的'Noether性-紧性'跨领域边，将升链条件识别为拓扑空间紧性的代数类比（子集开覆盖有限子覆盖↔理想升链稳定）"}
+        ],
+        "cross_domain_edges": [
+          {"from": "commutative_algebra:ascending_chain_condition", "to": "topology:compactness", "type": "structural_analogy"},
+          {"from": "commutative_algebra:finitely_generated_ideal", "to": "logic:finite_axiomatization", "type": "structural_analogy"}
+        ],
+        "elegant": true,
+        "source": "standard"
+      },
+      {
+        "solution_id": "MATH-030-S2",
+        "method": "contradiction_maximal_counterexample",
+        "domain": "commutative_algebra",
+        "path": [
+          {"step": 1, "concept": "assume_ideal_not_finitely_generated", "action": "assume"},
+          {"step": 2, "concept": "use_zorn_lemma_for_maximal_bad_ideal", "action": "construct"},
+          {"step": 3, "concept": "maximal_bad_ideal_is_not_prime_or_whole", "action": "analyze"},
+          {"step": 4, "concept": "find_larger_ideal_that_is_finitely_generated", "action": "derive"},
+          {"step": 5, "concept": "contradiction_with_maximality", "action": "derive"},
+          {"step": 6, "concept": "conclusion", "action": "derive"}
+        ],
+        "l2_patterns": [
+          {"pattern": "极大反例——假设反例存在取极大元推出矛盾", "evidence_step": 2, "applicable_domains": ["algebra", "topology", "analysis", "logic"]},
+          {"pattern": "反证法——通过构造矛盾证明正面命题", "evidence_step": 5, "applicable_domains": ["algebra", "number_theory", "topology", "logic"]}
+        ],
+        "l3_paradigms": [
+          {"paradigm": "极大反例=Zorn引理的反证驱动器", "domains_connected": ["commutative_algebra", "topology", "logic"], "graph_restructure": "增加交换代数↔逻辑的'极大反例'跨领域边，将Zorn引理的反证应用识别为跨领域的统一证明策略"}
+        ],
+        "cross_domain_edges": [
+          {"from": "commutative_algebra:maximal_counterexample", "to": "logic:zorn_contradiction", "type": "structural_analogy"},
+          {"from": "commutative_algebra:noetherian_equiv_finite_generation", "to": "topology:compact_equiv_finite_subcover", "type": "structural_analogy"}
+        ],
+        "elegant": false,
+        "source": "standard"
+      }
+    ],
+    "stuck_points": [],
+    "lean_formalized": true,
+    "lean_proof": "MathLib4: IsNoetherianRing"
+  }
+]
