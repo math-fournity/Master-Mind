@@ -451,6 +451,10 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 3. **必须 commit**：工作结束后必须 commit。commit 后 git post-commit hook 会打印 CP4 检查清单（从认知图稀疏矩阵动态查询）。
 4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。
 5. **认知图变更后跑回归验证**：认知图每次变更（新增/修改/删除认知单元或依赖边）后，运行 `cognition_audit_math.py poc-regression`。
+6. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 必须检查刚刚发生的对话中：
+   - **是否有依赖应该被加入工作系统的稀疏矩阵中？**——对话中是否产生了新的工作认知、新的工作认知之间的依赖关系、新的dev-docs与认知单元的source_docs关系。如果有，用`cognition_sdk_math.py`的`add_unit`/`add_edge`写入认知图。
+   - **是否有依赖应该被加入目标系统的稀疏矩阵中？**——对话中是否产生了新的数学知识依赖（定理→引理、方法→工具、意识→问题类型）、新的数学意识节点、新的版本链。如果有，写入`dg_nodes`/`dg_edges`。
+   - 检查方法：回顾本轮对话，对照两个稀疏矩阵的现有内容，找出"对话中提到但尚未入图"的依赖关系。
 
 ### Subagent 写文件能力与 /yolo 模式
 
