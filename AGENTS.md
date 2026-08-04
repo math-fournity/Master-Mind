@@ -456,7 +456,8 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 3. **必须 commit**：工作结束后必须 commit。commit 后 git post-commit hook 会打印 CP4 检查清单（从认知图稀疏矩阵动态查询）。
 4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。
 5. **认知图变更后跑回归验证**：认知图每次变更（新增/修改/删除认知单元或依赖边）后，运行 `cognition_audit_math.py poc-regression`。
-6. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 立即执行CP4检查清单中的第2、3项（`work_matrix_update` + `math_master_matrix_update`）——这是CP4的按需触发版本，不等到git commit：
+6. **边吸收边测试**（认知单元 `iterative_testing`）：每次往依赖图/认知图装入新内容后（新增题目、新增节点/边、新增意识节点、新增版本链等），必须立即跑测试验证：依赖图完整性（节点/边/领域覆盖）+ topo_generator能否生成G'_topo + TopologyVerifier拓扑覆盖验证。不测不知道有问题——从星学复用的代码遗留3个bug只有跑真实测试才发现。
+7. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 立即执行CP4检查清单中的第3、4项（`work_matrix_update` + `math_master_matrix_update`）——这是CP4的按需触发版本，不等到git commit：
    - **工作系统稀疏矩阵更新纪律**（`work_matrix_update`）：回顾本轮对话，是否产生了新的工作认知、新的工作认知之间的依赖关系、新的dev-docs与认知单元的source_docs关系？如果有，用`cognition_sdk_math.py`的`add_unit`/`add_edge`写入认知图。
    - **数学大师系统稀疏矩阵更新纪律**（`math_master_matrix_update`）：回顾本轮对话，是否产生了新的数学知识依赖（定理→引理、方法→工具、意识→问题类型）、新的数学意识节点、新的版本链？如果有，写入`dg_nodes`/`dg_edges`。
    - 这两项纪律也是CP4检查清单的一部分（stop_hook的depends_on边），每次git commit后post-commit hook会自动提醒。
@@ -501,8 +502,8 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 **ArangoDB状态**：
 - 数据库：xishujuzhen_math
-- 认知图：57个认知单元（含21个从题库提取的意识节点），44条边
-- CP4检查清单5项纪律（与星学项目对称）：doc_sync_discipline, work_matrix_update, math_master_matrix_update, sdk_maintenance, glossary
+- 认知图：58个认知单元（含21个从题库提取的意识节点+iterative_testing），45条边
+- CP4检查清单6项纪律：iterative_testing(边吸收边测试), math_master_matrix_update, work_matrix_update, doc_sync_discipline, sdk_maintenance, glossary
 - 5个意识节点版本链：v1(POC-1发现)→v2(POC-2深化)，current_version=v2
 - cayley_hamilton三层版本链：v1(L1)→v2(L2)→v3(L3)，current_version=v3
 - three_layer_extraction版本链：v1(83号方案)→v2(POC-3验证L3跨领域迁移价值成立)，current_version=v2
