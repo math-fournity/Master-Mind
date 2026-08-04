@@ -379,6 +379,7 @@
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/76-xishujuzhen闭环审计纠正流程优化方案.md" /> | **闭环审计-纠正流程优化方案：审计不是终点是循环起点。审计→反馈→修正→再审→直到无瑕疵。最大3轮修正上限。新增维度7闭环效率。POC-7闭环验证：3轮修正从98.8%提升到100%忠实度，多发现5处遗漏瑕疵** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/77-xishujuzhen-POC8验证方案.md" /> | **xishujuzhen POC-8 验证方案：闭环审计标准流程化——从头实施闭环（不是事后补救），开环组vs闭环组对照。复用POC-7的12限全量场景。预期闭环vs开环边际增益小但过程保证价值大** |
 | <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/78-xishujuzhen下一代工作流-从文字随机到拓扑覆盖.md" /> | **下一代工作流数学本质分析：依赖图G是规范化拓扑结构，展开图G'是G的覆盖，审计是覆盖验证φ:G'→G。当前系统"文字随机匹配"→下一代"拓扑确定性验证"。核心改进：转译前先规划展开图拓扑骨架G'_topo，拓扑覆盖由数学保证，审计只做一次。HoTT框架：类型=节点，函数=边，路径=同伦，覆盖映射=同伦等价。meta operation（拓扑规划/验证）与normal operation（转译/分析）分离** |
+| <ref_file file="~/MOIRA_chinese_astrology-main/dev-docs/79-xishujuzhen下一代工作流技术选型.md" /> | **下一代工作流技术选型：超大规模知识体系的数据库架构。主推荐ArangoDB（多模型：图+文档+键值，Apache 2.0，AQL统一查询，Docker部署）。拓扑覆盖验证代码化（AQL集合差集=确定性验证）。备选ArangoDB+TileDB（稀疏矩阵持久化）。不推荐Neo4j（GPLv3+单机）、JanusGraph（过度设计）、FalkorDB（SSPLv1争议）。现有SQLite+JSON保持不变，ArangoDB是新增** |
 
 ## 项目方向转向（2026-08-03）
 
