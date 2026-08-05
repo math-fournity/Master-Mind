@@ -54,3 +54,10 @@
 ### 数据丢失事件
 
 - **事件2026-08-05-A**：运行`cognition_import_math.py`时truncate清空ArangoDB `cognition_units`/`cog_edges`/`cog_versions`，丢失130个仅存在于ArangoDB中、未回写JSON的awareness单元。根因：import脚本设计为truncate-reload模式，但`add_unit()`只写ArangoDB不回写JSON，导致ArangoDB积累了JSON没有的单元。不可恢复（无备份、无WAL、git历史中JSON最多29个单元）。待修复：改import为merge模式、新增export脚本、配置arangodump备份。详见AGENTS.md"数据丢失事件记录"节。
+
+### 124号Phase 0—7建设计划Check List
+
+- 落盘`dev-docs/124-v1-2026-08-05-Phase0-7建设计划CheckList.md`：把123号Phase 0—7、DYN-0—7、停止条件、不做清单和下一实施包全部细化为可追踪的Check List条目。
+- 每个Phase有入口门、细化的子项Check List（Phase 0细化到8大类30+子项）、出口门、停止条件和失败回滚。
+- 含全局预注册门6项（G0-1—G0-6）、项目级停止条件7项（STOP-1—STOP-7）、明确不做清单10项（NO-1—NO-10）、下一实施包5项（NI-1—NI-5）、未决问题5项（UQ-1—UQ-5）和进度追踪表。
+- AGENTS.md认知资产表已补充124号索引条目。
