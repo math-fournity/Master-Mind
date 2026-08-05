@@ -150,3 +150,14 @@
   - A-7：135号P5-5补充NumPy/SciPy注册（系统探讨.md§4.4）
   - A-8：132号P2-1.3标注explain任务类型进展定义缺失（123号§23本身遗漏）
 - **三文件冲突裁决**：5项冲突全部按演进关系裁决（势函数→偏序/topo_generator定位/洞的定义/Phase 5拆分/数学主张标注级别术语），Check List正确使用了123号的严格化版本。
+
+### Phase 1实施：DYN-0事件捕获真实性（2026-08-05）
+
+- **research_runtime/包创建**：按123号§54和plan要求创建`xishujuzhen/research_runtime/`包（Phase 1首次创建，NO-9约束不在Phase 0预建框架）。含models/（Task/Workspace/RunState/RawEvent/SemanticEvent类型定义）和events/（EventStore/CheckpointStore/migration）。
+- **manifest实现**（P1-1）：`research_runtime/manifest.py`——运行manifest创建/落盘/冻结验证。含hidden_cot_required=false（R-1风险防线）和manifest_hash内容冻结验证。
+- **RawEvent存储**（P1-3）：ArangoDB `raw_events` collection——append-only原始事件存储。含DAG验证（causal_predecessors不形成环）和content_hash验证。
+- **SemanticEvent存储**（P1-4）：ArangoDB `semantic_events` collection——可重抽语义事件存储。含conflict_with对称性验证和三层保留机制（原始事件不可变→语义可重抽→快照可重建）。
+- **checkpoint实现**（P1-5）：ArangoDB `checkpoints` collection——内容寻址checkpoint。不含LLM隐藏内部状态（123号§39），同内容同hash（幂等）。
+- **ArangoDB新增4个collection**：raw_events/semantic_events/checkpoints/run_manifests。用幂等migration创建（123号§55），不动旧数据（NO-10约束）。
+- **集成测试**（test_phase1.py）：DYN-0验收4条全部通过——(1)原始输出/工具/提示/时间/分支可定位；(2)事件可回放；(3)不要求隐藏CoT；(4)抽取失败不丢原始证据。
+- **Phase 1状态**：已完成。DYN-0验收通过。
