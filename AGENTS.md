@@ -187,6 +187,8 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `scripts/arxiv_fetch_html.py` | arXiv HTML全文抓取脚本v1：从arxiv.org/html/<id>抓取HTML转为markdown，27个数学分类各3篇 | 工具脚本（已被v2接替） |
 | `scripts/arxiv_search_v3.py` | **arXiv API穷尽式搜索脚本v3**：44个分类（math+cs理论+quant-ph+math-ph+hep-th+stat.ML+nlin），submittedDate日期范围查询（2025-2026 + 2023-2024），200条/页，3秒间隔，429重试退避。239472篇元数据 | **当前版本** |
 | `scripts/arxiv_fetch_html_v2.py` | **arXiv HTML全文抓取脚本v2**：从239K篇元数据中按"难妙新"原则筛选1452篇，145个分类各10篇最新论文HTML全文。1305篇成功（含v1的69篇），972008行114MB | **当前版本** |
+| `dev-docs/112-arXiv论文导入ArangoDB与节点映射规则方案.md` | **arXiv论文操作化方案**：239K篇元数据导入ArangoDB `arxiv_papers` collection。四级映射规则：L1定理级（论文中的定理→dg_nodes concept节点）/ L2方法级 / L3意识级 / L4索引级（默认，可搜索不在依赖图中）。论文不是节点，论文是节点的出处。SDK新增`search_arxiv()`/`promote_arxiv_paper()`。实现110号三层架构的冷存储层 | **必读**。arXiv知识操作化 |
+| `xishujuzhen/arxiv_to_arangodb.py` | arXiv元数据→ArangoDB导入脚本：读取JSON批量导入239K篇+创建4个索引+验证 | 工具脚本 |
 
 ### 星学知识系统结构参考
 
@@ -355,6 +357,23 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - `dg_nodes`：节点集（step/substep/意识三种类型）
 - `dg_edges`：边集（depends_on/calls两种类型）
 - `loops`：螺旋环路（含圈数）
+- `arxiv_papers`：**arXiv论文库**（239472篇元数据，2023-2026年，44个分类）。支持按分类/日期/作者/关键词查询。每篇论文有mapping_level（L1定理级/L2方法级/L3意识级/L4索引级）和linked_nodes（关联的dg_nodes）。详见112号方案。
+
+### arXiv论文查询
+
+```bash
+# 按分类查询
+.venv/bin/python3 -c "import sys; sys.path.insert(0,'xishujuzhen'); from cognition_sdk_math import CognitionSDK; [print(p['arxiv_id'],p['title'][:50]) for p in CognitionSDK().search_arxiv(category='math.AG', limit=5)]"
+
+# 关键词搜索
+.venv/bin/python3 -c "import sys; sys.path.insert(0,'xishujuzhen'); from cognition_sdk_math import CognitionSDK; [print(p['arxiv_id'],p['title'][:50]) for p in CognitionSDK().search_arxiv(keyword='Ramanujan', limit=5)]"
+
+# 有全文的论文
+.venv/bin/python3 -c "import sys; sys.path.insert(0,'xishujuzhen'); from cognition_sdk_math import CognitionSDK; [print(p['arxiv_id'],p['title'][:50]) for p in CognitionSDK().search_arxiv(has_fulltext=True, limit=5)]"
+
+# 提升论文映射级别（L4→L1/L2/L3）
+.venv/bin/python3 -c "import sys; sys.path.insert(0,'xishujuzhen'); from cognition_sdk_math import CognitionSDK; print(CognitionSDK().promote_arxiv_paper('2607.27504','L1','Ramanujan_airy_asymptotics'))"
+```
 
 ### G'_topo生成（经典计算展开）
 
@@ -454,7 +473,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - [x] **大师-POC-2 采用七步骤工作流**：矩条件极差题第二问完整证明，使用 ArangoDB + G'_topo + TopologyVerifier，从文字对照升级为拓扑确定性验证。B组显著优于A组（+3.27/10分制）和B'组（+2.34/10分制），H1-H5全部验证通过。结果见 88 号文档
 - [x] **P0知识搜集——arXiv穷尽式**（109号方案第⑤来源）：239472篇元数据（44分类，2023-2026，323.8MB JSON）+ 1305篇HTML全文（145分类，972008行114MB）。技术路线：arXiv API submittedDate日期范围查询 + 200条/页 + 3秒间隔 + 429重试退避。大分类达10000 API上限。见`knowledge/arxiv/`
 - [ ] **P1知识搜集**（109号方案十三大来源中剩余来源）：①MathLib 100000+定理导入 ②OEIS 37万序列 ③THE BOOK完整版 ④关键数学家全集（Euler 80卷/Ramanujan笔记+Berndt注解）⑤教材与专著~200本 ⑥竞赛题全集（含Schweitzer研究级）⑦形式化数学库（Coq/Mizar/Metamath）⑧数学杂志问题栏（AMM 1894-/Crux/Kvant）⑨Bourbaki Seminar/ICM Proceedings ⑩Gardner 25年专栏/Conway全部 ⑪历史与哲学（Kline通史/Stillwell/Neugebauer/Heath）。按111号"难妙新"优先级排序
-- [ ] **arXiv元数据导入ArangoDB**：239K篇元数据导入ArangoDB建立论文索引，支持按分类/日期/作者/关键词查询，为依赖图节点提供论文出处定位
+- [x] **arXiv元数据导入ArangoDB**：239K篇元数据导入ArangoDB建立论文索引，支持按分类/日期/作者/关键词查询，为依赖图节点提供论文出处定位——**已完成**：239472篇导入`arxiv_papers` collection，4个persistent索引，SDK新增`search_arxiv()`/`get_arxiv_paper()`/`promote_arxiv_paper()`/`get_arxiv_stats()`方法。四级映射规则（L1定理级/L2方法级/L3意识级/L4索引级）。详见112号方案
 - [ ] **运行6个诊断测试**（97号测试方案）：T14 A/B对照待执行（需真实任务场景），T11b未执行（topo_generator已覆盖meta AI版）
 
 ## Memory Section
@@ -543,6 +562,15 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
   - 全文：`arxiv.org/html/<id>`抓取HTML转Markdown + 3秒间隔 + 429重试退避
   - 脚本：`scripts/arxiv_search_v3.py`（元数据）+ `scripts/arxiv_fetch_html_v2.py`（全文）
 - **P1待搜集**（109号方案十三大来源中剩余来源）：MathLib 100000+定理 / OEIS 37万序列 / THE BOOK / 数学家全集 / 教材~200本 / 竞赛题全集 / Coq/Mizar/Metamath / AMM问题栏 / Bourbaki Seminar / Gardner/Conway / Kline通史等
+
+**arXiv论文ArangoDB操作化状态（2026-08-04）**：
+- `arxiv_papers` collection：239472篇论文元数据已导入ArangoDB（22.9秒，10466篇/秒）
+- 4个persistent索引：primary_category / published / mapping_level / has_fulltext
+- 四级映射规则（112号方案）：L1定理级（论文中的定理成为dg_nodes concept节点）/ L2方法级 / L3意识级 / L4索引级（默认，仅在arxiv_papers中可搜索）
+- SDK新增4个方法：`search_arxiv()`（按分类/关键词/作者/日期/全文/映射级别查询）/ `get_arxiv_paper()`（单篇获取）/ `promote_arxiv_paper()`（提升映射级别+关联dg_nodes）/ `get_arxiv_stats()`（统计）
+- 所有239472篇初始为L4索引级，可按需提升为L1/L2/L3并关联到dg_nodes——这是"大师的一次在场"的体现
+- 查询性能：按分类+日期排序查询~毫秒级（persistent索引生效）
+- 脚本：`xishujuzhen/arxiv_to_arangodb.py`（导入+索引创建+验证）
 
 ## 术语备忘
 

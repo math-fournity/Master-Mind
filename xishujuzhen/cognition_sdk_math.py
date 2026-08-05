@@ -62,6 +62,137 @@ class CognitionSDK:
         """统计"""
         return self.cv.get_cognition_stats()
 
+    # ============================================================
+    # arXiv论文查询
+    # ============================================================
+
+    def search_arxiv(self, category=None, keyword=None, author=None,
+                     date_from=None, date_to=None, has_fulltext=None,
+                     mapping_level=None, limit=20, sort="newest"):
+        """查询arXiv论文（239K篇，存储在arxiv_papers collection）。
+
+        参数：
+            category: 主分类（如"math.AG"）或None
+            keyword: 关键词，在title和abstract中搜索（AQL LIKE）
+            author: 作者名（部分匹配）
+            date_from: 发布日期起点（如"2026-01-01"）
+            date_to: 发布日期终点（如"2026-08-01"）
+            has_fulltext: True/False/None（是否有HTML全文）
+            mapping_level: "L1"/"L2"/"L3"/"L4"/None
+            limit: 返回数量上限
+            sort: "newest"（按发布日期降序）/"oldest"/"relevance"
+
+        返回：list of dict，每条含arxiv_id/title/authors/primary_category/published/has_fulltext
+        """
+        filters = []
+        bind_vars = {"limit": limit}
+
+        if category:
+            filters.append("p.primary_category == @category")
+            bind_vars["category"] = category
+
+        if keyword:
+            filters.append("(CONTAINS(LOWER(p.title), LOWER(@keyword)) OR CONTAINS(LOWER(p.abstract), LOWER(@keyword)))")
+            bind_vars["keyword"] = keyword
+
+        if author:
+            filters.append("CONTAINS(LOWER(CONCAT_SEPARATOR(' ', p.authors[*])), LOWER(@author))")
+            bind_vars["author"] = author
+
+        if date_from:
+            filters.append("p.published >= @date_from")
+            bind_vars["date_from"] = date_from
+
+        if date_to:
+            filters.append("p.published <= @date_to")
+            bind_vars["date_to"] = date_to
+
+        if has_fulltext is not None:
+            filters.append("p.has_fulltext == @has_fulltext")
+            bind_vars["has_fulltext"] = has_fulltext
+
+        if mapping_level:
+            filters.append("p.mapping_level == @mapping_level")
+            bind_vars["mapping_level"] = mapping_level
+
+        filter_clause = "FILTER " + " AND ".join(filters) if filters else ""
+
+        if sort == "newest":
+            sort_clause = "SORT p.published DESC"
+        elif sort == "oldest":
+            sort_clause = "SORT p.published ASC"
+        else:
+            sort_clause = "SORT p.published DESC"
+
+        aql = f"""
+            FOR p IN arxiv_papers
+            {filter_clause}
+            {sort_clause}
+            LIMIT @limit
+            RETURN {{
+                arxiv_id: p.arxiv_id,
+                title: p.title,
+                authors: p.authors,
+                primary_category: p.primary_category,
+                all_categories: p.all_categories,
+                published: p.published,
+                has_fulltext: p.has_fulltext,
+                mapping_level: p.mapping_level,
+                html_url: p.html_url
+            }}
+        """
+        return list(self.db.aql.execute(aql, bind_vars=bind_vars))
+
+    def get_arxiv_paper(self, arxiv_id):
+        """获取单篇论文完整信息。"""
+        clean_id = arxiv_id.split("v")[0] if "v" in arxiv_id[-3:] else arxiv_id
+        doc_key = clean_id.replace(".", "_")
+        return self.db.collection("arxiv_papers").get(doc_key)
+
+    def promote_arxiv_paper(self, arxiv_id, mapping_level, linked_node_id):
+        """提升论文映射级别并关联到依赖图节点。
+
+        参数：
+            arxiv_id: arXiv论文ID
+            mapping_level: "L1"/"L2"/"L3"（不能降为L4）
+            linked_node_id: 关联的dg_nodes.node_id
+        """
+        clean_id = arxiv_id.split("v")[0] if "v" in arxiv_id[-3:] else arxiv_id
+        doc_key = clean_id.replace(".", "_")
+        col = self.db.collection("arxiv_papers")
+        doc = col.get(doc_key)
+        if not doc:
+            return None
+        linked = doc.get("linked_nodes", [])
+        if linked_node_id not in linked:
+            linked.append(linked_node_id)
+        col.update({"_key": doc_key, "mapping_level": mapping_level, "linked_nodes": linked})
+        return col.get(doc_key)
+
+    def get_arxiv_stats(self):
+        """arXiv论文统计。"""
+        stats = {}
+        stats["total"] = self.db.collection("arxiv_papers").count()
+        stats["by_category"] = list(self.db.aql.execute("""
+            FOR p IN arxiv_papers
+            COLLECT cat = p.primary_category WITH COUNT INTO c
+            SORT c DESC
+            LIMIT 20
+            RETURN {category: cat, count: c}
+        """))
+        stats["by_fulltext"] = list(self.db.aql.execute("""
+            FOR p IN arxiv_papers
+            COLLECT ft = p.has_fulltext WITH COUNT INTO c
+            RETURN {has_fulltext: ft, count: c}
+        """))
+        stats["by_mapping"] = list(self.db.aql.execute("""
+            FOR p IN arxiv_papers
+            COLLECT ml = p.mapping_level WITH COUNT INTO c
+            SORT c DESC
+            RETURN {mapping_level: ml, count: c}
+        """))
+        return stats
+
     def find_dependents_by_doc(self, doc_id):
         """反向查询：给定dev-docs编号，返回所有source_docs包含该编号的认知单元。
 
