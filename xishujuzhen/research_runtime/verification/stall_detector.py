@@ -41,15 +41,17 @@ ARANGO_HOST = "http://localhost:8529"
 
 class StallType(str, Enum):
     """
-    7类卡点（系统探讨.md§15.3 + 123号§32）。
+    123号§38权威定义的7类卡点。
+
+    注意：这是DYN-2卡点检测校准的标准分类。
     """
+    NECESSARY_EXPLORATION = "necessary_exploration"   # 必要探索（不是真正卡点——正常探索被误判为停滞）
+    SEMANTIC_REPETITION = "semantic_repetition"       # 语义重复
+    UNRESOLVED_CONTRADICTION = "unresolved_contradiction"  # 矛盾未处理
+    TOOL_BLOCKED = "tool_blocked"                     # 工具阻塞
+    REPRESENTATION_UNSUITABLE = "representation_unsuitable"  # 表示不合适
     STRATEGY_EXHAUSTION = "strategy_exhaustion"       # 策略耗尽
-    EVIDENCE_GAP = "evidence_gap"                     # 证据缺口
-    REPRESENTATION_STUCK = "representation_stuck"     # 表示停滞
-    OBLIGATION_DEADLOCK = "obligation_deadlock"       # 义务死锁
     BUDGET_DEPLETION = "budget_depletion"             # 预算耗尽
-    FALSE_STALL = "false_stall"                       # 假性停滞（正常探索被误判）
-    ANSWER_LEAKAGE_RISK = "answer_leakage_risk"       # 答案泄漏风险
 
 
 @dataclass
@@ -128,53 +130,80 @@ class StallDetector:
         """
         detections = []
 
-        # 1. 策略耗尽——进展向量连续无改善
+        # 1. 必要探索——自报停滞但工具有进展（不是真正卡点）
+        #    123号§38："必要探索"是正常探索被误判为停滞的情况
+        if self_reported_stall:
+            if progress_history:
+                latest = progress_history[-1]
+                if latest.get("relation", "") == "improved":
+                    detections.append(StallDetection(
+                        stall_type=StallType.NECESSARY_EXPLORATION,
+                        confidence=0.85,
+                        evidence=["自报停滞但进展向量有改善——可能是必要探索被误判（R-4风险）"],
+                        is_self_reported=True,
+                    ))
+
+        # 2. 语义重复——同一内容/命题反复出现无新进展
+        if len(progress_history) >= 3:
+            recent = progress_history[-3:]
+            rep_ids = [p.get("representation_id", "") for p in recent]
+            all_same_rep = len(set(rep_ids)) == 1 and rep_ids[0] != ""
+            all_no_improve = all(p.get("relation", "") in ("equal", "worsened") for p in recent)
+            if all_same_rep and all_no_improve:
+                detections.append(StallDetection(
+                    stall_type=StallType.SEMANTIC_REPETITION,
+                    confidence=0.75,
+                    evidence=[f"同一表示{rep_ids[-1]}连续{len(recent)}步无改善——语义重复"],
+                    is_self_reported=False,
+                ))
+
+        # 3. 矛盾未处理——存在mixed状态证据但未生成澄清义务
+        unresolved_conflicts = obligations.get("unresolved_conflicts", 0)
+        if unresolved_conflicts > 0:
+            detections.append(StallDetection(
+                stall_type=StallType.UNRESOLVED_CONTRADICTION,
+                confidence=0.7,
+                evidence=[f"存在{unresolved_conflicts}个未解决冲突"],
+                is_self_reported=False,
+            ))
+
+        # 4. 工具阻塞——工具调用失败或无结果
+        tool_failures = obligations.get("tool_failures", 0)
+        if tool_failures > 2:
+            detections.append(StallDetection(
+                stall_type=StallType.TOOL_BLOCKED,
+                confidence=0.8,
+                evidence=[f"工具调用失败{tool_failures}次"],
+                is_self_reported=False,
+            ))
+
+        # 5. 表示不合适——同一表示ID持续无进展
+        rep_ids = [p.get("representation_id", "") for p in progress_history[-5:]]
+        if len(rep_ids) >= 5 and len(set(rep_ids)) == 1 and rep_ids[0] != "":
+            # 检查是否有进展改善（如果有改善但表示不变，可能是表示不合适）
+            recent_relations = [p.get("relation", "") for p in progress_history[-5:]]
+            if all(r in ("equal", "worsened") for r in recent_relations):
+                detections.append(StallDetection(
+                    stall_type=StallType.REPRESENTATION_UNSUITABLE,
+                    confidence=0.7,
+                    evidence=[f"同一表示{rep_ids[-1]}持续5步无进展——表示不合适"],
+                    is_self_reported=False,
+                ))
+
+        # 6. 策略耗尽——进展向量连续无改善（跨表示）
         if len(progress_history) >= 3:
             recent = progress_history[-3:]
             all_no_improve = all(p.get("relation", "") in ("equal", "worsened") for p in recent)
-            if all_no_improve:
+            # 与语义重复不同：策略耗尽不要求同一表示
+            if all_no_improve and not any(d.stall_type == StallType.SEMANTIC_REPETITION for d in detections):
                 detections.append(StallDetection(
                     stall_type=StallType.STRATEGY_EXHAUSTION,
                     confidence=0.8,
-                    evidence=[f"连续{len(recent)}次进展无改善"],
+                    evidence=[f"连续{len(recent)}次进展无改善（跨表示）——策略耗尽"],
                     is_self_reported=False,
                 ))
 
-        # 2. 证据缺口——活动候选数高但证据数低
-        if progress_history:
-            latest = progress_history[-1]
-            v = latest.get("vector", {})
-            u_t = v.get("u_t", 0)  # 无证据候选数
-            if u_t > 5:  # 阈值可配置
-                detections.append(StallDetection(
-                    stall_type=StallType.EVIDENCE_GAP,
-                    confidence=0.7,
-                    evidence=[f"无证据活动候选数={u_t}"],
-                    is_self_reported=False,
-                ))
-
-        # 3. 表示停滞——同一表示ID持续无进展
-        # （需要representation_history，简化版用progress_history中的representation_id）
-        rep_ids = [p.get("representation_id", "") for p in progress_history[-5:]]
-        if len(rep_ids) >= 5 and len(set(rep_ids)) == 1:
-            detections.append(StallDetection(
-                stall_type=StallType.REPRESENTATION_STUCK,
-                confidence=0.6,
-                evidence=[f"同一表示{rep_ids[-1]}持续5步无变化"],
-                is_self_reported=False,
-            ))
-
-        # 4. 义务死锁——SCC存在
-        sccs = obligations.get("sccs", [])
-        if sccs:
-            detections.append(StallDetection(
-                stall_type=StallType.OBLIGATION_DEADLOCK,
-                confidence=0.9,
-                evidence=[f"检测到{len(sccs)}个SCC（循环依赖）"],
-                is_self_reported=False,
-            ))
-
-        # 5. 预算耗尽
+        # 7. 预算耗尽
         for budget_type, values in budget.items():
             remaining = values.get("remaining", 0)
             if remaining <= 0:
@@ -185,23 +214,6 @@ class StallDetector:
                     is_self_reported=False,
                 ))
                 break  # 一种预算耗尽就够
-
-        # 6. 假性停滞——自报停滞但工具有进展
-        if self_reported_stall:
-            # 检查最近进展向量是否有改善
-            if progress_history:
-                latest = progress_history[-1]
-                if latest.get("relation", "") == "improved":
-                    detections.append(StallDetection(
-                        stall_type=StallType.FALSE_STALL,
-                        confidence=0.85,
-                        evidence=["自报停滞但进展向量有改善——可能是gaming（R-4风险）"],
-                        is_self_reported=True,
-                    ))
-
-        # 7. 答案泄漏风险——简化版：如果Hint等级已达到H2
-        # （完整版需要检查Hint内容是否接近答案等价）
-        # 这里只做框架，实际检测在Phase 3-4完善
 
         return detections
 
@@ -227,18 +239,18 @@ class StallDetector:
                 "action": "continue_observing",
             }
 
-        # 过滤掉假性停滞
-        real_stalls = [d for d in detections if d.stall_type != StallType.FALSE_STALL]
-        false_stalls = [d for d in detections if d.stall_type == StallType.FALSE_STALL]
+        # 过滤掉必要探索（不是真正卡点）
+        real_stalls = [d for d in detections if d.stall_type != StallType.NECESSARY_EXPLORATION]
+        necessary_exploration = [d for d in detections if d.stall_type == StallType.NECESSARY_EXPLORATION]
 
-        # 假性停滞——不应提示
-        if false_stalls and not real_stalls:
+        # 必要探索——不应提示（正常探索被误判为停滞）
+        if necessary_exploration and not real_stalls:
             return {
                 "has_stall": False,
                 "stall_types": [d.stall_type.value for d in detections],
-                "has_false_stall": True,
+                "has_necessary_exploration": True,
                 "needs_hint": False,
-                "action": "continue_observing",  # 假性停滞——继续观察
+                "action": "continue_observing",  # 必要探索——继续观察
                 "gaming_warning": True,
             }
 
@@ -249,7 +261,7 @@ class StallDetector:
             return {
                 "has_stall": True,
                 "stall_types": [d.stall_type.value for d in detections],
-                "has_false_stall": len(false_stalls) > 0,
+                "has_necessary_exploration": len(necessary_exploration) > 0,
                 "needs_hint": False,
                 "action": "stop_or_escalate",
             }
@@ -258,7 +270,7 @@ class StallDetector:
         return {
             "has_stall": True,
             "stall_types": [d.stall_type.value for d in detections],
-            "has_false_stall": len(false_stalls) > 0,
+            "has_necessary_exploration": len(necessary_exploration) > 0,
             "needs_hint": True,
             "action": "ask_diagnostic_question",
         }

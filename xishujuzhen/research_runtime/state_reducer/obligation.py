@@ -36,29 +36,31 @@ ARANGO_HOST = "http://localhost:8529"
 
 class ObligationType(str, Enum):
     """
-    127号§4定义的10种义务类型枚举。
+    127号§4权威定义的10种义务类型枚举。
+
+    注意：这与123号§14的TaskType（9种任务类型）是不同的概念。
+    TaskType用于Q_0的κ字段；ObligationType用于O_t中义务的type字段。
     """
-    PROVE = "prove"                     # 证明义务
-    REFUTE = "refute"                   # 证伪义务
-    CONSTRUCT = "construct"             # 构造义务
-    COMPUTE = "compute"                 # 计算义务
-    CLASSIFY = "classify"               # 分类义务
-    OPTIMIZE = "optimize"               # 优化义务
-    CONJECTURE = "conjecture"           # 猜想义务
-    EXPLAIN = "explain"                 # 解释义务
-    INTERFACE = "interface"             # 接口义务：跨表示运输保真
-    VERIFICATION = "verification"       # 验证义务：数值支持仍需证明或反例搜索
+    PROVE = "prove"                     # 待证明
+    REFUTE = "refute"                   # 待证伪
+    CONSTRUCT = "construct"             # 待构造
+    COMPUTE = "compute"                 # 待计算
+    SEARCH = "search"                   # 待搜索
+    COMPARE = "compare"                 # 待比较
+    EVALUATE = "evaluate"               # 待评估
+    INTERFACE = "interface"             # 跨表示运输保真义务
+    VERIFICATION = "verification"       # 数值支持仍需证明或反例搜索
+    VALUE = "value"                     # 方向判断（重要性/可行性/信息增益/成本）
 
 
 class ObligationStatus(str, Enum):
     """
-    义务状态枚举（127号§4）。
+    义务状态枚举（127号§4权威定义）。
     """
     OPEN = "open"                       # 开放——尚未达到证据门
-    RELEASED = "released"               # 释放——达到证据门
+    DISCHARGED = "discharged"           # 已释放——达到证据门
     SUSPENDED = "suspended"             # 暂停
     FAILED = "failed"                   # 失败——被证伪或反例否定
-    SUPERSEDED = "superseded"           # 被更好的候选替代
 
 
 class HyperedgeMode(str, Enum):
@@ -72,18 +74,21 @@ class HyperedgeMode(str, Enum):
 @dataclass
 class Obligation:
     """
-    研究义务（127号§4 + 123号§16）。
+    研究义务（127号§4权威定义 + 123号§16）。
 
     N是带类型和状态的研究义务。
+    127号§4的9个字段：obligation_id/type/status/task_id/parent_obligation/
+    description/evidence_refs/evidence_gate/sub_obligations
     """
     obligation_id: str
     task_id: str
     type: ObligationType
     status: ObligationStatus = ObligationStatus.OPEN
     description: str = ""                           # 义务描述
-    claim_id: Optional[str] = None                  # 关联的命题ID
+    parent_obligation: Optional[str] = None         # 父义务ID（127号§4字段名）
+    evidence_refs: List[str] = field(default_factory=list)  # 关联证据ID（127号§4）
     evidence_gate: Optional[str] = None             # 证据门（达到什么标准才释放）
-    parent_obligation_id: Optional[str] = None      # 父义务ID（如果有）
+    sub_obligations: List[str] = field(default_factory=list)  # 子义务ID列表（127号§4）
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -94,9 +99,10 @@ class Obligation:
             "type": self.type.value,
             "status": self.status.value,
             "description": self.description,
-            "claim_id": self.claim_id,
+            "parent_obligation": self.parent_obligation,
+            "evidence_refs": self.evidence_refs,
             "evidence_gate": self.evidence_gate,
-            "parent_obligation_id": self.parent_obligation_id,
+            "sub_obligations": self.sub_obligations,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -112,7 +118,7 @@ class ObligationHyperedge:
     """
     relation_id: str
     mode: HyperedgeMode                               # all=AND / any=OR
-    parent_obligation_id: str                          # v（父义务）
+    parent_obligation: str                             # v（父义务，127号§4字段名）
     source_obligation_ids: List[str] = field(default_factory=list)  # U（前置义务集合）
     sufficiency_condition: Optional[str] = None        # 充分性条件
     evidence_gate: Optional[str] = None                # 证据门
@@ -122,7 +128,7 @@ class ObligationHyperedge:
         return {
             "relation_id": self.relation_id,
             "mode": self.mode.value,
-            "parent_obligation_id": self.parent_obligation_id,
+            "parent_obligation": self.parent_obligation,
             "source_obligation_ids": self.source_obligation_ids,
             "sufficiency_condition": self.sufficiency_condition,
             "evidence_gate": self.evidence_gate,
@@ -207,7 +213,7 @@ class ObligationStore:
         # target edge: relation → parent obligation
         self.edge_col.insert({
             "_from": f"obligation_relations/{edge.relation_id}",
-            "_to": f"obligations/{edge.parent_obligation_id}",
+            "_to": f"obligations/{edge.parent_obligation}",
             "role": "target",
             "relation_id": edge.relation_id,
         })
@@ -230,7 +236,7 @@ class ObligationStore:
         FOR e IN obligation_edges
             FILTER e._to == @obl_ref AND e.role == 'target'
             LET rel = DOCUMENT(e._from)
-            RETURN rel.parent_obligation_id
+            RETURN rel.parent_obligation
         """
         cursor = self.db.aql.execute(aql, bind_vars={"obl_ref": f"obligations/{obligation_id}"})
         return list(cursor)
@@ -262,12 +268,12 @@ class ObligationStore:
         - sccs: 强连通分量列表
         - self_loops: 自环列表
         """
-        # 构建邻接表：obligation_id → [parent_obligation_ids]
+        # 构建邻接表：obligation_id → [parent_obligations]
         # 超边展开为普通边：每个source → parent
         aql = """
         FOR rel IN obligation_relations
             FOR src IN rel.source_obligation_ids
-                RETURN {source: src, target: rel.parent_obligation_id}
+                RETURN {source: src, target: rel.parent_obligation}
         """
         cursor = self.db.aql.execute(aql)
         edges = list(cursor)
@@ -414,7 +420,7 @@ class ObligationStore:
             sources_released = []
             for src_id in source_ids:
                 src_doc = self.get_obligation(src_id)
-                if src_doc and src_doc["status"] == ObligationStatus.RELEASED.value:
+                if src_doc and src_doc["status"] == ObligationStatus.DISCHARGED.value:
                     sources_released.append(src_id)
 
             if mode == HyperedgeMode.ALL.value:

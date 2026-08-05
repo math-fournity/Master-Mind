@@ -100,13 +100,13 @@ class BeliefEstimator:
             for d in detections:
                 stall_type_probs[d.stall_type.value] = d.confidence / total_confidence
 
-        # 3. 是否真的停滞
-        real_stalls = [d for d in detections if d.stall_type != StallType.FALSE_STALL]
+        # 3. 是否真的停滞——排除必要探索（不是真正卡点）
+        real_stalls = [d for d in detections if d.stall_type != StallType.NECESSARY_EXPLORATION]
         is_stall_prob = min(1.0, sum(d.confidence for d in real_stalls))
 
-        # 4. gaming概率
-        false_stalls = [d for d in detections if d.stall_type == StallType.FALSE_STALL]
-        gaming_prob = max(d.confidence for d in false_stalls) if false_stalls else 0.0
+        # 4. gaming概率——必要探索被误判为停滞
+        necessary_exploration = [d for d in detections if d.stall_type == StallType.NECESSARY_EXPLORATION]
+        gaming_prob = max(d.confidence for d in necessary_exploration) if necessary_exploration else 0.0
 
         # 5. 策略置信度
         if progress_history:
@@ -115,14 +115,14 @@ class BeliefEstimator:
         else:
             strategy_confidence = 0.5
 
-        # 6. 估计缺失的信息
+        # 6. 估计缺失的信息（按123号§38的7类卡点）
         missing_info = []
-        if stall_type_probs.get(StallType.EVIDENCE_GAP.value, 0) > 0:
-            missing_info.append("关键证据")
-        if stall_type_probs.get(StallType.REPRESENTATION_STUCK.value, 0) > 0:
+        if stall_type_probs.get(StallType.UNRESOLVED_CONTRADICTION.value, 0) > 0:
+            missing_info.append("冲突澄清")
+        if stall_type_probs.get(StallType.REPRESENTATION_UNSUITABLE.value, 0) > 0:
             missing_info.append("替代表示")
-        if stall_type_probs.get(StallType.OBLIGATION_DEADLOCK.value, 0) > 0:
-            missing_info.append("义务依赖关系澄清")
+        if stall_type_probs.get(StallType.TOOL_BLOCKED.value, 0) > 0:
+            missing_info.append("工具修复")
 
         return ControllerBelief(
             stall_type_probs=stall_type_probs,
@@ -169,19 +169,27 @@ class BeliefEstimator:
                     "belief": belief.to_dict(),
                 }
 
-        # 4. 证据缺口——请求工具检查
-        if belief.stall_type_probs.get(StallType.EVIDENCE_GAP.value, 0) > 0.3:
+        # 4. 矛盾未处理——请求工具检查
+        if belief.stall_type_probs.get(StallType.UNRESOLVED_CONTRADICTION.value, 0) > 0.3:
             return {
                 "action": ActionType.REQUEST_TOOL_CHECK.value,
-                "reason": "证据缺口——请求工具检查",
+                "reason": "矛盾未处理——请求工具检查",
                 "belief": belief.to_dict(),
             }
 
-        # 5. 表示停滞——检索最小接口
-        if belief.stall_type_probs.get(StallType.REPRESENTATION_STUCK.value, 0) > 0.3:
+        # 5. 工具阻塞——请求工具检查
+        if belief.stall_type_probs.get(StallType.TOOL_BLOCKED.value, 0) > 0.3:
+            return {
+                "action": ActionType.REQUEST_TOOL_CHECK.value,
+                "reason": "工具阻塞——请求工具检查",
+                "belief": belief.to_dict(),
+            }
+
+        # 6. 表示不合适——检索最小接口
+        if belief.stall_type_probs.get(StallType.REPRESENTATION_UNSUITABLE.value, 0) > 0.3:
             return {
                 "action": ActionType.RETRIEVE_MINIMAL_INTERFACE.value,
-                "reason": "表示停滞——检索最小接口",
+                "reason": "表示不合适——检索最小接口",
                 "belief": belief.to_dict(),
             }
 

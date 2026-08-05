@@ -27,19 +27,20 @@ from .workspace_store import WorkspaceStore
 from .obligation import ObligationType
 
 
-# 按任务类型定义验证门（123号§23 + 127号§6）
-# 每种任务类型需要不同的验证证据类型
-TASK_TYPE_VERIFICATION_GATE: Dict[ObligationType, List[EvidenceKind]] = {
+# 按义务类型定义验证门（123号§23 + 127号§6）
+# 每种义务类型需要不同的验证证据类型
+# 注意：这里用ObligationType（127号§4的10种），不是TaskType（123号§14的9种）
+OBLIGATION_TYPE_VERIFICATION_GATE: Dict[ObligationType, List[EvidenceKind]] = {
     ObligationType.PROVE: [EvidenceKind.FORMAL_PROOF, EvidenceKind.SYMBOLIC],
     ObligationType.REFUTE: [EvidenceKind.COUNTEREXAMPLE, EvidenceKind.FORMAL_PROOF],
     ObligationType.CONSTRUCT: [EvidenceKind.SYMBOLIC, EvidenceKind.NUMERICAL],
     ObligationType.COMPUTE: [EvidenceKind.NUMERICAL, EvidenceKind.SYMBOLIC],
-    ObligationType.CLASSIFY: [EvidenceKind.LITERATURE, EvidenceKind.SYMBOLIC],
-    ObligationType.OPTIMIZE: [EvidenceKind.NUMERICAL, EvidenceKind.SYMBOLIC],
-    ObligationType.CONJECTURE: [EvidenceKind.NUMERICAL, EvidenceKind.LITERATURE],  # 猜想需要数值或文献支持
-    ObligationType.EXPLAIN: [EvidenceKind.LITERATURE, EvidenceKind.HUMAN_AUDIT],
+    ObligationType.SEARCH: [EvidenceKind.LITERATURE, EvidenceKind.NUMERICAL],
+    ObligationType.COMPARE: [EvidenceKind.LITERATURE, EvidenceKind.SYMBOLIC],
+    ObligationType.EVALUATE: [EvidenceKind.LITERATURE, EvidenceKind.HUMAN_AUDIT],
     ObligationType.INTERFACE: [EvidenceKind.FORMAL_PROOF, EvidenceKind.SYMBOLIC],  # 跨表示运输保真
     ObligationType.VERIFICATION: [EvidenceKind.FORMAL_PROOF, EvidenceKind.COUNTEREXAMPLE],
+    ObligationType.VALUE: [EvidenceKind.LITERATURE, EvidenceKind.HUMAN_AUDIT],  # 方向判断
 }
 
 
@@ -61,14 +62,14 @@ class VerificationGate:
         self.evidence_store = evidence_store
         self.workspace_store = workspace_store
 
-    def get_required_kinds(self, task_type: ObligationType) -> List[EvidenceKind]:
-        """获取任务类型对应的验证门证据类型。"""
-        return TASK_TYPE_VERIFICATION_GATE.get(task_type, [EvidenceKind.FORMAL_PROOF])
+    def get_required_kinds(self, obl_type: ObligationType) -> List[EvidenceKind]:
+        """获取义务类型对应的验证门证据类型。"""
+        return OBLIGATION_TYPE_VERIFICATION_GATE.get(obl_type, [EvidenceKind.FORMAL_PROOF])
 
     def check_can_promote(
         self,
         claim_id: str,
-        task_type: ObligationType,
+        obl_type: ObligationType,
     ) -> Dict[str, Any]:
         """
         检查F_t中的候选是否可以提升到V_t。
@@ -90,7 +91,7 @@ class VerificationGate:
             }
 
         # 2. 检查验证门
-        required_kinds = self.get_required_kinds(task_type)
+        required_kinds = self.get_required_kinds(obl_type)
         gate = self.evidence_store.check_verification_gate(
             claim_id, required_kinds, EvidencePolarity.SUPPORT,
         )
@@ -126,7 +127,7 @@ class VerificationGate:
         self,
         workspace_id: str,
         claim_id: str,
-        task_type: ObligationType,
+        obl_type: ObligationType,
         claim_type: str = "lemma",  # premise/lemma/tool_result
     ) -> Dict[str, Any]:
         """
@@ -135,7 +136,7 @@ class VerificationGate:
         创建新的工作区快照（W_t只能由版本化Reducer派生，P2-2.COMP2）。
         """
         # 1. 检查是否可以提升
-        check = self.check_can_promote(claim_id, task_type)
+        check = self.check_can_promote(claim_id, obl_type)
         if not check["can_promote"]:
             return {
                 "success": False,

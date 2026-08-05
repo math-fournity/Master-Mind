@@ -82,8 +82,9 @@ class StateReducer:
     """
     StateReducer基类：从事件流重建状态。
 
-    冻结声明（P2-6.COMP）：
+    冻结声明（P2-6.COMP + P2-ROLE.COMP）：
     - 可复现约束——同一事件流+同一Reducer版本→同一状态
+    - 不自行补写未发生的数学推理（127号§10角色隔离）
     """
 
     def __init__(self, name: str, version: str = "v1"):
@@ -96,6 +97,41 @@ class StateReducer:
 
     def _init_state(self) -> ReconstructedState:
         return ReconstructedState(reducer_name=self.name)
+
+    def verify_reproducibility(
+        self,
+        events: List[Dict[str, Any]],
+        n_runs: int = 3,
+    ) -> Dict[str, Any]:
+        """
+        验证可复现约束（P2-ROLE.COMP）。
+
+        相同事件+相同reducer版本必须得到可复现结果。
+        运行n_runs次，检查每次输出是否一致。
+
+        边界情况：
+        - 相同事件相同reducer版本结果不同（违反可复现约束）
+        """
+        results = []
+        for _ in range(n_runs):
+            state = self.reduce(events)
+            results.append(state.to_dict())
+
+        # 比较所有运行结果是否一致（排除timestamp——时间戳不影响状态内容）
+        first = results[0]
+        first_no_ts = {k: v for k, v in first.items() if k != "timestamp"}
+        all_consistent = all(
+            {k: v for k, v in r.items() if k != "timestamp"} == first_no_ts
+            for r in results
+        )
+
+        return {
+            "reproducible": all_consistent,
+            "n_runs": n_runs,
+            "reducer_name": self.name,
+            "reducer_version": self.version,
+            "violation": not all_consistent,
+        }
 
 
 class RuleBasedReducer(StateReducer):
@@ -380,23 +416,25 @@ class KrippendorffAlpha:
 
         alphas: Dict[str, float] = {}
         for field_name, val1, val2 in fields:
-            # 对列表字段：比较集合是否一致
-            # 转换为集合比较——如果两个Reducer输出相同的集合，α=1
-            set1 = set(val1)
-            set2 = set(val2)
-
-            if set1 == set2:
+            # 对列表字段：用真正的Krippendorff nominal α计算
+            # 把集合比较转化为nominal标度的观察值
+            # 每个元素是一个unit，两个Reducer各自报告该元素是否在集合中
+            all_elements = set(val1) | set(val2)
+            if not all_elements:
+                # 两个都为空——完全一致
                 alphas[field_name] = 1.0
-            elif set1 and set2:
-                # 有交集但不完全一致
-                intersection = set1 & set2
-                union = set1 | set2
-                jaccard = len(intersection) / len(union)
-                # 用Jaccard相似度近似α
-                alphas[field_name] = jaccard
-            else:
-                # 一个为空一个非空
-                alphas[field_name] = 0.0
+                continue
+
+            # 构建观察矩阵：每个元素是一个unit，两个观察者各自报告"in"/"out"
+            observations = []
+            for elem in all_elements:
+                obs1 = "in" if elem in set(val1) else "out"
+                obs2 = "in" if elem in set(val2) else "out"
+                observations.append([obs1, obs2])
+
+            # 用nominal α计算
+            alpha = KrippendorffAlpha.compute_nominal(observations)
+            alphas[field_name] = alpha
 
         return alphas
 

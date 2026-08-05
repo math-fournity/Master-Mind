@@ -55,12 +55,12 @@ class EvidencePolarity(str, Enum):
 
 class EvidenceStatus(str, Enum):
     """
-    证据状态。
+    证据状态（127号§6权威定义）。
     """
     PENDING = "pending"           # 待验证
-    VERIFIED = "verified"         # 已验证
-    CONTRADICTED = "contradicted" # 被矛盾
-    WITHDRAWN = "withdrawn"       # 撤回
+    ACTIVE = "active"             # 活跃——已验证且当前有效
+    SUPERSEDED = "superseded"     # 被更好的证据替代
+    RETRACTED = "retracted"       # 撤回
 
 
 class DerivedEpistemicState(str, Enum):
@@ -76,21 +76,24 @@ class DerivedEpistemicState(str, Enum):
 @dataclass
 class Evidence:
     """
-    证据条目（123号§31 + 127号§6）。
+    证据条目（123号§31 + 127号§6权威定义）。
 
-    一个证据条目至少是：
-    (claim_id, kind, polarity, scope, assumptions, artifact_hash, verifier, verifier_version, status)
+    127号§6的12个字段：evidence_id/claim_id/kind/polarity/status/scope/
+    assumptions/artifact_hash/source_event/verifier/verifier_version/confidence/conflicts
     """
     evidence_id: str
     claim_id: str                              # 关联的命题ID
     kind: EvidenceKind                         # 证据类型
     polarity: EvidencePolarity                 # 极性
+    status: EvidenceStatus = EvidenceStatus.PENDING
     scope: str = ""                            # 证据在哪些前提和参数范围有效
     assumptions: List[str] = field(default_factory=list)  # 假设
     artifact_hash: str = ""                    # 可重放工具产物或来源的内容哈希
+    source_event: str = ""                     # 来源事件ID（127号§6）
     verifier: str = ""                         # 验证者
     verifier_version: str = ""                 # 验证者版本
-    status: EvidenceStatus = EvidenceStatus.PENDING
+    confidence: float = 0.0                    # 置信度[0,1]（127号§6）
+    conflicts: List[str] = field(default_factory=list)  # 冲突证据ID列表（127号§6）
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
@@ -99,12 +102,15 @@ class Evidence:
             "claim_id": self.claim_id,
             "kind": self.kind.value,
             "polarity": self.polarity.value,
+            "status": self.status.value,
             "scope": self.scope,
             "assumptions": self.assumptions,
             "artifact_hash": self.artifact_hash,
+            "source_event": self.source_event,
             "verifier": self.verifier,
             "verifier_version": self.verifier_version,
-            "status": self.status.value,
+            "confidence": self.confidence,
+            "conflicts": self.conflicts,
             "created_at": self.created_at,
         }
 
@@ -183,7 +189,7 @@ class EvidenceStore:
 
         # 只考虑status=verified或pending的证据（withdrawn的不算）
         active = [e for e in evidence_list if e["status"] in (
-            EvidenceStatus.VERIFIED.value,
+            EvidenceStatus.ACTIVE.value,
             EvidenceStatus.PENDING.value,
         )]
 
@@ -231,7 +237,7 @@ class EvidenceStore:
         # 冲突存在——生成范围/前提澄清义务
         evidence_list = self.get_evidence_for_claim(claim_id)
         active = [e for e in evidence_list if e["status"] in (
-            EvidenceStatus.VERIFIED.value,
+            EvidenceStatus.ACTIVE.value,
             EvidenceStatus.PENDING.value,
         )]
 
@@ -272,7 +278,7 @@ class EvidenceStore:
         只有满足该命题类型预先指定的验证门，命题才进入V_t。
         """
         evidence_list = self.get_evidence_for_claim(claim_id)
-        active = [e for e in evidence_list if e["status"] == EvidenceStatus.VERIFIED.value]
+        active = [e for e in evidence_list if e["status"] == EvidenceStatus.ACTIVE.value]
 
         # 检查是否有required_kinds中的证据
         has_required = any(e["kind"] in [k.value for k in required_kinds] for e in active)
