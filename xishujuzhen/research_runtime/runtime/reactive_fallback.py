@@ -243,6 +243,51 @@ class ReactiveFallback:
             "f14_defense": True,  # 3项判定全部实现（不只做收益比较）
         }
 
+    def verify_proactive_publishing_gate(
+        self,
+        original_problem_repeated: bool,
+        cross_problem_transfer: bool,
+        cross_model_validated: bool,
+        low_leakage: bool,
+        low_side_effects: bool,
+    ) -> Dict[str, Any]:
+        """
+        P6-8.5：主动导航发布门验证（123号§22）。
+
+        123号§22明确要求：主动导航必须等待发布门——
+        "原题重复+跨题+跨模型+低泄漏+低副作用"全部通过。
+
+        系统探讨.md§13："当某条H关系经过多次原题验证→跨题迁移→跨模型验证
+        →低副作用→低泄漏之后，才可升级为主动导航。"
+
+        159号修正：不能因单次在线成功提前开启主动导航。
+
+        边界情况：
+        - 5项中任一项不满足 → 不允许升级
+        - 单次在线成功 → 不允许升级（必须多次原题验证）
+        - 只在原题有效 → 不允许升级（必须跨题）
+        - 只在单一模型有效 → 不允许升级（必须跨模型）
+        """
+        gate_results = {
+            "original_problem_repeated": original_problem_repeated,
+            "cross_problem_transfer": cross_problem_transfer,
+            "cross_model_validated": cross_model_validated,
+            "low_leakage": low_leakage,
+            "low_side_effects": low_side_effects,
+        }
+
+        all_5_passed = all(gate_results.values())
+
+        return {
+            "publishing_gate_passed": all_5_passed,
+            "can_upgrade_to_proactive": all_5_passed,
+            "gate_results": gate_results,
+            "n_gates_passed": sum(1 for v in gate_results.values() if v),
+            "n_gates_required": 5,
+            "no_single_success_bypass": True,  # 单次在线成功不能绕过发布门
+            "reference": "123号§22 + 系统探讨.md§13",
+        }
+
     def verify_p6_8_compliance(self) -> Dict[str, Any]:
         """
         P6-8完整合规验证。

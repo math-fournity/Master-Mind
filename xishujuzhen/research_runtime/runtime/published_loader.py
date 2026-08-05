@@ -147,27 +147,41 @@ class PublishedLoader:
         """
         P6-1.2：验证published规则满足G0-5标准。
 
-        G0-5：跨3个未参与设计的问题族和2个模型版本复现。
+        G0-5（123号§44）：published通用规则至少跨3个**未参与设计**的问题族
+        和2个模型版本复现。
+
+        关键修正：不只检查applicable_domains数量≥3，还要验证其中至少3个
+        是"未参与设计"的问题族（applicable_domains - design_participation_domains >= 3）。
 
         边界情况：
         - applicable_domains少于3 → 不满足
         - model_versions少于2 → 不满足
         - applicable_domains或model_versions为空 → 不满足
+        - 所有applicable_domains都参与了设计 → 不满足（无独立验证）
         """
         n_domains = len(rule.applicable_domains)
         n_versions = len(rule.model_versions)
 
-        domains_ok = n_domains >= PUBLISHED_MIN_PROBLEM_FAMILIES
+        # 关键修正：计算"未参与设计"的问题族
+        design_set = set(rule.design_participation_domains)
+        non_design_domains = [d for d in rule.applicable_domains if d not in design_set]
+        n_non_design = len(non_design_domains)
+
+        domains_ok = n_non_design >= PUBLISHED_MIN_PROBLEM_FAMILIES
         versions_ok = n_versions >= PUBLISHED_MIN_MODEL_VERSIONS
 
         return {
             "satisfies_g0_5": domains_ok and versions_ok,
             "n_applicable_domains": n_domains,
             "n_model_versions": n_versions,
+            "n_design_participation": len(design_set),
+            "n_non_design_domains": n_non_design,  # 关键：未参与设计的问题族数
+            "non_design_domains": non_design_domains,
             "min_domains_required": PUBLISHED_MIN_PROBLEM_FAMILIES,
             "min_versions_required": PUBLISHED_MIN_MODEL_VERSIONS,
             "domains_ok": domains_ok,
             "versions_ok": versions_ok,
+            "g0_5_correction": "验证未参与设计的问题族数≥3，不只是总applicable_domains数",
         }
 
     def _rejection_reason(self, status: RuleLifecycleStatus) -> str:

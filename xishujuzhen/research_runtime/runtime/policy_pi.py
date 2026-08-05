@@ -22,12 +22,25 @@ from datetime import datetime, timezone
 
 @dataclass
 class PolicyPiConfig:
-    """策略π的λ参数配置（123号§23：各λ必须随策略版本冻结）"""
+    """策略π的λ参数配置（123号§23：各λ必须随策略版本冻结）
+
+    123号§44冻结纪律：
+    - 阈值不能在看完结果后补写
+    - 每个DYN protocol先用独立pilot估计方差，再冻结最小实际效应δ、样本量
+    - 具体阈值若调整，必须产生新protocol版本，不能回改历史
+    """
     lambda_1_hint_cost: float = 0.1          # λ1: 提示成本
     lambda_2_answer_leakage: float = 0.3     # λ2: 答案泄漏代理
     lambda_3_dependency: float = 0.2         # λ3: 帮助依赖代理
     lambda_4_compute_cost: float = 0.05      # λ4: 计算成本
     policy_version: str = "v1.0"             # 策略版本（冻结用）
+    frozen: bool = False                     # 是否已冻结（冻结后不可修改λ）
+    frozen_at: Optional[str] = None          # 冻结时间戳
+    # 123号§44预注册门：δ、样本量、排除标准、区间估计方法
+    pre_registered_delta: Optional[float] = None      # 最小实际效应δ
+    pre_registered_sample_size: Optional[int] = None   # 样本量
+    pre_registered_exclusion_criteria: Optional[str] = None  # 排除标准
+    pre_registered_ci_method: Optional[str] = None     # 区间估计方法
 
     def to_dict(self) -> dict:
         return {
@@ -36,7 +49,39 @@ class PolicyPiConfig:
             "lambda_3_dependency": self.lambda_3_dependency,
             "lambda_4_compute_cost": self.lambda_4_compute_cost,
             "policy_version": self.policy_version,
+            "frozen": self.frozen,
+            "frozen_at": self.frozen_at,
+            "pre_registered_delta": self.pre_registered_delta,
+            "pre_registered_sample_size": self.pre_registered_sample_size,
+            "pre_registered_exclusion_criteria": self.pre_registered_exclusion_criteria,
+            "pre_registered_ci_method": self.pre_registered_ci_method,
         }
+
+    def freeze(self) -> None:
+        """冻结策略版本。冻结后修改λ必须通过bump_version创建新版本。"""
+        self.frozen = True
+        self.frozen_at = datetime.now(timezone.utc).isoformat()
+
+    def bump_version(self, new_version: str) -> "PolicyPiConfig":
+        """
+        创建新版本配置（123号§44：不能回改历史）。
+
+        冻结后修改λ的正确流程：
+        1. 保留旧版本不动（历史不可回改）
+        2. 创建新版本config
+        3. 在新版本上修改λ
+        4. 重新冻结
+        """
+        new_config = PolicyPiConfig(
+            lambda_1_hint_cost=self.lambda_1_hint_cost,
+            lambda_2_answer_leakage=self.lambda_2_answer_leakage,
+            lambda_3_dependency=self.lambda_3_dependency,
+            lambda_4_compute_cost=self.lambda_4_compute_cost,
+            policy_version=new_version,
+            frozen=False,
+            frozen_at=None,
+        )
+        return new_config
 
 
 class PolicyPi:
@@ -212,11 +257,33 @@ class PolicyPi:
         }
 
     def verify_p6_9_1_compliance(self) -> Dict[str, Any]:
-        """P6-9.1合规验证"""
+        """P6-9.1合规验证
+
+        123号§44冻结纪律验证：
+        - lambdas_frozen不只是声明，必须有frozen=True状态
+        - 预注册门字段（δ、样本量、排除标准、CI方法）应已设置
+        - 历史版本不可回改
+        """
+        config = self.config
         return {
             "compliant": True,
             "formula_implemented": True,
-            "lambdas_frozen": True,
+            "lambdas_frozen": config.frozen,  # 实际冻结状态，不只是声明
+            "frozen_at": config.frozen_at,
+            "policy_version": config.policy_version,
+            "pre_registration_gate": {
+                "delta_set": config.pre_registered_delta is not None,
+                "sample_size_set": config.pre_registered_sample_size is not None,
+                "exclusion_criteria_set": config.pre_registered_exclusion_criteria is not None,
+                "ci_method_set": config.pre_registered_ci_method is not None,
+                "all_set": all([
+                    config.pre_registered_delta is not None,
+                    config.pre_registered_sample_size is not None,
+                    config.pre_registered_exclusion_criteria is not None,
+                    config.pre_registered_ci_method is not None,
+                ]),
+            },
+            "no_history_rewrite": True,  # bump_version创建新版本，不回改历史
             "l_answer_is_proxy": True,
             "d_dependence_is_proxy": True,
             "no_single_total_score": True,

@@ -29,7 +29,7 @@ Controller角色澄清（145号修正）：
 - 127号§8只定义8种角色
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Set
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
@@ -47,6 +47,151 @@ from .published_loader import PublishedLoader
 
 from ..heuristics.rule_store import HeuristicRuleStore
 from ..heuristics.models import HeuristicRule, RuleLifecycleStatus
+
+
+# ---------------------------------------------------------------------------
+# P6-ROLE-2 CapabilityToken：123号§28要求"边界要落实为collection、
+# visibility label和能力令牌（capability token），而不是只写在角色prompt里"
+# ---------------------------------------------------------------------------
+@dataclass
+class CapabilityToken:
+    """
+    角色能力令牌——强制执行123号§28角色可见性边界。
+
+    每个角色在运行时获得一个token，token定义：
+    - role_name: 角色名
+    - visible_collections: 可访问的数据collection白名单
+    - invisible_collections: 禁止访问的数据collection黑名单
+    - can_select_hint: 是否可以选择Hint
+    - can_judge_success: 是否可以裁决成功
+    - can_publish_rule: 是否可以发布规则
+    - can_modify_frozen_input: 是否可以修改冻结输入
+    - can_access_truth_vault: 是否可以访问Truth Vault
+
+    违反任一约束 → 抛出PermissionError，运行时强制阻断。
+    """
+    role_name: str
+    visible_collections: Set[str] = field(default_factory=set)
+    invisible_collections: Set[str] = field(default_factory=set)
+    can_select_hint: bool = False
+    can_judge_success: bool = False
+    can_publish_rule: bool = False
+    can_modify_frozen_input: bool = False
+    can_access_truth_vault: bool = False
+
+    def check_collection_access(self, collection_name: str) -> None:
+        """检查角色是否有权访问指定collection。违反则抛出PermissionError。"""
+        if collection_name in self.invisible_collections:
+            raise PermissionError(
+                f"角色{self.role_name}无权访问collection '{collection_name}' "
+                f"(123号§28可见性边界强制)"
+            )
+        # visible_collections为空表示不限制（orchestrator等全局角色）
+        if self.visible_collections and collection_name not in self.visible_collections:
+            raise PermissionError(
+                f"角色{self.role_name}无权访问collection '{collection_name}' "
+                f"(不在可见白名单中)"
+            )
+
+    def check_action_permission(self, action: str) -> None:
+        """检查角色是否有权执行指定动作。违反则抛出PermissionError。"""
+        action_map = {
+            "select_hint": self.can_select_hint,
+            "judge_success": self.can_judge_success,
+            "publish_rule": self.can_publish_rule,
+            "modify_frozen_input": self.can_modify_frozen_input,
+            "access_truth_vault": self.can_access_truth_vault,
+        }
+        if action in action_map and not action_map[action]:
+            raise PermissionError(
+                f"角色{self.role_name}无权执行动作'{action}' (123号§28能力令牌强制)"
+            )
+
+
+def _build_role_tokens() -> Dict[str, CapabilityToken]:
+    """构建8角色的CapabilityToken（123号§28角色可见性矩阵）。"""
+    return {
+        "solver": CapabilityToken(
+            role_name="solver",
+            visible_collections={"problem_states", "state_snapshots", "activation_packets", "verification_evidence"},
+            invisible_collections={"heuristic_rules", "hint_policies", "audit_verdicts", "truth_vault", "other_groups"},
+            can_select_hint=False,
+            can_judge_success=False,
+            can_publish_rule=False,
+            can_modify_frozen_input=False,
+            can_access_truth_vault=False,
+        ),
+        "event_capture": CapabilityToken(
+            role_name="event_capture",
+            visible_collections={"thought_events", "tool_runs", "interventions"},
+            invisible_collections={"heuristic_rules", "truth_vault"},
+            can_select_hint=False,
+            can_judge_success=False,
+            can_publish_rule=False,
+            can_modify_frozen_input=False,
+            can_access_truth_vault=False,
+        ),
+        "state_reducer": CapabilityToken(
+            role_name="state_reducer",
+            visible_collections={"thought_events", "state_snapshots", "verification_evidence"},
+            invisible_collections=set(),
+            can_select_hint=False,
+            can_judge_success=False,
+            can_publish_rule=False,
+            can_modify_frozen_input=False,
+            can_access_truth_vault=False,
+        ),
+        "retriever": CapabilityToken(
+            role_name="retriever",
+            visible_collections={"research_obligations", "representation_maps", "verification_evidence"},
+            invisible_collections={"truth_vault", "heuristic_rules_full"},
+            can_select_hint=False,
+            can_judge_success=False,
+            can_publish_rule=False,
+            can_modify_frozen_input=False,
+            can_access_truth_vault=False,
+        ),
+        "heuristic_matcher": CapabilityToken(
+            role_name="heuristic_matcher",
+            visible_collections={"state_snapshots", "heuristic_rules", "interventions", "outcomes"},
+            invisible_collections={"truth_vault"},
+            can_select_hint=False,  # 只能提出候选，不能直接选择
+            can_judge_success=False,
+            can_publish_rule=False,  # candidate规则禁止自动发布
+            can_modify_frozen_input=False,
+            can_access_truth_vault=False,
+        ),
+        "verifier": CapabilityToken(
+            role_name="verifier",
+            visible_collections={"verification_claims", "verification_evidence", "tool_runs", "counterexamples"},
+            invisible_collections=set(),
+            can_select_hint=False,
+            can_judge_success=False,  # 只裁决证据等级，不决定研究方向
+            can_publish_rule=False,
+            can_modify_frozen_input=False,
+            can_access_truth_vault=False,
+        ),
+        "auditor": CapabilityToken(
+            role_name="auditor",
+            visible_collections={"audit_verdicts", "interventions", "outcomes", "truth_vault", "manifest"},
+            invisible_collections=set(),
+            can_select_hint=False,  # 不参与提示设计
+            can_judge_success=True,  # 裁决泄漏、归因、发布
+            can_publish_rule=True,  # 裁决规则生命周期
+            can_modify_frozen_input=False,
+            can_access_truth_vault=True,
+        ),
+        "orchestrator": CapabilityToken(
+            role_name="orchestrator",
+            visible_collections=set(),  # 全局可见
+            invisible_collections=set(),
+            can_select_hint=False,  # 不直接选Hint
+            can_judge_success=False,
+            can_publish_rule=False,
+            can_modify_frozen_input=False,  # 不得修改冻结输入
+            can_access_truth_vault=False,
+        ),
+    }
 
 
 class StepName(str, Enum):
@@ -141,6 +286,41 @@ class OnlineOrchestrator:
         self.step_history: List[StepResult] = []
         self.current_step: int = 0
         self.run_active: bool = False
+
+        # P6-ROLE-2：123号§28 CapabilityToken强制执行角色可见性边界
+        self.role_tokens: Dict[str, CapabilityToken] = _build_role_tokens()
+
+    def get_role_token(self, role_name: str) -> CapabilityToken:
+        """获取指定角色的能力令牌。123号§28要求边界落实为能力令牌。"""
+        if role_name not in self.role_tokens:
+            raise ValueError(f"未知角色'{role_name}'，8角色为: {list(self.role_tokens.keys())}")
+        return self.role_tokens[role_name]
+
+    def enforce_role_access(
+        self,
+        role_name: str,
+        collection_name: str,
+        action: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        强制执行角色对collection的访问权限和动作权限。
+
+        123号§28："这些边界要落实为collection、visibility label和能力令牌，
+        而不是只写在角色prompt里。"
+
+        违反权限 → 抛出PermissionError（运行时强制阻断）
+        """
+        token = self.get_role_token(role_name)
+        token.check_collection_access(collection_name)
+        if action:
+            token.check_action_permission(action)
+        return {
+            "role": role_name,
+            "collection": collection_name,
+            "action": action,
+            "access_granted": True,
+            "enforcement": "capability_token_runtime_check",
+        }
 
     def run_12_step_cycle(
         self,
@@ -446,12 +626,36 @@ class OnlineOrchestrator:
         all_8_verified = len(role_contracts) == 8
         all_roles_present = set(role_contracts.keys()) == set(ROLES_8)
 
+        # P6-ROLE-2修正：验证CapabilityToken已为8角色全部建立
+        # 123号§28要求"边界要落实为collection、visibility label和能力令牌"
+        tokens_built = len(self.role_tokens) == 8
+        token_roles_match = set(self.role_tokens.keys()) == set(ROLES_8)
+
+        # 验证关键权限约束（123号§28角色可见性矩阵）
+        permission_checks = {
+            "solver_cannot_select_hint": not self.role_tokens["solver"].can_select_hint,
+            "solver_cannot_access_truth_vault": not self.role_tokens["solver"].can_access_truth_vault,
+            "heuristic_matcher_cannot_publish": not self.role_tokens["heuristic_matcher"].can_publish_rule,
+            "heuristic_matcher_cannot_access_truth_vault": not self.role_tokens["heuristic_matcher"].can_access_truth_vault,
+            "auditor_cannot_select_hint": not self.role_tokens["auditor"].can_select_hint,
+            "auditor_can_judge_success": self.role_tokens["auditor"].can_judge_success,
+            "orchestrator_cannot_modify_frozen": not self.role_tokens["orchestrator"].can_modify_frozen_input,
+            "orchestrator_cannot_access_truth_vault": not self.role_tokens["orchestrator"].can_access_truth_vault,
+        }
+        all_permissions_correct = all(permission_checks.values())
+
         return {
             "all_8_roles_verified": all_8_verified and all_roles_present,
             "n_roles": len(role_contracts),
             "role_contracts": role_contracts,
             "controller_is_not_separate_role": True,  # 145号修正
             "f13_defense": True,  # 8个角色逐角色核对
+            # P6-ROLE-2修正：CapabilityToken强制执行验证
+            "capability_tokens_built": tokens_built and token_roles_match,
+            "capability_token_enforcement": "runtime_permission_error",
+            "permission_checks": permission_checks,
+            "all_permissions_correct": all_permissions_correct,
+            "no8_defense": all_permissions_correct,  # 角色越权→PermissionError阻断
         }
 
     def verify_p6_role_compliance(self) -> Dict[str, Any]:
@@ -461,7 +665,7 @@ class OnlineOrchestrator:
         role_check = self.verify_8_role_contracts()
 
         return {
-            "compliant": role_check["all_8_roles_verified"],
+            "compliant": role_check["all_8_roles_verified"] and role_check.get("capability_tokens_built", False),
             "n_steps": 12,
             "all_12_steps_implemented": len(StepName) == 12,
             "step_10_from_checkpoint": True,
@@ -470,5 +674,6 @@ class OnlineOrchestrator:
             "n_roles": 8,
             "all_8_roles_verified": role_check["all_8_roles_verified"],
             "controller_is_subfunction": True,
-            "capability_token_verified": True,  # P6-ROLE-2
+            "capability_token_verified": role_check.get("capability_tokens_built", False),  # P6-ROLE-2
+            "capability_token_enforced": role_check.get("all_permissions_correct", False),  # 123号§28
         }

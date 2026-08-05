@@ -414,9 +414,36 @@ def test_p6_exit_gates():
     )
     assert not no_gaming.get('is_gaming'), "正常进展不应触发gaming检测"
 
+    # P6-EXIT-4：预注册门不可回改（123号§44）
+    # 阈值不能在看完结果后补写；若调整必须产生新protocol版本
+    from xishujuzhen.research_runtime.runtime.policy_pi import PolicyPiConfig
+    config_v1 = PolicyPiConfig(policy_version="v1.0")
+    config_v1.pre_registered_delta = 0.15
+    config_v1.pre_registered_sample_size = 30
+    config_v1.pre_registered_exclusion_criteria = "no_prior_exposure"
+    config_v1.pre_registered_ci_method = "bootstrap"
+    config_v1.freeze()
+    assert config_v1.frozen, "冻结后frozen应为True"
+    assert config_v1.frozen_at is not None, "冻结后应有时间戳"
+
+    # bump_version创建新版本，旧版本保持不动（不可回改历史）
+    config_v2 = config_v1.bump_version("v2.0")
+    assert config_v2.policy_version == "v2.0", "新版本号应正确"
+    assert config_v2.frozen is False, "新版本应未冻结"
+    assert config_v1.frozen is True, "旧版本应保持冻结状态（不可回改）"
+    assert config_v1.policy_version == "v1.0", "旧版本号不可变"
+
+    # 预注册门字段全部设置
+    pre_reg = config_v1.to_dict()
+    assert pre_reg["pre_registered_delta"] is not None, "δ应已设置"
+    assert pre_reg["pre_registered_sample_size"] is not None, "样本量应已设置"
+    assert pre_reg["pre_registered_exclusion_criteria"] is not None, "排除标准应已设置"
+    assert pre_reg["pre_registered_ci_method"] is not None, "CI方法应已设置"
+
     print("✅ P6-EXIT-1: 闭环长期收益为正")
     print("✅ P6-EXIT-2: 不靠更高泄漏或无限帮助获得")
     print("✅ P6-EXIT-3: 无误触发和过度帮助")
+    print("✅ P6-EXIT-4: 预注册门不可回改（123号§44）")
 
 
 def main():

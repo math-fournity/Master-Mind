@@ -144,6 +144,13 @@ class ErrorStateRecovery:
 
         123号§847：checkpoint = 序列化(Q_0/W_t, 关键事件前缀, 模型/工具/权限/预算, 版本哈希)
         7个必填字段：q_0 / event_prefix / model_version / tool_versions / permissions / budget / version_hash
+
+        123号§847关键警告（修正补入）：
+        - checkpoint不包含、也不能冻结LLM隐藏内部状态
+        - 即使温度为0，多个继续运行也可能非确定
+        - 因此实验把同一内容哈希checkpoint视为阻断/分层变量，
+          在每个checkpoint上随机分配并重复多个continuation
+        - 不是声称两分支内部状态完全相同
         """
         missing = []
         for f in self.CHECKPOINT_7_FIELDS:
@@ -162,6 +169,10 @@ class ErrorStateRecovery:
             "missing_fields": missing,
             "n_fields": len(self.CHECKPOINT_7_FIELDS) - len(missing),
             "checkpoint_hash": ckpt_hash,
+            # 123号§847关键警告
+            "checkpoint_excludes_hidden_state": True,  # 不包含LLM隐藏内部状态
+            "non_determinism_acknowledged": True,      # 即使温度0也可能非确定
+            "layered_variable_not_identity": True,     # 分层变量≠内部状态完全相同
         }
 
     def setup_checkpoint_as_layered_variable(

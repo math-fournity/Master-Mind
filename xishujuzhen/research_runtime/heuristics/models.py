@@ -199,6 +199,10 @@ class HeuristicRule:
     model_versions: List[str] = field(default_factory=list)
     failure_cases: List[str] = field(default_factory=list)
     eta: Eta = field(default_factory=Eta)
+    # 123号§44 G0-5：published通用规则至少跨3个"未参与设计"的问题族复现
+    # design_participation_domains记录参与该规则设计的问题族
+    # G0-5验证时：non_design_domains = applicable_domains - design_participation_domains >= 3
+    design_participation_domains: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -213,6 +217,7 @@ class HeuristicRule:
             "model_versions": self.model_versions,
             "failure_cases": self.failure_cases,
             "eta": self.eta.to_dict(),
+            "design_participation_domains": self.design_participation_domains,
         }
 
     @classmethod
@@ -260,4 +265,5 @@ class HeuristicRule:
                 cost=d.get("eta", {}).get("cost", 0.0),
                 side_effects=d.get("eta", {}).get("side_effects", []),
             ),
+            design_participation_domains=d.get("design_participation_domains", []),
         )

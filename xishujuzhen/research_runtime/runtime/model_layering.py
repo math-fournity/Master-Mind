@@ -159,11 +159,22 @@ class ModelVersionLayering:
         返回按模型版本分层的效果列表。
         """
         effects = self._effects.get(rule_id, [])
+        # R-14修正：验证效果来自不同模型版本，不只是数量>1
+        # 123号§57："规则效果被单一模型版本绑架"——需要跨模型验证
+        model_versions_present = set()
+        for e in effects:
+            if hasattr(e, "model_version") and e.model_version:
+                model_versions_present.add(e.model_version)
+        n_distinct_versions = len(model_versions_present)
         return {
             "rule_id": rule_id,
-            "n_model_versions": len(effects),
+            "n_effects": len(effects),
+            "n_model_versions": n_distinct_versions,  # 不同模型版本数
+            "model_versions_present": list(model_versions_present),
             "layered_effects": [e.to_dict() for e in effects],
-            "r14_defense": len(effects) > 1,  # 多模型版本→不被单一版本绑架
+            # R-14修正：必须是不同模型版本，不只是效果记录数>1
+            "r14_defense": n_distinct_versions > 1,
+            "r14_not_single_model_bound": n_distinct_versions > 1,
         }
 
     def detect_decay(self, rule_id: str) -> Dict[str, Any]:

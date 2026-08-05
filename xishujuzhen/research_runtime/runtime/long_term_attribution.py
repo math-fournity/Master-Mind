@@ -20,7 +20,7 @@ F13防线：3步全部实现，不能只做提示链记录不做反事实估计�
 - HintChainEntry: {hint_id, timestamp, hint_level, h_relation_id, action_taken}
 - ProgressEvent: {progress_id, timestamp, progress_type, h_relation_used, verified}
 - AttributionResult: {progress_id, attributed_hint_id, attribution_confidence,
-                      counterfactual_result}
+                      counterfactual_result, attribution_uncertainty}
 """
 
 from typing import List, Optional, Dict, Any
@@ -114,11 +114,16 @@ class AttributionResult:
     - attributed_hint_id: 信用归给的提示标识（可为空——归因不确定或反事实否定）
     - attribution_confidence: 归因置信度（0.0—1.0）
     - counterfactual_result: 反事实估计结果
+    - attribution_uncertainty: 归因不确定度等级（high/medium/low）
+      high: H关系不在链中、反事实无数据等——归因基础不成立
+      medium: 对照数据不足、进展未验证等——归因有依据但证据不充分
+      low: 归因依据充分，反事实估计支持
     """
     progress_id: str
     attributed_hint_id: Optional[str] = None
     attribution_confidence: float = 0.0
     counterfactual_result: Dict[str, Any] = field(default_factory=dict)
+    attribution_uncertainty: str = "low"
 
     def to_dict(self) -> dict:
         return {
@@ -126,6 +131,7 @@ class AttributionResult:
             "attributed_hint_id": self.attributed_hint_id,
             "attribution_confidence": self.attribution_confidence,
             "counterfactual_result": self.counterfactual_result,
+            "attribution_uncertainty": self.attribution_uncertainty,
         }
 
 
@@ -197,6 +203,10 @@ class LongTermAttribution:
                 "warnings": warnings,
             }
 
+        # 幂等性：收集已记录的hint_id，避免重复记录
+        # （full_attribution中step2可能传入已记录的chain，此时应跳过而非重复追加）
+        existing_hint_ids = {e.hint_id for e in self._hint_chain}
+
         for hint_dict in hints:
             if not isinstance(hint_dict, dict):
                 warnings.append(f"跳过非dict提示条目: {hint_dict}")
@@ -205,6 +215,11 @@ class LongTermAttribution:
             hint_id = hint_dict.get("hint_id")
             if not hint_id:
                 warnings.append("跳过缺少hint_id的提示条目")
+                continue
+
+            # 幂等性检查：跳过已记录的提示
+            if hint_id in existing_hint_ids:
+                warnings.append(f"提示{hint_id}已在链中——跳过重复记录")
                 continue
 
             # 补全缺失的timestamp
@@ -289,6 +304,7 @@ class LongTermAttribution:
                 "progress_id": event.progress_id,
                 "attributed_hint_id": None,
                 "attribution_confidence": 0.0,
+                "attribution_uncertainty": "high",
                 "attribution_method": "non_h_relation_progress",
                 "note": "非H关系驱动进展——不归因给提示",
                 "r12_defense": r12_defense,
@@ -302,6 +318,7 @@ class LongTermAttribution:
                 "progress_id": event.progress_id,
                 "attributed_hint_id": None,
                 "attribution_confidence": 0.0,
+                "attribution_uncertainty": "high",
                 "attribution_method": "attribution_uncertain",
                 "note": "归因不确定——提示链为空",
                 "r12_defense": r12_defense,
@@ -322,6 +339,7 @@ class LongTermAttribution:
                 "progress_id": event.progress_id,
                 "attributed_hint_id": None,
                 "attribution_confidence": 0.0,
+                "attribution_uncertainty": "high",
                 "attribution_method": "attribution_uncertain",
                 "note": "归因不确定——H关系不在提示链中",
                 "r12_defense": r12_defense,
@@ -344,16 +362,21 @@ class LongTermAttribution:
         # 计算归因置信度
         confidence = self._compute_attribution_confidence(event, first_hint_id)
 
-        # 进展未验证 → 降低置信度
+        # 确定归因不确定度等级
+        # 进展未验证 → 不确定度提升至medium
         if not event.verified:
             confidence *= 0.5
             warnings.append("进展未验证——归因置信度降低50%")
+            uncertainty = "medium"
+        else:
+            uncertainty = "low"
 
         result = AttributionResult(
             progress_id=event.progress_id,
             attributed_hint_id=first_hint_id,
             attribution_confidence=confidence,
             counterfactual_result={},  # 步骤3填充
+            attribution_uncertainty=uncertainty,
         )
 
         self._attribution_results.append(result)
@@ -362,6 +385,7 @@ class LongTermAttribution:
             "progress_id": event.progress_id,
             "attributed_hint_id": first_hint_id,
             "attribution_confidence": confidence,
+            "attribution_uncertainty": uncertainty,
             "attribution_method": "first_h_relation_introducer",
             "h_relation_used": h_relation,
             "first_introducing_hint": first_hint_id,
@@ -414,10 +438,11 @@ class LongTermAttribution:
         如果反事实估计显示没有提示也会达到进展，则不归信用给提示。
 
         边界情况：
-        - 无对照数据（control_group_data为空）→ 标注"无对照数据"
-        - 对照组也达到类似进展 → 不归信用给提示
-        - 对照组未达到类似进展 → 归信用给提示
-        - 对照组数据不足 → 标注"对照数据不足"，降低置信度
+        - 无对照数据（control_group_data为空）→ 标注"无对照数据"，不确定度high
+        - 对照组高比例达到类似进展（>70%）→ 不归信用给提示
+        - 对照组中等比例达到类似进展（50%—70%）→ 降低归因置信度但不完全否定
+        - 对照组低比例达到类似进展（≤50%）→ 归信用给提示
+        - 对照组数据不足 → 标注"对照数据不足"，降低置信度，不确定度medium
 
         参数：
         - progress_event: 进展事件，ProgressEvent的dict形式
@@ -439,6 +464,7 @@ class LongTermAttribution:
                 "progress_id": event.progress_id,
                 "counterfactual_reached": None,
                 "counterfactual_estimate_possible": False,
+                "attribution_uncertainty": "high",
                 "note": "无对照数据",
                 "credit_attributed": None,
                 "confidence": 0.0,
@@ -467,6 +493,7 @@ class LongTermAttribution:
                 "progress_id": event.progress_id,
                 "counterfactual_reached": None,
                 "counterfactual_estimate_possible": False,
+                "attribution_uncertainty": "high",
                 "note": "对照数据不足——无匹配记录",
                 "credit_attributed": None,
                 "confidence": 0.0,
@@ -479,37 +506,60 @@ class LongTermAttribution:
         n_reached = sum(1 for c in matching_controls if c.get("reached", False))
         reach_rate = n_reached / n_total if n_total > 0 else 0.0
 
-        # 反事实判断：如果对照组中高比例达到类似进展，则不归信用给提示
-        counterfactual_reached = reach_rate >= 0.5
-
-        if counterfactual_reached:
-            # 反事实估计显示没有提示也会达到进展 → 不归信用
+        # 系统探讨.md §15.2："观察到差异不等于因果。B多了X且成功，不证明X导致成功。必须干预。"
+        # 反事实梯度判断：基于对照组达到进展的比例进行三级处理
+        # - 高比例（>70%）：强反事实证据，不归信用给提示
+        # - 中等比例（50%—70%）：降低归因置信度但不完全否定（系统探讨.md要求干预而非仅观察）
+        # - 低比例（≤50%）：归信用给提示
+        if reach_rate > 0.7:
+            # 高比例——强反事实证据，不归信用
+            counterfactual_reached = True
             credit_attributed = False
+            counterfactual_strength = "strong"
+            uncertainty = "low"  # 反事实证据强，不确定度低
             note = (
                 f"反事实估计显示对照组中{reach_rate:.0%}（{n_reached}/{n_total}）"
                 f"在没有该提示的情况下也达到了类似进展——不归信用给提示"
             )
             confidence = round(reach_rate, 2)
+        elif reach_rate > 0.5:
+            # 中等比例——降低归因置信度但不完全否定
+            # 系统探讨.md §15.2：不能仅凭观察否定因果，需保留部分信用并标注不确定
+            counterfactual_reached = True
+            credit_attributed = True  # 仍归信用，但置信度降低
+            counterfactual_strength = "moderate"
+            uncertainty = "medium"
+            note = (
+                f"反事实估计显示对照组中{reach_rate:.0%}（{n_reached}/{n_total}）"
+                f"在没有该提示的情况下也达到了类似进展——降低归因置信度但不完全否定"
+            )
+            confidence = round((1.0 - reach_rate) * 0.5, 2)
         else:
-            # 反事实估计显示没有提示不太可能达到进展 → 归信用给提示
+            # 低比例——归信用给提示
+            counterfactual_reached = False
             credit_attributed = True
+            counterfactual_strength = "weak"
+            uncertainty = "low"
             note = (
                 f"反事实估计显示对照组中仅{reach_rate:.0%}（{n_reached}/{n_total}）"
                 f"在没有该提示的情况下达到类似进展——归信用给提示"
             )
             confidence = round(1.0 - reach_rate, 2)
 
-        # 对照组数据不足（少于3条）→ 降低置信度
+        # 对照组数据不足（少于3条）→ 降低置信度，不确定度提升
         if n_total < 3:
             confidence *= 0.6
+            uncertainty = "medium"
             warnings.append(
-                f"对照组匹配数据不足（{n_total}条<3条）——置信度降低40%"
+                f"对照组匹配数据不足（{n_total}条<3条）——置信度降低40%，不确定度提升"
             )
 
         return {
             "progress_id": event.progress_id,
             "counterfactual_reached": counterfactual_reached,
             "counterfactual_estimate_possible": True,
+            "attribution_uncertainty": uncertainty,
+            "counterfactual_strength": counterfactual_strength,
             "credit_attributed": credit_attributed,
             "note": note,
             "confidence": round(confidence, 2),
@@ -541,9 +591,10 @@ class LongTermAttribution:
         4. 综合判断最终信用归属
 
         边界情况：
-        - 步骤2归因不确定 → 最终结果标注"归因不确定"
-        - 步骤3反事实否定 → 最终结果不归信用给提示
-        - 步骤3无对照数据 → 最终结果标注"无对照数据"，保留步骤2归因但降低置信度
+        - 步骤2归因不确定 → 最终结果标注"归因不确定"，不确定度high
+        - 步骤3反事实强否定（对照组>70%达到进展）→ 最终结果不归信用给提示
+        - 步骤3反事实中等否定（对照组50%—70%达到进展）→ 降低置信度但不完全否定
+        - 步骤3无对照数据 → 最终结果标注"无对照数据"，保留步骤2归因但降低置信度，不确定度high
 
         参数：
         - progress_event: 进展事件
@@ -560,7 +611,12 @@ class LongTermAttribution:
         all_warnings.extend(step1_result.get("warnings", []))
 
         # 步骤2：进展归因
-        step2_result = self.attribute_progress(progress_event, [])
+        # 用get_hint_chain()获取已记录的chain传入，而非record_hint_chain的返回值
+        # （后者是包含元数据的dict，不是纯chain列表，直接传入会产生
+        # "跳过非dict提示条目"warnings）
+        # record_hint_chain已实现幂等性，重复传入已记录的chain不会产生重复条目
+        recorded_chain = self.get_hint_chain()
+        step2_result = self.attribute_progress(progress_event, recorded_chain)
         all_warnings.extend(step2_result.get("warnings", []))
 
         # 步骤3：反事实估计
@@ -570,9 +626,24 @@ class LongTermAttribution:
         # 综合判断
         attributed_hint_id = step2_result.get("attributed_hint_id")
         step2_confidence = step2_result.get("attribution_confidence", 0.0)
+        step2_uncertainty = step2_result.get("attribution_uncertainty", "low")
         step3_credit = step3_result.get("credit_attributed")
         step3_possible = step3_result.get("counterfactual_estimate_possible", False)
         step3_confidence = step3_result.get("confidence", 0.0)
+        step3_uncertainty = step3_result.get("attribution_uncertainty", "low")
+        step3_strength = step3_result.get("counterfactual_strength", "weak")
+
+        # 不确定度合并函数：取step2和step3中更高的等级
+        uncertainty_rank = {"low": 0, "medium": 1, "high": 2}
+
+        def _merge_uncertainty(u1: str, u2: str) -> str:
+            """取两个不确定度等级中更高的那个。"""
+            r1 = uncertainty_rank.get(u1, 0)
+            r2 = uncertainty_rank.get(u2, 0)
+            for level, rank in uncertainty_rank.items():
+                if rank == max(r1, r2):
+                    return level
+            return "low"
 
         # 最终信用归属判断
         if attributed_hint_id is None:
@@ -580,23 +651,27 @@ class LongTermAttribution:
             final_credit_attributed = False
             final_note = step2_result.get("note", "归因不确定")
             final_confidence = 0.0
+            final_uncertainty = "high"
         elif not step3_possible:
             # 步骤3无对照数据——保留步骤2归因但降低置信度
             final_credit_attributed = True
             final_note = f"{step2_result.get('note', '')}；反事实估计无对照数据，归因置信度降低"
             final_confidence = round(step2_confidence * 0.6, 2)
+            final_uncertainty = "high"
         elif step3_credit:
-            # 步骤3确认归信用给提示
+            # 步骤3确认归信用给提示（含中等反事实否定但保留部分信用的情况）
             final_credit_attributed = True
             final_note = step3_result.get("note", "反事实估计支持归因")
             final_confidence = round(
                 (step2_confidence + step3_confidence) / 2, 2
             )
+            final_uncertainty = _merge_uncertainty(step2_uncertainty, step3_uncertainty)
         else:
-            # 步骤3反事实否定——不归信用给提示
+            # 步骤3反事实强否定——不归信用给提示
             final_credit_attributed = False
             final_note = step3_result.get("note", "反事实估计否定归因")
             final_confidence = 0.0
+            final_uncertainty = _merge_uncertainty(step2_uncertainty, step3_uncertainty)
 
         # 更新已存储的归因结果
         if self._attribution_results:
@@ -606,6 +681,7 @@ class LongTermAttribution:
                 attributed_hint_id if final_credit_attributed else None
             )
             last_result.attribution_confidence = final_confidence
+            last_result.attribution_uncertainty = final_uncertainty
 
         return {
             "progress_id": step2_result.get("progress_id"),
@@ -618,6 +694,8 @@ class LongTermAttribution:
                 ),
                 "credit_attributed": final_credit_attributed,
                 "attribution_confidence": final_confidence,
+                "attribution_uncertainty": final_uncertainty,
+                "counterfactual_strength": step3_strength,
                 "note": final_note,
             },
             "f13_defense": True,  # 3步全部实现
@@ -640,6 +718,7 @@ class LongTermAttribution:
         - P6-7.COMP3：F13防线——3步全部实现，不能只做步骤1
         - P6-7.COMP4：归因不确定时标注而非强行归因
         - P6-7.COMP5：反事实估计无数据时标注"无对照数据"
+        - P6-7.COMP6：归因不确定度等级标注（attribution_uncertainty: high/medium/low）
 
         返回：
         - 合规验证结果
@@ -665,6 +744,9 @@ class LongTermAttribution:
         # 无对照数据标注
         no_control_labeling = True  # counterfactual_estimate中已实现"无对照数据"标注
 
+        # 不确定度等级标注
+        uncertainty_labeling = True  # attribute_progress/counterfactual_estimate中已实现attribution_uncertainty标注
+
         return {
             "compliant": (
                 all_3_steps
@@ -672,6 +754,7 @@ class LongTermAttribution:
                 and r12_defense
                 and uncertain_labeling
                 and no_control_labeling
+                and uncertainty_labeling
             ),
             "step1_hint_chain_recording": step1_implemented,
             "step2_progress_attribution": step2_implemented,
@@ -682,6 +765,7 @@ class LongTermAttribution:
             "r12_defense": r12_defense,
             "uncertain_attribution_labeling": uncertain_labeling,
             "no_control_data_labeling": no_control_labeling,
+            "uncertainty_level_labeling": uncertainty_labeling,
             "n_attributions_recorded": len(self._attribution_results),
             "n_h_relations_tracked": len(self._h_relation_to_first_hint),
             "n_hints_in_chain": len(self._hint_chain),

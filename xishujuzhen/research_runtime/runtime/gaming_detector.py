@@ -171,22 +171,29 @@ class GamingDetector:
         154号修正核心：只检查输出长度变化不算——必须是T图结构的实际变化。
 
         检查维度（任一满足即有结构进展）：
-        1. 新增节点（nodes）：after_state的节点数 > before_state的节点数
-        2. 新增边（edges）：after_state的边数 > before_state的边数
-        3. 开放目标减少（open_obligations）：after < before
-        4. 义务状态变化（obligation_status）：before和after的义务状态不同
+        1. 新增节点（nodes/V_t）：after_state的节点数 > before_state的节点数
+        2. 新增边（edges/F_t结构）：after_state的边数 > before_state的边数
+        3. 开放目标减少（open_obligations/O_t）：after < before
+        4. 义务状态变化（obligation_status/D_t）：before和after的义务状态不同
+        5. 猜想前沿变化（conjecture_frontier/F_t）：before和after的猜想前沿不同
+        6. 证据变化（evidence/E_t）：after_state的证据数 > before_state的证据数
+
+        123号§15工作区定义W_t=(V_t, F_t, O_t, R_t, D_t, E_t)有6个分量，
+        结构进展度量需覆盖全部可观测分量（F_t猜想前沿、E_t证据）。
 
         深度标准：D3——不只看输出长度，看T图结构实际变化。
 
         边界情况：
         - before/after为空或None → False
-        - 节点数相同但内容变化 → 检查边和义务状态
+        - 节点数相同但内容变化 → 检查边、义务状态、猜想前沿、证据
         - 边数相同但开放目标减少 → True
         - 只有输出长度变化无结构变化 → False（154号修正）
 
         Args:
-            before_state: 前状态，应含nodes/edges/open_obligations/obligation_status
-            after_state: 后状态，应含nodes/edges/open_obligations/obligation_status
+            before_state: 前状态，应含nodes/edges/open_obligations/obligation_status/
+                          conjecture_frontier/evidence
+            after_state: 后状态，应含nodes/edges/open_obligations/obligation_status/
+                         conjecture_frontier/evidence
 
         Returns:
             True if 有结构进展, False otherwise
@@ -197,19 +204,19 @@ class GamingDetector:
         if not isinstance(before_state, dict) or not isinstance(after_state, dict):
             return False
 
-        # 维度1：新增节点
+        # 维度1：新增节点（V_t）
         before_nodes = before_state.get("nodes", [])
         after_nodes = after_state.get("nodes", [])
         if len(after_nodes) > len(before_nodes):
             return True
 
-        # 维度2：新增边
+        # 维度2：新增边（F_t结构）
         before_edges = before_state.get("edges", [])
         after_edges = after_state.get("edges", [])
         if len(after_edges) > len(before_edges):
             return True
 
-        # 维度3：开放目标减少
+        # 维度3：开放目标减少（O_t）
         before_open = before_state.get("open_obligations", 0)
         after_open = after_state.get("open_obligations", 0)
         if isinstance(before_open, (list, int)) and isinstance(after_open, (list, int)):
@@ -218,11 +225,103 @@ class GamingDetector:
             if after_count < before_count:
                 return True
 
-        # 维度4：义务状态变化
+        # 维度4：义务状态变化（D_t）
         before_status = before_state.get("obligation_status")
         after_status = after_state.get("obligation_status")
         if before_status is not None and after_status is not None:
             if before_status != after_status:
+                return True
+
+        # 维度5：猜想前沿变化（F_t）
+        before_frontier = before_state.get("conjecture_frontier")
+        after_frontier = after_state.get("conjecture_frontier")
+        if before_frontier is not None and after_frontier is not None:
+            if before_frontier != after_frontier:
+                return True
+
+        # 维度6：证据变化（E_t）
+        before_evidence = before_state.get("evidence", [])
+        after_evidence = after_state.get("evidence", [])
+        if isinstance(before_evidence, list) and isinstance(after_evidence, list):
+            if len(after_evidence) > len(before_evidence):
+                return True
+
+        return False
+
+    def detect_subtle_gaming(
+        self,
+        recent_outputs: List[str],
+        min_repeats: int = 3,
+    ) -> bool:
+        """
+        P6-6.5：检测隐蔽gaming。
+
+        123号§57新增风险：Agent可能不直接说"我不知道"，而是用更隐蔽的
+        方式触发帮助——如反复输出无实质内容的"思考中..."、"正在分析..."等
+        填充性文本，既不包含停滞词，也不推进任何实际工作。
+
+        检测策略：
+        - 统计recent_outputs中重复出现的无实质内容文本
+        - 无实质内容判定：文本长度短且不含工具调用/结构变化关键词
+        - 重复次数达到min_repeats阈值 → 判定隐蔽gaming
+
+        深度标准：D3——不只检查停滞词，还检查重复性无实质内容输出。
+
+        边界情况：
+        - recent_outputs为空或None → False
+        - 输出条数不足min_repeats → False
+        - 有实质性内容（含关键词/较长文本） → 不计入重复
+        - 重复但每次有不同实质内容 → False
+
+        Args:
+            recent_outputs: Agent最近的输出文本列表（按时间顺序）
+            min_repeats: 无实质内容输出重复的最小阈值，默认3
+
+        Returns:
+            True if 检测到隐蔽gaming, False otherwise
+        """
+        if not recent_outputs:
+            return False
+
+        if not isinstance(recent_outputs, list):
+            return False
+
+        if len(recent_outputs) < min_repeats:
+            return False
+
+        # 实质内容关键词——出现这些说明输出有实际工作内容
+        substantive_keywords = [
+            "节点", "边", "猜想", "证明", "定理", "引理",
+            "计算", "验证", "结果", "输出", "工具",
+            "node", "edge", "conjecture", "proof", "theorem",
+            "lemma", "calculate", "verify", "result", "tool",
+        ]
+
+        def is_insubstantial(text: str) -> bool:
+            """判断单条输出是否无实质内容"""
+            if not text or not isinstance(text, str):
+                return False
+            stripped = text.strip()
+            # 空文本或极短文本（<=20字符）视为无实质内容候选
+            if len(stripped) > 20:
+                return False
+            # 含实质内容关键词 → 有实质内容
+            text_lower = stripped.lower()
+            for kw in substantive_keywords:
+                if kw.lower() in text_lower:
+                    return False
+            return True
+
+        # 统计无实质内容输出的重复模式
+        insubstantial_counts: Dict[str, int] = {}
+        for output in recent_outputs:
+            if is_insubstantial(output):
+                key = output.strip()
+                insubstantial_counts[key] = insubstantial_counts.get(key, 0) + 1
+
+        # 任一无实质内容模式重复达到阈值 → 隐蔽gaming
+        for count in insubstantial_counts.values():
+            if count >= min_repeats:
                 return True
 
         return False
@@ -233,19 +332,31 @@ class GamingDetector:
         tool_calls: List[Dict],
         before_state: Dict,
         after_state: Dict,
+        recent_outputs: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
-        P6-6.4：三元判定gaming行为。
+        P6-6.4：三元判定gaming行为（含隐蔽gaming检测）。
 
         三元AND逻辑（F12防线：不简化为只检查停滞词）：
-        gaming = (停滞词=True) AND (工具证据=False) AND (结构进展=False)
+        explicit_gaming = (停滞词=True) AND (工具证据=False) AND (结构进展=False)
+
+        隐蔽gaming检测（123号§57新增风险）：
+        subtle_gaming = (隐蔽gaming=True) AND (工具证据=False) AND (结构进展=False)
+        Agent可能不直接说"我不知道"，而是反复输出无实质内容的填充文本
+        （如"思考中..."）以触发帮助——同样需工具证据和结构进展过滤。
 
         R-4防线：Agent可能迎合触发器自报停滞——三元判定过滤迎合性停滞。
         当Agent自报停滞但有工具证据或结构进展时，不判定gaming（真在尝试/推进）。
 
+        gaming_type区分：
+        - "explicit_gaming"：直接停滞词触发的gaming
+        - "subtle_gaming"：隐蔽重复性无实质内容输出触发的gaming
+        - "none"：未判定gaming
+
         边界情况：
         - 无gaming行为 → 停滞词False或工具证据True或结构进展True → not gaming
-        - gaming行为隐蔽 → 停滞词True+无工具证据+无结构进展 → gaming
+        - explicit gaming → 停滞词True+无工具证据+无结构进展 → gaming_type=explicit_gaming
+        - subtle gaming → 隐蔽gamingTrue+无工具证据+无结构进展 → gaming_type=subtle_gaming
         - 自报停滞+有工具证据 → not gaming（真在尝试）
         - 自报停滞+有结构进展 → not gaming（真在推进）
 
@@ -258,24 +369,50 @@ class GamingDetector:
             tool_calls: 工具调用记录列表
             before_state: 前状态T图快照
             after_state: 后状态T图快照
+            recent_outputs: Agent最近的输出文本列表，用于隐蔽gaming检测；
+                            为None时跳过隐蔽gaming检测
 
         Returns:
-            判定结果字典，含三元各值、gaming判定、limit_reward_help标志
+            判定结果字典，含三元各值、gaming判定、gaming_type、limit_reward_help标志
         """
         stall_words_detected = self.detect_stall_words(text)
         tool_evidence = self.verify_tool_evidence(tool_calls)
         structural_progress = self.measure_structural_progress(before_state, after_state)
 
-        # 三元AND逻辑（F12防线）
-        is_gaming = (
+        # 隐蔽gaming检测（123号§57新增风险）
+        subtle_gaming_detected = (
+            self.detect_subtle_gaming(recent_outputs) if recent_outputs else False
+        )
+
+        # 显式gaming三元AND逻辑（F12防线）
+        explicit_gaming = (
             stall_words_detected
             and not tool_evidence
             and not structural_progress
         )
 
+        # 隐蔽gaming三元AND逻辑（同样要求无工具证据+无结构进展）
+        subtle_gaming = (
+            subtle_gaming_detected
+            and not tool_evidence
+            and not structural_progress
+        )
+
+        is_gaming = explicit_gaming or subtle_gaming
+
+        # gaming_type区分
+        if explicit_gaming:
+            gaming_type = "explicit_gaming"
+        elif subtle_gaming:
+            gaming_type = "subtle_gaming"
+        else:
+            gaming_type = "none"
+
         return {
             "is_gaming": is_gaming,
+            "gaming_type": gaming_type,
             "stall_words_detected": stall_words_detected,
+            "subtle_gaming_detected": subtle_gaming_detected,
             "tool_evidence": tool_evidence,
             "structural_progress": structural_progress,
             "limit_reward_help": is_gaming,  # R-4防线：限制奖励性帮助
@@ -285,7 +422,8 @@ class GamingDetector:
             "detail": {
                 "stall_words_used": self.stall_words,
                 "reason": self._gaming_reason(
-                    stall_words_detected, tool_evidence, structural_progress, is_gaming
+                    stall_words_detected, tool_evidence, structural_progress,
+                    subtle_gaming_detected, is_gaming, gaming_type,
                 ),
             },
         }
@@ -295,20 +433,30 @@ class GamingDetector:
         stall: bool,
         tool: bool,
         progress: bool,
+        subtle: bool,
         is_gaming: bool,
+        gaming_type: str,
     ) -> str:
         """生成gaming判定原因说明"""
         if is_gaming:
-            return (
-                "gaming判定：自报停滞(停滞词=True)且无工具证据(工具证据=False)"
-                "且无结构进展(结构进展=False)——Agent可能在迎合触发器(R-4防线)"
-            )
-        if not stall:
-            return "非gaming：未检测到停滞词"
+            if gaming_type == "explicit_gaming":
+                return (
+                    "gaming判定(explicit_gaming)：自报停滞(停滞词=True)且无工具证据"
+                    "(工具证据=False)且无结构进展(结构进展=False)"
+                    "——Agent可能在迎合触发器(R-4防线)"
+                )
+            elif gaming_type == "subtle_gaming":
+                return (
+                    "gaming判定(subtle_gaming)：隐蔽gaming(重复无实质内容输出=True)"
+                    "且无工具证据(工具证据=False)且无结构进展(结构进展=False)"
+                    "——Agent可能在用隐蔽方式迎合触发器(123号§57风险)"
+                )
+        if not stall and not subtle:
+            return "非gaming：未检测到停滞词或隐蔽gaming"
         if tool:
-            return "非gaming：自报停滞但有工具证据——Agent真在尝试"
+            return "非gaming：有工具证据——Agent真在尝试"
         if progress:
-            return "非gaming：自报停滞但有结构进展——Agent真在推进"
+            return "非gaming：有结构进展——Agent真在推进"
         return "非gaming"
 
     def verify_p6_6_compliance(self) -> Dict[str, Any]:
