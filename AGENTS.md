@@ -206,8 +206,9 @@
 | `dev-docs/124-v1-2026-08-05-Phase0-7建设计划CheckList.md` | **Phase 0—7可执行Check List**：把123号Phase 0—7、DYN-0—7、停止条件、不做清单和下一实施包全部细化为可追踪的Check List条目。每个Phase有入口门、细化的子项Check List、出口门、停止条件和失败回滚。含全局预注册门（G0-1—G0-6）、核心指标清单（G0-M1—M10）、风险登记（R-1—R-16）、贯穿案例（Ramsey CC-R-0—6 + 费马 CC-F-0/7）、角色隔离矩阵（P0-5.1—5.13）、降级路径（DEG-1—6）、进度追踪表和5个未决问题。v1修正：修正P0-7.1的DYN编号错误（DYN-4→DYN-5）、修正P4-EXIT-4的逻辑错误（冻结标准≠达到标准） | **必读**。Phase推进的执行视图，按Phase顺序逐项打勾 |
 | `dev-docs/125-v1-2026-08-05-AGENTS对齐审计与Git-Hook防不同步机制.md` | **AGENTS.md对齐审计+防御机制**：审计发现7类不同步问题（DYN阶梯定义错误/Phase编号偏移/文档索引遗漏/代码文件未引用/文件名引用错误等），全部修正后新增`alignment_check.py`（6项对齐检查）+`pre-commit` hook（硬性违规阻止commit）+`post-commit` hook增强（commit后对齐提醒）。机制首次运行即自动检测到人工审计遗漏的64号文件名错误 | **必读**。理解AGENTS.md与repo对齐的防护机制 |
 | `dev-docs/126-v1-2026-08-05-dg星图只读盘点报告.md` | **dg_*只读盘点报告**：Phase 0 (P0-3)冻结`dg_nodes`(1719)/`dg_edges`(1483)/`loops`(4)的type/edge_type/mapping_type/graph分布、五类初步归类、schema字段清单。重要发现：96.5%边edge_type为unknown，真实边语义在mapping_type字段；当前dg_*完全是K视图，无T/H/E节点 | **必读**。Phase 0架构冻结的数据基线 |
-| `dev-docs/127-v1-2026-08-05-Schema冻结与角色隔离矩阵.md` | **Schema冻结与角色隔离矩阵**：Phase 0核心交付物。冻结8类schema（Task/Workspace/Event/Obligation/Representation/Evidence/HeuristicRule/Visibility）、8角色可见性矩阵（8×14 collection）、逐组件最小输入/输出契约、CapabilityToken强制机制、candidate/validated/published/retired生命周期状态机。123号10条架构裁决在schema中的逐项体现 | **最高优先级必读**。Phase 1起按此schema创建新collection |
-| `dev-docs/128-v1-2026-08-05-全局预注册项与贯穿案例冻结.md` | **全局预注册项与贯穿案例冻结**：Phase 0全局项落盘。G0-1关键事件完整清单（5类20+种事件类型）、R-1—R-16风险监控机制（每项含监控机制/检查点/触发停止条件）、CC-R-0 Ramsey案例冻结（非泄漏干预阶梯+验证维度）、CC-F-0费马案例冻结（三层难度阶梯+推论链+大师启发维度） | **必读**。每个Phase出口门对照检查 |
+| `dev-docs/127-v1-2026-08-05-Schema冻结与角色隔离矩阵.md` | **Schema冻结与角色隔离矩阵**：Phase 0核心交付物。冻结8类schema（Task/Workspace/Event/Obligation/Representation/Evidence/HeuristicRule/Visibility）、8角色可见性矩阵（8×14 collection）、逐组件最小输入/输出契约、CapabilityToken强制机制、candidate/validated/published/retired生命周期状态机、L1/L2/L3五正交字段设计、原文数据对象crosswalk、12步与11阶段crosswalk。123号10条架构裁决在schema中的逐项体现 | **最高优先级必读**。Phase 1起按此schema创建新collection |
+| `dev-docs/128-v1-2026-08-05-全局预注册项与贯穿案例冻结.md` | **全局预注册项与贯穿案例冻结**：Phase 0全局项落盘。G0-1关键事件完整清单（5类27种事件类型，覆盖123号Event schema全部14种语义事件）、R-1—R-16风险监控机制（每项含监控机制/检查点/触发停止条件）、CC-R-0 Ramsey案例冻结（非泄漏干预阶梯+验证维度）、CC-F-0费马案例冻结（三层难度阶梯+推论链+大师启发维度） | **必读**。每个Phase出口门对照检查 |
+| `dev-docs/129-v1-2026-08-05-Phase0三文件审计与修正报告.md` | **Phase 0三文件审计与修正报告**：以plan/系统探讨.md/123号v1三个文件为基准，对Phase 0全部实现做逐项审计。识别7项遗漏（L1/L2/L3五正交字段/旧七步骤迁移映射/数据对象crosswalk/12步crosswalk/明确不做清单/G0-1事件补全/SHA-256验证），全部修正。含三文件冲突裁决（Phase数量/角色数量/DYN编号/运行时步骤/风险数量）和实现优秀性评估 | **必读**。理解Phase 0的完整性和修正历史 |
 | `xishujuzhen/arxiv_to_arangodb.py` | arXiv元数据→ArangoDB导入脚本：读取JSON批量导入239K篇+创建4个索引+验证 | 工具脚本 |
 | `xishujuzhen/arangodb_init.py` | ArangoDB数据库初始化：创建xishujuzhen_math数据库+12 collections+3 graphs+8索引 | 基础设施脚本 |
 | `xishujuzhen/topology_verifier.py` | 拓扑覆盖验证器：检查G'→G的节点/边/环路集合保真。**123号裁决：结构保真验证，不代表语义或数学正确** | legacy验证器 |
@@ -364,6 +365,22 @@
 ### 七步骤工作流 [legacy-static]
 
 > **[legacy-static]** 123号v1已将七步骤正式降为legacy静态重建器。保留静态知识图与提示展开价值，不再承担主运行时。主运行时改为12步事件溯源循环（观测→状态归约→候选规则匹配→受约束干预→验证→归因→回写）。旧七步骤的100%拓扑覆盖只证明结构保真，不证明语义或数学真值，也不证明动态思维矫正。
+
+#### 旧七步骤→新12步运行时的迁移映射
+
+> 来源：系统探讨.md第十二节 + plan + 123号第五十三节
+
+| 旧步骤 | 新位置 | 说明 |
+|---|---|---|
+| 1.导入依赖图 | K图离线构建与发布 | 不再每轮运行时导入，K图是离线维护的 |
+| 2.topo_generator | 局部激活包的结构编译器 | 不再全图展开，只编译当前卡点相关的最小结构 |
+| 3.TopologyVerifier | 验证选定结构是否完整 | 只验证激活包的结构保真，不证明Hint正确 |
+| 4.转译 | 增量Context Compiler | 只编译"当前卡点+一个最小操作+必要接口+可选工具" |
+| 5.KC审计 | Hint注入前的知识忠实与泄漏审计 | 由Auditor角色执行，不是meta AI |
+| 6.一次性分析 | 循环中的Solver step | Solver在12步循环中的步骤3和步骤10 |
+| 7.最终覆盖审计 | 每轮进展审计+最终证明义务审计 | 由Verifier和Auditor分别执行 |
+
+**核心变化**：不是抛弃旧系统，而是把它从"整个运行时"降为"动态控制系统中的局部上下文编译与结构验证模块"。
 
 数学大师系统的核心是七步骤工作流，通过`seven_step_pipeline.py`执行：
 
@@ -571,6 +588,19 @@
 8. **高级数学分阶段**：类型论、超图、可实现事件结构、因果实验和操作化泄漏指标先行；严格信息论、范畴、层、TDA、HoTT在对象与分布假设成熟后进入，不在状态空间未定义时宣称找到同调洞。
 9. **数据crosswalk**：`dg_*`→新schema有字段级映射；旧节点按`is_knowledge/is_trace/is_heuristic/is_evidence/is_execution`五类拆分，不允许新系统直接继承混合边。
 10. **允许核心假设失败**：停止条件和降级终态（退回静态重建器或人工辅助研究）是系统科学性的一部分；不通过DYN-3即不进入DYN-5。
+
+### 明确不做清单（123号第五十九节）
+
+以下8项是项目级硬约束，任何Phase都不得违反：
+
+1. **不先扩张到325000知识节点再验证核心闭环**——先通过DYN-0—DYN-4，证明状态可建模且最小Hint有效
+2. **不把完整答案路线改写成"意识"后继续做B组提示**——这是答案泄漏的根因
+3. **不用节点覆盖率代替数学正确或研究能力**——100%拓扑覆盖只证明结构保真
+4. **不要求或伪造隐藏chain-of-thought**——只处理公开研究产物与工具事件
+5. **不让同一Master同时持有答案、设计Hint、运行Solver和评分**——角色隔离是硬约束
+6. **不把L1/L2/L3当成同一认知单元的版本号**——L1/L2/L3是提取层次，版本链独立编号
+7. **不在状态空间未定义时宣称找到了同调洞**——HoTT/同调/几何方法在对象与分布假设成熟后进入
+8. **不让在线一次成功自动写入production H**——candidate规则禁止在线自动提示
 
 ### 80—99号完整复核后的证据裁决（122号v3）
 

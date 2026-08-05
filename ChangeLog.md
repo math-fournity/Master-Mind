@@ -107,3 +107,11 @@
 - **P0-8完成**：`cognition_import_math.py`改为merge/upsert模式（不truncate）；新增`cognition_export_math.py`（ArangoDB→JSON双向同步）；`cognition_sdk_math.py`的`add_unit()`增加审计日志（`_audit_log()`方法写入cognition_audit_log collection）；新增`arango_backup.sh`备份脚本+`backups/arango/`目录。
 - **124号Check List更新**：Phase 0全部条目（P0-1—P0-8 + P0-EXIT-1/2/3 + G0-1 + R-1—R-16 + CC-R-0 + CC-F-0）标记为[x]并附证据定位。
 - **AGENTS.md更新**：dg_nodes/dg_edges描述更新为实际统计值；Handover Section更新冻结时点值；TODO中Phase 0标记为[x]；新增126/127/128号文档索引。
+
+### Phase 0三文件审计与修正（2026-08-05）
+
+- **新建`dev-docs/129-v1-2026-08-05-Phase0三文件审计与修正报告.md`**：以plan/系统探讨.md/123号v1三个文件为基准，对Phase 0全部实现做逐项审计。识别7项遗漏并全部修正。含三文件冲突裁决（Phase数量/角色数量/DYN编号/运行时步骤/风险数量）和实现优秀性评估。
+- **127号文档修正**：§12补充L1/L2/L3五正交字段设计（semantic_role/abstraction_level/reuse_scope/evidence_level/intervention_effect）；§13补充原文数据对象到严格模式crosswalk（10行对应表）；§14补充12步运行时与原文11阶段crosswalk（12行对应表+4项关键变化）。
+- **128号文档修正**：§1.2补充subgoal/test/contradiction/resolution/observation 5种事件类型；新增§1.5与123号Event schema的对齐说明，确保覆盖全部14种语义事件类型。
+- **AGENTS.md修正**：七步骤工作流节补充旧七步骤→新12步运行时迁移映射表（7行对应表）；补充"明确不做"清单（8项硬约束，来自123号§59）；更新127/128号文档索引描述；新增129号文档索引。
+- **SHA-256验证**：系统探讨.md SHA-256=`a2ac4dc1c5ea0b944f1ced587fc9623023d5dd3c9792def9311997d122e4924b`，与123号§1记录一致，文件未被修改。
