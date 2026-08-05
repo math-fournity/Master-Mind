@@ -184,8 +184,9 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `dev-docs/111-知识搜集优先级方案-最难最妙最新.md` | **搜集优先级方案**：核心洞察（来自用户）——数学大师系统的价值不在于装AI已经会的东西，而在于装AI不会的。越是难、妙、新，越是AI本身可能不会的，越应该优先装入。**三级优先级**：P0=AI最不可能会的（Ramanujan冷僻恒等式/最新arXiv/Schweitzer研究级竞赛/Erdős冷僻问题/Arnold Trivium/数学思想书/Conway深度工作/开放问题详细进展）；P1=AI浅层知道但深度不够的（MathLib形式化定理/THE BOOK/OEIS/关键数学家工作/Bourbaki Seminar/IMO Shortlist）；P2=AI基本会的（标准教材/Wikipedia/基础竞赛题）；P3=AI完全会的（只做索引）。"难妙新"三准则：满足越多优先级越高 | **必读**。搜集优先级逻辑 |
 | `knowledge/` | **P0知识搜集成果（截至2026-08-04）**：①P0经典知识：38文件10810行680KB（Ramanujan/Arnold/思想书/竞赛题/突破/Conway/开放问题）②**arXiv全文**：1305篇972008行114MB（145个分类的HTML全文，math.* 325篇/cs.* 302篇/physics.* 182篇/quant-ph 7篇/math-ph 8篇/hep-th 9篇/stat.* 45篇/nlin.* 45篇等）③**arXiv穷尽式元数据**：**239472篇**唯一论文，323.8MB JSON，覆盖44个分类（math.* 28个+cs理论7个+quant-ph+math-ph+hep-th+stat.ML+nlin 4个），2023-2026年，按submittedDate日期范围查询穷尽获取，大分类达10000 API上限。年份分布：2023=48983/2024=69810/2025=62131/2026=58548 | **必读**。P0知识存档 |
 | `scripts/arxiv_search.py` | arXiv API搜索脚本v1：28个数学分类各50篇 | 工具脚本（已被v3接替） |
-| `scripts/arxiv_fetch_html.py` | arXiv HTML全文抓取脚本：从arxiv.org/html/<id>抓取HTML转为markdown | 工具脚本 |
+| `scripts/arxiv_fetch_html.py` | arXiv HTML全文抓取脚本v1：从arxiv.org/html/<id>抓取HTML转为markdown，27个数学分类各3篇 | 工具脚本（已被v2接替） |
 | `scripts/arxiv_search_v3.py` | **arXiv API穷尽式搜索脚本v3**：44个分类（math+cs理论+quant-ph+math-ph+hep-th+stat.ML+nlin），submittedDate日期范围查询（2025-2026 + 2023-2024），200条/页，3秒间隔，429重试退避。239472篇元数据 | **当前版本** |
+| `scripts/arxiv_fetch_html_v2.py` | **arXiv HTML全文抓取脚本v2**：从239K篇元数据中按"难妙新"原则筛选1452篇，145个分类各10篇最新论文HTML全文。1305篇成功（含v1的69篇），972008行114MB | **当前版本** |
 
 ### 星学知识系统结构参考
 
@@ -438,7 +439,7 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 
 ## TODO
 
-> 本节记录跨 Session 需要保持的待办事项。当前为空，待项目启动后填充。
+> 本节记录跨 Session 需要保持的待办事项。
 
 - [ ] 制定数学大师制造项目的建设计划（Phase 划分 + Check List）——认知基础已落盘到 80 号文档
 - [ ] 设计数学领域的依赖图初始结构（数学领域/工具/问题类型如何组织为节点和边）
@@ -451,6 +452,10 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - [x] **三层提取 POC**：验证 L1/L2/L3 三层提取的跨题复用增益（A=仅L1 / B=L1+L2 / C=L1+L2+L3 三组对照）——见 83 号文档第六节。**POC-3完成**：题3远迁移C vs B L3增量+2.6≥+1.5成功。结果见 106 号文档
 - [x] **部署 ArangoDB 基础设施**：共用星学项目 ArangoDB 实例（端口8529），创建 `xishujuzhen_math` 数据库，运行 `arangodb_init.py`（已复制到数学项目 `xishujuzhen/`）——见 86 号文档
 - [x] **大师-POC-2 采用七步骤工作流**：矩条件极差题第二问完整证明，使用 ArangoDB + G'_topo + TopologyVerifier，从文字对照升级为拓扑确定性验证。B组显著优于A组（+3.27/10分制）和B'组（+2.34/10分制），H1-H5全部验证通过。结果见 88 号文档
+- [x] **P0知识搜集——arXiv穷尽式**（109号方案第⑤来源）：239472篇元数据（44分类，2023-2026，323.8MB JSON）+ 1305篇HTML全文（145分类，972008行114MB）。技术路线：arXiv API submittedDate日期范围查询 + 200条/页 + 3秒间隔 + 429重试退避。大分类达10000 API上限。见`knowledge/arxiv/`
+- [ ] **P1知识搜集**（109号方案十三大来源中剩余来源）：①MathLib 100000+定理导入 ②OEIS 37万序列 ③THE BOOK完整版 ④关键数学家全集（Euler 80卷/Ramanujan笔记+Berndt注解）⑤教材与专著~200本 ⑥竞赛题全集（含Schweitzer研究级）⑦形式化数学库（Coq/Mizar/Metamath）⑧数学杂志问题栏（AMM 1894-/Crux/Kvant）⑨Bourbaki Seminar/ICM Proceedings ⑩Gardner 25年专栏/Conway全部 ⑪历史与哲学（Kline通史/Stillwell/Neugebauer/Heath）。按111号"难妙新"优先级排序
+- [ ] **arXiv元数据导入ArangoDB**：239K篇元数据导入ArangoDB建立论文索引，支持按分类/日期/作者/关键词查询，为依赖图节点提供论文出处定位
+- [ ] **运行6个诊断测试**（97号测试方案）：T14 A/B对照待执行（需真实任务场景），T11b未执行（topo_generator已覆盖meta AI版）
 
 ## Memory Section
 
@@ -521,6 +526,23 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - 题库：15道题，42个解法（problems + solutions集合）——Phase A完成
 - G'_topo（经典计算生成）：18节点，25边，2环路，TopologyVerifier 1次通过100%覆盖（POC-2场景）
 - POC回归验证基线：POC-1=94/100，POC-2=100/100
+
+**知识搜集状态（2026-08-04）**：
+- **P0经典知识**：38文件10810行680KB（Ramanujan/Arnold/思想书/竞赛题/突破/Conway/开放问题）——`knowledge/`根目录
+- **arXiv穷尽式元数据**：239472篇唯一论文，323.8MB JSON——`knowledge/arxiv/metadata_all_2023plus.json` + `knowledge/arxiv/metadata/meta_*.json`
+  - 44个分类：math.* 28个 + cs.CC/LO/FL/DS/CG/GT/SC 7个 + quant-ph + math-ph + hep-th + stat.ML + nlin.CD/SI/AO/PS 4个
+  - 年份分布：2023=48983 / 2024=69810 / 2025=62131 / 2026=58548
+  - 大分类达10000 API上限（math.CO/AP/OC/PR/NA, quant-ph, hep-th, stat.ML）
+  - math.MP和stat.TH返回0（分类名可能需要交叉列表查询）
+- **arXiv全文**：1305篇972008行114MB——`knowledge/arxiv/fulltext/*.md`
+  - 145个分类各10篇最新论文HTML全文
+  - math.* 325篇 / cs.* 302篇 / physics.* 182篇 / quant-ph 7篇 / math-ph 8篇 / hep-th 9篇 / stat.* 45篇 / nlin.* 45篇
+  - 216篇失败（主要是旧论文无HTML版本）
+- **arXiv技术路线**（全部免费匿名无key）：
+  - 元数据：arXiv API `export.arxiv.org/api/query` + submittedDate日期范围查询（2025-2026 + 2023-2024两批） + 200条/页（API最大值） + 3秒间隔 + 429重试退避（60s/120s/180s...）
+  - 全文：`arxiv.org/html/<id>`抓取HTML转Markdown + 3秒间隔 + 429重试退避
+  - 脚本：`scripts/arxiv_search_v3.py`（元数据）+ `scripts/arxiv_fetch_html_v2.py`（全文）
+- **P1待搜集**（109号方案十三大来源中剩余来源）：MathLib 100000+定理 / OEIS 37万序列 / THE BOOK / 数学家全集 / 教材~200本 / 竞赛题全集 / Coq/Mizar/Metamath / AMM问题栏 / Bourbaki Seminar / Gardner/Conway / Kline通史等
 
 ## 术语备忘
 
