@@ -204,6 +204,7 @@
 | `dev-docs/122-v3-2026-08-05-完整机制复核与费马极限案例.md` | **证据复核基线**：完整通读80—99号后回答五问；裁决现有静态提示、七步骤、经典展开和工作认知图各自真正证明了什么；解释Master答案泄漏的系统根因；以Frey—Ribet—Wiles链区分“调用已证模性推FLT”“重建Wiles证明”“独立发现路线” | **必读**。123号的证据前提 |
 | `dev-docs/123-v1-2026-08-05-数学大师系统全景复盘与第一性原理重构计划.md` | **当前最高架构与建设基线**：以`系统探讨.md`全文为母本，保留七层能力、五类资产和K/T/H直觉；用类型化任务/工作区、事件溯源、表示变换、时序规则、证据状态和受约束最小干预严格化；建立DYN-0—7、Phase 0—7、角色权限、数据crosswalk、停止条件及Ramsey/费马案例 | **最高优先级必读**。后续schema、POC和运行时必须服从 |
 | `dev-docs/124-v1-2026-08-05-Phase0-7建设计划CheckList.md` | **Phase 0—7可执行Check List**：把123号Phase 0—7、DYN-0—7、停止条件、不做清单和下一实施包全部细化为可追踪的Check List条目。每个Phase有入口门、细化的子项Check List、出口门、停止条件和失败回滚。含全局预注册门（G0-1—G0-6）、核心指标清单（G0-M1—M10）、风险登记（R-1—R-16）、贯穿案例（Ramsey CC-R-0—6 + 费马 CC-F-0/7）、角色隔离矩阵（P0-5.1—5.13）、降级路径（DEG-1—6）、进度追踪表和5个未决问题。v1修正：修正P0-7.1的DYN编号错误（DYN-4→DYN-5）、修正P4-EXIT-4的逻辑错误（冻结标准≠达到标准） | **必读**。Phase推进的执行视图，按Phase顺序逐项打勾 |
+| `dev-docs/125-v1-2026-08-05-AGENTS对齐审计与Git-Hook防不同步机制.md` | **AGENTS.md对齐审计+防御机制**：审计发现7类不同步问题（DYN阶梯定义错误/Phase编号偏移/文档索引遗漏/代码文件未引用/文件名引用错误等），全部修正后新增`alignment_check.py`（6项对齐检查）+`pre-commit` hook（硬性违规阻止commit）+`post-commit` hook增强（commit后对齐提醒）。机制首次运行即自动检测到人工审计遗漏的64号文件名错误 | **必读**。理解AGENTS.md与repo对齐的防护机制 |
 | `xishujuzhen/arxiv_to_arangodb.py` | arXiv元数据→ArangoDB导入脚本：读取JSON批量导入239K篇+创建4个索引+验证 | 工具脚本 |
 | `xishujuzhen/arangodb_init.py` | ArangoDB数据库初始化：创建xishujuzhen_math数据库+12 collections+3 graphs+8索引 | 基础设施脚本 |
 | `xishujuzhen/topology_verifier.py` | 拓扑覆盖验证器：检查G'→G的节点/边/环路集合保真。**123号裁决：结构保真验证，不代表语义或数学正确** | legacy验证器 |
