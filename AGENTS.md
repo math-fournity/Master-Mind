@@ -209,14 +209,14 @@
 | `dev-docs/127-v1-2026-08-05-Schema冻结与角色隔离矩阵.md` | **Schema冻结与角色隔离矩阵**：Phase 0核心交付物。冻结8类schema（Task/Workspace/Event/Obligation/Representation/Evidence/HeuristicRule/Visibility）、8角色可见性矩阵（8×14 collection）、逐组件最小输入/输出契约、CapabilityToken强制机制、candidate/validated/published/retired生命周期状态机、L1/L2/L3五正交字段设计、原文数据对象crosswalk、12步与11阶段crosswalk。123号10条架构裁决在schema中的逐项体现 | **最高优先级必读**。Phase 1起按此schema创建新collection |
 | `dev-docs/128-v1-2026-08-05-全局预注册项与贯穿案例冻结.md` | **全局预注册项与贯穿案例冻结**：Phase 0全局项落盘。G0-1关键事件完整清单（5类27种事件类型，覆盖123号Event schema全部14种语义事件）、R-1—R-16风险监控机制（每项含监控机制/检查点/触发停止条件）、CC-R-0 Ramsey案例冻结（非泄漏干预阶梯+验证维度）、CC-F-0费马案例冻结（三层难度阶梯+推论链+大师启发维度） | **必读**。每个Phase出口门对照检查 |
 | `dev-docs/129-v1-2026-08-05-Phase0三文件审计与修正报告.md` | **Phase 0三文件审计与修正报告**：以plan/系统探讨.md/123号v1三个文件为基准，对Phase 0全部实现做逐项审计。识别7项遗漏（L1/L2/L3五正交字段/旧七步骤迁移映射/数据对象crosswalk/12步crosswalk/明确不做清单/G0-1事件补全/SHA-256验证），全部修正。含三文件冲突裁决（Phase数量/角色数量/DYN编号/运行时步骤/风险数量）和实现优秀性评估 | **必读**。理解Phase 0的完整性和修正历史 |
-| `dev-docs/130-v1-2026-08-05-Phase0-CheckList.md` | **Phase 0独立Check List**：从124号v2拆出。含P0-1—P0-8全部子项（含129号审计后补充的完整性标准P0-1.4/P0-4.10/P0-4.11/P0-6.4/P0-COMP-1/P0-COMP-2）和P0-EXIT出口门。Phase 0已完成 | Phase 0执行视图 |
-| `dev-docs/131-v1-2026-08-05-Phase1-CheckList.md` | **Phase 1独立Check List**：从124号v2拆出。含P1-1—P1-7全部子项+完整性标准+P1-EXIT出口门。目标：完成DYN-0（事件捕获真实性） | Phase 1执行视图 |
-| `dev-docs/132-v1-2026-08-05-Phase2-CheckList.md` | **Phase 2独立Check List**：从124号v2拆出。含P2-1—P2-7全部子项+完整性标准+P2-EXIT出口门。目标：完成DYN-1（状态重建一致性）和DYN-2（卡点检测校准） | Phase 2执行视图 |
-| `dev-docs/133-v1-2026-08-05-Phase3-CheckList.md` | **Phase 3独立Check List**：从124号v2拆出。含P3-1—P3-8+P3-EXIT出口门。目标：离线候选启发，禁止在线自动提示 | Phase 3执行视图 |
-| `dev-docs/134-v1-2026-08-05-Phase4-CheckList.md` | **Phase 4独立Check List**：从124号v2拆出。含P4-1—P4-9+P4-EXIT出口门。目标：完成DYN-3/4/5首轮 | Phase 4执行视图 |
-| `dev-docs/135-v1-2026-08-05-Phase5-CheckList.md` | **Phase 5独立Check List**：从124号v2拆出。含P5-1—P5-8+P5-EXIT出口门。目标：检索、Context Compiler与验证路由 | Phase 5执行视图 |
-| `dev-docs/136-v1-2026-08-05-Phase6-CheckList.md` | **Phase 6独立Check List**：从124号v2拆出。含P6-1—P6-8+P6-EXIT出口门。目标：完成DYN-6（在线闭环控制器） | Phase 6执行视图 |
-| `dev-docs/137-v1-2026-08-05-Phase7-CheckList.md` | **Phase 7独立Check List**：从124号v2拆出。含P7-1—P7-8+P7-EXIT出口门+费马案例使用顺序。目标：完成DYN-7（跨领域与长证明编排） | Phase 7执行视图 |
+| `dev-docs/130-v1-2026-08-05-Phase0-CheckList.md` | **Phase 0独立Check List**：从124号v2拆出并细化。含P0-1—P0-11全部子项（含129号审计后补充的P0-1.4/P0-4.10/P0-4.11/P0-6.4/P0-COMP-1/P0-COMP-2，及本次细化新增的P0-9文件职责冻结/P0-10数据迁移原则冻结/P0-11不搭空框架）和P0-EXIT出口门。Phase 0已完成 | Phase 0执行视图 |
+| `dev-docs/131-v1-2026-08-05-Phase1-CheckList.md` | **Phase 1独立Check List**：从124号v2拆出并细化。含P1-1—P1-8全部子项+完整性标准+角色隔离落地+代码模块创建+P1-EXIT出口门。目标：完成DYN-0（事件捕获真实性）。细化新增：P1-8抽取失败验证、P1-ROLE角色隔离、P1-CODE代码模块 | Phase 1执行视图 |
+| `dev-docs/132-v1-2026-08-05-Phase2-CheckList.md` | **Phase 2独立Check List**：从124号v2拆出并细化。含P2-1—P2-9全部子项+完整性标准+角色隔离+代码模块+P2-EXIT出口门。目标：完成DYN-1/DYN-2。细化新增：P2-8控制器信念建模、P2-9进展偏序定义 | Phase 2执行视图 |
+| `dev-docs/133-v1-2026-08-05-Phase3-CheckList.md` | **Phase 3独立Check List**：从124号v2拆出并细化。含P3-1—P3-9全部子项+完整性标准+角色隔离+代码模块+P3-EXIT出口门。目标：离线候选启发。细化新增：P3-9 H图稀疏表示 | Phase 3执行视图 |
+| `dev-docs/134-v1-2026-08-05-Phase4-CheckList.md` | **Phase 4独立Check List**：从124号v2拆出并细化。含P4-1—P4-10全部子项+完整性标准+角色隔离+代码模块+P4-EXIT出口门+停止条件。目标：完成DYN-3/4/5首轮。细化新增：P4-10 Ramsey案例5个验证维度 | Phase 4执行视图 |
+| `dev-docs/135-v1-2026-08-05-Phase5-CheckList.md` | **Phase 5独立Check List**：从124号v2拆出并细化。含P5-1—P5-10全部子项+完整性标准+角色隔离+代码模块+P5-EXIT出口门。目标：检索、Context Compiler与验证路由。细化新增：P5-9 K/T/H投影实现、P5-10旧七步骤复用决策 | Phase 5执行视图 |
+| `dev-docs/136-v1-2026-08-05-Phase6-CheckList.md` | **Phase 6独立Check List**：从124号v2拆出并细化。含P6-1—P6-9全部子项+完整性标准+角色隔离+代码模块+P6-EXIT出口门+停止条件。目标：完成DYN-6。细化新增：P6-9受约束最小干预策略 | Phase 6执行视图 |
+| `dev-docs/137-v1-2026-08-05-Phase7-CheckList.md` | **Phase 7独立Check List**：从124号v2拆出并细化。含P7-1—P7-8全部子项+完整性标准+数学主张标注级别+P7-EXIT出口门+停止条件。目标：完成DYN-7。细化新增：P7-MATH数学主张三级别标注 | Phase 7执行视图 |
 | `xishujuzhen/arxiv_to_arangodb.py` | arXiv元数据→ArangoDB导入脚本：读取JSON批量导入239K篇+创建4个索引+验证 | 工具脚本 |
 | `xishujuzhen/arangodb_init.py` | ArangoDB数据库初始化：创建xishujuzhen_math数据库+12 collections+3 graphs+8索引 | 基础设施脚本 |
 | `xishujuzhen/topology_verifier.py` | 拓扑覆盖验证器：检查G'→G的节点/边/环路集合保真。**123号裁决：结构保真验证，不代表语义或数学正确** | legacy验证器 |

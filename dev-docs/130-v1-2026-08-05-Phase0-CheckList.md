@@ -113,6 +113,59 @@
 
 ---
 
+## P0-9 现有文件后续职责冻结
+
+> 来源：123号§53(现有文件的后续职责) + plan"后续实施的代码影响图"
+> 129号审计遗漏项：130号只覆盖了seven_step_pipeline.py和topology_verifier.py，缺少其余4个文件
+
+- [x] **P0-9.1**：`seven_step_pipeline.py` → 兼容legacy-static入口，不承载新闭环 —— 证据：P0-1已完成
+- [x] **P0-9.2**：`topo_generator.py` → 保留为legacy静态路线复制/排序器；不再全图展开生产知识库；纯函数经契约测试后才可被新编译器复用 —— 证据：AGENTS.md已标注legacy-static
+- [x] **P0-9.3**：`topology_verifier.py` → 集合保真API，文档不得宣称数学正确 —— 证据：P0-2已完成
+- [x] **P0-9.4**：`arangodb_init.py` → 不用truncate式旧导入改新schema；新模式走版本化migration —— 证据：P0-8.1已改为upsert模式
+- [x] **P0-9.5**：`cognition_sdk_math.py` → 项目工作认知控制面，不混入数学运行状态 —— 证据：AGENTS.md"四类载体分工"节明确
+- [x] **P0-9.6**：`test_dependency_graph.py` → 保留legacy图回归，不作为动态研究系统验收 —— 证据：AGENTS.md已标注legacy
+
+### 完整性标准
+
+- [x] **P0-9.COMP**：123号§53的6个文件后续职责全部冻结（plan要求）
+- [x] **P0-9.COMP2**：不立即把topo_generator改造成动态编译器（123号§33："新Context Compiler先定义独立契约；稳定后才能复用旧模块中的纯结构函数"）
+
+---
+
+## P0-10 数据迁移原则冻结
+
+> 来源：123号§55(数据迁移原则) + plan"旧dg_*不原地迁移"
+> 129号审计遗漏项：130号只覆盖了dg_*只读盘点，缺少数据迁移原则的完整冻结
+
+- [x] **P0-10.1**：旧`dg_nodes/dg_edges/loops`不原地清空 —— 证据：P0-3只读盘点，未修改数据
+- [x] **P0-10.2**：先用只读adapter生成candidate K投影（Phase 5实现P5-8，Phase 0只冻结原则） —— 证据：124号总览NO-10
+- [x] **P0-10.3**：新collection用幂等、可回滚migration创建（Phase 1起执行） —— 证据：131号P1-3.2
+- [x] **P0-10.4**：relation document承载高阶规则，participant edges保留内部结构（Phase 3起执行） —— 证据：132号P2-3.4
+- [x] **P0-10.5**：生产图、候选图、实验快照分开（Phase 1起执行） —— 证据：127号§10可见性矩阵
+- [x] **P0-10.6**：历史POC材料保留原貌和可信度标签 —— 证据：126号§6冻结声明"盘点后dg_*数据冻结为只读"
+
+### 完整性标准
+
+- [x] **P0-10.COMP**：123号§55的6条数据迁移原则全部冻结
+- [x] **P0-10.COMP2**：不原地清空或迁移旧dg_*集合（NO-10约束）
+
+---
+
+## P0-11 不在Phase 0一次性搭空框架
+
+> 来源：123号§54(按Phase建立独立运行时包) + NO-9约束
+> 129号审计遗漏项：130号没有显式验证NO-9约束
+
+- [x] **P0-11.1**：Phase 0不创建`xishujuzhen/research_runtime/`包（Phase 1首次创建） —— 证据：research_runtime/不存在
+- [x] **P0-11.2**：Phase 0不创建新ArangoDB collection（Phase 1起创建raw_events/semantic_events等） —— 证据：ArangoDB中无新collection
+- [x] **P0-11.3**：Phase 0只冻结schema定义，不实现运行时 —— 证据：127号只定义schema，无运行时代码
+
+### 完整性标准
+
+- [x] **P0-11.COMP**：不在Phase 0一次性搭空框架（NO-9约束："每个模块只有在前一入口门通过后创建"）
+
+---
+
 ## P0-8 数据丢失修复（项目治理补充）
 
 > 来源：事件2026-08-05-A数据丢失事故，非123号架构要求
