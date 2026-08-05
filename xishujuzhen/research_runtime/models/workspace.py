@@ -109,6 +109,53 @@ class Workspace:
 
 
 @dataclass
+class Budget:
+    """
+    B_t: token/计算/工具/分支/Hint预算（123号§15）
+
+    每种预算有remaining和spent两个值。
+    """
+    token_remaining: float = 0.0
+    token_spent: float = 0.0
+    compute_remaining: float = 0.0
+    compute_spent: float = 0.0
+    tool_calls_remaining: int = 0
+    tool_calls_spent: int = 0
+    branch_remaining: int = 0
+    branch_spent: int = 0
+    hint_remaining: int = 0
+    hint_spent: int = 0
+
+    def to_dict(self) -> dict:
+        return {
+            "token": {"remaining": self.token_remaining, "spent": self.token_spent},
+            "compute": {"remaining": self.compute_remaining, "spent": self.compute_spent},
+            "tool_calls": {"remaining": self.tool_calls_remaining, "spent": self.tool_calls_spent},
+            "branch": {"remaining": self.branch_remaining, "spent": self.branch_spent},
+            "hint": {"remaining": self.hint_remaining, "spent": self.hint_spent},
+        }
+
+
+@dataclass
+class ModelConfig:
+    """
+    M_t: 模型版本/推理配置/权限/工具能力（123号§15）
+    """
+    model_version: str = ""
+    reasoning_config: Dict[str, Any] = field(default_factory=dict)
+    permissions: List[str] = field(default_factory=list)
+    tool_capabilities: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "model_version": self.model_version,
+            "reasoning_config": self.reasoning_config,
+            "permissions": self.permissions,
+            "tool_capabilities": self.tool_capabilities,
+        }
+
+
+@dataclass
 class RunState:
     """
     127号§2 完整运行状态 S_t = (Q_0, W_t, L_≤t, b_t, B_t, M_t)
@@ -126,3 +173,13 @@ class RunState:
     controller_belief: Dict[str, Any]    # b_t
     budget: Dict[str, float]             # B_t
     model_config: Dict[str, Any]         # M_t
+
+    def to_dict(self) -> dict:
+        return {
+            "task": self.task,
+            "workspace": self.workspace,
+            "event_history_ref": self.event_history_ref,
+            "controller_belief": self.controller_belief,
+            "budget": self.budget,
+            "model_config": self.model_config,
+        }

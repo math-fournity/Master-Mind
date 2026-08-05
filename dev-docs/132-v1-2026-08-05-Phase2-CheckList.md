@@ -354,4 +354,20 @@ Phase 2新增启用的角色：
 
 ## Phase 2状态
 
-**待开始**。入口门（Phase 1出口门）未通过。
+**已完成**。出口门全部通过：
+- P2-EXIT-1: DYN-1 α≥0.80且无关键字段低于0.67 ✅
+- P2-EXIT-2: DYN-2卡点检测有校准能力 ✅
+- P2-EXIT-3: DYN-1和DYN-2验收全部通过 ✅
+
+实现文件：
+- `xishujuzhen/research_runtime/state_reducer/q0.py`（P2-1）
+- `xishujuzhen/research_runtime/state_reducer/workspace_store.py`（P2-2）
+- `xishujuzhen/research_runtime/state_reducer/obligation.py`（P2-3）
+- `xishujuzhen/research_runtime/state_reducer/verification_gate.py`（P2-4）
+- `xishujuzhen/research_runtime/state_reducer/evidence.py`（P2-5）
+- `xishujuzhen/research_runtime/state_reducer/reducer.py`（P2-6）
+- `xishujuzhen/research_runtime/verification/stall_detector.py`（P2-7）
+- `xishujuzhen/research_runtime/state_reducer/controller_belief.py`（P2-8）
+- `xishujuzhen/research_runtime/state_reducer/progress.py`（P2-9）
+- `xishujuzhen/research_runtime/state_reducer/migrate.py`（ArangoDB migration）
+- `xishujuzhen/research_runtime/test_phase2.py`（集成测试）
