@@ -262,6 +262,20 @@
 
 ---
 
+## 角色隔离延续
+
+> 来源：123号§28 + §607(visibility label和能力令牌，149号F7修正)
+
+Phase 7不新增启用角色，但Phase 6已启用的8角色visibility label和能力令牌在Phase 7的高级数学分析中必须仍然有效：
+
+- [ ] **P7-ROLE-1**：Verifier在高级数学分析中的覆盖域声明（R-10风险：Verifier只覆盖部分数学领域，需声明覆盖域） [预期D3]
+  - 边界情况：Verifier无覆盖域声明、命题超出Verifier覆盖域
+  - **注**：Phase 7涉及HoTT/TDA/范畴论等高级数学领域，Verifier覆盖域声明尤为重要
+- [ ] **P7-ROLE-2**：所有8角色的visibility label和能力令牌在Phase 7高级数学分析中仍然有效（123号§607） [预期D3]
+  - 边界情况：高级数学分析中角色边界被绕过（应被拒绝）
+
+---
+
 ## Phase 7状态
 
 **待开始**。入口门（Phase 6出口门）未通过。

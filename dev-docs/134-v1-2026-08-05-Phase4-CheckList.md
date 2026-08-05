@@ -16,11 +16,17 @@
 
 ## P4-1 同内容哈希checkpoint分层并随机分配多个非确定continuation
 
-> 来源：123号§39(DYN-3) + §49 + 系统探讨.md§14(POC-C)
+> 来源：123号§39(DYN-3) + §49 + §847(checkpoint完整定义) + 系统探讨.md§14(POC-C)
 
+- [ ] **P4-1.0**：checkpoint完整字段定义（123号§847跨章节依赖，149号F7修正） [预期D1]
+  - 123号§847冻结定义：`checkpoint = 序列化(Q_0/W_t, 关键事件前缀, 模型/工具/权限/预算, 版本哈希)`
+  - 7个必填字段：`q_0` / `event_prefix` / `model_version` / `tool_versions` / `permissions` / `budget` / `version_hash`
+  - 不包含、也不能冻结LLM隐藏内部状态
+  - 同一内容哈希checkpoint视为阻断/分层变量
+  - 覆盖标准：checkpoint定义包含全部7个字段，Phase 3已实现（149号修正），Phase 4实验必须使用完整checkpoint定义
 - [ ] **P4-1.1**：选取Phase 3发现的候选规则对应的checkpoint [预期D2]
-  - 深度标准：有可执行的checkpoint选取函数，从Phase 3结果中选取
-  - 边界情况：Phase 3无候选规则、checkpoint不存在
+  - 深度标准：有可执行的checkpoint选取函数，从Phase 3结果中选取，且选取的checkpoint包含§847的7个完整字段
+  - 边界情况：Phase 3无候选规则、checkpoint不存在、checkpoint缺少7字段中的任一字段（应触发告警）
 - [ ] **P4-1.2**：在同一内容哈希checkpoint层内随机分配多个非确定continuation [预期D2]
   - 123号§39明确："checkpoint不代表相同隐藏状态；在同内容哈希层内随机生成多个非确定continuation"
   - 深度标准：有可执行的continuation分配函数，在同一checkpoint层内随机分配
@@ -97,7 +103,7 @@
 
 ## P4-4 完整日志、哈希、盲评和Truth Vault隔离
 
-> 来源：123号§49 + §28(角色隔离) + 127号§10.1(Truth Vault) + R-13风险
+> 来源：123号§49 + §28(角色隔离) + §607(visibility label和能力令牌) + 127号§10.1(Truth Vault) + R-13风险
 
 - [ ] **P4-4.1**：记录完整实验日志（所有事件、干预、结果） [预期D2]
   - 深度标准：有可执行的实验日志记录接口
@@ -112,6 +118,10 @@
   - 边界情况：Solver尝试访问Truth Vault（应被拒绝）
 - [ ] **P4-4.5**：角色隔离验证（Auditor不参与Hint设计或Solver答题，123号§28） [预期D3]
   - 边界情况：Auditor参与Hint设计（应被拒绝）、Auditor参与Solver答题（应被拒绝）
+- [ ] **P4-4.6**：角色边界落实为collection、visibility label和能力令牌（123号§607跨章节依赖，149号F7修正） [预期D3]
+  - 123号§607明确："这些边界要落实为collection、visibility label和能力令牌，而不是只写在角色prompt里"
+  - 深度标准：有可执行的visibility label检查函数和能力令牌验证函数，不只写在角色prompt里
+  - 边界情况：角色边界只写在prompt里未落实为代码机制（应被拒绝——必须落实为collection/visibility label/能力令牌）
 
 ### 完整性标准
 

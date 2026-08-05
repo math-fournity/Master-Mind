@@ -93,14 +93,18 @@
 
 ## P6-4 错误状态恢复
 
-> 来源：123号§51 + §15(D_t被证伪/拒绝/暂停/可恢复分支)
+> 来源：123号§51 + §15(D_t被证伪/拒绝/暂停/可恢复分支) + §847(checkpoint完整定义，149号F7修正)
 
+- [ ] **P6-4.0**：错误状态恢复使用的checkpoint必须包含§847的7个完整字段（149号F7修正） [预期D1]
+  - 123号§847冻结定义：`checkpoint = 序列化(Q_0/W_t, 关键事件前缀, 模型/工具/权限/预算, 版本哈希)`
+  - 回退到valid checkpoint时，必须回退到包含7个字段完整内容的checkpoint，不能只回退state_snapshot
+  - 覆盖标准：回退函数使用完整checkpoint定义（Phase 3已实现，Phase 6必须复用）
 - [ ] **P6-4.1**：实现错误状态检测（F_t中的临时假设被证伪、D_t中的被拒绝分支） [预期D2]
   - 深度标准：有可执行的错误状态检测函数
   - 边界情况：无错误状态、错误状态检测漏报
 - [ ] **P6-4.2**：实现错误状态恢复（回退到最近的valid checkpoint） [预期D2]
-  - 深度标准：有可执行的恢复函数，回退到最近的valid checkpoint
-  - 边界情况：无valid checkpoint、回退后状态不一致
+  - 深度标准：有可执行的恢复函数，回退到最近的valid checkpoint，且checkpoint包含§847的7个完整字段
+  - 边界情况：无valid checkpoint、回退后状态不一致、回退的checkpoint缺少7字段中的任一字段（应触发告警）
 - [ ] **P6-4.3**：验证恢复不丢失已验证核心（V_t不受错误状态影响） [预期D3]
   - 边界情况：恢复后V_t丢失（应被拒绝——V_t不受错误状态影响）
 
@@ -267,8 +271,9 @@ Phase 6完善所有角色的在线运行时集成：
   - 边界情况：步骤7/9缺失、步骤顺序错误
   - **注**：127号§8定义的8种角色中无`controller`，Controller是orchestrator角色的运行时功能组件，不是独立角色
 - [ ] **P6-ROLE-2**：所有8个角色的CapabilityToken在线运行时验证 [预期D2]
-  - 深度标准：有可执行的CapabilityToken验证函数，8个角色全部验证
-  - 边界情况：某角色无CapabilityToken、CapabilityToken验证失败
+  - 123号§607明确："这些边界要落实为collection、visibility label和能力令牌，而不是只写在角色prompt里"
+  - 深度标准：有可执行的CapabilityToken验证函数，8个角色全部验证，每个角色有明确的visibility label和capability token
+  - 边界情况：某角色无CapabilityToken、CapabilityToken验证失败、角色边界只写在prompt里未落实为代码机制（应被拒绝——123号§607）
 
 ### 完整性标准
 
