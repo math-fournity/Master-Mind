@@ -5,9 +5,9 @@
       "title": "数学大师系统建设",
       "category": "core",
       "status": "active",
-      "key_cognition": "数学研究认知操作系统：知识平面（证据→规范知识→数学依赖图）+研究运行平面（问题建模→召回→上下文编译→AI研究→工具验证→结果）+控制平面（版本/POC/审计/回归）；当前核心缺口是端到端研究主链未闭合",
+      "key_cognition": "数学研究认知操作系统：思维形状可观测、可比较、可干预；知识平面含数学知识图K与启发激活图H，研究运行平面生成外显思维图T并在动态题目Q_t上执行独立尝试→停滞检测→最小启发→验证→回写闭环，控制平面管理因果干预、版本、审计与回归",
       "source_docs": [80, 81, 122],
-      "current_version": "v3"
+      "current_version": "v4"
     },
     {
       "cog_id": "poc_methodology",
@@ -23,8 +23,26 @@
       "title": "依赖图提示方法",
       "category": "core",
       "status": "active",
-      "key_cognition": "数学知识建模为依赖图（节点=步骤/意识，边=depends_on/calls），螺旋环路编码意识迭代，提示词是依赖图的文字展开",
-      "source_docs": [82, 83],
+      "key_cognition": "三图必须分离：数学知识图K记录审核后的数学关系，外显思维图T记录一次运行实际轨迹，启发激活图H记录带上下文/时序/失败条件的模式→激活包关系；提示是H匹配T后从K选择最小激活包的结果",
+      "source_docs": [82, 83, 122],
+      "current_version": "v2"
+    },
+    {
+      "cog_id": "thought_trace_graph",
+      "title": "外显思维图",
+      "category": "core",
+      "status": "active",
+      "key_cognition": "把Agent在一次研究运行中可观测的事实、命题、表示、子目标、候选、工具结果、矛盾、停滞、回退和解决过程建模为带标签和时序的图T；它是内部思维的工程投影，不等同于隐藏chain-of-thought",
+      "source_docs": [82, 85, 122],
+      "current_version": "v1"
+    },
+    {
+      "cog_id": "heuristic_activation_model",
+      "title": "启发激活关系模型",
+      "category": "core",
+      "status": "active",
+      "key_cognition": "稀疏矩阵核心是条件化模式→激活包关系H：(P,R,上下文,失败状态,时序)→(概念/表示/操作/子目标/工具)；A/B轨迹差分只产生候选关系，必须通过最低提示级别的重复因果干预和跨题迁移后发布",
+      "source_docs": [63, 82, 85, 121, 122],
       "current_version": "v1"
     },
     {
@@ -176,9 +194,9 @@
       "title": "工作系统词汇表",
       "category": "support",
       "status": "active",
-      "key_cognition": "项目术语集中定义。POC术语：答案泄漏审计=逐节点检查直接或等价答案；恢复性重跑=完成中断流程但不单独用于最终判定；验证性复跑=同配置独立A/B配对重复运行。架构术语：知识平面=证据/规范知识/数学图；研究运行平面=问题到研究结果的在线主链；控制平面=版本/POC/审计/回归；上下文编译器=依赖子图到可审计AI研究上下文的转换组件；研究运行记录=一轮研究的问题、子图、上下文、分支、工具证据和结论状态集合",
+      "key_cognition": "项目术语集中定义。POC术语：答案泄漏审计、恢复性重跑、验证性复跑。总体架构：知识平面、研究运行平面、控制平面、上下文编译器、研究运行记录。思维形状架构：外显思维图T=可观测研究轨迹；启发激活图H=带guard的模式→激活包关系；动态题目Q_t=原题+当前轨迹+证据+未解决目标；激活包=概念/表示/操作/子目标/工具的最小提示集合；最小因果启发=经有对照重复干预验证且不泄漏答案的启发关系",
       "source_docs": [121, 122],
-      "current_version": "v3"
+      "current_version": "v4"
     },
     {
       "cog_id": "sdk_maintenance",
@@ -246,8 +264,13 @@
   ],
   "edges": [
     {"from": "math_master_system", "to": "dependency_graph_prompt", "type": "depends_on"},
+    {"from": "math_master_system", "to": "heuristic_activation_model", "type": "depends_on"},
     {"from": "math_master_system", "to": "poc_methodology", "type": "depends_on"},
     {"from": "math_master_system", "to": "spiral_cognition", "type": "depends_on"},
+    {"from": "heuristic_activation_model", "to": "thought_trace_graph", "type": "depends_on"},
+    {"from": "heuristic_activation_model", "to": "dependency_graph_prompt", "type": "depends_on"},
+    {"from": "heuristic_activation_model", "to": "poc_methodology", "type": "depends_on"},
+    {"from": "thought_trace_graph", "to": "problem_database", "type": "depends_on"},
     {"from": "poc_methodology", "to": "poc1_execution", "type": "depends_on"},
     {"from": "poc_methodology", "to": "poc2_execution", "type": "depends_on"},
     {"from": "poc_methodology", "to": "blind_eval_method", "type": "depends_on"},
@@ -281,11 +304,14 @@
     {"cog_id": "math_master_system", "version": "v1", "doc": "80", "summary": "项目启动认知基础", "version_order": 1},
     {"cog_id": "math_master_system", "version": "v2", "doc": "81", "summary": "基础设施技术选型", "version_order": 2},
     {"cog_id": "math_master_system", "version": "v3", "doc": "122", "summary": "总体架构v1调查：三平面、八组件、三闭环与当前结构性缺口", "version_order": 3},
+    {"cog_id": "math_master_system", "version": "v4", "doc": "122", "summary": "总体架构v2：思维形状公理、动态题目、K/T/H三图模型与Agent M因果启发闭环", "version_order": 4},
+    {"cog_id": "dependency_graph_prompt", "version": "v2", "doc": "122", "summary": "从单一依赖图修正为数学知识图K、外显思维图T和启发激活图H三图分离", "version_order": 2},
     {"cog_id": "poc_methodology", "version": "v1", "doc": "84", "summary": "POC-1验证方案", "version_order": 1},
     {"cog_id": "poc_methodology", "version": "v2", "doc": "87", "summary": "POC-2验证方案", "version_order": 2},
     {"cog_id": "poc_methodology", "version": "v3", "doc": "121", "summary": "POC-6修正版纠偏：答案泄漏审计、重复A/B运行与完整过程证据闭环", "version_order": 3},
     {"cog_id": "glossary", "version": "v2", "doc": "121", "summary": "新增答案泄漏审计、恢复性重跑、验证性复跑三个POC实验术语", "version_order": 2},
     {"cog_id": "glossary", "version": "v3", "doc": "122", "summary": "新增知识平面、研究运行平面、控制平面、上下文编译器和研究运行记录等总体架构术语", "version_order": 3},
+    {"cog_id": "glossary", "version": "v4", "doc": "122", "summary": "新增外显思维图T、启发激活图H、动态题目Q_t、激活包和最小因果启发等术语", "version_order": 4},
     {"cog_id": "seven_step_workflow", "version": "v1", "doc": "86", "summary": "从星学同步下一代工作流基础设施", "version_order": 1},
     {"cog_id": "seven_step_workflow", "version": "v2", "doc": "88", "summary": "POC-2验证结果，七步骤在数学领域成功验证", "version_order": 2}
   ]
