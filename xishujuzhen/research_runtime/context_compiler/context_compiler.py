@@ -16,6 +16,7 @@ Context Compiler——每段上下文带5项记录
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
+from datetime import datetime
 
 from .state_snapshot import StateSnapshot
 from .pruning_log import PruningLog
@@ -92,6 +93,7 @@ class ContextCompiler:
     def __init__(self, pruning_log: Optional[PruningLog] = None):
         self.pruning_log = pruning_log or PruningLog()
         self.minimality_audit = MinimalityAudit()
+        self._expansion_requests: List[Dict[str, Any]] = []  # 按需展开请求事件（plan第199行）
 
     def compile(
         self,
@@ -175,3 +177,36 @@ class ContextCompiler:
         边界情况：Retriever角色边界只写在prompt里未落实为代码机制（应被拒绝）
         """
         return True  # visibility label在Phase 4已实现为代码机制（auditor/visibility_labels.py）
+
+    def request_expansion(
+        self,
+        obligation_id: str,
+        segment_id: str,
+        expansion_type: str = "detail",
+    ) -> Dict[str, Any]:
+        """
+        Solver请求按需展开——请求本身也成为事件（plan第199行）。
+
+        边界情况：请求按需展开但请求未记录为事件（应被拒绝——请求本身也是事件）
+        """
+        request_event = {
+            "event_type": "expansion_request",
+            "obligation_id": obligation_id,
+            "segment_id": segment_id,
+            "expansion_type": expansion_type,
+            "timestamp": datetime.now().isoformat(),
+        }
+        self._expansion_requests.append(request_event)
+        return request_event
+
+    def get_expansion_requests(self) -> List[Dict[str, Any]]:
+        """获取全部按需展开请求事件（plan第199行）"""
+        return list(self._expansion_requests)
+
+    def check_expansion_requests_are_events(self) -> bool:
+        """
+        验证按需展开请求本身也成为事件（plan第199行）。
+
+        边界情况：请求按需展开但请求未记录为事件（应被拒绝）
+        """
+        return len(self._expansion_requests) > 0  # 有请求事件记录

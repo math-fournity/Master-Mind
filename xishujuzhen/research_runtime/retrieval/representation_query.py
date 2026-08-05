@@ -42,7 +42,7 @@ class RepresentationMap:
     backward_transport: str = ""
     preserved_invariants: List[str] = field(default_factory=list)
     lost_information: List[str] = field(default_factory=list)
-    soundness_obligation: str = ""  # 指向Obligation的ID
+    soundness_obligations: List[str] = field(default_factory=list)  # 指向Obligation的ID列表（123号§19用复数）
     evidence: List[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -57,7 +57,7 @@ class RepresentationMap:
             "backward_transport": self.backward_transport,
             "preserved_invariants": self.preserved_invariants,
             "lost_information": self.lost_information,
-            "soundness_obligation": self.soundness_obligation,
+            "soundness_obligations": self.soundness_obligations,
             "evidence": self.evidence,
         }
 
@@ -116,10 +116,13 @@ class RepresentationQuery:
         """
         results = []
         for m in self._maps.values():
-            # 只展开soundness_obligation已discharged的映射
-            if m.soundness_obligation:
-                status = obligation_status.get(m.soundness_obligation, "open")
-                if status != "discharged":
+            # 只展开soundness_obligations全部已discharged的映射
+            if m.soundness_obligations:
+                all_discharged = all(
+                    obligation_status.get(ob_id, "open") == "discharged"
+                    for ob_id in m.soundness_obligations
+                )
+                if not all_discharged:
                     continue
             results.append(m)
         return results
@@ -134,10 +137,12 @@ class RepresentationQuery:
 
         边界情况：运输在义务通过前就成立（应被拒绝——不能因边名叫equivalence就自动成立）
         """
-        if not rep_map.soundness_obligation:
-            return False  # 没有soundness_obligation——不应自动成立
-        status = obligation_status.get(rep_map.soundness_obligation, "open")
-        return status == "discharged"
+        if not rep_map.soundness_obligations:
+            return False  # 没有soundness_obligations——不应自动成立
+        return all(
+            obligation_status.get(ob_id, "open") == "discharged"
+            for ob_id in rep_map.soundness_obligations
+        )
 
     def check_not_category(self) -> bool:
         """

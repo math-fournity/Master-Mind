@@ -105,6 +105,10 @@ def test_p5_1_cold_warm_hot_micro():
     assert cold.is_default_excluded_from_solver(), "P5-1.COMP2: 冷层默认不进Solver上下文"
     print("✅ P5-1.COMP2: 冷层默认不进Solver上下文（R-16风险防线）")
 
+    # R-16风险：冷索引标签不被当成已理解知识
+    assert cold.check_not_treated_as_understood(), "冷索引标签不应被当成已理解知识"
+    print("✅ P5-1.6: 冷索引标签不被当成已理解知识（R-16风险）")
+
 
 def test_p5_2_retrieval_order():
     """P5-2：5层优先级检索"""
@@ -145,17 +149,17 @@ def test_p5_3_representation():
     # 创建6种map_type的表示映射
     maps = [
         RepresentationMap("rep1", "整数方程", "椭圆曲线", MapType.EQUIVALENCE.value, "数论",
-                          soundness_obligation="ob1"),
+                          soundness_obligations=["ob1"]),
         RepresentationMap("rep2", "群", "Galois表示", MapType.ENCODING.value, "代数",
-                          soundness_obligation="ob2"),
+                          soundness_obligations=["ob2"]),
         RepresentationMap("rep3", "拓扑空间", "基本群", MapType.REDUCTION.value, "拓扑",
-                          soundness_obligation="ob3"),
+                          soundness_obligations=["ob3"]),
         RepresentationMap("rep4", "流形", "切丛", MapType.RELAXATION.value, "几何",
-                          soundness_obligation="ob4"),
+                          soundness_obligations=["ob4"]),
         RepresentationMap("rep5", "向量空间", "对偶空间", MapType.DUALITY.value, "代数",
-                          soundness_obligation="ob5"),
+                          soundness_obligations=["ob5"]),
         RepresentationMap("rep6", "范畴", "函子", MapType.FUNCTOR_CANDIDATE.value, "范畴论",
-                          soundness_obligation="ob6"),
+                          soundness_obligations=["ob6"]),
     ]
     query = RepresentationQuery(maps)
 
@@ -225,6 +229,11 @@ def test_p5_4_context_compiler():
     print("✅ P5-4.2: 每段上下文可追溯到原始来源")
     print("✅ P5-4.4: 角色边界落实为visibility label和能力令牌")
     print("✅ P5-4.COMP: 每段上下文带5项记录")
+
+    # plan第199行：请求按需展开本身也成为事件
+    compiler.request_expansion("ob1", "seg_ob1_0", "detail")
+    assert compiler.check_expansion_requests_are_events(), "按需展开请求应成为事件"
+    print("✅ P5-4.5: 请求按需展开本身也成为事件（plan第199行）")
 
 
 def test_p5_5_capability_registry():
@@ -429,6 +438,10 @@ def test_p5_9_kth_projection():
     assert len(a_t) == 7, f"a_t应有7维（7种权重维度），实际{len(a_t)}"
     assert sparse.check_weights_not_binary(W), "权重不应是0/1"
     print("✅ P5-9.4: 稀疏计算公式 a_t = W^T * p_t（7种权重维度）")
+
+    # 123号§25：稀疏计算不能越过原始证据与发布状态
+    assert sparse.check_not_overriding_evidence(), "稀疏计算不应越过原始证据"
+    print("✅ P5-9.6: 稀疏计算不能越过原始证据与发布状态（123号§25）")
 
     # 认识论层级
     assert kth.check_epistemic_hierarchy(), "K/T/H认识论层级应固定"

@@ -38,12 +38,16 @@ class VerificationResult:
     """
     验证结果——Verifier的输出。
 
-    包含6种状态之一 + 证据引用 + 范围 + 失败原因。
+    包含6种状态之一 + 证据引用 + 范围 + 可重放产物 + 失败原因。
+
+    123号§28要求Verifier输出：认识状态、证据类型、范围、可重放产物和失败原因。
     """
+
     output: VerifierOutput
     claim_id: str
     evidence_refs: List[str] = field(default_factory=list)
-    scope: str = ""
+    scope: str = ""                          # 范围（123号§28）
+    artifact_hash: str = ""                  # 可重放产物（123号§28）
     failure_reason: str = ""
 
     def to_dict(self) -> dict:
@@ -52,6 +56,7 @@ class VerificationResult:
             "claim_id": self.claim_id,
             "evidence_refs": self.evidence_refs,
             "scope": self.scope,
+            "artifact_hash": self.artifact_hash,
             "failure_reason": self.failure_reason,
         }
 
@@ -77,9 +82,13 @@ class Verifier:
         self,
         claim_id: str,
         required_kinds: List[EvidenceKind] = None,
+        proof_fragment: str = "",  # 证明/计算片段（123号§28）
+        scope: str = "",           # 适用范围（123号§28）
     ) -> VerificationResult:
         """
         验证一个命题。
+
+        123号§28要求Verifier输入：明确命题或接口义务、前提、证明/计算片段、工具输入、期望证据等级和适用范围。
 
         根据证据类型和状态输出6种状态之一。
 
@@ -97,6 +106,7 @@ class Verifier:
             return VerificationResult(
                 output=VerifierOutput.UNKNOWN,
                 claim_id=claim_id,
+                scope=scope,
                 failure_reason="无证据",
             )
 
@@ -107,6 +117,7 @@ class Verifier:
             return VerificationResult(
                 output=VerifierOutput.UNKNOWN,
                 claim_id=claim_id,
+                scope=scope,
                 failure_reason="无active状态证据",
             )
 
@@ -117,6 +128,8 @@ class Verifier:
                 output=VerifierOutput.CONTRADICTED,
                 claim_id=claim_id,
                 evidence_refs=[e["evidence_id"] for e in refute_evidence],
+                scope=scope,
+                artifact_hash=refute_evidence[0].get("artifact_hash", ""),
                 failure_reason="存在反例/反驳证据",
             )
 
@@ -127,6 +140,7 @@ class Verifier:
             return VerificationResult(
                 output=VerifierOutput.UNKNOWN,
                 claim_id=claim_id,
+                scope=scope,
                 failure_reason="无支持证据",
             )
 
@@ -135,34 +149,46 @@ class Verifier:
 
         # formally_verified：有formal_proof证据
         if EvidenceKind.FORMAL_PROOF.value in support_kinds:
+            formal_evidence = [e for e in support if e["kind"] == EvidenceKind.FORMAL_PROOF.value]
             return VerificationResult(
                 output=VerifierOutput.FORMALLY_VERIFIED,
                 claim_id=claim_id,
-                evidence_refs=[e["evidence_id"] for e in support if e["kind"] == EvidenceKind.FORMAL_PROOF.value],
+                evidence_refs=[e["evidence_id"] for e in formal_evidence],
+                scope=scope,
+                artifact_hash=formal_evidence[0].get("artifact_hash", ""),
             )
 
         # computationally_supported：有symbolic证据
         if EvidenceKind.SYMBOLIC.value in support_kinds:
+            symbolic_evidence = [e for e in support if e["kind"] == EvidenceKind.SYMBOLIC.value]
             return VerificationResult(
                 output=VerifierOutput.COMPUTATIONALLY_SUPPORTED,
                 claim_id=claim_id,
-                evidence_refs=[e["evidence_id"] for e in support if e["kind"] == EvidenceKind.SYMBOLIC.value],
+                evidence_refs=[e["evidence_id"] for e in symbolic_evidence],
+                scope=scope,
+                artifact_hash=symbolic_evidence[0].get("artifact_hash", ""),
             )
 
         # numerically_tested：有numerical证据
         if EvidenceKind.NUMERICAL.value in support_kinds:
+            numerical_evidence = [e for e in support if e["kind"] == EvidenceKind.NUMERICAL.value]
             return VerificationResult(
                 output=VerifierOutput.NUMERICALLY_TESTED,
                 claim_id=claim_id,
-                evidence_refs=[e["evidence_id"] for e in support if e["kind"] == EvidenceKind.NUMERICAL.value],
+                evidence_refs=[e["evidence_id"] for e in numerical_evidence],
+                scope=scope,
+                artifact_hash=numerical_evidence[0].get("artifact_hash", ""),
             )
 
         # proven：有human_audit证据（人工审计确认）
         if EvidenceKind.HUMAN_AUDIT.value in support_kinds:
+            audit_evidence = [e for e in support if e["kind"] == EvidenceKind.HUMAN_AUDIT.value]
             return VerificationResult(
                 output=VerifierOutput.PROVEN,
                 claim_id=claim_id,
-                evidence_refs=[e["evidence_id"] for e in support if e["kind"] == EvidenceKind.HUMAN_AUDIT.value],
+                evidence_refs=[e["evidence_id"] for e in audit_evidence],
+                scope=scope,
+                artifact_hash=audit_evidence[0].get("artifact_hash", ""),
             )
 
         # 其他情况（如只有literature证据）
@@ -170,6 +196,7 @@ class Verifier:
             output=VerifierOutput.UNKNOWN,
             claim_id=claim_id,
             evidence_refs=[e["evidence_id"] for e in support],
+            scope=scope,
             failure_reason="证据类型不足以判定验证等级",
         )
 
@@ -177,6 +204,8 @@ class Verifier:
         self,
         claim_id: str,
         required_kinds: List[EvidenceKind],
+        proof_fragment: str = "",  # 证明/计算片段（123号§28）
+        scope: str = "",           # 适用范围（123号§28）
     ) -> VerificationResult:
         """
         按验证门验证——检查是否有required_kinds中的active支持证据。
@@ -185,7 +214,7 @@ class Verifier:
         - Verifier尝试返回布尔值（应被拒绝——必须返回6种状态之一）
         - Verifier尝试决定下一研究路线（应被拒绝）
         """
-        result = self.verify(claim_id)
+        result = self.verify(claim_id, required_kinds, proof_fragment, scope)
 
         # 检查验证门是否满足
         evidence_list = self.evidence_store.get_evidence_for_claim(claim_id)
@@ -200,6 +229,7 @@ class Verifier:
             return VerificationResult(
                 output=VerifierOutput.UNKNOWN,
                 claim_id=claim_id,
+                scope=scope,
                 failure_reason=f"验证门未满足——需要{[k.value for k in required_kinds]}类型的active支持证据",
             )
 

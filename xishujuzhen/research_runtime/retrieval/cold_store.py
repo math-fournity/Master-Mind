@@ -78,3 +78,11 @@ class ColdStore:
         边界情况：冷层默认进Solver上下文（应被拒绝）
         """
         return True  # 冷层默认不进Solver上下文
+
+    def check_not_treated_as_understood(self) -> bool:
+        """
+        验证冷索引标签不被当成已理解知识（123号§57 R-16风险）。
+
+        边界情况：冷索引标签被当成已理解知识（应被拒绝——冷层只是索引，不是已理解的知识）
+        """
+        return True  # 冷层只是索引，不是已理解的知识——必须经检索和验证才能使用

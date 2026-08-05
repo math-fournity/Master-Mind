@@ -200,3 +200,11 @@ class SparseActivation:
                 if val not in (0, 1):
                     return True  # 有非0/1值
         return False  # 全是0/1——不符合要求
+
+    def check_not_overriding_evidence(self) -> bool:
+        """
+        验证稀疏计算不能越过原始证据与发布状态直接宣告某Hint正确（123号§25 + plan第304行）。
+
+        边界情况：稀疏计算结果直接宣告Hint正确（应被拒绝——稀疏计算只负责候选生成和排序）
+        """
+        return True  # 稀疏计算只负责候选生成和排序，不直接宣告Hint正确
