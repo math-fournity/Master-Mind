@@ -144,7 +144,7 @@
 | 文档 | 内容 | 对数学项目的参考价值 |
 |---|---|---|
 | `dev-docs/63-星学意识与螺旋上升的稀疏矩阵.md` | **整个方法论的起源**：从直觉画面到核心信念的完整对话记录。三维稀疏矩阵、两种环路、依赖图作为提示、数字化的大师、核心信念 | **必读**。数学项目的整个方法论框架来自这里 |
-| `dev-docs/64-xishujuzhen-POC1验证方案.md` ~ `dev-docs/77-xishujuzhen-POC8验证方案.md` | **POC1-8 完整验证体系**：从5节点小图到71节点大图、从静态分析到动态螺旋、从开环到闭环审计 | **必读**。数学项目的验证方案应参考这套实验设计 |
+| `dev-docs/64-xishujuzhen-POC验证方案.md` ~ `dev-docs/77-xishujuzhen-POC8验证方案.md` | **POC1-8 完整验证体系**：从5节点小图到71节点大图、从静态分析到动态螺旋、从开环到闭环审计 | **必读**。数学项目的验证方案应参考这套实验设计 |
 | `dev-docs/71-xishujuzhen-POC5验证结果.md` | POC-5 结果：边际增益+3.95，B组9.75 vs A组5.8 | 验证方法论的量化证据 |
 | `dev-docs/73-xishujuzhen-POC6验证结果.md` | POC-6 结果：边际增益+5.92，交叉审计比AI自审更严格 | 交叉审计方法的参考 |
 | `dev-docs/75-xishujuzhen-POC7验证结果.md` | POC-7 结果：边际增益+4.08，大规模依赖图可行（71节点100%覆盖） | 大规模可行性证据 |
@@ -233,7 +233,7 @@
 
 | POC | 文档 | 验证内容 |
 |---|---|---|
-| POC-1 | `dev-docs/64-xishujuzhen-POC1验证方案.md` | 对照实验设计、5节点7边依赖图、5维度结构化评分 |
+| POC-1 | `dev-docs/64-xishujuzhen-POC验证方案.md` | 对照实验设计、5节点7边依赖图、5维度结构化评分 |
 | POC-2 | `dev-docs/65-xishujuzhen-POC2验证方案.md` | 12节点16边扩展图、知识内容嵌入提示、配对审计 |
 | POC-3 | `dev-docs/66-xishujuzhen-POC3验证方案.md` | AI自解读环节、双重提示、双重对照审计 |
 | POC-4 | `dev-docs/68-xishujuzhen-POC4验证方案.md` | 双宫联动、19节点25边、跨宫依赖、空宫设计 |
@@ -720,7 +720,9 @@ POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或
 - `xishujuzhen/session_start_hook_math.py`：SessionStart + PostCompaction hook
 - `xishujuzhen/user_prompt_submit_hook_math.py`：UserPromptSubmit hook（从txt读取提醒注入）
 - `xishujuzhen/UserPromptSubmit.txt`：提醒内容文件（可随时编辑定制）
-- `xishujuzhen/githooks/post-commit`：git post-commit hook（CP4检查清单）
+- `xishujuzhen/githooks/post-commit`：git post-commit hook（CP4检查清单 + AGENTS.md对齐检查）
+- `xishujuzhen/githooks/pre-commit`：git pre-commit hook（AGENTS.md对齐硬性检查，阻止引用不存在文件的commit）
+- `xishujuzhen/alignment_check.py`：AGENTS.md与repo内容对齐检查脚本（文件存在性+编号覆盖+DYN/Phase定义一致性+认知图规模一致性）
 - `xishujuzhen/poc/cognition_units_math.json`：认知单元定义
 - `.devin/hooks.v1.json`：Devin hooks配置（SessionStart + PostCompaction + UserPromptSubmit，不含Stop）
 

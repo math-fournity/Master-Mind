@@ -1,0 +1,54 @@
+#!/data/master-mind/.venv/bin/python3
+#!/usr/bin/env python3
+"""Git pre-commit hook —— AGENTS.md对齐硬性检查
+
+commit前触发。只检查硬性违规（引用的文件不存在），
+如果发现硬性违规则阻止commit，迫使修正后再提交。
+
+软性警告（DYN/Phase定义一致性等）不阻止commit，
+由post-commit hook提醒。
+
+不影响subagent：subagent不commit，所以不触发此hook。
+"""
+import sys
+import os
+import subprocess
+
+
+def main():
+    result = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        capture_output=True, text=True
+    )
+    project_dir = result.stdout.strip()
+    if not project_dir:
+        return 0
+
+    hard, soft = run_alignment_check(project_dir)
+
+    if hard:
+        print("=" * 60)
+        print("🔴 AGENTS.md 对齐硬性检查失败（commit已阻止）")
+        print("=" * 60)
+        for v in hard:
+            print(f"  ❌ {v}")
+        print()
+        print("请修正以上问题后重新 commit。")
+        print("提示：检查 AGENTS.md 中引用的文件路径是否与实际文件名一致。")
+        print("=" * 60)
+        return 1  # 阻止commit
+
+    return 0
+
+
+def run_alignment_check(project_dir):
+    try:
+        sys.path.insert(0, os.path.join(project_dir, "xishujuzhen"))
+        from alignment_check import check_alignment
+        return check_alignment(project_dir)
+    except Exception:
+        return [], []  # 静默降级，不阻止commit
+
+
+if __name__ == "__main__":
+    sys.exit(main())

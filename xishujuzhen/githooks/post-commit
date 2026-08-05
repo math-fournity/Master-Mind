@@ -1,12 +1,14 @@
 #!/data/master-mind/.venv/bin/python3
 #!/usr/bin/env python3
-"""Git post-commit hook —— CP4检查清单提醒
+"""Git post-commit hook —— CP4检查清单 + AGENTS.md对齐检查
 
-每次git commit后触发。通过SDK查询stop_hook认知单元的依赖，
-打印CP4检查清单到stdout（Devin在exec输出中可见）。
+每次git commit后触发：
+1. 通过SDK查询stop_hook认知单元的依赖，打印CP4检查清单
+2. 运行alignment_check.py检查AGENTS.md与repo内容对齐情况
 
 不影响subagent：subagent不commit，所以不触发此hook。
 检查清单不硬编码，从稀疏矩阵动态获取。
+对齐检查不阻塞commit（post-commit时已commit完成），仅提醒。
 """
 import sys
 import os
@@ -22,20 +24,42 @@ def main():
     if not project_dir:
         return
 
+    # ============================================================
+    # Part 1: CP4 检查清单（从认知图稀疏矩阵查询）
+    # ============================================================
     checklist = get_checklist(project_dir)
-    if not checklist:
-        return  # SDK不可用时graceful降级
+    if checklist:
+        print("\n" + "=" * 60)
+        print("CP4工作结束检查清单（从认知图稀疏矩阵查询）")
+        print("=" * 60)
+        for i, item in enumerate(checklist, 1):
+            title = item.get("title", item.get("cog_id", ""))
+            cognition = item.get("key_cognition", "")
+            docs = item.get("source_docs", [])
+            doc_str = f"（载体文档: {', '.join(str(d) for d in docs)}）" if docs else ""
+            print(f"  □ {i}. {title}: {cognition} {doc_str}")
+        print("=" * 60)
 
-    print("\n" + "=" * 60)
-    print("CP4工作结束检查清单（从认知图稀疏矩阵查询）")
-    print("=" * 60)
-    for i, item in enumerate(checklist, 1):
-        title = item.get("title", item.get("cog_id", ""))
-        cognition = item.get("key_cognition", "")
-        docs = item.get("source_docs", [])
-        doc_str = f"（载体文档: {', '.join(str(d) for d in docs)}）" if docs else ""
-        print(f"  □ {i}. {title}: {cognition} {doc_str}")
-    print("=" * 60 + "\n")
+    # ============================================================
+    # Part 2: AGENTS.md 对齐检查
+    # ============================================================
+    hard, soft = run_alignment_check(project_dir)
+    if hard or soft:
+        print("\n" + "=" * 60)
+        print("AGENTS.md 对齐检查")
+        print("=" * 60)
+        if hard:
+            print("🔴 硬性违规（已commit，下次commit前必须修正）：")
+            for v in hard:
+                print(f"  ❌ {v}")
+        if soft:
+            print("🟡 软性警告（建议检查）：")
+            for w in soft:
+                print(f"  ⚠️  {w}")
+        print("=" * 60)
+    elif checklist:
+        print("✅ AGENTS.md 对齐检查通过")
+    print()
 
 
 def get_checklist(project_dir):
@@ -46,6 +70,15 @@ def get_checklist(project_dir):
         return sdk.get_stop_checklist("stop_hook")
     except Exception:
         return []  # 静默降级
+
+
+def run_alignment_check(project_dir):
+    try:
+        sys.path.insert(0, os.path.join(project_dir, "xishujuzhen"))
+        from alignment_check import check_alignment, format_report
+        return check_alignment(project_dir)
+    except Exception:
+        return [], []  # 静默降级
 
 
 if __name__ == "__main__":

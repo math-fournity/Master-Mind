@@ -83,3 +83,11 @@
 - **修正文档索引**：13/56—60号文档标注为"星学项目目录"文件（不在数学项目dev-docs/中）；补充69号文档（POC-4验证结果，原遗漏）。
 - **补充代码文件索引**：补充11个未引用的py文件（arangodb_init.py、topology_verifier.py、test_dependency_graph.py、import_math_graph_to_arangodb.py、batch_extractor.py、absorb_test_loop.py、poc4_build_graph.py、poc9_*.py 4个）。
 - **修正Handover日期标注**：工作系统实现状态标题从2026-08-04更新为2026-08-05。
+- **修正64号文件名引用**：AGENTS.md引用`64-xishujuzhen-POC1验证方案.md`，实际文件名为`64-xishujuzhen-POC验证方案.md`（无"1"）。
+
+### Git Hook对齐检查机制（防止AGENTS.md与repo内容不同步）
+
+- **新增`xishujuzhen/alignment_check.py`**：AGENTS.md与repo内容对齐检查脚本。6项检查：①引用的dev-docs/*.md文件是否存在 ②dev-docs/编号文档是否都在索引中 ③引用的.py文件是否存在 ④DYN阶梯定义与123号是否一致 ⑤Phase定义与124号是否一致 ⑥认知图规模与JSON是否一致。返回(hard_violations, soft_warnings)。
+- **新增`xishujuzhen/githooks/pre-commit`**：pre-commit hook，只检查硬性违规（引用的文件不存在），阻止违规commit。
+- **增强`xishujuzhen/githooks/post-commit`**：在原有CP4检查清单基础上，新增AGENTS.md对齐检查（硬性+软性），commit后提醒但不阻塞。
+- **修正64号文件名引用**：由alignment_check.py自动检测发现。
