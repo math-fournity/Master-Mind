@@ -32,12 +32,25 @@ class Checkpoint:
     """
     状态checkpoint——用内容哈希标识（123号§39内容寻址）。
 
+    123号§847冻结定义：
+    checkpoint = 序列化(Q_0/W_t, 关键事件前缀, 模型/工具/权限/预算, 版本哈希)
+    - 不包含、也不能冻结LLM隐藏内部状态
+    - 同一内容哈希checkpoint视为阻断/分层变量
+
     不是按序号对齐，而是按内容哈希对齐。
     """
     checkpoint_id: str          # 内容哈希
     run_id: str
     step_index: int             # 在运行中的序号（仅用于排序，不用于对齐）
-    state_snapshot: Dict[str, Any]   # V/F/O/R/D/E快照
+    state_snapshot: Dict[str, Any]   # V/F/O/R/D/E快照（W_t）
+    # 123号§847要求checkpoint包含的完整字段：
+    q_0: str = ""                           # 原题Q_0的标识
+    event_prefix: List[str] = field(default_factory=list)  # 关键事件前缀
+    model_version: str = ""                 # 模型版本
+    tool_versions: Dict[str, str] = field(default_factory=dict)  # 工具版本
+    permissions: List[str] = field(default_factory=list)  # 权限
+    budget: Dict[str, Any] = field(default_factory=dict)  # 预算
+    version_hash: str = ""                  # 版本哈希
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
@@ -46,6 +59,13 @@ class Checkpoint:
             "run_id": self.run_id,
             "step_index": self.step_index,
             "state_snapshot": self.state_snapshot,
+            "q_0": self.q_0,
+            "event_prefix": self.event_prefix,
+            "model_version": self.model_version,
+            "tool_versions": self.tool_versions,
+            "permissions": self.permissions,
+            "budget": self.budget,
+            "version_hash": self.version_hash,
             "timestamp": self.timestamp,
         }
 
@@ -83,9 +103,10 @@ def compute_state_hash(state: Dict[str, Any]) -> str:
     """
     计算状态的内容哈希（123号§39内容寻址）。
 
+    123号§847：checkpoint = 序列化(Q_0/W_t, 关键事件前缀, 模型/工具/权限/预算, 版本哈希)
     用V/F/O/R/D/E的规范化键计算哈希，忽略timestamp和措辞。
     """
-    # 提取V/F/O/R/D/E的规范化表示
+    # 提取V/F/O/R/D/E的规范化表示（W_t部分）
     canonical = {}
     for key in ["V_t", "F_t", "O_t", "R_t", "D_t", "E_t"]:
         val = state.get(key, {})
@@ -95,6 +116,13 @@ def compute_state_hash(state: Dict[str, Any]) -> str:
                               for k, v in sorted(val.items())}
         else:
             canonical[key] = val
+
+    # 123号§847要求checkpoint还包含Q_0/事件前缀/模型/工具/权限/预算/版本哈希
+    # 这些字段如果存在于state中，也参与哈希计算
+    for key in ["q_0", "event_prefix", "model_version", "tool_versions",
+                "permissions", "budget", "version_hash"]:
+        if key in state and state[key]:
+            canonical[key] = state[key]
 
     return hashlib.sha256(
         json.dumps(canonical, sort_keys=True, ensure_ascii=False).encode()
@@ -227,6 +255,8 @@ class StateAligner:
         """
         P3-1.3：记录每个运行的关键状态序列（checkpoint链）。
 
+        123号§847：checkpoint = 序列化(Q_0/W_t, 关键事件前缀, 模型/工具/权限/预算, 版本哈希)
+
         边界情况：
         - 运行无checkpoint → 返回空列表
         - checkpoint链断裂 → 标记缺失步骤
@@ -242,11 +272,19 @@ class StateAligner:
             # 即使有缺失字段也计算哈希（缺失字段用空值）
             state_hash = compute_state_hash(state)
 
+            # 123号§847：填充checkpoint的完整字段
             cp = Checkpoint(
                 checkpoint_id=state_hash,
                 run_id=run_id,
                 step_index=step_idx,
                 state_snapshot=state,
+                q_0=state.get("q_0", ""),
+                event_prefix=state.get("event_prefix", []),
+                model_version=state.get("model_version", ""),
+                tool_versions=state.get("tool_versions", {}),
+                permissions=state.get("permissions", []),
+                budget=state.get("budget", {}),
+                version_hash=state.get("version_hash", ""),
             )
             if missing_fields:
                 cp.state_snapshot["_missing_fields"] = missing_fields

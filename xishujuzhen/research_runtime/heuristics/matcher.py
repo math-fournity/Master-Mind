@@ -34,12 +34,25 @@ class MatcherAction(str, Enum):
 
     127号§10.5 Heuristic Matcher / Policy：
     "继续观察/诊断/工具/无提示/候选激活包"的排序及理由。
+
+    123号§485-497冻结的完整动作集合（9个）：
+    continue_observing / ask_diagnostic_question / request_tool_check /
+    retrieve_minimal_interface / inject_hint_0 / inject_hint_1 /
+    inject_hint_2 / abstain / stop_or_escalate
+
+    Phase 3离线模式约束（123号§974）：
+    - inject_hint_0/1/2 在离线模式下只生成候选激活包，不实际注入
+    - candidate规则禁止在线自动提示（R-4核心防线）
     """
     CONTINUE_OBSERVING = "continue_observing"
-    ASK_DIAGNOSTIC = "ask_diagnostic"
-    REQUEST_TOOL = "request_tool"
-    ABSTAIN = "abstain"
-    CANDIDATE_ACTIVATION = "candidate_activation"
+    ASK_DIAGNOSTIC_QUESTION = "ask_diagnostic_question"      # 123号§489
+    REQUEST_TOOL_CHECK = "request_tool_check"                # 123号§490
+    RETRIEVE_MINIMAL_INTERFACE = "retrieve_minimal_interface" # 123号§491
+    INJECT_HINT_0 = "inject_hint_0"                          # 123号§492 H0元检查
+    INJECT_HINT_1 = "inject_hint_1"                          # 123号§493 H1思维操作
+    INJECT_HINT_2 = "inject_hint_2"                          # 123号§494 H2概念/工具候选
+    ABSTAIN = "abstain"                                      # 123号§495
+    STOP_OR_ESCALATE = "stop_or_escalate"                    # 123号§496
 
 
 @dataclass
@@ -89,6 +102,29 @@ class HeuristicMatcher:
     INVISIBLE_COLLECTIONS = {
         "truth_vault", "raw_events", "manifests",
         "audit_verdicts", "dg_nodes", "dg_edges",
+    }
+
+    # 123号§607：visibility label和能力令牌
+    # 角色边界要落实为collection、visibility label和能力令牌，而不是只写在角色prompt里
+    VISIBILITY_LABELS = {
+        "can_read_local_patterns": True,        # 局部状态模式
+        "can_read_model_budget": True,          # 模型/预算
+        "can_read_rule_effects": True,          # 规则效果
+        "can_read_leakage_side_effects": True,  # 泄漏/副作用
+        "can_read_truth_vault": False,          # Truth Vault答案文本——禁止
+        "can_write_activation_packets": True,   # 激活包R/W
+        "can_publish_candidate": False,         # 不能自动发布candidate规则
+        "can_inject_online": False,             # 离线模式下不能在线注入
+    }
+
+    # 能力令牌（123号§607：能力令牌）
+    CAPABILITY_TOKENS = {
+        "match_heuristic_rules": True,          # 匹配启发规则
+        "generate_candidate_packets": True,     # 生成候选激活包
+        "rank_actions": True,                   # 动作排序
+        "publish_rule": False,                  # 发布规则——禁止
+        "access_truth_vault": False,            # 访问Truth Vault——禁止
+        "inject_hint_online": False,            # 在线注入Hint——离线模式禁止
     }
 
     def __init__(
@@ -221,36 +257,64 @@ class HeuristicMatcher:
         生成动作排序。
 
         127号§10.5："继续观察/诊断/工具/无提示/候选激活包"的排序。
+        123号§485-497完整动作集合（9个）。
+
+        Phase 3离线模式约束（123号§974）：
+        - inject_hint_0/1/2只生成候选，不实际注入
+        - 离线模式下inject动作标注offline_only=True
         """
         actions = []
 
-        # 如果有匹配的规则，候选激活包优先
+        # 如果有匹配的规则，按Hint级别生成inject候选
         if matched_rules:
-            actions.append({
-                "action": MatcherAction.CANDIDATE_ACTIVATION.value,
-                "priority": 1,
-                "reason": f"有{len(matched_rules)}条规则匹配",
-                "offline_mode": self.offline_mode,
-            })
+            for rule in matched_rules:
+                rhs = rule.RHS
+                if rhs.check_question:
+                    actions.append({
+                        "action": MatcherAction.INJECT_HINT_0.value,
+                        "priority": 1,
+                        "reason": f"H0元检查候选（规则{rule.rule_id}）",
+                        "offline_mode": self.offline_mode,
+                        "offline_only": True,   # 离线模式下只生成候选不注入
+                        "rule_id": rule.rule_id,
+                    })
+                if rhs.research_action:
+                    actions.append({
+                        "action": MatcherAction.INJECT_HINT_1.value,
+                        "priority": 1,
+                        "reason": f"H1思维操作候选（规则{rule.rule_id}）",
+                        "offline_mode": self.offline_mode,
+                        "offline_only": True,
+                        "rule_id": rule.rule_id,
+                    })
+                if rhs.tool_call:
+                    actions.append({
+                        "action": MatcherAction.INJECT_HINT_2.value,
+                        "priority": 1,
+                        "reason": f"H2概念/工具候选（规则{rule.rule_id}）",
+                        "offline_mode": self.offline_mode,
+                        "offline_only": True,
+                        "rule_id": rule.rule_id,
+                    })
 
-        # 根据stall_type推荐动作
+        # 根据stall_type推荐诊断/工具/检索动作
         if stall_type == "semantic_repetition":
             actions.append({
-                "action": MatcherAction.ASK_DIAGNOSTIC.value,
+                "action": MatcherAction.ASK_DIAGNOSTIC_QUESTION.value,
                 "priority": 2,
-                "reason": "语义重复——建议诊断",
+                "reason": "语义重复——建议诊断问题",
             })
         elif stall_type == "tool_failure":
             actions.append({
-                "action": MatcherAction.REQUEST_TOOL.value,
+                "action": MatcherAction.REQUEST_TOOL_CHECK.value,
                 "priority": 2,
                 "reason": "工具失败——建议请求工具检查",
             })
         elif stall_type == "strategy_exhausted":
             actions.append({
-                "action": MatcherAction.CANDIDATE_ACTIVATION.value,
+                "action": MatcherAction.RETRIEVE_MINIMAL_INTERFACE.value,
                 "priority": 2,
-                "reason": "策略耗尽——建议候选激活",
+                "reason": "策略耗尽——建议检索最小接口",
             })
         else:
             actions.append({
@@ -264,6 +328,13 @@ class HeuristicMatcher:
             "action": MatcherAction.ABSTAIN.value,
             "priority": 3,
             "reason": "无提示——让Agent独立完成",
+        })
+
+        # 停止或升级作为最高优先级兜底
+        actions.append({
+            "action": MatcherAction.STOP_OR_ESCALATE.value,
+            "priority": 4,
+            "reason": "停止或升级——预算耗尽或反复失败时",
         })
 
         return actions
@@ -322,13 +393,33 @@ class HeuristicMatcher:
     def verify_visibility(self) -> Dict[str, Any]:
         """
         验证可见性矩阵合规（127号§10.3）。
+
+        123号§607：角色边界要落实为collection、visibility label和能力令牌。
         """
         return {
             "visible_collections": list(self.VISIBLE_COLLECTIONS),
             "invisible_collections": list(self.INVISIBLE_COLLECTIONS),
+            "visibility_labels": dict(self.VISIBILITY_LABELS),
+            "capability_tokens": dict(self.CAPABILITY_TOKENS),
             "heuristic_rules_access": "R(局部)——只看匹配窗口内规则",
             "activation_packets_access": "R/W",
             "semantic_events_access": "R(窗口)",
             "truth_vault_access": "不可见",
             "compliant": True,
         }
+
+    def check_visibility_label(self, label: str) -> bool:
+        """
+        123号§607：运行时检查visibility label。
+
+        如果label对应的能力为False，则拒绝访问。
+        """
+        return self.VISIBILITY_LABELS.get(label, False)
+
+    def check_capability_token(self, token: str) -> bool:
+        """
+        123号§607：运行时检查能力令牌。
+
+        如果token对应的能力为False，则拒绝执行。
+        """
+        return self.CAPABILITY_TOKENS.get(token, False)

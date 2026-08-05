@@ -316,3 +316,85 @@ class SparseViewBuilder:
             "n_factors": len(condition_factors),
             "density": len(entries) / (len(rule_ids) * len(condition_factors)) if rule_ids and condition_factors else 0.0,
         }
+
+    def compute_activation_scores(
+        self,
+        rules: List[HeuristicRule],
+        pattern_vector: Dict[str, float],
+        context: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """
+        系统探讨§10.4（第1943-1967行）：稀疏计算 a_t = W^T * p_t
+
+        令：
+        - p_t：当前思维图匹配到的模式向量
+        - W_{C,F,τ}：特定上下文下的稀疏启发矩阵
+        - a_t：候选激活分数
+
+        则：a_t = W_{C,F,τ}^T * p_t
+
+        矩阵中的值不应只是0/1，而应包含7种数值（123号§25）：
+        - 因果成功提升（干预效果后验）
+        - 证据次数
+        - 迁移范围
+        - 泄漏风险
+        - 模型适用性
+        - 提示成本
+        - 副作用
+
+        边界情况：
+        - pattern_vector为空 → 返回空分数
+        - 无匹配的规则 → 返回空分数
+        - 稀疏计算不直接宣告Hint正确（123号§564）
+        """
+        if not pattern_vector:
+            return {"activation_scores": {}, "reason": "pattern_vector为空"}
+
+        entries = self.build_incidence_view(rules)
+        if not entries:
+            return {"activation_scores": {}, "reason": "无incidence条目"}
+
+        # 构建稀疏矩阵W：rule_id × condition_factor → weight
+        # W[i,j] = entry.weight（首版用weight，后续可扩展为7种数值的组合）
+        w_matrix: Dict[str, Dict[str, float]] = {}
+        for entry in entries:
+            if entry.rule_id not in w_matrix:
+                w_matrix[entry.rule_id] = {}
+            # 如果有numerics记录，用7种数值的组合作为权重
+            numerics = self.numerics.get(entry.rule_id)
+            if numerics:
+                # 组合权重 = 干预效果后验 * 模型适用性 - 泄漏风险 - 提示成本归一化
+                combined_weight = (
+                    numerics.intervention_effect_posterior * 0.4
+                    + numerics.model_applicability * 0.3
+                    - numerics.leakage_risk * 0.2
+                    - min(numerics.hint_compute_cost / 1000.0, 1.0) * 0.1
+                )
+                w_matrix[entry.rule_id][entry.condition_factor] = max(combined_weight, 0.0)
+            else:
+                w_matrix[entry.rule_id][entry.condition_factor] = entry.weight
+
+        # 计算a_t = W^T * p_t
+        # 对每个规则，将其匹配的条件因子的pattern_vector值乘以W权重，求和
+        activation_scores: Dict[str, float] = {}
+        for rule_id, factor_weights in w_matrix.items():
+            score = 0.0
+            for factor, weight in factor_weights.items():
+                # pattern_vector中的值表示当前状态匹配该条件的程度
+                p_value = pattern_vector.get(factor, 0.0)
+                score += weight * p_value
+            if score > 0:
+                activation_scores[rule_id] = score
+
+        # 按分数排序
+        sorted_scores = dict(sorted(activation_scores.items(),
+                                     key=lambda x: x[1], reverse=True))
+
+        return {
+            "activation_scores": sorted_scores,
+            "formula": "a_t = W_{C,F,τ}^T * p_t",
+            "is_computation_view": True,            # 123号§25：稀疏矩阵是计算视图
+            "not_truth_ontology": True,             # 123号§24：K/T/H是投影
+            "no_direct_truth_claim": True,          # 123号§564：不直接宣告Hint正确
+            "n_candidates": len(sorted_scores),
+        }

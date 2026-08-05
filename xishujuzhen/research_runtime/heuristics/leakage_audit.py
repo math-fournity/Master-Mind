@@ -492,3 +492,163 @@ class LeakageAuditor:
             "recorded": True,
             "is_proxy_not_mutual_info": True,   # F6防线
         }
+
+
+class AgentDependencyProxy:
+    """
+    123号§530：Agent依赖代理。
+
+    "Agent依赖代理至少包括：撤掉Hint后的独立继续率、
+    同类后续状态再次求助率和单位已验证进展所需帮助量。"
+
+    这是与答案泄漏代理并列的另一类代理。
+    123号§23多目标策略公式中的 D̂_dependence 就是这里测量的。
+
+    F6防线：这些是代理分数，不是真实依赖度。
+
+    注意：Phase 3只做离线候选发现，Agent依赖代理的完整测量需要Phase 4/5的
+    在线实验数据。Phase 3只做接口定义和占位实现。
+    """
+
+    def __init__(self):
+        pass
+
+    def measure_independent_continuation_rate(
+        self,
+        runs_with_hint: List[Dict[str, Any]],
+        runs_without_hint: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        代理1：撤掉Hint后的独立继续率。
+
+        123号§530："撤掉Hint后的独立继续率"
+
+        测量方法：比较撤掉Hint后Agent是否能独立继续完成研究。
+        继续率 = 撤掉Hint后继续完成的运行数 / 总运行数
+
+        边界情况：
+        - 无对照运行数据 → 返回None（Phase 3离线模式无在线实验数据）
+        - 继续率为0 → 完全依赖
+        - 继续率为1 → 无依赖
+
+        F6防线：这是代理分数，不是真实依赖度。
+        """
+        if not runs_without_hint:
+            return {
+                "continuation_rate": None,
+                "reason": "无撤掉Hint的对照运行数据——Phase 3离线模式无在线实验数据",
+                "is_proxy": True,
+                "phase_note": "完整测量需要Phase 4/5在线实验数据",
+            }
+
+        continued = sum(1 for r in runs_without_hint if r.get("continued", False))
+        rate = continued / len(runs_without_hint)
+
+        return {
+            "continuation_rate": rate,
+            "is_proxy": True,   # F6防线
+            "n_runs": len(runs_without_hint),
+        }
+
+    def measure_re_assistance_rate(
+        self,
+        subsequent_states: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """
+        代理2：同类后续状态再次求助率。
+
+        123号§530："同类后续状态再次求助率"
+
+        测量方法：在同类后续状态中，Agent再次求助的比例。
+        再次求助率 = 再次求助的次数 / 同类后续状态总数
+
+        边界情况：
+        - 无后续状态数据 → 返回None
+        - 再次求助率为0 → 无依赖
+        - 再次求助率为1 → 完全依赖
+
+        F6防线：这是代理分数，不是真实依赖度。
+        """
+        if not subsequent_states:
+            return {
+                "re_assistance_rate": None,
+                "reason": "无后续状态数据——Phase 3离线模式无在线实验数据",
+                "is_proxy": True,
+                "phase_note": "完整测量需要Phase 4/5在线实验数据",
+            }
+
+        requested = sum(1 for s in subsequent_states if s.get("requested_help", False))
+        rate = requested / len(subsequent_states)
+
+        return {
+            "re_assistance_rate": rate,
+            "is_proxy": True,   # F6防线
+            "n_states": len(subsequent_states),
+        }
+
+    def measure_help_per_verified_progress(
+        self,
+        hints_given: int,
+        verified_progress: int,
+    ) -> Dict[str, Any]:
+        """
+        代理3：单位已验证进展所需帮助量。
+
+        123号§530："单位已验证进展所需帮助量"
+
+        测量方法：帮助量 / 已验证进展数。
+        比值越高，依赖越强。
+
+        边界情况：
+        - 已验证进展为0 → 无穷大依赖（或返回None）
+        - 帮助量为0 → 无依赖
+
+        F6防线：这是代理分数，不是真实依赖度。
+        """
+        if verified_progress == 0:
+            return {
+                "help_per_progress": None,
+                "reason": "已验证进展为0——无法计算",
+                "is_proxy": True,
+            }
+
+        ratio = hints_given / verified_progress
+
+        return {
+            "help_per_progress": ratio,
+            "hints_given": hints_given,
+            "verified_progress": verified_progress,
+            "is_proxy": True,   # F6防线
+        }
+
+    def measure_all_proxies(
+        self,
+        runs_with_hint: Optional[List[Dict[str, Any]]] = None,
+        runs_without_hint: Optional[List[Dict[str, Any]]] = None,
+        subsequent_states: Optional[List[Dict[str, Any]]] = None,
+        hints_given: int = 0,
+        verified_progress: int = 0,
+    ) -> Dict[str, Any]:
+        """
+        测量全部3个Agent依赖代理。
+
+        123号§530：Agent依赖代理至少包括3个。
+
+        F6防线：全部是代理分数，不是真实依赖度。
+        123号§23：不能用一个总分掩盖高泄漏——同理，不能用一个总分掩盖高依赖。
+        """
+        proxy1 = self.measure_independent_continuation_rate(
+            runs_with_hint or [], runs_without_hint or []
+        )
+        proxy2 = self.measure_re_assistance_rate(subsequent_states or [])
+        proxy3 = self.measure_help_per_verified_progress(hints_given, verified_progress)
+
+        return {
+            "all_three_proxies_executed": True,   # 3个代理全部执行
+            "independent_continuation_rate": proxy1,
+            "re_assistance_rate": proxy2,
+            "help_per_progress": proxy3,
+            "is_proxy_not_real_dependency": True,   # F6防线
+            "no_single_total_score": True,          # 123号§23：不能用总分掩盖
+            "phase_note": "Phase 3只做接口定义和占位实现，完整测量需要Phase 4/5在线实验数据",
+        }
