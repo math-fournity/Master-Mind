@@ -215,6 +215,7 @@
 | `dev-docs/142-v1-2026-08-05-CheckList预防性修正与可实现性审计报告.md` | **CheckList预防性修正与可实现性审计报告**：对132—137号Check List做预防性修正——引入D1-D4深度等级+边界情况清单+覆盖标准。132—137号共386项D1-D4标注、346处边界情况、38处覆盖标准。132号F3检查发现§18的3项遗漏（状态等价参数化`~_{α,κ}`/规范化键定义/规范化键一致性判定），已补充为P2-9.3+P2-9.COMP3。132号可实现性审计（第11维度）全部通过 | **必读**。理解预防性修正的方法和结果 |
 | `dev-docs/143-v1-2026-08-05-Phase2实现方案.md` | **Phase 2实现方案**：Phase 2目标——完成DYN-1（状态重建一致性）和DYN-2（卡点检测校准）。Q_0用128号冻结的Ramsey案例。9个大项按依赖顺序实现：P2-1 Q_0解析→P2-2工作区+P2-3义务图+P2-5证据→P2-4验证门→P2-6 DYN-1+P2-7 DYN-2→P2-8信念+P2-9进展偏序。新增2个代码模块（state_reducer/+verification/）+6个ArangoDB collections | Phase 2执行方案 |
 | `dev-docs/144-v1-2026-08-05-Phase2实现三文件审计与修正报告.md` | **Phase 2审计修正报告**：对照plan-dad3347dc4d8e542.md+系统探讨.md+123号文档+127号Schema冻结文档审计Phase 2实现。发现10项严重/中等问题（ObligationType/EvidenceStatus/StallType枚举错误、字段缺失、Verifier/Retriever角色缺失、可复现约束缺失、α计算近似），全部修正后集成测试通过。**关键教训**：TaskType≠ObligationType、Schema冻结文档是权威、角色隔离不是可选项 | Phase 2审计修正 |
+| `dev-docs/145-v1-2026-08-05-权威性逐字核对审计与新断层类型F4F5F6.md` | **权威性逐字核对审计**：144号暴露了140/142未覆盖的F4(概念混淆)/F5(权威定义偏差)/F6(方法近似)三种新断层类型。新增第12审计维度（权威性逐字核对）——实现时必须同时打开127号Schema冻结文档逐字核对，Check List是导航，127号是法律。对133-137号做了预防性修正：133号角色命名、136号Controller角色澄清、137号Representation字段数8→12、127号map_type注释补全relaxation+补充验证等级枚举 | **必读**。理解F4/F5/F6新断层类型和第12审计维度 |
 | `dev-docs/132-v1-2026-08-05-Phase2-CheckList.md` | **Phase 2 Check List**（已实现）：9个大项全部完成。出口门P2-EXIT-1/2/3全部通过。DYN-1多观察者重建一致性α=1.00（5个关键字段全部≥0.80）。DYN-2卡点检测7类卡点+precision/recall校准。实现文件：state_reducer/（q0/workspace_store/obligation/verification_gate/evidence/reducer/progress/controller_belief/migrate）+ verification/stall_detector | Phase 2实现状态 |
 | `dev-docs/130-v1-2026-08-05-Phase0-CheckList.md` | **Phase 0独立Check List**：从124号v2拆出并细化。含P0-1—P0-11全部子项（含129号审计后补充的P0-1.4/P0-4.10/P0-4.11/P0-6.4/P0-COMP-1/P0-COMP-2，及本次细化新增的P0-9文件职责冻结/P0-10数据迁移原则冻结/P0-11不搭空框架，及138号审计新增的P0-10.7 NO-1约束）和P0-EXIT出口门。Phase 0已完成 | Phase 0执行视图 |
 | `dev-docs/131-v1-2026-08-05-Phase1-CheckList.md` | **Phase 1独立Check List**：从124号v2拆出并细化。含P1-1—P1-8全部子项+完整性标准+角色隔离落地+代码模块创建+P1-EXIT出口门。目标：完成DYN-0。**Phase 1已完成**——DYN-0验收4条全部通过（集成测试test_phase1.py验证）。实现：research_runtime/包（manifest.py + models/ + events/） + ArangoDB 4个新collection（raw_events/semantic_events/checkpoints/run_manifests） | Phase 1执行视图 |
@@ -313,7 +314,12 @@
 
 **可实现性审计（第11维度）**：在138号式的交叉审计中，新增第11维度——检查每个"实现X"项是否标注D1-D4预期深度、每个"验证X"项是否附边界情况清单、每个"覆盖X"项是否明确覆盖标准、Check List是否遗漏来源文档要求。
 
-**关联文档**：140号（诊断报告）、142号（预防性修正与审计报告）
+**权威性逐字核对（第12维度，145号新增）**：实现完成后、勾选Check List前，对每个枚举值/字段名/状态值/角色名，逐字核对127号Schema冻结文档原文，而不是核对Check List的描述。Check List是导航，127号是法律。发现偏差时以127号为准。覆盖三种新断层类型：
+- **F4概念混淆**：两个不同概念（如TaskType和ObligationType）在实现者脑中合并为一个
+- **F5权威定义偏差**：实现的枚举值/字段名/状态值与127号权威定义不一致
+- **F6方法近似**：Check List要求特定方法（如Krippendorff α），实现用了近似方法（如Jaccard）替代且未声明
+
+**关联文档**：140号（诊断报告）、142号（预防性修正与审计报告）、145号（权威性逐字核对与新断层类型F4/F5/F6）
 
 ## 工作系统技术说明
 

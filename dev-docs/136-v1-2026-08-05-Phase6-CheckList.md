@@ -261,10 +261,11 @@
 
 Phase 6完善所有角色的在线运行时集成：
 
-- [ ] **P6-ROLE-1**：Controller角色（属于Orchestrator的子角色）实现在线循环控制 [预期D2]
+- [ ] **P6-ROLE-1**：Controller功能组件（属于orchestrator角色的运行时子功能，不是独立角色——127号§8只定义8种角色）实现在线循环控制 [预期D2]
   - 12步运行时的步骤7（诊断决策）和步骤9（最小动作选择）
   - 深度标准：有可执行的Controller类，实现步骤7和步骤9
   - 边界情况：步骤7/9缺失、步骤顺序错误
+  - **注**：127号§8定义的8种角色中无`controller`，Controller是orchestrator角色的运行时功能组件，不是独立角色
 - [ ] **P6-ROLE-2**：所有8个角色的CapabilityToken在线运行时验证 [预期D2]
   - 深度标准：有可执行的CapabilityToken验证函数，8个角色全部验证
   - 边界情况：某角色无CapabilityToken、CapabilityToken验证失败

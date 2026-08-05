@@ -87,7 +87,7 @@
   - 覆盖标准：5个部分全部定义，不是只定义了LHS和RHS
 - [ ] **P3-3.COMP2**：模式匹配必须返回被匹配实体、字段约束和时间窗口（123号§21冻结声明） [预期D3]
   - 边界情况：模式匹配只返回True/False（应被拒绝——必须返回3个字段）
-- [ ] **P3-3.COMP3**：动作只能提出候选状态扩展，真正写入V_t仍需Reducer与Verifier（123号§21冻结声明） [预期D3]
+- [ ] **P3-3.COMP3**：动作只能提出候选状态扩展，真正写入V_t仍需state_reducer与verifier（123号§21冻结声明） [预期D3]
   - 边界情况：RHS尝试直接写入V_t（应被拒绝）
 - [ ] **P3-3.COMP4**：激活包不应直接把目标结论加入V_t（123号§21冻结声明） [预期D3]
   - 边界情况：激活包包含目标结论（应被拒绝）
@@ -266,7 +266,7 @@
 
 Phase 3新增启用的角色：
 
-- [ ] **P3-ROLE-1**：Heuristic Matcher / Policy角色启用（离线模式） [预期D2]
+- [ ] **P3-ROLE-1**：heuristic_matcher角色启用（离线模式） [预期D2]
   - 可见：局部状态模式、模型/预算、规则效果、泄漏/副作用
   - 不可见：Truth Vault答案文本
   - 不能做：自动发布candidate规则
@@ -276,9 +276,9 @@ Phase 3新增启用的角色：
 
 ### 完整性标准
 
-- [ ] **P3-ROLE.COMP**：Heuristic Matcher不读取答案文本（123号§28 + 系统探讨.md§5.3） [预期D3]
+- [ ] **P3-ROLE.COMP**：heuristic_matcher不读取答案文本（123号§28 + 系统探讨.md§5.3） [预期D3]
   - 边界情况：Matcher读取答案文本（应被拒绝）
-- [ ] **P3-ROLE.COMP2**：Heuristic Matcher不把candidate规则当published规则（123号§28） [预期D3]
+- [ ] **P3-ROLE.COMP2**：heuristic_matcher不把candidate规则当published规则（123号§28） [预期D3]
   - 边界情况：Matcher把candidate规则当published规则使用（应被拒绝）
 
 ---

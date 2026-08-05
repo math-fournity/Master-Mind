@@ -17,12 +17,13 @@
 > 来源：123号§52 + §19(Representation schema) + 127号§5
 
 - [ ] **P7-1.1**：实现类型化表示映射（127号§5的Representation schema完整实现） [预期D2]
-  - `source_form` / `target_form` / `map_type`（6种枚举）
+  - `rep_id` / `source_form` / `target_form` / `map_type`（6种枚举：equivalence/encoding/reduction/relaxation/duality/functor_candidate）
+  - `domain` / `preconditions`
   - `forward_transport` / `backward_transport`
   - `preserved_invariants` / `lost_information`
-  - `soundness_obligation`（指向Obligation schema）
-  - 深度标准：有可执行的RepresentationMap类，8个字段全部可操作
-  - 边界情况：map_type不存在、forward_transport/backward_transport缺失、soundness_obligation指向不存在的义务
+  - `soundness_obligation`（指向Obligation schema）/ `evidence`（证据ID列表）
+  - 深度标准：有可执行的RepresentationMap类，127号§5的12个字段全部可操作
+  - 边界情况：map_type不存在、forward_transport/backward_transport缺失、soundness_obligation指向不存在的义务、preconditions未满足时运输成立（应被拒绝）
 - [ ] **P7-1.2**：实现soundness义务验证（运输只在对应义务通过后成立） [预期D2]
   - 深度标准：有可执行的soundness验证函数，运输在义务通过后才成立
   - 边界情况：运输在义务通过前成立（应被拒绝）
