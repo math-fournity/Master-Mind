@@ -73,16 +73,19 @@ def test_p5_1_cold_warm_hot_micro():
 
     # 温层
     warm = WarmStore()
-    warm.store(WarmEntry("w1", "type_filter", "内容", obligation_refs=["ob1"]))
+    warm.store(WarmEntry("w1", "type_filter", "内容", obligation_refs=["ob1"], failure_mode="stall"))
     assert len(warm.query_by_obligation("ob1")) == 1, "温层按义务查询失败"
-    print("✅ P5-1.2: 温层按义务查询")
+    assert len(warm.query_by_failure_mode("stall")) == 1, "温层按失败模式查询失败"
+    print("✅ P5-1.2: 温层按义务查询+按失败模式查询（123号§29）")
 
     # 热层
     hot = HotStore()
-    hot.update(HotEntry(workspace_id="ws1", q0="Q_0题目", w_t_snapshot={"V_t": []}, open_obligations=["ob1"]))
+    hot.update(HotEntry(workspace_id="ws1", q0="Q_0题目", w_t_snapshot={"V_t": []}, open_obligations=["ob1"],
+                        activation_pack={"pack_id": "p1", "action": "prove"}))
     assert hot.get_current("ws1") is not None, "热层获取失败"
     assert hot.get_open_obligations("ws1") == ["ob1"], "热层开放义务失败"
-    print("✅ P5-1.3: 热层实时更新+开放义务")
+    assert hot.get_activation_pack("ws1")["pack_id"] == "p1", "热层激活包失败"
+    print("✅ P5-1.3: 热层实时更新+开放义务+单个激活包（123号§29）")
 
     # 微包
     gen = MicroPackGenerator()
@@ -90,7 +93,8 @@ def test_p5_1_cold_warm_hot_micro():
     assert pack.pack_id == "p1", "微包生成失败"
     injection = gen.inject("ws1", pack)
     assert injection["injection_type"] == "incremental", "微包增量注入失败"
-    print("✅ P5-1.4: 微包生成+增量注入")
+    assert gen.check_no_preload_future_route(pack), "微包不应预载未来路线"
+    print("✅ P5-1.4: 微包生成+增量注入+不预载未来路线（plan第197行）")
 
     # 来源注册
     reg = SourceRegistry()
@@ -234,6 +238,11 @@ def test_p5_4_context_compiler():
     compiler.request_expansion("ob1", "seg_ob1_0", "detail")
     assert compiler.check_expansion_requests_are_events(), "按需展开请求应成为事件"
     print("✅ P5-4.5: 请求按需展开本身也成为事件（plan第199行）")
+
+    # plan第248行：从内容寻址checkpoint继续
+    compiler.set_checkpoint("ckpt_hash_abc123")
+    assert compiler.check_checkpoint_continuity(), "应有checkpoint引用"
+    print("✅ P5-4.6: 从内容寻址checkpoint继续（plan第248行）")
 
 
 def test_p5_5_capability_registry():
@@ -412,11 +421,19 @@ def test_p5_9_kth_projection():
     )
     events = [{"event_id": "e1", "type": "prove"}]
     rules = [{"rule_id": "h1", "pattern": "stall_word"}]
-    kth = KTHProjection(dg_adapter=dg_adapter, events=events, heuristic_rules=rules)
+    proof_obs = [{"obligation_id": "ob1", "obligation_type": "prove", "status": "open"}]
+    rep_maps = [{"rep_id": "rep1", "source_form": "整数方程", "target_form": "椭圆曲线", "map_type": "equivalence"}]
+    kth = KTHProjection(dg_adapter=dg_adapter, events=events, heuristic_rules=rules,
+                        proof_obligations=proof_obs, representation_maps=rep_maps)
 
     k_result = kth.query_k()
-    assert len(k_result.items) > 0, "K投影应有结果"
-    print("✅ P5-9.1: K投影（可以调用什么）")
+    assert len(k_result.items) >= 3, f"K投影应有3个来源结果，实际{len(k_result.items)}"
+    # 检查3个来源：dg_adapter(有relation字段)、proof_obligation、representation_transport
+    has_dg = any("relation" in item for item in k_result.items)
+    has_ob = any(item.get("source") == "proof_obligation" for item in k_result.items)
+    has_rep = any(item.get("source") == "representation_transport" for item in k_result.items)
+    assert has_dg and has_ob and has_rep, "K投影应包含3个来源"
+    print("✅ P5-9.1: K投影（从数学语义+证明义务+表示运输3个来源查询，123号§24）")
 
     t_result = kth.query_t()
     assert len(t_result.items) > 0, "T投影应有结果"

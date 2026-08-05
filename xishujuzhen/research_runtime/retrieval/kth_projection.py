@@ -52,22 +52,48 @@ class KTHProjection:
         dg_adapter: Optional[DgAdapter] = None,
         events: List[Dict[str, Any]] = None,
         heuristic_rules: List[Dict[str, Any]] = None,
+        proof_obligations: List[Dict[str, Any]] = None,  # 证明义务（123号§24）
+        representation_maps: List[Dict[str, Any]] = None,  # 表示运输（123号§24）
     ):
         self.dg_adapter = dg_adapter
         self._events = events or []
         self._heuristic_rules = heuristic_rules or []
+        self._proof_obligations = proof_obligations or []
+        self._representation_maps = representation_maps or []
 
     def query_k(self, filter_fn=None) -> ProjectionResult:
         """
-        K投影：从数学语义、证明义务和表示运输中查询"可以调用什么"（P5-9.1）。
+        K投影：从数学语义、证明义务和表示运输中查询"可以调用什么"（P5-9.1 + 123号§24）。
+
+        123号§24："K投影：从数学语义、证明义务和表示运输中查询'可以调用什么'"
 
         边界情况：K投影为空、K投影结果过多
         """
-        if self.dg_adapter is None:
-            return ProjectionResult(projection_type=ProjectionType.K.value, items=[], source="no_dg_adapter")
+        items = []
 
-        k_projection = self.dg_adapter.generate_k_projection()
-        items = [p.to_dict() for p in k_projection]
+        # 来源1：从dg_adapter获取数学语义关系
+        if self.dg_adapter is not None:
+            k_projection = self.dg_adapter.generate_k_projection()
+            items.extend(p.to_dict() for p in k_projection)
+
+        # 来源2：从证明义务获取可调用的义务（123号§24）
+        for ob in self._proof_obligations:
+            items.append({
+                "source": "proof_obligation",
+                "obligation_id": ob.get("obligation_id", ""),
+                "obligation_type": ob.get("obligation_type", ""),
+                "status": ob.get("status", ""),
+            })
+
+        # 来源3：从表示运输获取可调用的表示映射（123号§24）
+        for rep in self._representation_maps:
+            items.append({
+                "source": "representation_transport",
+                "rep_id": rep.get("rep_id", ""),
+                "source_form": rep.get("source_form", rep.get("source_representation", "")),
+                "target_form": rep.get("target_form", rep.get("target_representation", "")),
+                "map_type": rep.get("map_type", ""),
+            })
 
         if filter_fn:
             items = [item for item in items if filter_fn(item)]
@@ -75,7 +101,7 @@ class KTHProjection:
         return ProjectionResult(
             projection_type=ProjectionType.K.value,
             items=items,
-            source="dg_adapter_k_projection",
+            source="dg_adapter+proof_obligations+representation_maps",
         )
 
     def query_t(self, filter_fn=None) -> ProjectionResult:

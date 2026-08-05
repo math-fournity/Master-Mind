@@ -20,6 +20,7 @@ class WarmEntry:
     content: str
     obligation_refs: List[str] = field(default_factory=list)  # 关联的义务ID
     representation_refs: List[str] = field(default_factory=list)
+    failure_mode: str = ""  # 失败模式（123号§29温层定义包含"失败模式"）
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -29,6 +30,7 @@ class WarmEntry:
             "content": self.content,
             "obligation_refs": self.obligation_refs,
             "representation_refs": self.representation_refs,
+            "failure_mode": self.failure_mode,
             "metadata": self.metadata,
         }
 
@@ -61,6 +63,14 @@ class WarmStore:
 
     def query_by_type(self, content_type: str) -> List[WarmEntry]:
         return [e for e in self._entries.values() if e.content_type == content_type]
+
+    def query_by_failure_mode(self, failure_mode: str) -> List[WarmEntry]:
+        """
+        按失败模式查询温层（123号§29温层定义包含"失败模式"）。
+
+        边界情况：无匹配失败模式
+        """
+        return [e for e in self._entries.values() if e.failure_mode == failure_mode]
 
     def get_by_id(self, entry_id: str) -> Optional[WarmEntry]:
         return self._entries.get(entry_id)

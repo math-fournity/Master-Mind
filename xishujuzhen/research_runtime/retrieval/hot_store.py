@@ -22,6 +22,7 @@ class HotEntry:
     key_events: List[Dict[str, Any]] = field(default_factory=list)  # 关键事件
     open_obligations: List[str] = field(default_factory=list)  # 开放义务ID
     minimal_evidence: List[str] = field(default_factory=list)  # 最小证据ID
+    activation_pack: Dict[str, Any] = field(default_factory=dict)  # 单个激活包（123号§29）
     timestamp: str = ""
 
     def to_dict(self) -> dict:
@@ -32,6 +33,7 @@ class HotEntry:
             "key_events": self.key_events,
             "open_obligations": self.open_obligations,
             "minimal_evidence": self.minimal_evidence,
+            "activation_pack": self.activation_pack,
             "timestamp": self.timestamp,
         }
 
@@ -64,6 +66,15 @@ class HotStore:
     def get_open_obligations(self, workspace_id: str) -> List[str]:
         entry = self._workspaces.get(workspace_id)
         return entry.open_obligations if entry else []
+
+    def get_activation_pack(self, workspace_id: str) -> Dict[str, Any]:
+        """
+        获取当前工作台的单个激活包（123号§29热层定义包含"单个激活包"）。
+
+        边界情况：无激活包
+        """
+        entry = self._workspaces.get(workspace_id)
+        return entry.activation_pack if entry else {}
 
     def count(self) -> int:
         return len(self._workspaces)

@@ -85,5 +85,22 @@ class MicroPackGenerator:
     def get_by_id(self, pack_id: str) -> Optional[MicroPack]:
         return self._packs.get(pack_id)
 
+    def check_no_preload_future_route(self, pack: MicroPack) -> bool:
+        """
+        验证微包不预载未来路线（plan第197行 + P5-EXIT-2）。
+
+        边界情况：微包预载了未来路线（应被拒绝——每次Hint只携带完成一个研究动作所需的内容）
+        """
+        # 微包只应包含完成当前一个研究动作所需的内容
+        # 检查items中是否有超出当前action_type的内容
+        preload_keywords = ["完整解法", "complete_solution", "最终答案", "final_answer",
+                           "ground_truth", "truth_vault", "完整证明路径", "complete_proof_path"]
+        for item in pack.items:
+            content = item.get("content", "").lower() if isinstance(item, dict) else str(item).lower()
+            for kw in preload_keywords:
+                if kw.lower() in content:
+                    return False
+        return True
+
     def count(self) -> int:
         return len(self._packs)

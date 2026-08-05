@@ -63,12 +63,15 @@ class ContextSegment:
 
         边界情况：某项记录缺失（应被拒绝——必须5项全部带）
         """
+        # 5项记录：source/visibility/evidence_level/token_cost/pruning_record
+        # token_cost是int，必须有值（>=0）
+        # 其他4项是str，不能为空
         return all([
             self.source != "",
             self.visibility != "",
             self.evidence_level != "",
-            self.token_cost > 0 or self.token_cost == 0,  # token_cost可以为0但必须有值
-            self.pruning_record != "" or self.pruning_record == "",  # 裁剪记录可以为空但字段必须存在
+            self.token_cost >= 0,  # token_cost可以为0但不能是None
+            self.pruning_record != "",  # 裁剪记录必须有值（"none"也是有效值）
         ])
 
     def check_traceable(self) -> bool:
@@ -94,6 +97,7 @@ class ContextCompiler:
         self.pruning_log = pruning_log or PruningLog()
         self.minimality_audit = MinimalityAudit()
         self._expansion_requests: List[Dict[str, Any]] = []  # 按需展开请求事件（plan第199行）
+        self._checkpoint_ref: str = ""  # 内容寻址checkpoint引用（plan第248行）
 
     def compile(
         self,
@@ -210,3 +214,23 @@ class ContextCompiler:
         边界情况：请求按需展开但请求未记录为事件（应被拒绝）
         """
         return len(self._expansion_requests) > 0  # 有请求事件记录
+
+    def set_checkpoint(self, checkpoint_ref: str) -> None:
+        """
+        设置内容寻址checkpoint引用——从checkpoint继续编译（plan第248行）。
+
+        plan第248行："Context Compiler只编译'当前卡点 + 一个最小操作 + 必要接口 + 可选工具'，并从内容寻址checkpoint继续。"
+        """
+        self._checkpoint_ref = checkpoint_ref
+
+    def get_checkpoint(self) -> str:
+        """获取当前内容寻址checkpoint引用（plan第248行）"""
+        return self._checkpoint_ref
+
+    def check_checkpoint_continuity(self) -> bool:
+        """
+        验证Context Compiler从内容寻址checkpoint继续（plan第248行）。
+
+        边界情况：没有checkpoint引用就编译（应被拒绝——必须从checkpoint继续）
+        """
+        return self._checkpoint_ref != ""

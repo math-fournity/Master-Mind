@@ -200,6 +200,36 @@ class Verifier:
             failure_reason="证据类型不足以判定验证等级",
         )
 
+    def compute_derived_epistemic_state(self, claim_id: str) -> str:
+        """
+        计算派生认识状态（123号§31）。
+
+        123号§31要求："派生认识状态至少区分：无决定性证据、仅支持、仅反驳、支持与反驳并存"
+
+        返回DerivedEpistemicState枚举值：
+        - no_decisive：无决定性证据
+        - support_only：仅支持
+        - refute_only：仅反驳
+        - mixed：支持与反驳并存
+        """
+        evidence_list = self.evidence_store.get_evidence_for_claim(claim_id)
+        active = [e for e in evidence_list if e["status"] == EvidenceStatus.ACTIVE.value]
+
+        if not active:
+            return DerivedEpistemicState.NO_DECISIVE.value
+
+        has_support = any(e["polarity"] == EvidencePolarity.SUPPORT.value for e in active)
+        has_refute = any(e["polarity"] == EvidencePolarity.REFUTE.value for e in active)
+
+        if has_support and has_refute:
+            return DerivedEpistemicState.MIXED.value
+        elif has_support:
+            return DerivedEpistemicState.SUPPORT_ONLY.value
+        elif has_refute:
+            return DerivedEpistemicState.REFUTE_ONLY.value
+        else:
+            return DerivedEpistemicState.NO_DECISIVE.value
+
     def verify_with_gate(
         self,
         claim_id: str,
