@@ -188,6 +188,11 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 | `scripts/arxiv_search_v3.py` | **arXiv API穷尽式搜索脚本v3**：44个分类（math+cs理论+quant-ph+math-ph+hep-th+stat.ML+nlin），submittedDate日期范围查询（2025-2026 + 2023-2024），200条/页，3秒间隔，429重试退避。239472篇元数据 | **当前版本** |
 | `scripts/arxiv_fetch_html_v2.py` | **arXiv HTML全文抓取脚本v2**：从239K篇元数据中按"难妙新"原则筛选1452篇，145个分类各10篇最新论文HTML全文。1305篇成功（含v1的69篇），972008行114MB | **当前版本** |
 | `dev-docs/112-arXiv论文导入ArangoDB与节点映射规则方案.md` | **arXiv论文操作化方案**：239K篇元数据导入ArangoDB `arxiv_papers` collection。四级映射规则：L1定理级（论文中的定理→dg_nodes concept节点）/ L2方法级 / L3意识级 / L4索引级（默认，可搜索不在依赖图中）。论文不是节点，论文是节点的出处。SDK新增`search_arxiv()`/`promote_arxiv_paper()`。实现110号三层架构的冷存储层 | **必读**。arXiv知识操作化 |
+| `dev-docs/113-大师-POC-4验证方案-代数拓扑领域泛化性验证.md` | **POC-4方案**：代数拓扑领域（Klein瓶同调群计算）验证方法论泛化性。12节点+15边+新增structural_thinking意识节点。A/B对照实验。与矩条件极差题的思维差异最大（结构性vs分析性） | POC-4方案 |
+| `dev-docs/114-大师-POC-4验证结果.md` | **POC-4结果**：A组15/15，B组15/15，边际增益=0。**问题选择不当**——Klein瓶同调群是标准教材内容，AI已完全掌握。陷阱在AI"会"区 | POC-4结果 |
+| `dev-docs/115-大师-POC-5验证方案-数论最新论文泛化性验证.md` | **POC-5方案**：从arXiv:2608.02381（2026-08-03最新论文）提取orientation-rigidity定理。10节点+12边+3意识节点+螺旋环路 | POC-5方案 |
+| `dev-docs/116-POC隔离测试方案-独立目录+tmux监督.md` | **隔离测试方案**：独立目录(`/data/math-agent-{1,2}/`) + AGENTS.md软限制(禁止web_search/禁止访问master-mind) + tmux监督(master agent观察pane)。审计：检查result.md是否违规。**已验证有效** | **必读**。POC测试标准流程 |
+| `dev-docs/117-大师-POC-5验证结果-隔离测试.md` | **POC-5结果**：隔离测试方案验证有效（无违规）。A组15/15，B组15/15，增量=0。但B组使用了反证法+螺旋交叉验证+对偶性观察——依赖图影响证明结构。**三次POC对比洞察**：POC-1增量+3.50(AI"不会"区)，POC-4/5增量0(AI"会"区)。直接验证111号"难妙新"原则 | **必读**。三次POC对比 |
 | `xishujuzhen/arxiv_to_arangodb.py` | arXiv元数据→ArangoDB导入脚本：读取JSON批量导入239K篇+创建4个索引+验证 | 工具脚本 |
 
 ### 星学知识系统结构参考
@@ -474,6 +479,9 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - [x] **P0知识搜集——arXiv穷尽式**（109号方案第⑤来源）：239472篇元数据（44分类，2023-2026，323.8MB JSON）+ 1305篇HTML全文（145分类，972008行114MB）。技术路线：arXiv API submittedDate日期范围查询 + 200条/页 + 3秒间隔 + 429重试退避。大分类达10000 API上限。见`knowledge/arxiv/`
 - [ ] **P1知识搜集**（109号方案十三大来源中剩余来源）：①MathLib 100000+定理导入 ②OEIS 37万序列 ③THE BOOK完整版 ④关键数学家全集（Euler 80卷/Ramanujan笔记+Berndt注解）⑤教材与专著~200本 ⑥竞赛题全集（含Schweitzer研究级）⑦形式化数学库（Coq/Mizar/Metamath）⑧数学杂志问题栏（AMM 1894-/Crux/Kvant）⑨Bourbaki Seminar/ICM Proceedings ⑩Gardner 25年专栏/Conway全部 ⑪历史与哲学（Kline通史/Stillwell/Neugebauer/Heath）。按111号"难妙新"优先级排序
 - [x] **arXiv元数据导入ArangoDB**：239K篇元数据导入ArangoDB建立论文索引，支持按分类/日期/作者/关键词查询，为依赖图节点提供论文出处定位——**已完成**：239472篇导入`arxiv_papers` collection，4个persistent索引，SDK新增`search_arxiv()`/`get_arxiv_paper()`/`promote_arxiv_paper()`/`get_arxiv_stats()`方法。四级映射规则（L1定理级/L2方法级/L3意识级/L4索引级）。详见112号方案
+- [x] **POC-4代数拓扑泛化性验证**：Klein瓶同调群计算。A/B两组满分15/15，增量0。问题选择不当（标准教材内容在AI"会"区）。详见113-114号文档
+- [x] **POC-5数论最新论文验证+隔离测试方案**：arXiv:2608.02381 orientation-rigidity定理。独立目录+AGENTS.md软限制+tmux监督隔离测试方案验证有效。A/B两组满分15/15，增量0。B组使用了反证法+螺旋交叉验证（依赖图影响结构不影响正确性）。详见115-117号文档
+- [ ] **POC-6：找到AI真正"不会"的问题**——三次POC洞察：增量只在AI"不会"区出现。方向：①测试"发现"而非"证明"（给定数据让AI发现定理）②找有计算陷阱需要数值检验的问题 ③从arXiv论文中找技术核心（非简化后的基本功）
 - [ ] **运行6个诊断测试**（97号测试方案）：T14 A/B对照待执行（需真实任务场景），T11b未执行（topo_generator已覆盖meta AI版）
 
 ## Memory Section
@@ -500,6 +508,32 @@ xishujuzhen 系统（稀疏矩阵支撑的提示系统）不发现依赖关系�
 - **现象**：大师-POC-1 执行时，background subagent 无法写入 `/Volumes/` 路径下的文件；但前台 subagent 可以写入。
 - **原因排查**：用户开启了 `/yolo` 模式（自动批准工具调用），这可能是影响 subagent 写文件能力的一个因素。后续测试确认前台 subagent 在当前配置下可以写入 `/Volumes/` 路径。
 - **建议**：后续 POC 实验中，如果需要 subagent 写文件，优先使用前台 subagent；如果遇到写文件失败，提醒用户检查 `/yolo` 模式状态。
+
+### POC隔离测试标准流程（116号方案，已验证有效）
+
+POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或用网络搜索作弊：
+
+1. **创建独立目录**：`/data/math-agent-{1,2}/`，每组一个
+2. **写AGENTS.md软限制**：禁止web_search/webfetch、禁止访问/data/master-mind
+3. **写problem.md**：数学问题描述（A/B组相同）
+4. **B组加dependency_graph.json**：依赖图提示（A组无此文件）
+5. **tmux启动devin**：`tmux send-keys -t <session> "cd /data/math-agent-X && devin --respect-workspace-trust false" Enter`
+6. **发送prompt**：让agent读problem.md解题写入result.md
+7. **选accept edits mode**：当agent请求文件写入审批时，按Down+Enter选option 2
+8. **tmux capture-pane审计**：检查agent是否违规（web_search/访问master-mind）
+9. **读取result.md评分**：按8维15分制评分
+
+### 三次POC核心洞察（117号文档）
+
+| POC | 领域 | A组 | B组增量 | 陷阱位置 | 结论 |
+|---|---|---|---|---|---|
+| POC-1 | 分析/不等式 | 犯错(3.25/5) | **+3.50/10** | AI"不会"区 | 依赖图巨大增量 |
+| POC-4 | 代数拓扑 | 满分(15/15) | 0 | AI"会"区 | 零增量 |
+| POC-5 | 数论/mod 3 | 满分(15/15) | 0 | AI"会"区 | 零增量（但影响结构） |
+
+**核心结论**：依赖图提示的增量价值与问题在AI能力谱系中的位置强相关。AI"不会"区→巨大增量；AI"会"区→零增量但影响证明结构（反证法/螺旋交叉验证/对偶性）。直接验证111号"难妙新"原则。
+
+**下一步方向**：要产生可测量的增量，POC问题必须①不在AI训练数据中②有计算陷阱需要数值检验③或测试"发现"而非"证明"。
 
 ## Handover Section
 
