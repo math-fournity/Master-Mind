@@ -73,3 +73,13 @@
 - **补充降级路径**：新增DEG-1—6，明确停止条件触发后"做什么"（123号第五十八节诚实终态的操作化）。
 - **标注P0-8为项目治理补充**：明确P0-8数据丢失修复不是123号架构要求，而是项目治理层面的修复项。
 - **标注Phase 1—7粒度说明**：明确Phase 1—7保持123号原粒度，到实际执行前再细化。
+
+### AGENTS.md对齐修正（与repo最新内容全面对齐）
+
+- **修正DYN阶梯定义**：Memory Section第548行DYN-4—7全部错误（旧：DYN-4跨题迁移/DYN-5在线Agent M/DYN-6多问题并发/DYN-7自演化 → 新：DYN-4帮助量响应曲线/DYN-5跨题与跨模型迁移/DYN-6在线闭环控制器/DYN-7跨领域与长证明编排）。与123号第三十六—四十三节对齐。
+- **修正Phase编号偏移**：TODO第483—485行和Memory第549行的Phase描述与123号/124号不一致。旧：Phase 0=schema冻结/Phase 1=只读盘点dg_*/Phase 2=DYN-0 → 新：Phase 0=冻结legacy与统一语义（含只读盘点dg_*）/Phase 1=只观察不提示（DYN-0）/Phase 2=类型化状态与研究义务（DYN-1/DYN-2）。
+- **修正TODO中DYN编号引用**：第489行"对应DYN-3—DYN-4"修正为"对应DYN-3—DYN-5"（跨题迁移是DYN-5）。
+- **修正Memory第545行DYN编号**："必须通过DYN-0—DYN-4验证"修正为"必须通过DYN-0—DYN-5验证"。
+- **修正文档索引**：13/56—60号文档标注为"星学项目目录"文件（不在数学项目dev-docs/中）；补充69号文档（POC-4验证结果，原遗漏）。
+- **补充代码文件索引**：补充11个未引用的py文件（arangodb_init.py、topology_verifier.py、test_dependency_graph.py、import_math_graph_to_arangodb.py、batch_extractor.py、absorb_test_loop.py、poc4_build_graph.py、poc9_*.py 4个）。
+- **修正Handover日期标注**：工作系统实现状态标题从2026-08-04更新为2026-08-05。
