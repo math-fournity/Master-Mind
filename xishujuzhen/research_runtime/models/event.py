@@ -83,6 +83,9 @@ class RawEventType(str, Enum):
     CHECKPOINT = "checkpoint"
     HINT_INJECTED = "hint_injected"
     VERIFICATION_RESULT = "verification_result"
+    # 事件图单调增长模式（系统探讨.md§7.1）
+    CLAIM_CONTRADICTED = "claim_contradicted"    # 命题被矛盾证据反驳（不删除原claim，新增此事件）
+    CLAIM_REJECTED = "claim_rejected"            # 命题被正式拒绝（不删除原claim，新增此事件）
 
 
 def _compute_hash(payload: Any) -> str:

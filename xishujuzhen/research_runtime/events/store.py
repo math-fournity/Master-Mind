@@ -57,7 +57,14 @@ class EventStore:
         插入原始事件（append-only）。
         返回event_id。
         如果event_id已存在，抛出DocumentInsertError（不允许重复）。
+        123号§17：数据库只存其无环的直接前驱边，不存自环。
         """
+        # 自环检查（123号§17："不存自环"）
+        if event.event_id in event.causal_predecessors:
+            raise ValueError(
+                f"自环禁止（123号§17）：event_id {event.event_id} "
+                f"不能出现在自己的causal_predecessors中"
+            )
         doc = event.to_dict()
         doc["_key"] = event.event_id
         result = self.raw_col.insert(doc, overwrite=False)
@@ -90,6 +97,12 @@ class EventStore:
         events = self.get_raw_events_by_run(run_id)
         event_ids = {e.event_id for e in events}
 
+        # 自环检查（123号§17："不存自环"）
+        self_loop_violations = [
+            e.event_id for e in events
+            if e.event_id in e.causal_predecessors
+        ]
+
         # 构建邻接表
         adj: Dict[str, List[str]] = {}
         for e in events:
@@ -120,9 +133,173 @@ class EventStore:
                     break
 
         return {
-            "is_dag": not has_cycle,
+            "is_dag": not has_cycle and len(self_loop_violations) == 0,
             "event_count": len(events),
             "has_cycle": has_cycle,
+            "self_loop_violations": self_loop_violations,
+        }
+
+    # === 事件捕获完整度度量（123号§44核心指标） ===
+
+    def measure_capture_completeness(self, run_id: str) -> dict:
+        """
+        度量事件捕获完整度（123号§44核心指标）。
+
+        DYN-0验收要求：原始输出、工具输入/输出、提示、时间和分支全部可定位。
+
+        度量维度：
+        1. 事件类型覆盖率：实际捕获的事件类型占应捕获类型的比例
+        2. 因果链完整性：有causal_predecessors的事件比例（首事件除外）
+        3. 时间戳完整性：有有效timestamp的事件比例
+        4. 内容哈希完整性：有content_hash的事件比例
+        5. 语义抽取覆盖率：有语义事件的原始事件比例
+        """
+        events = self.get_raw_events_by_run(run_id)
+        if not events:
+            return {
+                "total_events": 0,
+                "capture_completeness": 0.0,
+                "dimensions": {},
+            }
+
+        # 1. 事件类型覆盖率
+        captured_types = {e.type for e in events}
+        expected_types = {
+            RawEventType.RUN_START.value, RawEventType.TEXT_OUTPUT.value,
+            RawEventType.TOOL_CALL.value, RawEventType.TOOL_OUTPUT.value,
+            RawEventType.BRANCH_CHOICE.value, RawEventType.RUN_END.value,
+        }
+        type_coverage = len(captured_types & expected_types) / len(expected_types)
+
+        # 2. 因果链完整性（首事件除外）
+        non_first_events = events[1:] if len(events) > 1 else []
+        has_predecessors = sum(1 for e in non_first_events if e.causal_predecessors)
+        causal_completeness = has_predecessors / len(non_first_events) if non_first_events else 1.0
+
+        # 3. 时间戳完整性
+        has_timestamp = sum(1 for e in events if e.timestamp)
+        timestamp_completeness = has_timestamp / len(events)
+
+        # 4. 内容哈希完整性
+        has_hash = sum(1 for e in events if e.content_hash)
+        hash_completeness = has_hash / len(events)
+
+        # 5. 语义抽取覆盖率
+        sem_events = self.get_semantic_events_by_run(run_id)
+        raw_ids_with_sem = {s.raw_event_id for s in sem_events}
+        # 排除不应有语义抽取的事件类型
+        extractable_types = {
+            t.value for t in RawEventType
+            if t not in (RawEventType.RUN_START, RawEventType.RUN_END)
+        }
+        extractable_events = [e for e in events if e.type in extractable_types]
+        if extractable_events:
+            extraction_coverage = sum(
+                1 for e in extractable_events if e.event_id in raw_ids_with_sem
+            ) / len(extractable_events)
+        else:
+            extraction_coverage = 1.0
+
+        dimensions = {
+            "type_coverage": type_coverage,
+            "causal_completeness": causal_completeness,
+            "timestamp_completeness": timestamp_completeness,
+            "hash_completeness": hash_completeness,
+            "extraction_coverage": extraction_coverage,
+        }
+
+        # 总体完整度 = 各维度的最小值（短板效应）
+        overall = min(dimensions.values())
+
+        return {
+            "total_events": len(events),
+            "capture_completeness": overall,
+            "dimensions": dimensions,
+        }
+
+    # === 事件图单调增长模式（系统探讨.md§7.1） ===
+
+    def record_contradiction(
+        self, run_id: str, original_claim_event_id: str,
+        contradiction_evidence: Dict[str, Any],
+    ) -> str:
+        """
+        记录命题被矛盾证据反驳（系统探讨.md§7.1）。
+
+        不删除原始claim事件，而是新增一个claim_contradicted事件。
+        事件图单调增长，当前信念集合可以非单调变化。
+
+        模式：claim C → contradicted_by E → (后续可能) rejected C
+        """
+        from ..models.event import EventFactory, RawEventType
+        event = EventFactory.create_raw_event(
+            run_id=run_id,
+            event_type=RawEventType.CLAIM_CONTRADICTED.value,
+            raw_payload={
+                "contradicted_claim_event_id": original_claim_event_id,
+                "evidence": contradiction_evidence,
+            },
+            causal_predecessors=[original_claim_event_id],
+        )
+        return self.insert_raw_event(event)
+
+    def record_rejection(
+        self, run_id: str, claim_event_id: str,
+        contradiction_event_id: str,
+        reason: str = "",
+    ) -> str:
+        """
+        记录命题被正式拒绝（系统探讨.md§7.1）。
+
+        不删除原始claim事件，而是新增一个claim_rejected事件。
+        """
+        from ..models.event import EventFactory, RawEventType
+        event = EventFactory.create_raw_event(
+            run_id=run_id,
+            event_type=RawEventType.CLAIM_REJECTED.value,
+            raw_payload={
+                "rejected_claim_event_id": claim_event_id,
+                "contradiction_event_id": contradiction_event_id,
+                "reason": reason,
+            },
+            causal_predecessors=[contradiction_event_id],
+        )
+        return self.insert_raw_event(event)
+
+    def verify_monotonic_growth(self, run_id: str) -> dict:
+        """
+        验证事件图单调增长（系统探讨.md§7.1）。
+
+        检查：
+        1. 所有事件按timestamp排序后，event_id不重复
+        2. claim_contradicted/claim_rejected事件的causal_predecessors指向原始claim事件
+        3. 原始claim事件仍然存在（未被删除）
+        """
+        events = self.get_raw_events_by_run(run_id)
+
+        # 检查contradicted/rejected事件的前驱是否存在
+        contradicted_events = [
+            e for e in events
+            if e.type in ("claim_contradicted", "claim_rejected")
+        ]
+
+        orphaned = []
+        for e in contradicted_events:
+            for pred_id in e.causal_predecessors:
+                pred = self.get_raw_event(pred_id)
+                if pred is None:
+                    orphaned.append({
+                        "event_id": e.event_id,
+                        "missing_predecessor": pred_id,
+                    })
+
+        return {
+            "total_events": len(events),
+            "contradicted_count": sum(1 for e in events if e.type == "claim_contradicted"),
+            "rejected_count": sum(1 for e in events if e.type == "claim_rejected"),
+            "orphaned_count": len(orphaned),
+            "orphaned": orphaned,
+            "is_monotonic": len(orphaned) == 0,
         }
 
     # === SemanticEvent ===

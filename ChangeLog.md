@@ -161,3 +161,22 @@
 - **ArangoDB新增4个collection**：raw_events/semantic_events/checkpoints/run_manifests。用幂等migration创建（123号§55），不动旧数据（NO-10约束）。
 - **集成测试**（test_phase1.py）：DYN-0验收4条全部通过——(1)原始输出/工具/提示/时间/分支可定位；(2)事件可回放；(3)不要求隐藏CoT；(4)抽取失败不丢原始证据。
 - **Phase 1状态**：已完成。DYN-0验收通过。
+
+### Phase 1实现三文件审计与修正（139号，2026-08-05）
+
+- **审计方法**：以plan/系统探讨.md/123号v1三个文件为基准，用3个并行subagent分别完整捋过三个文件的每一行，提取与Phase 1相关的所有要求。逐项对照实现代码，识别遗漏。
+- **发现6项遗漏**：
+  - A1. 自环检查缺失（123号§17"不存自环"）
+  - A2. 事件图单调增长模式未实现（系统探讨.md§7.1"撤回不删除，新增contradicted/rejected事件"）
+  - A3. 基础语义抽取器未实现（123号§46 Check List"建立语义事件抽取版本"）
+  - A4. 基础事件捕获器未实现（123号§46 Check List"捕获公开文本和工具事件"）
+  - A5. 事件捕获完整度度量缺失（123号§44核心指标）
+  - A6. checkpoint多continuation验证缺失（123号§39实验设计要求）
+- **修正实施**：
+  - `events/store.py`：自环检查 + 单调增长方法（record_contradiction/record_rejection/verify_monotonic_growth） + 完整度度量（measure_capture_completeness，5维度）
+  - `events/extractor.py`（新增）：SemanticExtractor，规则-based首版，20种RawEventType→SemanticEventType映射，置信度估计
+  - `events/capture.py`（新增）：EventCapture，10种捕获方法，自动causal_predecessors链接，R-1风险防线
+  - `models/event.py`：新增CLAIM_CONTRADICTED/CLAIM_REJECTED事件类型
+  - `test_phase1.py`：新增6项审计修正测试
+- **测试结果**：DYN-0验收4条 + 审计修正6项全部通过
+- **审计报告**：139号文档

@@ -13,8 +13,11 @@ ArangoDB collections（新创建，不动旧数据，NO-10约束）：
 
 from .store import EventStore, CheckpointStore
 from .migrate import create_event_collections
+from .extractor import SemanticExtractor
+from .capture import EventCapture
 
 __all__ = [
     "EventStore", "CheckpointStore",
     "create_event_collections",
+    "SemanticExtractor", "EventCapture",
 ]
