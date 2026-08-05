@@ -19,4 +19,5 @@
   - 修正 Memory Section 中把原始 `+4.0/10` 当作最终泛化证据的旧结论。
 - `xishujuzhen/poc/cognition_units_math.json` 与 ArangoDB 认知图
   - 新增 `poc_methodology v3`，把答案泄漏审计、重复 A/B 运行和完整过程证据闭环纳入 POC 方法论。
+  - 新增 `glossary v2`，定义“答案泄漏审计”“恢复性重跑”“验证性复跑”。
   - CP6 任务认知覆盖率 100%，认知图 POC 回归综合评分 100/100。
