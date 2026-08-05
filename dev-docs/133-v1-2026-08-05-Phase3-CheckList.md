@@ -299,4 +299,19 @@ Phase 3新增启用的角色：
 
 ## Phase 3状态
 
-**待开始**。入口门（Phase 2出口门）未通过。
+**已完成**。出口门全部通过：
+- P3-EXIT-1: 至少一个候选在多个运行中可重复匹配 ✅
+- P3-EXIT-2: Hint不唯一确定答案（泄漏门通过）✅
+
+实现文件：
+- `xishujuzhen/research_runtime/heuristics/__init__.py`（模块骨架）
+- `xishujuzhen/research_runtime/heuristics/models.py`（HeuristicRule schema，P3-3）
+- `xishujuzhen/research_runtime/heuristics/state_aligner.py`（P3-1/P3-2）
+- `xishujuzhen/research_runtime/heuristics/rule_extractor.py`（P3-3）
+- `xishujuzhen/research_runtime/heuristics/activation_packet.py`（P3-4）
+- `xishujuzhen/research_runtime/heuristics/leakage_audit.py`（P3-5/P3-6）
+- `xishujuzhen/research_runtime/heuristics/rule_store.py`（P3-7/P3-8）
+- `xishujuzhen/research_runtime/heuristics/sparse_view.py`（P3-9）
+- `xishujuzhen/research_runtime/heuristics/matcher.py`（P3-ROLE-1）
+- `xishujuzhen/research_runtime/heuristics/migrate.py`（ArangoDB migration）
+- `xishujuzhen/research_runtime/heuristics/test_phase3.py`（集成测试）

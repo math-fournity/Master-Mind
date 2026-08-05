@@ -4,6 +4,26 @@
 
 ## 2026-08-05
 
+### Phase 3实现：离线候选启发（148号方案+133号Check List）
+
+- **触发**：用户说"请你遵照147号文档中的SOP，开始实现Phase 3"→"开始实现"
+- **SOP执行**：147号SOP 10阶段全部执行——认知加载(CP1-CP3, 33认知单元)→三文件并读(133/127/123)→Phase 2 EXIT门实际运行验证(α=1.00)→D1-D4预检→127号逐字核对无偏差→F1-F6断层预扫(5个高风险项)→全局项核对(G0-4/R-1/R-4/R-5/R-8/R-13/CC-R-3/NO-8/NO-9)→角色隔离确认(heuristic_matcher离线模式)→方案先行(148号)→环境确认→启动声明
+- **新增文档**：148-v1-2026-08-05-Phase3实现方案.md
+- **新增代码**：xishujuzhen/research_runtime/heuristics/模块（11个文件）
+  - models.py: HeuristicRule schema（覆盖127号§7全部字段：LHS/interface/RHS/guard/eta + 生命周期状态）
+  - state_aligner.py: P3-1/P3-2 状态对齐+内容哈希checkpoint+共同状态+分叉点检测
+  - rule_extractor.py: P3-3 LHS/interface/RHS/guard/eta抽取
+  - activation_packet.py: P3-4 H0/H1/H2激活包（基于128号§3.2 Ramsey干预阶梯）
+  - leakage_audit.py: P3-5/P3-6 答案等价性审计四门+泄漏审计（代理分数非互信息，F6防线）
+  - rule_store.py: P3-7/P3-8 规则存储+生命周期管理（candidate禁止在线自动提示，R-4防线）
+  - sparse_view.py: P3-9 H图incidence matrix稀疏表示（R-5防线：规则因子化）
+  - matcher.py: P3-ROLE-1 HeuristicMatcher类（离线模式，不读取Truth Vault）
+  - migrate.py: ArangoDB migration（heuristic_rules + activation_packets）
+  - test_phase3.py: 集成测试（全部通过）
+- **出口门**：P3-EXIT-1(候选可重复匹配)✅ + P3-EXIT-2(Hint不唯一确定答案)✅
+- **Check List更新**：133号Phase 3状态更新为"已完成"
+- **AGENTS.md同步**：认知资产索引追加133号(已实现状态)+148号条目
+
 ### Phase实现启动SOP建立（147号SOP）
 
 - **触发**：用户希望把"开启新Phase实现之前应该做的事"固化为可触发的SOP，以后用"请你遵照147号文档中的SOP，开始实现Phase X"触发
