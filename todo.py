@@ -122,6 +122,15 @@ def cmd_update(args):
         if args.status not in VALID_STATUSES:
             print(f"错误：无效状态 '{args.status}'，可选：{VALID_STATUSES}", file=sys.stderr)
             sys.exit(1)
+        
+        # 前置检查：当状态变为 in_progress 时
+        if args.status == "in_progress":
+            pre_check_result = pre_check_todo(todo)
+            if not pre_check_result["passed"]:
+                print(f"❌ 前置检查未通过：{pre_check_result['message']}", file=sys.stderr)
+                print(f"   请先完成前置条件，再将状态设为 in_progress", file=sys.stderr)
+                sys.exit(1)
+        
         todo["status"] = args.status
         changed = True
     if args.result:
@@ -149,6 +158,159 @@ def cmd_update(args):
         print(f"已更新 TODO {args.todo_id}：{json.dumps({k: v for k, v in todo.items() if k in ['status', 'result', 'commit', 'search_preset', 'updated_at']}, ensure_ascii=False)}")
     else:
         print("没有指定要更新的字段。")
+
+
+def pre_check_todo(todo):
+    """
+    前置检查TODO
+    
+    Args:
+        todo: TODO数据
+    
+    Returns:
+        dict: {"passed": bool, "message": str}
+    """
+    # 检查1：搜索预置是否完成
+    if todo.get("search_preset") in ["先搜索", "边做边搜索"]:
+        # 检查是否有搜索记录
+        if not has_search_record(todo):
+            return {
+                "passed": False,
+                "message": f"搜索预置为'{todo['search_preset']}'，但没有搜索记录。请先执行搜索。"
+            }
+    
+    # 检查2：依赖是否满足
+    if not dependencies_met(todo):
+        return {
+            "passed": False,
+            "message": "依赖未满足。请先完成依赖的TODO。"
+        }
+    
+    # 检查3：原文是否已获取（对于需要原文的TODO）
+    if requires_original_text(todo):
+        if not original_text_available(todo):
+            return {
+                "passed": False,
+                "message": "需要原文，但原文未获取。请先获取原文。"
+            }
+    
+    return {"passed": True, "message": "前置检查通过"}
+
+
+def has_search_record(todo):
+    """
+    检查是否有搜索记录
+    
+    Args:
+        todo: TODO数据
+    
+    Returns:
+        bool
+    """
+    # 检查notes中是否有搜索相关记录
+    notes = todo.get("notes", [])
+    for note in notes:
+        text = note.get("text", "")
+        if "搜索" in text or "search" in text.lower():
+            return True
+    
+    # 检查result中是否有搜索相关结果
+    result = todo.get("result", "")
+    if result and ("搜索" in result or "search" in result.lower()):
+        return True
+    
+    # 检查是否有相关的审计记录
+    audit_dir = Path(__file__).parent / "dev-notes"
+    todo_id = todo.get("id", "")
+    if audit_dir.exists():
+        for audit_file in audit_dir.glob(f"AUDIT-{todo_id}-*.json"):
+            return True
+    
+    return False
+
+
+def dependencies_met(todo):
+    """
+    检查依赖是否满足
+    
+    Args:
+        todo: TODO数据
+    
+    Returns:
+        bool
+    """
+    dependencies = todo.get("dependencies", [])
+    if not dependencies:
+        return True
+    
+    data = load_todos()
+    completed_ids = {t["id"] for t in data["todos"] if t["status"] == "completed"}
+    
+    for dep in dependencies:
+        dep = dep.strip()
+        if dep.startswith("Phase "):
+            # Phase 级依赖
+            phase_num = dep.replace("Phase ", "")
+            phase_todos = [t for t in data["todos"] if t["phase"] == phase_num]
+            if phase_todos and not all(t["status"] == "completed" for t in phase_todos):
+                return False
+        elif dep:
+            # TODO 级依赖
+            if dep not in completed_ids:
+                return False
+    
+    return True
+
+
+def requires_original_text(todo):
+    """
+    检查是否需要原文
+    
+    Args:
+        todo: TODO数据
+    
+    Returns:
+        bool
+    """
+    # 检查TODO描述中是否提到需要原文
+    description = todo.get("description", "")
+    title = todo.get("title", "")
+    
+    keywords = ["原文", "考据", "audit", "对照", "核对", "星学大成", "果老星宗", "协纪辨方书"]
+    for keyword in keywords:
+        if keyword in description or keyword in title:
+            return True
+    
+    return False
+
+
+def original_text_available(todo):
+    """
+    检查原文是否已获取
+    
+    Args:
+        todo: TODO数据
+    
+    Returns:
+        bool
+    """
+    # 检查原典目录是否存在
+    original_dir = Path(__file__).parent / "dev-docs" / "原典"
+    if not original_dir.exists():
+        return False
+    
+    # 检查是否有相关的原典文件
+    todo_id = todo.get("id", "")
+    
+    # 简单检查：如果原典目录有文件，就认为原文已获取
+    # 更精确的检查需要根据具体的TODO来判断
+    for subdir in original_dir.iterdir():
+        if subdir.is_dir():
+            for file in subdir.iterdir():
+                if file.is_file():
+                    return True
+    
+    return False
 
 
 def cmd_stats(args):

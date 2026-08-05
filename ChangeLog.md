@@ -24,6 +24,12 @@
   - 在同一轮中完整通读80—99号，逐篇对账原始愿景、POC、工作系统、经典展开、测试与反哺机制。
   - 分别裁决当前启发/矫正机制、有效性证据、改进架构和Master答案泄漏的系统根因。
   - 用Frey曲线、Ribet降层和Wiles半稳定模性链分析“谷山—志村能否赋予AI证明FLT能力”，并列出大型证明所需知识接口和思维启发。
+- `dev-docs/123-v1-2026-08-05-数学大师系统全景复盘与第一性原理重构计划.md`
+  - 以`系统探讨.md`全文（1—2289行，SHA-256 `a2ac4dc1…4924b`）为母本，建立12段连续映射，`unmapped_ranges=[]`。
+  - 从第一性原理将目标系统严格化为：类型化任务/工作区、不可变事件、表示变换、时序启发规则、证据状态和受约束最小干预；保留七层能力、五类资产和K/T/H直觉作为投影。
+  - 给出DYN-0—DYN-7动态能力阶梯、Phase 0—7建设计划（含入口门、验收、停止条件和回滚边界）、角色权限矩阵、`dg_*`→新schema字段级crosswalk、Ramsey R(3,3)/R(3,3,3)与费马案例的动态化样例。
+  - 把“完美提示词可通过经典计算产生”从硬公理降为可证伪假设；旧七步骤正式降为legacy静态重建器；明确高级数学（类型论、超图、可实现事件结构、因果实验、操作化泄漏指标）先行，严格信息论、范畴、层、TDA、HoTT在对象与分布假设成熟后进入。
+  - 列出8类基本风险、6阶段迁移顺序和5项原文变化的严格化结论。
 
 ### 同步
 
@@ -33,6 +39,7 @@
   - 把 POC-6 恢复为待完成状态，并明确 POC-7 依赖修正版证据闭环。
   - 修正 Memory Section 中把原始 `+4.0/10` 当作最终泛化证据的旧结论。
   - 新增数学大师总体架构基线和架构调查A/B/C待办。
+  - 123号落盘后：把“总体架构与建设计划状态”改为指向123号；把122 v3从“最高优先级基线”降为“证据复核基线 / 123号的证据前提”；新增123号文档索引并标为“最高优先级必读”；将“两种环路”严格化为基于开放义务、证据门和冲突进展向量的判别，不再使用“是否产生新判断维度”的直觉表述。
 - `xishujuzhen/poc/cognition_units_math.json` 与 ArangoDB 认知图
   - 新增 `poc_methodology v3`，把答案泄漏审计、重复 A/B 运行和完整过程证据闭环纳入 POC 方法论。
   - 新增 `glossary v2`，定义“答案泄漏审计”“恢复性重跑”“验证性复跑”。
@@ -42,3 +49,8 @@
   - 新增 `thought_trace_graph` 和 `heuristic_activation_model` 两个核心认知单元及其依赖边。
   - 122 v3落盘后，将 `math_master_system`、`heuristic_activation_model`、`poc_methodology` 和 `glossary` 分别更新到证据复核版本。
   - CP6 任务认知覆盖率 100%，认知图 POC 回归综合评分 100/100。
+  - 123号同步时运行`cognition_import_math.py`导致**事件2026-08-05-A**：ArangoDB `cognition_units`中130个awareness单元被truncate清空（165→35），不可恢复。详见AGENTS.md"数据丢失事件记录"节。`cognition_units_math.json`已更新为35个单元（29原有+6新增），ArangoDB已同步导入。
+
+### 数据丢失事件
+
+- **事件2026-08-05-A**：运行`cognition_import_math.py`时truncate清空ArangoDB `cognition_units`/`cog_edges`/`cog_versions`，丢失130个仅存在于ArangoDB中、未回写JSON的awareness单元。根因：import脚本设计为truncate-reload模式，但`add_unit()`只写ArangoDB不回写JSON，导致ArangoDB积累了JSON没有的单元。不可恢复（无备份、无WAL、git历史中JSON最多29个单元）。待修复：改import为merge模式、新增export脚本、配置arangodump备份。详见AGENTS.md"数据丢失事件记录"节。
