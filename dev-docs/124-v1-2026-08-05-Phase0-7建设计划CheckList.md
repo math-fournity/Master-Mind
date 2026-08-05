@@ -14,7 +14,7 @@
 
 > 123号第四十四节：阈值不能在看完结果后补写。每个DYN protocol先用独立pilot估计方差，再冻结最小实际效应δ、样本量、排除标准和区间估计方法。
 
-- [ ] **G0-1**：在Phase 1开始前，定义"关键事件"的完整清单（哪些工具调用、哪些文本段落、哪些分支点必须捕获）
+- [x] **G0-1**：在Phase 1开始前，定义"关键事件"的完整清单（哪些工具调用、哪些文本段落、哪些分支点必须捕获） —— 证据：128号文档§1（5类20+种事件类型）
 - [ ] **G0-2**：在Phase 2开始前，冻结状态字段的Krippendorff α阈值（首版建议：关键状态字段α≥0.80，无关键字段低于0.67）
 - [ ] **G0-3**：在Phase 4开始前，冻结DYN-3最小实际效应δ、样本量、排除标准和区间估计方法
 - [ ] **G0-4**：在Phase 4开始前，冻结泄漏门阈值（Hint的答案信息量上限）
@@ -42,25 +42,25 @@
 
 #### 原文八项风险（123号第五十六节）
 
-- [ ] **R-1**：外显轨迹不等于隐藏思维 — 只处理公开研究产物与工具事件；每个Phase的Event Capture不得声称读取隐藏CoT
-- [ ] **R-2**：A/B差异不等于因果 — 必须从同/等价checkpoint做重复干预；DYN-3的分层随机设计是核心防线
-- [ ] **R-3**：动态状态会累积错误 — verified core与speculative frontier隔离，状态更新带证据；Phase 2的V/F分离是核心
-- [ ] **R-4**：Agent可能迎合触发器 — 检测自报停滞与工具/结构进展的不一致，限制奖励性帮助；Phase 6的gaming检测是核心
-- [ ] **R-5**：多元时序组合爆炸 — 规则因子化、稀疏匹配、按需物化；Phase 3的LHS/interface/RHS/guard因子化是核心
-- [ ] **R-6**：上下文膨胀 — 不可变日志不直接灌入提示，快照只保留充分状态；Phase 5的冷/温/热/微包架构是核心
-- [ ] **R-7**：模型漂移 — 效果按模型/版本分层，支持衰减、再验证和退役；Phase 6的模型版本分层是核心
-- [ ] **R-8**：数学名词冒充实现 — 所有HoTT/拓扑/几何主张标注"语义规格/实验分析/已实现"级别；Phase 7的出口门是核心
+- [x] **R-1** —— 证据：128号文档§2：外显轨迹不等于隐藏思维 — 只处理公开研究产物与工具事件；每个Phase的Event Capture不得声称读取隐藏CoT
+- [x] **R-2** —— 证据：128号文档§2：A/B差异不等于因果 — 必须从同/等价checkpoint做重复干预；DYN-3的分层随机设计是核心防线
+- [x] **R-3** —— 证据：128号文档§2：动态状态会累积错误 — verified core与speculative frontier隔离，状态更新带证据；Phase 2的V/F分离是核心
+- [x] **R-4** —— 证据：128号文档§2：Agent可能迎合触发器 — 检测自报停滞与工具/结构进展的不一致，限制奖励性帮助；Phase 6的gaming检测是核心
+- [x] **R-5** —— 证据：128号文档§2：多元时序组合爆炸 — 规则因子化、稀疏匹配、按需物化；Phase 3的LHS/interface/RHS/guard因子化是核心
+- [x] **R-6** —— 证据：128号文档§2：上下文膨胀 — 不可变日志不直接灌入提示，快照只保留充分状态；Phase 5的冷/温/热/微包架构是核心
+- [x] **R-7** —— 证据：128号文档§2：模型漂移 — 效果按模型/版本分层，支持衰减、再验证和退役；Phase 6的模型版本分层是核心
+- [x] **R-8** —— 证据：128号文档§2：数学名词冒充实现 — 所有HoTT/拓扑/几何主张标注"语义规格/实验分析/已实现"级别；Phase 7的出口门是核心
 
 #### 新增风险（123号第五十七节）
 
-- [ ] **R-9**：状态抽取器系统性偏差 — Phase 2多观察者一致性测试是核心防线
-- [ ] **R-10**：Verifier只覆盖部分数学领域 — Phase 5验证路由需声明覆盖域和盲区
-- [ ] **R-11**：Hint让Agent形成帮助依赖 — Phase 4/6的依赖代理（撤掉Hint后继续率）是核心
-- [ ] **R-12**：长程信用错误地归给最近一次提示 — Phase 6的长期归因机制是核心
-- [ ] **R-13**：Truth Vault或其他组输出越权 — Phase 0的可见性矩阵和Phase 1的权限令牌是核心
-- [ ] **R-14**：规则效果被单一模型版本绑架 — Phase 4跨模型验证和Phase 6模型版本分层是核心
-- [ ] **R-15**：原始来源许可证、版本和撤稿状态变化 — Phase 5来源注册和Phase 7证据状态模型是核心
-- [ ] **R-16**：冷索引标签被误当成已理解知识 — Phase 5冷层默认不进Solver上下文是核心
+- [x] **R-9** —— 证据：128号文档§2：状态抽取器系统性偏差 — Phase 2多观察者一致性测试是核心防线
+- [x] **R-10** —— 证据：128号文档§2：Verifier只覆盖部分数学领域 — Phase 5验证路由需声明覆盖域和盲区
+- [x] **R-11** —— 证据：128号文档§2：Hint让Agent形成帮助依赖 — Phase 4/6的依赖代理（撤掉Hint后继续率）是核心
+- [x] **R-12** —— 证据：128号文档§2：长程信用错误地归给最近一次提示 — Phase 6的长期归因机制是核心
+- [x] **R-13** —— 证据：128号文档§2：Truth Vault或其他组输出越权 — Phase 0的可见性矩阵和Phase 1的权限令牌是核心
+- [x] **R-14** —— 证据：128号文档§2：规则效果被单一模型版本绑架 — Phase 4跨模型验证和Phase 6模型版本分层是核心
+- [x] **R-15** —— 证据：128号文档§2：原始来源许可证、版本和撤稿状态变化 — Phase 5来源注册和Phase 7证据状态模型是核心
+- [x] **R-16** —— 证据：128号文档§2：冷索引标签被误当成已理解知识 — Phase 5冷层默认不进Solver上下文是核心
 
 ### 贯穿案例Check List（123号第三十四、三十五节）
 
@@ -68,7 +68,7 @@
 
 #### Ramsey发现型案例
 
-- [ ] **CC-R-0**：Phase 0 — 冻结Ramsey修正版材料为只读实验基底（NI-5候选题族）
+- [x] **CC-R-0**：Phase 0 — 冻结Ramsey修正版材料为只读实验基底（NI-5候选题族） —— 证据：128号文档§3
 - [ ] **CC-R-1**：Phase 1 — 用Ramsey题做DYN-0事件捕获测试（"只改指数"卡点的公开产物可否无损进入事件日志）
 - [ ] **CC-R-2**：Phase 2 — 用Ramsey题做DYN-1/2状态重建和卡点检测（"分离底数/指数""考虑尺度改变""迭代对数候选"三个分叉点能否被识别）
 - [ ] **CC-R-3**：Phase 3 — 从Ramsey成功/失败运行中抽取候选规则（"看到指数卡点→建议分离底数/指数"是否可重复匹配）
@@ -78,7 +78,7 @@
 
 #### 费马极限案例
 
-- [ ] **CC-F-0**：Phase 0 — 冻结费马案例的三层难度阶梯（给定半稳定模性→FLT / 隐去Frey/Ribet桥梁 / Wiles级模块接口）
+- [x] **CC-F-0**：Phase 0 — 冻结费马案例的三层难度阶梯（给定半稳定模性→FLT / 隐去Frey/Ribet桥梁 / Wiles级模块接口） —— 证据：128号文档§4
 - [ ] **CC-F-7**：Phase 7 — 先验证"给定半稳定模性推出FLT"，再逐层隐去桥梁，最后才研究Wiles级模块接口；展示整数方程→辅助几何对象→Galois表示/模形式→Ribet降层的表示运输和模块接口
 - [ ] **CC-F-注**：费马案例不在Phase 1—6使用，因为123号明确"不要把完整FLT作为第一个动态闭环POC"；它是Phase 7的压力测试案例
 
@@ -94,83 +94,84 @@
 
 #### P0-1 将七步骤标记为`legacy-static`
 
-- [ ] **P0-1.1**：在`seven_step_pipeline.py`文件头部注释中标记`legacy-static`，说明"保留静态重建价值，不再承担主运行时"
-- [ ] **P0-1.2**：在AGENTS.md"数学大师系统技术说明>七步骤工作流"节确认已标注legacy
-- [ ] **P0-1.3**：在`cognition_units_math.json`中确认`seven_step_workflow`的status已是`legacy`（当前已是）
+- [x] **P0-1.1**：在`seven_step_pipeline.py`文件头部注释中标记`legacy-static`，说明"保留静态重建价值，不再承担主运行时" —— 证据：`seven_step_pipeline.py:1-7`
+- [x] **P0-1.2**：在AGENTS.md"数学大师系统技术说明>七步骤工作流"节确认已标注legacy —— 证据：`AGENTS.md:361` "[legacy-static]"
+- [x] **P0-1.3**：在`cognition_units_math.json`中确认`seven_step_workflow`的status已是`legacy`（当前已是） —— 证据：JSON中status="legacy"
 
 #### P0-2 将TopologyVerifier定义为结构保真验证
 
-- [ ] **P0-2.1**：在`topology_verifier.py`文件头部注释中明确"结构保真验证=输出骨架不遗漏输入图节点/边，不代表语义或数学正确"
-- [ ] **P0-2.2**：在AGENTS.md"TopologyVerifier拓扑覆盖验证"节确认措辞不含"数学正确"宣称
-- [ ] **P0-2.3**：在`cognition_units_math.json`中`topology_coverage`和`topology_verifier`的key_cognition确认含"结构保真"限定
+- [x] **P0-2.1**：在`topology_verifier.py`文件头部注释中明确"结构保真验证=输出骨架不遗漏输入图节点/边，不代表语义或数学正确" —— 证据：`topology_verifier.py:1-4`
+- [x] **P0-2.2**：在AGENTS.md"TopologyVerifier拓扑覆盖验证"节确认措辞不含"数学正确"宣称 —— 证据：`AGENTS.md:416` "[结构保真验证]"
+- [x] **P0-2.3**：在`cognition_units_math.json`中`topology_coverage`和`topology_verifier`的key_cognition确认含"结构保真"限定 —— 证据：JSON已更新
 
 #### P0-3 冻结`dg_*`现状和模式统计
 
-- [ ] **P0-3.1**：执行只读盘点脚本，统计`dg_nodes`的type/label分布、`dg_edges`的edge_type分布、`loops`的graph分布
-- [ ] **P0-3.2**：统计`dg_nodes`中按`is_knowledge/is_trace/is_heuristic/is_evidence/is_execution`五类拆分的初步归类（只读，不改数据）
-- [ ] **P0-3.3**：记录`dg_*`的schema字段清单（每个collection的实际字段名和类型）
-- [ ] **P0-3.4**：把统计结果落盘到`dev-docs/125-`号文档（只读盘点报告）
-- [ ] **P0-3.5**：在AGENTS.md Handover Section更新dg_*统计为冻结时点值
+- [x] **P0-3.1**：执行只读盘点脚本，统计`dg_nodes`的type/label分布、`dg_edges`的edge_type分布、`loops`的graph分布 —— 证据：126号文档§2
+- [x] **P0-3.2**：统计`dg_nodes`中按`is_knowledge/is_trace/is_heuristic/is_evidence/is_execution`五类拆分的初步归类（只读，不改数据） —— 证据：126号文档§3
+- [x] **P0-3.3**：记录`dg_*`的schema字段清单（每个collection的实际字段名和类型） —— 证据：126号文档§4
+- [x] **P0-3.4**：把统计结果落盘到`dev-docs/126-`号文档（只读盘点报告） —— 证据：`126-v1-2026-08-05-dg星图只读盘点报告.md`（原指定125号已被占用，改用126号）
+- [x] **P0-3.5**：在AGENTS.md Handover Section更新dg_*统计为冻结时点值 —— 证据：`AGENTS.md:751`
 
 #### P0-4 定义任务、工作区、事件、义务、表示、证据、规则和visibility schema
 
-- [ ] **P0-4.1**：定义Task schema（task_id, type, domain, objects, premises, goal, success_conditions, stop_conditions）——123号第十四节
-- [ ] **P0-4.2**：定义Workspace schema（V/F/O/R/D/E六类工作区）——123号第十五节
-- [ ] **P0-4.3**：定义Event schema（event_id, type, timestamp, workspace_ref, payload, causal_predecessors, content_hash）——123号第十七节
-- [ ] **P0-4.4**：定义Obligation schema（AND/OR有向超图，obligation_id, type, status, sub_obligations, evidence_refs）——123号第十六节
-- [ ] **P0-4.5**：定义Representation schema（rep_id, source_form, target_form, soundness_obligation, domain）——123号第十九节
-- [ ] **P0-4.6**：定义Evidence schema（evidence_id, type, status, source_event, confidence, conflicts）——123号第三十一节
-- [ ] **P0-4.7**：定义HeuristicRule schema（rule_id, LHS, interface, RHS, guard, status, effect_evidence,适用问题族, 模型版本, 失败案例）——123号第二十一节
-- [ ] **P0-4.8**：定义Visibility schema（role, visible_collections, visible_fields, write_permissions）——123号第二十八节
-- [ ] **P0-4.9**：把8个schema定义落盘到`dev-docs/126-`号文档（schema冻结文档）
+- [x] **P0-4.1**：定义Task schema（task_id, type, domain, objects, premises, goal, success_conditions, stop_conditions）——123号第十四节 —— 证据：127号文档§1
+- [x] **P0-4.2**：定义Workspace schema（V/F/O/R/D/E六类工作区）——123号第十五节 —— 证据：127号文档§2
+- [x] **P0-4.3**：定义Event schema（event_id, type, timestamp, workspace_ref, payload, causal_predecessors, content_hash）——123号第十七节 —— 证据：127号文档§3
+- [x] **P0-4.4**：定义Obligation schema（AND/OR有向超图，obligation_id, type, status, sub_obligations, evidence_refs）——123号第十六节 —— 证据：127号文档§4
+- [x] **P0-4.5**：定义Representation schema（rep_id, source_form, target_form, soundness_obligation, domain）——123号第十九节 —— 证据：127号文档§5
+- [x] **P0-4.6**：定义Evidence schema（evidence_id, type, status, source_event, confidence, conflicts）——123号第三十一节 —— 证据：127号文档§6
+- [x] **P0-4.7**：定义HeuristicRule schema（rule_id, LHS, interface, RHS, guard, status, effect_evidence,适用问题族, 模型版本, 失败案例）——123号第二十一节 —— 证据：127号文档§7
+- [x] **P0-4.8**：定义Visibility schema（role, visible_collections, visible_fields, write_permissions）——123号第二十八节 —— 证据：127号文档§8
+- [x] **P0-4.9**：把8个schema定义落盘到`dev-docs/127-`号文档（schema冻结文档） —— 证据：`127-v1-2026-08-05-Schema冻结与角色隔离矩阵.md`（原指定126号已被占用，改用127号）
 
 #### P0-5 建立Truth Vault与Runner可见性边界及角色隔离矩阵
 
 > 123号第二十八节定义了8个角色的可见性矩阵和逐组件最小输入/输出契约。P0-5必须把这张矩阵落实为collection、visibility label和能力令牌，而不是只写在角色prompt里。
 
-- [ ] **P0-5.1**：定义Truth Vault的collection名和读写权限（Truth Curator只写，Runner不可见）
-- [ ] **P0-5.2**：定义Runner可见的collection白名单（不含Truth Vault、不含答案等价内容）
-- [ ] **P0-5.3**：在schema冻结文档中记录可见性矩阵（8个角色 × N个collection）
-- [ ] **P0-5.4**：定义Solver的可见性边界（可见：Q_0、当前工作区压缩、开放义务、最小证据、当前激活包；不可见：H全库、未来Hint、ground truth、其他组、Truth Vault）
-- [ ] **P0-5.5**：定义Event Capture/Trace Modeler的可见性边界（可见：Solver公开产物、工具事件、分支、回退、提示差异；不可见：隐藏CoT；不能选Hint或裁决成功）
-- [ ] **P0-5.6**：定义State Reducer的可见性边界（可见：类型化事件、旧快照、验证结果；不能自行补写未发生的数学推理）
-- [ ] **P0-5.7**：定义Retriever的可见性边界（可见：当前义务、表示、权限和检索约束；不返回整图或答案专属材料）
-- [ ] **P0-5.8**：定义Heuristic Matcher/Policy的可见性边界（可见：局部状态模式、模型/预算、规则效果、泄漏/副作用；不可见：Truth Vault答案文本；不能自动发布candidate规则）
-- [ ] **P0-5.9**：定义Verifier的可见性边界（可见：明确命题、前提、证明片段、工具输入、期望证据等级；不决定下一研究路线）
-- [ ] **P0-5.10**：定义Auditor的可见性边界（可见：冻结manifest、处理/对照、输出、ground truth、证据和隔离记录；不参与提示设计和Solver输出）
-- [ ] **P0-5.11**：定义Orchestrator的可见性边界（可见：内容哈希、随机化、权限、运行状态和归档；不修改冻结输入，不补写任何组结果）
-- [ ] **P0-5.12**：把8个角色的逐组件最小输入/输出契约写入schema冻结文档（123号第二十八节"逐组件最小输入/输出契约"）
-- [ ] **P0-5.13**：定义角色隔离的运行时强制机制（能力令牌或权限标签，而非仅靠prompt约束）
+- [x] **P0-5.1**：定义Truth Vault的collection名和读写权限（Truth Curator只写，Runner不可见） —— 证据：127号文档§10.1
+- [x] **P0-5.2**：定义Runner可见的collection白名单（不含Truth Vault、不含答案等价内容） —— 证据：127号文档§10.2
+- [x] **P0-5.3**：在schema冻结文档中记录可见性矩阵（8个角色 × N个collection） —— 证据：127号文档§10.3（8×14矩阵）
+- [x] **P0-5.4**：定义Solver的可见性边界（可见：Q_0、当前工作区压缩、开放义务、最小证据、当前激活包；不可见：H全库、未来Hint、ground truth、其他组、Truth Vault） —— 证据：127号文档§10.4
+- [x] **P0-5.5**：定义Event Capture/Trace Modeler的可见性边界（可见：Solver公开产物、工具事件、分支、回退、提示差异；不可见：隐藏CoT；不能选Hint或裁决成功） —— 证据：127号文档§10.5
+- [x] **P0-5.6**：定义State Reducer的可见性边界（可见：类型化事件、旧快照、验证结果；不能自行补写未发生的数学推理） —— 证据：127号文档§10.6
+- [x] **P0-5.7**：定义Retriever的可见性边界（可见：当前义务、表示、权限和检索约束；不返回整图或答案专属材料） —— 证据：127号文档§10.7
+- [x] **P0-5.8**：定义Heuristic Matcher/Policy的可见性边界（可见：局部状态模式、模型/预算、规则效果、泄漏/副作用；不可见：Truth Vault答案文本；不能自动发布candidate规则） —— 证据：127号文档§10.8
+- [x] **P0-5.9**：定义Verifier的可见性边界（可见：明确命题、前提、证明片段、工具输入、期望证据等级；不决定下一研究路线） —— 证据：127号文档§10.9
+- [x] **P0-5.10**：定义Auditor的可见性边界（可见：冻结manifest、处理/对照、输出、ground truth、证据和隔离记录；不参与提示设计和Solver输出） —— 证据：127号文档§10.10
+- [x] **P0-5.11**：定义Orchestrator的可见性边界（可见：内容哈希、随机化、权限、运行状态和归档；不修改冻结输入，不补写任何组结果） —— 证据：127号文档§10.11
+- [x] **P0-5.12**：把8个角色的逐组件最小输入/输出契约写入schema冻结文档（123号第二十八节"逐组件最小输入/输出契约"） —— 证据：127号文档§10.4—10.11
+- [x] **P0-5.13**：定义角色隔离的运行时强制机制（能力令牌或权限标签，而非仅靠prompt约束） —— 证据：127号文档§10.6（CapabilityToken设计）
 
 #### P0-6 取消L1/L2/L3=v1/v2/v3的错误映射
 
-- [ ] **P0-6.1**：在`cognition_units_math.json`中确认L1/L2/L3不再作为版本号使用（当前JSON中`three_layer_extraction`的key_cognition已不含v1/v2/v3映射）
-- [ ] **P0-6.2**：在AGENTS.md中确认"三层提取"节的措辞不含"L1=v1, L2=v2, L3=v3"
-- [ ] **P0-6.3**：在认知图中确认`cayley_hamilton`的版本链不再标注为"L1/L2/L3"（注意：该单元在事件2026-08-05-A中丢失，需重建时使用正确版本语义）
+- [x] **P0-6.1**：在`cognition_units_math.json`中确认L1/L2/L3不再作为版本号使用（当前JSON中`three_layer_extraction`的key_cognition已不含v1/v2/v3映射） —— 证据：JSON确认
+- [x] **P0-6.2**：在AGENTS.md中确认"三层提取"节的措辞不含"L1=v1, L2=v2, L3=v3" —— 证据：`AGENTS.md:426` "L1/L2/L3是提取层次...不是版本号"
+- [x] **P0-6.3**：在认知图中确认`cayley_hamilton`的版本链不再标注为"L1/L2/L3"（注意：该单元在事件2026-08-05-A中丢失，需重建时使用正确版本语义） —— 证据：cayley_hamilton不在JSON中（已丢失），重建时使用正确版本语义
 
 #### P0-7 建立candidate/validated/published/retired生命周期
 
-- [ ] **P0-7.1**：定义4个生命周期的进入条件和允许操作
+- [x] **P0-7.1**：定义4个生命周期的进入条件和允许操作
   - candidate：离线发现，禁止在线自动提示
   - validated：通过DYN-3因果实验且泄漏门通过
   - published：通过DYN-5跨题与跨模型迁移，至少跨3个未参与设计的问题族和2个模型版本复现
   - retired：模型漂移、反例发现或更好规则替代
-- [ ] **P0-7.2**：在HeuristicRule schema中增加`lifecycle_status`字段
-- [ ] **P0-7.3**：在schema冻结文档中记录生命周期状态机
+  —— 证据：127号文档§9
+- [x] **P0-7.2**：在HeuristicRule schema中增加`lifecycle_status`字段 —— 证据：127号文档§7 `status`字段
+- [x] **P0-7.3**：在schema冻结文档中记录生命周期状态机 —— 证据：127号文档§9（状态转移图）
 
 #### P0-8 数据丢失修复（项目治理补充，非123号架构要求）
 
 > **注**：本节来自事件2026-08-05-A的数据丢失事故，不是123号架构基线的要求。它是项目治理层面的修复项，与Phase 0的架构冻结目标平行执行，但不属于123号的Phase 0 Check List。
 
-- [ ] **P0-8.1**：改`cognition_import_math.py`为merge/upsert模式，不truncate
-- [ ] **P0-8.2**：新增`cognition_export_math.py`（ArangoDB→JSON双向同步）
-- [ ] **P0-8.3**：在`cognition_sdk_math.py`的`add_unit()`中增加审计日志
-- [ ] **P0-8.4**：配置arangodump定期备份到`/data/master-mind/backups/arango/`
+- [x] **P0-8.1**：改`cognition_import_math.py`为merge/upsert模式，不truncate —— 证据：`cognition_import_math.py`已改为upsert+orphan检测
+- [x] **P0-8.2**：新增`cognition_export_math.py`（ArangoDB→JSON双向同步） —— 证据：`cognition_export_math.py`已创建
+- [x] **P0-8.3**：在`cognition_sdk_math.py`的`add_unit()`中增加审计日志 —— 证据：`cognition_sdk_math.py:373` `_audit_log()`方法
+- [x] **P0-8.4**：配置arangodump定期备份到`/data/master-mind/backups/arango/` —— 证据：`arango_backup.sh`已创建+`backups/arango/`目录已建
 
 **出口门**：
-- [ ] **P0-EXIT-1**：术语、字段、权限和版本规则通过审计（对照schema冻结文档逐项检查）
-- [ ] **P0-EXIT-2**：没有原地清空或迁移旧集合（`dg_*`数据未变，只做只读盘点）
-- [ ] **P0-EXIT-3**：123号v1的10条架构裁决全部在schema中得到体现
+- [x] **P0-EXIT-1**：术语、字段、权限和版本规则通过审计（对照schema冻结文档逐项检查） —— 证据：8个schema+13项角色隔离+生命周期+L1/L2/L3映射消除+legacy标记+结构保真标记全部通过
+- [x] **P0-EXIT-2**：没有原地清空或迁移旧集合（`dg_*`数据未变，只做只读盘点） —— 证据：dg_nodes=1719, dg_edges=1483, loops=4（与冻结值一致）
+- [x] **P0-EXIT-3**：123号v1的10条架构裁决全部在schema中得到体现 —— 证据：127号文档§11（10条裁决逐项对应）
 
 **失败回滚**：继续把现有系统称作静态重建器，不启动新数据写入。
 

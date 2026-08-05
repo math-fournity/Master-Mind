@@ -95,3 +95,15 @@
 ### 125号文档创建（2026-08-05）
 
 - **新建`dev-docs/125-v1-2026-08-05-AGENTS对齐审计与Git-Hook防不同步机制.md`**：完整记录本轮对齐审计工作——7类不同步问题的发现与修正、alignment_check.py的6项检查设计、pre-commit/post-commit hook机制、测试验证结果和3个未决问题。
+
+### Phase 0执行（2026-08-05）
+
+- **新建`dev-docs/126-v1-2026-08-05-dg星图只读盘点报告.md`**：P0-3只读盘点。冻结dg_nodes(1719)/dg_edges(1483)/loops(4)的type/edge_type/mapping_type/graph分布、五类初步归类、schema字段清单。重要发现：96.5%边edge_type为unknown，真实边语义在mapping_type字段。
+- **新建`dev-docs/127-v1-2026-08-05-Schema冻结与角色隔离矩阵.md`**：Phase 0核心交付物。冻结8类schema（Task/Workspace/Event/Obligation/Representation/Evidence/HeuristicRule/Visibility）、8角色×14collection可见性矩阵、逐组件最小输入/输出契约、CapabilityToken强制机制、candidate/validated/published/retired生命周期状态机。123号10条架构裁决逐项体现。
+- **新建`dev-docs/128-v1-2026-08-05-全局预注册项与贯穿案例冻结.md`**：G0-1关键事件完整清单（5类20+种事件类型）、R-1—R-16风险监控机制（每项含监控机制/检查点/触发停止条件）、CC-R-0 Ramsey案例冻结（非泄漏干预阶梯+验证维度）、CC-F-0费马案例冻结（三层难度阶梯+推论链+大师启发维度）。
+- **P0-1完成**：`seven_step_pipeline.py`头部标记[legacy-static]；AGENTS.md"七步骤工作流"节标注[legacy-static]。
+- **P0-2完成**：`topology_verifier.py`头部标注"结构保真验证"；AGENTS.md"TopologyVerifier"节标注[结构保真验证]；cognition_units_math.json中topology_coverage/topology_verifier的key_cognition加入"结构保真"限定。
+- **P0-6完成**：AGENTS.md"三层提取"节消除L1=v1/L2=v2/L3=v3映射，明确"L1/L2/L3是提取层次，不是版本号"。
+- **P0-8完成**：`cognition_import_math.py`改为merge/upsert模式（不truncate）；新增`cognition_export_math.py`（ArangoDB→JSON双向同步）；`cognition_sdk_math.py`的`add_unit()`增加审计日志（`_audit_log()`方法写入cognition_audit_log collection）；新增`arango_backup.sh`备份脚本+`backups/arango/`目录。
+- **124号Check List更新**：Phase 0全部条目（P0-1—P0-8 + P0-EXIT-1/2/3 + G0-1 + R-1—R-16 + CC-R-0 + CC-F-0）标记为[x]并附证据定位。
+- **AGENTS.md更新**：dg_nodes/dg_edges描述更新为实际统计值；Handover Section更新冻结时点值；TODO中Phase 0标记为[x]；新增126/127/128号文档索引。

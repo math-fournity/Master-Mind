@@ -205,6 +205,9 @@
 | `dev-docs/123-v1-2026-08-05-数学大师系统全景复盘与第一性原理重构计划.md` | **当前最高架构与建设基线**：以`系统探讨.md`全文为母本，保留七层能力、五类资产和K/T/H直觉；用类型化任务/工作区、事件溯源、表示变换、时序规则、证据状态和受约束最小干预严格化；建立DYN-0—7、Phase 0—7、角色权限、数据crosswalk、停止条件及Ramsey/费马案例 | **最高优先级必读**。后续schema、POC和运行时必须服从 |
 | `dev-docs/124-v1-2026-08-05-Phase0-7建设计划CheckList.md` | **Phase 0—7可执行Check List**：把123号Phase 0—7、DYN-0—7、停止条件、不做清单和下一实施包全部细化为可追踪的Check List条目。每个Phase有入口门、细化的子项Check List、出口门、停止条件和失败回滚。含全局预注册门（G0-1—G0-6）、核心指标清单（G0-M1—M10）、风险登记（R-1—R-16）、贯穿案例（Ramsey CC-R-0—6 + 费马 CC-F-0/7）、角色隔离矩阵（P0-5.1—5.13）、降级路径（DEG-1—6）、进度追踪表和5个未决问题。v1修正：修正P0-7.1的DYN编号错误（DYN-4→DYN-5）、修正P4-EXIT-4的逻辑错误（冻结标准≠达到标准） | **必读**。Phase推进的执行视图，按Phase顺序逐项打勾 |
 | `dev-docs/125-v1-2026-08-05-AGENTS对齐审计与Git-Hook防不同步机制.md` | **AGENTS.md对齐审计+防御机制**：审计发现7类不同步问题（DYN阶梯定义错误/Phase编号偏移/文档索引遗漏/代码文件未引用/文件名引用错误等），全部修正后新增`alignment_check.py`（6项对齐检查）+`pre-commit` hook（硬性违规阻止commit）+`post-commit` hook增强（commit后对齐提醒）。机制首次运行即自动检测到人工审计遗漏的64号文件名错误 | **必读**。理解AGENTS.md与repo对齐的防护机制 |
+| `dev-docs/126-v1-2026-08-05-dg星图只读盘点报告.md` | **dg_*只读盘点报告**：Phase 0 (P0-3)冻结`dg_nodes`(1719)/`dg_edges`(1483)/`loops`(4)的type/edge_type/mapping_type/graph分布、五类初步归类、schema字段清单。重要发现：96.5%边edge_type为unknown，真实边语义在mapping_type字段；当前dg_*完全是K视图，无T/H/E节点 | **必读**。Phase 0架构冻结的数据基线 |
+| `dev-docs/127-v1-2026-08-05-Schema冻结与角色隔离矩阵.md` | **Schema冻结与角色隔离矩阵**：Phase 0核心交付物。冻结8类schema（Task/Workspace/Event/Obligation/Representation/Evidence/HeuristicRule/Visibility）、8角色可见性矩阵（8×14 collection）、逐组件最小输入/输出契约、CapabilityToken强制机制、candidate/validated/published/retired生命周期状态机。123号10条架构裁决在schema中的逐项体现 | **最高优先级必读**。Phase 1起按此schema创建新collection |
+| `dev-docs/128-v1-2026-08-05-全局预注册项与贯穿案例冻结.md` | **全局预注册项与贯穿案例冻结**：Phase 0全局项落盘。G0-1关键事件完整清单（5类20+种事件类型）、R-1—R-16风险监控机制（每项含监控机制/检查点/触发停止条件）、CC-R-0 Ramsey案例冻结（非泄漏干预阶梯+验证维度）、CC-F-0费马案例冻结（三层难度阶梯+推论链+大师启发维度） | **必读**。每个Phase出口门对照检查 |
 | `xishujuzhen/arxiv_to_arangodb.py` | arXiv元数据→ArangoDB导入脚本：读取JSON批量导入239K篇+创建4个索引+验证 | 工具脚本 |
 | `xishujuzhen/arangodb_init.py` | ArangoDB数据库初始化：创建xishujuzhen_math数据库+12 collections+3 graphs+8索引 | 基础设施脚本 |
 | `xishujuzhen/topology_verifier.py` | 拓扑覆盖验证器：检查G'→G的节点/边/环路集合保真。**123号裁决：结构保真验证，不代表语义或数学正确** | legacy验证器 |
@@ -358,7 +361,9 @@
 
 > 本节是数学大师系统（目标系统——数学证明的依赖结构管理）的操作级技术说明。跨session/压缩后AI通过本节恢复"怎么用数学大师系统"的认知。完整方案见依赖文档。
 
-### 七步骤工作流
+### 七步骤工作流 [legacy-static]
+
+> **[legacy-static]** 123号v1已将七步骤正式降为legacy静态重建器。保留静态知识图与提示展开价值，不再承担主运行时。主运行时改为12步事件溯源循环（观测→状态归约→候选规则匹配→受约束干预→验证→归因→回写）。旧七步骤的100%拓扑覆盖只证明结构保真，不证明语义或数学真值，也不证明动态思维矫正。
 
 数学大师系统的核心是七步骤工作流，通过`seven_step_pipeline.py`执行：
 
@@ -382,9 +387,9 @@
 ### 依赖图导入ArangoDB
 
 依赖图G存储在ArangoDB的`xishujuzhen_math`数据库中：
-- `dg_nodes`：节点集（step/substep/意识三种类型）
-- `dg_edges`：边集（depends_on/calls两种类型）
-- `loops`：螺旋环路（含圈数）
+- `dg_nodes`：节点集（1719个，7种type：concept/domain_concept/paradigm/problem/substep/意识/step）——详见126号只读盘点报告
+- `dg_edges`：边集（1483个，edge_type以unknown为主但mapping_type有40+种映射类型）——详见126号只读盘点报告
+- `loops`：螺旋环路（4个，含圈数）
 - `arxiv_papers`：**arXiv论文库**（239472篇元数据，2023-2026年，44个分类）。支持按分类/日期/作者/关键词查询。每篇论文有mapping_level（L1定理级/L2方法级/L3意识级/L4索引级）和linked_nodes（关联的dg_nodes）。详见112号方案。
 
 ### arXiv论文查询
@@ -411,31 +416,33 @@
 - L2 section划分：按依赖链长度分段+意识节点处理
 - L3语义标注（AI）：section命名、spiral_static/dynamic最终确认
 
-### TopologyVerifier拓扑覆盖验证
+### TopologyVerifier拓扑覆盖验证（结构保真验证）
+
+> **[结构保真验证]** TopologyVerifier验证的是输出骨架不遗漏输入图节点/边（结构保真），不代表语义或数学正确。100%拓扑覆盖只证明结构完整性，不证明语义真值、数学正确性或动态思维矫正效果。
 
 `topology_verifier.py`验证G'_topo是否覆盖G：
 - 节点覆盖：ut_nodes vs dg_nodes的集合差集
 - 边覆盖：ut_edges vs dg_edges的集合差集
 - 螺旋环路：圈数是否保持
-- 结果：passed=True + 100%覆盖 = 通过
+- 结果：passed=True + 100%覆盖 = 结构保真通过（不代表语义或数学正确）
 
-### 三层提取（L1/L2/L3）+ 版本链管理
+### 三层提取（L1/L2/L3）
 
-83号文档设计的三层提取，用版本链管理演化：
+83号文档设计的三层提取，L1/L2/L3是提取层次（解题思路→数学思维→范式思维），不是版本号。版本链用v1/v2/v3等独立编号，与L1/L2/L3无映射关系。
 
-| 层次 | 版本 | 内容 | 复用范围 |
-|---|---|---|---|
-| L1解题思路 | v1 | 具体步骤序列 | 类似题 |
-| L2数学思维 | v2 | 从L1抽象出的思维模式（AI二次分析） | 跨题、跨领域 |
-| L3范式思维 | v3 | 从多个L2综合出的范式（AI三次分析） | 改变图结构 |
+| 层次 | 内容 | 复用范围 |
+|---|---|---|
+| L1解题思路 | 具体步骤序列 | 类似题 |
+| L2数学思维 | 从L1抽象出的思维模式（AI二次分析） | 跨题、跨领域 |
+| L3范式思维 | 从多个L2综合出的范式（AI三次分析） | 改变图结构 |
 
-**版本链操作**：
+**版本链操作**（版本号独立于L1/L2/L3层次）：
 ```bash
 # 添加新版本
 .venv/bin/python3 -c "from cognition_sdk_math import CognitionSDK; sdk=CognitionSDK(); sdk.add_version('<cog_id>', 'v2', '<doc>', '<summary>', version_order=2); sdk.update_current_version('<cog_id>', 'v2')"
 ```
 
-**current_version反映当前提取层级**：v1=类似题复用，v2=跨题复用，v3=跨领域复用。
+**current_version反映文档版本**，与L1/L2/L3提取层次无映射关系。
 
 ### 数学意识节点（5个）
 
@@ -493,7 +500,7 @@
 - [x] **数学大师系统总体架构v2修订**：确立思维形状公理、动态题目Q_t、K/T/H三图模型、Agent M闭环和“模式→激活包”的高阶时序启发关系
 - [x] **数学大师系统总体架构v3完整复核**：同轮通读80—99号，回答当前机制、有效性、改进、Master答案泄漏、费马大定理五问；确认旧POC只对静态完整路线有局部信号，动态P→X矫正完全未验证。见122号v3
 - [x] **第一性原理重构计划v1**：以`系统探讨.md`全文为母本，严格化目标系统为类型化任务/工作区、事件溯源、表示变换、时序规则、证据状态和受约束最小干预；给出DYN-0—7、Phase 0—7、角色权限、数据crosswalk、停止条件及Ramsey/费马案例。见123号v1
-- [ ] **Phase 0：冻结legacy与统一语义**——按123号第十部分和124号Check List：标记七步骤为legacy-static、冻结dg_*现状和模式统计、定义8类schema、建立Truth Vault与角色隔离矩阵、取消L1/L2/L3=v1/v2/v3映射、建立candidate/validated/published/retired生命周期
+- [x] **Phase 0：冻结legacy与统一语义**——按123号第十部分和124号Check List：标记七步骤为legacy-static、冻结dg_*现状和模式统计、定义8类schema、建立Truth Vault与角色隔离矩阵、取消L1/L2/L3=v1/v2/v3映射、建立candidate/validated/published/retired生命周期。**Phase 0出口门全部通过**（P0-EXIT-1/2/3），证据见126/127/128号文档
 - [ ] **Phase 1：只观察，不提示**——按123号第四十六节和124号：完成DYN-0（事件捕获真实性），创建运行manifest、捕获公开文本和工具事件、建立不可变原始事件和语义事件抽取
 - [ ] **Phase 2：类型化状态与研究义务**——按123号第四十七节和124号：完成DYN-1（状态重建一致性）和DYN-2（卡点检测校准），实现V/F/O/R/D/E工作区、AND/OR研究义务、多观察者一致性测试
 - [ ] **架构调查A：统一词汇与系统边界**——消除多套L1/L2/L3、“三层”“七步骤”和图概念碰撞；纳入数学知识图K、外显思维图T、启发激活图H。**由Phase 0接管**
@@ -744,7 +751,7 @@ POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或
 - cayley_hamilton三层版本链：v1(L1)→v2(L2)→v3(L3)，current_version=v3（**注意：cayley_hamilton单元在事件中丢失，需从题库重建**）
 - three_layer_extraction版本链：v1(83号方案)→v2(POC-3验证L3跨领域迁移价值成立)，current_version=v2（**注意：该单元在事件中丢失，需重建**）
 - AGENTS.md技术说明依赖已入稀疏矩阵：agents_tech_worksystem(source_docs=[91,94,97,100,101]) + agents_tech_mathmaster(source_docs=[83,85,86,88,90,92,99,100])（**注意：这两个单元在事件中丢失，需重建**）
-- 数学依赖图：1719节点，1483边（未受事件影响，dg_nodes/dg_edges未被truncate）
+- 数学依赖图（Phase 0冻结时点值，详见126号只读盘点报告）：dg_nodes=1719（concept:867, domain_concept:599, paradigm:165, problem:53, substep:27, 意识:5, step:3），dg_edges=1483（edge_type: unknown:1431/depends_on:38/calls:13/invokes:1; mapping_type: solution_path:837/invokes:259/structural_analogy:136/equivalence:87/其他:264），loops=4（dependency_graph:2, unfold_topo:2）
 - 题库：60道题，159个解法（problems + solutions集合，未受事件影响）
 - arxiv_papers：239472篇（未受事件影响）
 - G'_topo（经典计算生成）：18节点，25边，2环路，TopologyVerifier 1次通过100%覆盖（POC-2场景）

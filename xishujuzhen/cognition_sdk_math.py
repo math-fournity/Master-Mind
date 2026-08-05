@@ -370,7 +370,32 @@ class CognitionSDK:
         self.add_version(cog_id, current_version,
                          str(source_docs[0]) if source_docs else "",
                          "初始版本")
+        # [P0-8.3] 审计日志：记录add_unit操作，防止"ArangoDB有但JSON没有且无记录"
+        self._audit_log("add_unit", cog_id, {
+            "title": title,
+            "category": category,
+            "key_cognition": key_cognition[:200],
+            "source_docs": source_docs,
+            "current_version": current_version,
+            "status": status,
+        })
         return result
+
+    def _audit_log(self, operation, cog_id, details=None):
+        """[P0-8.3] 写入审计日志到cognition_audit_log collection"""
+        now = datetime.utcnow().isoformat() + "Z"
+        audit_doc = {
+            "operation": operation,
+            "cog_id": cog_id,
+            "details": details or {},
+            "timestamp": now,
+        }
+        try:
+            if not self.db.has_collection("cognition_audit_log"):
+                self.db.create_collection("cognition_audit_log")
+            self.db.collection("cognition_audit_log").insert(audit_doc)
+        except Exception as e:
+            print(f"  ⚠️ 审计日志写入失败: {e}")
 
     def add_version(self, cog_id, version, doc, summary, version_order=None):
         """添加版本记录，同时更新cognition_units的current_version"""
