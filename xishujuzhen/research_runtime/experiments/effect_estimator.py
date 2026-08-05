@@ -146,6 +146,18 @@ class EffectEstimator:
                 n_control=len(control_results),
             )
 
+        # P4-5.COMP：checkpoint一致性检查——同一checkpoint才能比较
+        t_ckpt_ids = {r.checkpoint_id for r in treatment_results}
+        c_ckpt_ids = {r.checkpoint_id for r in control_results}
+        if not t_ckpt_ids.intersection(c_ckpt_ids):
+            # treatment和control的checkpoint完全不一致——拒绝估计
+            return EffectEstimate(
+                ate=0.0, ci_lower=0.0, ci_upper=0.0,
+                n_treatment=len(treatment_results),
+                n_control=len(control_results),
+                method="bootstrap_rejected_checkpoint_mismatch",
+            )
+
         # 计算进展分数
         t_scores = [self.compute_progress_score(r) for r in treatment_results]
         c_scores = [self.compute_progress_score(r) for r in control_results]
@@ -170,6 +182,83 @@ class EffectEstimator:
             n_control=len(control_results),
             heterogeneity=heterogeneity,
             method="bootstrap",
+            passes_exit_gate=passes,
+        )
+
+    def estimate_stratified_ate(
+        self,
+        treatment_results: List[ContinuationResult],
+        control_results: List[ContinuationResult],
+    ) -> EffectEstimate:
+        """
+        123号§39 DYN-3：用分层或配对统计估计平均处理效应和异质性。
+
+        按checkpoint分层，在每个checkpoint层内估计ATE，再加权汇总。
+        这是123号§39明确要求的"分层统计"，不是简单配对。
+
+        边界情况：
+        - 某层只有treatment或只有control → 跳过该层
+        - 只有一层 → 退化为简单ATE
+        """
+        if not treatment_results or not control_results:
+            return EffectEstimate(
+                ate=0.0, ci_lower=0.0, ci_upper=0.0,
+                n_treatment=len(treatment_results),
+                n_control=len(control_results),
+            )
+
+        # 按checkpoint分层
+        t_by_ckpt: Dict[str, List[ContinuationResult]] = {}
+        for r in treatment_results:
+            t_by_ckpt.setdefault(r.checkpoint_id, []).append(r)
+
+        c_by_ckpt: Dict[str, List[ContinuationResult]] = {}
+        for r in control_results:
+            c_by_ckpt.setdefault(r.checkpoint_id, []).append(r)
+
+        # 在每个checkpoint层内估计ATE
+        strata_ates: List[float] = []
+        strata_weights: List[float] = []
+        strata_t_scores: List[float] = []
+        strata_c_scores: List[float] = []
+
+        common_ckpts = set(t_by_ckpt.keys()) & set(c_by_ckpt.keys())
+        if not common_ckpts:
+            # 没有共同checkpoint层——退化为简单ATE
+            return self.estimate_ate(treatment_results, control_results)
+
+        for ckpt_id in common_ckpts:
+            t_stratum = t_by_ckpt[ckpt_id]
+            c_stratum = c_by_ckpt[ckpt_id]
+            t_scores = [self.compute_progress_score(r) for r in t_stratum]
+            c_scores = [self.compute_progress_score(r) for r in c_stratum]
+            strata_ate = statistics.mean(t_scores) - statistics.mean(c_scores)
+            n_stratum = len(t_stratum) + len(c_stratum)
+            strata_ates.append(strata_ate)
+            strata_weights.append(n_stratum)
+            strata_t_scores.extend(t_scores)
+            strata_c_scores.extend(c_scores)
+
+        # 加权汇总ATE（按层大小加权）
+        total_weight = sum(strata_weights)
+        stratified_ate = sum(a * w for a, w in zip(strata_ates, strata_weights)) / total_weight
+
+        # Bootstrap置信区间（在分层结构内重采样）
+        ci_lower, ci_upper = self._bootstrap_ci(strata_t_scores, strata_c_scores)
+
+        # 异质性：层间ATE的方差
+        heterogeneity = statistics.variance(strata_ates) if len(strata_ates) > 1 else 0.0
+
+        passes = ci_lower > 0 and ci_lower > self.delta
+
+        return EffectEstimate(
+            ate=stratified_ate,
+            ci_lower=ci_lower,
+            ci_upper=ci_upper,
+            n_treatment=len(treatment_results),
+            n_control=len(control_results),
+            heterogeneity=heterogeneity,
+            method="stratified_bootstrap",
             passes_exit_gate=passes,
         )
 

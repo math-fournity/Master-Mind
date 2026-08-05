@@ -48,6 +48,7 @@ from xishujuzhen.research_runtime.experiments.migration_tester import (
 )
 from xishujuzhen.research_runtime.experiments.side_effect_logger import (
     SideEffectLogger, SideEffectRecord, InvalidRuleRecord,
+    GamingDetectionRecord, STALL_WORDS,
 )
 from xishujuzhen.research_runtime.experiments.pilot_runner import (
     PilotRunner, PilotVarianceEstimate,
@@ -293,6 +294,17 @@ def test_p4_5_effect_estimation():
     # P4-5.COMP3：不用节点覆盖率代替数学正确
     print(f"✅ P4-5.COMP3: 使用conjecture类型进展，不用节点覆盖率")
 
+    # P4-5.5：分层ATE估计——123号§39"用分层或配对统计"
+    stratified = estimator.estimate_stratified_ate(treatment, control)
+    assert stratified.method == "stratified_bootstrap", f"P4-5.5 FAIL: 方法应为stratified_bootstrap"
+    print(f"✅ P4-5.5: 分层ATE={stratified.ate:.3f}, method={stratified.method}")
+
+    # P4-5.6：checkpoint一致性检查
+    mismatch_treatment = [ContinuationResult("a1", "h1", "ckpt_DIFFERENT", "resp")]
+    mismatch_estimate = estimator.estimate_ate(mismatch_treatment, control)
+    assert "mismatch" in mismatch_estimate.method, "P4-5.6 FAIL: checkpoint不一致应被拒绝"
+    print(f"✅ P4-5.6: checkpoint一致性检查（不一致时method={mismatch_estimate.method}）")
+
 
 def test_p4_6_help_curve():
     """P4-6：测帮助量曲线"""
@@ -380,6 +392,20 @@ def test_p4_8_side_effects():
     assert verify["passes_exit_gate"], f"P4-8.COMP2 FAIL: 副作用应低于阈值"
     print(f"✅ P4-8.COMP2: 副作用率={verify['side_effect_rate']:.2f} < 阈值={verify['threshold']}")
 
+    # P4-8.4：gaming检测——系统探讨.md§15.4
+    gaming1 = logger.detect_gaming("run_g1", "我卡住了，不知道怎么做", has_tool_evidence=False, has_structural_progress=False)
+    assert gaming1.is_gaming, "P4-8.4 FAIL: 有停滞词但无工具证据和结构进展应判定为gaming"
+    gaming2 = logger.detect_gaming("run_g2", "我卡住了，但通过计算验证了中间步骤", has_tool_evidence=True, has_structural_progress=True)
+    assert not gaming2.is_gaming, "P4-8.4 FAIL: 有停滞词但有工具证据和结构进展不应判定为gaming"
+    gaming3 = logger.detect_gaming("run_g3", "猜测R_k(C_5) >= k^{k/2}", has_tool_evidence=True, has_structural_progress=True)
+    gaming4 = logger.detect_gaming("run_g4", "分析底数和指数的关系", has_tool_evidence=True, has_structural_progress=True)
+    print(f"✅ P4-8.4: gaming检测（系统探讨.md§15.4）——有停滞词但无证据={gaming1.is_gaming}, 有证据={gaming2.is_gaming}")
+
+    # gaming率验证（4条记录中1条gaming=0.25 < 0.3）
+    gaming_verify = logger.verify_gaming_rate_below_threshold(threshold=0.3)
+    assert gaming_verify["passes"], "P4-8.4 FAIL: gaming率应低于阈值"
+    print(f"✅ P4-8.4.COMP: gaming率={gaming_verify['gaming_rate']:.2f} < 阈值={gaming_verify['threshold']}")
+
 
 def test_p4_9_rule_lifecycle():
     """P4-9：通过后才升为validated"""
@@ -450,6 +476,37 @@ def test_p4_role_auditor():
     isolation = auditor.verify_not_participated()
     assert isolation["isolation_verified"], "P4-ROLE.COMP FAIL: Auditor隔离失败"
     print(f"✅ P4-ROLE.COMP: Auditor不参与Hint设计或Solver答题")
+
+    # P4-ROLE.2：Auditor输入验证——127号§10.7
+    auditor2 = Auditor(run_id="test_phase4_inputs")
+    inputs_result = auditor2.receive_inputs(
+        frozen_manifest={"manifest_id": "test"},
+        treatment_assignments=[{"group": "h1"}],
+        actual_hints=[{"hint": "把底数和指数分开分析"}],
+        pre_hint_states=[{"stall": True}],
+        post_hint_states=[{"stall": False}],
+        outputs=[{"response": "猜测k^{k/2}"}],
+        ground_truth={"answer": "k^{k/2-o(k)}"},
+        tool_evidence=[{"tool": "sympy", "result": "verified"}],
+        hashes={"checkpoint": "abc123"},
+        isolation_records={"truth_vault": "auditor_only"},
+    )
+    assert inputs_result["inputs_verified"], "P4-ROLE.2 FAIL: Auditor输入应验证通过"
+    verify_inputs = auditor2.verify_inputs()
+    assert verify_inputs["has_manifest"], "P4-ROLE.2 FAIL: 应有manifest"
+    assert verify_inputs["has_hints"], "P4-ROLE.2 FAIL: 应有hints"
+    assert verify_inputs["has_ground_truth"], "P4-ROLE.2 FAIL: 应有ground_truth"
+    print(f"✅ P4-ROLE.2: Auditor输入验证（127号§10.7 9类输入全部接收）")
+
+    # P4-ROLE.3：泄漏检测四门——123号§23
+    leakage_verdict = auditor2.audit_leakage(
+        "把底数和指数分开分析",
+        "底数变成log k 指数k/3不变",
+        0.1,
+    )
+    assert "four_gates" in leakage_verdict.evidence, "P4-ROLE.3 FAIL: 泄漏检测应有四门证据"
+    assert "literal_match" in leakage_verdict.evidence["four_gates"], "P4-ROLE.3 FAIL: 应有字面匹配"
+    print(f"✅ P4-ROLE.3: 泄漏检测四门（123号§23）——综合分数={leakage_verdict.value:.3f}")
 
 
 def test_p4_policy():

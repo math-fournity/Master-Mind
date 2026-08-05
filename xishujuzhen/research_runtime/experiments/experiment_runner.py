@@ -7,6 +7,14 @@ ExperimentRunner：实验运行器——冻结manifest+随机分配+日志
 - 冻结模型/工具/题面/预算
 - 完整日志、哈希、盲评和Truth Vault隔离
 - 阈值不能在看完结果后补写（G0-6）
+
+系统探讨.md§13 反应式救援：
+- Phase 4必须采用反应式救援模式（确认停滞后提示）
+- 不能使用主动式导航（看到模式就提示）
+- 反应式救援：易做因果验证、干扰小、泄漏低
+
+系统探讨.md§14 POC-C六维度：
+- 越过卡点率、正确率、新有效边、提示成本、泄漏风险、副作用
 """
 
 from dataclasses import dataclass, field
@@ -19,6 +27,20 @@ from .llm_backend import LLMBackend, LLMCallRecord
 from .checkpoint_layer import CheckpointLayerExperiment, Checkpoint, ContinuationAssignment
 from .treatment_groups import TreatmentGroupDesigner, TreatmentGroup, TreatmentDefinition
 from .effect_estimator import ContinuationResult, EffectEstimator, EffectEstimate
+
+
+# 系统探讨.md§13：Phase 4采用反应式救援模式
+REACTIVE_RESCUE_MODE = True  # 确认停滞后提示，不是看到模式就提示
+
+# 系统探讨.md§14 POC-C六个测量维度
+POC_C_DIMENSIONS = [
+    "passed_stall_rate",    # 越过卡点率
+    "correctness_rate",     # 正确率
+    "new_effective_edges",  # 新有效边
+    "hint_cost",            # 提示成本
+    "leakage_risk",         # 泄漏风险
+    "side_effect",          # 副作用
+]
 
 
 @dataclass
@@ -171,13 +193,44 @@ class ExperimentRunner:
         P4-5.4：效应测量用任务类型特定的已验证进展（conjecture类型）。
         123号§23 conjecture类型：非重复/可证伪/通过初筛/未被反例否定。
 
+        123号§34 Ramsey案例验证维度：
+        - 是否从"只改指数"状态转向比较底数
+        - 是否产生可验证的新结构论证
+
         简化版评估——完整评估需要Auditor角色（Phase 4阶段D）。
         """
-        # 简化版：基于响应文本的关键词检查
-        is_novel = "底数" in response and "指数" in response  # 是否分析了底数和指数
-        is_falsifiable = "猜测" in response or "≥" in response or "≤" in response
-        passes_initial_check = len(response) > 50  # 有实质性内容
-        not_refuted = "矛盾" not in response and "错误" not in response.lower()
+        # 123号§23 conjecture类型进展四维度
+        # 1. 非重复：是否分析了底数和指数（不是只改指数）
+        is_novel = (
+            "底数" in response and "指数" in response
+        ) or (
+            "base" in response.lower() and "exponent" in response.lower()
+        )
+
+        # 2. 可证伪：是否给出了可证伪的猜测（有明确的不等式或量级）
+        is_falsifiable = any(
+            marker in response
+            for marker in ["≥", "≤", ">", "<", "猜测", "Guess", "conjecture", "Ω", "O(", "Θ"]
+        )
+
+        # 3. 通过初筛：有实质性数学内容（不只是停滞词或空话）
+        has_substantive_content = len(response) > 50
+        has_stall_only = any(
+            w in response.lower()
+            for w in ["卡住了", "不知道", "无法继续", "stuck", "don't know"]
+        )
+        passes_initial_check = has_substantive_content and not has_stall_only
+
+        # 4. 未被反例否定：没有自相矛盾或明显错误
+        not_refuted = (
+            "矛盾" not in response
+            and "错误" not in response.lower()
+            and "contradiction" not in response.lower()
+        )
+
+        # 123号§34 Ramsey案例：是否从"只改指数"转向比较底数
+        # 如果response同时提到底数和指数的分析，说明转向了
+        # （这个判断已经包含在is_novel中）
 
         return ContinuationResult(
             assignment_id=assignment.assignment_id,

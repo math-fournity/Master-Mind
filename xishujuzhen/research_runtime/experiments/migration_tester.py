@@ -146,8 +146,15 @@ class MigrationTester:
         original_estimates = self.effect_estimator.estimate_all_groups(original_results)
         migration_estimates = self.effect_estimator.estimate_all_groups(migration_results)
 
+        # 找到原题效应最大的处理组（key就是hint level名称）
+        best_original_group = None
+        best_original_ate = -float("inf")
+        for group_name, est in original_estimates.items():
+            if est.ate > best_original_ate:
+                best_original_ate = est.ate
+                best_original_group = group_name
+
         # 检查迁移：迁移题的最佳处理组是否也有正效应
-        best_original = max(original_estimates.values(), key=lambda e: e.ate) if original_estimates else None
         best_migration = max(migration_estimates.values(), key=lambda e: e.ate) if migration_estimates else None
 
         is_migrated = False
@@ -156,9 +163,10 @@ class MigrationTester:
             is_migrated = best_migration.ci_lower > 0
             migrated_effect = best_migration.ate
 
+        # 123号§41分层效应模型：hint_level记录原题最佳处理组的等级
         dimensions = self.verify_migration_dimensions(
             original_task, migration_task, model_version,
-            hint_level=best_original.ate.__class__.__name__ if best_original else "unknown",
+            hint_level=best_original_group or "unknown",
         )
 
         return MigrationResult(
