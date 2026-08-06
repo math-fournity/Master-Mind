@@ -110,19 +110,28 @@ source .venv-glm52/bin/activate
 
 本 section 是本 repo 的跨 Session 认知锚点。未来 AI 进入本 repo 时，从这里开始读。后续在本 repo 产生的工作认知，如果属于 worktree 隔离范畴，更新本 section；如果属于项目方法论，更新下游章节或 dev-docs。
 
-**当前隔离实施状态**（截至 commit `4f781d2`）：
+**当前隔离实施状态**（截至上游同步 commit）：
 - ✅ 文件操作边界：已建立（硬约束 1）
-- ✅ Git 协调规则：已建立（硬约束 2），分支 `glm5.2`，3 个 commit
+- ✅ Git 协调规则：已建立（硬约束 2），分支 `glm5.2`
 - ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
 - ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
+- ✅ 上游未提交内容同步：已完成，Phase 7 实现 + 审计方法论 v4.2 已同步到本 repo
 - ⬜ Python venv 隔离：建议但未实施（见上「建议 · Python 环境隔离」）
 - ⬜ ArangoDB 实例尚未启动/初始化：首次使用时需 `source .env && python xishujuzhen/arangodb_init.py` 创建 `xishujuzhen_math_glm52` 数据库
 
 **本 repo commit 历史**（glm5.2 分支）：
-- `4f781d2` ArangoDB 认证环境变量化：25 个文件，消除 REDACTED-DB-PASSWORD 密码硬编码
-- `89760a4` ArangoDB 环境变量化：25 个文件，实现 glm5.2 worktree 数据库隔离
-- `25334f2` AGENTS.md: 新增 Worktree 隔离认知章节（glm5.2 专属）
+- `c78f382` dev-docs/001: 上游未提交内容同步方案
+- `2e33663` AGENTS.md: 更新数据库隔离状态
+- `4f781d2` ArangoDB 认证环境变量化：25 个文件
+- `89760a4` ArangoDB 环境变量化：25 个文件，实现数据库隔离
+- `25334f2` AGENTS.md: 新增 Worktree 隔离认知章节
 - `f32194f`（上游 main 基点）146号v4→v4.1
+
+**上游同步记录**：
+- 同步内容：representation/ 24个.py（Phase 7实现，无ArangoDB依赖）+ dev-docs/163-166 + 146号v4.1→v4.2 + 147号v1.3→v1.4 + AGENTS.md 4行索引
+- 同步方式：手动复制+patch应用（因上游AI停摆，未提交内容无法通过git fetch获取）
+- 未同步：`用户需求.md`（给上游AI的需求文件）、`runs/manifest.json`（runtime产物）
+- 注意：未来如果上游被commit并rebase，本次手动同步的commit可能与上游commit冲突，需手动处理
 
 ---
 
@@ -361,6 +370,10 @@ source .venv-glm52/bin/activate
 | `dev-docs/160-v1-2026-08-05-Phase6实现方案.md` | **Phase 6实现方案**：遵照147号SOP 10阶段启动。Phase 6目标——完成DYN-6（动态启发在线主链）。12步在线主链：观察→候选规则→激活包→泄漏审计→角色可见性→控制器决策→预算→执行→效果记录→长期归因→学习→发布门。11个代码模块：gaming_detector/reactive_fallback/published_loader/orchestrator/model_layering/policy_pi/budget/error_recovery/long_term_attribution/exit_gate/test_phase6。R-14（不被单一模型版本绑架）和G0-5（跨≥3个未参与设计的问题族验证）是Phase 6核心防线 | Phase 6实现方案 |
 | `dev-docs/161-v1-2026-08-05-Phase6实现优秀性审计与修正报告.md` | **Phase 6实现优秀性审计与修正报告**：用146号v3.1的维度15-20对Phase 6实现做实现后审计。10项问题：①P6-1 published_loader G0-5检查"≥3"但漏了"未参与设计"限定词（F12c）②P6-6 gaming_detector缺少F_t/E_t维度③P6-8 reactive_fallback缺少主动导航发布门五准则④P6-ROLE orchestrator缺少CapabilityToken类和PermissionError强制（F15声明性实现）⑤P6-9 policy_pi缺少freeze()/bump_version()方法（F15声明性实现）⑥P6-2控制器9种动作类型确认正确⑦P6-5 R-14防线检查"效果记录数>1"而非"不同模型版本数>1"（F12b检查了错误的条件）⑧P6-4 error_recovery checkpoint缺少非确定性警告⑨P6-3 budget不需要预注册门确认⑩P6-7长期归因full_attribution接口修正。全部修正后test_phase6.py通过。**关键发现**：暴露F15（声明性实现而非强制性实现）——方法返回True/False但True背后没有实际强制机制。161号迭代146号v3.1→v4和147号v1.2→v1.3 | Phase 6审计修正 |
 | `dev-docs/162-v1-2026-08-05-Phase7-CheckList-v4维度19-20-21预防性审计与修正报告.md` | **Phase 7 Check List v4维度19/20/21预防性审计**：用146号v4的维度19扩展（多限定词）、维度20强化（限定词完整性）、维度21预检（声明性vs强制性）对尚未实现的137号Phase 7 Check List做预防性审计。2个并行subagent扫描123号和plan中Phase 7相关章节。发现16项风险（4项F12c多限定词+2项F14来源逐字要求+10项F15声明性vs强制性），全部在Check List层面修正。新增P7-1.2c/P7-2.1c/P7-7.1b/P7-8.1b/P7-8.6/P7-EXIT-1b/P7-ROLE-2b，强化P7-1.COMP3/P7-4.COMP2/P7-7.COMP/P7-8.COMP2等20+项的强制机制描述。**关键发现**：v4审计精度是v3.1的3.2倍——v3.1停留在"概念覆盖"层面，v4深入到"限定词覆盖"和"强制机制覆盖"层面。这是146号v4的第一次应用 | Phase 7预防性审计 |
+| `dev-docs/163-v1-2026-08-05-Phase7实现方案.md` | **Phase 7实现方案**：遵照147号SOP 10阶段启动。Phase 7目标——完成DYN-7（跨领域与长证明编排）。实现表示运输/长证明/高级数学分析3条研究线。20个代码模块：representation/（fermat_chain/path_equivalence/commutative_diagram/groupoid_check/hott_directions/hott_gate/egraph/geometry_guard/hole_detector/persistent_homology/baseline_comparison/local_view/math_label/mislabel_guard/phase_gate）+ verification/（long_proof_auditor）+ experiments/（cross_domain_tester）+ policy/（representation_policy）+ auditor/（math_assertion_auditor） | Phase 7实现方案 |
+| `dev-docs/164-v1-2026-08-05-Phase7实现21维度审计报告.md` | **Phase 7实现21维度审计报告**：对Phase 7实现做21维度审计。21维度全部执行。**假PASS**——审计声称全部PASS但实际有3项问题被遗漏，后被165号维度22审计发现 | Phase 7审计 |
+| `dev-docs/165-v1-2026-08-05-Phase7三文件逐行审计与修正报告.md` | **Phase 7三文件逐行审计与修正报告**：用户要求"逐行捋过三个文件的每一行"。发现3项21维度审计体系未覆盖的遗漏（F16）：①母本§8.2位置一的3个跨表示映射例子未在代码中保留②graph_kernel方法注释未标注母本5种→123号4种的合并关系③HoTT方向3的3个比较对象只有mother_text_reference引用但description不够详细。新增F16断层类型、维度22（母本逐字要求检查）、教训17/18。165号迭代146号v4.1→v4.2和147号v1.3→v1.4 | Phase 7审计修正 |
+| `dev-docs/166-v1-2026-08-05-Phase0-6-CheckList-v4.2维度22预防性审计报告.md` | **Phase 0-6 Check List v4.2维度22预防性审计报告**：用146号v4.2维度22（母本逐字要求检查）对Phase 0-6 Check List（130-136号）做预防性审计。4个并行subagent逐行扫描母本2288行，初步标记约80项"F16风险"，经5层甄别后全部为误报。**审计结论：PASS——0项真正F16风险**。新增教训19（维度22执行的5层甄别：Phase范围判断/123号重构判断/知识系统vs运行时判断/母本vs123号来源判断/重构覆盖判断）和教训20（多次审计的累积效应）。166号迭代146号v4.2→v4.2.1和147号v1.4→v1.4.1。**关键发现**：维度22执行需要5层甄别来避免误报；维度22是最后一道防线，对多次审计过的Check List确认覆盖完整性，对审计次数较少的Check List发现遗漏 | Phase 0-6预防性审计 |
 | `dev-docs/130-v1-2026-08-05-Phase0-CheckList.md` | **Phase 0独立Check List**：从124号v2拆出并细化。含P0-1—P0-11全部子项（含129号审计后补充的P0-1.4/P0-4.10/P0-4.11/P0-6.4/P0-COMP-1/P0-COMP-2，及本次细化新增的P0-9文件职责冻结/P0-10数据迁移原则冻结/P0-11不搭空框架，及138号审计新增的P0-10.7 NO-1约束）和P0-EXIT出口门。Phase 0已完成 | Phase 0执行视图 |
 | `dev-docs/131-v1-2026-08-05-Phase1-CheckList.md` | **Phase 1独立Check List**：从124号v2拆出并细化。含P1-1—P1-8全部子项+完整性标准+角色隔离落地+代码模块创建+P1-EXIT出口门。目标：完成DYN-0。**Phase 1已完成**——DYN-0验收4条全部通过（集成测试test_phase1.py验证）。实现：research_runtime/包（manifest.py + models/ + events/） + ArangoDB 4个新collection（raw_events/semantic_events/checkpoints/run_manifests） | Phase 1执行视图 |
 | `dev-docs/132-v1-2026-08-05-Phase2-CheckList.md` | **Phase 2独立Check List**：从124号v2拆出并细化。含P2-1—P2-9全部子项+完整性标准+角色隔离+代码模块+P2-EXIT出口门。目标：完成DYN-1/DYN-2。细化新增：P2-8控制器信念建模、P2-9进展偏序定义。138号审计新增：P2-1.3 explain缺失标注、P2-9.1 5个分量显式引用 | Phase 2执行视图 |
