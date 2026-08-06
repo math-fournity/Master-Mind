@@ -171,6 +171,14 @@ python3 -m venv .venv          # python3.14
 - 已验证：`session_start_hook_math.py` 正确连接并返回统计信息（0单元0边）
 
 **本 repo commit 历史**（glm5.2 分支）：
+- `2938177` 用户需求.md/AGENTS.md: Supervisor 改为 Devin Stop hook 方案
+- `73e0982` 用户需求.md: 追加 Supervisor 未来启动与运行场景
+- `fd7f1ef` AGENTS.md: 记录 Supervisor hook 运行方式与产物
+- `f86f13f` 补同步用户需求.md + runs/manifest.json
+- `8fc823b` 初始同步：representation/ + dev-docs/163-166 + 146/147 patch + AGENTS.md 索引
+- `627c579` .devin/ 隔离：config.local.json + hooks.v1.json 绝对路径 + .venv
+- `73e6ca7` ArangoDB 初始化 + hook 路径绝对化
+- `754c450`/`06078ac` AGENTS.md 角色说明 + Supervisor 目录
 - `c78f382` dev-docs/001: 上游未提交内容同步方案
 - `2e33663` AGENTS.md: 更新数据库隔离状态
 - `4f781d2` ArangoDB 认证环境变量化：25 个文件
@@ -586,7 +594,7 @@ python3 -m venv .venv          # python3.14
 
 **改提醒内容**：直接编辑`xishujuzhen/UserPromptSubmit.txt`，不用改代码，下次提问立即生效。
 
-**不要用Stop hook**：Stop hook会影响subagent（星学项目实测证实）。
+**不要用Stop hook**：Stop hook会影响subagent（星学项目实测证实）。用 git post-commit hook 代替。**例外**：Supervisor Agent 使用 Stop hook 阻止自己停下来——这是合理的，因为 Supervisor 不会有 subagent，Stop hook 只影响 Supervisor 自己。Master Agent 不用 Stop hook。
 
 ### 依赖维护
 
@@ -863,7 +871,7 @@ python3 -m venv .venv          # python3.14
 1. **新术语必须追加到词汇表**：工作中产生的新术语，必须追加到工作系统词汇表（认知单元 `glossary`）。
 2. **临场脚本沉淀纪律**：工作中现写的一次性脚本，如果操作模式可复用，结束后必须沉淀到 `cognition_sdk_math.py` 或对应模块（认知单元 `sdk_maintenance`）。
 3. **必须 commit**：工作结束后必须 commit。commit 后 git post-commit hook 会打印 CP4 检查清单（从认知图稀疏矩阵动态查询）。
-4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。
+4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。**例外**：Supervisor Agent 使用 Stop hook 阻止自己停下来——这是合理的，因为 Supervisor 不会有 subagent。Master Agent 不用 Stop hook。
 5. **认知图变更后跑回归验证**：认知图每次变更（新增/修改/删除认知单元或依赖边）后，运行 `cognition_audit_math.py poc-regression`。
 6. **边吸收边测试**（认知单元 `iterative_testing`）：每次往依赖图/认知图装入新内容后（新增题目、新增节点/边、新增意识节点、新增版本链等），必须立即跑测试验证：依赖图完整性（节点/边/领域覆盖）+ topo_generator能否生成G'_topo + TopologyVerifier拓扑覆盖验证。不测不知道有问题——从星学复用的代码遗留3个bug只有跑真实测试才发现。
 7. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 立即执行CP4检查清单中的第3、4项（`work_matrix_update` + `math_master_matrix_update`）——这是CP4的按需触发版本，不等到git commit：
@@ -1005,6 +1013,16 @@ POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或
 - `xishujuzhen/alignment_check.py`：AGENTS.md与repo内容对齐检查脚本（文件存在性+编号覆盖+DYN/Phase定义一致性+认知图规模一致性）
 - `xishujuzhen/poc/cognition_units_math.json`：认知单元定义
 - `.devin/hooks.v1.json`：Devin hooks配置（SessionStart + PostCompaction + UserPromptSubmit，不含Stop）
+
+**Supervisor Agent 状态**（2026-08-06）：
+- Supervisor 目录：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库）
+- Supervisor 是一个 Devin session，通过 `.devin/hooks.v1.json` 的 Stop hook 阻止自己停下来
+- Stop hook 每次返回 `{"decision": "block", "reason": "..."}`，reason 包含 Master 最新 git log、dev-docs、tmux 输出
+- SessionStart hook 注入 Supervisor 职责 + Master 状态
+- 启动方式：`cd ~/master-mind-glm5.2-worktree-supervisor && ./scripts/start-supervisor.sh`
+- 停止方式：`./scripts/stop-supervisor.sh` 或 Ctrl+C 退出 devin CLI
+- Supervisor 产物：`Supervisor/dev-docs/004-v1-*-Supervisor监督报告.md`
+- 用户需求.md 中已追加未来启动与运行场景（6 个场景）
 
 **测试结果**：
 - 工作系统测试：14/16通过（98号报告）。T11b未执行，T14待真实任务场景。
