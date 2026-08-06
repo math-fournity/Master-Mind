@@ -155,8 +155,8 @@ python3 -m venv .venv          # python3.14
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
 - **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库，分支 `main`，内容由 Supervisor 产出）
-- **Supervisor hook**：`scripts/supervisor_hook.py`，在 `supervisor-master` tmux session 中持续运行，监控 Master 工作
-- **Supervisor 启动方式**：`./scripts/start-supervisor.sh` 一键启动并进入 tmux；`./scripts/stop-supervisor.sh` 停止
+- **Supervisor hook**：`.devin/hooks.v1.json` 的 Stop hook 阻止 Supervisor 停下来，每次想停时注入 Master 最新状态
+- **Supervisor 启动方式**：`./scripts/start-supervisor.sh` 在 tmux 中启动 devin CLI；`./scripts/stop-supervisor.sh` 关闭 tmux session
 - **Supervisor 产物**：`Supervisor/dev-docs/004-v1-*-Supervisor监督报告.md`
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统
