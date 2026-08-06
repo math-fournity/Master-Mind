@@ -30,14 +30,21 @@ AI可能从上一题的解答中获取线索，导致测试结果不可信——
 
 每道题调用`devin -p`之前，必须：
 - 删除work_dir下的solutions.json/summary.json等结果文件
+- 删除work_dir下的problem.txt/hint.txt（上一题的题目文件）
 - 删除work_dir下的.devin/sessions目录（如果有）
-- 确保work_dir下只有AGENTS.md和题目文件
+- 确保work_dir下只有AGENTS.md
 
-### 3. 不使用-r参数
+### 3. 题目通过文件传递，不用-p传长文本
+
+`devin -p`只适合短指令（<200字符）。长题目必须写入work_dir/problem.txt，
+`devin -p`只传"请读取当前目录下的problem.txt文件，解答其中的数学题"。
+详见solver-tmux-launch skill的"题目传递规范"章节。
+
+### 4. 不使用-r参数
 
 `devin -p`每次调用默认创建新session。禁止使用`-r`/`--resume`恢复之前的session。
 
-### 4. export路径在run_dir
+### 5. export路径在run_dir
 
 `--export`路径必须指向run_dir（Master repo内），不能指向work_dir。
 

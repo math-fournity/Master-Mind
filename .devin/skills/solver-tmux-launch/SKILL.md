@@ -98,3 +98,52 @@ tmux kill-session -t solver-${RUN_ID}
 3. **pipe-pane必须启动**：这是179号方案三层trajectory记录的兜底层
 4. **不要用exec后台**：exec的timeout=0后台模式不是tmux，进程会被杀掉
 5. **session命名**：`solver-<run_id>`，便于识别和管理
+6. **题目通过文件传递，不用-p传长文本**：见下方"题目传递规范"
+
+## 题目传递规范（铁律）
+
+**`devin -p`只适合短指令（<200字符）。长题目必须写入文件让AI读文件。**
+
+### 原因
+
+`devin -p`的命令行参数有长度限制。当prompt包含完整LaTeX题目（有些题目500-900字符）加上指令模板时，总prompt超过限制后题目在中间被截断，AI收到的题目不完整，直接说"题目被截断了"无法作答。
+
+### 正确做法
+
+```python
+# 1. 把完整题目+指令写入work_dir下的problem.txt
+problem_file = os.path.join(work_dir, "problem.txt")
+with open(problem_file, "w") as f:
+    f.write(f"""你是数学大师。请解答以下竞赛数学题。
+
+题目（{pid}）：
+{problem_text}
+
+要求：
+1. 给出完整的解答过程
+2. 最终答案用\\boxed{{答案}}格式给出
+3. 数学公式用LaTeX
+4. 如果你不知道，明确说"我不知道"
+5. 禁止搜索网络
+""")
+
+# 2. devin -p只传短指令："请读取当前目录下的problem.txt并解答"
+cmd = ["devin", "-p", "请读取当前目录下的problem.txt文件，解答其中的数学题。", "--model", model, ...]
+
+# 3. 运行前清理problem.txt（session隔离铁律）
+# 4. 运行后清理problem.txt
+```
+
+### hint传递同理
+
+多turn引导时，hint也写入文件：
+```python
+hint_file = os.path.join(work_dir, "hint.txt")
+with open(hint_file, "w") as f:
+    f.write(hint_text)
+cmd = ["devin", "-p", "请读取当前目录下的hint.txt文件，这是对你上一轮解答的提示，请继续解答。", ...]
+```
+
+### 批量测试中的清理
+
+每道题运行前必须清理work_dir下的problem.txt/hint.txt，防止下一题读到上一题的文件（session隔离铁律，见`batch-test-session-isolation` rule）。

@@ -61,7 +61,7 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
     is_proof = has_sol or not answer  # 有sample_solution或无答案的是证明题
 
     if is_proof:
-        prompt = f"""你是数学大师。请证明/解答以下竞赛数学题。
+        prompt_text = f"""你是数学大师。请证明/解答以下竞赛数学题。
 
 题目（{pid}）：
 {problem_text}
@@ -75,7 +75,7 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
 
 请开始："""
     else:
-        prompt = f"""你是数学大师。请解答以下竞赛数学题。
+        prompt_text = f"""你是数学大师。请解答以下竞赛数学题。
 
 题目（{pid}）：
 {problem_text}
@@ -89,8 +89,14 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
 
 请开始："""
 
+    # 铁律：长题目写入文件，devin -p只传短指令（防止题目截断）
+    problem_file = os.path.join(work_dir, "problem.txt")
+    with open(problem_file, "w") as f:
+        f.write(prompt_text)
+
     export_path = os.path.abspath(os.path.join(run_dir, f"problem_{pid}_conversation.json"))
-    cmd = ["devin", "-p", prompt, "--model", model, "--respect-workspace-trust", "false", "--export", export_path]
+    cmd = ["devin", "-p", "请读取当前目录下的problem.txt文件，解答其中的数学题。",
+           "--model", model, "--respect-workspace-trust", "false", "--export", export_path]
 
     start = time.time()
     try:
@@ -102,6 +108,10 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
     except subprocess.TimeoutExpired:
         elapsed = time.time() - start
         response = "[TIMEOUT]"
+    finally:
+        # 清理problem.txt（session隔离铁律）
+        if os.path.exists(problem_file):
+            os.remove(problem_file)
 
     # 判断状态
     status = "unknown"
