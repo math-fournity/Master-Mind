@@ -119,7 +119,12 @@ python3 -m venv .venv          # python3.14
 - ✅ 上游未提交内容同步：已完成，Phase 7 实现 + 审计方法论 v4.2 已同步到本 repo
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
 - ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令前加 `source .env`，确保 hook 连本 repo 数据库
-- ⬜ ArangoDB 实例尚未启动/初始化：首次使用时需 `source .env && .venv/bin/python3 xishujuzhen/arangodb_init.py` 创建 `xishujuzhen_math_glm52` 数据库
+- ✅ ArangoDB 实例 + 数据库初始化：已完成
+  - 数据库：`xishujuzhen_math_glm52`
+  - 初始化脚本：`xishujuzhen/arangodb_init.py`（基础集合+图+索引）
+  - `xishujuzhen/cognition_init_math.py`（cognition 集合）
+  - `scripts/init_research_runtime_db.py`（events/state_reducer/heuristics collections）
+  - 已验证：`session_start_hook_math.py` 正确连接并返回统计信息（0单元0边）
 
 **本 repo commit 历史**（glm5.2 分支）：
 - `c78f382` dev-docs/001: 上游未提交内容同步方案
