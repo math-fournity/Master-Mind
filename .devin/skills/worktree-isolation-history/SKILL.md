@@ -2,7 +2,7 @@
 
 ## Description
 
-指向元组 rule 中的 worktree-isolation-history 条目；Worktree 隔离的实施历史记录——环境变量化过程、commit 历史、上游同步记录。按需加载用于排查隔离问题或了解实施背景。
+Worktree 隔离的实施历史记录——环境变量化过程、commit 历史、上游同步记录。按需加载用于排查隔离问题或了解实施背景。
 
 ## 内容
 

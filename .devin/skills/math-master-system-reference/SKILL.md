@@ -2,7 +2,7 @@
 
 ## Description
 
-指向元组 rule 中的 math-master-system-reference 条目；数学大师系统的操作级技术参考和星学方法论证据链。按需加载七步骤工作流、依赖图导入、arXiv查询、G'_topo生成、TopologyVerifier、三层提取、数学意识节点、种子推荐表、认知图查询命令、星学参考文档索引。
+数学大师系统的操作级技术参考和星学方法论证据链。按需加载七步骤工作流、依赖图导入、arXiv查询、G'_topo生成、TopologyVerifier、三层提取、数学意识节点、种子推荐表、认知图查询命令、星学参考文档索引。
 
 ## 内容
 

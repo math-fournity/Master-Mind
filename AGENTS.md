@@ -69,8 +69,6 @@
 4. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
 5. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）。
 
-> 环境变量化的实施历史（25个文件改动、6种改动模式、配置文件说明）详见 `worktree-isolation-history` skill。
-
 ### 硬约束 4 · 其他共享资源意识
 
 除 ArangoDB 外，以下资源也是共享的，使用前要意识到：
@@ -111,8 +109,6 @@
 本项目要做的是：**把这条方法论作为可证伪假设，在数学研究领域重新定义对象、实现闭环并独立验证。**
 
 星学是第一个实验场，数学是第二个。如果方法论在数学领域同样成立，它的意义将不限于数学——任何复杂知识体系的"综述博士"角色都可能被工程化。
-
-> 星学参考索引（63-107号文档索引、星学知识系统结构、POC验证方案完整列表、实验执行模式）详见 `math-master-system-reference` skill。
 
 
 ## 核心假设（从星学信念降级并在数学中重验）
@@ -174,8 +170,6 @@
 | 判断 | 不做 | 在提示下完成数学判断 |
 | 创造 | 不能发现未编码的新依赖 | 可以即兴发现新连接（论文博士侧面） |
 
-> 方法论的认识论位置（与专家系统/LLM/RAG/CoT的区别）、数学大师系统操作级技术说明（七步骤工作流、依赖图导入、arXiv查询、G'_topo生成、TopologyVerifier、三层提取、数学意识节点、种子推荐表、认知图查询命令）详见 `math-master-system-reference` skill。
-
 ## 项目目标
 
 建设一个 **"数学知识系统 + 依赖图导航 + AI 智能研究"** 的数学大师系统。
@@ -232,12 +226,6 @@
 
 > 本节是工作系统（AI自己的工作认知管理）的操作级技术说明。跨session/压缩后AI通过本节恢复"怎么用工作系统"的认知。
 
-### 工作系统语言
-
-**当需要 Think in 工作系统、设计工作系统新机制、盘点 hook/认知图/CP 检查点能力、或讨论"用什么语言表达工作系统思想"时，加载 `work-system-language` skill。**
-
-工作系统有一套基础设施（Devin hooks、git hooks、认知图 ArangoDB、CP1-CP6、SDK），每件基础设施提供一种"表达能力"。
-
 ### CP1-CP6工作流
 
 工作系统的核心是CP1-CP6六个检查点，通过`cognition_checkpoint_math.py`执行：
@@ -252,8 +240,6 @@
 | CP6 | 工作结束时 | 任务-认知映射：记录"这个任务用了哪些种子" | `cognition_sdk_math.py`的record_task |
 
 **关键参数**：max_depth=7（数学项目路径比星学长，星学用5）
-
-> 种子推荐表、认知图查询与审计命令详见 `math-master-system-reference` skill。
 
 ### 回归验证
 
@@ -321,7 +307,7 @@
 
 ### 第一性原理重构基线（123号v1，当前最高架构与建设基线）
 
-123号以`系统探讨.md`全文为母本，把122号v2的工程直觉严格化为可证伪、可审计的对象。本节是后续schema、POC和运行时必须服从的最高基线。详见 `project-memory-archive` skill（含122号v2的13条工程直觉、123号v1的10条严格化基线、80-99号证据裁决）。
+123号以`系统探讨.md`全文为母本，把122号v2的工程直觉严格化为可证伪、可审计的对象。本节是后续schema、POC和运行时必须服从的最高基线。
 
 ### 明确不做清单（123号第五十九节）
 
@@ -348,8 +334,6 @@
 6. **边吸收边测试**（认知单元 `iterative_testing`）：每次往依赖图/认知图装入新内容后，必须立即跑测试验证。
 7. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 立即执行CP4检查清单中的第3、4项（`work_matrix_update` + `math_master_matrix_update`）。
 
-> POC隔离测试标准流程、四次POC核心洞察、Subagent写文件能力等历史记忆详见 `project-memory-archive` skill。
-
 ## 数据丢失事件记录
 
 数据丢失事件（2026-08-05-A，130个awareness单元清空）已移到 dev-docs/172。如需排查数据丢失问题，先读该文档。
@@ -367,8 +351,6 @@
 - `githooks/post-commit`（CP4检查清单）/ `githooks/pre-commit`（对齐硬性检查）/ `alignment_check.py`
 - `.devin/hooks.v1.json`（SessionStart + PostCompaction + UserPromptSubmit，不含Stop）
 
-> 完整脚本列表和文件说明详见 `project-memory-archive` skill。
-
 **测试结果**：工作系统测试 14/16 通过（98号报告）；反哺方案测试 10/10 通过（100号报告）。
 
 **关键参数**：max_depth=7（数学项目路径比星学长）；git hook shebang 用绝对路径；意识节点名称映射英文cog_id↔中文node_id。
@@ -380,7 +362,7 @@
 - 题库：60道题159个解法；arxiv_papers：239472篇
 - 5个意识节点版本链：v1(POC-1)→v2(POC-2)，current_version=v2
 
-> 知识搜集状态、arXiv论文操作化状态等详细数据详见 `project-memory-archive` skill。实时统计详见 `xishujuzhen/cognition_asset_index.md` 活文档。
+> 实时统计详见 `xishujuzhen/cognition_asset_index.md` 活文档。
 
 ## 术语备忘
 
