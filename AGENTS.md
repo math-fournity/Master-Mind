@@ -297,6 +297,53 @@
 5. 这个命题与已有知识库是否**一致**？
 
 
+## 当前任务意识跨压缩边界保有用的一节
+
+> **本节的用途和用法**
+>
+> 本节是**临时性**的，专门用于跨压缩边界保持当前活跃任务的完整工作意识。
+>
+> - **何时更新**：当有一个跨session的活跃任务正在进行中，且预计会跨越压缩边界时，在本节写入当前任务的完整上下文。
+> - **何时清空**：任务完成后，清空本节内容（保留节标题和用法说明），把需要长期保持的认知迁移到TODO或Memory Section。
+> - **与TODO/Memory Section的区别**：TODO是长期待办清单，Memory Section是长期认知基线，本节是**当前正在做什么、做到哪了、下一步是什么**的临时快照。
+> - **压缩后恢复**：压缩后的AI读到本节，应能立即理解当前任务的全貌并继续工作，不需要重新探索上下文。
+
+### 当前任务：全程监控与可审计运行方案（178-182号）+ P0审计修复
+
+**任务背景**：对数学大师系统做了4份审计报告（174-177号），发现并修复了5个P0代码问题（F-176-1~5）和4个P0文档问题（F-174-1/2/3、F-177-4）。然后用户提出新需求——全程监控与可审计运行，已调查并拆分为5个方案文档（178-182号）。
+
+**已完成的工作**：
+
+1. **P0代码修复**（全部commit）：
+   - F-176-1：3个核心dataclass设frozen=True（models/event.py, task.py）
+   - F-176-2：candidate规则在线提示运行时拦截（heuristics/matcher.py）
+   - F-176-3：角色隔离验证在match()入口强制调用（heuristics/matcher.py）
+   - F-176-4：dg_adapter深拷贝+内容哈希验证（retrieval/dg_adapter.py）
+   - F-176-5：context_compiler/verification异常处理（3个文件）
+   - Phase 1/2/3/5测试全部通过
+
+2. **P0文档修复**（全部commit）：
+   - F-174-1/2/3：134/136/137号CheckList状态节+124号总览进度追踪表
+   - F-177-4：AGENTS.md补充旧七步骤→新12步迁移映射表
+
+3. **全程监控方案**（178-182号，全部commit）：
+   - 178-v1总纲：需求R1-R9 + 三层架构 + 数据流 + 8维度 + 优化框架 + 文档索引
+   - 179-v0层次1：devin cli实例轨迹（--export首选 / sessions.db深度 / tmux pipe-pane兜底）
+   - 180-v0层次2：系统内部结构化执行日志（ExecutionLog schema）
+   - 181-v0层次3：数学大师思路轨迹分析（thinking字段为核心数据源）
+   - 182-v0审计工具：CLI工具接口 + 8维度审计 + 优化映射表
+
+**关键调查发现**：devin cli的sessions.db（9GB SQLite）已记录AI完整trajectory——`message_nodes`表807,294条记录含`thinking`字段（AI内部推理）、`tool_calls`、`metadata`（性能指标）；`tool_call_state`表22,658条记录含工具调用完整输入输出。`--export <PATH>`选项每turn自动导出ATIF-v1.7 JSON到指定路径。方案复杂度从"建设三层全程记录系统"降低到"建设一个查询关联工具"。
+
+**下一步**（已与用户确认方向，待执行）：
+做一次真实的端到端验证run——启动devin cli实例，用`--export`导出，让它做一个简单数学问题，同时用tmux pipe-pane兜底记录，结束后从sessions.db提取完整轨迹，验证能否拼出完整审计报告。验证结果反馈到179/181/182的方案细化。
+
+**关键文件索引**：
+- 审计报告：dev-docs/174-v1, 175-v1, 176-v1, 177-v1
+- 方案文档：dev-docs/178-v1, 179-v0, 180-v0, 181-v0, 182-v0
+- 修复的代码：models/event.py, models/task.py, heuristics/matcher.py, retrieval/dg_adapter.py, context_compiler/context_compiler.py, context_compiler/minimality_audit.py, verification/stall_detector.py
+- devin cli数据源：~/.local/share/devin/cli/sessions.db, transcripts/, logs/
+
 ## TODO
 
 > 本节记录跨 Session 需要保持的待办事项。
