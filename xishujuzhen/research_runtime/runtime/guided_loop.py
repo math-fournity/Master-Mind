@@ -94,6 +94,11 @@ class GuidedLoopResult:
     leakage_audits: List[Dict[str, Any]] = field(default_factory=list)
     # 205-A.3: AI诊断结果
     ai_diagnoses: List[Dict[str, Any]] = field(default_factory=list)
+    # 205-C: AI规划结果
+    ai_plans: List[Dict[str, Any]] = field(default_factory=list)
+    # 205-D: AI调用成本
+    ai_call_count: int = 0
+    ai_call_log: List[Dict[str, Any]] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
@@ -111,6 +116,9 @@ class GuidedLoopResult:
             "hint_levels": self.hint_levels,  # 203-A.3
             "leakage_audits": self.leakage_audits,  # 203-A.3
             "ai_diagnoses": self.ai_diagnoses,  # 205-A.3
+            "ai_plans": self.ai_plans,  # 205-C
+            "ai_call_count": self.ai_call_count,  # 205-D
+            "ai_call_log": self.ai_call_log,  # 205-D
             "timestamp": self.timestamp,
         }
 
@@ -175,6 +183,12 @@ class GuidedLoop:
         self._leakage_audits: List[Dict[str, Any]] = []
         # 205-A.3: 收集AI诊断结果
         self._ai_diagnoses: List[Dict[str, Any]] = []
+        # 205-D: AI调用预算控制
+        self._ai_call_count: int = 0
+        self._max_ai_calls: int = 5  # 每个run最多调用AI 5次
+        self._ai_call_log: List[Dict[str, Any]] = []  # AI调用日志
+        # 205-C: AI规划结果收集
+        self._ai_plans: List[Dict[str, Any]] = []
         # 203-B.1: truth_vault——答案隔离
         self._truth_vault_answer = truth_vault_answer
         self._truth_vault_checker = None
@@ -194,6 +208,172 @@ class GuidedLoop:
                 print(f"[GuidedLoop] truth_vault隔离验证通过——仅auditor可读")
         except Exception as e:
             print(f"[GuidedLoop] truth_vault初始化失败（不阻塞）: {e}")
+
+    def _check_ai_budget(self, call_type: str = "diagnosis") -> bool:
+        """205-D: 检查AI调用预算是否还有剩余"""
+        if self._ai_call_count >= self._max_ai_calls:
+            self._ai_call_log.append({
+                "call_type": call_type,
+                "blocked": True,
+                "reason": "AI调用预算耗尽",
+                "ai_call_count": self._ai_call_count,
+            })
+            return False
+        return True
+
+    def _record_ai_call(self, call_type: str, success: bool, detail: str = ""):
+        """205-D: 记录AI调用"""
+        self._ai_call_count += 1
+        self._ai_call_log.append({
+            "call_type": call_type,
+            "success": success,
+            "detail": detail,
+            "ai_call_count": self._ai_call_count,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        })
+
+    def _get_exploration_map(self) -> Dict[str, Any]:
+        """205-C.0: 获取探索地图——Solver已探索的区域"""
+        return {
+            "explored_methods": self._extract_explored_methods(),
+            "explored_directions": self._extract_explored_directions(),
+            "failed_routes": self._extract_failed_routes(),
+            "current_response_length": len(self.state.last_response),
+            "turn": self.state.turn,
+            "hints_used": self.state.hints_used,
+        }
+
+    def _extract_explored_methods(self) -> List[str]:
+        """从历史response中提取Solver已尝试的方法"""
+        methods = []
+        method_keywords = ["归纳法", "生成函数", "反证法", "构造法", "极值方法",
+                          "概率方法", "代数方法", "几何方法", "分析方法",
+                          "拓扑方法", "组合方法", "数论方法"]
+        all_responses = " ".join(t.response for t in self.adapter.turn_history)
+        for method in method_keywords:
+            if method in all_responses:
+                methods.append(method)
+        return methods
+
+    def _extract_explored_directions(self) -> List[str]:
+        """从历史response中提取Solver已走的方向"""
+        directions = []
+        direction_keywords = {
+            "上界估计": ["上界", "不超过", "至多"],
+            "下界估计": ["下界", "至少", "不小于"],
+            "精确计算": ["精确", "等于", "计算"],
+            "存在性证明": ["存在", "构造"],
+            "反例构造": ["反例", "不成立"],
+        }
+        all_responses = " ".join(t.response for t in self.adapter.turn_history)
+        for direction, keywords in direction_keywords.items():
+            if any(kw in all_responses for kw in keywords):
+                directions.append(direction)
+        return directions
+
+    def _extract_failed_routes(self) -> List[str]:
+        """从历史response中提取失败的路线"""
+        failed = []
+        failure_keywords = ["失败", "不行", "过不去", "无法", "不成立", "错误"]
+        all_responses = " ".join(t.response for t in self.adapter.turn_history)
+        for kw in failure_keywords:
+            if kw in all_responses:
+                # 提取失败关键词周围的上下文
+                idx = all_responses.find(kw)
+                context = all_responses[max(0, idx-20):idx+20]
+                failed.append(f"...{context}...")
+        return failed
+
+    def _ai_plan_next_direction(self, exploration_map: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """205-C.4: AI规划下一步引导方向
+
+        只在第2轮及以后调用（第1轮无已探索区域，无法规划）
+        返回：{next_direction, bridge_node, reason}
+        """
+        if self.state.turn < 2:
+            return None  # 第1轮不规划
+
+        if not self._check_ai_budget("planning"):
+            return None
+
+        # 205-C.3: AI规划prompt
+        prompt = self._build_planning_prompt(exploration_map)
+
+        try:
+            plan = self._call_ai_for_planning(prompt, exploration_map)
+            self._record_ai_call("planning", True, plan.get("next_direction", ""))
+            return plan
+        except Exception as e:
+            self._record_ai_call("planning", False, str(e))
+            print(f"[GuidedLoop] AI规划失败（fallback到经典提示）: {e}")
+            return None
+
+    def _build_planning_prompt(self, exploration_map: Dict[str, Any]) -> str:
+        """205-C.3: 构造AI规划prompt"""
+        return f"""你是数学大师系统的引导规划AI。
+
+Solver的探索地图：
+- 已尝试方法：{exploration_map.get('explored_methods', [])}
+- 已走方向：{exploration_map.get('explored_directions', [])}
+- 失败路线：{exploration_map.get('failed_routes', [])}
+- 当前turn：{exploration_map.get('turn', 0)}
+- 已用hints：{exploration_map.get('hints_used', 0)}
+
+请规划下一步引导方向：
+1. 哪个未探索方向最值得优先？
+2. 通过什么方法到达？
+3. 给出具体的提示方向（不是提示内容——内容由步骤B生成）
+
+输出JSON：
+{{
+  "next_direction": "下一步方向",
+  "suggested_method": "建议方法",
+  "reason": "为什么选择这个方向"
+}}"""
+
+    def _call_ai_for_planning(self, prompt: str, exploration_map: Dict[str, Any]) -> Dict[str, Any]:
+        """205-C.4: 调用AI做规划
+
+        POC实现：用简化的规则做规划
+        实际部署时替换为外部AI调用
+        """
+        explored_methods = set(exploration_map.get("explored_methods", []))
+        explored_directions = set(exploration_map.get("explored_directions", []))
+        failed_routes = exploration_map.get("failed_routes", [])
+
+        # 规则1: 如果Solver只尝试了1种方法——建议换方法
+        if len(explored_methods) <= 1:
+            untried = ["反证法", "构造法", "极值方法", "概率方法"]
+            for method in untried:
+                if method not in explored_methods:
+                    return {
+                        "next_direction": "方法 diversification",
+                        "suggested_method": method,
+                        "reason": f"Solver只尝试了{explored_methods}，建议尝试{method}",
+                    }
+
+        # 规则2: 如果Solver只走了上界方向——建议也看下界
+        if "上界估计" in explored_directions and "下界估计" not in explored_directions:
+            return {
+                "next_direction": "下界估计",
+                "suggested_method": "构造法",
+                "reason": "Solver只做了上界，建议补充下界构造",
+            }
+
+        # 规则3: 如果有失败路线——建议绕过
+        if failed_routes:
+            return {
+                "next_direction": "换表示方法",
+                "suggested_method": "代数方法",
+                "reason": f"Solver有{len(failed_routes)}条失败路线，建议换表示绕过障碍",
+            }
+
+        # 默认: 继续当前方向
+        return {
+            "next_direction": "继续深入",
+            "suggested_method": "",
+            "reason": "当前方向有潜力，建议继续深入",
+        }
 
     def run(self) -> GuidedLoopResult:
         """执行完整引导循环"""
@@ -237,6 +417,9 @@ class GuidedLoop:
             hint_levels=self._hint_levels,  # 203-A.3
             leakage_audits=self._leakage_audits,  # 203-A.3
             ai_diagnoses=self._ai_diagnoses,  # 205-A.3
+            ai_plans=self._ai_plans,  # 205-C
+            ai_call_count=self._ai_call_count,  # 205-D
+            ai_call_log=self._ai_call_log,  # 205-D
         )
 
         # 保存结果
@@ -259,12 +442,20 @@ class GuidedLoop:
 
             # 205-A: 步骤7 AI诊断——经典计算不确定时调用AI
             if self.state.stall_detected and self.state.stall_reason == "unknown_stall":
-                ai_diagnosis = self._ai_diagnose_stall(self.state.last_response)
-                if ai_diagnosis and ai_diagnosis.get("refined_stall_reason"):
-                    self.state.stall_reason = ai_diagnosis["refined_stall_reason"]
-                    print(f"[GuidedLoop] AI诊断: {ai_diagnosis['refined_stall_reason']} "
-                          f"(置信度: {ai_diagnosis.get('confidence', 'N/A')})")
-                self._ai_diagnoses.append(ai_diagnosis or {})
+                if self._check_ai_budget("diagnosis"):
+                    ai_diagnosis = self._ai_diagnose_stall(self.state.last_response)
+                    if ai_diagnosis:
+                        self._record_ai_call("diagnosis", True, ai_diagnosis.get("refined_stall_reason", ""))
+                        if ai_diagnosis.get("refined_stall_reason"):
+                            self.state.stall_reason = ai_diagnosis["refined_stall_reason"]
+                            print(f"[GuidedLoop] AI诊断: {ai_diagnosis['refined_stall_reason']} "
+                                  f"(置信度: {ai_diagnosis.get('confidence', 'N/A')})")
+                    else:
+                        self._record_ai_call("diagnosis", False, "AI返回None")
+                    self._ai_diagnoses.append(ai_diagnosis or {})
+                else:
+                    print(f"[GuidedLoop] AI预算耗尽，跳过AI诊断")
+                    self._ai_diagnoses.append({"skipped": True, "reason": "预算耗尽"})
 
             if not self.state.stall_detected:
                 # 没有卡点——检查是否完成
@@ -292,6 +483,18 @@ class GuidedLoop:
                 hint, hint_level, leakage_audit = self._generate_hint(
                     self.state.stall_reason, self.state.last_response
                 )
+
+                # 205-C: 多轮智能规划——第2轮及以后调用AI规划
+                if self.state.turn >= 2 and self.state.hints_used >= 1:
+                    exploration_map = self._get_exploration_map()
+                    plan = self._ai_plan_next_direction(exploration_map)
+                    if plan and plan.get("next_direction"):
+                        print(f"[GuidedLoop] AI规划: {plan['next_direction']} "
+                              f"(方法: {plan.get('suggested_method', 'N/A')})")
+                        # 把规划结果附加到hint（不替换hint，只补充方向）
+                        if plan.get("suggested_method"):
+                            hint = f"{hint}\n\n建议方向：{plan['next_direction']}，可尝试{plan['suggested_method']}。"
+                    self._ai_plans.append(plan or {})
 
             self.state.hint_given = hint
             self.state.hint_level = hint_level  # 203-A.3
