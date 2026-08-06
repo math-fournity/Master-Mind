@@ -223,17 +223,7 @@ def _validate_counterexample(self, candidate: int) -> bool:
 
 ---
 
-## 7. 与 Supervisor 的交互点
-
-1. Master 完成本方案后，commit 到 `glm5.2`
-2. Supervisor 审阅本方案是否覆盖 22 维度的全部要点
-3. Master 执行审计，产出报告
-4. Supervisor 审阅审计报告，检查是否有 F16 遗漏、假 PASS 未识别、改进意见不够具体
-5. Master 根据 Supervisor 反馈修正或执行改进
-
----
-
-## 8. 风险
+## 7. 风险
 
 1. **审计范围过大**：24 个文件 + 22 维度可能产生大量输出。建议先重点审计 5-8 个核心文件，再扩展。
 2. **165号已做部分工作**：避免重复 165号的发现，但可以从 22 维度视角补充它没覆盖的部分。

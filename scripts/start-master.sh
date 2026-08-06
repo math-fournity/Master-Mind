@@ -9,13 +9,12 @@
 # 5. attach 到 tmux session，让用户进入
 #
 # 为什么用 tmux：
-# - Supervisor Agent 通过 tmux 监控 Master（tmux capture-pane 读取输出）
-# - Supervisor 通过 tmux send-keys 给 Master 发送反思提示
 # - tmux session 持久存在，AI 连接断开后不丢失工作状态
+# - 可以在断线后重新 attach 恢复工作
 #
 # tmux 配置依赖：
 # - 本脚本依赖 ~/.tmux.conf 全局配置，已包含以下易用性设置：
-#   - history-limit 500000（50 万行缓冲区，Supervisor 可读取更多历史）
+#   - history-limit 500000（50 万行缓冲区）
 #   - mouse on（鼠标滚动）
 #   - set-clipboard external + pbcopy 集成（复制到系统剪贴板）
 #   - mode-keys vi（vi 复制模式：v 选择, y 复制, Enter 复制）

@@ -12,24 +12,17 @@
 | 角色 | 工作目录 | 职责 | 看到本 AGENTS.md 时该做什么 |
 |---|---|---|---|
 | **Master Agent** | `~/master-mind-glm5.2-worktree/` | 实现、审计、迭代数学大师系统 | 遵守本 AGENTS.md 全部约束，执行工作 |
-| **Supervisor Agent** | `~/master-mind-glm5.2-worktree-supervisor/` | 监督、反思、设计 Master 的工作系统 | 读取本文件了解 Master 状态，但不直接改本 repo 文件；去 Supervisor 目录产出自己的监督产物 |
-| **Subagent** | 由 Master/Supervisor 通过 Devin CLI/tmux 启动 | 执行被分配的子任务 | 只执行分配的任务，不承担 Master 的全部责任；若不确定就问 Master/Supervisor |
+| **Subagent** | 由 Master 通过 Devin CLI/tmux 启动 | 执行被分配的子任务 | 只执行分配的任务，不承担 Master 的全部责任；若不确定就问 Master |
 
 **关键区分**：
 - Master 负责**做工作**（写代码、审计、测试、commit）
-- Supervisor 负责**让 Master 的工作系统更好**（设计检查点、反思清单、监督报告）
-- Subagent 负责**完成 Master/Supervisor 分配给它的具体任务**，然后回去汇报
+- Subagent 负责**完成 Master 分配给它的具体任务**，然后回去汇报
 
 **如果你是 subagent**：
 - 你看到的是 Master 的 AGENTS.md，因为 Devin CLI 启动 subagent 时会加载项目 AGENTS.md
 - 但你不等于 Master，不需要承担 Master 的长期工作系统迭代责任
-- 你的任务是：完成 Master 或 Supervisor 通过 tmux/Devin CLI 交给你的具体任务
-- 任务完成后，把成果汇报给 Master/Supervisor
-
-**如果你是 Supervisor**：
-- 你的主场是 `~/master-mind-glm5.2-worktree-supervisor/`
-- 你可以读取本 repo，但不写本 repo
-- 你的产物必须放在 Supervisor 目录
+- 你的任务是：完成 Master 通过 tmux/Devin CLI 交给你的具体任务
+- 任务完成后，把成果汇报给 Master
 
 ---
 
@@ -43,7 +36,6 @@
 - **为什么不用 git worktree**：worktree 共享 `.git`，并发 git 操作有锁冲突风险；且 D repo 的 `.git` 在 HDD 上，git 操作慢。独立 clone 把 `.git` 放到内置 SSD，既隔离又快。
 - **上游 repo 路径**：`/data/master-mind/`
 - **本 repo 路径**：`~/master-mind-glm5.2-worktree/`
-- **Supervisor 目录路径**：`~/master-mind-glm5.2-worktree-supervisor/`
 - **origin**：`/data/master-mind`（fetch/push 都指向它）
 - **本 repo 工作分支**：`glm5.2`（基于上游 main 的 `f32194f`）
 - **本地 main 分支**：保留为 origin/main 的镜像，**不要在 main 上工作**。
@@ -149,21 +141,14 @@ python3 -m venv .venv          # python3.14
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
 - ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
 - ✅ ArangoDB 实例 + 数据库初始化：已完成
-- ✅ 角色说明：已建立，Master/Supervisor/Subagent 边界清晰
-- ✅ Supervisor 监控 hook：已建立，可在 Supervisor 目录一键启动
+- ✅ 角色说明：已建立，Master/Subagent 边界清晰
 
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
-- **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库，分支 `main`，内容由 Supervisor 产出）
-- **Supervisor hook**：`.devin/hooks.v1.json` 只配置 Stop hook，阻止 Supervisor 停下来；Stop hook 读取 `stop-hook.txt` + Master 实时状态注入 reason
-- **Supervisor 启动方式**：`./scripts/start-supervisor.sh` 在 tmux 中启动 devin CLI；`./scripts/stop-supervisor.sh` 关闭 tmux session
-- **Supervisor 职责注入**：AGENTS.md 索引 `session-start.txt`，Supervisor 启动时读取；`stop-hook.txt` 由 Stop hook 动态读取。编辑 txt 即可调整职责，不用改代码
-- **Supervisor 产物**：`Supervisor/dev-docs/004-v1-*-Supervisor-hook实现与运行方案.md`
-- **Master tmux 脚本**：`scripts/start-master.sh`（启动 tmux session `master-math` + devin CLI）、`scripts/enter-master.sh`（重新进入）、`scripts/stop-master.sh`（停止）。Supervisor 通过 `tmux capture-pane -t master-math` 监控 Master，通过 `tmux send-keys -t master-math` 发送提示
+- **Master tmux 脚本**：`scripts/start-master.sh`（启动 tmux session `master-math` + devin CLI）、`scripts/enter-master.sh`（重新进入）、`scripts/stop-master.sh`（停止）
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统
-- **Supervisor 职责**：监督、反思、设计 Master 的工作系统
-- **Subagent 职责**：完成 Master/Supervisor 分配的具体任务
+- **Subagent 职责**：完成 Master 分配的具体任务
 
 **ArangoDB 初始化状态**：
 - 数据库：`xishujuzhen_math_glm52`
@@ -596,7 +581,7 @@ python3 -m venv .venv          # python3.14
 
 **改提醒内容**：直接编辑`xishujuzhen/UserPromptSubmit.txt`，不用改代码，下次提问立即生效。
 
-**不要用Stop hook**：Stop hook会影响subagent（星学项目实测证实）。用 git post-commit hook 代替。**例外**：Supervisor Agent 使用 Stop hook 阻止自己停下来——这是合理的，因为 Supervisor 不会有 subagent，Stop hook 只影响 Supervisor 自己。Master Agent 不用 Stop hook。
+**不要用Stop hook**：Stop hook会影响subagent（星学项目实测证实）。用 git post-commit hook 代替。
 
 ### 依赖维护
 
@@ -873,7 +858,7 @@ python3 -m venv .venv          # python3.14
 1. **新术语必须追加到词汇表**：工作中产生的新术语，必须追加到工作系统词汇表（认知单元 `glossary`）。
 2. **临场脚本沉淀纪律**：工作中现写的一次性脚本，如果操作模式可复用，结束后必须沉淀到 `cognition_sdk_math.py` 或对应模块（认知单元 `sdk_maintenance`）。
 3. **必须 commit**：工作结束后必须 commit。commit 后 git post-commit hook 会打印 CP4 检查清单（从认知图稀疏矩阵动态查询）。
-4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。**例外**：Supervisor Agent 使用 Stop hook 阻止自己停下来——这是合理的，因为 Supervisor 不会有 subagent。Master Agent 不用 Stop hook。
+4. **不要用 Stop hook**：Stop hook 会影响 subagent（星学项目实测证实）。用 git post-commit hook 代替。
 5. **认知图变更后跑回归验证**：认知图每次变更（新增/修改/删除认知单元或依赖边）后，运行 `cognition_audit_math.py poc-regression`。
 6. **边吸收边测试**（认知单元 `iterative_testing`）：每次往依赖图/认知图装入新内容后（新增题目、新增节点/边、新增意识节点、新增版本链等），必须立即跑测试验证：依赖图完整性（节点/边/领域覆盖）+ topo_generator能否生成G'_topo + TopologyVerifier拓扑覆盖验证。不测不知道有问题——从星学复用的代码遗留3个bug只有跑真实测试才发现。
 7. **"检查依赖"触发词**：当用户说"检查依赖"时，AI 立即执行CP4检查清单中的第3、4项（`work_matrix_update` + `math_master_matrix_update`）——这是CP4的按需触发版本，不等到git commit：
@@ -1015,16 +1000,6 @@ POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或
 - `xishujuzhen/alignment_check.py`：AGENTS.md与repo内容对齐检查脚本（文件存在性+编号覆盖+DYN/Phase定义一致性+认知图规模一致性）
 - `xishujuzhen/poc/cognition_units_math.json`：认知单元定义
 - `.devin/hooks.v1.json`：Devin hooks配置（SessionStart + PostCompaction + UserPromptSubmit，不含Stop）
-
-**Supervisor Agent 状态**（2026-08-06）：
-- Supervisor 目录：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库）
-- Supervisor 是一个 Devin session，通过 `.devin/hooks.v1.json` 的 Stop hook 阻止自己停下来
-- Stop hook 每次返回 `{"decision": "block", "reason": "..."}`，reason = `stop-hook.txt` 内容 + Master 最新 git log、dev-docs、tmux 输出
-- 职责注入通过 AGENTS.md 索引 `session-start.txt` 实现（不用 SessionStart hook 脚本）
-- 启动方式：`cd ~/master-mind-glm5.2-worktree-supervisor && ./scripts/start-supervisor.sh`
-- 停止方式：`./scripts/stop-supervisor.sh` 或 Ctrl+C 退出 devin CLI
-- Supervisor 产物：`Supervisor/dev-docs/004-v1-*-Supervisor-hook实现与运行方案.md`
-- 用户需求.md 中已追加未来启动与运行场景（6 个场景）
 
 **测试结果**：
 - 工作系统测试：14/16通过（98号报告）。T11b未执行，T14待真实任务场景。
