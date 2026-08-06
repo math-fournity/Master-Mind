@@ -5,6 +5,34 @@
 
 ---
 
+## 角色说明 · 你当前是什么 AI
+
+本 AGENTS.md 可能被多种 AI 加载，进入本 repo 时请先确认自己的角色：
+
+| 角色 | 工作目录 | 职责 | 看到本 AGENTS.md 时该做什么 |
+|---|---|---|---|
+| **Master Agent** | `~/master-mind-glm5.2-worktree/` | 实现、审计、迭代数学大师系统 | 遵守本 AGENTS.md 全部约束，执行工作 |
+| **Supervisor Agent** | `~/master-mind-glm5.2-worktree-supervisor/` | 监督、反思、设计 Master 的工作系统 | 读取本文件了解 Master 状态，但不直接改本 repo 文件；去 Supervisor 目录产出自己的监督产物 |
+| **Subagent** | 由 Master/Supervisor 通过 Devin CLI/tmux 启动 | 执行被分配的子任务 | 只执行分配的任务，不承担 Master 的全部责任；若不确定就问 Master/Supervisor |
+
+**关键区分**：
+- Master 负责**做工作**（写代码、审计、测试、commit）
+- Supervisor 负责**让 Master 的工作系统更好**（设计检查点、反思清单、监督报告）
+- Subagent 负责**完成 Master/Supervisor 分配给它的具体任务**，然后回去汇报
+
+**如果你是 subagent**：
+- 你看到的是 Master 的 AGENTS.md，因为 Devin CLI 启动 subagent 时会加载项目 AGENTS.md
+- 但你不等于 Master，不需要承担 Master 的长期工作系统迭代责任
+- 你的任务是：完成 Master 或 Supervisor 通过 tmux/Devin CLI 交给你的具体任务
+- 任务完成后，把成果汇报给 Master/Supervisor
+
+**如果你是 Supervisor**：
+- 你的主场是 `~/master-mind-glm5.2-worktree-supervisor/`
+- 你可以读取本 repo，但不写本 repo
+- 你的产物必须放在 Supervisor 目录
+
+---
+
 ## Worktree 隔离认知（glm5.2 专属 · 最高优先级）
 
 ### 本 repo 是什么
@@ -15,6 +43,7 @@
 - **为什么不用 git worktree**：worktree 共享 `.git`，并发 git 操作有锁冲突风险；且 D repo 的 `.git` 在 HDD 上，git 操作慢。独立 clone 把 `.git` 放到内置 SSD，既隔离又快。
 - **上游 repo 路径**：`/data/master-mind/`
 - **本 repo 路径**：`~/master-mind-glm5.2-worktree/`
+- **Supervisor 目录路径**：`~/master-mind-glm5.2-worktree-supervisor/`
 - **origin**：`/data/master-mind`（fetch/push 都指向它）
 - **本 repo 工作分支**：`glm5.2`（基于上游 main 的 `f32194f`）
 - **本地 main 分支**：保留为 origin/main 的镜像，**不要在 main 上工作**。
