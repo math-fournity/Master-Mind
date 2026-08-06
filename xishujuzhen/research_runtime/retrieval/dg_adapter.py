@@ -7,8 +7,11 @@ legacy图只读adapter——从dg_*生成candidate K投影
 - adapter只读，不修改dg_*数据（P5-8.COMP + NO-10）
 - adapter不原地迁移旧数据（P5-8.COMP3 + 123号§55）
 - K投影按5种关系矩阵分拆（P5-8.COMP2 + 123号§25）
+
+F-176-4修正：使用深拷贝替代浅拷贝，防止外部代码通过引用修改内部数据。
 """
 
+import copy
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from enum import Enum
@@ -61,11 +64,22 @@ class DgAdapter:
         参数：
         - dg_nodes: legacy dg_nodes集合的快照（只读）
         - dg_edges: legacy dg_edges集合的快照（只读）
+
+        F-176-4修正：使用深拷贝，防止外部代码通过引用修改内部字典内容。
         """
-        self._dg_nodes = list(dg_nodes) if dg_nodes else []  # 复制，确保只读
-        self._dg_edges = list(dg_edges) if dg_edges else []
+        self._dg_nodes = copy.deepcopy(dg_nodes) if dg_nodes else []  # 深拷贝，确保只读
+        self._dg_edges = copy.deepcopy(dg_edges) if dg_edges else []
         self._original_node_count = len(self._dg_nodes)
         self._original_edge_count = len(self._dg_edges)
+        # F-176-4：记录原始内容哈希用于check_readonly验证
+        import hashlib as _hl
+        import json as _json
+        self._original_node_hash = _hl.sha256(
+            _json.dumps(self._dg_nodes, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        self._original_edge_hash = _hl.sha256(
+            _json.dumps(self._dg_edges, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
 
     def generate_k_projection(self) -> List[KProjectionEntry]:
         """
@@ -102,10 +116,20 @@ class DgAdapter:
         """
         验证adapter不修改dg_*数据（P5-8.2 + P5-8.COMP）。
 
+        F-176-4修正：检查内容哈希而非长度，防止内容被修改但长度不变的情况。
+
         边界情况：adapter修改dg_*数据（应被拒绝）
         """
-        return len(self._dg_nodes) == self._original_node_count and \
-               len(self._dg_edges) == self._original_edge_count
+        import hashlib
+        import json
+        current_node_hash = hashlib.sha256(
+            json.dumps(self._dg_nodes, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        current_edge_hash = hashlib.sha256(
+            json.dumps(self._dg_edges, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        return (current_node_hash == self._original_node_hash and
+                current_edge_hash == self._original_edge_hash)
 
     def check_no_migration(self) -> bool:
         """
