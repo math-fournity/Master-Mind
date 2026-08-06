@@ -118,7 +118,7 @@ python3 -m venv .venv          # python3.14
 - ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
 - ✅ 上游未提交内容同步：已完成，Phase 7 实现 + 审计方法论 v4.2 已同步到本 repo
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
-- ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令前加 `source .env`，确保 hook 连本 repo 数据库
+- ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
 - ✅ ArangoDB 实例 + 数据库初始化：已完成
   - 数据库：`xishujuzhen_math_glm52`
   - 初始化脚本：`xishujuzhen/arangodb_init.py`（基础集合+图+索引）
