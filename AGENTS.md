@@ -128,9 +128,8 @@ source .venv-glm52/bin/activate
 - `f32194f`（上游 main 基点）146号v4→v4.1
 
 **上游同步记录**：
-- 同步内容：representation/ 24个.py（Phase 7实现，无ArangoDB依赖）+ dev-docs/163-166 + 146号v4.1→v4.2 + 147号v1.3→v1.4 + AGENTS.md 4行索引
+- 同步内容：representation/ 24个.py（Phase 7实现，无ArangoDB依赖）+ dev-docs/163-166 + 146号v4.1→v4.2 + 147号v1.3→v1.4 + AGENTS.md 4行索引 + 用户需求.md + runs/manifest.json
 - 同步方式：手动复制+patch应用（因上游AI停摆，未提交内容无法通过git fetch获取）
-- 未同步：`用户需求.md`（给上游AI的需求文件）、`runs/manifest.json`（runtime产物）
 - 注意：未来如果上游被commit并rebase，本次手动同步的commit可能与上游commit冲突，需手动处理
 
 ---
