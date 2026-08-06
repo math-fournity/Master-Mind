@@ -159,6 +159,7 @@ class GuidedLoop:
         max_hints: int = 3,
         timeout: int = 300,
         work_dir: Optional[str] = None,
+        truth_vault_answer: str = "",  # 203-B.1: truth_vault答案
     ):
         self.run_id = run_id
         self.run_dir = run_dir
@@ -169,6 +170,25 @@ class GuidedLoop:
         # 203-A.3: 收集每个hint的级别和审计结果
         self._hint_levels: List[str] = []
         self._leakage_audits: List[Dict[str, Any]] = []
+        # 203-B.1: truth_vault——答案隔离
+        self._truth_vault_answer = truth_vault_answer
+        self._truth_vault_checker = None
+        if truth_vault_answer:
+            self._init_truth_vault()
+
+    def _init_truth_vault(self):
+        """203-B.1: 初始化truth_vault隔离检查"""
+        try:
+            from ..auditor.visibility_labels import VisibilityLabelChecker
+            self._truth_vault_checker = VisibilityLabelChecker()
+            # 验证truth_vault隔离——Controller(orchestrator)不可读truth_vault
+            isolation = self._truth_vault_checker.verify_truth_vault_isolation()
+            if not isolation["isolation_verified"]:
+                print(f"[GuidedLoop] 警告：truth_vault隔离验证失败: {isolation['violations']}")
+            else:
+                print(f"[GuidedLoop] truth_vault隔离验证通过——仅auditor可读")
+        except Exception as e:
+            print(f"[GuidedLoop] truth_vault初始化失败（不阻塞）: {e}")
 
     def run(self) -> GuidedLoopResult:
         """执行完整引导循环"""
@@ -333,16 +353,34 @@ class GuidedLoop:
         return hint, level, leakage_audit
 
     def _run_leakage_audit(self, hint: str) -> Optional[Dict[str, Any]]:
-        """203-A.2: 调用leakage_audit.py的四门审计"""
+        """203-A.2 + 203-B.2: 调用leakage_audit.py的四门审计
+
+        203-B.2: Controller(orchestrator)编译提示时强制检查可见性——
+        Controller的可见性标签can_read_truth_vault=False，
+        编译提示时只能从K维度取知识，不能从truth_vault取。
+        """
+        # 203-B.2: 强制检查Controller不可读truth_vault
+        if self._truth_vault_checker:
+            check = self._truth_vault_checker.check_access("orchestrator", "truth_vault", "R")
+            if check["allowed"]:
+                # 这不应该发生——orchestrator对truth_vault应该是"—"
+                return {
+                    "audit_error": "角色隔离违规：orchestrator可读truth_vault",
+                    "overall_result": "error",
+                    "isolation_violation": True,
+                }
+
         try:
             from ..heuristics.leakage_audit import AnswerEquivalenceAuditor
             auditor = AnswerEquivalenceAuditor()
-            # task为空时四门审计仍可执行（gate1/gate2检查字面匹配）
-            task = {"goal": getattr(self, '_truth_vault_answer', '')}
+            # 203-B.1: 使用truth_vault答案做更严格的审计
+            # 注意：这里把答案传给auditor是允许的——auditor角色可读truth_vault
+            # 但Controller本身不能读——Controller只看到审计结果（pass/fail），不看答案
+            task = {"goal": self._truth_vault_answer} if self._truth_vault_answer else {"goal": ""}
             result = auditor.run_four_gates(hint, task)
             return result
         except Exception as e:
-            # 审计失败时不阻塞——返回None，提示照常发出
+            # 审计失败时不阻塞——返回error，提示照常发出
             # 但记录审计失败
             return {"audit_error": str(e), "overall_result": "error"}
 
