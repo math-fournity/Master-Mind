@@ -1,7 +1,7 @@
 [
   {
     "run_id": "run_20260806_guided_004",
-    "timestamp": "2026-08-06T06:22:29.745931",
+    "timestamp": "2026-08-06T06:26:33.066531",
     "standard_id": "184",
     "standard_name": "12步循环与引导循环审计",
     "overall_verdict": "有缺陷",
@@ -88,7 +88,508 @@
   },
   {
     "run_id": "run_20260806_guided_004",
-    "timestamp": "2026-08-06T06:22:29.745989",
+    "timestamp": "2026-08-06T06:26:33.066553",
+    "standard_id": "185",
+    "standard_name": "控制器与策略审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 3,
+      "defect": 0,
+      "fail": 0,
+      "na": 1
+    },
+    "results": [
+      {
+        "item_id": "185-2.1-1",
+        "name": "9种动作合法",
+        "verdict": "通过",
+        "detail": "全部动作合法",
+        "evidence": {
+          "total_turns": 1,
+          "invalid": 0
+        }
+      },
+      {
+        "item_id": "185-2.1-2",
+        "name": "不读LLM内部状态",
+        "verdict": "通过",
+        "detail": "脚本无法自动检测控制器是否读取了thinking，需人工确认代码",
+        "evidence": {
+          "note": "需人工审查controller_belief.py的输入"
+        }
+      },
+      {
+        "item_id": "185-2.3-1",
+        "name": "gaming停滞词检测",
+        "verdict": "通过",
+        "detail": "response中不包含停滞词",
+        "evidence": {
+          "has_stall_word": false
+        }
+      },
+      {
+        "item_id": "185-2.2-1",
+        "name": "策略报告生成",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无策略报告",
+        "evidence": {
+          "report_count": 0
+        }
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066566",
+    "standard_id": "186",
+    "standard_name": "预算审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 3,
+      "defect": 0,
+      "fail": 0,
+      "na": 1
+    },
+    "results": [
+      {
+        "item_id": "186-2.1-1",
+        "name": "token预算记录",
+        "verdict": "通过",
+        "detail": "total_tokens={'total_prompt_tokens': 19374, 'total_completion_tokens': 1396, 'total_cached_tokens': 1355, 'total_steps': 8}",
+        "evidence": {
+          "total_tokens": {
+            "total_prompt_tokens": 19374,
+            "total_completion_tokens": 1396,
+            "total_cached_tokens": 1355,
+            "total_steps": 8
+          }
+        }
+      },
+      {
+        "item_id": "186-2.2-1",
+        "name": "Hint预算不超限",
+        "verdict": "通过",
+        "detail": "n_hints=0, max_hints=3",
+        "evidence": {
+          "n_hints": 0,
+          "max_hints": 3
+        }
+      },
+      {
+        "item_id": "186-2.3-1",
+        "name": "预算超限触发停止",
+        "verdict": "N/A",
+        "detail": "completion_reason=solo_explore_completed，非预算超限",
+        "evidence": {
+          "completion_reason": "solo_explore_completed"
+        }
+      },
+      {
+        "item_id": "186-2.4-1",
+        "name": "turn预算不超限",
+        "verdict": "通过",
+        "detail": "n_turns=1, max_turns=5",
+        "evidence": {
+          "n_turns": 1,
+          "max_turns": 5
+        }
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066574",
+    "standard_id": "187",
+    "standard_name": "事件系统审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 1,
+      "defect": 0,
+      "fail": 0,
+      "na": 4
+    },
+    "results": [
+      {
+        "item_id": "187-2.1-1",
+        "name": "causal_predecessors链完整",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无原始事件数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "187-2.1-2",
+        "name": "run_id关联",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无原始事件数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "187-2.2-1",
+        "name": "语义抽取覆盖度",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无事件数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "187-2.3-1",
+        "name": "append-only",
+        "verdict": "通过",
+        "detail": "脚本无法自动检测update/delete操作，需人工确认代码无修改/删除操作",
+        "evidence": {
+          "note": "需人工审查代码"
+        }
+      },
+      {
+        "item_id": "187-2.3-2",
+        "name": "checkpoint内容寻址",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无checkpoint数据",
+        "evidence": {}
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066582",
+    "standard_id": "188",
+    "standard_name": "状态归约审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 1,
+      "defect": 0,
+      "fail": 0,
+      "na": 5
+    },
+    "results": [
+      {
+        "item_id": "188-2.6-1",
+        "name": "W_t不可直接修改",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无workspace数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "188-2.3-1",
+        "name": "循环依赖不自动释放",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无义务数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "188-2.4-1",
+        "name": "refute_only不进入V_t",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无证据数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "188-2.4-2",
+        "name": "冲突检测",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无证据数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "188-2.7-1",
+        "name": "Q_0冻结验证",
+        "verdict": "通过",
+        "detail": "problem字段存在",
+        "evidence": {
+          "problem_length": 59
+        }
+      },
+      {
+        "item_id": "188-2.1-1",
+        "name": "状态重建可复现性",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无workspace数据",
+        "evidence": {}
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066604",
+    "standard_id": "189",
+    "standard_name": "启发匹配审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 1,
+      "defect": 0,
+      "fail": 0,
+      "na": 5
+    },
+    "results": [
+      {
+        "item_id": "189-2.2-1",
+        "name": "candidate规则禁止在线提示",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无规则数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "189-2.2-2",
+        "name": "validated/published规则字段完整",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无规则数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "189-2.2-3",
+        "name": "published规则有效果证据",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无规则数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "189-2.3-1",
+        "name": "四门全执行",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无泄漏审计数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "189-2.3-2",
+        "name": "泄漏代理分数低于阈值",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无泄漏审计数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "189-2.1-1",
+        "name": "matcher不可见truth_vault",
+        "verdict": "通过",
+        "detail": "tool_call_state中无truth_vault访问",
+        "evidence": {
+          "has_truth_vault_access": false
+        }
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066614",
+    "standard_id": "190",
+    "standard_name": "检索审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 1,
+      "defect": 0,
+      "fail": 0,
+      "na": 4
+    },
+    "results": [
+      {
+        "item_id": "190-2.1-1",
+        "name": "答案关键词过滤",
+        "verdict": "通过",
+        "detail": "response中不包含答案关键词",
+        "evidence": {
+          "has_answer_leak": false
+        }
+      },
+      {
+        "item_id": "190-2.5-1",
+        "name": "hot_store只保存充分快照",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无hot_store数据",
+        "evidence": {
+          "hot_count": 0
+        }
+      },
+      {
+        "item_id": "190-2.8-1",
+        "name": "撤稿来源不使用",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无cold_store数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "190-2.3-1",
+        "name": "dg_adapter只读性",
+        "verdict": "N/A",
+        "detail": "需人工确认dg_adapter使用深拷贝+哈希校验",
+        "evidence": {
+          "dg_nodes_count": 0
+        }
+      },
+      {
+        "item_id": "190-2.6-1",
+        "name": "微包不预载未来路线",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无微包数据",
+        "evidence": {}
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066622",
+    "standard_id": "191",
+    "standard_name": "上下文编译审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 1,
+      "defect": 0,
+      "fail": 0,
+      "na": 3
+    },
+    "results": [
+      {
+        "item_id": "191-2.2-1",
+        "name": "无预载答案路线",
+        "verdict": "通过",
+        "detail": "response中不包含预载关键词",
+        "evidence": {
+          "has_preload": false
+        }
+      },
+      {
+        "item_id": "191-2.4-1",
+        "name": "状态快照8字段完整",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无workspace数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "191-2.1-1",
+        "name": "5项记录完整",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无context_segments数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "191-2.3-1",
+        "name": "裁剪原因明确",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无裁剪记录",
+        "evidence": {}
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066629",
+    "standard_id": "192",
+    "standard_name": "验证审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 0,
+      "defect": 0,
+      "fail": 0,
+      "na": 5
+    },
+    "results": [
+      {
+        "item_id": "192-2.1-1",
+        "name": "6种验证状态",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无验证结果数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "192-2.1-2",
+        "name": "不决定研究方向",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无验证结果数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "192-2.1-3",
+        "name": "反驳优先",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无验证结果数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "192-2.2-1",
+        "name": "7种卡点类型",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无卡点检测数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "192-2.2-2",
+        "name": "必要探索不提示",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无卡点检测数据",
+        "evidence": {}
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066645",
+    "standard_id": "193",
+    "standard_name": "审计角色元审计",
+    "overall_verdict": "通过",
+    "summary": {
+      "passed": 2,
+      "defect": 0,
+      "fail": 0,
+      "na": 3
+    },
+    "results": [
+      {
+        "item_id": "193-2.1-1",
+        "name": "truth_vault仅auditor可读",
+        "verdict": "通过",
+        "detail": "tool_call_state中无truth_vault访问",
+        "evidence": {
+          "has_truth_vault_access": false
+        }
+      },
+      {
+        "item_id": "193-2.1-2",
+        "name": "7项裁决完整",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无审计裁决数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "193-2.4-1",
+        "name": "14个collection矩阵完整",
+        "verdict": "通过",
+        "detail": "标准定义了14个collection",
+        "evidence": {
+          "collection_count": 14,
+          "collections": [
+            "tasks",
+            "workspaces",
+            "raw_events",
+            "semantic_events",
+            "obligations",
+            "evidence",
+            "representations",
+            "heuristic_rules",
+            "activation_packets",
+            "truth_vault",
+            "manifests",
+            "audit_verdicts",
+            "dg_nodes",
+            "dg_edges"
+          ]
+        }
+      },
+      {
+        "item_id": "193-2.3-1",
+        "name": "能力令牌自动失效",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无能力令牌数据",
+        "evidence": {}
+      },
+      {
+        "item_id": "193-2.2-1",
+        "name": "盲评猜对率<50%",
+        "verdict": "N/A",
+        "detail": "ArangoDB中无盲评数据",
+        "evidence": {}
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_004",
+    "timestamp": "2026-08-06T06:26:33.066681",
     "standard_id": "194",
     "standard_name": "Solver连接审计",
     "overall_verdict": "通过",
@@ -159,7 +660,7 @@
   },
   {
     "run_id": "run_20260806_guided_004",
-    "timestamp": "2026-08-06T06:22:29.746099",
+    "timestamp": "2026-08-06T06:26:33.066771",
     "standard_id": "195",
     "standard_name": "数学正确性验证",
     "overall_verdict": "有缺陷",
