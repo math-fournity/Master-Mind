@@ -140,7 +140,7 @@ python3 -m venv .venv          # python3.14
 
 本 section 是本 repo 的跨 Session 认知锚点。未来 AI 进入本 repo 时，从这里开始读。后续在本 repo 产生的工作认知，如果属于 worktree 隔离范畴，更新本 section；如果属于项目方法论，更新下游章节或 dev-docs。
 
-**当前隔离实施状态**（截至上游同步 commit）：
+**当前隔离实施状态**（截至角色说明更新 commit）：
 - ✅ 文件操作边界：已建立（硬约束 1）
 - ✅ Git 协调规则：已建立（硬约束 2），分支 `glm5.2`
 - ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
@@ -149,11 +149,22 @@ python3 -m venv .venv          # python3.14
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
 - ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
 - ✅ ArangoDB 实例 + 数据库初始化：已完成
-  - 数据库：`xishujuzhen_math_glm52`
-  - 初始化脚本：`xishujuzhen/arangodb_init.py`（基础集合+图+索引）
-  - `xishujuzhen/cognition_init_math.py`（cognition 集合）
-  - `scripts/init_research_runtime_db.py`（events/state_reducer/heuristics collections）
-  - 已验证：`session_start_hook_math.py` 正确连接并返回统计信息（0单元0边）
+- ✅ 角色说明：已建立，Master/Supervisor/Subagent 边界清晰
+
+**相关目录与角色**：
+- **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
+- **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（无 git，内容由 Supervisor 产出）
+- **上游 repo**：`/data/master-mind/`
+- **Master 职责**：实现、审计、迭代数学大师系统
+- **Supervisor 职责**：监督、反思、设计 Master 的工作系统
+- **Subagent 职责**：完成 Master/Supervisor 分配的具体任务
+
+**ArangoDB 初始化状态**：
+- 数据库：`xishujuzhen_math_glm52`
+- 初始化脚本：`xishujuzhen/arangodb_init.py`（基础集合+图+索引）
+- `xishujuzhen/cognition_init_math.py`（cognition 集合）
+- `scripts/init_research_runtime_db.py`（events/state_reducer/heuristics collections）
+- 已验证：`session_start_hook_math.py` 正确连接并返回统计信息（0单元0边）
 
 **本 repo commit 历史**（glm5.2 分支）：
 - `c78f382` dev-docs/001: 上游未提交内容同步方案
