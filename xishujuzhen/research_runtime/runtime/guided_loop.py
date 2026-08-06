@@ -457,14 +457,25 @@ Solver（数学大师）的当前输出：
         """步骤8-9: 模式匹配 + 选择动作——简化版，根据卡点原因生成hint
 
         203-A.2: 提示发出前调用四门泄漏审计
+        205-B: AI编译提示——根据Solver具体思路生成针对性提示
         返回 (hint_text, hint_level, leakage_audit_result)
         """
-        # 从HINT_REGISTRY取提示
+        # 从HINT_REGISTRY取经典提示骨架
         entry = HINT_REGISTRY.get(stall_reason, HINT_REGISTRY["unknown_stall"])
-        hint = entry["text"]
+        classic_hint = entry["text"]
         level = entry["level"]
 
-        # 203-A.2: 调用四门泄漏审计
+        # 205-B: AI编译提示——根据Solver具体思路生成针对性提示
+        ai_hint, ai_compiled = self._ai_compile_hint(stall_reason, last_response, classic_hint)
+        if ai_compiled:
+            hint = ai_hint
+            # AI编译的提示默认降为strategy级
+            # 因为AI编译的prompt要求"优先给策略"，且泄漏审计会拦截knowledge级内容
+            level = "strategy"
+        else:
+            hint = classic_hint
+
+        # 203-A.2 + 205-B: 调用四门泄漏审计（AI生成的提示也要过审计）
         leakage_audit = self._run_leakage_audit(hint)
 
         # 如果审计fail，降级为meta级提示
@@ -474,6 +485,84 @@ Solver（数学大师）的当前输出：
             leakage_audit["degraded"] = True
 
         return hint, level, leakage_audit
+
+    def _ai_compile_hint(
+        self, stall_reason: str, solver_response: str, classic_hint: str
+    ) -> tuple:
+        """205-B: AI编译提示——根据Solver具体思路生成针对性提示
+
+        调用时机：硬编码提示不够针对性时（response包含具体数学内容）
+        返回 (ai_hint, ai_compiled)
+        如果AI编译失败或response过短，返回 (classic_hint, False)
+        """
+        # 205-B.0: 调用时机判定
+        # response过短时直接用经典提示（<30字符基本无内容可分析）
+        if len(solver_response) < 30:
+            return classic_hint, False
+        # response明确完成时不给提示（由上层检查）
+        # 其他情况调用AI编译
+
+        # 205-B.1: 构造AI编译prompt
+        prompt = self._build_ai_compile_prompt(stall_reason, solver_response, classic_hint)
+
+        # 205-B.2: 调用AI编译
+        try:
+            ai_hint = self._call_ai_for_compilation(prompt, stall_reason, solver_response, classic_hint)
+            if ai_hint and len(ai_hint) > 20:  # 基本有效性检查
+                return ai_hint, True
+            return classic_hint, False
+        except Exception as e:
+            print(f"[GuidedLoop] AI编译失败（fallback到经典提示）: {e}")
+            return classic_hint, False
+
+    def _build_ai_compile_prompt(
+        self, stall_reason: str, solver_response: str, classic_hint: str
+    ) -> str:
+        """205-B.1: 构造AI编译prompt"""
+        response_excerpt = solver_response[-1500:] if len(solver_response) > 1500 else solver_response
+        return f"""你是数学大师系统的提示编译AI。
+
+当前卡点原因：{stall_reason}
+Solver的当前输出：
+{response_excerpt}
+
+经典计算生成的提示骨架：
+{classic_hint}
+
+请生成一条针对性提示，要求：
+1. 不包含答案或答案的等价表述（会经过泄漏审计）
+2. 针对Solver的具体思路内容，不是通用提示
+3. 优先给策略（解题方向），其次给元提示（继续/更详细），最后才给知识
+4. 如果Solver的思路方向是对的，只给"继续"的元提示
+5. 如果Solver的思路方向不对，给策略提示引导换方向
+
+输出格式：直接输出提示文本，不要JSON包装。"""
+
+    def _call_ai_for_compilation(
+        self, prompt: str, stall_reason: str, solver_response: str, classic_hint: str
+    ) -> str:
+        """205-B.2: 调用AI编译提示
+
+        POC实现：用简化的规则生成针对性提示
+        实际部署时替换为外部AI调用
+        """
+        # POC简化版：基于stall_reason和response内容生成针对性提示
+        # 实际部署时应调用外部AI
+
+        # 如果Solver在尝试某个方向——给strategy级提示鼓励继续
+        if "尝试" in solver_response and "失败" not in solver_response:
+            return f"你正在尝试的方向有潜力。请继续深入，给出更具体的推导步骤。"
+
+        # 如果Solver遇到矛盾——给strategy级提示引导换方向
+        if "但是" in solver_response or "然而" in solver_response:
+            return f"你遇到了一个障碍。请尝试换一个角度——考虑用不同的数学工具或表示方法。"
+
+        # 如果Solver明确不知道——给strategy级提示（不给knowledge）
+        if "不知道" in solver_response or "不确定" in solver_response:
+            return f"请从你已知的相关知识出发，尝试建立与这个问题的联系。先考虑最简单的情况。"
+
+        # 默认：用经典提示骨架
+        return classic_hint
 
     def _run_leakage_audit(self, hint: str) -> Optional[Dict[str, Any]]:
         """203-A.2 + 203-B.2: 调用leakage_audit.py的四门审计
