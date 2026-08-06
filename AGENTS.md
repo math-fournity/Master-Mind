@@ -112,18 +112,20 @@
 
 从10063个数据集中选出AI最做不出来的10套，用于baseline能力边界定位。详情查ArangoDB `math_datasets`集合（`xishujuzhen_math_glm52`），元组`math-datasets`提供查询工作流。
 
-| # | 数据集 | 题量 | 难度 | AI表现 | 状态 |
-|---|---|---|---|---|---|
-| 1 | FATE（北大） | 350 | 博士资格考+ | **FATE-X pass@64: 0%** | 🔄下载中 |
-| 2 | ConjectureBench | 15,000 | 研究级(开放问题) | 无标准答案 | ✅完成 |
-| 3 | MathNet（MIT） | 30,676 | 竞赛级(IMO) | Gemini 78%, GPT-5 69% | 🔄下载中 |
-| 4 | Project Euler | 800 | 本科+研究级 | — | 🔄下载中 |
-| 5 | Hendrycks MATH | 12,500 | 竞赛级(AMC/AIME) | Level 5极难 | 🔄下载中 |
-| 6 | compfiles | 520 | 竞赛级(IMO) | Lean 4验证 | ✅完成 |
-| 7 | miniF2F（OpenAI） | ~488 | 竞赛+本科 | 形式化标准基准 | 🔄下载中 |
-| 8 | 丘成桐竞赛 | 300 | 研究生+研究级 | — | 🔄部分 |
-| 9 | Berkeley Problems | 200 | 研究生(资格考) | — | ✅完成 |
-| 10 | AoPS/LiveAoPSBench | 600,000 | 竞赛级 | 时间戳分割检测污染 | ✅完成 |
+| # | 数据集 | 题量 | 难度 | AI表现 | 有解答 | 状态 |
+|---|---|---|---|---|---|---|
+| 1 | FATE（北大） | 350 | 博士资格考+ | **FATE-X pass@64: 0%** | ✅Lean4证明 | 🔄下载中 |
+| 2 | ConjectureBench | 15,000 | 研究级(开放问题) | 无标准答案 | ❌开放问题 | ✅完成 |
+| 3 | MathNet（MIT） | 30,676 | 竞赛级(IMO) | Gemini 78%, GPT-5 69% | ✅专家解答 | 🔄下载中 |
+| 4 | Project Euler | 800 | 本科+研究级 | — | ✅详细解答 | 🔄下载中 |
+| 5 | Hendrycks MATH | 12,500 | 竞赛级(AMC/AIME) | Level 5极难 | ✅详细解答 | 🔄下载中 |
+| 6 | compfiles | 520 | 竞赛级(IMO) | Lean 4验证 | ✅Lean4证明 | ✅完成 |
+| 7 | miniF2F（OpenAI） | ~488 | 竞赛+本科 | 形式化标准基准 | ✅Lean/Isabelle证明 | 🔄下载中 |
+| 8 | 丘成桐竞赛 | 300 | 研究生+研究级 | — | ❌仅真题无解答 | 🔄部分 |
+| 9 | Berkeley Problems | 200 | 研究生(资格考) | — | ✅详细解答 | ✅完成 |
+| 10 | AoPS/LiveAoPSBench | 600,000 | 竞赛级 | 时间戳分割检测污染 | ✅论坛解答 | ✅完成 |
+
+**解答情况**：8/10有解答。ConjectureBench是开放问题（无答案，测猜想能力）；丘成桐竞赛仅有真题无官方解答（待从其他渠道补充或用于AI自验证测试）。
 
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
