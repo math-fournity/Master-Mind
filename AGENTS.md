@@ -1,5 +1,108 @@
 # 项目 AGENTS.md · 数学大师制造
 
+> **⚠️ 本文件顶部「Worktree 隔离认知」章节是 glm5.2 worktree 专属内容，下游 `## 项目定位` 起的所有内容继承自上游 D repo（`/data/master-mind`），属于项目方法论本体，与本 worktree 的隔离规则无关。**
+> **未来 AI 进入本 repo 时，必须先读完本章节再做事。**
+
+---
+
+## Worktree 隔离认知（glm5.2 专属 · 最高优先级）
+
+### 本 repo 是什么
+
+本目录 `~/master-mind-glm5.2-worktree/` 是上游 repo `/data/master-mind/` 的**独立 clone**，不是 git worktree，是物理隔离的第二个 repo。
+
+- **存在原因**：另一个 AI 正在上游 D repo 内活跃工作（有未提交改动）。为让本 AI（GLM-5.2）并发工作而不互相干扰，开辟了这个独立 clone。
+- **为什么不用 git worktree**：worktree 共享 `.git`，并发 git 操作有锁冲突风险；且 D repo 的 `.git` 在 HDD 上，git 操作慢。独立 clone 把 `.git` 放到内置 SSD，既隔离又快。
+- **上游 repo 路径**：`/data/master-mind/`
+- **本 repo 路径**：`~/master-mind-glm5.2-worktree/`
+- **origin**：`/data/master-mind`（fetch/push 都指向它）
+- **本 repo 工作分支**：`glm5.2`（基于上游 main 的 `f32194f`）
+- **本地 main 分支**：保留为 origin/main 的镜像，**不要在 main 上工作**。
+
+### 硬约束 1 · 文件操作边界
+
+**所有文件读写、代码改动、文档落盘、构建产物，只能在 `~/master-mind-glm5.2-worktree/` 内。**
+
+- **禁止**以任何方式写入 `/data/master-mind/`（上游 repo）。那是另一个 AI 的工作目录，你的任何写入都会污染它。
+- **禁止**在上游 repo 内执行 `git`、`python`、`arangodb` 等任何会改动文件的命令。
+- 读取上游 repo 用于参考是可以的，但写只能写本 repo。
+- 误写入上游 repo → 立即停止，告知用户，由用户决定如何处理。**不要自行回滚上游 repo 的文件**，那可能破坏另一个 AI 的未提交工作。
+
+### 硬约束 2 · Git 协调规则
+
+1. **只在 `glm5.2` 分支上工作**。不要 commit 到本地 `main`，不要 push 到 `main`。
+2. **拿上游最新成果**：`git fetch origin` → 看 `git log origin/main` → 需要时 `git rebase origin/main` 或 `git merge origin/main` 到 `glm5.2`。注意：上游 AGENTS.md 和 dev-docs 也在被另一个 AI 改动，rebase/merge 时这些文件大概率冲突，需手动处理。
+3. **送成果回上游**：`git push origin glm5.2`（**必须经用户当轮明确授权**）。另一个 AI 在上游 `git fetch` 后可见 `origin/glm5.2`。
+4. **显式路径 add**：遵守全局规范，禁止 `git add -A`/`git add .`/`git add -u`，只 add 具体路径。
+5. **改前清干净 + 改后立即 commit**：遵守全局 Git 管理协议。
+
+### 硬约束 3 · 数据库完全隔离（最重要）
+
+**本 repo 与上游 repo 共享同一台机器上的同一个 ArangoDB 实例（`localhost:8529`）。如果不做数据库隔离，两个 AI 的研究数据会互相覆盖、互相污染——这是最危险的隐性冲突。**
+
+#### 当前代码状态（隔离漏洞）
+
+所有 Python 文件**硬编码**了两个值：
+- `ARANGO_HOST = "http://localhost:8529"`（ArangoDB 实例地址，共 16 个文件）
+- `DB_NAME = "xishujuzhen_math"`（数据库名，共 16 个文件）
+
+涉及文件清单（`xishujuzhen/` 下）：
+- `arangodb_init.py`、`cognition_import_math.py`、`cognition_export_math.py`、`cognition_init_math.py`、`arxiv_to_arangodb.py`、`topo_generator.py`
+- `research_runtime/heuristics/rule_store.py`、`research_runtime/heuristics/migrate.py`
+- `research_runtime/manifest.py`
+- `research_runtime/state_reducer/obligation.py`、`workspace_store.py`、`migrate.py`、`evidence.py`
+- `research_runtime/verification/stall_detector.py`
+- `research_runtime/events/store.py`、`migrate.py`
+- `poc9_import_unfold_full.py`、`poc9_prepare_translate_input.py`
+- `seven_step_pipeline.py`（通过 `db_name="xishujuzhen_math"` 传入）
+- `research_runtime/test_phase2.py`（硬编码 `localhost:8529`）
+
+#### 隔离方案
+
+**本 repo 专用数据库名**：`xishujuzhen_math_glm52`
+
+**实现策略（待用户确认后执行，当前仅记录规则）**：
+
+- **方案 a（推荐）· 环境变量化**：把所有 `DB_NAME = "xishujuzhen_math"` 改成 `DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")`，把 `ARANGO_HOST = "http://localhost:8529"` 改成 `ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")`。本 repo 通过 `.env` 或 shell 导出 `ARANGO_DB=xishujuzhen_math_glm52`。利：上游代码不变（默认值仍是 `xishujuzhen_math`），rebase 冲突最小；弊：要改 16 个文件，但改动模式一致。
+- **方案 b · 直接改名**：把本 repo 所有 `DB_NAME = "xishujuzhen_math"` 直接 sed 替换成 `xishujuzhen_math_glm52`。利：简单；弊：rebase/merge origin/main 时这 16 处全部冲突，且上游永远拿不到这个改动。
+- **方案 c · 配置文件**：新建 `xishujuzhen/db_config.py` 集中定义，其他文件 import。利：最干净；弊：改动最大，rebase 冲突最复杂。
+
+**推荐方案 a**：环境变量化是正确工程实践，上游未来也可能需要它，rebase 时冲突最小（默认值不变）。
+
+#### 数据库隔离硬规则
+
+1. **本 repo 启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `xishujuzhen_math_glm52`。
+2. **禁止**以 `xishujuzhen_math`（上游数据库名）连接 ArangoDB 做任何写操作。读可以（用于对比/迁移），但写绝对禁止。
+3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `xishujuzhen_math_glm52`，不要复用上游的 `xishujuzhen_math`。
+4. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
+5. **如果环境变量化尚未实施**：在改完代码前，**禁止运行任何会写 ArangoDB 的脚本**，否则会污染上游数据库。
+
+### 硬约束 4 · 其他共享资源意识
+
+除 ArangoDB 外，以下资源也是共享的，使用前要意识到：
+
+- **ArangoDB 实例** `localhost:8529`：共享，通过 DB_NAME 隔离（见上）。
+- **文件系统**：本 repo 在内置 SSD，上游在 D 盘 HDD，物理隔离，无冲突。
+- **网络端口**：如果本 repo 要起服务（如 ArangoDB Web、自定义 HTTP 服务），注意端口不要和上游冲突。起服务前先 `lsof -i :<port>` 检查。
+- **Python 环境**：如果用同一个 Python venv/conda env，包安装会互相影响。建议本 repo 用独立 venv（见下）。
+
+### 建议 · Python 环境隔离
+
+建议本 repo 创建独立 venv：
+```bash
+cd ~/master-mind-glm5.2-worktree
+python3 -m venv .venv-glm52
+source .venv-glm52/bin/activate
+# 安装依赖
+```
+这样 `pip install` 不会影响上游 repo 的 Python 环境。是否实施由用户决定。
+
+### Worktree 认知资产索引
+
+本 section 是本 repo 的跨 Session 认知锚点。未来 AI 进入本 repo 时，从这里开始读。后续在本 repo 产生的工作认知，如果属于 worktree 隔离范畴，更新本 section；如果属于项目方法论，更新下游章节或 dev-docs。
+
+---
+
 ## 项目定位
 
 本项目是 **AI 数学大师制造项目**，不是单纯的写代码项目，也不是星学项目。
