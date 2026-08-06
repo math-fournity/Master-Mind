@@ -153,7 +153,16 @@ class HeuristicMatcher:
         - 输出："继续观察/诊断/工具/无提示/候选激活包"的排序及理由
 
         离线模式：只输出候选，不自动提示。
+
+        F-176-2修正：candidate规则不参与在线提示——match()入口强制检查。
+        F-176-3修正：角色隔离验证在match()入口强制调用。
         """
+        # F-176-3：角色隔离强制验证（123号§607）
+        if not self.check_capability_token("match_heuristic_rules"):
+            raise PermissionError("HeuristicMatcher缺少match_heuristic_rules能力令牌")
+        if not self.check_visibility_label("can_read_local_patterns"):
+            raise PermissionError("HeuristicMatcher缺少can_read_local_patterns可见性标签")
+
         output = MatcherOutput()
 
         # 从当前状态提取匹配特征
@@ -165,8 +174,12 @@ class HeuristicMatcher:
         matched = []
         for rule in self.rules:
             if self._match_rule(rule, stall_type, current_state):
-                # P3-ROLE.COMP2：不把candidate规则当published规则
-                # 离线模式下candidate规则可以匹配，但不能在线自动提示
+                # F-176-2：P3-ROLE.COMP2强制——candidate规则不参与在线提示
+                # 离线模式下candidate规则可以匹配生成候选包，但不能用于在线自动提示
+                if rule.status == RuleLifecycleStatus.CANDIDATE and not self.offline_mode:
+                    raise PermissionError(
+                        f"candidate规则{rule.rule_id}不能用于在线提示（R-4核心防线，123号§28）"
+                    )
                 matched.append(rule)
                 output.matched_rules.append(rule.rule_id)
 
