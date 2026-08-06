@@ -40,45 +40,41 @@
 
 **本 repo 与上游 repo 共享同一台机器上的同一个 ArangoDB 实例（`localhost:8529`）。如果不做数据库隔离，两个 AI 的研究数据会互相覆盖、互相污染——这是最危险的隐性冲突。**
 
-#### 当前代码状态（隔离漏洞）
+#### 历史代码状态（已修复，保留作背景）
 
-所有 Python 文件**硬编码**了两个值：
-- `ARANGO_HOST = "http://localhost:8529"`（ArangoDB 实例地址，共 16 个文件）
-- `DB_NAME = "xishujuzhen_math"`（数据库名，共 16 个文件）
-
-涉及文件清单（`xishujuzhen/` 下）：
-- `arangodb_init.py`、`cognition_import_math.py`、`cognition_export_math.py`、`cognition_init_math.py`、`arxiv_to_arangodb.py`、`topo_generator.py`
-- `research_runtime/heuristics/rule_store.py`、`research_runtime/heuristics/migrate.py`
-- `research_runtime/manifest.py`
-- `research_runtime/state_reducer/obligation.py`、`workspace_store.py`、`migrate.py`、`evidence.py`
-- `research_runtime/verification/stall_detector.py`
-- `research_runtime/events/store.py`、`migrate.py`
-- `poc9_import_unfold_full.py`、`poc9_prepare_translate_input.py`
-- `seven_step_pipeline.py`（通过 `db_name="xishujuzhen_math"` 传入）
-- `research_runtime/test_phase2.py`（硬编码 `localhost:8529`）
+修复前，所有 Python 文件**硬编码**了 ArangoDB 连接参数（DB_NAME、ARANGO_HOST、username、password）。这是从星学项目继承基础设施时留下的——`REDACTED-DB-PASSWORD` 密码来自星学项目 MOIRA_chinese_astrology 的命名。两轮环境变量化（commit `89760a4` + `4f781d2`）已消除全部裸硬编码，27 处 `REDACTED-DB-PASSWORD` 现全部位于 `os.environ.get()` 默认值中。
 
 #### 隔离方案（已实施 · 方案 a 环境变量化）
 
 **本 repo 专用数据库名**：`xishujuzhen_math_glm52`
 
-**已实施的策略**：方案 a · 环境变量化。所有 25 个 Python 文件的硬编码已改为：
+**已实施的策略**：方案 a · 环境变量化。25 个 Python 文件的硬编码已改为 `os.environ.get()`，覆盖 4 个环境变量：
+
+| 环境变量 | 默认值（上游行为） | 本 repo .env 值（隔离） |
+|---|---|---|
+| `ARANGO_HOST` | `http://localhost:8529` | `http://localhost:8529` |
+| `ARANGO_DB` | `xishujuzhen_math` | `xishujuzhen_math_glm52` |
+| `ARANGO_USER` | `root` | `root` |
+| `ARANGO_PASS` | `REDACTED-DB-PASSWORD` | `REDACTED-DB-PASSWORD` |
+
+改动模式（共 6 种）：
 - `DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")`（16 个文件）
 - `ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")`（11 个文件）
-- `ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))`（11 个文件 inline）
-- `client.db(os.environ.get("ARANGO_DB", "..."), ...)`（7 个文件 inline）
-- `db_name=os.environ.get("ARANGO_DB", "xishujuzhen_math")`（3 处 inline 调用）
+- `ArangoClient(hosts=os.environ.get(...))`（11 个文件 inline）
+- `client.db(os.environ.get("ARANGO_DB", ...), ...)`（7 个文件 inline）
+- `db_name=os.environ.get("ARANGO_DB", ...)`（3 处 inline 调用）
+- `DB_USER/DB_PASS/ARANGO_USER/ARANGO_PASS` 赋值 + inline `username=/password=`（25 个文件，含 `topology_verifier.py` 带类型注解的函数签名）
 
-默认值保持和上游一致（`xishujuzhen_math` / `http://localhost:8529`），所以上游代码行为不变。本 repo 通过 `.env` 文件覆盖为 `xishujuzhen_math_glm52`。
+默认值保持和上游一致，所以上游代码行为不变。本 repo 通过 `.env` 文件覆盖 `ARANGO_DB` 实现数据库隔离。
 
 **配置文件**：
-- `.env`（已 gitignore，不提交）：本 repo 专用，`ARANGO_DB=xishujuzhen_math_glm52`
+- `.env`（已 gitignore，不提交）：本 repo 专用，含 4 个环境变量
 - `.env.example`（提交到 repo）：模板，供未来 AI 参考
 - 使用前 `source .env` 或用 dotenv 加载
 
 **未环境变量化的部分**（已知，按需处理）：
 - `cognition_sdk_math.py` 和 `topology_verifier.py` 的 `host="localhost", port=8529` 是分开参数格式（非 URL），与 `ARANGO_HOST` 格式不同，暂未改。它们的 `db_name`/`username`/`password` 已环境变量化。
-- `topology_verifier.py` 的函数签名默认值已环境变量化（含类型注解形式）。
-- `username`/`password` 已全部环境变量化（`ARANGO_USER`/`ARANGO_PASS`），默认值 `root`/`REDACTED-DB-PASSWORD` 保持和上游一致。
+- 若未来要把本 repo push 到公开远端：默认值里的 `REDACTED-DB-PASSWORD` 仍在代码中（虽不是裸硬编码），需进一步用 secrets 管理或移除默认值。
 
 **一次性改动脚本**：`scripts/_envvarize_arango.py`（DB_NAME/HOST）、`scripts/_envvarize_arango_auth.py`（username/password），保留在 repo 中作为改动记录。
 
@@ -113,6 +109,20 @@ source .venv-glm52/bin/activate
 ### Worktree 认知资产索引
 
 本 section 是本 repo 的跨 Session 认知锚点。未来 AI 进入本 repo 时，从这里开始读。后续在本 repo 产生的工作认知，如果属于 worktree 隔离范畴，更新本 section；如果属于项目方法论，更新下游章节或 dev-docs。
+
+**当前隔离实施状态**（截至 commit `4f781d2`）：
+- ✅ 文件操作边界：已建立（硬约束 1）
+- ✅ Git 协调规则：已建立（硬约束 2），分支 `glm5.2`，3 个 commit
+- ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
+- ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
+- ⬜ Python venv 隔离：建议但未实施（见上「建议 · Python 环境隔离」）
+- ⬜ ArangoDB 实例尚未启动/初始化：首次使用时需 `source .env && python xishujuzhen/arangodb_init.py` 创建 `xishujuzhen_math_glm52` 数据库
+
+**本 repo commit 历史**（glm5.2 分支）：
+- `4f781d2` ArangoDB 认证环境变量化：25 个文件，消除 REDACTED-DB-PASSWORD 密码硬编码
+- `89760a4` ArangoDB 环境变量化：25 个文件，实现 glm5.2 worktree 数据库隔离
+- `25334f2` AGENTS.md: 新增 Worktree 隔离认知章节（glm5.2 专属）
+- `f32194f`（上游 main 基点）146号v4→v4.1
 
 ---
 
