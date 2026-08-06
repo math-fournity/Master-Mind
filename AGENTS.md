@@ -364,104 +364,73 @@
 > - **与TODO/Memory Section的区别**：TODO是长期待办清单，Memory Section是长期认知基线，本节是**当前正在做什么、做到哪了、下一步是什么**的临时快照。
 > - **压缩后恢复**：压缩后的AI读到本节，应能立即理解当前任务的全貌并继续工作，不需要重新探索上下文。
 
-### 当前任务：全程监控与可审计运行 + Phase 6引导循环 + 审计标准建设
+### 当前任务：AI缺位修复三方案实施（203-205号 + 206-208号Check List）
 
-**任务背景**：对数学大师系统做了4份审计报告（174-177号），修复了5个P0代码问题和4个P0文档问题。然后用户提出全程监控与可审计运行需求（178-182号方案）。接着实现了Phase 6引导循环——让12步运行时真正连接devin cli实例。现在正在建立审计标准文档体系（183-195号）。
+**任务背景**：审计标准建设（197号方案5个Phase）已全部完成。用户指出系统有两个地方没有积极引入AI：运行前（知识吸收，201号）和运行中（引导决策，202号），以及提示作弊问题（200号）。三份方案文档（203/204/205号）和三份细化Check List（206/207/208号）已全部完成。现在开始实施。
 
 **已完成的工作**：
 
-1. **P0代码修复**（全部commit）：
-   - F-176-1：3个核心dataclass设frozen=True（models/event.py, task.py）
-   - F-176-2：candidate规则在线提示运行时拦截（heuristics/matcher.py）
-   - F-176-3：角色隔离验证在match()入口强制调用（heuristics/matcher.py）
-   - F-176-4：dg_adapter深拷贝+内容哈希验证（retrieval/dg_adapter.py）
-   - F-176-5：context_compiler/verification异常处理（3个文件）
-   - Phase 1/2/3/5测试全部通过
+1. **审计标准建设全部完成**（197号方案5个Phase全部完成）：
+   - Phase A: 审计脚本框架（xishujuzhen/audit/）
+   - Phase B: P0审计自动化+回测（184/194/195脚本化，5个历史run回测）
+   - Phase C: 12份文档60项待细化全部落实（subagent提取代码值）
+   - Phase D: P1-P3标准脚本化（185-193共9个标准全部脚本化）
+   - Phase E: 5个复杂run生成+审计+回测+标准修订（198/199号）
+   - 12个标准全部可自动执行，5个复杂run回测发现4个标准修订项并全部修复
 
-2. **P0文档修复**（全部commit）：
-   - F-174-1/2/3：134/136/137号CheckList状态节+124号总览进度追踪表
-   - F-177-4：AGENTS.md补充旧七步骤→新12步迁移映射表
+2. **Solver tmux启动规范固化**（已commit）：
+   - Rule: .devin/rules/solver-tmux-launch.md（always-on硬约束）
+   - Skill: .devin/skills/solver-tmux-launch/SKILL.md（7步工作流）
+   - AGENTS.md硬约束5更新：禁止exec后台/nohup启动GuidedLoop
 
-3. **全程监控方案**（178-182号，全部commit）：
-   - 178-v1总纲：需求R1-R9 + 三层架构 + 数据流 + 8维度 + 优化框架 + 文档索引
-   - 179-v0层次1：devin cli实例轨迹（--export首选 / sessions.db深度 / tmux pipe-pane兜底）
-   - 180-v0层次2：系统内部结构化执行日志（ExecutionLog schema）
-   - 181-v0层次3：数学大师思路轨迹分析（thinking字段为核心数据源）
-   - 182-v0审计工具：CLI工具接口 + 8维度审计 + 优化映射表
+3. **AI缺位问题诊断三文档**（200/201/202号，已commit）：
+   - 200号：提示作弊问题分析——5条硬编码提示中2条给知识，无泄漏审计/truth_vault/增益归因
+   - 201号：AI在知识吸收中的缺位——三层提取未常态化，L4哲学层不存在
+   - 202号：AI在运行过程中的缺位——步骤7-10全部经典计算，无AI引导者
 
-4. **端到端验证run**（run_20260806_verify_001，已commit）：
-   - `--export`生成124KB conversation.json ✅
-   - sessions.db有37条message_nodes（含24464字符thinking + tool_calls + tool结果）✅
-   - 178-182号方案核心假设全部验证通过
-   - 发现5个问题已记入179号第六节
+4. **AI缺位修复三方案**（203/204/205号，已commit）：
+   - 203号：提示作弊解决方案——提示分级+泄漏审计+truth_vault+诚实降级实验
+   - 204号：高阶知识提取解决方案——L1-L3 pipeline化+L4新建+增益验证
+   - 205号：运行过程AI引导解决方案——AI诊断+AI编译+多轮规划+成本控制
 
-5. **Phase 6引导循环实现**（全部commit）：
-   - DevinCliAdapter（runtime/devin_cli_adapter.py）：连接12步运行时和真实devin cli实例
-   - GuidedLoop（runtime/guided_loop.py）：solo explore → 卡点检测 → hint生成 → guided explore
-   - Solver工作目录隔离：/data/math-agent-glm5.2-{1,2,3}，每个有专门AGENTS.md
-     - 禁用web_search（搜索是作弊，数学大师的价值在于内部知识能力）
-     - 允许exec（Python/SymPy计算验证）
-     - 不走工作系统流程（CP1-CP3/pipeline）
-   - AGENTS.md新增硬约束5：Solver工作目录隔离
-   - 验证run_20260806_guided_004：1turn完成证明，0hints，0 web_search，thinking 130字符
-
-6. **审计标准文档体系完成**（183-195号，全部commit）：
-   - 183-v0审计标准总纲：8子系统40+模块清单 + 审计元组设计（Rule+Skill+文档）+ 12份文档编号(184-195)
-   - 184-v0 12步循环与引导循环审计标准（P0）
-   - 185-v0控制器与策略审计标准（P2）
-   - 186-v0预算审计标准（P2）
-   - 187-v0事件系统审计标准（P2）
-   - 188-v0状态归约审计标准（P1）
-   - 189-v0启发匹配审计标准（P1）
-   - 190-v0检索审计标准（P2）
-   - 191-v0上下文编译审计标准（P2）
-   - 192-v0验证审计标准（P1）
-   - 193-v0审计角色元审计标准（P3）
-   - 194-v0 Solver连接审计标准（P3）
-   - 195-v0数学正确性验证标准（P0）
-   - 每份文档含：模块功能概览 + 检查项表（含判定标准）+ 验证方法 + 历史案例 + 待细化
-
-7. **审计Rule+Skill元组建立**（已commit）：
-   - Rule: `.devin/rules/audit-trigger.md`（always-on，定义4种触发条件 + 12份文档索引）
-   - Skill: `.devin/skills/audit-module/SKILL.md`（on-demand，6步审计工作流）
-
-8. **审计标准回测验证**（196号，已commit）：
-   - 用5个历史run回测184/194/195号标准
-   - 全部5个run的判定结果与已知状态一致——标准有效
-   - 发现3个标准缺陷并修订：
-     - 184号增加"response不以[ERROR开头"检查
-     - 184号增加"区分工作系统劫持和数学卡点"
-     - 195号增加"数据来源纯净性"通用检查项（web_search检测）
+5. **三份细化Check List**（206/207/208号，已commit）：
+   - 206号：203提示作弊CheckList（3 Phase/15项，D1-D4深度等级）
+   - 207号：204高阶知识CheckList（3 Phase/20项）
+   - 208号：205运行过程AI引导CheckList（5 Phase/24项）
 
 **关键调查发现**：
 - devin cli的sessions.db已记录AI完整trajectory（thinking + tool_calls + tool结果 + 性能指标）
 - `--export <PATH>`每turn自动导出ATIF-v1.7 JSON
-- 方案复杂度从"建设三层全程记录系统"降低到"建设一个查询关联工具"
 - Solver必须在外部目录运行，否则工作系统规则会劫持其行为
 - web_search必须禁用——搜索是作弊
+- leakage_audit.py四门审计已实现但GuidedLoop未调用
+- visibility_labels.py角色隔离已定义但GuidedLoop未使用
+- batch_extractor.py三层提取已设计但只在POC3做过一次
+- stall_detector.py 7种卡点全部关键词+阈值检测，不理解Solver思路内容
 
 **下一步（正在执行）**：
-按197号方案执行审计自动化与标准深化，5个Phase：
-- Phase A: 审计脚本框架（xishujuzhen/audit/，8项Check List）——进行中
-- Phase B: P0审计自动化（184/194/195脚本化，5项Check List）
-- Phase C: 12份文档60项待细化落实（13项Check List）——与A并行
-- Phase D: P1-P3审计自动化（185-193脚本化，10项Check List）
-- Phase E: 复杂run生成与回测（5项Check List）
-执行顺序：A+C并行 → B → D → E
-完整TODO List已建立（22项），在todo_write工具中跟踪。
+按206/207/208号Check List实施三方案，执行顺序：
+1. **203-A**（提示分级+泄漏审计）→ 先做，205-B依赖它
+2. **204-A**（L1-L3 pipeline化）→ 与203-A并行
+3. **203-B**（truth_vault隔离）→ 203-A之后
+4. **205-A**（步骤7 AI诊断）→ 203-A之后
+5. **205-B**（步骤10 AI编译+泄漏审计）→ 203-A完成后
+6. **204-B**（L4哲学层新建）→ 204-A之后
+7. **205-C**（多轮智能规划）→ 205-A/B之后
+8. **205-D**（成本控制）→ 205-A/B/C并行
+9. **203-C + 204-C + 205-E**（三组对比实验）→ 共享同一问题集，最后做
 
 **关键文件索引**：
-- 审计报告：dev-docs/174-v1, 175-v1, 176-v1, 177-v1
-- 方案文档：dev-docs/178-v1, 179-v0, 180-v0, 181-v0, 182-v0
-- 审计标准：dev-docs/183-v0(总纲), 184-v0(循环), 185-v0(控制器策略), 186-v0(预算), 187-v0(事件系统), 188-v0(状态归约), 189-v0(启发匹配), 190-v0(检索), 191-v0(上下文编译), 192-v0(验证), 193-v0(审计角色元审计), 194-v0(Solver连接), 195-v0(数学正确性)
-- 审计回测：dev-docs/196-v0(回测报告)
-- 审计方案：dev-docs/197-v0(审计自动化与标准深化方案)
-- 审计元组：.devin/rules/audit-trigger.md(Rule) + .devin/skills/audit-module/SKILL.md(Skill)
-- 修复的代码：models/event.py, models/task.py, heuristics/matcher.py, retrieval/dg_adapter.py, context_compiler/context_compiler.py, context_compiler/minimality_audit.py, verification/stall_detector.py
-- 新增代码：runtime/devin_cli_adapter.py, runtime/guided_loop.py
+- AI缺位诊断：dev-docs/200(作弊), 201(知识吸收), 202(运行过程)
+- 修复方案：dev-docs/203(作弊方案), 204(高阶知识方案), 205(AI引导方案)
+- Check List：dev-docs/206(203 CL), 207(204 CL), 208(205 CL)
+- 审计标准：dev-docs/183-195(12份标准), 196(回测), 197(方案), 198(复杂run设计), 199(回测报告)
+- 审计代码：xishujuzhen/audit/（framework.py + cli.py + standards/std_184-195）
+- 审计元组：.devin/rules/audit-trigger.md + .devin/skills/audit-module/SKILL.md
+- tmux元组：.devin/rules/solver-tmux-launch.md + .devin/skills/solver-tmux-launch/SKILL.md
+- 核心代码：runtime/guided_loop.py, runtime/devin_cli_adapter.py, heuristics/leakage_audit.py, state_reducer/controller_belief.py, verification/stall_detector.py
 - Solver工作目录：/data/math-agent-glm5.2-{1,2,3}/AGENTS.md
-- devin cli数据源：~/.local/share/devin/cli/sessions.db, transcripts/, logs/
-- 验证run：runs/run_20260806_verify_001/, runs/run_20260806_guided_004/
+- 验证run：runs/run_20260806_{verify_001, guided_001-004, complex_001-005}/
 
 ## TODO
 
