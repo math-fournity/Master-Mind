@@ -108,6 +108,23 @@
 
 认知资产索引（隔离实施状态、ArangoDB 初始化状态、认知图/依赖图/题库统计）在 `xishujuzhen/cognition_asset_index.md`，由工作系统持续维护。每次新增认知单元、新增 dev-docs、ArangoDB 状态变更后更新该文档。
 
+### TOP10最难题集（baseline评测用）
+
+从10063个数据集中选出AI最做不出来的10套，用于baseline能力边界定位。详情查ArangoDB `math_datasets`集合（`xishujuzhen_math_glm52`），元组`math-datasets`提供查询工作流。
+
+| # | 数据集 | 题量 | 难度 | AI表现 | 状态 |
+|---|---|---|---|---|---|
+| 1 | FATE（北大） | 350 | 博士资格考+ | **FATE-X pass@64: 0%** | 🔄下载中 |
+| 2 | ConjectureBench | 15,000 | 研究级(开放问题) | 无标准答案 | ✅完成 |
+| 3 | MathNet（MIT） | 30,676 | 竞赛级(IMO) | Gemini 78%, GPT-5 69% | 🔄下载中 |
+| 4 | Project Euler | 800 | 本科+研究级 | — | 🔄下载中 |
+| 5 | Hendrycks MATH | 12,500 | 竞赛级(AMC/AIME) | Level 5极难 | 🔄下载中 |
+| 6 | compfiles | 520 | 竞赛级(IMO) | Lean 4验证 | ✅完成 |
+| 7 | miniF2F（OpenAI） | ~488 | 竞赛+本科 | 形式化标准基准 | 🔄下载中 |
+| 8 | 丘成桐竞赛 | 300 | 研究生+研究级 | — | 🔄部分 |
+| 9 | Berkeley Problems | 200 | 研究生(资格考) | — | ✅完成 |
+| 10 | AoPS/LiveAoPSBench | 600,000 | 竞赛级 | 时间戳分割检测污染 | ✅完成 |
+
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
 - **Master tmux 脚本**：`scripts/start-master.sh`、`scripts/enter-master.sh`、`scripts/stop-master.sh`
