@@ -159,6 +159,7 @@ python3 -m venv .venv          # python3.14
 - **Supervisor 启动方式**：`./scripts/start-supervisor.sh` 在 tmux 中启动 devin CLI；`./scripts/stop-supervisor.sh` 关闭 tmux session
 - **Supervisor 职责注入**：AGENTS.md 索引 `session-start.txt`，Supervisor 启动时读取；`stop-hook.txt` 由 Stop hook 动态读取。编辑 txt 即可调整职责，不用改代码
 - **Supervisor 产物**：`Supervisor/dev-docs/004-v1-*-Supervisor-hook实现与运行方案.md`
+- **Master tmux 脚本**：`scripts/start-master.sh`（启动 tmux session `master-math` + devin CLI）、`scripts/enter-master.sh`（重新进入）、`scripts/stop-master.sh`（停止）。Supervisor 通过 `tmux capture-pane -t master-math` 监控 Master，通过 `tmux send-keys -t master-math` 发送提示
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统
 - **Supervisor 职责**：监督、反思、设计 Master 的工作系统
