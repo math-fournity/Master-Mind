@@ -22,7 +22,7 @@ def main():
         data = json.load(f)
 
     client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
-    db = client.db(DB_NAME, username="root", password="REDACTED-DB-PASSWORD")
+    db = client.db(DB_NAME, username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"))
 
     units_col = db.collection("cognition_units")
     edges_col = db.collection("cog_edges")

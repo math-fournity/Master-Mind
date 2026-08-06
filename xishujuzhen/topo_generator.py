@@ -29,7 +29,7 @@ class TopoGenerator:
     """经典计算展开G'_topo骨架"""
 
     def __init__(self, host="localhost", port=8529, db_name=DB_NAME,
-                 username="root", password="REDACTED-DB-PASSWORD"):
+                 username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")):
         client = ArangoClient(hosts=f"http://{host}:{port}")
         self.db = client.db(db_name, username=username, password=password)
 

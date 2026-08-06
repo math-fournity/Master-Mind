@@ -76,11 +76,11 @@
 - 使用前 `source .env` 或用 dotenv 加载
 
 **未环境变量化的部分**（已知，按需处理）：
-- `cognition_sdk_math.py` 的 `host="localhost", port=8529` 是分开参数格式（非 URL），与 `ARANGO_HOST` 格式不同，暂未改。其 `db_name` 已环境变量化。
-- `username="root"` / `password="REDACTED-DB-PASSWORD"` 硬编码未改——数据库隔离通过 DB_NAME 已足够，用户级隔离按需再做。
-- `topology_verifier.py` 用的是 `db_name` 参数变量（非硬编码），无需改。
+- `cognition_sdk_math.py` 和 `topology_verifier.py` 的 `host="localhost", port=8529` 是分开参数格式（非 URL），与 `ARANGO_HOST` 格式不同，暂未改。它们的 `db_name`/`username`/`password` 已环境变量化。
+- `topology_verifier.py` 的函数签名默认值已环境变量化（含类型注解形式）。
+- `username`/`password` 已全部环境变量化（`ARANGO_USER`/`ARANGO_PASS`），默认值 `root`/`REDACTED-DB-PASSWORD` 保持和上游一致。
 
-**一次性改动脚本**：`scripts/_envvarize_arango.py`（保留在 repo 中作为改动记录）。
+**一次性改动脚本**：`scripts/_envvarize_arango.py`（DB_NAME/HOST）、`scripts/_envvarize_arango_auth.py`（username/password），保留在 repo 中作为改动记录。
 
 #### 数据库隔离硬规则
 

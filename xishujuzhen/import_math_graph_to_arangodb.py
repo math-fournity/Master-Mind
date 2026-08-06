@@ -6,7 +6,7 @@ from arango import ArangoClient
 
 # 连接
 client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
-db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen_math"), username="root", password="REDACTED-DB-PASSWORD")
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen_math"), username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"))
 
 # 读取依赖图 JSON
 with open("/data/master-mind/xishujuzhen/poc/poc2/math_dependency_graph.json") as f:

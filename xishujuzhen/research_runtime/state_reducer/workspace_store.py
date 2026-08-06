@@ -23,8 +23,8 @@ from arango import ArangoClient
 from ..models.workspace import Workspace
 
 DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
-DB_USER = "root"
-DB_PASS = "REDACTED-DB-PASSWORD"
+DB_USER = os.environ.get("ARANGO_USER", "root")
+DB_PASS = os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")
 ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 

@@ -12,8 +12,8 @@ from arango import ArangoClient
 
 DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
-ARANGO_USER = "root"
-ARANGO_PASS = "REDACTED-DB-PASSWORD"
+ARANGO_USER = os.environ.get("ARANGO_USER", "root")
+ARANGO_PASS = os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")
 METADATA_PATH = "/data/master-mind/knowledge/arxiv/metadata_all_2023plus.json"
 BATCH_SIZE = 5000
 

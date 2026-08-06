@@ -5,7 +5,7 @@ import json
 from arango import ArangoClient
 
 client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
-db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen"), username="root", password="REDACTED-DB-PASSWORD")
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen"), username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"))
 
 # 读取转译输入（包含G'_topo结构+KC）
 with open("xishujuzhen/poc/poc9_translate_input.json", encoding="utf-8") as f:

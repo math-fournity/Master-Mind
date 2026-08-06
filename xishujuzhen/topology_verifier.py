@@ -13,6 +13,7 @@
 - 螺旋环路覆盖：每个环路圈数保持
 - KC忠实：∀ v, f(v) 忠实于 kᵢ
 """
+import os
 from arango import ArangoClient
 from dataclasses import dataclass, field
 from typing import Optional
@@ -83,8 +84,9 @@ class TopologyVerifier:
     """
 
     def __init__(self, host: str = "localhost", port: int = 8529,
-                 username: str = "root", password: str = "REDACTED-DB-PASSWORD",
-                 db_name: str = "xishujuzhen_math"):
+                 username: str = os.environ.get("ARANGO_USER", "root"),
+                 password: str = os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"),
+                 db_name: str = os.environ.get("ARANGO_DB", "xishujuzhen_math")):
         client = ArangoClient(hosts=f"http://{host}:{port}")
         self.db = client.db(db_name, username=username, password=password)
 

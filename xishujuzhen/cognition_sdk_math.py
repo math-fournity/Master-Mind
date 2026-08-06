@@ -16,7 +16,7 @@ class CognitionSDK:
     """认知图操作SDK"""
 
     def __init__(self, host="localhost", port=8529, db_name=os.environ.get("ARANGO_DB", "xishujuzhen_math"),
-                 username="root", password="REDACTED-DB-PASSWORD"):
+                 username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")):
         self.client = ArangoClient(hosts=f"http://{host}:{port}")
         self.db = self.client.db(db_name, username=username, password=password)
         self.cv = CognitionVerifier(self.db)

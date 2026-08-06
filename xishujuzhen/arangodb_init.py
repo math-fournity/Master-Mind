@@ -8,7 +8,7 @@ from arango import ArangoClient
 
 # 连接ArangoDB
 client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
-sys_db = client.db("_system", username="root", password="REDACTED-DB-PASSWORD")
+sys_db = client.db("_system", username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"))
 
 # 创建xishujuzhen数据库
 DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
@@ -18,7 +18,7 @@ if not sys_db.has_database(DB_NAME):
 else:
     print(f"⚠️  数据库已存在: {DB_NAME}")
 
-db = client.db(DB_NAME, username="root", password="REDACTED-DB-PASSWORD")
+db = client.db(DB_NAME, username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"))
 
 # ============================================================
 # 1. 文档集合（Collections）

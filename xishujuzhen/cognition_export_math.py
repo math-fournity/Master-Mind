@@ -24,7 +24,7 @@ JSON_PATH = os.path.join(os.path.dirname(__file__), "poc", "cognition_units_math
 def export_from_arango():
     """从ArangoDB导出全部认知单元、边和版本"""
     client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
-    db = client.db(DB_NAME, username="root", password="REDACTED-DB-PASSWORD")
+    db = client.db(DB_NAME, username=os.environ.get("ARANGO_USER", "root"), password=os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD"))
 
     units = list(db.collection("cognition_units").all())
     edges = list(db.collection("cog_edges").all())
