@@ -127,6 +127,40 @@
 
 **解答情况**：8/10有解答。ConjectureBench是开放问题（无答案，测猜想能力）；丘成桐竞赛仅有真题无官方解答（待从其他渠道补充或用于AI自验证测试）。
 
+### MathArena 2024-2026竞赛最难题baseline（已完成）
+
+用5个tmux session并行测试了43道2024-2026年世界级竞赛最难题（各竞赛最后2-3道大题）。数据来源：MathArena（HuggingFace），21个数据集已下载到`knowledge/problem_banks/matharena/`。
+
+**测试范围**：IMO 2025 / Putnam 2025 / USAMO 2024-2026 / IMC 2025 / Miklos Schweitzer 2025 / APEX 2025 / HMMT Feb 2025-2026 / HMMT Nov 2025 / BRUMO 2025 / SMT 2025 / CMIMC 2025 / AIME 2024-2026
+
+**GLM-5.2裸跑结果**（无提示、无引导、禁网搜）：
+
+| 类别 | 题数 | 正确/解决 | 答案错误 | 卡住/无答案 | 正确率 |
+|---|---|---|---|---|---|
+| 证明题(IMO/USAMO/Putnam/IMC/Miklos) | 11 | 2 | 0 | 8 | 18.2% |
+| 数值题(AIME/HMMT/SMT/BRUMO/CMIMC/APEX) | 26 | 4 | 7 | 15 | 15.4% |
+| **总计**（排除API error后） | **37** | **7** | **7** | **23** | **18.9%** |
+
+**做出来的题**（7道）：
+- IMO 2025 P5（证明题，242.9s）
+- IMC 2025 P9（证明题，229.2s）
+- SMT 2025 #52（数值题，答案41，96.2s）
+- HMMT Feb 2026 #31（数值题，答案10，47.1s）
+- CMIMC 2025 #38（数值题，答案8222，133.4s）
+- AIME 2024 I #13（数值题，答案104，85.3s）
+- AIME 2024 II #12（数值题，答案321，likely_correct，41.5s）
+
+**做不出来的题**（30道，占81.1%）：USAMO全部stuck/error、Putnam全部stuck/error、Miklos全部stuck、BRUMO全部stuck、HMMT Nov全部stuck、AIME 2025-2026 #14全部stuck。
+
+**关键发现**：
+1. GLM-5.2在2024+年竞赛最难题上正确率仅18.9%——大量题直接stuck（输出<100字符就说不知道）
+2. 证明题能力极弱：USAMO/Putnam/Miklos几乎全部stuck
+3. 数值题稍好但也只有15.4%正确率，AIME #14-15（最难的AIME题）全部做不出
+4. 6道API error（连接问题，非AI能力问题），需重跑
+
+**测试脚本**：`scripts/matharena_batch_test.py`
+**结果文件**：`runs/matharena_hard_{1-5}/solutions.json` + `summary.json`
+
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
 - **Master tmux 脚本**：`scripts/start-master.sh`、`scripts/enter-master.sh`、`scripts/stop-master.sh`
