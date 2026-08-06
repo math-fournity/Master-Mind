@@ -15,13 +15,15 @@
 | Phase | 文件 | 状态 | 目标 |
 |---|---|---|---|
 | Phase 0 | <ref_file file="/data/master-mind/dev-docs/130-v1-2026-08-05-Phase0-CheckList.md" /> | **已完成** | 冻结legacy与统一语义 |
-| Phase 1 | <ref_file file="/data/master-mind/dev-docs/131-v1-2026-08-05-Phase1-CheckList.md" /> | 待开始 | 只观察，不提示（DYN-0） |
-| Phase 2 | <ref_file file="/data/master-mind/dev-docs/132-v1-2026-08-05-Phase2-CheckList.md" /> | 待开始 | 类型化状态与研究义务（DYN-1/DYN-2） |
-| Phase 3 | <ref_file file="/data/master-mind/dev-docs/133-v1-2026-08-05-Phase3-CheckList.md" /> | 待开始 | 离线候选启发 |
-| Phase 4 | <ref_file file="/data/master-mind/dev-docs/134-v1-2026-08-05-Phase4-CheckList.md" /> | 待开始 | 最小Hint因果实验（DYN-3/4/5） |
-| Phase 5 | <ref_file file="/data/master-mind/dev-docs/135-v1-2026-08-05-Phase5-CheckList.md" /> | 待开始 | 检索、Context Compiler与验证路由 |
-| Phase 6 | <ref_file file="/data/master-mind/dev-docs/136-v1-2026-08-05-Phase6-CheckList.md" /> | 待开始 | 在线受约束Agent M（DYN-6） |
-| Phase 7 | <ref_file file="/data/master-mind/dev-docs/137-v1-2026-08-05-Phase7-CheckList.md" /> | 待开始 | 表示运输、长证明和高级数学分析（DYN-7） |
+| Phase 1 | <ref_file file="/data/master-mind/dev-docs/131-v1-2026-08-05-Phase1-CheckList.md" /> | **已完成** | 只观察，不提示（DYN-0） |
+| Phase 2 | <ref_file file="/data/master-mind/dev-docs/132-v1-2026-08-05-Phase2-CheckList.md" /> | **已完成** | 类型化状态与研究义务（DYN-1/DYN-2） |
+| Phase 3 | <ref_file file="/data/master-mind/dev-docs/133-v1-2026-08-05-Phase3-CheckList.md" /> | **已完成** | 离线候选启发 |
+| Phase 4 | <ref_file file="/data/master-mind/dev-docs/134-v1-2026-08-05-Phase4-CheckList.md" /> | **代码已实现**（Mock LLM） | 最小Hint因果实验（DYN-3/4/5） |
+| Phase 5 | <ref_file file="/data/master-mind/dev-docs/135-v1-2026-08-05-Phase5-CheckList.md" /> | **已完成** | 检索、Context Compiler与验证路由 |
+| Phase 6 | <ref_file file="/data/master-mind/dev-docs/136-v1-2026-08-05-Phase6-CheckList.md" /> | **代码已实现** | 在线受约束Agent M（DYN-6） |
+| Phase 7 | <ref_file file="/data/master-mind/dev-docs/137-v1-2026-08-05-Phase7-CheckList.md" /> | **代码已实现** | 表示运输、长证明和高级数学分析（DYN-7） |
+
+> **状态说明**（174号审计修正）：Phase 0-3和5已完成（CheckList全部`[x]`+集成测试通过）。Phase 4/6/7代码已实现但CheckList状态节仍标注"待开始"——这是因为Phase 4用Mock LLM而非真实devin cli，Phase 6/7的出口门验证未在CheckList中正式标记通过。
 
 ---
 
@@ -165,10 +167,12 @@
 | Phase | 状态 | 入口门 | 出口门 | Check List文件 |
 |---|---|---|---|---|
 | Phase 0 | **已完成** | 123号v1已是最高基线 | 术语/字段/权限/版本规则审计通过 | 130号 |
-| Phase 1 | 待开始 | Phase 0出口门 | 关键事件可重放、原始证据无丢失 | 131号 |
-| Phase 2 | 待开始 | Phase 1出口门 | 状态重建α≥0.80、卡点检测校准通过 | 132号 |
-| Phase 3 | 待开始 | Phase 2出口门 | 候选规则可重复匹配且不泄漏 | 133号 |
-| Phase 4 | 待开始 | Phase 3出口门 + 预注册门冻结 | 非泄漏Hint效应区间下界>0且迁移复现 | 134号 |
-| Phase 5 | 待开始 | Phase 4出口门 | 激活包可追溯、可验证、可裁剪 | 135号 |
-| Phase 6 | 待开始 | Phase 5出口门 | 闭环长期收益为正且不靠更高泄漏 | 136号 |
-| Phase 7 | 待开始 | Phase 6出口门 | 高级数学方法对明确指标有增益 | 137号 |
+| Phase 1 | **已完成** | Phase 0出口门 | 关键事件可重放、原始证据无丢失 | 131号 |
+| Phase 2 | **已完成** | Phase 1出口门 | 状态重建α≥0.80、卡点检测校准通过 | 132号 |
+| Phase 3 | **已完成** | Phase 2出口门 | 候选规则可重复匹配且不泄漏 | 133号 |
+| Phase 4 | **代码已实现**（Mock LLM） | Phase 3出口门 + 预注册门冻结 | 非泄漏Hint效应区间下界>0且迁移复现 | 134号 |
+| Phase 5 | **已完成** | Phase 4出口门 | 激活包可追溯、可验证、可裁剪 | 135号 |
+| Phase 6 | **代码已实现** | Phase 5出口门 | 闭环长期收益为正且不靠更高泄漏 | 136号 |
+| Phase 7 | **代码已实现** | Phase 6出口门 | 高级数学方法对明确指标有增益 | 137号 |
+
+> **进度追踪说明**（174号审计修正）：Phase 0-3和5的CheckList全部`[x]`且集成测试通过，状态为"已完成"。Phase 4/6/7代码已实现（test_phase4/6/7.py存在且有测试结果），但CheckList状态节仍标注"待开始"——Phase 4因使用Mock LLM而非真实devin cli，Phase 6/7因出口门验证未在CheckList中正式标记通过。
