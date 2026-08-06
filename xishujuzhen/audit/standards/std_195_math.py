@@ -23,8 +23,12 @@ MATH_PATTERNS = [
     r"\b归纳\b", r"\b推导\b", r"\b因为\b", r"\b所以\b",  # 推理关键词
 ]
 
-# 完成信号
-COMPLETION_SIGNALS = ["证毕", "QED", "结论是", "综上所述", "证明完毕", "得证"]
+# 完成信号——证明类
+PROOF_COMPLETION_SIGNALS = ["证毕", "QED", "结论是", "综上所述", "证明完毕", "得证", "证完", "定理得证", "原命题得证", "■", "□"]
+# 完成信号——发现新方向类
+DISCOVERY_COMPLETION_SIGNALS = ["适用边界", "结构类比", "类似之处", "共同骨架", "统一视角", "结构同构"]
+# 完成信号——反驳类
+REFUTE_COMPLETION_SIGNALS = ["反例", "猜想错误", "不成立", "命题错误", "矛盾"]
 
 
 class MathCorrectnessAuditor(StandardAuditor):
@@ -50,41 +54,91 @@ class MathCorrectnessAuditor(StandardAuditor):
 
         # --- 证明类检查（可自动化部分） ---
 
-        # 2. 数学内容存在性
+        # 2. 数学内容存在性——区分超时和空回复
         has_math = any(re.search(p, final_response) for p in MATH_PATTERNS)
+        is_timeout = final_response.strip().startswith("[TIMEOUT]")
+        is_too_short = len(final_response.strip()) < 50
+        if not has_math:
+            if is_timeout:
+                math_verdict = "有缺陷"  # 超时不是Solver的错
+                math_detail = "response为[TIMEOUT]——超时导致无数学内容（非Solver责任）"
+            elif is_too_short:
+                math_verdict = "有缺陷"
+                math_detail = f"response过短（{len(final_response.strip())}字符），无数学内容"
+            else:
+                math_verdict = "失败"
+                math_detail = "response中无数学内容"
+        else:
+            math_verdict = "通过"
+            math_detail = "response中有数学内容"
         results.append(CheckResult(
             item_id="195-证明-1",
             name="数学内容存在性",
-            verdict="失败" if not has_math else "通过",
-            detail=f"response中{'有' if has_math else '无'}数学内容",
-            evidence={"has_math": has_math},
+            verdict=math_verdict,
+            detail=math_detail,
+            evidence={"has_math": has_math, "is_timeout": is_timeout, "is_too_short": is_too_short},
         ))
 
-        # 3. 完成信号存在性
-        has_signal = any(sig in final_response for sig in COMPLETION_SIGNALS)
+        # 3. 完成信号存在性——按任务子类型选择信号列表
+        problem = glr.get("problem", "")
+        is_refute = any(kw in problem for kw in ["是否正确", "反例", "错误", "成立吗"])
+        is_discovery = any(kw in problem for kw in ["类比", "视角", "解释", "结构上"])
+        if is_refute:
+            signals = REFUTE_COMPLETION_SIGNALS + PROOF_COMPLETION_SIGNALS
+            task_type = "反驳类"
+        elif is_discovery:
+            signals = DISCOVERY_COMPLETION_SIGNALS + PROOF_COMPLETION_SIGNALS
+            task_type = "发现新方向类"
+        else:
+            signals = PROOF_COMPLETION_SIGNALS
+            task_type = "证明类"
+        has_signal = any(sig in final_response for sig in signals)
         results.append(CheckResult(
             item_id="195-证明-2",
             name="完成信号存在性",
             verdict="有缺陷" if not has_signal else "通过",
-            detail=f"response中{'有' if has_signal else '无'}完成信号",
-            evidence={"has_signal": has_signal},
+            detail=f"({task_type}) response中{'有' if has_signal else '无'}完成信号",
+            evidence={"has_signal": has_signal, "task_type": task_type},
         ))
 
-        # 4. 边界情况检查——是否提到n=1或基础情形
-        has_base_case = bool(
-            re.search(r"n\s*=\s*1\b", final_response)
-            or "基础" in final_response
-            or "归纳基础" in final_response
-            or "n=1" in final_response
-            or "n = 1" in final_response
-        )
-        results.append(CheckResult(
-            item_id="195-证明-3",
-            name="边界情况检查",
-            verdict="有缺陷" if not has_base_case else "通过",
-            detail=f"{'提到' if has_base_case else '未提到'}基础情形(n=1)",
-            evidence={"has_base_case": has_base_case},
-        ))
+        # 4. 边界情况检查——按任务子类型区分
+        if is_refute:
+            # 反驳类：只需找到反例，不需要检查所有边界
+            has_counterexample = any(kw in final_response for kw in ["反例", "取n=", "令n=", "当n="])
+            results.append(CheckResult(
+                item_id="195-证明-3",
+                name="边界情况检查",
+                verdict="通过" if has_counterexample else "有缺陷",
+                detail=f"(反驳类) {'提供了' if has_counterexample else '未提供'}反例",
+                evidence={"task_type": "反驳类", "has_counterexample": has_counterexample},
+            ))
+        elif is_discovery:
+            # 发现新方向类：检查是否有具体例子和适用边界
+            has_example = any(kw in final_response for kw in ["例子", "例如", "具体", "instance", "example"])
+            has_boundary = any(kw in final_response for kw in ["边界", "局限", "不适用", "适用范围"])
+            results.append(CheckResult(
+                item_id="195-证明-3",
+                name="边界情况检查",
+                verdict="通过" if (has_example and has_boundary) else "有缺陷",
+                detail=f"(发现新方向类) 例子={'有' if has_example else '无'}, 适用边界={'有' if has_boundary else '无'}",
+                evidence={"task_type": "发现新方向类", "has_example": has_example, "has_boundary": has_boundary},
+            ))
+        else:
+            # 证明类：检查基础情形
+            has_base_case = bool(
+                re.search(r"n\s*=\s*1\b", final_response)
+                or "基础" in final_response
+                or "归纳基础" in final_response
+                or "n=1" in final_response
+                or "n = 1" in final_response
+            )
+            results.append(CheckResult(
+                item_id="195-证明-3",
+                name="边界情况检查",
+                verdict="有缺陷" if not has_base_case else "通过",
+                detail=f"(证明类) {'提到' if has_base_case else '未提到'}基础情形(n=1)",
+                evidence={"task_type": "证明类", "has_base_case": has_base_case},
+            ))
 
         # 5. 小情形验证（对猜想类任务）——自动用Python验证
         problem = glr.get("problem", "")

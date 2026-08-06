@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import List
 
 from xishujuzhen.audit.framework import AuditData, CheckResult, StandardAuditor
@@ -19,14 +20,32 @@ class RetrievalAuditor(StandardAuditor):
 
         # --- 2.1 检索安全性 ---
         # 从conversation中检查是否有答案关键词泄漏
+        # 区分"泄漏"（"答案是xxx"）和"引用"（"那等于凭空捏造一个问题的答案"）
         final_response = data.guided_loop_result.get("final_response", "")
-        has_answer_leak = any(kw in final_response for kw in ANSWER_KEYWORDS)
+        leak_patterns = [
+            r"答案[是为：:]\s*\S",   # "答案是xxx" / "答案：xxx"
+            r"最终结论[是为：:]\s*\S",
+            r"ground_truth[:：]\s*\S",
+            r"truth_vault[:：]\s*\S",
+        ]
+        has_leak = any(re.search(p, final_response) for p in leak_patterns)
+        # "答案"一词出现但不构成泄漏（如"问题的答案"、"捏造答案"）——只统计但不判失败
+        has_mention = any(kw in final_response for kw in ANSWER_KEYWORDS)
+        if has_leak:
+            verdict = "失败"
+            detail = "response中包含答案泄漏模式（答案=xxx）"
+        elif has_mention:
+            verdict = "通过"
+            detail = "response中提到答案关键词但不构成泄漏（引用/讨论）"
+        else:
+            verdict = "通过"
+            detail = "response中不包含答案关键词"
         results.append(CheckResult(
             item_id="190-2.1-1",
             name="答案关键词过滤",
-            verdict="有缺陷" if has_answer_leak else "通过",
-            detail=f"response中{'包含' if has_answer_leak else '不包含'}答案关键词",
-            evidence={"has_answer_leak": has_answer_leak},
+            verdict=verdict,
+            detail=detail,
+            evidence={"has_leak": has_leak, "has_mention": has_mention},
         ))
 
         # --- 2.5 三层存储 ---
