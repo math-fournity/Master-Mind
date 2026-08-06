@@ -24,6 +24,39 @@ from typing import Dict, Any, List, Optional
 
 from .devin_cli_adapter import DevinCliAdapter, TurnRecord
 
+# 203-A.0: 提示分级定义
+# knowledge: 给具体数学事实（如"ex(n,C_4)=O(n^{3/2})"）
+# strategy: 给解题方向/方法选择（如"从小情形开始验证"）
+# meta: 给元提示（如"请给出更详细的分析"）
+HINT_LEVELS = {"knowledge", "strategy", "meta"}
+
+# 203-A.1: 5条硬编码提示逐条标注级别
+HINT_REGISTRY = {
+    "lack_knowledge": {
+        "level": "knowledge",
+        "text": "提示：考虑C_4是偶圈，具有二部结构。已知R_k(C_4)的上界来自Bipartite Ramsey理论，下界来自射影平面构造。请查阅Conlon关于Ramsey数的讲义。",
+    },
+    "uncertain": {
+        "level": "strategy",
+        "text": "提示：尝试从小情形开始验证。先计算k=2,3,4时的R_k(C_4)精确值，看是否能发现模式。",
+    },
+    "need_more_info": {
+        "level": "knowledge",
+        "text": "提示：关键信息是C_4的二部性使得ex(n,C_4)=O(n^{3/2})，而C_3的ex(n,C_3)=O(n^2)。这个差异直接决定了Ramsey数的阶。",
+    },
+    "response_too_short": {
+        "level": "meta",
+        "text": "请给出更详细的分析，包括：1) 已知上下界的来源，2) 你的猜测，3) 支撑猜测的推理。",
+    },
+    "unknown_stall": {
+        "level": "strategy",
+        "text": "继续分析。尝试从极值图论的角度思考：C_4-free图的边数上界如何决定Ramsey数的阶？",
+    },
+}
+
+# 降级提示（泄漏审计fail时使用）
+FALLBACK_META_HINT = "请继续深入分析，给出更详细的推理过程。"
+
 
 @dataclass
 class LoopState:
@@ -34,6 +67,8 @@ class LoopState:
     stall_detected: bool = False
     stall_reason: str = ""
     hint_given: str = ""
+    hint_level: str = ""  # 203-A.3: 记录提示级别
+    leakage_audit: Optional[Dict[str, Any]] = None  # 203-A.3: 记录泄漏审计结果
     hints_used: int = 0
     max_turns: int = 5
     max_hints: int = 3
@@ -54,6 +89,9 @@ class GuidedLoopResult:
     completion_reason: str
     turn_history: List[Dict[str, Any]] = field(default_factory=list)
     total_tokens: Dict[str, int] = field(default_factory=dict)
+    # 203-A.3: 提示级别和泄漏审计结果
+    hint_levels: List[str] = field(default_factory=list)
+    leakage_audits: List[Dict[str, Any]] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
@@ -68,6 +106,8 @@ class GuidedLoopResult:
             "completion_reason": self.completion_reason,
             "turn_history": self.turn_history,
             "total_tokens": self.total_tokens,
+            "hint_levels": self.hint_levels,  # 203-A.3
+            "leakage_audits": self.leakage_audits,  # 203-A.3
             "timestamp": self.timestamp,
         }
 
@@ -126,6 +166,9 @@ class GuidedLoop:
         self.model = model
         self.state = LoopState(max_turns=max_turns, max_hints=max_hints)
         self.adapter = DevinCliAdapter(run_dir=run_dir, model=model, timeout=timeout, work_dir=work_dir)
+        # 203-A.3: 收集每个hint的级别和审计结果
+        self._hint_levels: List[str] = []
+        self._leakage_audits: List[Dict[str, Any]] = []
 
     def run(self) -> GuidedLoopResult:
         """执行完整引导循环"""
@@ -166,6 +209,8 @@ class GuidedLoop:
             completion_reason=self.state.completion_reason or self.state.phase,
             turn_history=[t.to_dict() for t in self.adapter.turn_history],
             total_tokens=self.adapter.get_total_tokens(),
+            hint_levels=self._hint_levels,  # 203-A.3
+            leakage_audits=self._leakage_audits,  # 203-A.3
         )
 
         # 保存结果
@@ -209,9 +254,15 @@ class GuidedLoop:
                     print(f"[GuidedLoop] Hint预算耗尽({self.state.max_hints})，停止")
                     return
 
-                hint = self._generate_hint(self.state.stall_reason, self.state.last_response)
+                hint, hint_level, leakage_audit = self._generate_hint(
+                    self.state.stall_reason, self.state.last_response
+                )
 
             self.state.hint_given = hint
+            self.state.hint_level = hint_level  # 203-A.3
+            self.state.leakage_audit = leakage_audit  # 203-A.3
+            self._hint_levels.append(hint_level)  # 203-A.3: 收集
+            self._leakage_audits.append(leakage_audit or {})  # 203-A.3: 收集
             self.state.hints_used += 1
             self.state.phase = "guided"
 
@@ -259,16 +310,41 @@ class GuidedLoop:
             return "response_too_short"
         return "unknown_stall"
 
-    def _generate_hint(self, stall_reason: str, last_response: str) -> str:
-        """步骤8-9: 模式匹配 + 选择动作——简化版，根据卡点原因生成hint"""
-        hints = {
-            "lack_knowledge": "提示：考虑C_4是偶圈，具有二部结构。已知R_k(C_4)的上界来自Bipartite Ramsey理论，下界来自射影平面构造。请查阅Conlon关于Ramsey数的讲义。",
-            "uncertain": "提示：尝试从小情形开始验证。先计算k=2,3,4时的R_k(C_4)精确值，看是否能发现模式。",
-            "need_more_info": "提示：关键信息是C_4的二部性使得ex(n,C_4)=O(n^{3/2})，而C_3的ex(n,C_3)=O(n^2)。这个差异直接决定了Ramsey数的阶。",
-            "response_too_short": "请给出更详细的分析，包括：1) 已知上下界的来源，2) 你的猜测，3) 支撑猜测的推理。",
-            "unknown_stall": "继续分析。尝试从极值图论的角度思考：C_4-free图的边数上界如何决定Ramsey数的阶？",
-        }
-        return hints.get(stall_reason, hints["unknown_stall"])
+    def _generate_hint(self, stall_reason: str, last_response: str) -> tuple:
+        """步骤8-9: 模式匹配 + 选择动作——简化版，根据卡点原因生成hint
+
+        203-A.2: 提示发出前调用四门泄漏审计
+        返回 (hint_text, hint_level, leakage_audit_result)
+        """
+        # 从HINT_REGISTRY取提示
+        entry = HINT_REGISTRY.get(stall_reason, HINT_REGISTRY["unknown_stall"])
+        hint = entry["text"]
+        level = entry["level"]
+
+        # 203-A.2: 调用四门泄漏审计
+        leakage_audit = self._run_leakage_audit(hint)
+
+        # 如果审计fail，降级为meta级提示
+        if leakage_audit and leakage_audit.get("overall_result") == "fail":
+            hint = FALLBACK_META_HINT
+            level = "meta"
+            leakage_audit["degraded"] = True
+
+        return hint, level, leakage_audit
+
+    def _run_leakage_audit(self, hint: str) -> Optional[Dict[str, Any]]:
+        """203-A.2: 调用leakage_audit.py的四门审计"""
+        try:
+            from ..heuristics.leakage_audit import AnswerEquivalenceAuditor
+            auditor = AnswerEquivalenceAuditor()
+            # task为空时四门审计仍可执行（gate1/gate2检查字面匹配）
+            task = {"goal": getattr(self, '_truth_vault_answer', '')}
+            result = auditor.run_four_gates(hint, task)
+            return result
+        except Exception as e:
+            # 审计失败时不阻塞——返回None，提示照常发出
+            # 但记录审计失败
+            return {"audit_error": str(e), "overall_result": "error"}
 
     def _construct_guided_prompt(self, hint: str) -> str:
         """步骤10: 增量编译——构造包含上下文+hint的prompt"""
