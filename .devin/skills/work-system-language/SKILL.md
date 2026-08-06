@@ -172,7 +172,21 @@
 
 ---
 
-## 九、维护规则
+## 九、元组 Skill（3 个，on-demand 加载）
+
+AGENTS.md 瘦身后，原 always-on 的参考信息、技术说明、历史记录移到 on-demand 的 skill 中。AGENTS.md 中的 rule 指向这些 skill，AI 遇到匹配场景时加载。
+
+| skill | 触发场景 | 表达能力 |
+|---|---|---|
+| `math-master-system-reference` | 操作数学大师系统、参考星学方法论 | 七步骤工作流、依赖图导入、arXiv查询、G'_topo生成、TopologyVerifier、三层提取、数学意识节点、种子推荐表、认知图查询命令、星学参考文档索引（63-107号）、认识论位置 |
+| `worktree-isolation-history` | 排查隔离问题、了解实施背景 | 环境变量化过程（25个文件6种改动模式）、commit历史、上游同步记录 |
+| `project-memory-archive` | 回顾项目演进、理解架构决策背景 | 122号v2的13条工程直觉、123号v1的10条严格化基线、80-99号证据裁决、POC隔离测试流程、四次POC核心洞察、知识搜集状态、arXiv操作化状态 |
+
+**语言**：AGENTS.md 中的 rule 是模式匹配指针，skill 的 description 是指向 rule 的指针。AI 通过 rule 识别场景，加载 skill 获取详细内容。
+
+---
+
+## 十、维护规则
 
 本 skill 是工作系统"语言"的活文档。每次工作系统新增基础设施、新增表达能力、或发现新的缺失时，更新本 skill。
 
