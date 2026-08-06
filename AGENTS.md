@@ -388,6 +388,14 @@
    - Rule: `.devin/rules/audit-trigger.md`（always-on，定义4种触发条件 + 12份文档索引）
    - Skill: `.devin/skills/audit-module/SKILL.md`（on-demand，6步审计工作流）
 
+8. **审计标准回测验证**（196号，已commit）：
+   - 用5个历史run回测184/194/195号标准
+   - 全部5个run的判定结果与已知状态一致——标准有效
+   - 发现3个标准缺陷并修订：
+     - 184号增加"response不以[ERROR开头"检查
+     - 184号增加"区分工作系统劫持和数学卡点"
+     - 195号增加"数据来源纯净性"通用检查项（web_search检测）
+
 **关键调查发现**：
 - devin cli的sessions.db已记录AI完整trajectory（thinking + tool_calls + tool结果 + 性能指标）
 - `--export <PATH>`每turn自动导出ATIF-v1.7 JSON
@@ -396,14 +404,18 @@
 - web_search必须禁用——搜索是作弊
 
 **下一步（待执行）**：
-用历史run回测审计标准——拿run_20260806_guided_001/002/003/004和run_20260806_verify_001，
-按184号和195号标准执行审计，验证标准能否发现问题。
-如果标准无法发现问题或发现不了已知问题，说明标准有缺陷，需要修订。
+审计标准体系已建立并回测验证通过。后续可做方向：
+1. 把审计Skill自动化——写脚本从ArangoDB/sessions.db自动提取数据并按检查项判定
+2. 用更多run（特别是复杂问题、需要多turn+hint的run）继续回测标准
+3. 建立P1/P2/P3模块的回测数据（目前只回测了P0的184/194/195）
+4. 审计标准文档的"待细化"项逐个落实（每份文档末尾列了5-6个待细化项）
 
 **关键文件索引**：
 - 审计报告：dev-docs/174-v1, 175-v1, 176-v1, 177-v1
 - 方案文档：dev-docs/178-v1, 179-v0, 180-v0, 181-v0, 182-v0
-- 审计标准：dev-docs/183-v0(总纲), 184-v0(循环), 195-v0(数学正确性)
+- 审计标准：dev-docs/183-v0(总纲), 184-v0(循环), 185-v0(控制器策略), 186-v0(预算), 187-v0(事件系统), 188-v0(状态归约), 189-v0(启发匹配), 190-v0(检索), 191-v0(上下文编译), 192-v0(验证), 193-v0(审计角色元审计), 194-v0(Solver连接), 195-v0(数学正确性)
+- 审计回测：dev-docs/196-v0(回测报告)
+- 审计元组：.devin/rules/audit-trigger.md(Rule) + .devin/skills/audit-module/SKILL.md(Skill)
 - 修复的代码：models/event.py, models/task.py, heuristics/matcher.py, retrieval/dg_adapter.py, context_compiler/context_compiler.py, context_compiler/minimality_audit.py, verification/stall_detector.py
 - 新增代码：runtime/devin_cli_adapter.py, runtime/guided_loop.py
 - Solver工作目录：/data/math-agent-glm5.2-{1,2,3}/AGENTS.md
