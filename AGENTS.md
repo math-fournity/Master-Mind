@@ -799,10 +799,10 @@ python3 -m venv .venv          # python3.14
 
 > 详见"数据丢失事件记录"节。ArangoDB cognition_units中130个awareness单元被truncate清空，不可恢复。
 
-- [ ] **改`cognition_import_math.py`为merge/upsert模式**——不truncate，对每条JSON记录upsert；对ArangoDB有但JSON没有的记录保留不动或标记orphan待人工确认
-- [ ] **新增`cognition_export_math.py`**——ArangoDB→JSON双向同步，定期把ArangoDB当前状态回写到`cognition_units_math.json`
-- [ ] **在`cognition_sdk_math.py`的`add_unit()`中增加JSON回写或审计日志**——每次add_unit时至少写一条审计记录到单独collection，记录cog_id/title/category/key_cognition/source_docs，防止再次出现"ArangoDB有但JSON没有且无记录"的情况
-- [ ] **配置arangodump定期备份**——`arangodump` + cron定时任务，备份到`/data/master-mind/backups/arango/$(date +%Y%m%d)`，保留最近N天
+- [x] **改`cognition_import_math.py`为merge/upsert模式**——不truncate，对每条JSON记录upsert；对ArangoDB有但JSON没有的记录保留不动或标记orphan待人工确认。**已完成（P0-8.1）**，脚本用 `insert(doc, overwrite=True)` 实现 upsert，检测 orphan
+- [x] **新增`cognition_export_math.py`**——ArangoDB→JSON双向同步，定期把ArangoDB当前状态回写到`cognition_units_math.json`。**已完成（P0-8.2）**，支持 `--dry-run` 和 `--diff` 模式
+- [x] **在`cognition_sdk_math.py`的`add_unit()`中增加JSON回写或审计日志**——每次add_unit时至少写一条审计记录到单独collection，记录cog_id/title/category/key_cognition/source_docs，防止再次出现"ArangoDB有但JSON没有且无记录"的情况。**已完成（P0-8.3）**，`_audit_log()` 方法写入 `cognition_audit_log` collection
+- [x] **配置arangodump定期备份**——`arangodump` + cron定时任务，备份到`/data/master-mind/backups/arango/$(date +%Y%m%d)`，保留最近7天。**已完成（2026-08-06）**，`scripts/backup_arango.sh` 通过 `docker exec` 在容器内执行 arangodump，cron 每天凌晨 3 点运行
 
 ## Memory Section
 
@@ -985,11 +985,11 @@ POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或
 - 不影响现有5个数学意识种子（都在JSON中保留）
 - **但**：如果未来需要重建题库Phase A的L2/L3提取结果，需要重新跑三层提取
 
-**待修复**（见TODO节"数据丢失修复"）：
-- [ ] 改`cognition_import_math.py`为merge/upsert模式，不truncate
-- [ ] 新增`cognition_export_math.py`（ArangoDB→JSON双向同步）
-- [ ] 配置arangodump定期备份到`/data/master-mind/backups/arango/`
-- [ ] 在`add_unit()`中增加JSON回写或至少审计日志
+**已修复**（详见TODO节"数据丢失修复"）：
+- [x] 改`cognition_import_math.py`为merge/upsert模式，不truncate（P0-8.1）
+- [x] 新增`cognition_export_math.py`（ArangoDB→JSON双向同步）（P0-8.2）
+- [x] 配置arangodump定期备份到`/data/master-mind/backups/arango/`（2026-08-06，cron每天3点）
+- [x] 在`add_unit()`中增加审计日志到`cognition_audit_log` collection（P0-8.3）
 
 ## Handover Section
 
