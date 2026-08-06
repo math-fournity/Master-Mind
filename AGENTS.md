@@ -97,6 +97,13 @@
 
 **DevinCliAdapter**（`runtime/devin_cli_adapter.py`）自动选择这些目录作为 `cwd` 运行 devin cli。run 的导出文件（conversation.json等）仍存在本 repo 的 `runs/` 目录中。
 
+**启动方式约束**：GuidedLoop必须用tmux启动，禁止用exec后台(timeout=0)或nohup。原因：
+1. tmux pipe-pane是179号方案中兜底记录devin cli trajectory的手段——不用tmux则兜底记录断了
+2. 用tmux可以持续观察Solver工作过程（`tmux capture-pane -t solver-<run_id> -p`）
+3. exec后台模式的进程在session结束时会被杀掉，导致trajectory丢失
+
+具体启动规范见 `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
+
 ### 认知资产索引（活文档）
 
 认知资产索引（隔离实施状态、ArangoDB 初始化状态、认知图/依赖图/题库统计）在 `xishujuzhen/cognition_asset_index.md`，由工作系统持续维护。每次新增认知单元、新增 dev-docs、ArangoDB 状态变更后更新该文档。
@@ -403,18 +410,22 @@
 - Solver必须在外部目录运行，否则工作系统规则会劫持其行为
 - web_search必须禁用——搜索是作弊
 
-**下一步（待执行）**：
-审计标准体系已建立并回测验证通过。后续可做方向：
-1. 把审计Skill自动化——写脚本从ArangoDB/sessions.db自动提取数据并按检查项判定
-2. 用更多run（特别是复杂问题、需要多turn+hint的run）继续回测标准
-3. 建立P1/P2/P3模块的回测数据（目前只回测了P0的184/194/195）
-4. 审计标准文档的"待细化"项逐个落实（每份文档末尾列了5-6个待细化项）
+**下一步（正在执行）**：
+按197号方案执行审计自动化与标准深化，5个Phase：
+- Phase A: 审计脚本框架（xishujuzhen/audit/，8项Check List）——进行中
+- Phase B: P0审计自动化（184/194/195脚本化，5项Check List）
+- Phase C: 12份文档60项待细化落实（13项Check List）——与A并行
+- Phase D: P1-P3审计自动化（185-193脚本化，10项Check List）
+- Phase E: 复杂run生成与回测（5项Check List）
+执行顺序：A+C并行 → B → D → E
+完整TODO List已建立（22项），在todo_write工具中跟踪。
 
 **关键文件索引**：
 - 审计报告：dev-docs/174-v1, 175-v1, 176-v1, 177-v1
 - 方案文档：dev-docs/178-v1, 179-v0, 180-v0, 181-v0, 182-v0
 - 审计标准：dev-docs/183-v0(总纲), 184-v0(循环), 185-v0(控制器策略), 186-v0(预算), 187-v0(事件系统), 188-v0(状态归约), 189-v0(启发匹配), 190-v0(检索), 191-v0(上下文编译), 192-v0(验证), 193-v0(审计角色元审计), 194-v0(Solver连接), 195-v0(数学正确性)
 - 审计回测：dev-docs/196-v0(回测报告)
+- 审计方案：dev-docs/197-v0(审计自动化与标准深化方案)
 - 审计元组：.devin/rules/audit-trigger.md(Rule) + .devin/skills/audit-module/SKILL.md(Skill)
 - 修复的代码：models/event.py, models/task.py, heuristics/matcher.py, retrieval/dg_adapter.py, context_compiler/context_compiler.py, context_compiler/minimality_audit.py, verification/stall_detector.py
 - 新增代码：runtime/devin_cli_adapter.py, runtime/guided_loop.py
