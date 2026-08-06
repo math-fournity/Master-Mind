@@ -78,6 +78,25 @@
 - **网络端口**：如果本 repo 要起服务（如 ArangoDB Web、自定义 HTTP 服务），注意端口不要和上游冲突。起服务前先 `lsof -i :<port>` 检查。
 - **Python 环境**：本 repo 用独立 venv（`.venv/`，python3.14 + python-arango 8.3.3，被 gitignore）。
 
+### 硬约束 5 · Solver 工作目录隔离
+
+**数学大师 Solver 的 devin cli 实例必须在外部目录运行，不能在本 repo 内运行。**
+
+原因：本 repo 的 AGENTS.md 包含工作系统规则（CP1-CP3、认知种子、七步骤pipeline等），如果 Solver 在本 repo 内运行 devin cli，这些规则会劫持 Solver 的行为——Solver 不做数学，而是去加载认知种子。这在 run_20260806_guided_001/002 中已验证发生。
+
+**Solver 工作目录**（D 盘上的三个独立目录）：
+- `/data/math-agent-glm5.2-1`
+- `/data/math-agent-glm5.2-2`
+- `/data/math-agent-glm5.2-3`
+
+每个目录有专门的 `AGENTS.md`，只定义 Solver 角色：
+- 直接做数学，不走工作系统流程
+- **禁止 `web_search`**——搜索是作弊，数学大师的价值在于内部知识能力
+- 允许 `exec`（Python/SymPy计算验证）、`read`/`write`/`edit`（保存证明草稿）
+- 不知道就说"我不知道"，系统通过提示引导
+
+**DevinCliAdapter**（`runtime/devin_cli_adapter.py`）自动选择这些目录作为 `cwd` 运行 devin cli。run 的导出文件（conversation.json等）仍存在本 repo 的 `runs/` 目录中。
+
 ### 认知资产索引（活文档）
 
 认知资产索引（隔离实施状态、ArangoDB 初始化状态、认知图/依赖图/题库统计）在 `xishujuzhen/cognition_asset_index.md`，由工作系统持续维护。每次新增认知单元、新增 dev-docs、ArangoDB 状态变更后更新该文档。
