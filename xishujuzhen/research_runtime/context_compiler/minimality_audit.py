@@ -86,10 +86,21 @@ class MinimalityAudit:
         - 上下文过多（有冗余——审计1触发）
         - 上下文过少（缺失关键信息——审计2触发）
         - 上下文预载未来路线（审计3触发）
+
+        F-176-5修正：添加输入验证和异常处理。
         """
-        redundancy = self._audit_redundancy(context_segments, open_obligations)
-        missing = self._audit_missing(context_segments, open_obligations)
-        preloading = self._audit_preloading(context_segments)
+        # F-176-5：输入验证
+        if not isinstance(context_segments, list):
+            raise TypeError(f"context_segments必须是list，实际是{type(context_segments).__name__}")
+        if not isinstance(open_obligations, list):
+            raise TypeError(f"open_obligations必须是list，实际是{type(open_obligations).__name__}")
+
+        try:
+            redundancy = self._audit_redundancy(context_segments, open_obligations)
+            missing = self._audit_missing(context_segments, open_obligations)
+            preloading = self._audit_preloading(context_segments)
+        except (KeyError, TypeError, AttributeError) as e:
+            raise ValueError(f"最小性审计执行失败——输入格式错误: {e}") from e
 
         # 审计通过条件：无冗余error + 无缺失error + 无预载error
         passed = (

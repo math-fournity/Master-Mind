@@ -280,6 +280,8 @@ class StallDetector:
 class StallAnnotationStore:
     """
     人工标注校准集存储（P2-7.2）。
+
+    F-176-5修正：数据库操作添加异常处理。
     """
 
     def __init__(
@@ -289,21 +291,30 @@ class StallAnnotationStore:
         password: str = DB_PASS,
         host: str = ARANGO_HOST,
     ):
-        client = ArangoClient(hosts=host)
-        self.db = client.db(db_name, username=username, password=password)
-        self.col = self.db.collection("stall_annotations")
+        try:
+            client = ArangoClient(hosts=host)
+            self.db = client.db(db_name, username=username, password=password)
+            self.col = self.db.collection("stall_annotations")
+        except Exception as e:
+            raise ConnectionError(f"StallAnnotationStore连接ArangoDB失败: {e}") from e
 
     def insert_annotation(self, ann: StallAnnotation) -> str:
-        """插入人工标注。"""
+        """插入人工标注。F-176-5：添加异常处理。"""
         doc = ann.to_dict()
         doc["_key"] = ann.annotation_id
-        result = self.col.insert(doc)
-        return result["_key"]
+        try:
+            result = self.col.insert(doc)
+            return result["_key"]
+        except Exception as e:
+            raise RuntimeError(f"插入stall_annotation失败(annotation_id={ann.annotation_id}): {e}") from e
 
     def get_annotations_for_run(self, run_id: str) -> List[Dict[str, Any]]:
-        """获取一个运行的所有标注。"""
+        """获取一个运行的所有标注。F-176-5：添加异常处理。"""
         aql = "FOR a IN stall_annotations FILTER a.run_id == @run_id SORT a.timestamp RETURN a"
-        cursor = self.db.aql.execute(aql, bind_vars={"run_id": run_id})
+        try:
+            cursor = self.db.aql.execute(aql, bind_vars={"run_id": run_id})
+        except Exception as e:
+            raise RuntimeError(f"查询stall_annotations失败(run_id={run_id}): {e}") from e
         results = []
         for doc in cursor:
             doc.pop("_id", None)

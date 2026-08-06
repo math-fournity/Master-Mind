@@ -110,9 +110,19 @@ class ContextCompiler:
         编译上下文——每段输出带5项记录。
 
         边界情况：某项记录缺失、来源不可追溯
+
+        F-176-5修正：添加输入验证和异常处理。
         """
+        # F-176-5：输入验证
+        if not obligation_id:
+            raise ValueError("obligation_id不能为空")
+        if not isinstance(retrieval_results, list):
+            raise TypeError(f"retrieval_results必须是list，实际是{type(retrieval_results).__name__}")
+
         segments = []
         for i, result in enumerate(retrieval_results):
+            if not isinstance(result, dict):
+                raise TypeError(f"retrieval_results[{i}]必须是dict，实际是{type(result).__name__}")
             segment_id = f"seg_{obligation_id}_{i}"
             content = result.get("content", "")
             content_type = result.get("content_type", "")
