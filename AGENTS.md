@@ -57,17 +57,30 @@
 - `seven_step_pipeline.py`（通过 `db_name="xishujuzhen_math"` 传入）
 - `research_runtime/test_phase2.py`（硬编码 `localhost:8529`）
 
-#### 隔离方案
+#### 隔离方案（已实施 · 方案 a 环境变量化）
 
 **本 repo 专用数据库名**：`xishujuzhen_math_glm52`
 
-**实现策略（待用户确认后执行，当前仅记录规则）**：
+**已实施的策略**：方案 a · 环境变量化。所有 25 个 Python 文件的硬编码已改为：
+- `DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")`（16 个文件）
+- `ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")`（11 个文件）
+- `ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))`（11 个文件 inline）
+- `client.db(os.environ.get("ARANGO_DB", "..."), ...)`（7 个文件 inline）
+- `db_name=os.environ.get("ARANGO_DB", "xishujuzhen_math")`（3 处 inline 调用）
 
-- **方案 a（推荐）· 环境变量化**：把所有 `DB_NAME = "xishujuzhen_math"` 改成 `DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")`，把 `ARANGO_HOST = "http://localhost:8529"` 改成 `ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")`。本 repo 通过 `.env` 或 shell 导出 `ARANGO_DB=xishujuzhen_math_glm52`。利：上游代码不变（默认值仍是 `xishujuzhen_math`），rebase 冲突最小；弊：要改 16 个文件，但改动模式一致。
-- **方案 b · 直接改名**：把本 repo 所有 `DB_NAME = "xishujuzhen_math"` 直接 sed 替换成 `xishujuzhen_math_glm52`。利：简单；弊：rebase/merge origin/main 时这 16 处全部冲突，且上游永远拿不到这个改动。
-- **方案 c · 配置文件**：新建 `xishujuzhen/db_config.py` 集中定义，其他文件 import。利：最干净；弊：改动最大，rebase 冲突最复杂。
+默认值保持和上游一致（`xishujuzhen_math` / `http://localhost:8529`），所以上游代码行为不变。本 repo 通过 `.env` 文件覆盖为 `xishujuzhen_math_glm52`。
 
-**推荐方案 a**：环境变量化是正确工程实践，上游未来也可能需要它，rebase 时冲突最小（默认值不变）。
+**配置文件**：
+- `.env`（已 gitignore，不提交）：本 repo 专用，`ARANGO_DB=xishujuzhen_math_glm52`
+- `.env.example`（提交到 repo）：模板，供未来 AI 参考
+- 使用前 `source .env` 或用 dotenv 加载
+
+**未环境变量化的部分**（已知，按需处理）：
+- `cognition_sdk_math.py` 的 `host="localhost", port=8529` 是分开参数格式（非 URL），与 `ARANGO_HOST` 格式不同，暂未改。其 `db_name` 已环境变量化。
+- `username="root"` / `password="REDACTED-DB-PASSWORD"` 硬编码未改——数据库隔离通过 DB_NAME 已足够，用户级隔离按需再做。
+- `topology_verifier.py` 用的是 `db_name` 参数变量（非硬编码），无需改。
+
+**一次性改动脚本**：`scripts/_envvarize_arango.py`（保留在 repo 中作为改动记录）。
 
 #### 数据库隔离硬规则
 
@@ -75,7 +88,7 @@
 2. **禁止**以 `xishujuzhen_math`（上游数据库名）连接 ArangoDB 做任何写操作。读可以（用于对比/迁移），但写绝对禁止。
 3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `xishujuzhen_math_glm52`，不要复用上游的 `xishujuzhen_math`。
 4. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
-5. **如果环境变量化尚未实施**：在改完代码前，**禁止运行任何会写 ArangoDB 的脚本**，否则会污染上游数据库。
+5. **环境变量化已实施**：运行写库脚本前，`source .env` 加载环境变量。若忘了 source，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）——所以 **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。
 
 ### 硬约束 4 · 其他共享资源意识
 

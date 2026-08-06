@@ -22,7 +22,7 @@ from datetime import datetime
 
 from arango import ArangoClient
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 
 
 class TopoGenerator:

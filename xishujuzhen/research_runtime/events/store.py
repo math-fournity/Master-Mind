@@ -10,6 +10,7 @@ EventStore + CheckpointStore: 事件存储与checkpoint
 - checkpoint用内容哈希标识（内容寻址，123号§39）
 """
 
+import os
 import hashlib
 import json
 from typing import List, Optional, Dict, Any
@@ -24,10 +25,10 @@ from ..models.event import (
 )
 
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 
 class EventStore:

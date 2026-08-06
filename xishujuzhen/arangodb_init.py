@@ -3,14 +3,15 @@
 
 创建数据库、collections、graphs，对应79号文档中的数据模型设计。
 """
+import os
 from arango import ArangoClient
 
 # 连接ArangoDB
-client = ArangoClient(hosts="http://localhost:8529")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
 sys_db = client.db("_system", username="root", password="REDACTED-DB-PASSWORD")
 
 # 创建xishujuzhen数据库
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 if not sys_db.has_database(DB_NAME):
     sys_db.create_database(DB_NAME)
     print(f"✅ 创建数据库: {DB_NAME}")

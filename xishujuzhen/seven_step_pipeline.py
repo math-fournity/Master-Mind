@@ -102,7 +102,7 @@ def step3_topology_verify(sdk):
     print("=" * 60)
 
     from topology_verifier import TopologyVerifier
-    tv = TopologyVerifier(db_name="xishujuzhen_math")
+    tv = TopologyVerifier(db_name=os.environ.get("ARANGO_DB", "xishujuzhen_math"))
     report = tv.verify_all()
     print(report.summary())
 

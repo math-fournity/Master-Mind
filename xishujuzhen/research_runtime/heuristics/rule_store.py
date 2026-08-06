@@ -13,15 +13,16 @@ R-4防线：candidate禁止在线自动提示——这是R-4（Agent可能迎合
 NO-8防线：不让在线一次成功自动写入production H。
 """
 
+import os
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 
 from .models import HeuristicRule, RuleLifecycleStatus
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 
 class HeuristicRuleStore:

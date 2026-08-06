@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """导入数学依赖图到 ArangoDB (xishujuzhen_math 数据库)"""
+import os
 import json
 from arango import ArangoClient
 
 # 连接
-client = ArangoClient(hosts="http://localhost:8529")
-db = client.db("xishujuzhen_math", username="root", password="REDACTED-DB-PASSWORD")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen_math"), username="root", password="REDACTED-DB-PASSWORD")
 
 # 读取依赖图 JSON
 with open("/data/master-mind/xishujuzhen/poc/poc2/math_dependency_graph.json") as f:

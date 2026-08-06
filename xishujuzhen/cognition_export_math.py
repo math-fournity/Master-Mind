@@ -17,13 +17,13 @@ from datetime import datetime
 
 from arango import ArangoClient
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 JSON_PATH = os.path.join(os.path.dirname(__file__), "poc", "cognition_units_math.json")
 
 
 def export_from_arango():
     """从ArangoDB导出全部认知单元、边和版本"""
-    client = ArangoClient(hosts="http://localhost:8529")
+    client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
     db = client.db(DB_NAME, username="root", password="REDACTED-DB-PASSWORD")
 
     units = list(db.collection("cognition_units").all())

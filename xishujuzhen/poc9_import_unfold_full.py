@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """将normal AI转译结果（大师提示词）写入ArangoDB的uf_nodes和uf_edges"""
+import os
 import json
 from arango import ArangoClient
 
-client = ArangoClient(hosts="http://localhost:8529")
-db = client.db("xishujuzhen", username="root", password="REDACTED-DB-PASSWORD")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen"), username="root", password="REDACTED-DB-PASSWORD")
 
 # 读取转译输入（包含G'_topo结构+KC）
 with open("xishujuzhen/poc/poc9_translate_input.json", encoding="utf-8") as f:

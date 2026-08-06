@@ -3,12 +3,13 @@
 
 对应91号方案第三节。不破坏已有的dg_nodes/dg_edges/loops/kcs/ut_nodes/ut_edges/uf_nodes/uf_edges。
 """
+import os
 from arango import ArangoClient
 
-client = ArangoClient(hosts="http://localhost:8529")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
 sys_db = client.db("_system", username="root", password="REDACTED-DB-PASSWORD")
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 if not sys_db.has_database(DB_NAME):
     sys_db.create_database(DB_NAME)
     print(f"✅ 创建数据库: {DB_NAME}")

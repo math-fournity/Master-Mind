@@ -15,7 +15,7 @@ from cognition_verifier_math import CognitionVerifier
 class CognitionSDK:
     """认知图操作SDK"""
 
-    def __init__(self, host="localhost", port=8529, db_name="xishujuzhen_math",
+    def __init__(self, host="localhost", port=8529, db_name=os.environ.get("ARANGO_DB", "xishujuzhen_math"),
                  username="root", password="REDACTED-DB-PASSWORD"):
         self.client = ArangoClient(hosts=f"http://{host}:{port}")
         self.db = self.client.db(db_name, username=username, password=password)
@@ -479,7 +479,7 @@ class CognitionSDK:
         """调用TopologyVerifier做拓扑覆盖验证"""
         sys.path.insert(0, os.path.dirname(__file__))
         from topology_verifier import TopologyVerifier
-        tv = TopologyVerifier(db_name="xishujuzhen_math")
+        tv = TopologyVerifier(db_name=os.environ.get("ARANGO_DB", "xishujuzhen_math"))
         return tv.verify_all()
 
     def cross_reference_dg(self, cog_id):

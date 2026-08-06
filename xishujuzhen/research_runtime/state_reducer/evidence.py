@@ -21,16 +21,17 @@
 - 证据artifact_hash缺失
 """
 
+import os
 from enum import Enum
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 from arango import ArangoClient
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 
 class EvidenceKind(str, Enum):

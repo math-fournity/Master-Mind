@@ -9,13 +9,14 @@ ArangoDB migration: 创建Phase 2的state collections
 - 生产图、候选图、实验快照分开
 """
 
+import os
 from arango import ArangoClient
 from arango.exceptions import CollectionCreateError
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 # Phase 2需要创建的collections
 PHASE2_COLLECTIONS = [

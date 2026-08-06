@@ -13,13 +13,14 @@ ArangoDB migration: 创建Phase 3的heuristics collections
 - activation_packets: 激活包文档存储
 """
 
+import os
 from arango import ArangoClient
 from arango.exceptions import CollectionCreateError
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 # Phase 3需要创建的collections
 PHASE3_COLLECTIONS = [

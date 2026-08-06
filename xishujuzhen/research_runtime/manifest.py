@@ -10,6 +10,7 @@ manifest是123号§32步骤1（冻结）的实现：
 R-1风险防线（P1-1.COMP2）：manifest包含hidden_cot_required: false字段。
 """
 
+import os
 import json
 import hashlib
 import uuid
@@ -20,10 +21,10 @@ from pathlib import Path
 
 from arango import ArangoClient
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 # manifest落盘路径（P1-1.3）
 RUNS_DIR = Path(__file__).parent / "runs"

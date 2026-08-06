@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """为步骤4（normal AI转译）准备输入文件：G'_topo + KC + 依赖图desc"""
+import os
 import json
 from arango import ArangoClient
 
-client = ArangoClient(hosts="http://localhost:8529")
-db = client.db("xishujuzhen", username="root", password="REDACTED-DB-PASSWORD")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen"), username="root", password="REDACTED-DB-PASSWORD")
 
 # 读取G'_topo
 with open("xishujuzhen/poc/poc9_g_prime_topo.json", encoding="utf-8") as f:

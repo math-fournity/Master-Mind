@@ -15,16 +15,17 @@ WorkspaceStore: 工作区读写接口
 - W_t不可直接修改（只能通过Reducer派生）
 """
 
+import os
 from typing import Optional, Dict, Any, List
 from datetime import datetime, timezone
 from arango import ArangoClient
 
 from ..models.workspace import Workspace
 
-DB_NAME = "xishujuzhen_math"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
 DB_USER = "root"
 DB_PASS = "REDACTED-DB-PASSWORD"
-ARANGO_HOST = "http://localhost:8529"
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 
 
 class WorkspaceStore:

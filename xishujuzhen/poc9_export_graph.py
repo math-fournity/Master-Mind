@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """从ArangoDB导出dependency_graph为JSON，作为meta AI拓扑规划的输入"""
+import os
 import json
 from arango import ArangoClient
 
-client = ArangoClient(hosts="http://localhost:8529")
-db = client.db("xishujuzhen", username="root", password="REDACTED-DB-PASSWORD")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen"), username="root", password="REDACTED-DB-PASSWORD")
 
 # 导出节点
 nodes = []

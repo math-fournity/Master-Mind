@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """将G'_topo写入ArangoDB的ut_nodes和ut_edges集合"""
+import os
 import json
 from arango import ArangoClient
 
-client = ArangoClient(hosts="http://localhost:8529")
-db = client.db("xishujuzhen_math", username="root", password="REDACTED-DB-PASSWORD")
+client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
+db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen_math"), username="root", password="REDACTED-DB-PASSWORD")
 
 with open("xishujuzhen/poc/poc2/poc2_g_prime_topo.json", encoding="utf-8") as f:
     topo = json.load(f)

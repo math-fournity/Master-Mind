@@ -10,8 +10,8 @@ import sys
 import time
 from arango import ArangoClient
 
-DB_NAME = "xishujuzhen_math"
-ARANGO_HOST = "http://localhost:8529"
+DB_NAME = os.environ.get("ARANGO_DB", "xishujuzhen_math")
+ARANGO_HOST = os.environ.get("ARANGO_HOST", "http://localhost:8529")
 ARANGO_USER = "root"
 ARANGO_PASS = "REDACTED-DB-PASSWORD"
 METADATA_PATH = "/data/master-mind/knowledge/arxiv/metadata_all_2023plus.json"

@@ -291,8 +291,8 @@ def test_phase2_integration():
     # === 清理 ===
     print("\n--- 清理 ---")
     from arango import ArangoClient
-    client = ArangoClient(hosts="http://localhost:8529")
-    db = client.db("xishujuzhen_math", username="root", password="REDACTED-DB-PASSWORD")
+    client = ArangoClient(hosts=os.environ.get("ARANGO_HOST", "http://localhost:8529"))
+    db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen_math"), username="root", password="REDACTED-DB-PASSWORD")
     try:
         db.collection("workspaces").delete(ws_id)
         db.collection("workspaces").delete(result["workspace_id"])
