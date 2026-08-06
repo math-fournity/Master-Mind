@@ -107,11 +107,12 @@ def _gen_id(prefix: str = "evt") -> str:
     return f"{prefix}_{uuid.uuid4().hex[:16]}"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RawEvent:
     """
     127号§3 RawEvent Schema冻结定义。
     原始事件append-only，不允许修改或删除。
+    frozen=True强制不可变——尝试修改字段会抛出FrozenInstanceError。
     """
     event_id: str
     type: str                             # RawEventType枚举值
@@ -148,11 +149,12 @@ class RawEvent:
         )
 
 
-@dataclass
+@dataclass(frozen=True)
 class SemanticEvent:
     """
     127号§3 SemanticEvent Schema冻结定义。
     语义事件可重抽（三层保留的第2层）。
+    frozen=True强制不可变——重抽时用dataclasses.replace()创建新实例。
     """
     event_id: str
     raw_event_id: str                     # 指向原始事件

@@ -29,11 +29,12 @@ class TaskType(str, Enum):
     VALUE = "value"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Task:
     """
     127号§1 Task Schema冻结定义。
     Q_0在运行时保持冻结（127号§1冻结声明）。
+    frozen=True强制不可变——尝试修改字段会抛出FrozenInstanceError。
     """
     task_id: str
     type: TaskType

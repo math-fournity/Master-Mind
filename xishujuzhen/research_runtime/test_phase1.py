@@ -175,8 +175,9 @@ def test_p1_4_semantic_events(manifest, raw_events):
         conflict_with=[sem3.event_id],
         confidence=0.7,
     )
-    # 对称：sem3也要标记与sem3_conflict冲突
-    sem3.conflict_with = [sem3_conflict.event_id]
+    # 对称：sem3也要标记与sem3_conflict冲突（frozen=True，用replace创建新实例）
+    import dataclasses as _dc
+    sem3 = _dc.replace(sem3, conflict_with=[sem3_conflict.event_id])
 
     for sem in [sem1, sem2, sem3, sem3_conflict]:
         store.insert_semantic_event(sem)
@@ -573,6 +574,7 @@ def test_audit_6_checkpoint_multi_continuation(manifest):
     """审计修正6：checkpoint多continuation验证（123号§39）"""
     print("\n=== 审计修正6：checkpoint多continuation（123号§39） ===")
 
+    import dataclasses as _dc
     chk_store = CheckpointStore()
 
     workspace = {
@@ -607,7 +609,7 @@ def test_audit_6_checkpoint_multi_continuation(manifest):
         cap1.capture_text_output("Working on candidate A..."),
     ]
     for evt in cont1_events:
-        evt.causal_predecessors = [checkpoint_hash]  # 从checkpoint继续
+        evt = _dc.replace(evt, causal_predecessors=[checkpoint_hash])  # 从checkpoint继续
         store.insert_raw_event(evt)
 
     # Continuation 2: Agent选择candidate_B（同一checkpoint，不同选择）
@@ -617,7 +619,7 @@ def test_audit_6_checkpoint_multi_continuation(manifest):
         cap2.capture_text_output("Working on candidate B..."),
     ]
     for evt in cont2_events:
-        evt.causal_predecessors = [checkpoint_hash]
+        evt = _dc.replace(evt, causal_predecessors=[checkpoint_hash])
         store.insert_raw_event(evt)
 
     # Continuation 3: Agent放弃两个候选（同一checkpoint，第三种选择）
@@ -626,7 +628,7 @@ def test_audit_6_checkpoint_multi_continuation(manifest):
         cap3.capture_backtrack("both_candidates", "neither seems promising"),
     ]
     for evt in cont3_events:
-        evt.causal_predecessors = [checkpoint_hash]
+        evt = _dc.replace(evt, causal_predecessors=[checkpoint_hash])
         store.insert_raw_event(evt)
 
     # 验证：3个continuation从同一checkpoint出发，走了不同路径
