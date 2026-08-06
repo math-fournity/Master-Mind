@@ -153,7 +153,7 @@ python3 -m venv .venv          # python3.14
 
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
-- **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（无 git，内容由 Supervisor 产出）
+- **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库，分支 `main`，内容由 Supervisor 产出）
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统
 - **Supervisor 职责**：监督、反思、设计 Master 的工作系统
