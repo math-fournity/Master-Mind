@@ -338,6 +338,15 @@
 **下一步**（已与用户确认方向，待执行）：
 做一次真实的端到端验证run——启动devin cli实例，用`--export`导出，让它做一个简单数学问题，同时用tmux pipe-pane兜底记录，结束后从sessions.db提取完整轨迹，验证能否拼出完整审计报告。验证结果反馈到179/181/182的方案细化。
 
+**端到端验证已完成**（2026-08-06）：
+- run_id: run_20260806_verify_001, session_id: cooked-shelf
+- `--export`生成124KB conversation.json ✅
+- sessions.db有37条message_nodes（含24464字符thinking + 2次web_search tool_calls + tool结果）✅
+- 从sessions.db提取完整轨迹生成21KB审计报告 ✅
+- 发现5个问题：tee应改pipe-pane / message_nodes有重复 / tool结果在role=tool消息而非tool_call_state / timestamp精度不够用node_id排序 / system消息重复
+- 178-182号方案核心假设全部验证通过
+- 验证结果已写入179号文档第六节
+
 **关键文件索引**：
 - 审计报告：dev-docs/174-v1, 175-v1, 176-v1, 177-v1
 - 方案文档：dev-docs/178-v1, 179-v0, 180-v0, 181-v0, 182-v0
