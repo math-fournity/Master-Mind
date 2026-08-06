@@ -115,12 +115,35 @@ class L3Extraction:
 
 
 @dataclass
+class L4Extraction:
+    """L4哲学/世界观洞察（204-B.0）"""
+    node_id: str
+    insight: str           # 哲学洞察文本
+    applicable_principle: str  # 适用原理
+    source_evidence: List[str] # 来源证据（哪些定理/证明中提取的）
+    applicable_domains: List[str]  # 适用领域
+    verification_method: str  # 验证方法（如何判断这个洞察是否有价值）
+
+    def to_dict(self) -> dict:
+        return {
+            "node_id": self.node_id,
+            "insight": self.insight,
+            "applicable_principle": self.applicable_principle,
+            "source_evidence": self.source_evidence,
+            "applicable_domains": self.applicable_domains,
+            "verification_method": self.verification_method,
+        }
+
+
+@dataclass
 class ExtractionAudit:
-    """质量审计结果（204-A.5）"""
+    """质量审计结果（204-A.5 + 204-B.2）"""
     l2_passed: bool = False
     l2_reason: str = ""
     l3_passed: bool = False
     l3_reason: str = ""
+    l4_passed: bool = False  # 204-B.2: L4质量审计
+    l4_reason: str = ""
     needs_human_review: bool = False  # AI自审AI的循环验证风险
 
     def to_dict(self) -> dict:
@@ -129,6 +152,8 @@ class ExtractionAudit:
             "l2_reason": self.l2_reason,
             "l3_passed": self.l3_passed,
             "l3_reason": self.l3_reason,
+            "l4_passed": self.l4_passed,
+            "l4_reason": self.l4_reason,
             "needs_human_review": self.needs_human_review,
         }
 
@@ -140,6 +165,7 @@ class AbsorptionResult:
     l1: Optional[L1Extraction] = None
     l2: List[L2Extraction] = field(default_factory=list)
     l3: List[L3Extraction] = field(default_factory=list)
+    l4: List[L4Extraction] = field(default_factory=list)  # 204-B: L4哲学层
     audit: Optional[ExtractionAudit] = None
     stored: bool = False  # 是否已存入ArangoDB
     stored_to: Dict[str, str] = field(default_factory=dict)  # 各层级存入位置
@@ -151,6 +177,7 @@ class AbsorptionResult:
             "l1": self.l1.to_dict() if self.l1 else None,
             "l2": [l.to_dict() for l in self.l2],
             "l3": [l.to_dict() for l in self.l3],
+            "l4": [l.to_dict() for l in self.l4],
             "audit": self.audit.to_dict() if self.audit else None,
             "stored": self.stored,
             "stored_to": self.stored_to,
@@ -216,16 +243,18 @@ class KnowledgeAbsorptionPipeline:
         l1: L1Extraction,
         l2: List[L2Extraction],
         l3: List[L3Extraction],
+        l4: List[L4Extraction] = None,  # 204-B: L4哲学层
     ) -> AbsorptionResult:
         """已有提取结果时直接走审计+存储（跳过AI提取步骤）"""
-        result = AbsorptionResult(content=content, l1=l1, l2=l2, l3=l3)
+        l4 = l4 or []
+        result = AbsorptionResult(content=content, l1=l1, l2=l2, l3=l3, l4=l4)
 
         # 步骤5: 质量审计
-        result.audit = self._audit(l1, l2, l3)
+        result.audit = self._audit(l1, l2, l3, l4)
 
         # 步骤6: 存入ArangoDB（审计通过才存）
-        if result.audit.l2_passed and result.audit.l3_passed:
-            result.stored, result.stored_to = self._store_to_arango(l1, l2, l3)
+        if result.audit.l2_passed and result.audit.l3_passed and result.audit.l4_passed:
+            result.stored, result.stored_to = self._store_to_arango(l1, l2, l3, l4)
 
         return result
 
@@ -352,13 +381,60 @@ class KnowledgeAbsorptionPipeline:
         ]
         return "\n".join(lines)
 
+    def _generate_l4_prompt(self, content: MathContent) -> str:
+        """204-B.1: L4哲学洞察提取prompt"""
+        lines = [
+            "你是数学大师系统的L4哲学洞察提取AI。请从以下数学内容中提取1-3条哲学洞察。",
+            "",
+            f"标题：{content.title}",
+            f"陈述：{content.statement}",
+        ]
+        if content.proof:
+            lines.append(f"证明：{content.proof[:2000]}")
+        if content.domain:
+            lines.append(f"领域：{', '.join(content.domain)}")
+        lines += [
+            "",
+            "哲学洞察的定义：",
+            "- 不是具体解题技巧",
+            "- 不是跨领域映射（那是L3）",
+            "- 是关于'数学本质'的认识——什么让数学工作？什么让证明深刻？什么连接了看似无关的领域？",
+            "",
+            "例子：",
+            '- "等价性比相等性更深刻"——来自费马大定理的证明',
+            '- "深刻的数学真理往往隐藏在看似无关的领域之间"——来自朗兰兹纲领',
+            '- "简化陈述不等于简单证明"——来自费马大定理',
+            '- "对称性决定可解性"——来自伽罗瓦理论',
+            '- "任何足够强的形式系统都有无法自证的真理"——来自哥德尔不完备性定理',
+            "",
+            "输出JSON数组：",
+            "[",
+            "  {",
+            '    "insight": "哲学洞察文本",',
+            '    "applicable_principle": "适用原理",',
+            '    "source_evidence": ["来源证据1（具体定理/证明）"],',
+            '    "applicable_domains": ["适用领域1", "适用领域2"],',
+            '    "verification_method": "验证方法（如何判断这个洞察是否有价值）"',
+            "  }",
+            "]",
+            "",
+            "注意：",
+            "- 必须有具体来源证据（不是空泛的格言）",
+            "- 必须能指导具体决策（不是只说不做）",
+            "- 最好在多个领域有体现（不是某个领域的特例）",
+            '- 如果该内容没有L4级哲学洞察，返回空数组[]',
+        ]
+        return "\n".join(lines)
+
     def _audit(
         self,
         l1: L1Extraction,
         l2: List[L2Extraction],
         l3: List[L3Extraction],
+        l4: List[L4Extraction] = None,
     ) -> ExtractionAudit:
-        """204-A.5: 质量审计"""
+        """204-A.5 + 204-B.2: 质量审计"""
+        l4 = l4 or []
         audit = ExtractionAudit()
 
         # L2审计：是否真弥漫性（覆盖≥2领域，有具体例子）
@@ -399,8 +475,33 @@ class KnowledgeAbsorptionPipeline:
                 audit.l3_passed = True
                 audit.l3_reason = f"{len(l3)}个L3全部通过范式审计"
 
+        # 204-B.2: L4审计——3个质量标准
+        if not l4:
+            audit.l4_passed = True  # 无L4不算失败
+            audit.l4_reason = "无L4提取（该内容可能无哲学层洞察）"
+        else:
+            l4_issues = []
+            for node in l4:
+                # 标准1: 有具体来源证据（不是空泛格言）
+                if not node.source_evidence:
+                    l4_issues.append(f"{node.insight[:30]}: 无具体来源证据——空泛格言")
+                # 标准2: 能指导具体决策（有applicable_principle和verification_method）
+                if not node.applicable_principle:
+                    l4_issues.append(f"{node.insight[:30]}: 无适用原理——只说不做")
+                if not node.verification_method:
+                    l4_issues.append(f"{node.insight[:30]}: 无验证方法——无法判断价值")
+                # 标准3: 在多个领域有体现（≥2个applicable_domains）
+                if len(node.applicable_domains) < 2:
+                    l4_issues.append(f"{node.insight[:30]}: 只覆盖{len(node.applicable_domains)}个领域——特例")
+            if l4_issues:
+                audit.l4_passed = False
+                audit.l4_reason = "; ".join(l4_issues)
+            else:
+                audit.l4_passed = True
+                audit.l4_reason = f"{len(l4)}个L4全部通过哲学洞察审计"
+
         # AI自审AI的循环验证风险
-        audit.needs_human_review = bool(l2 or l3)
+        audit.needs_human_review = bool(l2 or l3 or l4)
 
         return audit
 
@@ -409,8 +510,10 @@ class KnowledgeAbsorptionPipeline:
         l1: L1Extraction,
         l2: List[L2Extraction],
         l3: List[L3Extraction],
+        l4: List[L4Extraction] = None,
     ) -> tuple:
-        """204-A.6: 存入ArangoDB K维度"""
+        """204-A.6 + 204-B.6: 存入ArangoDB K维度"""
+        l4 = l4 or []
         stored_to = {}
         try:
             from arango import ArangoClient
@@ -418,7 +521,6 @@ class KnowledgeAbsorptionPipeline:
             db = client.db(self.arango_db, username=self.arango_user, password=self.arango_pass)
 
             # L1→K维度·requires/uses边
-            # 存入math_knowledge collection（或kg_edges）
             if l1.solutions:
                 for sol in l1.solutions:
                     for step in sol.get("steps", []):
@@ -435,7 +537,7 @@ class KnowledgeAbsorptionPipeline:
                         try:
                             db.collection("kg_edges").insert(edge_doc)
                         except Exception:
-                            pass  # 边界情况：collection不存在或key冲突
+                            pass
                 stored_to["L1"] = "kg_edges"
 
             # L2→K维度·awareness节点
@@ -478,10 +580,29 @@ class KnowledgeAbsorptionPipeline:
             if l3:
                 stored_to["L3"] = "kg_edges"
 
+            # 204-B.6: L4→K维度·philosophy节点（新增collection）
+            for node in l4:
+                node_doc = {
+                    "_key": f"l4_{node.node_id}",
+                    "type": "philosophy",
+                    "insight": node.insight,
+                    "applicable_principle": node.applicable_principle,
+                    "source_evidence": node.source_evidence,
+                    "applicable_domains": node.applicable_domains,
+                    "verification_method": node.verification_method,
+                    "level": "L4",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                }
+                try:
+                    db.collection("kg_nodes").insert(node_doc)
+                except Exception:
+                    pass
+            if l4:
+                stored_to["L4"] = "kg_nodes"
+
             return True, stored_to
 
         except Exception as e:
-            # 边界情况：ArangoDB连接失败——fallback到JSON文件
             print(f"[KnowledgeAbsorptionPipeline] ArangoDB存储失败: {e}")
             print("[KnowledgeAbsorptionPipeline] fallback：未入库，标注stored=False")
             return False, stored_to
