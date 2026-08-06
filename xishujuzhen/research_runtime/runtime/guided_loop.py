@@ -92,6 +92,8 @@ class GuidedLoopResult:
     # 203-A.3: 提示级别和泄漏审计结果
     hint_levels: List[str] = field(default_factory=list)
     leakage_audits: List[Dict[str, Any]] = field(default_factory=list)
+    # 205-A.3: AI诊断结果
+    ai_diagnoses: List[Dict[str, Any]] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
@@ -108,6 +110,7 @@ class GuidedLoopResult:
             "total_tokens": self.total_tokens,
             "hint_levels": self.hint_levels,  # 203-A.3
             "leakage_audits": self.leakage_audits,  # 203-A.3
+            "ai_diagnoses": self.ai_diagnoses,  # 205-A.3
             "timestamp": self.timestamp,
         }
 
@@ -170,6 +173,8 @@ class GuidedLoop:
         # 203-A.3: 收集每个hint的级别和审计结果
         self._hint_levels: List[str] = []
         self._leakage_audits: List[Dict[str, Any]] = []
+        # 205-A.3: 收集AI诊断结果
+        self._ai_diagnoses: List[Dict[str, Any]] = []
         # 203-B.1: truth_vault——答案隔离
         self._truth_vault_answer = truth_vault_answer
         self._truth_vault_checker = None
@@ -231,6 +236,7 @@ class GuidedLoop:
             total_tokens=self.adapter.get_total_tokens(),
             hint_levels=self._hint_levels,  # 203-A.3
             leakage_audits=self._leakage_audits,  # 203-A.3
+            ai_diagnoses=self._ai_diagnoses,  # 205-A.3
         )
 
         # 保存结果
@@ -250,6 +256,15 @@ class GuidedLoop:
             # 步骤4-5: 事件捕获 + 状态归约（简化版——分析response）
             self.state.stall_detected = self._detect_stall(self.state.last_response)
             self.state.stall_reason = self._analyze_stall_reason(self.state.last_response)
+
+            # 205-A: 步骤7 AI诊断——经典计算不确定时调用AI
+            if self.state.stall_detected and self.state.stall_reason == "unknown_stall":
+                ai_diagnosis = self._ai_diagnose_stall(self.state.last_response)
+                if ai_diagnosis and ai_diagnosis.get("refined_stall_reason"):
+                    self.state.stall_reason = ai_diagnosis["refined_stall_reason"]
+                    print(f"[GuidedLoop] AI诊断: {ai_diagnosis['refined_stall_reason']} "
+                          f"(置信度: {ai_diagnosis.get('confidence', 'N/A')})")
+                self._ai_diagnoses.append(ai_diagnosis or {})
 
             if not self.state.stall_detected:
                 # 没有卡点——检查是否完成
@@ -329,6 +344,114 @@ class GuidedLoop:
         if len(response) < 100:
             return "response_too_short"
         return "unknown_stall"
+
+    def _ai_diagnose_stall(self, response: str) -> Optional[Dict[str, Any]]:
+        """205-A: 步骤7 AI诊断——经典计算不确定时调用AI分析Solver思路
+
+        调用时机：stall_reason == "unknown_stall"（经典计算无法判定卡点类型）
+        返回：{refined_stall_reason, confidence, reasoning, is_real_stall}
+        如果AI调用失败，返回None（fallback到经典计算的unknown_stall）
+        """
+        # 205-A.1: AI诊断prompt
+        prompt = self._build_ai_diagnosis_prompt(response)
+
+        # 205-A.2: 调用AI——通过DevinCliAdapter或直接API
+        # 注：这里用简化的本地分析作为POC，实际部署时调用外部AI
+        try:
+            ai_result = self._call_ai_for_diagnosis(prompt, response)
+            return ai_result
+        except Exception as e:
+            print(f"[GuidedLoop] AI诊断失败（fallback到经典计算）: {e}")
+            return None
+
+    def _build_ai_diagnosis_prompt(self, response: str) -> str:
+        """205-A.1: 构造AI诊断prompt"""
+        # 截取response最后2000字符（避免过长）
+        response_excerpt = response[-2000:] if len(response) > 2000 else response
+        return f"""你是数学大师系统的卡点诊断AI。
+
+Solver（数学大师）的当前输出：
+{response_excerpt}
+
+经典计算检测到卡点但无法判定类型（unknown_stall）。
+
+7种卡点类型：
+1. lack_knowledge——缺少具体数学知识
+2. uncertain——方向不确定，需要验证
+3. need_more_info——需要更多信息
+4. response_too_short——回答过短
+5. unknown_stall——经典计算无法判定
+6. strategy_exhaustion——策略耗尽
+7. representation_unsuitable——表示不合适
+
+请分析：
+1. Solver是真的卡住了，还是在做合理的策略转换？
+2. 如果卡住了，真实原因是什么？（从上述类型中选择，或提出新类型）
+3. 你的判断依据是什么？
+
+输出JSON：
+{{
+  "refined_stall_reason": "卡点类型",
+  "confidence": 0.0-1.0,
+  "reasoning": "判断依据",
+  "is_real_stall": true/false
+}}
+
+注意：不要只看关键词，要理解Solver的思路内容。"""
+
+    def _call_ai_for_diagnosis(self, prompt: str, response: str) -> Dict[str, Any]:
+        """205-A.2: 调用AI做诊断
+
+        POC实现：用简化的本地规则做初步诊断
+        实际部署时替换为DevinCliAdapter或外部AI调用
+        """
+        # POC简化版：基于response内容的规则诊断
+        # 实际部署时应调用外部AI
+        response_lower = response.lower()
+
+        # 规则1: 如果response包含"尝试"但没"失败"——可能是合理策略转换
+        if "尝试" in response and "失败" not in response and "不行" not in response:
+            return {
+                "refined_stall_reason": "uncertain",
+                "confidence": 0.6,
+                "reasoning": "Solver在尝试新方法但未确认——可能是合理策略转换",
+                "is_real_stall": False,
+            }
+
+        # 规则2: 如果response包含"不知道"或"不确定"——lack_knowledge
+        if "不知道" in response or "不确定" in response or "不了解" in response:
+            return {
+                "refined_stall_reason": "lack_knowledge",
+                "confidence": 0.8,
+                "reasoning": "Solver明确表示不知道——缺少知识",
+                "is_real_stall": True,
+            }
+
+        # 规则3: 如果response包含"但是"或"然而"——可能有矛盾
+        if "但是" in response or "然而" in response or "矛盾" in response:
+            return {
+                "refined_stall_reason": "uncertain",
+                "confidence": 0.65,
+                "reasoning": "Solver遇到矛盾或转折——需要验证方向",
+                "is_real_stall": True,
+            }
+
+        # 规则4: 如果response很短——response_too_short（放最后，避免误判）
+        if len(response) < 200:
+            return {
+                "refined_stall_reason": "response_too_short",
+                "confidence": 0.7,
+                "reasoning": "回答过短——可能没有展开思路",
+                "is_real_stall": True,
+            }
+
+        # 默认: 仍为unknown_stall
+        return {
+            "refined_stall_reason": "unknown_stall",
+            "confidence": 0.3,
+            "reasoning": "AI诊断无法确定卡点类型——建议给strategy级提示",
+            "is_real_stall": True,
+        }
 
     def _generate_hint(self, stall_reason: str, last_response: str) -> tuple:
         """步骤8-9: 模式匹配 + 选择动作——简化版，根据卡点原因生成hint
