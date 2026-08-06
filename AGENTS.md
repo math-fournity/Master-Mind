@@ -95,16 +95,17 @@
 - **网络端口**：如果本 repo 要起服务（如 ArangoDB Web、自定义 HTTP 服务），注意端口不要和上游冲突。起服务前先 `lsof -i :<port>` 检查。
 - **Python 环境**：如果用同一个 Python venv/conda env，包安装会互相影响。建议本 repo 用独立 venv（见下）。
 
-### 建议 · Python 环境隔离
+### Python 环境隔离（已实施）
 
-建议本 repo 创建独立 venv：
+本 repo 已创建独立 venv：
 ```bash
 cd ~/master-mind-glm5.2-worktree
-python3 -m venv .venv-glm52
-source .venv-glm52/bin/activate
-# 安装依赖
+python3 -m venv .venv          # python3.14
+.venv/bin/pip install python-arango==8.3.3
 ```
-这样 `pip install` 不会影响上游 repo 的 Python 环境。是否实施由用户决定。
+- `.venv/` 已被 `.gitignore` 排除，不提交
+- hooks 命令使用 `.venv/bin/python3`，与本 venv 一致
+- 运行脚本时用 `.venv/bin/python3` 或先 `source .venv/bin/activate`
 
 ### Worktree 认知资产索引
 
@@ -116,8 +117,9 @@ source .venv-glm52/bin/activate
 - ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
 - ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
 - ✅ 上游未提交内容同步：已完成，Phase 7 实现 + 审计方法论 v4.2 已同步到本 repo
-- ⬜ Python venv 隔离：建议但未实施（见上「建议 · Python 环境隔离」）
-- ⬜ ArangoDB 实例尚未启动/初始化：首次使用时需 `source .env && python xishujuzhen/arangodb_init.py` 创建 `xishujuzhen_math_glm52` 数据库
+- ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
+- ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令前加 `source .env`，确保 hook 连本 repo 数据库
+- ⬜ ArangoDB 实例尚未启动/初始化：首次使用时需 `source .env && .venv/bin/python3 xishujuzhen/arangodb_init.py` 创建 `xishujuzhen_math_glm52` 数据库
 
 **本 repo commit 历史**（glm5.2 分支）：
 - `c78f382` dev-docs/001: 上游未提交内容同步方案
