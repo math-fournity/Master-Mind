@@ -1,0 +1,228 @@
+[
+  {
+    "run_id": "run_20260806_guided_003",
+    "timestamp": "2026-08-06T06:22:29.693275",
+    "standard_id": "184",
+    "standard_name": "12步循环与引导循环审计",
+    "overall_verdict": "有缺陷",
+    "summary": {
+      "passed": 5,
+      "defect": 1,
+      "fail": 0,
+      "na": 1
+    },
+    "results": [
+      {
+        "item_id": "184-2.2-1",
+        "name": "solo explore先于guided",
+        "verdict": "通过",
+        "detail": "turn_history[0].is_hint=False",
+        "evidence": {
+          "first_turn_is_hint": false
+        }
+      },
+      {
+        "item_id": "184-2.2-2",
+        "name": "hint只在卡点后给",
+        "verdict": "通过",
+        "detail": "n_hints=0, n_turns=1",
+        "evidence": {
+          "n_hints": 0,
+          "n_turns": 1,
+          "solo_stage_hint": false
+        }
+      },
+      {
+        "item_id": "184-2.2-3",
+        "name": "hint数量不超过预算",
+        "verdict": "通过",
+        "detail": "n_hints=0, max_hints=3",
+        "evidence": {
+          "n_hints": 0,
+          "max_hints": 3
+        }
+      },
+      {
+        "item_id": "184-2.2-4",
+        "name": "turn数量不超过预算",
+        "verdict": "通过",
+        "detail": "n_turns=1, max_turns=5",
+        "evidence": {
+          "n_turns": 1,
+          "max_turns": 5
+        }
+      },
+      {
+        "item_id": "184-2.2-5",
+        "name": "完成判定合理",
+        "verdict": "有缺陷",
+        "detail": "completed=True但response以[ERROR开头: [ERROR returncode=1] warning: rejected a tool call that requires confirmation. Running in non-intera",
+        "evidence": {
+          "completed": true,
+          "has_completion_signal": false,
+          "has_error": true,
+          "reason": "solo_explore_completed"
+        }
+      },
+      {
+        "item_id": "184-2.2-6",
+        "name": "卡点检测准确",
+        "verdict": "通过",
+        "detail": "stall_detected=False, has_stall_signal=False",
+        "evidence": {
+          "stall_detected": false,
+          "has_stall": false,
+          "has_hijack": false
+        }
+      },
+      {
+        "item_id": "184-2.2-7",
+        "name": "hint内容相关",
+        "verdict": "N/A",
+        "detail": "没有给hint",
+        "evidence": {
+          "n_hints": 0
+        }
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_003",
+    "timestamp": "2026-08-06T06:22:29.693301",
+    "standard_id": "194",
+    "standard_name": "Solver连接审计",
+    "overall_verdict": "失败",
+    "summary": {
+      "passed": 2,
+      "defect": 1,
+      "fail": 3,
+      "na": 0
+    },
+    "results": [
+      {
+        "item_id": "194-2.1-1",
+        "name": "devin cli调用成功",
+        "verdict": "失败",
+        "detail": "response以[ERROR开头",
+        "evidence": {
+          "has_error": true,
+          "response_prefix": "[ERROR returncode=1] warning: rejected a tool call that requires confirmation. R"
+        }
+      },
+      {
+        "item_id": "194-2.1-2",
+        "name": "session_id获取",
+        "verdict": "失败",
+        "detail": "session_id=''",
+        "evidence": {
+          "session_id": ""
+        }
+      },
+      {
+        "item_id": "194-2.1-3",
+        "name": "export文件生成",
+        "verdict": "失败",
+        "detail": "找到0个conversation文件",
+        "evidence": {
+          "conversation_count": 0
+        }
+      },
+      {
+        "item_id": "194-2.1-4",
+        "name": "工作目录正确",
+        "verdict": "有缺陷",
+        "detail": "session_info为空，无法检查工作目录",
+        "evidence": {}
+      },
+      {
+        "item_id": "194-2.3-1",
+        "name": "无web_search",
+        "verdict": "通过",
+        "detail": "tool_call_state中无web_search",
+        "evidence": {
+          "tool_call_count": 0,
+          "has_web_search": false
+        }
+      },
+      {
+        "item_id": "194-2.3-2",
+        "name": "无工作系统劫持",
+        "verdict": "通过",
+        "detail": "response中不包含工作系统关键词",
+        "evidence": {
+          "has_hijack": false
+        }
+      }
+    ]
+  },
+  {
+    "run_id": "run_20260806_guided_003",
+    "timestamp": "2026-08-06T06:22:29.693366",
+    "standard_id": "195",
+    "standard_name": "数学正确性验证",
+    "overall_verdict": "有缺陷",
+    "summary": {
+      "passed": 3,
+      "defect": 2,
+      "fail": 0,
+      "na": 1
+    },
+    "results": [
+      {
+        "item_id": "195-通用-1",
+        "name": "数据来源纯净性",
+        "verdict": "通过",
+        "detail": "未使用web_search",
+        "evidence": {
+          "has_web_search": false
+        }
+      },
+      {
+        "item_id": "195-证明-1",
+        "name": "数学内容存在性",
+        "verdict": "通过",
+        "detail": "response中有数学内容",
+        "evidence": {
+          "has_math": true
+        }
+      },
+      {
+        "item_id": "195-证明-2",
+        "name": "完成信号存在性",
+        "verdict": "有缺陷",
+        "detail": "response中无完成信号",
+        "evidence": {
+          "has_signal": false
+        }
+      },
+      {
+        "item_id": "195-证明-3",
+        "name": "边界情况检查",
+        "verdict": "有缺陷",
+        "detail": "未提到基础情形(n=1)",
+        "evidence": {
+          "has_base_case": false
+        }
+      },
+      {
+        "item_id": "195-猜想-1",
+        "name": "小情形验证（猜想类）",
+        "verdict": "N/A",
+        "detail": "非猜想类任务",
+        "evidence": {
+          "is_conjecture": false
+        }
+      },
+      {
+        "item_id": "195-证明-4",
+        "name": "逻辑链完整性（初步检查）",
+        "verdict": "通过",
+        "detail": "未发现明显跳步标记（完整检查需AI辅助）",
+        "evidence": {
+          "has_skip_markers": false,
+          "note": "完整逻辑链检查需AI辅助"
+        }
+      }
+    ]
+  }
+]

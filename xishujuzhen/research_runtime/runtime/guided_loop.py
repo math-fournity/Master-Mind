@@ -63,7 +63,7 @@ class GuidedLoopResult:
             "problem": self.problem,
             "n_turns": self.n_turns,
             "n_hints": self.n_hints,
-            "final_response": self.final_response[:500],
+            "final_response": self.final_response,
             "completed": self.completed,
             "completion_reason": self.completion_reason,
             "turn_history": self.turn_history,
