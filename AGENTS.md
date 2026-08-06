@@ -155,9 +155,10 @@ python3 -m venv .venv          # python3.14
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
 - **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库，分支 `main`，内容由 Supervisor 产出）
-- **Supervisor hook**：`.devin/hooks.v1.json` 的 Stop hook 阻止 Supervisor 停下来，每次想停时注入 Master 最新状态
+- **Supervisor hook**：`.devin/hooks.v1.json` 只配置 Stop hook，阻止 Supervisor 停下来；Stop hook 读取 `stop-hook.txt` + Master 实时状态注入 reason
 - **Supervisor 启动方式**：`./scripts/start-supervisor.sh` 在 tmux 中启动 devin CLI；`./scripts/stop-supervisor.sh` 关闭 tmux session
-- **Supervisor 产物**：`Supervisor/dev-docs/004-v1-*-Supervisor监督报告.md`
+- **Supervisor 职责注入**：AGENTS.md 索引 `session-start.txt`，Supervisor 启动时读取；`stop-hook.txt` 由 Stop hook 动态读取。编辑 txt 即可调整职责，不用改代码
+- **Supervisor 产物**：`Supervisor/dev-docs/004-v1-*-Supervisor-hook实现与运行方案.md`
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统
 - **Supervisor 职责**：监督、反思、设计 Master 的工作系统
@@ -1017,11 +1018,11 @@ POC对照实验必须隔离测试环境，防止subagent看到项目AGENTS.md或
 **Supervisor Agent 状态**（2026-08-06）：
 - Supervisor 目录：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库）
 - Supervisor 是一个 Devin session，通过 `.devin/hooks.v1.json` 的 Stop hook 阻止自己停下来
-- Stop hook 每次返回 `{"decision": "block", "reason": "..."}`，reason 包含 Master 最新 git log、dev-docs、tmux 输出
-- SessionStart hook 注入 Supervisor 职责 + Master 状态
+- Stop hook 每次返回 `{"decision": "block", "reason": "..."}`，reason = `stop-hook.txt` 内容 + Master 最新 git log、dev-docs、tmux 输出
+- 职责注入通过 AGENTS.md 索引 `session-start.txt` 实现（不用 SessionStart hook 脚本）
 - 启动方式：`cd ~/master-mind-glm5.2-worktree-supervisor && ./scripts/start-supervisor.sh`
 - 停止方式：`./scripts/stop-supervisor.sh` 或 Ctrl+C 退出 devin CLI
-- Supervisor 产物：`Supervisor/dev-docs/004-v1-*-Supervisor监督报告.md`
+- Supervisor 产物：`Supervisor/dev-docs/004-v1-*-Supervisor-hook实现与运行方案.md`
 - 用户需求.md 中已追加未来启动与运行场景（6 个场景）
 
 **测试结果**：
