@@ -327,9 +327,9 @@
 > - **与TODO/Memory Section的区别**：TODO是长期待办清单，Memory Section是长期认知基线，本节是**当前正在做什么、做到哪了、下一步是什么**的临时快照。
 > - **压缩后恢复**：压缩后的AI读到本节，应能立即理解当前任务的全貌并继续工作，不需要重新探索上下文。
 
-### 当前任务：全程监控与可审计运行方案（178-182号）+ P0审计修复
+### 当前任务：全程监控与可审计运行 + Phase 6引导循环 + 审计标准建设
 
-**任务背景**：对数学大师系统做了4份审计报告（174-177号），发现并修复了5个P0代码问题（F-176-1~5）和4个P0文档问题（F-174-1/2/3、F-177-4）。然后用户提出新需求——全程监控与可审计运行，已调查并拆分为5个方案文档（178-182号）。
+**任务背景**：对数学大师系统做了4份审计报告（174-177号），修复了5个P0代码问题和4个P0文档问题。然后用户提出全程监控与可审计运行需求（178-182号方案）。接着实现了Phase 6引导循环——让12步运行时真正连接devin cli实例。现在正在建立审计标准文档体系（183-195号）。
 
 **已完成的工作**：
 
@@ -352,25 +352,51 @@
    - 181-v0层次3：数学大师思路轨迹分析（thinking字段为核心数据源）
    - 182-v0审计工具：CLI工具接口 + 8维度审计 + 优化映射表
 
-**关键调查发现**：devin cli的sessions.db（9GB SQLite）已记录AI完整trajectory——`message_nodes`表807,294条记录含`thinking`字段（AI内部推理）、`tool_calls`、`metadata`（性能指标）；`tool_call_state`表22,658条记录含工具调用完整输入输出。`--export <PATH>`选项每turn自动导出ATIF-v1.7 JSON到指定路径。方案复杂度从"建设三层全程记录系统"降低到"建设一个查询关联工具"。
+4. **端到端验证run**（run_20260806_verify_001，已commit）：
+   - `--export`生成124KB conversation.json ✅
+   - sessions.db有37条message_nodes（含24464字符thinking + tool_calls + tool结果）✅
+   - 178-182号方案核心假设全部验证通过
+   - 发现5个问题已记入179号第六节
 
-**下一步**（已与用户确认方向，待执行）：
-做一次真实的端到端验证run——启动devin cli实例，用`--export`导出，让它做一个简单数学问题，同时用tmux pipe-pane兜底记录，结束后从sessions.db提取完整轨迹，验证能否拼出完整审计报告。验证结果反馈到179/181/182的方案细化。
+5. **Phase 6引导循环实现**（全部commit）：
+   - DevinCliAdapter（runtime/devin_cli_adapter.py）：连接12步运行时和真实devin cli实例
+   - GuidedLoop（runtime/guided_loop.py）：solo explore → 卡点检测 → hint生成 → guided explore
+   - Solver工作目录隔离：/data/math-agent-glm5.2-{1,2,3}，每个有专门AGENTS.md
+     - 禁用web_search（搜索是作弊，数学大师的价值在于内部知识能力）
+     - 允许exec（Python/SymPy计算验证）
+     - 不走工作系统流程（CP1-CP3/pipeline）
+   - AGENTS.md新增硬约束5：Solver工作目录隔离
+   - 验证run_20260806_guided_004：1turn完成证明，0hints，0 web_search，thinking 130字符
 
-**端到端验证已完成**（2026-08-06）：
-- run_id: run_20260806_verify_001, session_id: cooked-shelf
-- `--export`生成124KB conversation.json ✅
-- sessions.db有37条message_nodes（含24464字符thinking + 2次web_search tool_calls + tool结果）✅
-- 从sessions.db提取完整轨迹生成21KB审计报告 ✅
-- 发现5个问题：tee应改pipe-pane / message_nodes有重复 / tool结果在role=tool消息而非tool_call_state / timestamp精度不够用node_id排序 / system消息重复
-- 178-182号方案核心假设全部验证通过
-- 验证结果已写入179号文档第六节
+6. **审计标准文档体系启动**（183/184/195号，已commit）：
+   - 183-v0审计标准总纲：8子系统40+模块清单 + 审计元组设计（Rule+Skill+文档）+ 12份文档编号(184-195)
+   - 195-v0数学正确性验证标准（P0）：4类任务（证明/猜想/计算/发现新方向）各自的检查项和判定标准
+   - 184-v0 12步循环与引导循环审计标准（P0）：循环完整性+引导有效性+Solver连接稳定性+引导效果度量
+
+**关键调查发现**：
+- devin cli的sessions.db已记录AI完整trajectory（thinking + tool_calls + tool结果 + 性能指标）
+- `--export <PATH>`每turn自动导出ATIF-v1.7 JSON
+- 方案复杂度从"建设三层全程记录系统"降低到"建设一个查询关联工具"
+- Solver必须在外部目录运行，否则工作系统规则会劫持其行为
+- web_search必须禁用——搜索是作弊
+
+**下一步（待执行）**：
+继续建立审计标准文档（185-193号），按优先级：
+- P1: 188状态归约审计标准 + 189启发匹配审计标准 + 192验证审计标准
+- P2: 187事件系统 + 190检索 + 191上下文编译 + 185控制器策略 + 186预算
+- P3: 193审计角色元审计 + 194 Solver连接
+每个文档需要：读模块代码 → 理解功能 → 定义检查项 → 写判定标准 → 记录历史案例
+之后还需要：建立对应的Rule和Skill元组，让审计能自动触发和执行。
 
 **关键文件索引**：
 - 审计报告：dev-docs/174-v1, 175-v1, 176-v1, 177-v1
 - 方案文档：dev-docs/178-v1, 179-v0, 180-v0, 181-v0, 182-v0
+- 审计标准：dev-docs/183-v0(总纲), 184-v0(循环), 195-v0(数学正确性)
 - 修复的代码：models/event.py, models/task.py, heuristics/matcher.py, retrieval/dg_adapter.py, context_compiler/context_compiler.py, context_compiler/minimality_audit.py, verification/stall_detector.py
+- 新增代码：runtime/devin_cli_adapter.py, runtime/guided_loop.py
+- Solver工作目录：/data/math-agent-glm5.2-{1,2,3}/AGENTS.md
 - devin cli数据源：~/.local/share/devin/cli/sessions.db, transcripts/, logs/
+- 验证run：runs/run_20260806_verify_001/, runs/run_20260806_guided_004/
 
 ## TODO
 
