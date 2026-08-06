@@ -179,16 +179,28 @@ def main():
     for i, problem in enumerate(problems):
         pid = problem['id']
         print(f"[{i+1}/{len(problems)}] {pid} ... ", end="", flush=True)
+
+        # 铁律：每道题必须是全新的devin cli session
+        # 1. 清理work_dir下的残留文件（solutions.json/summary.json等），防止devin cli读到上一题的数据
+        for fname in os.listdir(work_dir):
+            if fname in ('solutions.json', 'summary.json', 'fate_batch.json', 'fate_hard_batch.json',
+                         'fate_hard_sample.json', 'failed_problems.json', 'hard_batch.json',
+                         'retry_batch.json', 'download_top10.log'):
+                os.remove(os.path.join(work_dir, fname))
+        # 2. 清理work_dir下的.devin/sessions目录（如果有）
+        sessions_dir = os.path.join(work_dir, '.devin', 'sessions')
+        if os.path.isdir(sessions_dir):
+            import shutil
+            shutil.rmtree(sessions_dir)
+
         result = run_one_problem(problem, work_dir, run_dir, model, timeout)
         solutions.append(result)
         print(f"{result['status']} ({result['elapsed_seconds']}s, {result['response_length']}chars)")
 
+        # 只写run_dir，不写work_dir——防止下一题读到上一题的结果
         if (i + 1) % 3 == 0:
-            with open(os.path.join(work_dir, "solutions.json"), "w") as f:
+            with open(os.path.join(run_dir, "solutions_partial.json"), "w") as f:
                 json.dump(solutions, f, ensure_ascii=False, indent=2)
-
-    with open(os.path.join(work_dir, "solutions.json"), "w") as f:
-        json.dump(solutions, f, ensure_ascii=False, indent=2)
 
     stats = {}
     for s in solutions:
@@ -204,8 +216,7 @@ def main():
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
-    with open(os.path.join(work_dir, "summary.json"), "w") as f:
-        json.dump(summary, f, ensure_ascii=False, indent=2)
+    # 只写run_dir，不写work_dir
     with open(os.path.join(run_dir, "summary.json"), "w") as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
     with open(os.path.join(run_dir, "solutions.json"), "w") as f:
