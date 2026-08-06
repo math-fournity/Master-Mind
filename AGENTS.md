@@ -150,10 +150,14 @@ python3 -m venv .venv          # python3.14
 - ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
 - ✅ ArangoDB 实例 + 数据库初始化：已完成
 - ✅ 角色说明：已建立，Master/Supervisor/Subagent 边界清晰
+- ✅ Supervisor 监控 hook：已建立，可在 Supervisor 目录一键启动
 
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
 - **Supervisor 目录**：`~/master-mind-glm5.2-worktree-supervisor/`（独立 git 仓库，分支 `main`，内容由 Supervisor 产出）
+- **Supervisor hook**：`scripts/supervisor_hook.py`，在 `supervisor-master` tmux session 中持续运行，监控 Master 工作
+- **Supervisor 启动方式**：`./scripts/start-supervisor.sh` 一键启动并进入 tmux；`./scripts/stop-supervisor.sh` 停止
+- **Supervisor 产物**：`Supervisor/dev-docs/004-v1-*-Supervisor监督报告.md`
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统
 - **Supervisor 职责**：监督、反思、设计 Master 的工作系统
