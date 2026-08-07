@@ -147,3 +147,45 @@ cmd = ["devin", "-p", "请读取当前目录下的hint.txt文件，这是对你�
 ### 批量测试中的清理
 
 每道题运行前必须清理work_dir下的problem.txt/hint.txt，防止下一题读到上一题的文件（session隔离铁律，见`batch-test-session-isolation` rule）。
+
+## 对话导出规范（--export）
+
+**devin cli支持`--export <PATH>`参数，在每轮对话后自动导出对话记录到JSON文件。**
+
+### 用法
+
+```bash
+# 交互式模式带导出
+devin --model glm-5-2 --export /path/to/export.json
+
+# -p模式也支持
+devin -p "prompt" --model glm-5-2 --export /path/to/export.json
+```
+
+### 何时使用
+
+1. **GuidedLoop / DFS引导实验**：每个分支的session必须带`--export`，导出文件存放在`runs/<run_id>/exports/session_<timestamp>.json`
+2. **批量测试**：每道题的run带`--export`，便于事后审计对话过程
+3. **需要trajectory记录的所有场景**：`--export`是devin cli原生支持的对话记录手段，和pipe-pane兜底记录互补
+
+### 与pipe-pane的关系
+
+| 记录手段 | 层次 | 说明 |
+|---|---|---|
+| `--export` | devin cli原生 | 结构化JSON，每轮自动导出，包含完整对话内容 |
+| `pipe-pane` | tmux兜底 | 纯文本terminal输出，捕获所有屏幕内容包括非对话部分 |
+
+两者互补：`--export`提供结构化数据，`pipe-pane`提供完整terminal记录。
+
+### DFS引导中的使用（214号8.9节）
+
+DFS回溯时每条分支启动新session，每个session使用独立的export文件：
+
+```python
+export_path = f"{EXPORT_DIR}/session_{int(time.time())}.json"
+cmd = f"devin --model glm-5-2 --export {export_path}"
+# 启动新tmux session
+tmux new-session -d -s guided-exp-1 "cd {work_dir} && {cmd}"
+```
+
+回溯后重放Q序列时，新session使用新的export文件，不会和旧分支的导出混淆。
