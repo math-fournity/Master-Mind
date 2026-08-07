@@ -18,7 +18,7 @@
 | 关系字段 | 组合关系（操作/结构层面） | 演化（概念深化过程） |
 | 更新频率 | 随实验更新 | 随理念突破更新 |
 
-## 概念索引（7个）
+## 概念索引（8个）
 
 | 概念 | 一句话 | 指导了什么 |
 |---|---|---|
@@ -29,6 +29,7 @@
 | [loop](loop.md) | 闭环动力学：AI感知→压缩→经典计算验证→回流 | execution-contract协议、certificate产生时机 |
 | [situation](situation.md) | 处境是会生长的完整状态 | execution-contract处境字段、loop状态更新 |
 | [level-spectrum](level-spectrum.md) | 思维模式↔知识的连续谱 | minimal-knowledge-transfer形式化、dfs-guidance评估函数 |
+| [design-as-constraint-solving](design-as-constraint-solving.md) | 系统设计是开放世界CSP：原语=domain，面相/标准=constraint，每代系统=solution | facet-C表述、AI作为设计者的角色定位、原语目录的living reference方向 |
 
 ## 文件格式
 
