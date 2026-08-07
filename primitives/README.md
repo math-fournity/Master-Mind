@@ -30,14 +30,14 @@
 ### 按验证状态分组
 
 #### tested（实验验证有效）
-- [continuous-questioning](continuous-questioning.md) — 连续发问：六层渐进框架，guided_001验证
-- [cognitive-activation](cognitive-activation.md) — 认知激活：提问激活AI能力，guided_001数据表明（效应tested/机制untested）
-- [safe-first-step](safe-first-step.md) — 安全第一步：让AI先描述形状，guided_001 Q1验证
+- [continuous-questioning](continuous-questioning.md) — 连续发问：六层渐进框架，guided_001+guided_003验证
+- [cognitive-activation](cognitive-activation.md) — 认知激活：提问激活AI能力，guided_001+guided_003验证（效应tested+机制不依赖隐含筛选）
+- [safe-first-step](safe-first-step.md) — 安全第一步：让AI先描述形状，guided_001+guided_003 Q1验证
+- [non-specificity](non-specificity.md) — 非特定性：guided_003验证纯非特定引导有效（从tested_negative升级）
 - [base-change](base-change.md) — 换基：作为数学操作tested（guided_001中AI做了中心化），作为系统原语untested
 
-#### tested_negative（实验验证无效）
-- [non-specificity](non-specificity.md) — 非特定性：guided_001的Q3-Q4被218判定为发生了特定化（部分negative）
-- [implicit-filtering](implicit-filtering.md) — 隐含筛选：218发现guided_001的Q3-Q4发生了隐含筛选
+#### tested_negative（实验验证无效/非关键）
+- [implicit-filtering](implicit-filtering.md) — 隐含筛选：218发现guided_001的Q3-Q4发生了隐含筛选，但guided_003证明它不是成功的关键因素
 
 #### untested（提出未测试）
 - [pipe](pipe.md) — Pipe：Pipeline网络节点，241号提出
@@ -101,16 +101,18 @@
 
 | 状态 | 数量 | 占比 |
 |---|---|---|
-| tested | 4 | 15% |
-| tested_negative | 2 | 8% |
+| tested | 5 | 19% |
+| tested_negative | 1 | 4% |
 | untested | 10 | 38% |
 | borrowed_unoperationalized | 10 | 38% |
 
 **一眼能看出的结论**：
+- guided_003后tested原语从4个增到5个——non-specificity从tested_negative升级为tested
+- tested_negative从2个降到1个——implicit-filtering被证明是非关键因素
 - 238时期的原语（面相A）偏tested——实践涌现的原语有实验证据
 - 239时期的原语（面相B）偏borrowed_unoperationalized——知识选取的原语有概念但未操作化
 - 面相3的原语偏untested——新提出的设计尚未测试
-- **76%的原语未经实验验证**（untested + borrowed_unoperationalized）——这是当前原语目录的状态
+- **73%的原语未经实验验证**（untested + borrowed_unoperationalized）——guided_003后略有改善
 
 ## 文件结构
 

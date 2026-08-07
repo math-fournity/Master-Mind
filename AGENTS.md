@@ -110,7 +110,7 @@
 
 ### 系统设计原语目录（活文档）
 
-系统设计原语目录在 `primitives/` 目录，每个原语一个markdown文件，记录定义/来源/验证状态/使用经验/关系/开放问题。验证状态四等级：tested（实验验证有效）/ tested_negative（实验验证无效）/ untested（提出未测试）/ borrowed_unoperationalized（借用未操作化）。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`。已写全部26个原语（面相A实践涌现9个 + 面相B知识选取13个 + 面相3 Pipeline网络4个）。验证状态分布：tested 4个 / tested_negative 2个 / untested 10个 / borrowed_unoperationalized 10个——76%未经实验验证。每次跑实验后更新相关原语的验证状态。
+系统设计原语目录在 `primitives/` 目录，每个原语一个markdown文件，记录定义/来源/验证状态/使用经验/关系/开放问题。验证状态四等级：tested（实验验证有效）/ tested_negative（实验验证无效）/ untested（提出未测试）/ borrowed_unoperationalized（借用未操作化）。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`。已写全部26个原语（面相A实践涌现9个 + 面相B知识选取13个 + 面相3 Pipeline网络4个）。验证状态分布：tested 5个 / tested_negative 1个 / untested 10个 / borrowed_unoperationalized 10个——73%未经实验验证。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（机制不依赖隐含筛选）、implicit-filtering（非关键因素）。每次跑实验后更新相关原语的验证状态。
 
 ### TOP10最难题集（baseline评测用）
 
