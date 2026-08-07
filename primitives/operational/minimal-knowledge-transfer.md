@@ -6,7 +6,6 @@
 
 ## 来源
 
-- **面相**：A（实践涌现）
 - **出处**：214号第7章（最小知识传递——路线B的形式化定义）；238号§7（完整梳理）；commit 08dd327
 
 ## 验证状态
@@ -53,12 +52,12 @@ $$\text{最小知识传递} = \arg\max_{H} \sum_{i=1}^{n} \text{Level}(h_i) \qua
 
 预演（215号附录A）的Level SUM=8.45（9轮），guided_001实际只有4轮就完成了，所以SUM=4.0。这是乐观结果——实际中可能需要更多轮和降Level。
 
-## 关系
+## 组合关系
 
-- **组合了 level-spectrum**：Level是最小知识传递的评估函数——最大化Level之和
 - **被组合 by dfs-guidance**：最小知识传递是DFS的优化目标——候选Q按Level降序排列
 - **与 non-specificity 关系**：最小知识传递是非特定性在"知识vs思维模式"维度上的体现——高Level提示更非特定
 - **与 implicit-filtering tension**：218号质疑"0知识传递"——隐含筛选可能是一种隐性知识传递
+- **约束于**：level-spectrum评估（见 concepts/level-spectrum.md）——Level是最小知识传递的评估函数
 
 ## 开放问题
 

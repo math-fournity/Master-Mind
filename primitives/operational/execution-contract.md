@@ -6,7 +6,6 @@
 
 ## 来源
 
-- **面相**：B（人类知识选取）
 - **出处**：228-codex（提出执行契约）；228-glm5.2（评价+修正）；239号§16
 
 ## 验证状态
@@ -47,13 +46,13 @@
 
 但"编译成什么计算任务"和"返回后如何更新"必须填——因为这两个是闭环的关键。
 
-## 关系
+## 组合关系
 
-- **与 formalization-boundary 关系**：执行契约是边界跨越的操作性协议
 - **与 non-specificity 关系**：执行契约可填完=方法有边界推进能力=方法是非特定的
-- **与 loop 关系**：执行契约是闭环每一步的协议
-- **与 certificate 关系**：执行契约的"编译成计算任务"字段产生证书目标
-- **与 pipe 关系**：执行契约可以是Pipe的输出格式——每个Pipe的输出需要包含这四个字段
+- **与 certificate 关系**（见 structural/certificate.md）：执行契约的"编译成计算任务"字段产生证书目标
+- **与 pipe 关系**（见 structural/pipe.md）：执行契约可以是Pipe的输出格式——每个Pipe的输出需要包含这四个字段
+- **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——执行契约是边界跨越的操作性协议
+- **约束于**：loop概念（见 concepts/loop.md）——执行契约是闭环每一步的协议
 
 ## 开放问题
 

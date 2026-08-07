@@ -6,7 +6,6 @@ Pipeline网络中的一个Pipe角色。负责识别当前处境的不自然、�
 
 ## 来源
 
-- **面相**：3（Pipeline网络）
 - **出处**：241号§1.3.3（面相3的三个角色）；对应238的引导者、239中缺失的角色；221号（模式识别=元拓扑）
 
 ## 验证状态
@@ -17,7 +16,7 @@ Pipeline网络中的一个Pipe角色。负责识别当前处境的不自然、�
 
 作为Pipeline中一个不知道答案的Pipe角色，模式识别引擎从未被测试。
 
-## 使用经验
+## 架构位置
 
 ### 在238中的对应物
 
@@ -43,15 +42,14 @@ Pipeline网络中的一个Pipe角色。负责识别当前处境的不自然、�
 
 连续发问框架（见 [continuous-questioning](continuous-questioning.md)）可以是模式识别引擎的输出协议——它定义了模式识别引擎发给数学推理引擎的提示的形式（六层渐进框架）。
 
-## 关系
+## 组合关系
 
-- **被细化 by pipe**：模式识别引擎是Pipe的三种角色之一
-- **与 math-reasoning-engine 协作**：模式识别引擎给数学推理引擎方向指引
-- **对应**：238的引导者（但238的引导者知道答案，模式识别引擎不应该知道）
-- **与 non-specificity 关系**：模式识别引擎的合法性条件是它不需要知道答案——这是非特定性在Pipe框架中的重新表达
-- **与 implicit-filtering tension**：238的引导者（模式识别引擎的对应物）发生了隐含筛选。模式识别引擎怎么避免隐含筛选？
-- **与 base-change 关系**：模式识别引擎识别"不自然"的四个子模式之一是换基
-- **与 cognitive-activation 关系**：模式识别引擎发给数学推理引擎的不只是数据，还有认知激活——"你该往哪看"
+- **被包含于 pipe**（见 structural/pipe.md）：模式识别引擎是Pipe的三种角色之一
+- **与 math-reasoning-engine 协作**（见 structural/math-reasoning-engine.md）：模式识别引擎给数学推理引擎方向指引
+- **与 non-specificity 关系**（见 operational/non-specificity.md）：模式识别引擎的合法性条件是它不需要知道答案——这是非特定性在Pipe框架中的重新表达
+- **与 implicit-filtering tension**（见 operational/implicit-filtering.md）：238的引导者（模式识别引擎的对应物）发生了隐含筛选。模式识别引擎怎么避免隐含筛选？
+- **与 base-change 关系**（见 operational/base-change.md）：模式识别引擎识别"不自然"的四个子模式之一是换基
+- **与 cognitive-activation 关系**（见 structural/cognitive-activation.md）：模式识别引擎发给数学推理引擎的不只是数据，还有认知激活——"你该往哪看"
 
 ## 开放问题
 

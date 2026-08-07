@@ -6,7 +6,6 @@ Pipeline网络中的一个Pipe角色。负责在多个约束下搜索满足条�
 
 ## 来源
 
-- **面相**：3（Pipeline网络）
 - **出处**：241号§1.3.3（面相3的三个角色）；对应239的经典计算
 
 ## 验证状态
@@ -15,7 +14,7 @@ Pipeline网络中的一个Pipe角色。负责在多个约束下搜索满足条�
 
 作为功能，多约束求解引擎在guided_001中被AI自发执行——AI自己用SymPy做了数值验证（n=10000时d-√5≈0.0001）。但作为Pipeline中一个独立的Pipe角色，从未被测试。
 
-## 使用经验
+## 架构位置
 
 ### 在239中的对应物
 
@@ -58,14 +57,13 @@ guided_001中AI自己做了：
 - Lean 4：形式化证明验证
 - 数值计算：量级估计、反例探测
 
-## 关系
+## 组合关系
 
-- **被细化 by pipe**：多约束求解引擎是Pipe的三种角色之一
-- **与 math-reasoning-engine 协作**：数学推理引擎产出"可能意义"，多约束求解引擎验证
-- **对应**：239的经典计算
-- **与 two-computations 关系**：多约束求解引擎是经典计算在Pipeline中的化身
-- **与 certificate 关系**：多约束求解引擎的验证结果产生证书
-- **与 base-change 关系**：多约束求解引擎可以主动产生换基——因式分解是它的能力
+- **被包含于 pipe**（见 structural/pipe.md）：多约束求解引擎是Pipe的三种角色之一
+- **与 math-reasoning-engine 协作**（见 structural/math-reasoning-engine.md）：数学推理引擎产出"可能意义"，多约束求解引擎验证
+- **与 certificate 关系**（见 structural/certificate.md）：多约束求解引擎的验证结果产生证书
+- **与 base-change 关系**（见 operational/base-change.md）：多约束求解引擎可以主动产生换基——因式分解是它的能力
+- **约束于**：two-computations概念（见 concepts/two-computations.md）——多约束求解引擎是经典计算在Pipeline中的化身
 
 ## 开放问题
 

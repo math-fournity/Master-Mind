@@ -6,18 +6,17 @@
 
 ## 来源
 
-- **面相**：B（人类知识选取）
 - **出处**：231号文档（AI数学工程的数据基座转向）；232号（评价+对应表）；234号（五个问题的重新审视）；239号§7
 
 ## 验证状态
 
-**[borrowed_unoperationalized]**
+**[untested]**
 
 数据基座从未被实现。239号定义了数学工程单元的四阶段结构，但从未跑过一次实际的数据基座条目生成。
 
 **与现有组件的关系**：ArangoDB认知图（35个认知单元，51条边）是数据基座的早期形态，但它记录的是项目认知管理，不是数学工程单元。
 
-## 使用经验
+## 架构位置
 
 ### 数据基座不是RAG
 
@@ -54,12 +53,12 @@
 
 **抽取就是闭环本身。** 求解过程自然产生数据基座条目——不需要单独做抽取。**单任务双产出**——跑一次闭环，同时产出问题的解和数据基座条目。
 
-## 关系
+## 组合关系
 
-- **组合了 certificate**：证书是数据基座的基本单位
-- **组合了 dual-knowledge-production**：数据基座是双重知识生产的抽取路径的产物
-- **组合了 boundary-advancement**：数据基座的增长=边界推进的显式记录
-- **与 formalization-boundary 关系**：数据基座是形式化边界的显式记录
+- **组合了 certificate**（见 structural/certificate.md）：证书是数据基座的基本单位
+- **被组合 by dual-knowledge-production**（见 concepts/dual-knowledge-production.md）：数据基座是双重知识生产的抽取路径的产物
+- **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——数据基座是形式化边界的显式记录
+- **约束于**：boundary-advancement概念（见 concepts/boundary-advancement.md）——数据基座的增长=边界推进的显式记录
 
 ## 开放问题
 

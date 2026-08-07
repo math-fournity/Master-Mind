@@ -6,7 +6,6 @@ Pipeline网络中的一个Pipe角色。负责执行具体的数学推导、计�
 
 ## 来源
 
-- **面相**：3（Pipeline网络）
 - **出处**：241号§1.3.3（面相3的三个角色）；对应238的做题AI、239的AI计算
 
 ## 验证状态
@@ -15,7 +14,7 @@ Pipeline网络中的一个Pipe角色。负责执行具体的数学推导、计�
 
 作为功能，数学推理引擎在guided_001中被验证——AI在Q4执行了完整的数学推导（中心化+多项式非负性+半正定矩阵→C=√5）。但作为Pipeline中一个有明确输入输出格式的Pipe角色，从未被测试。
 
-## 使用经验
+## 架构位置
 
 ### 在238中的对应物
 
@@ -37,12 +36,11 @@ Pipeline网络中的一个Pipe角色。负责执行具体的数学推导、计�
 
 guided_001中AI自己做了SymPy验证（数值验证n=10000时d-√5≈0.0001）。这意味着数学推理引擎和多约束求解引擎在guided_001中是同一个AI——没有角色分离。面相3建议把它们分成不同的Pipe，但这是未测试的设计。
 
-## 关系
+## 组合关系
 
-- **被细化 by pipe**：数学推理引擎是Pipe的三种角色之一
-- **与 pattern-recognition-engine 协作**：模式识别引擎给数学推理引擎方向指引，数学推理引擎执行
-- **与 constraint-solver-engine 协作**：数学推理引擎产出的"可能意义"由多约束求解引擎验证
-- **对应**：238的做题AI、239的AI计算
+- **被包含于 pipe**（见 structural/pipe.md）：数学推理引擎是Pipe的三种角色之一
+- **与 pattern-recognition-engine 协作**（见 structural/pattern-recognition-engine.md）：模式识别引擎给数学推理引擎方向指引，数学推理引擎执行
+- **与 constraint-solver-engine 协作**（见 structural/constraint-solver-engine.md）：数学推理引擎产出的"可能意义"由多约束求解引擎验证
 
 ## 开放问题
 

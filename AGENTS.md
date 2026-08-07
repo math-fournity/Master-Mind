@@ -110,7 +110,12 @@
 
 ### 系统设计原语目录（活文档）
 
-系统设计原语目录在 `primitives/` 目录，每个原语一个markdown文件，记录定义/来源/验证状态/使用经验/关系/开放问题。验证状态四等级：tested（实验验证有效）/ tested_negative（实验验证无效）/ untested（提出未测试）/ borrowed_unoperationalized（借用未操作化）。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`。已写全部26个原语（面相A实践涌现9个 + 面相B知识选取13个 + 面相3 Pipeline网络4个）。验证状态分布：tested 5个 / tested_negative 1个 / untested 10个 / borrowed_unoperationalized 10个——73%未经实验验证。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（机制不依赖隐含筛选）、implicit-filtering（非关键因素）。每次跑实验后更新相关原语的验证状态。
+系统设计原语分三层管理（244号重构方案）：
+- **`primitives/`** — 原语（构造系统的积木，16个）：`operational/`（操作原语9个：可执行的动作/策略/约束/协议）+ `structural/`（结构原语7个：可放置的组件/角色/接口）。验证状态四等级：tested / tested_negative / partial / untested。
+- **`concepts/`** — 概念框架（理解系统的视角，7个）：形式化边界、两种计算、闭环、处境等。不需要验证状态，用"适用边界"替代。
+- **`criteria/`** — 性质标准与探索性隐喻（3个）：自然性、生死条件（判断标准）+ 语义场（隐喻）。
+
+原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）和 `dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）。验证状态分布：操作原语 tested 4 / partial 1 / tested_negative 1 / untested 3；结构原语 partial 1 / untested 6。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（→partial）、implicit-filtering（→tested_negative）。每次跑实验后更新相关原语的验证状态。
 
 ### TOP10最难题集（baseline评测用）
 
@@ -190,6 +195,132 @@
 - **Master tmux 脚本**：`scripts/start-master.sh`、`scripts/enter-master.sh`、`scripts/stop-master.sh`
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统；**Subagent 职责**：完成 Master 分配的具体任务
+
+---
+
+## 临时章节：如何检查正在工作的Solver AI（2026-08-07）
+
+> 本章节记录Master AI观察和干预在tmux中运行的Solver AI的操作方法。来自bare_q2裸跑测试的实战经验。未来AI在检查Solver工作过程时参考此章节。
+
+### 启动Solver session
+
+```bash
+# 1. 选择空闲的Solver工作目录（检查占用）
+tmux list-sessions | grep -E "solver|bare|guided"
+# 三个目录：/data/math-agent-glm5.2-{1,2,3}
+
+# 2. 写problem.txt到工作目录
+# 3. 用tmux启动devin cli
+tmux new-session -d -s <session-name> "cd /data/math-agent-glm5.2-<n> && devin"
+sleep 8
+tmux capture-pane -t <session-name> -p | tail -15  # 检查是否启动
+
+# 4. 如果出现trust prompt，选择"Yes, trust"
+tmux send-keys -t <session-name> "1" Enter
+
+# 5. 启动pipe-pane兜底记录
+mkdir -p runs/<run_id>
+tmux pipe-pane -t <session-name> "cat >> runs/<run_id>/tmux_pipe.log"
+
+# 6. 发送题目指令
+tmux send-keys -t <session-name> "请读取当前目录下的problem.txt文件，然后做题。" Enter
+```
+
+### 观察Solver工作过程
+
+```bash
+# 基本观察（看最后30行）
+tmux capture-pane -t <session-name> -p -S -100 | tail -30
+
+# 深度观察（看最后300行，去掉ANSI噪音）
+tmux capture-pane -t <session-name> -p -S -300 | grep -v '^\[' | grep -v '^$' | tail -60
+
+# 检查AI是否写了文件
+ls -la /data/math-agent-glm5.2-<n>/proof* 2>/dev/null
+
+# 检查AI的thinking字符数（判断思考深度）
+# 屏幕上会显示 "Thinking · Xm Ys · (NNNNNc · ctrl+o for details)"
+# NNNNNc是thinking的字符数，40k+表示深度思考
+```
+
+### 已知问题与处理方法
+
+#### 问题1：Response truncated（输出被截断）
+
+**现象**：AI在thinking阶段花40-50k字符思考，然后在output阶段一次性输出完整证明文本，达到max output token limit被截断。屏幕显示：
+```
+⚠︎ Response truncated
+  The response was cut short because it hit the model's max output token limit.
+  Send a message to continue
+```
+
+**根因**：GLM-5.2倾向于"想完所有内容然后一次性输出文本"，不主动调用write/exec工具。
+
+**处理方法**：
+1. **预防**：在初始指令中就明确要求"把证明写到文件里，不要在对话里输出证明内容。用write工具写proof.md"
+2. **预防**：指令要简短——"只做第一问"比"两问都要做"更容易让AI不触发截断
+3. **预防**：告诉AI"用python3 -c命令把证明写到文件"——exec工具比write工具更容易被AI调用
+4. **截断后**：发"continue"可能再次截断（AI重复同样行为）。更好做法是杀掉session重新开始，用更简短的指令
+5. **最有效**：让AI先做数值验证（exec工具），验证完后它会自然过渡到调用write工具写证明
+
+#### 问题2：Connection lost（连接中断）
+
+**现象**：屏幕显示 `⚠︎ Connection lost, retrying...`
+
+**影响**：thinking内容不持久化在对话历史中。connection lost时正在进行的API请求被中断，thinking内容**完全丢失**。重连后模型从头开始thinking，但看不到之前的推理。thinking字符数会突然变少（如从54k降到16k）。
+
+**处理方法**：
+- 无法预防，这是API连接问题
+- 重连后AI会重新思考，但推理深度可能降低
+- 如果重连后thinking字符数远少于之前，考虑杀掉session重新开始（让AI从头思考，而不是在丢失context的状态下继续）
+
+#### 问题3：工具批准提示
+
+**现象**：AI调用exec/write工具时，devin cli会弹出批准提示：
+```
+❭ 1 Yes  (Approve once)
+· 2 Yes, allow `python3` commands
+· 3 Yes, always allow `python3` commands in math-agent-glm5.2-<n>
+· 4 Yes, always allow `python3` commands in all projects
+```
+
+**处理方法**：选3（always allow in this dir）——避免后续重复批准。发送：
+```bash
+tmux send-keys -t <session-name> "3" Enter
+```
+
+对于write工具的批准提示：
+```
+❭ 1 Yes  (Approve once)
+· 2 Yes, switch to accept edits mode
+· 3 No
+```
+选2（accept edits mode）——后续所有文件写入自动批准。
+
+#### 问题4：pipe-pane日志被ANSI转义序列污染
+
+**现象**：pipe-pane记录的日志包含大量ANSI转义序列和spinner字符，难以阅读。
+
+**处理方法**：用perl清理后查看：
+```bash
+cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -pe 's/[\x{2800}-\x{28ff}]//g' | grep -v '^$' | tail -60
+```
+
+注意：pipe-pane日志可能不完整——tmux的scrollback buffer有限，AI的长输出可能被覆盖。如果需要完整输出，用devin cli的`--export`参数（见solver-tmux-launch skill）。
+
+### 判断Solver是否"做出来了"
+
+1. **检查文件**：`ls -la /data/math-agent-glm5.2-<n>/proof*` ——AI是否写了证明文件
+2. **读证明**：`cat /data/math-agent-glm5.2-<n>/proof.md` ——证明内容是否正确
+3. **看对话状态**：AI是否说了"证毕"或"QED"
+4. **看thinking字符数**：如果AI在第二问上thinking超过50k字符但没写文件，可能是"想了很多但做不出来"
+5. **看工具调用**：AI是否调用了exec做数值验证——调用exec通常表示AI在认真尝试；不调用exec只在thinking里转，可能是卡住了
+
+### 不要做的事
+
+- **不要在AI思考时频繁发消息**——每次消息都会打断AI的thinking，丢失推理
+- **不要发"continue"超过2次**——如果AI反复被截断，说明输出策略有问题，应该杀掉session重新开始
+- **不要在AI工作期间修改工作目录的文件**——可能干扰AI的文件操作
 
 ---
 
@@ -503,6 +634,7 @@
 - AI数学工程框架讨论完整链条（218-237号）：218(非特定性危机)→219-221(拓扑化)→222(形式化边界)→223(外骨骼)→224(纤维化)→225(语义场证书)→226-v0/v1(数学化)→227(反绑架)→228-codex/glm5.2(工程化vs数学化)→229(结合)→230(综合v1)→231(数据基座)→232(评价)→233(边界推进机制)→234(五问题重审)→235(综合v2)→236(最终综合框架)→237(POC认知超越人话版)
 - 对238与239的分析：dev-docs/240-v0-2026-08-07-对238与239的分析.md（238有empirical core提问激活但非特定性危机未修复，239有深层结构形式化边界但未测试且丢了提问激活；建议先跑guided_003再建239闭环基础设施）
 - 系统设计原语目录方案：dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md（理念层三面相：两种计算/语料双路径/Pipeline网络中的Pipe；系统设计过程两面相：实践涌现/知识选取；提出primitives/目录，每个原语一个文件，带验证状态tested/untested/borrowed_unoperationalized；第一批写5个核心原语）
+- 原语目录重构方案：dev-docs/244-v0-2026-08-07-原语目录重构方案.md（区分原语/概念/性质标准三层；原语三判据：可执行性+可验证性+构造性；26个文件重组为primitives/16个+concepts/7个+criteria/3个）
 - AI缺位诊断：dev-docs/200(作弊), 201(知识吸收), 202(运行过程)
 - 修复方案：dev-docs/203(作弊方案), 204(高阶知识方案), 205(AI引导方案)
 - Check List：dev-docs/206(203 CL), 207(204 CL), 208(205 CL)

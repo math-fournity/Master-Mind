@@ -6,7 +6,6 @@ DFS引导架构中，如果一条路失败了，必须重新启动一个新的Se
 
 ## 来源
 
-- **面相**：A（实践涌现）
 - **出处**：214号8.9节（回溯铁律——新Session，不原地回溯）；238号§8.6；commit 1ac76af
 
 ## 验证状态
@@ -45,11 +44,11 @@ DFS引导架构中，如果一条路失败了，必须重新启动一个新的Se
 
 DFS树的价值不在于精确记录"AI当时在想什么"，而在于**指导下一步该问什么**。
 
-## 关系
+## 组合关系
 
 - **被组合 by dfs-guidance**：回溯铁律是DFS的回溯规则
-- **与 pipe 关系**：回溯铁律对Pipe框架有启示——如果Pipeline有回溯，回溯应该启动新的Pipe实例，不在原Pipe实例中回溯。Pipe的state也是单向流动的
-- **与 cognitive-activation 关系**：新Session意味着认知激活效应需要重新建立——上一个session的激活不会自动传递到新session。这是回溯的一个代价
+- **与 pipe 关系**（见 structural/pipe.md）：回溯铁律对Pipe框架有启示——如果Pipeline有回溯，回溯应该启动新的Pipe实例，不在原Pipe实例中回溯。Pipe的state也是单向流动的
+- **与 cognitive-activation 关系**（见 structural/cognitive-activation.md）：新Session意味着认知激活效应需要重新建立——上一个session的激活不会自动传递到新session。这是回溯的一个代价
 
 ## 开放问题
 

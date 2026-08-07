@@ -6,7 +6,6 @@
 
 ## 来源
 
-- **面相**：A（实践涌现）
 - **出处**：214号第8章（DFS引导架构——思维路径的树状探索）；238号§8（完整梳理）；216号元组群改造中的guided-backtrack Skill
 
 ## 验证状态
@@ -48,13 +47,12 @@ DFS引导架构在214号中被完整提出，但guided_001**没有用到回溯**
 
 guided_001没有显式使用DFS——引导者每轮只发一个Q，没有生成候选列表、没有按Level排序。但它隐含地遵循了DFS的"一次发一个"规则。如果Q1-Q4中任何一轮失败，理论上应该回溯，但实际中全部成功，所以回溯从未发生。
 
-## 关系
+## 组合关系
 
-- **组合了 level-spectrum**：候选Q按Level降序排列——Level是DFS的评估函数
 - **组合了 minimal-knowledge-transfer**：Level SUM最大化是DFS的优化目标
 - **组合了 backtrack-fresh-session**：回溯铁律是DFS的回溯规则
-- **与 pipe 关系**：DFS树是Pipeline网络的一种拓扑——线性Pipeline是DFS不回溯的特例。如果Pipeline有分支和回溯，它的拓扑就是DFS树
-- **被细化 by**：214号8.10-8.14节（节点同一性、树导航、Q相同A差异、持久化）
+- **与 pipe 关系**（见 structural/pipe.md）：DFS树是Pipeline网络的一种拓扑——线性Pipeline是DFS不回溯的特例。如果Pipeline有分支和回溯，它的拓扑就是DFS树
+- **约束于**：level-spectrum评估（见 concepts/level-spectrum.md）——候选Q按Level降序排列，Level是DFS的评估函数
 
 ## 开放问题
 

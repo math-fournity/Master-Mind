@@ -6,7 +6,6 @@
 
 ## 来源
 
-- **面相**：3（Pipeline网络）
 - **出处**：241号文档（系统设计原语目录方案）§1.3。由用户在240号分析后的理念层讨论中提出。
 
 ## 验证状态
@@ -19,7 +18,7 @@ Pipe是241号提出的新原语，从未在实验中测试。它是对238（引�
 - guided_001的"引导者+做题AI"结构可以被视为两个Pipe的Pipeline——引导者是模式识别引擎Pipe，做题AI是数学推理引擎Pipe。但guided_001没有用Pipe框架来设计，它是事后重新理解的。
 - guided_001的"提问激活"效应（见 [cognitive-activation](cognitive-activation.md)）是Pipe之间认知激活的empirical证据，但只有这一个数据点。
 
-## 使用经验
+## 架构位置
 
 ### Pipe如何同时修正238和239
 
@@ -50,13 +49,13 @@ Pipe是241号提出的新原语，从未在实验中测试。它是对238（引�
 
 **关键区别**：数据传递是Pipeline的标准连接，认知激活是238的empirical core但239没有保留的。Pipe框架把两者都纳入设计范围。
 
-## 关系
+## 组合关系
 
-- **细化了 two-computations**：面相3把"AI计算"细化成多个Pipe角色（数学推理引擎/模式识别引擎/多约束求解引擎）。239的"AI计算"是一个黑箱，Pipe框架打开了它。
-- **与 non-specificity 关系**：Pipe框架把非特定性从"引导者是否在泄露答案"重新框架为"Pipe的输入输出是否依赖于它不应该知道的信息"——一个Pipe只应该看到上游Pipe传来的东西。
-- **与 cognitive-activation 关系**：Pipe之间的认知激活是Pipe框架的核心概念之一。认知激活是guided_001的empirical phenomenon，Pipe框架给它提供了一个位置。
-- **与 continuous-questioning 关系**：连续发问框架可以是模式识别引擎Pipe的输出协议——它定义了Pipe发给下游的提示的形式。
-- **与 formalization-boundary 关系**：Pipe框架和形式化边界是两个不同的面相——Pipe是运行论（系统怎么工作），形式化边界是知识论（知识怎么构成）。两者交叉于：每个Pipe的输入输出在边界哪一侧？
+- **包含了**：math-reasoning-engine, pattern-recognition-engine, constraint-solver-engine——三个Pipe角色
+- **与 non-specificity 关系**（见 operational/non-specificity.md）：Pipe框架把非特定性从"引导者是否在泄露答案"重新框架为"Pipe的输入输出是否依赖于它不应该知道的信息"——一个Pipe只应该看到上游Pipe传来的东西。
+- **与 cognitive-activation 关系**（见 structural/cognitive-activation.md）：Pipe之间的认知激活是Pipe框架的核心概念之一。认知激活是guided_001的empirical phenomenon，Pipe框架给它提供了一个位置。
+- **与 continuous-questioning 关系**（见 operational/continuous-questioning.md）：连续发问框架可以是模式识别引擎Pipe的输出协议——它定义了Pipe发给下游的提示的形式。
+- **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——Pipe是运行论（系统怎么工作），形式化边界是知识论（知识怎么构成）。两者交叉于：每个Pipe的输入输出在边界哪一侧？
 
 ## 开放问题
 
