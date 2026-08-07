@@ -166,11 +166,20 @@
 
 ### 提示策略路线选择与Level连续谱
 
-详见 `dev-docs/214-v1-2026-08-06-提示策略路线选择与Level连续谱.md`。
+详见 `dev-docs/214-v1-2026-08-06-提示策略路线选择与Level连续谱.md`（理论记录+参考案例）。
 
 核心决策：提示干预走路线B（思维模式）而非路线A（堆砌知识）。寻找最深的、最通用的、最高抽象度的思维模式——跨知识范围的元认知策略，而非限于同一知识范围的具体定理/技巧。
 
 依赖图中每个元素带Level标签（0到1实数）：→0纯知识，→1纯思维模式，中间是灰色地带。Level是经验的、模糊的、相对的——不是被赋值的，而是被AI通过相对比较感知的。
+
+**元组群 `guided-math-solving`**（引导式数学解题）：214号的操作流程已提取为元组群，规则在 `.devin/rules/guided-math-solving.md`（always-on认知+Skill目录），5个Skill：
+- `guided-rehearsal`：预演——生成模拟QA序列和极致提示集合
+- `guided-session-launch`：启动session——work_dir+tmux+devin+--export
+- `guided-interaction`：交互引导——连续发问框架执行（核心）
+- `guided-backtrack`：回溯——新session+重放+换方向
+- `guided-data-persist`：数据持久化——ArangoDB+文件系统归档
+
+改造方案见 `dev-docs/216-v0-2026-08-06-214号元组群改造方案.md`。实验方案见 `dev-docs/215-v0-2026-08-06-连续交互启发式引导实验方案.md`。
 
 **相关目录与角色**：
 - **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
