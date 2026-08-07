@@ -110,12 +110,13 @@
 
 ### 系统设计原语目录（活文档）
 
-系统设计原语分三层管理（244号重构方案）：
+系统设计原语分四层管理（244号重构 + 245号面相独立）：
 - **`primitives/`** — 原语（构造系统的积木，16个）：`operational/`（操作原语9个：可执行的动作/策略/约束/协议）+ `structural/`（结构原语7个：可放置的组件/角色/接口）。验证状态四等级：tested / tested_negative / partial / untested。
 - **`concepts/`** — 概念框架（理解系统的视角，7个）：形式化边界、两种计算、闭环、处境等。不需要验证状态，用"适用边界"替代。
 - **`criteria/`** — 性质标准与探索性隐喻（3个）：自然性、生死条件（判断标准）+ 语义场（隐喻）。
+- **`facets/`** — 面相（切分维度，5个）：系统面相1/2/3（两种计算/语料双路径/Pipeline网络）+ 设计过程面相A/B（实践涌现/知识选取）。面相横切前三层，通过元素文件"来源"字段中的"面相归属"行正向引用。
 
-原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）和 `dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）。验证状态分布：操作原语 tested 4 / partial 1 / tested_negative 1 / untested 3；结构原语 partial 1 / untested 6。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（→partial）、implicit-filtering（→tested_negative）。每次跑实验后更新相关原语的验证状态。
+原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）、`dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）和 `dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md`（面相独立+管理元组）。验证状态分布：操作原语 tested 4 / partial 1 / tested_negative 1 / untested 3；结构原语 partial 1 / untested 6。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（→partial）、implicit-filtering（→tested_negative）。每次跑实验后更新相关原语的验证状态。
 
 ### TOP10最难题集（baseline评测用）
 
@@ -635,6 +636,7 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 - 对238与239的分析：dev-docs/240-v0-2026-08-07-对238与239的分析.md（238有empirical core提问激活但非特定性危机未修复，239有深层结构形式化边界但未测试且丢了提问激活；建议先跑guided_003再建239闭环基础设施）
 - 系统设计原语目录方案：dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md（理念层三面相：两种计算/语料双路径/Pipeline网络中的Pipe；系统设计过程两面相：实践涌现/知识选取；提出primitives/目录，每个原语一个文件，带验证状态tested/untested/borrowed_unoperationalized；第一批写5个核心原语）
 - 原语目录重构方案：dev-docs/244-v0-2026-08-07-原语目录重构方案.md（区分原语/概念/性质标准三层；原语三判据：可执行性+可验证性+构造性；26个文件重组为primitives/16个+concepts/7个+criteria/3个）
+- 面相独立目录与管理元组方案：dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md（面相独立为第四层facets/；5个面相（系统1/2/3+过程A/B）；4个管理元组设计；正向引用关系记录）
 - AI缺位诊断：dev-docs/200(作弊), 201(知识吸收), 202(运行过程)
 - 修复方案：dev-docs/203(作弊方案), 204(高阶知识方案), 205(AI引导方案)
 - Check List：dev-docs/206(203 CL), 207(204 CL), 208(205 CL)

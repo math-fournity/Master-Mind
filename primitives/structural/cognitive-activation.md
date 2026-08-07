@@ -9,6 +9,7 @@
 ## 来源
 
 - **出处**：guided_001实验数据（commit 76a354a）；240号分析中首次被显式命名；241号§1.3作为面相3的核心empirical phenomenon
+- **面相归属**：A（实践涌现）+ 3（Pipeline网络——Pipe间连接的empirical基础）
 
 ## 验证状态
 
