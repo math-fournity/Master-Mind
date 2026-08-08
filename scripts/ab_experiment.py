@@ -27,7 +27,7 @@
 前提条件：
   - mitmproxy已启动（solver-harness mitm start）
   - .env已source（ARANGO_DB=grove_math）
-  - parser工作目录存在（/data/math-agent-glm5.2-parser-1/）
+  - parser工作目录存在（/data/grove-parser-1/）
 """
 
 import argparse
@@ -54,7 +54,7 @@ from xishujuzhen.research_runtime.budget import BudgetManager, BudgetType
 
 
 SOLVER_HARNESS = REPO_ROOT / "xishujuzhen" / "solver_harness" / "solver_harness.py"
-TRAJECTORY_BASE = Path("/data/math-agent-glm5.2-tmux-agents-trajectory")
+TRAJECTORY_BASE = Path("/data/grove-agents-trajectory")
 
 
 def write_problem_file(exp_id: str, problem_text: str) -> str:

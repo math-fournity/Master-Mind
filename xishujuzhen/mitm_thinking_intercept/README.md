@@ -102,7 +102,7 @@ python3 xishujuzhen/mitm_thinking_intercept/decode_connect_proto.py /tmp/devin_m
 用矩条件极差题第2问测试，成功拦截到第一个GetChatMessage响应（5808 bytes，43个streaming messages）：
 
 - **Thinking content**（8个token chunks拼接）: "Let me read the problem file first."
-- **Tool call**: `read({"file_path": "/data/math-agent-glm5.2-tmux-agents-dir/258-mitm-matrix-test/problem.txt"})`
+- **Tool call**: `read({"file_path": "/data/grove-agents-dir/258-mitm-matrix-test/problem.txt"})`
 - **Model**: GLM-5.2 High
 - **Token usage**: input_tokens + output_tokens + cached_input_tokens
 

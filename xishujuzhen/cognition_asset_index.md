@@ -14,6 +14,8 @@
 - ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**（已更新为 Grove 路径）并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
 - ✅ ArangoDB 实例 + 数据库初始化：已完成
 - ✅ 角色说明：已建立，Grove AI/Subagent 边界清晰
+- ✅ 工作目录隔离：已实施，`grove-agents-dir` / `grove-agents-trajectory` / `grove-parser-{1,2,3}` 完全不同前缀
+- ✅ 隔离审计元组：已建立（rule `isolation-awareness` + skill `isolation-audit` + dev-docs/269）
 
 **相关目录与角色**：
 - **本 repo（Grove AI）**：`/data/master-mind-glm5.2-grove/`

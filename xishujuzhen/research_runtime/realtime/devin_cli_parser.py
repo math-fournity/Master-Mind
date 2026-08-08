@@ -34,9 +34,9 @@ from ..parser.models import ParseRequest
 
 # Parser专用的devin cli工作目录（独立于Solver工作目录）
 PARSER_WORK_DIRS = [
-    "/data/math-agent-glm5.2-parser-1",
-    "/data/math-agent-glm5.2-parser-2",
-    "/data/math-agent-glm5.2-parser-3",
+    "/data/grove-parser-1",
+    "/data/grove-parser-2",
+    "/data/grove-parser-3",
 ]
 
 

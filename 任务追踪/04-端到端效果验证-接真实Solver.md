@@ -80,7 +80,7 @@ A/B实验是树生长引擎的**简化版本**（阶段1：1个AI串行展开）
 - 选中Q4（与mock LLM的Q8不同——devin cli的六元组解析结果与mock有差异，V_t=9 vs 6, O_t=2 vs 7，导致策略选择不同。这是真实场景下的预期行为——不同LLM解析出的结构化表示有差异）
 
 **关键设计决策**：
-- parser的devin cli在独立工作目录运行（`/data/math-agent-glm5.2-parser-1/`），不复用Solver工作目录
+- parser的devin cli在独立工作目录运行（`/data/grove-parser-1/`），不复用Solver工作目录
 - parser的devin cli用`-p`单轮模式（不需要交互）
 - parser的devin cli不需要MITM（不采集trajectory）
 - JSON提取容错：支持纯JSON、markdown代码块、花括号提取等多种格式

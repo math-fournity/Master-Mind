@@ -128,7 +128,7 @@ GuidedLoop引导实验也必须通过solver-harness启动。当前solver-harness
 
 ### Solver工作目录
 
-solver-harness自动创建`/data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/`，自动复制AGENTS.md模板和problem.txt。无需手动创建。
+solver-harness自动创建`/data/grove-agents-dir/<exp-id>/`，自动复制AGENTS.md模板和problem.txt。无需手动创建。
 
 ## 禁止的做法
 

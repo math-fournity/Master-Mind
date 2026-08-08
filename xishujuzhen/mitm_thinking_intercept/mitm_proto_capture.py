@@ -24,7 +24,7 @@ from datetime import datetime
 from mitmproxy import http
 
 RAW_DIR = os.environ.get("MITM_RAW_DIR", "/tmp/devin_mitm_raw")
-TRAJECTORY_BASE = os.environ.get("MITM_TRAJECTORY_BASE", "/data/math-agent-glm5.2-tmux-agents-trajectory")
+TRAJECTORY_BASE = os.environ.get("MITM_TRAJECTORY_BASE", "/data/grove-agents-trajectory")
 os.makedirs(RAW_DIR, exist_ok=True)
 
 

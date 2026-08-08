@@ -59,7 +59,7 @@ def start_solver(exp_id: str, problem_text: str, model: str = "glm-5-2") -> dict
         return {}
 
     # 解析session_info
-    session_info_path = f"/data/math-agent-glm5.2-tmux-agents-trajectory/{exp_id}/session_info.json"
+    session_info_path = f"/data/grove-agents-trajectory/{exp_id}/session_info.json"
     if os.path.exists(session_info_path):
         with open(session_info_path) as f:
             return json.load(f)
@@ -74,8 +74,8 @@ def run_realtime_pipeline(exp_id: str, session_id: str, problem_text: str, max_t
     # create_case_253_graph()已经包含了规则
 
     # trajectory数据路径
-    trajectory_jsonl = f"/data/math-agent-glm5.2-tmux-agents-trajectory/{exp_id}/sessions_db/trajectory.jsonl"
-    result_output = f"/data/math-agent-glm5.2-tmux-agents-trajectory/{exp_id}/realtime_result.json"
+    trajectory_jsonl = f"/data/grove-agents-trajectory/{exp_id}/sessions_db/trajectory.jsonl"
+    result_output = f"/data/grove-agents-trajectory/{exp_id}/realtime_result.json"
 
     # 创建pipeline
     tmux_session = f"harness-{exp_id}"
@@ -136,7 +136,7 @@ def main():
         print(f"  session_id: {session_id}")
     else:
         print(f"\n[1] 跳过launch（--skip-launch）")
-        session_info_path = f"/data/math-agent-glm5.2-tmux-agents-trajectory/{args.exp_id}/session_info.json"
+        session_info_path = f"/data/grove-agents-trajectory/{args.exp_id}/session_info.json"
         with open(session_info_path) as f:
             session_info = json.load(f)
         session_id = session_info.get("devin_session_id", "")

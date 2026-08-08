@@ -2,9 +2,9 @@
 """solver-harness: 在tmux中启动devin cli，自动采集完整trajectory。
 
 v1设计（全局共享mitmproxy + 事后批量解码）：
-  Solver工作目录（AI可见）:  /data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/
-  Trajectory数据目录（AI不可见）: /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/
-  共享MITM raw目录: /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/
+  Solver工作目录（AI可见）:  /data/grove-agents-dir/<exp-id>/
+  Trajectory数据目录（AI不可见）: /data/grove-agents-trajectory/<exp-id>/
+  共享MITM raw目录: /data/grove-agents-trajectory/_shared/mitm_raw/
 
 数据流：
   1. 全局共享mitmproxy（固定18888端口，--allow-hosts限制只拦截devin host）
@@ -40,8 +40,8 @@ from decode_connect_proto import extract_streaming_data, parse_connect_stream, d
 # 路径常量
 # ============================================================
 
-SOLVER_BASE = "/data/math-agent-glm5.2-tmux-agents-dir"
-TRAJECTORY_BASE = "/data/math-agent-glm5.2-tmux-agents-trajectory"
+SOLVER_BASE = "/data/grove-agents-dir"
+TRAJECTORY_BASE = "/data/grove-agents-trajectory"
 SHARED_RAW_DIR = os.path.join(TRAJECTORY_BASE, "_shared", "mitm_raw")
 MITM_PORT = 18889
 MITM_ALLOW_HOSTS = r"server\.self-serve\.windsurf\.com|api\.devin\.ai|static\.devin\.ai"

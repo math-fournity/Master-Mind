@@ -30,14 +30,14 @@
 
 ```
 Solver工作目录（AI可见，AI在这里做题）:
-  /data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/
+  /data/grove-agents-dir/<exp-id>/
   ├── AGENTS.md          (Solver角色定义)
   ├── problem.txt        (题目)
   ├── proof*.md          (AI写的证明草稿)
   └── .venv/             (AI的Python环境，可选)
 
 Trajectory数据目录（AI不可见，harness在这里存数据）:
-  /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/
+  /data/grove-agents-trajectory/<exp-id>/
   ├── session_info.json     (run元信息)
   ├── mitm/
   │   ├── trajectory.jsonl  (解码后的token级流式数据，由共享decoder分发)
@@ -51,7 +51,7 @@ Trajectory数据目录（AI不可见，harness在这里存数据）:
       └── conversation.json (devin --export导出)
 
 共享MITM数据目录（所有实验共用一个mitmproxy）:
-  /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/
+  /data/grove-agents-trajectory/_shared/mitm_raw/
   ├── chatmsg_001_*.bin     (raw protobuf响应)
   ├── chatmsg_002_*.bin
   └── capture.log           (全局捕获日志)
@@ -277,7 +277,7 @@ python3 solver_harness.py mitm status  # 查看状态
 
 **mitmproxy启动命令**（由solver-harness的`cmd_mitm start`执行）：
 ```bash
-MITM_RAW_DIR=/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw \
+MITM_RAW_DIR=/data/grove-agents-trajectory/_shared/mitm_raw \
 mitmdump --listen-port 18889 \
   --allow-hosts "server\.self-serve\.windsurf\.com|api\.devin\.ai|static\.devin\.ai" \
   -s xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py \
@@ -310,8 +310,8 @@ mitmdump --listen-port 18889 \
   "model": "glm-5-2",
   "prompt": "请读取当前目录下的problem.txt文件，解答其中的数学题。",
   "problem_file": "problem.txt",
-  "solver_dir": "/data/math-agent-glm5.2-tmux-agents-dir/258-matrix-test",
-  "trajectory_dir": "/data/math-agent-glm5.2-tmux-agents-trajectory/258-matrix-test",
+  "solver_dir": "/data/grove-agents-dir/258-matrix-test",
+  "trajectory_dir": "/data/grove-agents-trajectory/258-matrix-test",
   "tmux_session": "harness-258-matrix-test",
   "mitm_port": 18889,
   "mitm_enabled": true,

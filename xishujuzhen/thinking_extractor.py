@@ -14,7 +14,7 @@ Devin CLI Thinking Extractor SDK
   python3 thinking_extractor.py --session-id nova-authority --output thinking.json
 
   # 按工作目录提取（找最近的 session）
-  python3 thinking_extractor.py --work-dir /data/math-agent-glm5.2-tmux-agents-dir/258-challenge-analysis-test1 --output thinking.json
+  python3 thinking_extractor.py --work-dir /data/grove-agents-dir/258-challenge-analysis-test1 --output thinking.json
 
   # 提取并打印摘要
   python3 thinking_extractor.py --session-id nova-authority --summary

@@ -165,8 +165,8 @@
 
 用户明确指出：AI不能看到自己的运行数据，这会污染Solver的行为。数据必须放在Solver工作目录之外。
 
-- Solver工作目录：`/data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/`（AI可见）
-- Trajectory数据目录：`/data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/`（AI不可见）
+- Solver工作目录：`/data/grove-agents-dir/<exp-id>/`（AI可见）
+- Trajectory数据目录：`/data/grove-agents-trajectory/<exp-id>/`（AI不可见）
 - 同名子目录设计，一一对应，好查
 
 ### 3.2 为什么MITM默认开启

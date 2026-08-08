@@ -54,7 +54,7 @@ MAX_ROUNDS = 10       # A组最大提示注入轮次
 HINT_BUDGET = 10      # A组最大提示注入次数
 MODEL = "glm-5-2"
 SOLVER_HARNESS = str(REPO_ROOT / "xishujuzhen/solver_harness/solver_harness.py")
-TRAJECTORY_BASE = "/data/math-agent-glm5.2-tmux-agents-trajectory"
+TRAJECTORY_BASE = "/data/grove-agents-trajectory"
 
 
 def write_problem_file(exp_id: str) -> str:

@@ -32,7 +32,7 @@ description: >
 SESSION_ID="nova-authority"
 
 # 方法B：知道工作目录（从实验目录路径）
-WORK_DIR="/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>"
+WORK_DIR="/data/grove-agents-dir/<experiment-id>"
 
 # 方法C：列出最近的session
 sqlite3 ~/.local/share/devin/cli/sessions.db "SELECT id, title, working_directory, created_at FROM sessions ORDER BY created_at DESC LIMIT 10;"
@@ -215,16 +215,16 @@ devin cli是Node.js应用，不读macOS Keychain。必须设置`NODE_EXTRA_CA_CE
 
 ```bash
 # 查看人可阅读的连续文本（推荐——像读文章一样实时看AI思考）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_readable.txt
+tail -f /data/grove-agents-trajectory/<exp-id>/mitm/thinking_readable.txt
 
 # 查看所有实验的thinking流（token级碎片格式）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/thinking_live.txt
+tail -f /data/grove-agents-trajectory/_shared/mitm_raw/thinking_live.txt
 
 # 查看特定实验（token级碎片格式）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.txt
+tail -f /data/grove-agents-trajectory/<exp-id>/mitm/thinking_live.txt
 
 # 程序化读取
-cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
+cat /data/grove-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
 ```
 
 ### 四路落盘格式

@@ -92,6 +92,19 @@
 - **网络端口**：如果本 repo 要起服务（如 ArangoDB Web、自定义 HTTP 服务），注意端口不要和上游冲突。起服务前先 `lsof -i :<port>` 检查。
 - **Python 环境**：本 repo 用独立 venv（`.venv/`，python3.14 + python-arango 8.3.3，被 gitignore）。
 - **mitmproxy** `localhost:18889`：launchd 系统服务，两AI共享，通过 workdir_mapping 区分。
+- **Solver工作目录**：`/data/grove-agents-dir/`（Grove专用，上游用 `/data/math-agent-{1,2}/`）
+- **Trajectory存储**：`/data/grove-agents-trajectory/`（Grove专用）
+- **Parser工作目录**：`/data/grove-parser-{1,2,3}/`（Grove专用）
+
+### 硬约束 4.5 · 隔离意识（元组：isolation-awareness + isolation-audit）
+
+**隔离不是一次性工程，而是持续 vigilance。** 每次使用新的共享资源、修改路径常量、创建子进程工作目录时，必须过隔离检查清单。
+
+- **Rule**：`.devin/rules/isolation-awareness.md`——always-on触发，列出隔离层次和触发条件
+- **Skill**：`.devin/skills/isolation-audit/SKILL.md`——按需加载的8步审计工作流
+- **经验文档**：`dev-docs/269-v0-2026-08-08-共享机器多AI隔离经验与持续维护清单.md`——完整隔离经验、检查清单、演进历史
+
+**隔离黄金法则**：两个AI的任何资源标识（库名、目录名、session名、端口）都应**完全不同前缀**，不能只靠后缀区分。
 
 ### 硬约束 5 · Solver 工作目录隔离
 
@@ -101,7 +114,7 @@
 
 #### 当前模式 · tmux-agents-dir（2026-08-07起）
 
-**每个实验在 `/data/math-agent-glm5.2-tmux-agents-dir/` 下有独立的工作目录，运行后保留全部记录（AGENTS.md、problem.txt、proof、exports、tmux_pipe.log等）。**
+**每个实验在 `/data/grove-agents-dir/` 下有独立的工作目录，运行后保留全部记录（AGENTS.md、problem.txt、proof、exports、tmux_pipe.log等）。**
 
 **目录命名规范**：`<dev-docs编号>-<实验名>`，例如：
 - `255-poc-1` —— 255号POC系列的第1个POC
@@ -110,7 +123,7 @@
 
 **每个实验目录的结构**（自包含，运行后保留）：
 ```
-/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/
+/data/grove-agents-dir/<experiment-id>/
 ├── AGENTS.md              # Solver角色定义（从templates/solver_agents_md.md复制，可定制）
 ├── .devin/                # devin cli本地配置（config.local.json等）
 ├── problem.txt            # 题目文件（运行前写入，运行后保留）
@@ -336,7 +349,7 @@
 
 ```bash
 # 1. 创建实验目录（新模式：tmux-agents-dir）
-EXP_DIR="/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>"
+EXP_DIR="/data/grove-agents-dir/<experiment-id>"
 mkdir -p ${EXP_DIR}/exports
 cp templates/solver_agents_md.md ${EXP_DIR}/AGENTS.md  # 从模板复制
 
@@ -759,8 +772,8 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 - mitmproxy addon：`xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py`
 - 实时管线：`xishujuzhen/research_runtime/realtime/pipeline.py`
 - DevinCliParserProvider：`xishujuzhen/research_runtime/realtime/devin_cli_parser.py`
-- Solver工作目录：`/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/`
-- trajectory存储：`/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/`
+- Solver工作目录：`/data/grove-agents-dir/<experiment-id>/`
+- trajectory存储：`/data/grove-agents-trajectory/<exp_id>/`
 - Solver AGENTS.md模板：`templates/solver_agents_md.md`
 - 验证run：`runs/run_20260806_{verify_001, guided_001-004, complex_001-005}/`
 

@@ -52,7 +52,7 @@ python3 xishujuzhen/solver_harness/solver_harness.py mitm start
 - 固定端口18889（launchd系统服务），`--allow-hosts`限制只拦截3个devin host（不影响其他本地应用）
 - CA证书自动加入Keychain信任（首次需要密码）
 - tmux session名：`harness-mitmproxy`
-- raw数据写入：`/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/`
+- raw数据写入：`/data/grove-agents-trajectory/_shared/mitm_raw/`
 
 ### 步骤2：启动实验
 
@@ -68,8 +68,8 @@ python3 xishujuzhen/solver_harness/solver_harness.py launch \
 - `--no-mitm`：不启用MITM代理（仅特殊调试场景，正常使用不要加）
 
 自动完成：
-1. 创建Solver工作目录（`/data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/`）
-2. 创建Trajectory数据目录（`/data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/`）
+1. 创建Solver工作目录（`/data/grove-agents-dir/<exp-id>/`）
+2. 创建Trajectory数据目录（`/data/grove-agents-trajectory/<exp-id>/`）
 3. 复制AGENTS.md模板到Solver目录
 4. 复制problem.txt到Solver目录
 5. 写session_info.json
@@ -125,7 +125,7 @@ python3 xishujuzhen/solver_harness/solver_harness.py mitm stop
 ## 数据产物
 
 ```
-/data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/
+/data/grove-agents-trajectory/<exp-id>/
 ├── session_info.json          # 实验元信息（含devin_session_id）
 ├── mitm/
 │   └── trajectory.jsonl       # token级（MITM解码后，stop时自动生成）
@@ -239,13 +239,13 @@ solver-harness自动添加`--export`参数，导出到`<exp-id>/exports/conversa
 ### MITM数据产物
 
 ```
-/data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/
+/data/grove-agents-trajectory/<exp-id>/mitm/
 ├── thinking_readable.txt         # 人可阅读的连续文本（实时拼接，可tail -f读文章）
 ├── thinking_live.jsonl           # 流式实时thinking（每个chunk一行，JSONL格式）
 ├── thinking_live.txt             # 流式实时thinking（token级碎片，可tail -f）
 └── trajectory.jsonl              # stop时decode-all生成的完整trajectory
 
-/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/
+/data/grove-agents-trajectory/_shared/mitm_raw/
 ├── thinking_live.txt            # 所有实验的thinking流（token级碎片，可tail -f实时查看）
 ├── capture.log                  # 截获日志（每个文件的URL/大小/时间）
 ├── api_log.txt                  # 所有API调用记录（URL/状态/大小/时间）
