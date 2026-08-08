@@ -449,4 +449,56 @@ solver-harness**不影响**：
 | MITM作用范围 | `--allow-hosts`限制3个devin host | 确保MITM只影响目标devin，不影响本机其他程序 |
 | mitmproxy实例数 | 全局一个，固定18888 | 端口无冲突，资源开销小，并发实验通过session_id区分 |
 | 解码时机 | 事后批量（cmd_decode_all） | 共享raw目录混合多实验数据，实时分发复杂易错，事后批量更可靠 |
+
+---
+
+## 十、流式实时thinking落盘（2026-08-08升级）
+
+### 10.1 从"事后批量解码"到"token级流式实时"
+
+原方案中MITM数据只在stop时由decode-all批量解码——这不是实时的。用户要求"Solver思考过程中实时看到thinking内容"。
+
+**升级方案**：用mitmproxy的`responseheaders` hook + `flow.response.stream = callable`：
+- `responseheaders`在响应头到达时触发（body之前）
+- 设置`flow.response.stream = parser.feed`后，每个HTTP chunk到达时callable被调用
+- `StreamingThinkingParser`实时解析Connect streaming protobuf
+- 每解析出一个field 9（thinking chunk）立即落盘——**不需要等响应完成**
+
+### 10.2 三路落盘
+
+| 位置 | 格式 | 用途 |
+|---|---|---|
+| `_shared/mitm_raw/thinking_live.txt` | 人类可读 | `tail -f`实时查看所有实验 |
+| `<exp_id>/mitm/thinking_live.txt` | 人类可读 | `tail -f`按实验查看 |
+| `<exp_id>/mitm/thinking_live.jsonl` | JSONL | 每个chunk一行，程序读取 |
+
+### 10.3 JSONL记录类型
+
+- `thinking_chunk`：单个thinking token（含timestamp/counter/chunk_index/content）
+- `tool_call_chunk`：单个tool_call chunk（含tool_call_id/name/args_chunk/is_start）
+- `stream_complete`：一轮thinking完成后的汇总（含thinking_full完整文本/tool_calls列表/elapsed_seconds）
+
+### 10.4 db monitor启动顺序修复
+
+同时修复了db monitor的启动顺序问题：
+- **原问题**：`start_db_monitor`在步骤6（devin cli启动前）就启动了，`trajectory_monitor.py`找不到session就`sys.exit(1)`退出——导致`sessions_db/trajectory.jsonl`一直是空的
+- **修复**：将`start_db_monitor`从步骤6移到步骤9（在`backfill_devin_session_id`之后）
+- **效果**：db monitor现在能正确找到session，3秒轮询step级trajectory实时落盘
+
+### 10.5 端到端验证数据
+
+- **5秒时**：thinking_live.txt已有227行——实时落盘启动
+- **每5秒持续增长**：+227 → +497 → +307 → +604...
+- **120秒时**：11,397行txt + 10,971行jsonl
+- **chunk粒度**：1-7字符/token（如`+T`、`+(k`、`+approx`）
+- **时间戳精度**：毫秒级（04:22:13.250 → 04:22:13.447）
+- **第二轮thinking**：12,865个chunks在2分钟内实时落盘
+
+### 10.6 更新后的设计决策
+
+| 问题 | 决策 | 理由 |
+|---|---|---|
+| 解码时机 | **流式实时**（responseheaders+stream callable）+ 事后批量（decode-all） | 流式实时用于实时监控；事后批量用于完整trajectory分发 |
+| db monitor启动顺序 | 在backfill之后启动 | 避免找不到session而退出 |
+| thinking落盘位置 | 三路（共享txt + 实验txt + 实验jsonl） | 共享txt便于全局监控；实验txt/jsonl便于按实验隔离 |
 | GuidedLoop集成 | 独立使用，不集成 | 先解耦后集成，裸跑测试优先 |

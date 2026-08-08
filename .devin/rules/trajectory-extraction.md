@@ -74,8 +74,21 @@ trajectory有两个数据源，互补使用：
 
 | 数据源 | 获取方式 | 实时性 | 数据完整性 | 用途 |
 |---|---|---|---|---|
-| **sessions.db** | `trajectory_extractor.py` | session结束后完整 | thinking + content + tool_calls + tool_results + 树结构 | 完整重建AI工作过程 |
-| **MITM（mitmproxy）** | `solver_harness.py decode-all` | 接近实时（响应返回后即可解码） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析 |
+| **MITM流式实时截获** | mitmproxy responseheaders+stream callable | **token级实时**（思考过程中每个token立即落盘） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
+| **sessions.db** | `trajectory_extractor.py` / `trajectory_monitor.py` | session结束后完整（或3秒轮询接近实时） | thinking + content + tool_calls + tool_results + 树结构 | 完整重建AI工作过程、检索系统索引 |
+
+### MITM流式实时数据源
+
+| 数据 | 位置 | 获取方式 | 说明 |
+|---|---|---|---|
+| thinking chunks（实时） | `<exp_id>/mitm/thinking_live.jsonl` | mitmproxy自动写入 | 每个token一行JSON（含timestamp/chunk_index/content） |
+| thinking chunks（可读） | `<exp_id>/mitm/thinking_live.txt` | mitmproxy自动写入 | 人类可读格式，可`tail -f`实时查看 |
+| thinking流（全局） | `_shared/mitm_raw/thinking_live.txt` | mitmproxy自动写入 | 所有实验的thinking流，可`tail -f` |
+| thinking汇总 | `<exp_id>/mitm/thinking_live.jsonl`的`stream_complete`记录 | mitmproxy自动写入 | 每轮thinking完成后的完整文本+tool_calls列表 |
+| tool_call chunks | `<exp_id>/mitm/thinking_live.jsonl`的`tool_call_chunk`记录 | mitmproxy自动写入 | tool_call的name和args也是流式落盘 |
+| raw protobuf | `_shared/mitm_raw/chatmsg_NNN_*.bin` | mitmproxy自动保存 | 事后可用`decode_connect_proto.py`重新解码 |
+| API调用日志 | `_shared/mitm_raw/api_log.txt` | mitmproxy自动记录 | 所有API的URL/状态/大小/时间 |
+| flow文件 | `_shared/mitm_flows.mitm` | mitmproxy `-w`保存 | 可用`mitmdump -r`回放 |
 
 ### sessions.db数据源（事后完整提取）
 
@@ -89,16 +102,6 @@ trajectory有两个数据源，互补使用：
 | 工具输入 | tool_call_state | tool_call_json.rawInput | 工具的完整输入参数 |
 | 工具输出 | tool_call_state | tool_call_update_json.content | 工具返回的结果 |
 | 工具状态 | tool_call_state | tool_call_update_json.status | completed/failed |
-
-### MITM数据源（实时截获）
-
-| 数据 | 位置 | 获取方式 | 说明 |
-|---|---|---|---|
-| raw protobuf响应 | `_shared/mitm_raw/chatmsg_NNN_*.bin` | mitmproxy自动截获 | GetChatMessage的流式响应 |
-| thinking内容 | `trajectory.jsonl`的`content_thinking`字段 | `decode_connect_proto.py`解码 | field 9的流式chunk拼接 |
-| tool_calls | `trajectory.jsonl`的`tool_calls`字段 | `decode_connect_proto.py`解码 | field 6的tool_call chunk |
-| API调用日志 | `_shared/mitm_raw/api_log.txt` | mitmproxy自动记录 | 所有API的URL/状态/大小/时间 |
-| flow文件 | `_shared/mitm_flows.mitm` | mitmproxy `-w`保存 | 可用`mitmdump -r`回放 |
 
 ## 关键技术细节
 

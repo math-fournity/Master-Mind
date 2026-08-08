@@ -184,36 +184,65 @@ solver-tmux-launch启动Solver → Solver做题产生trajectory数据
 thinking-extraction（子集）→ 分析AI为什么做不出（关注thinking）
 ```
 
-## MITM实时thinking截获（2026-08-08稳定化）
+## MITM流式实时thinking截获（2026-08-08建立）
 
-solver-harness通过mitmproxy截获devin cli的API响应，实现接近实时的thinking采集：
+solver-harness通过mitmproxy截获devin cli的API响应，实现**token级实时**thinking采集——Solver思考过程中每个token立即落盘。
 
-### 截获链路
+### 核心机制：responseheaders + stream callable
 
 ```
 devin cli → HTTPS_PROXY=localhost:18888 → mitmproxy → server.self-serve.windsurf.com
     ↓
-mitm_proto_capture.py截获ApiServerService响应 → chatmsg_NNN_*.bin（raw protobuf）
+responseheaders hook（响应头到达时，body之前）
+    ↓ 设置 flow.response.stream = parser.feed
     ↓
-decode_connect_proto.py解码 → trajectory.jsonl（content_thinking + tool_calls）
+每个HTTP chunk到达时 → parser.feed(chunk) 被调用
+    ↓ StreamingThinkingParser实时解析Connect streaming protobuf
+    ↓ 每解析出一个field 9（thinking chunk）立即写入3个位置：
+    ├─ _shared/mitm_raw/thinking_live.txt（全局，可tail -f）
+    ├─ <exp_id>/mitm/thinking_live.txt（按实验，可tail -f）
+    └─ <exp_id>/mitm/thinking_live.jsonl（JSONL，每个chunk一行）
+    ↓
+流结束时 → parser.feed(b"") 被调用 → 写stream_complete汇总记录
 ```
 
 ### 关键修复：NODE_EXTRA_CA_CERTS
 
 devin cli是Node.js应用，不读macOS Keychain。必须设置`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量，否则交互模式SSL验证失败。solver-harness已内置此修复（见solver-tmux-launch元组）。
 
-### 实时解码
+### 实时查看
 
 ```bash
-# 实时解码单个bin文件
+# 实时查看所有实验的thinking流
+tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/thinking_live.txt
+
+# 实时查看特定实验
+tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.txt
+
+# 程序化读取
+cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
+```
+
+### JSONL记录类型
+
+- `thinking_chunk`：单个thinking token（含timestamp/counter/chunk_index/content）
+- `tool_call_chunk`：单个tool_call chunk（含tool_call_id/name/args_chunk/is_start）
+- `stream_complete`：一轮thinking完成后的汇总（含thinking_full完整文本/tool_calls列表/elapsed_seconds）
+
+### 事后解码
+
+```bash
+# 实时解码单个bin文件（事后分析）
 python3 xishujuzhen/mitm_thinking_intercept/decode_connect_proto.py <file.bin> --stream
 
 # 批量解码所有raw数据（按work_dir分发到各实验）
 python3 xishujuzhen/solver_harness/solver_harness.py decode-all
 ```
 
-### 验证结果
+### 验证结果（2026-08-08）
 
-mitmproxy截获的thinking与sessions.db完全一致——两个数据源互补：
-- MITM：接近实时，适合实时监控和流式分析
-- sessions.db：session结束后完整，适合事后分析和检索系统索引
+- 120秒内11,397行txt + 10,971行jsonl
+- chunk粒度1-7字符/token（如`+T`、`+(k`、`+approx`）
+- 毫秒级时间戳（04:22:13.250 → 04:22:13.447）
+- 第二轮thinking：12,865个chunks在2分钟内实时落盘
+- mitmproxy截获的thinking与sessions.db完全一致——两个数据源互补

@@ -195,3 +195,57 @@ AI想得太多，thinking把output token额度全部用完，导致没有任何c
 ## 九、下一步：solver-harness系统
 
 本调查确认了技术可行性。下一步是搭建**solver-harness**——一个完整的trajectory采集环境，在tmux中启动devin cli并自动采集所有数据。方案见263号文档。
+
+---
+
+## 十、流式实时thinking落盘验证（2026-08-08更新）
+
+### 10.1 从"响应完成后解码"到"token级流式实时"
+
+初始方案用mitmproxy的`response` hook在HTTP响应完成后解码thinking——这不是真正的实时，因为要等整个响应体到达。
+
+**改进方案**：用mitmproxy的`responseheaders` hook + `flow.response.stream = callable`：
+- `responseheaders`在响应头到达时触发（body之前）
+- 设置`flow.response.stream = parser.feed`后，每个HTTP chunk到达时callable被调用
+- `StreamingThinkingParser`实时解析Connect streaming protobuf
+- 每解析出一个field 9（thinking chunk）立即落盘——**不需要等响应完成**
+
+### 10.2 三路落盘
+
+| 位置 | 格式 | 用途 |
+|---|---|---|
+| `_shared/mitm_raw/thinking_live.txt` | 人类可读 | `tail -f`实时查看所有实验 |
+| `<exp_id>/mitm/thinking_live.txt` | 人类可读 | `tail -f`按实验查看 |
+| `<exp_id>/mitm/thinking_live.jsonl` | JSONL | 每个chunk一行，程序读取 |
+
+### 10.3 JSONL记录类型
+
+- `thinking_chunk`：单个thinking token（含timestamp/counter/chunk_index/content）
+- `tool_call_chunk`：单个tool_call chunk（含tool_call_id/name/args_chunk/is_start）
+- `stream_complete`：一轮thinking完成后的汇总（含thinking_full完整文本/tool_calls列表/elapsed_seconds）
+
+### 10.4 端到端验证数据
+
+- **5秒时**：thinking_live.txt已有227行——实时落盘启动
+- **每5秒持续增长**：+227 → +497 → +307 → +604...
+- **120秒时**：11,397行txt + 10,971行jsonl
+- **chunk粒度**：1-7字符/token（如`+T`、`+(k`、`+approx`）
+- **时间戳精度**：毫秒级（04:22:13.250 → 04:22:13.447）
+- **第二轮thinking**：12,865个chunks在2分钟内实时落盘
+
+### 10.5 db monitor启动顺序修复
+
+同时修复了db monitor的启动顺序问题：
+- **原问题**：db monitor在devin cli启动前就启动了，`trajectory_monitor.py`找不到session就`sys.exit(1)`退出
+- **修复**：将`start_db_monitor`从步骤6移到步骤9（在`backfill_devin_session_id`之后）
+- **效果**：db monitor现在能正确找到session，3秒轮询step级trajectory实时落盘到`sessions_db/trajectory.jsonl`
+
+### 10.6 粒度对比（更新）
+
+| 方案 | 粒度 | 延迟 | 实现复杂度 | 风险 | 状态 |
+|---|---|---|---|---|---|
+| **MITM流式（responseheaders+stream）** | **token级** | **~0ms（实时）** | 中 | 需信任CA证书+NODE_EXTRA_CA_CERTS | ✅已验证 |
+| MITM响应完成后解码（response hook） | step级 | 响应完成后 | 低 | 同上 | ✅已弃用 |
+| `trajectory_monitor.py`（轮询sessions.db） | step级 | ~3s | 低 | 无 | ✅已修复 |
+| ACP wrapper（替换devin二进制） | token级 | ~0ms | 高 | 替换全局安装 | 未实现 |
+| lldb内存dump | token级 | ~0ms | 高 | 需禁SIP | 未实现 |
