@@ -126,11 +126,21 @@ class StreamingThinkingParser:
         # 实验目录的落盘路径
         self.exp_jsonl_path = None
         self.exp_txt_path = None
+        self.exp_readable_path = None  # 人可阅读的连续文本
         if exp_id:
             exp_mitm_dir = os.path.join(TRAJECTORY_BASE, exp_id, "mitm")
             os.makedirs(exp_mitm_dir, exist_ok=True)
             self.exp_jsonl_path = os.path.join(exp_mitm_dir, "thinking_live.jsonl")
             self.exp_txt_path = os.path.join(exp_mitm_dir, "thinking_live.txt")
+            self.exp_readable_path = os.path.join(exp_mitm_dir, "thinking_readable.txt")
+
+        # 写人可阅读文件的开头标记
+        if self.exp_readable_path:
+            ts = datetime.now().strftime('%H:%M:%S')
+            with open(self.exp_readable_path, "a") as f:
+                f.write(f"\n{'='*60}\n")
+                f.write(f"[{ts}] === Thinking Round {counter} START ===\n")
+                f.write(f"{'='*60}\n")
 
     def feed(self, data: bytes) -> bytes:
         """mitmproxy调用的stream callable。每个chunk到达时调用。
@@ -198,12 +208,12 @@ class StreamingThinkingParser:
         """实时写入单个thinking chunk到落盘文件。"""
         ts = datetime.now().strftime('%H:%M:%S.%f')[:-3]
 
-        # 1. 共享目录的thinking_live.txt（可tail -f）
+        # 1. 共享目录的thinking_live.txt（token级碎片，可tail -f）
         self.shared_thinking_log.write(f"[{ts}] #{self.counter} exp={self.exp_id} chunk={len(self.thinking_chunks)} len={len(chunk)}\n")
         self.shared_thinking_log.write(f"  +{chunk}\n")
         self.shared_thinking_log.flush()
 
-        # 2. 实验目录的thinking_live.txt（人类可读，可tail -f）
+        # 2. 实验目录的thinking_live.txt（token级碎片，可tail -f）
         if self.exp_txt_path:
             with open(self.exp_txt_path, "a") as f:
                 f.write(f"[{ts}] chunk={len(self.thinking_chunks)} +{chunk}\n")
@@ -219,6 +229,11 @@ class StreamingThinkingParser:
             }
             with open(self.exp_jsonl_path, "a") as f:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+        # 4. 实验目录的thinking_readable.txt（人可阅读的连续文本，实时拼接追加）
+        if self.exp_readable_path:
+            with open(self.exp_readable_path, "a") as f:
+                f.write(chunk)  # 直接追加token，不换行——形成连续文本
 
     def _write_tool_call(self, tc_id, name, args, is_start):
         """实时写入tool_call chunk到落盘文件。"""
@@ -247,6 +262,15 @@ class StreamingThinkingParser:
             }
             with open(self.exp_jsonl_path, "a") as f:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+        # 人可阅读文件：tool_call用分隔符标记
+        if self.exp_readable_path and is_start:
+            ts_short = datetime.now().strftime('%H:%M:%S')
+            with open(self.exp_readable_path, "a") as f:
+                f.write(f"\n\n--- [Tool Call: {name}] [{ts_short}] ---\n")
+                if args:
+                    f.write(f"args: {args}")
+                    f.write("\n---\n")
 
     def _finish(self):
         """流结束时写最终汇总记录。"""
@@ -284,6 +308,17 @@ class StreamingThinkingParser:
             }
             with open(self.exp_jsonl_path, "a") as f:
                 f.write(json.dumps(summary, ensure_ascii=False) + "\n")
+
+        # 人可阅读文件：写结束标记
+        if self.exp_readable_path:
+            ts = datetime.now().strftime('%H:%M:%S')
+            with open(self.exp_readable_path, "a") as f:
+                f.write(f"\n\n{'='*60}\n")
+                f.write(f"[{ts}] === Thinking Round {self.counter} END ===\n")
+                f.write(f"  thinking: {len(thinking_full)} chars, {len(self.thinking_chunks)} chunks\n")
+                f.write(f"  tool_calls: {len(self.tool_call_chunks)}\n")
+                f.write(f"  elapsed: {elapsed:.1f}s\n")
+                f.write(f"{'='*60}\n")
 
         # capture.log
         self.log.write(

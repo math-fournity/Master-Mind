@@ -27,10 +27,11 @@ trigger: model_decision
 | **MITM流式实时截获** | `mitmproxy` responseheaders+stream callable | **token级实时**（思考过程中每个token立即落盘） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
 | **sessions.db提取** | `thinking_extractor.py` | session结束后 | thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
 
-**MITM流式实时截获**是核心机制：mitmproxy的`responseheaders` hook在响应头到达时设置`flow.response.stream = callable`，每个HTTP chunk到达时callable被调用，实时解析Connect streaming protobuf，每解析出一个thinking chunk（field 9）立即写入3个位置：
-1. `_shared/mitm_raw/thinking_live.txt`（可`tail -f`实时查看）
-2. `<exp_id>/mitm/thinking_live.txt`（按实验隔离，可`tail -f`）
+**MITM流式实时截获**是核心机制：mitmproxy的`responseheaders` hook在响应头到达时设置`flow.response.stream = callable`，每个HTTP chunk到达时callable被调用，实时解析Connect streaming protobuf，每解析出一个thinking chunk（field 9）立即写入4个位置：
+1. `_shared/mitm_raw/thinking_live.txt`（token级碎片，可`tail -f`实时查看）
+2. `<exp_id>/mitm/thinking_live.txt`（按实验隔离，token级碎片，可`tail -f`）
 3. `<exp_id>/mitm/thinking_live.jsonl`（JSONL格式，每个chunk一行）
+4. `<exp_id>/mitm/thinking_readable.txt`（**人可阅读的连续文本**——thinking实时拼接追加，tool_call用分隔符标记，可`tail -f`读文章）
 
 两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式在Solver思考过程中实时落盘（不需要等响应完成）；sessions.db方式在session结束后提供完整数据。
 

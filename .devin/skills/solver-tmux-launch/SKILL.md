@@ -240,12 +240,13 @@ solver-harness自动添加`--export`参数，导出到`<exp-id>/exports/conversa
 
 ```
 /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/
-├── thinking_live.jsonl          # 流式实时thinking（每个chunk一行，JSONL格式）
-├── thinking_live.txt            # 流式实时thinking（人类可读，可tail -f）
-└── trajectory.jsonl             # stop时decode-all生成的完整trajectory
+├── thinking_readable.txt         # 人可阅读的连续文本（实时拼接，可tail -f读文章）
+├── thinking_live.jsonl           # 流式实时thinking（每个chunk一行，JSONL格式）
+├── thinking_live.txt             # 流式实时thinking（token级碎片，可tail -f）
+└── trajectory.jsonl              # stop时decode-all生成的完整trajectory
 
 /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/
-├── thinking_live.txt            # 所有实验的thinking流（可tail -f实时查看）
+├── thinking_live.txt            # 所有实验的thinking流（token级碎片，可tail -f实时查看）
 ├── capture.log                  # 截获日志（每个文件的URL/大小/时间）
 ├── api_log.txt                  # 所有API调用记录（URL/状态/大小/时间）
 ├── chatmsg_NNN_HHMMSS.bin       # raw protobuf响应
@@ -258,11 +259,36 @@ solver-harness自动添加`--export`参数，导出到`<exp-id>/exports/conversa
 
 **这是真正的流式实时处理**——不需要等响应完成，Solver思考过程中每个token实时写入文件。
 
-**三路落盘**：
-1. `_shared/mitm_raw/thinking_live.txt`：所有实验的thinking流（可`tail -f`实时查看）
-2. `<exp_id>/mitm/thinking_live.txt`：按实验隔离的人类可读格式（可`tail -f`）
+**四路落盘**：
+1. `_shared/mitm_raw/thinking_live.txt`：所有实验的thinking流——token级碎片格式（可`tail -f`实时查看）
+2. `<exp_id>/mitm/thinking_live.txt`：按实验隔离的token级碎片格式（可`tail -f`）
 3. `<exp_id>/mitm/thinking_live.jsonl`：JSONL格式，每个chunk一行（含timestamp/chunk_index/content）
+4. `<exp_id>/mitm/thinking_readable.txt`：**人可阅读的连续文本**——thinking内容实时拼接追加，tool_call用分隔符标记，每轮thinking有START/END标记（可`tail -f`读文章）
 
-**验证数据**：120秒内11,397行txt + 10,971行jsonl，chunk粒度1-7字符/token，毫秒级时间戳。
+**thinking_readable.txt格式**：
+```
+============================================================
+[04:50:39] === Thinking Round 3 START ===
+============================================================
+Let me analyze this problem carefully.
+
+We have $a_1, a_2, \ldots, a_n$ real numbers with:
+- $\sum a_i = n$
+- $\sum a_i^2 = 2n$
+...（连续文本，实时增长）
+
+--- [Tool Call: read] [04:50:37] ---
+args: {"file_path": "/data/..."}
+---
+
+============================================================
+[04:50:38] === Thinking Round 3 END ===
+  thinking: 6261 chars, 1200 chunks
+  tool_calls: 1
+  elapsed: 28.5s
+============================================================
+```
+
+**验证数据**：30秒内6,261 bytes连续文本实时落盘，thinking内容是人可阅读的数学推理（均值/方差/三阶矩计算）。
 
 **mitmproxy截获范围**：所有`ApiServerService` API（GetChatMessage/GetCliModelConfigs/GetUserStatus等），排除seat_management和product_analytics。GetChatMessage走流式处理，其他API走完整响应处理。

@@ -26,27 +26,57 @@ solver-harness启动Solver时自动启用mitmproxy代理。核心机制：
 1. mitmproxy的`responseheaders` hook在响应头到达时（body之前）触发
 2. 设置`flow.response.stream = callable`
 3. 每个HTTP chunk到达时callable被调用，`StreamingThinkingParser`实时解析Connect streaming protobuf
-4. 每解析出一个thinking chunk（field 9）立即写入3个位置
+4. 每解析出一个thinking chunk（field 9）立即写入4个位置
 
 ### 实时查看thinking
 
 ```bash
-# 查看所有实验的thinking流（实时）
+# 查看人可阅读的连续文本（推荐——像读文章一样实时看AI思考）
+tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_readable.txt
+
+# 查看所有实验的thinking流（token级碎片格式）
 tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/thinking_live.txt
 
-# 查看特定实验的thinking流（实时）
+# 查看特定实验的thinking流（token级碎片格式）
 tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.txt
 
 # 程序化读取（JSONL格式，每个chunk一行）
 cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
 ```
 
-### JSONL格式
+### 四路落盘格式
 
-每行一个JSON对象，`type`字段区分记录类型：
-- `thinking_chunk`：单个thinking chunk（含timestamp/counter/chunk_index/content）
-- `tool_call_chunk`：单个tool_call chunk（含tool_call_id/name/args_chunk/is_start）
-- `stream_complete`：一轮thinking完成后的汇总（含thinking_full完整文本/tool_calls列表/elapsed_seconds）
+| 文件 | 格式 | 用途 |
+|---|---|---|
+| `thinking_readable.txt` | **人可阅读的连续文本** | `tail -f`读文章——thinking实时拼接追加，tool_call用分隔符标记，每轮有START/END |
+| `thinking_live.txt` | token级碎片（每token一行带时间戳） | `tail -f`看token流——适合调试和精确时间分析 |
+| `thinking_live.jsonl` | JSONL（每chunk一行JSON） | 程序读取——含timestamp/chunk_index/content |
+| `_shared/.../thinking_live.txt` | token级碎片（全局） | `tail -f`看所有实验 |
+
+### thinking_readable.txt格式示例
+
+```
+============================================================
+[04:50:39] === Thinking Round 3 START ===
+============================================================
+Let me analyze this problem carefully.
+
+We have $a_1, a_2, \ldots, a_n$ real numbers with:
+- $\sum a_i = n$
+- $\sum a_i^2 = 2n$
+...（连续文本，实时增长）
+
+--- [Tool Call: read] [04:50:37] ---
+args: {"file_path": "/data/..."}
+---
+
+============================================================
+[04:50:38] === Thinking Round 3 END ===
+  thinking: 6261 chars, 1200 chunks
+  tool_calls: 1
+  elapsed: 28.5s
+============================================================
+```
 
 ### 验证数据（2026-08-08）
 
