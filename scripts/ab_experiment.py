@@ -114,16 +114,14 @@ def is_solver_thinking(tmux_session: str) -> bool:
     """
     检查Solver是否正在thinking中。
 
-    检查pane最后8行——devin cli的"Thinking · Ns"状态行在分隔符/提示符
-    之上，需要检查足够多的行才能捕获到。同时排除session初始的
-    "Thinking · 0s"（通过检查是否包含秒数或字符数来区分）。
+    检查pane最后8行中的"Thinking"关键字。
+    注意：不检查"Connection"——因为"Connection lost"/"Connection error"
+    在idle/error状态也出现，会误判为thinking。
     """
     pane = capture_tmux_pane(tmux_session, lines=15)
     lines = pane.strip().split("\n")
     last_8 = "\n".join(lines[-8:]) if len(lines) >= 8 else pane
-    # "Thinking"在thinking状态时显示"Thinking · Ns"或"Thinking · Nm"
-    # 在初始状态显示"Thinking · 0s"——但0s也会匹配，所以用Connection也作为标志
-    return "Thinking" in last_8 or "Connection" in last_8
+    return "Thinking" in last_8
 
 
 def is_solver_idle(tmux_session: str) -> bool:
