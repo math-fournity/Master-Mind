@@ -8,6 +8,7 @@
 
 - **出处**：228-codex（提出执行契约）；228-glm5.2（评价+修正）；239号§16
 - **面相归属**：B（知识选取）+ 1（两种计算——边界跨越协议）
+- 补充来源（257号全库原语找回）：nuwa-b: phase-gate；fuxi: dual-output-closed-loop
 
 ## 验证状态
 
@@ -54,6 +55,7 @@
 - **与 pipe 关系**（见 structural/pipe.md）：执行契约可以是Pipe的输出格式——每个Pipe的输出需要包含这四个字段
 - **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——执行契约是边界跨越的操作性协议
 - **约束于**：loop概念（见 concepts/loop.md）——执行契约是闭环每一步的协议
+- 补充组合关系（257号全库原语找回）：组合了 phase-gate（新原语）, dual-output-closed-loop（新原语）
 
 ## 开放问题
 

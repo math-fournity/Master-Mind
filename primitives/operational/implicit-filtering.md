@@ -8,6 +8,7 @@
 
 - **出处**：218号文档（Q序列的非特定性危机与诚实分析）；238号§11（完整梳理）；commit 8449b52
 - **面相归属**：A（实践涌现）+ 3（Pipeline网络——Pipe合法性问题）
+- 补充来源（257号全库原语找回）：nuwa-b: minimality-audit；pangu-b: direction-only-content
 
 ## 验证状态
 
@@ -56,6 +57,7 @@ guided_003用纯非特定Q序列（不引用AI选的特定方向、不筛选、�
 - **与 minimal-knowledge-transfer tension**：隐含筛选可能是一种隐性知识传递——即使形式上0知识传递，隐含筛选传递了方向信息
 - **与 pipe 关系**（见 structural/pipe.md）：Pipe框架把隐含筛选重新框架为"Pipe的输入是否依赖于它不应该知道的信息"——如果模式识别引擎Pipe引用了做题AI选的"最有希望"的方向，它是否在利用答案知识？
 - **与 cognitive-activation tension**（见 structural/cognitive-activation.md）：认知激活的效力可能部分来自隐含筛选——guided_001的激活是否依赖于Q3-Q4的特定化引导？纯非特定提问能不能激活同样能力？
+- 补充组合关系（257号全库原语找回）：约束于 leakage-detection（新原语，预载检查是泄漏检测的一部分）
 
 ## 开放问题
 

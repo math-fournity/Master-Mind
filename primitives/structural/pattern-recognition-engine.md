@@ -8,6 +8,7 @@ Pipeline网络中的一个Pipe角色。负责识别当前处境的不自然、�
 
 - **出处**：241号§1.3.3（面相3的三个角色）；对应238的引导者、239中缺失的角色；221号（模式识别=元拓扑）
 - **面相归属**：3（Pipeline网络）
+- 补充来源（257号全库原语找回）：activation-score；multi-level-knowledge-extraction
 
 ## 验证状态
 
@@ -51,6 +52,7 @@ Pipeline网络中的一个Pipe角色。负责识别当前处境的不自然、�
 - **与 implicit-filtering tension**（见 operational/implicit-filtering.md）：238的引导者（模式识别引擎的对应物）发生了隐含筛选。模式识别引擎怎么避免隐含筛选？
 - **与 base-change 关系**（见 operational/base-change.md）：模式识别引擎识别"不自然"的四个子模式之一是换基
 - **与 cognitive-activation 关系**（见 structural/cognitive-activation.md）：模式识别引擎发给数学推理引擎的不只是数据，还有认知激活——"你该往哪看"
+- 补充组合关系（257号全库原语找回）：组合了 activation-score（新原语）, multi-level-knowledge-extraction（新原语）
 
 ## 开放问题
 

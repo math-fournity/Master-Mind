@@ -8,6 +8,7 @@
 
 - **出处**：214号第8章（DFS引导架构——思维路径的树状探索）；238号§8（完整梳理）；216号元组群改造中的guided-backtrack Skill
 - **面相归属**：A（实践涌现）+ 3（Pipeline网络——DFS树是Pipeline拓扑之一）
+- 补充来源（257号全库原语找回）：suiren: rehearsal；nuwa-b: budget-management
 
 ## 验证状态
 
@@ -54,6 +55,7 @@ guided_001没有显式使用DFS——引导者每轮只发一个Q，没有生成
 - **组合了 backtrack-fresh-session**：回溯铁律是DFS的回溯规则
 - **与 pipe 关系**（见 structural/pipe.md）：DFS树是Pipeline网络的一种拓扑——线性Pipeline是DFS不回溯的特例。如果Pipeline有分支和回溯，它的拓扑就是DFS树
 - **约束于**：level-spectrum评估（见 concepts/level-spectrum.md）——候选Q按Level降序排列，Level是DFS的评估函数
+- 补充组合关系（257号全库原语找回）：约束于 budget-management（新原语，分支预算限制DFS分支因子）
 
 ## 开放问题
 

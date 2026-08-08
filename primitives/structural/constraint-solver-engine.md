@@ -8,6 +8,7 @@ Pipeline网络中的一个Pipe角色。负责在多个约束下搜索满足条�
 
 - **出处**：241号§1.3.3（面相3的三个角色）；对应239的经典计算
 - **面相归属**：3（Pipeline网络）+ 1（两种计算——经典计算角色）
+- 补充来源（257号全库原语找回）：constrained-policy；gaming-detection, budget-management
 
 ## 验证状态
 
@@ -65,6 +66,7 @@ guided_001中AI自己做了：
 - **与 certificate 关系**（见 structural/certificate.md）：多约束求解引擎的验证结果产生证书
 - **与 base-change 关系**（见 operational/base-change.md）：多约束求解引擎可以主动产生换基——因式分解是它的能力
 - **约束于**：two-computations概念（见 concepts/two-computations.md）——多约束求解引擎是经典计算在Pipeline中的化身
+- 补充组合关系（257号全库原语找回）：组合了 constrained-policy（新原语）, budget-management（新原语）
 
 ## 开放问题
 

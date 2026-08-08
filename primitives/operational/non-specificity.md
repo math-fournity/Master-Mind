@@ -8,6 +8,7 @@
 
 - **出处**：218号文档（Q序列的非特定性危机与诚实分析）；238号文档§11（完整梳理）；236号§2.4（深化为"边界以外可用性"）；239号§8（技术说明书中的核心概念）
 - **面相归属**：A（实践涌现）+ 1（两种计算——边界以外可用性）
+- 补充来源（257号全库原语找回）：pangu-b: direction-only-content；leakage-detection
 
 ## 验证状态
 
@@ -56,6 +57,7 @@ guided_001的Q序列：
 - **与 pipe 关系**（见 structural/pipe.md）：面相3把非特定性重新框架为Pipe的合法性问题——一个Pipe只应该看到上游Pipe传来的东西，如果它需要知道答案才能工作，它不是合法的Pipe。
 - **约束于**：naturality标准（见 criteria/naturality.md）——非特定性的深化判断：方法在表示变换下是否保持意义
 - **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——239号把非特定性深化为"边界以外可用性"
+- 补充组合关系（257号全库原语找回）：约束于 leakage-detection（新原语）
 
 ## 开放问题
 

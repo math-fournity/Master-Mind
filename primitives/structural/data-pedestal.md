@@ -8,6 +8,7 @@
 
 - **出处**：231号文档（AI数学工程的数据基座转向）；232号（评价+对应表）；234号（五个问题的重新审视）；239号§7
 - **面相归属**：B（知识选取）+ 2（语料双路径——抽取路径的产物）
+- 补充来源（257号全库原语找回）：dual-output-closed-loop, failure-boundary-record
 
 ## 验证状态
 
@@ -60,6 +61,7 @@
 - **被组合 by dual-knowledge-production**（见 concepts/dual-knowledge-production.md）：数据基座是双重知识生产的抽取路径的产物
 - **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——数据基座是形式化边界的显式记录
 - **约束于**：boundary-advancement概念（见 concepts/boundary-advancement.md）——数据基座的增长=边界推进的显式记录
+- 补充组合关系（257号全库原语找回）：连接到 dual-output-closed-loop（新原语）, failure-boundary-record（新原语）
 
 ## 开放问题
 

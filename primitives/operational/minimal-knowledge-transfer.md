@@ -8,6 +8,7 @@
 
 - **出处**：214号第7章（最小知识传递——路线B的形式化定义）；238号§7（完整梳理）；commit 08dd327
 - **面相归属**：A（实践涌现）
+- 补充来源（257号全库原语找回）：nuwa-b: micro-package；pangu-b/fuxi: hint-gradient
 
 ## 验证状态
 
@@ -59,6 +60,7 @@ $$\text{最小知识传递} = \arg\max_{H} \sum_{i=1}^{n} \text{Level}(h_i) \qua
 - **与 non-specificity 关系**：最小知识传递是非特定性在"知识vs思维模式"维度上的体现——高Level提示更非特定
 - **与 implicit-filtering tension**：218号质疑"0知识传递"——隐含筛选可能是一种隐性知识传递
 - **约束于**：level-spectrum评估（见 concepts/level-spectrum.md）——Level是最小知识传递的评估函数
+- 补充组合关系（257号全库原语找回）：组合了 hint-gradient（新原语）, context-compiler（新原语）
 
 ## 开放问题
 

@@ -8,6 +8,7 @@
 
 - **出处**：220号文档（数学思维的拓扑化研究——从小学例子到换基）；239号§2.2
 - **面相归属**：A（实践涌现）+ B（知识选取——换基作为通用数学模式来自数学知识）
+- 补充来源（257号全库原语找回）：nuwa-a: representation-transport；fuxi: certificate-pullback
 
 ## 验证状态
 
@@ -45,6 +46,7 @@
 
 - **与 situation 关系**（见 concepts/situation.md）：换基导致处境生长——换基后处境变形
 - **约束于**：naturality标准（见 criteria/naturality.md）——换基是表示变换的主要类型，自然性要求方法在换基后保持意义
+- 补充组合关系（257号全库原语找回）：组合了 certificate-pullback（新原语，证书拉回是换基后的证书翻译）
 
 ## 开放问题
 

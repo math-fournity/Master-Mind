@@ -8,6 +8,7 @@
 
 - **出处**：241号文档（系统设计原语目录方案）§1.3。由用户在240号分析后的理念层讨论中提出。
 - **面相归属**：3（Pipeline网络）
+- 补充来源（257号全库原语找回）：role-isolation-matrix, micro-package
 
 ## 验证状态
 
@@ -57,6 +58,7 @@ Pipe是241号提出的新原语，从未在实验中测试。它是对238（引�
 - **与 cognitive-activation 关系**（见 structural/cognitive-activation.md）：Pipe之间的认知激活是Pipe框架的核心概念之一。认知激活是guided_001的empirical phenomenon，Pipe框架给它提供了一个位置。
 - **与 continuous-questioning 关系**（见 operational/continuous-questioning.md）：连续发问框架可以是模式识别引擎Pipe的输出协议——它定义了Pipe发给下游的提示的形式。
 - **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——Pipe是运行论（系统怎么工作），形式化边界是知识论（知识怎么构成）。两者交叉于：每个Pipe的输入输出在边界哪一侧？
+- 补充组合关系（257号全库原语找回）：约束于 role-isolation-matrix（新原语）, context-compiler（新原语）
 
 ## 开放问题
 

@@ -10,6 +10,7 @@
 
 - **出处**：guided_001实验数据（commit 76a354a）；240号分析中首次被显式命名；241号§1.3作为面相3的核心empirical phenomenon
 - **面相归属**：A（实践涌现）+ 3（Pipeline网络——Pipe间连接的empirical基础）
+- 补充来源（257号全库原语找回）：activation-score；context-compiler
 
 ## 验证状态
 
@@ -89,6 +90,7 @@ guided_003的数据：
 - **与 pipe 关系**（见 structural/pipe.md）：认知激活是Pipe之间连接的两种方式之一（数据传递 vs 认知激活）。Pipe框架给它提供了一个位置。
 - **与 non-specificity 关系**（见 operational/non-specificity.md）：认知激活的效力是否依赖于提问的特定性？guided_001的Q3-Q4发生了特定化，所以激活可能部分来自特定化引导。纯非特定提问能不能激活同样能力？这是guided_003要回答的。
 - **约束于**：formalization-boundary概念（见 concepts/formalization-boundary.md）——238的"提问激活"效应在239的形式化边界框架里没有明确位置——提问是边界以外的交互，但形式化边界框架关注的是边界跨越，不是边界以外的交互如何激活能力。这是238和239之间的一个gap。
+- 补充组合关系（257号全库原语找回）：连接到 activation-score（新原语）, context-compiler（新原语）
 
 ## 开放问题
 

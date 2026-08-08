@@ -8,6 +8,7 @@
 
 - **出处**：214号第5章（安全第一步——让AI先描述形状而不是解题）；238号§5（完整梳理）；guided_001实验Q1
 - **面相归属**：A（实践涌现）+ 3（Pipeline网络——认知激活入口）
+- 补充来源（257号全库原语找回）：suiren: shape-matching；stall-detection
 
 ## 验证状态
 
@@ -57,6 +58,7 @@ AI给出的形状描述是系统匹配提示的依据：
 - **被组合 by continuous-questioning**：安全第一步是连续发问框架的第一层（L1观察）
 - **与 cognitive-activation 关系**（见 structural/cognitive-activation.md）：安全第一步是认知激活的入口——它把AI从"试图解题"切换到"观察结构"，激活了元认知模式
 - **与 non-specificity 关系**：安全第一步是完全非特定的——"描述形状"不依赖任何特定题目的特定解答路径
+- 补充组合关系（257号全库原语找回）：组合了 stall-detection（新原语）, pattern-matching（新原语）
 
 ## 开放问题
 

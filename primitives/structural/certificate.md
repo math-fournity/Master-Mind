@@ -8,6 +8,7 @@
 
 - **出处**：226号（证书偏序）；227号（反例是证书的修正）；239号§18（证书系统）；计算复杂性/形式化验证领域的证书概念
 - **面相归属**：B（知识选取）+ 1（两种计算——边界以内结构）
+- 补充来源（257号全库原语找回）：evidence-system；fuxi: certificate-ledger, certificate-pullback
 
 ## 验证状态
 
@@ -56,6 +57,7 @@ guided_001中AI自己验证了几个东西（数值验证n=10000时d-√5≈0.00
 - **被组合 by loop**（见 concepts/loop.md）：闭环每一步尝试产生可兑现的证书
 - **与 execution-contract 关系**（见 operational/execution-contract.md）：执行契约的"编译成计算任务"字段产生证书目标
 - **约束于**：life-death-condition标准（见 criteria/life-death-condition.md）——证书偏序C是239号六个候选数学结构之一，生死条件是"证书之间是否有明确的偏序关系"
+- 补充组合关系（257号全库原语找回）：连接到 evidence-system（新原语）, certificate-ledger（新原语）, certificate-pullback（新原语）
 
 ## 开放问题
 

@@ -8,6 +8,7 @@ Pipeline网络中的一个Pipe角色。负责执行具体的数学推导、计�
 
 - **出处**：241号§1.3.3（面相3的三个角色）；对应238的做题AI、239的AI计算
 - **面相归属**：3（Pipeline网络）+ 1（两种计算——AI计算角色）
+- 补充来源（257号全库原语找回）：solver-role-isolation
 
 ## 验证状态
 
@@ -42,6 +43,7 @@ guided_001中AI自己做了SymPy验证（数值验证n=10000时d-√5≈0.0001�
 - **被包含于 pipe**（见 structural/pipe.md）：数学推理引擎是Pipe的三种角色之一
 - **与 pattern-recognition-engine 协作**（见 structural/pattern-recognition-engine.md）：模式识别引擎给数学推理引擎方向指引，数学推理引擎执行
 - **与 constraint-solver-engine 协作**（见 structural/constraint-solver-engine.md）：数学推理引擎产出的"可能意义"由多约束求解引擎验证
+- 补充组合关系（257号全库原语找回）：约束于 role-isolation-matrix（新原语）
 
 ## 开放问题
 

@@ -141,13 +141,13 @@
 
 ### 系统设计原语目录（活文档）
 
-系统设计原语分四层管理（244号重构 + 245号面相独立）：
-- **`primitives/`** — 原语（构造系统的积木，16个）：`operational/`（操作原语9个：可执行的动作/策略/约束/协议）+ `structural/`（结构原语7个：可放置的组件/角色/接口）。验证状态四等级：tested / tested_negative / partial / untested。
+系统设计原语分四层管理（244号重构 + 245号面相独立 + 257号全库原语找回）：
+- **`primitives/`** — 原语（构造系统的积木，72个）：`operational/`（操作原语47个：可执行的动作/策略/约束/协议）+ `structural/`（结构原语25个：可放置的组件/角色/接口）。验证状态四等级：tested / tested_negative / partial / untested。257号全库原语找回新增56个原语（18结构+38操作），详见 `dev-docs/257-v0-2026-08-07-全量原语目录更新方案-以253号检索问题为抓手的全库原语找回.md`。
 - **`concepts/`** — 概念框架（理解系统的视角，8个）：形式化边界、两种计算、闭环、处境、系统设计即多约束求解等。不需要验证状态，用"适用边界"替代。
 - **`criteria/`** — 性质标准与探索性隐喻（3个）：自然性、生死条件（判断标准）+ 语义场（隐喻）。
 - **`facets/`** — 面相（切分维度，7个）：系统面相1/2/3/4（两种计算/语料双路径/Pipeline网络/树的生长）+ 设计过程面相A/B/C（实践涌现/知识选取/设计过程自举）。面相横切前三层，通过元素文件"来源"字段中的"面相归属"行正向引用。
 
-原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）、`dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）和 `dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md`（面相独立+管理元组）。验证状态分布：操作原语 tested 4 / partial 1 / tested_negative 1 / untested 3；结构原语 partial 1 / untested 6。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（→partial）、implicit-filtering（→tested_negative）。每次跑实验后更新相关原语的验证状态。
+原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）、`dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）、`dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md`（面相独立+管理元组）和 `dev-docs/257-v0-2026-08-07-全量原语目录更新方案-以253号检索问题为抓手的全库原语找回.md`（全库原语找回）。验证状态分布（72个原语）：tested 17 / partial 17 / untested 38。P0解析器原型实现后更新了event-sourcing（→partial）、thinking-trajectory-graph（→partial）、dynamic-workspace（→partial）。每次跑实验后更新相关原语的验证状态。
 
 ### 原语化AI数学工程系统设计（活文档 · 论文原语化版）
 
