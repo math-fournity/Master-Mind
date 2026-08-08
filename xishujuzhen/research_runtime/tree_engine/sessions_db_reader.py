@@ -66,20 +66,17 @@ class SessionsDBThinkingReader:
         self._all_chunks: List[ThinkingChunk] = []
 
     def init(self):
-        """初始化：记录当前已有的node_id，从这里开始轮询新node。
+        """初始化：从session开头开始读取。
 
-        用于实时模式：AI启动后调用，只获取AI运行中产生的新thinking。
-        已有的system/user消息不作为thinking来源。
+        不跳过已有node——因为AI启动后第一个thinking block可能在
+        init_sessions_db()调用之前就写入sessions.db了（launch_solver
+        等待devin session出现需要时间，期间AI可能已完成第一个thinking block）。
+
+        短thinking（如"Let me read the problem file first"，39字符）
+        会被extract_from_sessions_db()中的len < 50过滤掉。
         """
-        conn = sqlite3.connect(self.db_path)
-        c = conn.cursor()
-        c.execute(
-            "SELECT MAX(node_id) FROM message_nodes WHERE session_id=?",
-            (self.session_id,),
-        )
-        row = c.fetchone()
-        self._last_node_id = row[0] if row[0] is not None else -1
-        conn.close()
+        self._last_node_id = -1
+        self._all_chunks = []
 
     def read_all(self) -> List[ThinkingChunk]:
         """读取session中所有thinking块（从头开始）。
