@@ -10,9 +10,9 @@
 
 **主线**：接真实Solver跑端到端效果验证——验证"检索机制选出提示后，AI是否真的能突破卡点"。
 
-**当前状态**：P0核心组件全部实现完成（TrajectoryAdapter + HintInjector + RealtimePipeline）。264号方案文档已落盘。6.1（devin cli运行时输入调查）✅——交互模式支持tmux send-keys两步注入提示。solver-harness新增`--interactive`模式。mock测试已通过（另一个AI完成，253号A7→Q8与离线结果一致）。下一步是6.5端到端集成测试（接真实Solver）。
+**当前状态**：6.5端到端集成测试通过——完整闭环验证成功（trajectory→parser→stall→retrieval→policy→inject）。5轮处理，5次提示注入成功。已知限制：parser降级模式只产生observation事件，每次都选中Q1而非Q8。下一步是配置LLM parser使解析结果与离线一致（选中Q8），然后跑6.6 A/B对照实验。
 
-**下一步**：6.5端到端集成测试——用solver-harness启动真实Solver（--interactive模式），启动RealtimePipeline监听sessions_db/trajectory.jsonl，验证完整闭环：trajectory → parser → stall检测 → retrieval → policy → 提示注入。
+**下一步**：配置LLM parser（用GLM-5.2），使parser能正确解析resolution事件并选中Q8。然后跑6.6 A/B对照实验（A组有检索系统 vs B组裸跑）。
 
 ---
 
@@ -160,6 +160,7 @@
 | 829566f | 6.1完成+solver-harness新增--interactive模式 | **代码**: `xishujuzhen/solver_harness/solver_harness.py` **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md` |
 | 0e229a0 | 04工作线P0核心实现：TrajectoryAdapter + HintInjector + RealtimePipeline（已删除，与b5bbae3重复） | ~~`xishujuzhen/research_runtime/runtime/trajectory_adapter.py`~~, ~~`xishujuzhen/research_runtime/runtime/hint_injector.py`~~, ~~`xishujuzhen/research_runtime/runtime/realtime_pipeline.py`~~ |
 | 9dee6a3 | 合并6.1验证结果到realtime/hint_injector.py + 更新04任务追踪 | **代码**: `xishujuzhen/research_runtime/realtime/hint_injector.py` **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md`, `任务追踪/04-端到端效果验证-接真实Solver.md` |
+| e9fd092 | 04工作线§6.5端到端集成测试：完整闭环验证通过 | **代码**: `scripts/e2e_realtime_test.py` |
 
 ---
 
