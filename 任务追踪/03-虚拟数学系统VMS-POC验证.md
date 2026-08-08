@@ -11,13 +11,28 @@
 
 ## 0. 当前工作焦点
 
-**主线**：推进POC-VMS系列7个阶段，从虚拟群论基础设施开始，逐步验证检索系统在超大规模基座下的能力。
+**主线**：推进POC-VMS系列，验证hint的泛化性——同一个高Level思维方向hint能在表面完全不同的题上生效。
 
-**当前状态**：POC-VMS-0/0扩展/1已完成。POC-VMS-2已完成（实时并行树生长，9/10题solved，树有分叉）。273号Grove核心循环认知已吸收到AGENTS.md。274号后续工作Checklist已落盘——最高优先级是让循环完整转起来（推动关系3：AI终止后在叶节点检索+启动新AI）。
+**当前状态**：
+- POC-VMS-0到POC-VMS-6v2全部完成（核心循环、可扩展性、Pattern闭环、跨域迁移、动态引导胜率验证）
+- POC-VMS-7g泛化POC（v1简单题版）完成——验证了"翻译语言"hint在群论和数论两道题上都被AI采纳
+- POC-VMS-7g-v3（奥赛难题版）正在进行——10个bare AI在跑OlympiadBench题，验证bare是否会失败
+- 279号题目侧写系统设计方案已落盘——正在讨论"侧写什么维度"的核心问题
 
-**⚠️ 双重角色提醒**：运行POC-VMS实验时，你有双重角色——Master Agent（研发负责人）和辅助智能体（系统Pipe）。**辅助Pipe是你本人，不是脚本。** tree_engine.py是你的工具，不是你的替身。有推理AI在跑的时候，你手动调用工具执行循环的每一步（采集→整理→检索→启动），不在`get_output`干等结果。详见AGENTS.md"AI的双重角色"章节。
+**当前讨论焦点**：题目侧写（Profiling）系统应该侧写什么维度？用户指出需要从"将来需要什么查询"反推侧写维度，而不是"我能想到什么就列什么"。当前识别出的核心查询场景：
+1. POC实验选题——"找一道需要translation思维模式的题，bare AI会在卡点X失败"
+2. 泛化验证配对——"找两道题，思维模式相同但表面特征完全不同"
+3. Level梯度验证——"找同一思维模式下，不同难度的题"
+4. 实验结果追踪——"这道题bare失败了吗？给了translation hint后成功了吗？"
 
-**下一步**：让循环完整转起来——AI终止后在叶节点检索方向Q，构造脉络，动态启动新AI。
+从这些场景反推出的核心侧写维度：卡点、突破方向、表面特征指纹。
+
+**⚠️ 双重角色提醒**：运行POC-VMS实验时，你有双重角色——Master Agent（研发负责人）和辅助智能体（系统Pipe）。详见AGENTS.md"AI的双重角色"章节。
+
+**下一步**：
+1. 继续讨论侧写维度设计（用户正在探讨中）
+2. 等10个bare AI跑完后，检查哪些题bare失败了——那些题就是高Level hint胜率验证的候选题
+3. 对bare失败的题跑knowledge hint和highlevel hint对照
 
 ---
 
@@ -232,6 +247,71 @@
 **bare失败原因**：token_limit终止，来不及写proof.md
 **guided成功原因**：hint.txt引导AI更快切入正题，省去试错，留出token写proof.md
 
+#### 2.10.2 POC-VMS-7：高Level思维方向hint vs 知识性hint A/B/C对照（方案设计完成，实验部分进行中）
+
+**为什么做**：6v2的hint全是知识性的（Level低→0），告诉AI"用什么定理"。122号文档§6.4提出6种高Level思维方向hint（Level→1），告诉AI"怎么思考"。需要验证高Level hint比知识性hint更有价值——因为它跨领域通用。
+
+**用户思想修正（277号文档）**：
+- "高一个Level就够了"是比喻——不需要追求最高Level，只需要证明梯度存在
+- 真正要证明的是hint的泛化性——同一个hint能跨题、跨领域生效
+- 不同Level的hint是不同的故事——知识性/思维方向/范式级需要分开研究
+- 极高Level hint（同构之桥）当前AI可能不会用，但未来可在系统中积累经验
+
+**6种高Level思维模式**（来自122号§6.4）：
+1. auxiliary_construction——辅助对象构造
+2. pincer_contradiction——夹击矛盾
+3. translation——跨语言翻译
+4. local_global——局部-全局
+5. descent_to_empty——降层到空空间
+6. bridge_theorem——桥梁定理
+
+**POC-VMS-7g泛化POC（v1简单题版）✅**：
+- 2道题×3组对照（bare/知识性hint/高Level hint）
+- 题1（群论）：A₄没有6阶子群——翻译到"正规子群+指数"
+- 题2（数论）：x²+y²=3无整数解——翻译到"模算术"
+- C组（翻译语言hint）的hint文本完全相同——泛化性验证前提
+- 结果：6个AI都写了proof（题目对GLM-5.2不够难，bare也成功）
+- **关键发现**：只有highlevel组的AI在proof中明确提到"翻译"思维模式，bare和knowledge组都没有
+- 泛化性验证通过：同一个hint在群论和数论两道题上都被AI采纳
+
+**POC-VMS-7g-v2（中等难度版）**：
+- 2道题×3组对照
+- 题1（群论）：36阶群有非平凡正规子群
+- 题2（数论）：p≡3(mod 4)时x²≡-1(mod p)无解
+- 结果：6个AI都写了proof（题目对GLM-5.2仍不够难）
+- 局限：GLM-5.2对本科群论/数论题太强，bare自己就能想到翻译
+
+**POC-VMS-7g-v3（奥赛难题版）进行中**：
+- 从OlympiadBench选了10道奥赛题（Algebra/Number Theory/Combinatorics/Geometry各领域）
+- 10个bare AI已启动（用户允许10并发），正在跑
+- 目标：找出bare AI会失败的题——那些题就是高Level hint胜率验证的候选题
+- 同时还有2个旧AI在跑（v3-01-bare和v3-01-knowledge，做1+2^x+2^{2x+1}=y²这道题）
+
+**相关文档**：
+- 276号：POC-VMS-7方案设计（6道群论题，A/B/C三组对照）
+- 277号：高Level hint泛化性设计哲学与未来方向（用户思想记录）
+- 278号：如何找到两道表面不同但共享思维模式的题（方法论+具体题目选择）
+- 279号：题目侧写（Profiling）系统设计（从找题痛点出发）
+
+#### 2.10.3 题目侧写（Profiling）系统设计（方案阶段）
+
+**为什么做**：POC-VMS-7g-v3找题时，从675道OlympiadBench题中筛选"需要翻译语言思维的题"，只能逐个阅读题目和解答，效率极低——相当于没有索引的全表扫描。需要对已有题库建立多维度侧写，支持按思维模式、难度、卡点等维度查询。
+
+**当前状态**：279号设计方案已落盘。用户指出需要从"将来需要什么查询"反推侧写维度，正在讨论中。
+
+**核心查询场景（从场景反推维度）**：
+1. POC实验选题——"找一道需要translation思维模式的题，bare AI会在卡点X失败"
+2. 泛化验证配对——"找两道题，思维模式相同但表面特征完全不同"
+3. Level梯度验证——"找同一思维模式下，不同难度的题"
+4. 实验结果追踪——"这道题bare失败了吗？给了translation hint后成功了吗？"
+
+**从场景反推出的核心侧写维度**：
+1. 卡点——bare AI会在哪里卡住（不是"会不会失败"，而是"在哪里失败"）
+2. 突破方向——什么思维模式能突破这个卡点
+3. 表面特征指纹——领域、对象、符号、解题步骤的表面特征，用于泛化验证时计算"两道题表面有多不同"
+
+**待定问题**：侧写维度是否完整？是否有遗漏的查询场景？
+
 ### P2-低优先级（后续优化）
 
 #### 2.8 VMS长期扩展
@@ -307,6 +387,13 @@
 | `8fe98c7` | 为VMS工作线建独立任务追踪文档 + 更新AGENTS.md登记表 | `AGENTS.md`, `任务追踪/虚拟数学系统VMS-POC验证.md`（后重命名为`03-虚拟数学系统VMS-POC验证.md`） |
 | `ac66f9a` | 258号挑战类型分析完成：6类挑战模板抽象 | `dev-docs/268-v0-2026-08-08-25道难题挑战类型分析报告.md`, `runs/matharena_25_hard_problems_full.json`, `runs/matharena_25_ai_responses.json`, `任务追踪/README.md` |
 | `8124021` | 03任务追踪更新：258号前置工作全部完成 | `任务追踪/03-虚拟数学系统VMS-POC验证.md` |
+| `07d4e49` | POC-VMS-6v2动态引导A/B对照最终结果：bare 0% vs guided 100% | `runs/vms_poc_0/vms6v2_problem_files/`, `xishujuzhen/vms/dynamic_guided_experiment.py` |
+| `2ca380f` | 任务追踪更新：POC-VMS-6v2动态引导A/B对照结果 | `任务追踪/03-虚拟数学系统VMS-POC验证.md` |
+| `efd93e2` | POC-VMS-7设计方案：高Level思维方向hint vs 知识性hint A/B/C对照 | `dev-docs/276-v0-2026-08-08-POC-VMS-7高Level思维方向hint验证方案.md`, `xishujuzhen/vms/level_hint_experiment.py`, `runs/vms_poc_0/vms7_problems.json` |
+| `c1496ef` | 记录用户思想：高Level hint泛化性设计哲学与未来方向 | `dev-docs/277-v0-2026-08-08-高Level-hint泛化性设计哲学与未来方向.md` |
+| `729e928` | 高Level hint泛化POC设计：如何找到两道表面不同但共享思维模式的题 | `dev-docs/278-v0-2026-08-08-高Level-hint泛化POC-如何找到两道题.md` |
+| `9dbaa8e` | POC-VMS-7g泛化POC结果：同一个高Level hint在群论和数论两道题上都生效 | `xishujuzhen/vms/generalization_poc.py`, `runs/vms_poc_0/vms7g_problems.json`, `runs/vms_poc_0/vms7g_problem_files/` |
+| `082fa91` | 题目侧写（Profiling）系统设计方案 | `dev-docs/279-v0-2026-08-08-题目侧写Profiling系统设计.md` |
 
 ---
 
@@ -323,8 +410,11 @@
 7. **读dev-docs/268号**——25道难题挑战类型分析报告（6类挑战模板T1-T6，VMS虚拟挑战构造的输入）
 8. **读dev-docs/257号**——了解7个阶段的详细进度
 9. **读VMS方案文档**：`原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md`——了解完整方案设计
-10. **看§2待办清单**——选择下一步要做的事
-11. **开始工作前**——确认worktree隔离规则（AGENTS.md顶部）、数据库隔离（`echo $ARANGO_DB`输出`xishujuzhen_math_glm52`）
+10. **读dev-docs/277号**——高Level hint泛化性设计哲学（用户思想记录，POC-VMS-7的真正目标）
+11. **读dev-docs/278号**——如何找到两道表面不同但共享思维模式的题（泛化POC方法论）
+12. **读dev-docs/279号**——题目侧写系统设计（如果正在做侧写相关的工作）
+13. **看§2待办清单**——选择下一步要做的事
+14. **开始工作前**——确认worktree隔离规则（AGENTS.md顶部）、数据库隔离（`echo $ARANGO_DB`输出`xishujuzhen_math_glm52`）
 
 **工作完成后**：
 - 更新本文件的对应条目状态
