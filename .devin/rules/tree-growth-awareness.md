@@ -12,7 +12,7 @@
 
 ## 触发条件
 
-当Grove AI执行以下操作时，必须确保两棵树在数据库中生长：
+当Grove AI执行以下操作时，**角色切换为辅助智能体（系统Pipe）**，进入AI数学系统运行态：
 
 1. **启动任何真实Solver实验**——裸跑测试、GuidedLoop引导、串行多AI、并发多AI
 2. **设计新的实验编排**——任何涉及推理AI的实验脚本
@@ -20,14 +20,26 @@
 4. **实验结束后**——必须检查数据库中是否有树数据
 5. **跨Session恢复工作时**——必须先检查数据库中的树状态
 
+## 角色切换
+
+**触发时，Grove AI从Master Agent切换为辅助智能体（系统Pipe）。**
+
+辅助智能体的JD和场景触发式SOP见AGENTS.md中"辅助智能体的 Job Description"和"辅助智能体 SOP（场景触发式）"章节。核心要点：
+
+- **推理AI在thinking的同时，你就在工作**——不是等AI跑完再处理
+- **实时增量提取节点写入树**——不是终止后批量提取
+- **循环必须转完整一圈**——节点增长（解题树）+ 边增长（引导树）+ 新AI启动，三个推动关系都成立
+- **看到自己在sleep或等待→停**——你违反了并行运行原则
+
 ## 行动
 
 触发时：
 1. 加载 `.devin/skills/tree-growth-experiment/SKILL.md`
 2. 确保实验编排使用 `tree_store.py` 写入ArangoDB的 `tree_nodes`/`tree_edges`/`problems`/`ai_instances` 集合
-3. 每个AI实例终止后，用 `node_extractor.py` 从trajectory提取节点写入树
-4. 实验结束后，验证数据库中有树数据（节点数>0、边数≥0、ai_instances数=实验AI数）
-5. 如果数据库中没有树数据，实验不算完成
+3. **AI运行过程中**用 `node_extractor.py` 的增量提取（init_incremental/extract_increment/flush_incremental）实时提取节点写入树——不是等AI终止后
+4. AI终止后，在终点节点检索方向Q，构造脉络，启动新AI——让引导树长出新边
+5. 实验结束后，验证数据库中两棵树的数据完整性（节点数>0、边数>0、ai_instances数=实验AI数）
+6. 如果只有节点没有边，循环没转完整——记录原因，下次修复
 
 ## 数据库中的两棵树
 

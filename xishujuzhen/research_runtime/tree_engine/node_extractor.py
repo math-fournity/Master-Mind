@@ -28,6 +28,10 @@ FALLBACK_CONFIDENCE_THRESHOLD = 0.5
 SITUATION_TEXT_MAX_CHARS = 2000
 TRAJECTORY_SEGMENT_MAX_CHARS = 5000
 
+# 增量提取的块大小配置
+INCREMENTAL_CHUNK_MIN = 2000   # 块最小字符数
+INCREMENTAL_CHUNK_MAX = 4000   # 块最大字符数
+
 
 class NodeExtractor:
     """
@@ -64,6 +68,17 @@ class NodeExtractor:
             self.math_parser = MathParser(llm_parser=llm_parser)
         else:
             self.math_parser = math_parser
+
+        # 增量提取状态
+        self._incremental_offset: int = 0       # 已提取到的字符offset
+        self._incremental_parent_key: str = ""   # 上一个提取的节点key（下一个节点的父节点）
+        self._incremental_parent_edge: Optional[str] = None  # entry_edge的key
+        self._incremental_round_index: int = 0   # 轮次计数器
+        self._incremental_buffer: str = ""       # 未处理的文本缓冲区（不够一个块的剩余部分）
+        self._incremental_ai_id: str = ""
+        self._incremental_problem_id: str = ""
+        self._incremental_problem_text: str = ""
+        self._incremental_all_keys: List[str] = []  # 所有提取的node_key
 
     def extract_nodes_from_trajectory(
         self,
@@ -136,6 +151,156 @@ class NodeExtractor:
             parent_edge_key = None  # 同一AI内的后续节点没有新边
 
         return node_keys
+
+    # ============================================================
+    # 增量提取（实时模式：AI运行过程中持续提取节点）
+    # ============================================================
+
+    def init_incremental(
+        self,
+        ai_instance_id: str,
+        problem_id: str,
+        entry_node_key: str,
+        entry_edge: Optional[TreeEdge] = None,
+        problem_text: str = "",
+    ):
+        """初始化增量提取状态。在AI启动后调用一次。"""
+        self._incremental_offset = 0
+        self._incremental_parent_key = entry_node_key
+        self._incremental_parent_edge = entry_edge._key if entry_edge else None
+        self._incremental_round_index = 0
+        self._incremental_buffer = ""
+        self._incremental_ai_id = ai_instance_id
+        self._incremental_problem_id = problem_id
+        self._incremental_problem_text = problem_text
+        self._incremental_all_keys = []
+
+    def extract_increment(self, full_thinking: str) -> List[str]:
+        """
+        增量提取：只处理新增的thinking文本，返回新创建的node_key列表。
+
+        在AI运行过程中周期性调用。每次传入完整的thinking_readable.txt内容，
+        本方法只处理上次offset之后的新增部分。
+
+        Args:
+            full_thinking: thinking_readable.txt的完整内容
+
+        Returns:
+            本次新创建的node_key列表（可能为空——新增内容不够一个块）
+        """
+        if not full_thinking or len(full_thinking) <= self._incremental_offset:
+            return []
+
+        # 提取新增部分
+        new_text = full_thinking[self._incremental_offset:]
+        self._incremental_offset = len(full_thinking)
+
+        # 把新文本追加到缓冲区
+        self._incremental_buffer += new_text
+
+        # 从缓冲区中提取完整的块
+        new_keys = []
+        while len(self._incremental_buffer) >= INCREMENTAL_CHUNK_MAX:
+            # 找到一个合适的分割点（优先在空行处分割）
+            chunk, remaining = self._split_buffer_at_boundary()
+            if not chunk:
+                break
+
+            self._incremental_buffer = remaining
+
+            if len(chunk.strip()) < 50:
+                continue
+
+            # 解析并创建节点
+            node_key = self._extract_single_chunk(chunk)
+            if node_key:
+                new_keys.append(node_key)
+                self._incremental_all_keys.append(node_key)
+
+        return new_keys
+
+    def flush_incremental(self) -> List[str]:
+        """
+        刷新：把缓冲区中剩余的不完整块也提取出来。
+
+        在AI终止后调用，确保最后的thinking片段不丢失。
+        """
+        if not self._incremental_buffer or len(self._incremental_buffer.strip()) < 50:
+            return []
+
+        chunk = self._incremental_buffer
+        self._incremental_buffer = ""
+
+        node_key = self._extract_single_chunk(chunk)
+        if node_key:
+            self._incremental_all_keys.append(node_key)
+            return [node_key]
+        return []
+
+    def get_all_incremental_keys(self) -> List[str]:
+        """获取增量提取过程中创建的所有node_key。"""
+        return list(self._incremental_all_keys)
+
+    def _split_buffer_at_boundary(self) -> tuple:
+        """
+        从缓冲区开头取一个INCRENTAL_CHUNK_MIN~MAX的块，
+        优先在空行边界处分割。
+        """
+        buf = self._incremental_buffer
+
+        # 如果缓冲区不超过MAX，直接返回全部
+        if len(buf) <= INCREMENTAL_CHUNK_MAX:
+            return buf, ""
+
+        # 在MAX范围内找最后一个空行
+        search_end = INCREMENTAL_CHUNK_MAX
+        last_blank = buf.rfind("\n\n", 0, search_end)
+
+        if last_blank > INCREMENTAL_CHUNK_MIN:
+            return buf[:last_blank], buf[last_blank+2:]
+        else:
+            # 没有合适的空行，在MAX处硬切
+            # 找最后一个换行符
+            last_newline = buf.rfind("\n", 0, search_end)
+            if last_newline > INCREMENTAL_CHUNK_MIN:
+                return buf[:last_newline], buf[last_newline+1:]
+            else:
+                return buf[:INCREMENTAL_CHUNK_MAX], buf[INCREMENTAL_CHUNK_MAX:]
+
+    def _extract_single_chunk(self, chunk: str) -> Optional[str]:
+        """提取单个chunk为一个树节点。"""
+        round_index = self._incremental_round_index
+        self._incremental_round_index += 1
+
+        # 解析
+        parse_result = self._parse_round(
+            chunk, round_index, self._incremental_problem_text,
+            self._incremental_parent_key,
+        )
+
+        # 创建节点
+        node = self._create_node_from_parse(
+            ai_instance_id=self._incremental_ai_id,
+            problem_id=self._incremental_problem_id,
+            parse_result=parse_result,
+            round_text=chunk,
+            round_index=round_index,
+            parent_edge_key=self._incremental_parent_edge,
+            parent_node_key=self._incremental_parent_key,
+        )
+
+        # 写入tree_store
+        node_key = self.tree_store.add_node(self._incremental_problem_id, node)
+
+        # 如果有entry_edge，更新edge的_to指向第一个节点
+        if round_index == 0 and self._incremental_parent_edge:
+            self._update_edge_target(self._incremental_parent_edge, node_key)
+            self._incremental_parent_edge = None  # 只更新一次
+
+        # 更新父节点为当前节点（后续节点的父节点）
+        self._incremental_parent_key = node_key
+
+        return node_key
 
     def _split_trajectory_into_rounds(self, trajectory: str) -> List[str]:
         """
