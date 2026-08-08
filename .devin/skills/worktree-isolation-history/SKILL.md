@@ -14,14 +14,14 @@ Worktree 隔离的实施历史记录——环境变量化过程、commit 历史�
 
 #### 隔离方案（已实施 · 方案 a 环境变量化）
 
-**本 repo 专用数据库名**：`xishujuzhen_math_glm52`
+**本 repo 专用数据库名**：`grove_math`
 
 **已实施的策略**：方案 a · 环境变量化。25 个 Python 文件的硬编码已改为 `os.environ.get()`，覆盖 4 个环境变量：
 
 | 环境变量 | 默认值（上游行为） | 本 repo .env 值（隔离） |
 |---|---|---|
 | `ARANGO_HOST` | `http://localhost:8529` | `http://localhost:8529` |
-| `ARANGO_DB` | `xishujuzhen_math` | `xishujuzhen_math_glm52` |
+| `ARANGO_DB` | `xishujuzhen_math` | `grove_math` |
 | `ARANGO_USER` | `root` | `root` |
 | `ARANGO_PASS` | `REDACTED-DB-PASSWORD` | `REDACTED-DB-PASSWORD` |
 

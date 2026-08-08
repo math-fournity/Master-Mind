@@ -15,11 +15,11 @@ description: >
 ```python
 from arango import ArangoClient
 client = ArangoClient(hosts='http://localhost:8529')
-db = client.db('xishujuzhen_math_glm52', username='root', password='REDACTED-DB-PASSWORD')
+db = client.db('grove_math', username='root', password='REDACTED-DB-PASSWORD')
 col = db.collection('math_datasets')
 ```
 
-**硬约束**：必须用 `xishujuzhen_math_glm52`，禁止写 `xishujuzhen_math`（上游数据库）。
+**硬约束**：必须用 `grove_math`，禁止写 `xishujuzhen_math`（上游数据库）。
 
 ## 工作流
 

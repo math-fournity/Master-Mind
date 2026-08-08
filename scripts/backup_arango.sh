@@ -5,7 +5,7 @@
 # 本脚本通过 docker exec 在容器内执行 arangodump，再 docker cp 到宿主机。
 #
 # 用法：
-#   ./scripts/backup_arango.sh              # 备份本 repo 数据库（xishujuzhen_math_glm52）
+#   ./scripts/backup_arango.sh              # 备份本 repo 数据库（grove_math）
 #   ./scripts/backup_arango.sh --db <name>  # 备份指定数据库
 #   ./scripts/backup_arango.sh --keep 7     # 保留最近 7 天（默认）
 #   ./scripts/backup_arango.sh --dry-run    # 只打印命令不执行
@@ -16,7 +16,7 @@
 set -euo pipefail
 
 # 默认参数
-DB_NAME="xishujuzhen_math_glm52"
+DB_NAME="grove_math"
 ARANGO_USER="root"
 ARANGO_PASS="REDACTED-DB-PASSWORD"
 KEEP_DAYS=7

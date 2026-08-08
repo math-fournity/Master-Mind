@@ -209,7 +209,7 @@ class KnowledgeAbsorptionPipeline:
         arango_pass: str = None,
     ):
         self.arango_host = arango_host or os.environ.get("ARANGO_HOST", "http://localhost:8529")
-        self.arango_db = arango_db or os.environ.get("ARANGO_DB", "xishujuzhen_math_glm52")
+        self.arango_db = arango_db or os.environ.get("ARANGO_DB", "grove_math")
         self.arango_user = arango_user or os.environ.get("ARANGO_USER", "root")
         self.arango_pass = arango_pass or os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")
 

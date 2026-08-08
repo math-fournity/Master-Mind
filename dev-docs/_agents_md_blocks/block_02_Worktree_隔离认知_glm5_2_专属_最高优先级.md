@@ -39,14 +39,14 @@
 
 #### 隔离方案（已实施 · 方案 a 环境变量化）
 
-**本 repo 专用数据库名**：`xishujuzhen_math_glm52`
+**本 repo 专用数据库名**：`grove_math`
 
 **已实施的策略**：方案 a · 环境变量化。25 个 Python 文件的硬编码已改为 `os.environ.get()`，覆盖 4 个环境变量：
 
 | 环境变量 | 默认值（上游行为） | 本 repo .env 值（隔离） |
 |---|---|---|
 | `ARANGO_HOST` | `http://localhost:8529` | `http://localhost:8529` |
-| `ARANGO_DB` | `xishujuzhen_math` | `xishujuzhen_math_glm52` |
+| `ARANGO_DB` | `xishujuzhen_math` | `grove_math` |
 | `ARANGO_USER` | `root` | `root` |
 | `ARANGO_PASS` | `REDACTED-DB-PASSWORD` | `REDACTED-DB-PASSWORD` |
 
@@ -73,11 +73,11 @@
 
 #### 数据库隔离硬规则
 
-1. **本 repo 启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `xishujuzhen_math_glm52`。
+1. **本 repo 启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `grove_math`。
 2. **禁止**以 `xishujuzhen_math`（上游数据库名）连接 ArangoDB 做任何写操作。读可以（用于对比/迁移），但写绝对禁止。
-3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `xishujuzhen_math_glm52`，不要复用上游的 `xishujuzhen_math`。
+3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `grove_math`，不要复用上游的 `xishujuzhen_math`。
 4. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
-5. **环境变量化已实施**：运行写库脚本前，`source .env` 加载环境变量。若忘了 source，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）——所以 **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。
+5. **环境变量化已实施**：运行写库脚本前，`source .env` 加载环境变量。若忘了 source，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）——所以 **每次运行前必须确认 `echo $ARANGO_DB` 输出 `grove_math`**。
 
 ### 硬约束 4 · 其他共享资源意识
 
@@ -107,7 +107,7 @@ python3 -m venv .venv          # python3.14
 **当前隔离实施状态**（截至角色说明更新 commit）：
 - ✅ 文件操作边界：已建立（硬约束 1）
 - ✅ Git 协调规则：已建立（硬约束 2），分支 `glm5.2`
-- ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
+- ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `grove_math`
 - ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
 - ✅ 上游未提交内容同步：已完成，Phase 7 实现 + 审计方法论 v4.2 已同步到本 repo
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
@@ -123,7 +123,7 @@ python3 -m venv .venv          # python3.14
 - **Subagent 职责**：完成 Master 分配的具体任务
 
 **ArangoDB 初始化状态**：
-- 数据库：`xishujuzhen_math_glm52`
+- 数据库：`grove_math`
 - 初始化脚本：`xishujuzhen/arangodb_init.py`（基础集合+图+索引）
 - `xishujuzhen/cognition_init_math.py`（cognition 集合）
 - `scripts/init_research_runtime_db.py`（events/state_reducer/heuristics collections）

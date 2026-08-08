@@ -38,6 +38,6 @@ trigger: model_decision
 ## 核心约束
 
 1. **数据集详情查数据库，不查文档**：所有数据集详情在ArangoDB `math_datasets`集合中，212号文档只有方法论骨架
-2. **数据库隔离**：必须连接 `xishujuzhen_math_glm52` 数据库，不能写上游的 `xishujuzhen_math`
+2. **数据库隔离**：必须连接 `grove_math` 数据库，不能写上游的 `xishujuzhen_math`
 3. **下载到D盘**：大规模数据集下载到D盘，不占内置SSD
 4. **tmux后台下载**：长时间下载必须在tmux中运行

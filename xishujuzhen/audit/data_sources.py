@@ -135,7 +135,7 @@ class ArangoDBSource:
     """从ArangoDB提取数据。"""
 
     def __init__(self, db_name: Optional[str] = None):
-        self.db_name = db_name or os.environ.get("ARANGO_DB", "xishujuzhen_math_glm52")
+        self.db_name = db_name or os.environ.get("ARANGO_DB", "grove_math")
 
     def enrich(self, data: AuditData) -> AuditData:
         """给AuditData补充ArangoDB数据。"""

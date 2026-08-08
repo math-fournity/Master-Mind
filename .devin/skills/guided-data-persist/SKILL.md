@@ -46,7 +46,7 @@ dfs_sessions       (document)  — 第6层
 dfs_compressions   (document)  — 压缩事件
 ```
 
-**数据库隔离**：使用 `xishujuzhen_math_glm52`（本repo专用数据库，见AGENTS.md硬约束3）。
+**数据库隔离**：使用 `grove_math`（本repo专用数据库，见AGENTS.md硬约束3）。
 
 ## 工作流
 
@@ -167,7 +167,7 @@ arango_client.collection("dfs_sessions").insert({
 
 ## 注意事项
 
-1. **数据库隔离**：必须使用 `xishujuzhen_math_glm52`，不是 `xishujuzhen_math`（AGENTS.md硬约束3）
+1. **数据库隔离**：必须使用 `grove_math`，不是 `xishujuzhen_math`（AGENTS.md硬约束3）
 2. **文件系统+ArangoDB双写**：文件系统保留原始数据，ArangoDB提供查询能力
 3. **不可复现数据优先存**：AI回复、引导者决策、压缩事件
 4. **从第一轮就完整记录**：不等到系统成熟

@@ -22,7 +22,7 @@ B组（对照组）：Solver裸跑，无任何提示
 
 前提条件：
   - mitmproxy已启动（solver-harness mitm start）
-  - .env已source（ARANGO_DB=xishujuzhen_math_glm52）
+  - .env已source（ARANGO_DB=grove_math）
 """
 
 import argparse

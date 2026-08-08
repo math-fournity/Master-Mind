@@ -77,14 +77,14 @@
 
 **本 repo 与上游 repo 共享同一台机器上的同一个 ArangoDB 实例（`localhost:8529`）。如果不做数据库隔离，两个 AI 的研究数据会互相覆盖、互相污染——这是最危险的隐性冲突。**
 
-**本 repo 专用数据库名**：`xishujuzhen_math_glm52`（通过 `.env` 文件覆盖 `ARANGO_DB` 环境变量实现隔离）
+**本 repo 专用数据库名**：`grove_math`（通过 `.env` 文件覆盖 `ARANGO_DB` 环境变量实现隔离）
 
 **数据库隔离硬规则**：
-1. **本 repo 启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `xishujuzhen_math_glm52`。
+1. **本 repo 启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `grove_math`。
 2. **禁止**以 `xishujuzhen_math`（上游数据库名）连接 ArangoDB 做任何写操作。读可以（用于对比/迁移），但写绝对禁止。
-3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `xishujuzhen_math_glm52`，不要复用上游的 `xishujuzhen_math`。
+3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `grove_math`，不要复用上游的 `xishujuzhen_math`。
 4. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
-5. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）。
+5. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `grove_math`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）。
 
 ### 硬约束 4 · 其他共享资源意识
 
@@ -251,7 +251,7 @@
 
 ### TOP10最难题集（baseline评测用）
 
-从10063个数据集中选出AI最做不出来的10套，用于baseline能力边界定位。详情查ArangoDB `math_datasets`集合（`xishujuzhen_math_glm52`），元组`math-datasets`提供查询工作流。
+从10063个数据集中选出AI最做不出来的10套，用于baseline能力边界定位。详情查ArangoDB `math_datasets`集合（`grove_math`），元组`math-datasets`提供查询工作流。
 
 | # | 数据集 | 题量 | 难度 | AI表现 | 有解答 | 状态 |
 |---|---|---|---|---|---|---|
@@ -878,7 +878,7 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 **关键参数**：max_depth=7（数学项目路径比星学长）；git hook shebang 用绝对路径；意识节点名称映射英文cog_id↔中文node_id。
 
 **ArangoDB状态**：
-- 数据库：`xishujuzhen_math_glm52`
+- 数据库：`grove_math`
 - 认知图：35个认知单元（事件2026-08-05-A后），51条边
 - 数学依赖图：dg_nodes=1719, dg_edges=1483, loops=4（Phase 0冻结值，详见126号）
 - 题库：60道题159个解法；arxiv_papers：239472篇

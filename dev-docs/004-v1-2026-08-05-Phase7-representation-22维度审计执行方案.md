@@ -137,7 +137,7 @@ transport_objects.py
 ### 步骤 1：准备
 
 - [ ] 确认 ArangoDB 已启动
-- [ ] `source .env` 确认 `ARANGO_DB=xishujuzhen_math_glm52`
+- [ ] `source .env` 确认 `ARANGO_DB=grove_math`
 - [ ] 阅读 146号v4.2 第 8 章（实现前自检）和第 9 章（实现后审计）
 - [ ] 阅读 163号 Phase7实现方案
 - [ ] 阅读 165号 三文件逐行审计报告（学习已发现的 F16 问题模式）

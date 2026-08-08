@@ -8,7 +8,7 @@
 **当前隔离实施状态**（Grove repo，2026-08-08 迁移后）：
 - ✅ 文件操作边界：已建立（硬约束 1），本 repo `/data/master-mind-glm5.2-grove/` 独立工作
 - ✅ Git 规则：已建立（硬约束 2），分支 `glm5.2`，不 push 到上游
-- ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
+- ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `grove_math`
 - ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
 - ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**（已更新为 Grove 路径）并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
@@ -24,7 +24,7 @@
 - **Subagent 职责**：完成 Grove AI 分配的具体任务
 
 **ArangoDB 初始化状态**：
-- 数据库：`xishujuzhen_math_glm52`
+- 数据库：`grove_math`
 - 初始化脚本：`xishujuzhen/arangodb_init.py`（基础集合+图+索引）
 - `xishujuzhen/cognition_init_math.py`（cognition 集合）
 - `scripts/init_research_runtime_db.py`（events/state_reducer/heuristics collections）

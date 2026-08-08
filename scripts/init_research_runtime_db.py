@@ -16,8 +16,8 @@ import json
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # 确保 source .env 后的环境变量已加载
-assert os.environ.get("ARANGO_DB") == "xishujuzhen_math_glm52", (
-    "请先 source .env，确保 ARANGO_DB=xishujuzhen_math_glm52"
+assert os.environ.get("ARANGO_DB") == "grove_math", (
+    "请先 source .env，确保 ARANGO_DB=grove_math"
 )
 
 from xishujuzhen.research_runtime.events.migrate import create_event_collections

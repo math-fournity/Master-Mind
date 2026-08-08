@@ -30,7 +30,7 @@ RUNS_DIR = REPO_ROOT / "runs"
 def get_db():
     """连接ArangoDB（使用.env环境变量）"""
     host = os.environ.get("ARANGO_HOST", "http://localhost:8529")
-    db_name = os.environ.get("ARANGO_DB", "xishujuzhen_math_glm52")
+    db_name = os.environ.get("ARANGO_DB", "grove_math")
     user = os.environ.get("ARANGO_USER", "root")
     password = os.environ.get("ARANGO_PASS", "")
     client = ArangoClient(hosts=host)

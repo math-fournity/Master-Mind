@@ -41,7 +41,7 @@ from huggingface_hub import HfApi
 
 # ===== 配置 =====
 ARANGO_HOST = "http://localhost:8529"
-ARANGO_DB = os.environ.get("ARANGO_DB", "xishujuzhen_math_glm52")
+ARANGO_DB = os.environ.get("ARANGO_DB", "grove_math")
 ARANGO_USER = os.environ.get("ARANGO_USER", "root")
 ARANGO_PASS = os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")
 COLLECTION = "math_datasets"

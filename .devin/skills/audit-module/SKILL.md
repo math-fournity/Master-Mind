@@ -17,7 +17,7 @@ description: >
 
 - **审计范围**：要审计哪些模块（如"184+195"或"全部"）
 - **数据源**：
-  - ArangoDB（`$ARANGO_DB`，默认`xishujuzhen_math_glm52`）
+  - ArangoDB（`$ARANGO_DB`，默认`grove_math`）
   - sessions.db（`~/.local/share/devin/cli/sessions.db`）
   - run目录（`runs/<run_id>/`）
 - **审计标准文档**：dev-docs/183-195号
@@ -43,7 +43,7 @@ description: >
 # 从ArangoDB提取
 from arango import ArangoClient
 client = ArangoClient(hosts="http://localhost:8529")
-db = client.db(os.environ.get("ARANGO_DB", "xishujuzhen_math_glm52"), username="root", password="")
+db = client.db(os.environ.get("ARANGO_DB", "grove_math"), username="root", password="")
 
 # 从sessions.db提取
 import sqlite3
