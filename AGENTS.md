@@ -659,10 +659,12 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
    - POC-VMS 7阶段方案（VMS-0到VMS-6）
 
 **下一步**：
-1. **POC-VMS-0**：实现虚拟群生成器（程序生成不同规模/结构的虚拟群，验证群公理）
-2. **POC-VMS-0**：实现虚拟题目生成器（子群/正规子群/同态/循环性/中心/共轭类）
-3. **POC-VMS-0**：裸跑AI baseline测试（10道虚拟题，记录无提示下AI表现）
+1. **POC-VMS-0·挑战抽象**：分析25道MathArena难题的AI response，抽象出挑战类型（为什么AI做不出）
+2. **POC-VMS-0·虚拟构造**：实现虚拟群生成器，构造同类挑战
+3. **POC-VMS-0·baseline**：裸跑AI在虚拟群论上的表现，审查先验知识污染
 4. **POC-VMS-1**：预演模式+Pattern生成（从虚拟QA序列提炼Pattern）
+
+**25道难题资源**：`runs/matharena_25_hard_problems.json`（23道数值题+2道证明题，AI 0/25做出来，详见213号方案）
 
 **跨Session恢复指引**：
 - 新Session读本节 → 知道POC-VMS是当前活跃工作
