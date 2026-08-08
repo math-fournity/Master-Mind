@@ -233,7 +233,8 @@ def get_tree_edges(db, problem_id: str) -> list:
 
 def register_ai_instance(db, ai_id: str, problem_id: str,
                          entry_node_key: str, entry_edge_key: str = None,
-                         hint_q: str = None, path_text: str = None,
+                         hint_q: str = None, hint_q_id: str = None,
+                         path_text: str = None,
                          tmux_session: str = None, devin_session_id: str = None,
                          trajectory_dir: str = None) -> dict:
     """注册一个推理AI实例。"""
@@ -244,6 +245,7 @@ def register_ai_instance(db, ai_id: str, problem_id: str,
         'entry_edge_key': entry_edge_key,
         '脉络文本': path_text,
         'hint_q': hint_q,
+        'hint_q_id': hint_q_id,
         'tmux_session': tmux_session,
         'devin_session_id': devin_session_id,
         'status': 'running',
