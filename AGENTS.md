@@ -1,7 +1,6 @@
 # 项目 AGENTS.md · 数学大师制造
 
-> **⚠️ 本文件顶部「Worktree 隔离认知」章节是 glm5.2 worktree 专属内容，下游 `## 项目定位` 起的所有内容继承自上游 D repo（`/data/master-mind`），属于项目方法论本体，与本 worktree 的隔离规则无关。**
-> **未来 AI 进入本 repo 时，必须先读完本章节再做事。**
+> **未来 AI 进入本 repo 时，必须先读完本文件顶部的硬约束再做事。**
 
 ---
 
@@ -26,59 +25,31 @@
 
 ---
 
-## Worktree 隔离认知（glm5.2 专属 · 最高优先级）
+## 本 repo 基本信息
 
-### 本 repo 是什么
-
-本目录 `~/master-mind-glm5.2-worktree/` 是上游 repo `/data/master-mind/` 的**独立 clone**，不是 git worktree，是物理隔离的第二个 repo。
-
-- **存在原因**：另一个 AI 正在上游 D repo 内活跃工作（有未提交改动）。为让本 AI（GLM-5.2）并发工作而不互相干扰，开辟了这个独立 clone。
-- **上游 repo 路径**：`/data/master-mind/`
-- **本 repo 路径**：`~/master-mind-glm5.2-worktree/`
+- **路径**：`~/master-mind-glm5.2-worktree/`
+- **工作分支**：`glm5.2`
 - **origin**：`/data/master-mind`（fetch/push 都指向它）
-- **本 repo 工作分支**：`glm5.2`（基于上游 main 的 `f32194f`）
-- **本地 main 分支**：保留为 origin/main 的镜像，**不要在 main 上工作**。
+- **Python 环境**：独立 venv（`.venv/`，python3.14 + python-arango 8.3.3，被 gitignore）
+- **数据库**：ArangoDB `localhost:8529`，本 repo 专用数据库名 `xishujuzhen_math_glm52`（通过 `.env` 文件设置 `ARANGO_DB` 环境变量）
 
-### 硬约束 1 · 文件操作边界
+### 硬约束 1 · 数据库连接
 
-**所有文件读写、代码改动、文档落盘、构建产物，只能在 `~/master-mind-glm5.2-worktree/` 内。**
+**本 repo 专用数据库名**：`xishujuzhen_math_glm52`（通过 `.env` 文件覆盖 `ARANGO_DB` 环境变量）。
 
-- **禁止**以任何方式写入 `/data/master-mind/`（上游 repo）。那是另一个 AI 的工作目录，你的任何写入都会污染它。
-- **禁止**在上游 repo 内执行 `git`、`python`、`arangodb` 等任何会改动文件的命令。
-- 读取上游 repo 用于参考是可以的，但写只能写本 repo。
-- 误写入上游 repo → 立即停止，告知用户，由用户决定如何处理。**不要自行回滚上游 repo 的文件**，那可能破坏另一个 AI 的未提交工作。
+**硬规则**：
+1. **启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `xishujuzhen_math_glm52`。
+2. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`，那是错误的数据库。
+3. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
 
-### 硬约束 2 · Git 协调规则
+### 硬约束 2 · Git 规则
 
-1. **只在 `glm5.2` 分支上工作**。不要 commit 到本地 `main`，不要 push 到 `main`。
-2. **拿上游最新成果**：`git fetch origin` → 看 `git log origin/main` → 需要时 `git rebase origin/main` 或 `git merge origin/main` 到 `glm5.2`。注意：上游 AGENTS.md 和 dev-docs 也在被另一个 AI 改动，rebase/merge 时这些文件大概率冲突，需手动处理。
-3. **送成果回上游**：`git push origin glm5.2`（**必须经用户当轮明确授权**）。另一个 AI 在上游 `git fetch` 后可见 `origin/glm5.2`。
-4. **显式路径 add**：遵守全局规范，禁止 `git add -A`/`git add .`/`git add -u`，只 add 具体路径。
-5. **改前清干净 + 改后立即 commit**：遵守全局 Git 管理协议。
+1. **只在 `glm5.2` 分支上工作**。不要 commit 到本地 `main`。
+2. **显式路径 add**：禁止 `git add -A`/`git add .`/`git add -u`，只 add 具体路径。
+3. **改前清干净 + 改后立即 commit**：遵守全局 Git 管理协议。
+4. **push 需用户明确授权**。
 
-### 硬约束 3 · 数据库完全隔离（最重要）
-
-**本 repo 与上游 repo 共享同一台机器上的同一个 ArangoDB 实例（`localhost:8529`）。如果不做数据库隔离，两个 AI 的研究数据会互相覆盖、互相污染——这是最危险的隐性冲突。**
-
-**本 repo 专用数据库名**：`xishujuzhen_math_glm52`（通过 `.env` 文件覆盖 `ARANGO_DB` 环境变量实现隔离）
-
-**数据库隔离硬规则**：
-1. **本 repo 启动任何会连 ArangoDB 的脚本/服务前**，必须确认 `ARANGO_DB` 环境变量已设为 `xishujuzhen_math_glm52`。
-2. **禁止**以 `xishujuzhen_math`（上游数据库名）连接 ArangoDB 做任何写操作。读可以（用于对比/迁移），但写绝对禁止。
-3. **本 repo 首次初始化数据库时**，用 `arangodb_init.py`（环境变量化后）创建 `xishujuzhen_math_glm52`，不要复用上游的 `xishujuzhen_math`。
-4. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
-5. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`（上游数据库）。
-
-### 硬约束 4 · 其他共享资源意识
-
-除 ArangoDB 外，以下资源也是共享的，使用前要意识到：
-
-- **ArangoDB 实例** `localhost:8529`：共享，通过 DB_NAME 隔离（见上）。
-- **文件系统**：本 repo 在内置 SSD，上游在 D 盘 HDD，物理隔离，无冲突。
-- **网络端口**：如果本 repo 要起服务（如 ArangoDB Web、自定义 HTTP 服务），注意端口不要和上游冲突。起服务前先 `lsof -i :<port>` 检查。
-- **Python 环境**：本 repo 用独立 venv（`.venv/`，python3.14 + python-arango 8.3.3，被 gitignore）。
-
-### 硬约束 5 · Solver 工作目录隔离
+### 硬约束 3 · Solver 工作目录隔离
 
 **数学大师 Solver 的 devin cli 实例必须在外部目录运行，不能在本 repo 内运行。**
 
@@ -128,7 +99,7 @@
 - 不知道就说"我不知道"，系统通过提示引导
 - **启动必须加`--permission-mode dangerous`**——否则exec被rejected，AI只做2步就停
 
-### 硬约束 6 · Solver启动必须通过solver-harness（最重要）
+### 硬约束 4 · Solver启动必须通过solver-harness（最重要）
 
 **启动数学大师Solver的devin cli实例，必须通过`xishujuzhen/solver_harness/solver_harness.py launch`，禁止任何其他方式。**
 
@@ -159,9 +130,7 @@
 
 **具体启动规范见** `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
 
-### 任务追踪（跨Session工作意识维持 · 多AI并发）
-
-**⚠️ 多AI并发认知**：本repo可能同时有多个AI在并发工作（不同对话窗口、不同Session），各自推进不同的工作线。**不要假设只有自己的任务在进行**。AGENTS.md是所有AI共享的always-on上下文，但每个AI的当前工作焦点在自己的任务追踪文档中，不在AGENTS.md里——AGENTS.md不写任何具体工作线的"当前焦点"或"当前状态"，避免污染其他AI的工作认知。
+### 任务追踪（跨Session工作意识维持）
 
 **任务追踪文档目录**：`任务追踪/`——每个工作线一个独立文件，顺序编号化（`01-`、`02-`、...），自包含，互不干扰。
 
@@ -190,7 +159,7 @@
 4. **不删除历史**——历史条目是工作积累的记录，只打勾不删除。
 5. **新建时必须更新README.md**——新建任务追踪文档时，AI必须考虑更新`任务追踪/README.md`的内容。如果有必要，需写清楚新任务和原有任务之间的逻辑关系（依赖、起源、阻塞等）。不能只新建文件而不更新DAG——那样其他AI无法理解新工作线在全局中的位置。同时，文件名必须顺序编号化（`01-`、`02-`、`03-`、...），编号按创建顺序递增。
 6. **与AGENTS.md的分工**：AGENTS.md是项目总目录（always-on硬约束+认知资产索引），不写任何具体工作线的当前状态。任务追踪是工作流追踪（当前在做什么+接下来做什么）。AGENTS.md指向任务追踪目录，任务追踪指向具体dev-docs和代码模块。
-7. **记录git commit ID和全部产出资产path**——每个工作单元完成并commit后，在§4 Git Commit历史中记录commit hash和本次产出的**全部资产**的完整路径（相对于repo根目录）。格式：`| <hash> | <描述> | <产出资产路径列表> |`。**"全部资产"包括**：dev-docs文档、代码模块（.py/.js等）、测试脚本、原语文件（primitives/）、配置文件、数据文件（.json/.db等）、任务追踪文档本身——凡是本次commit中新增或修改的文件，都属于本次产出资产。**为什么必须记录全部资产而非仅文档**：多个AI在交错提交git、交错生成各种资产（dev-docs、代码、数据、配置混杂在一起），光看commit message无法判断"这个commit产出了哪些文件"，光看文件名无法判断"这个文件属于哪个工作线的哪个阶段"。commit hash + 完整资产路径列表是唯一可靠的跨AI工作追溯锚点——它能精确回答"这个文件是哪个AI在哪个工作线的哪个commit中创建的"。**路径必须完整**：写`xishujuzhen/research_runtime/parser/evaluate_accuracy.py`而非`evaluate_accuracy.py`；写`dev-docs/260-v0-2026-08-07-缺口1攻关方案-自然语言到结构化表示的解析器.md`而非`260号文档`。跨Session后的AI需要能直接用路径定位文件，不需要猜。
+7. **记录git commit ID和全部产出资产path**——每个工作单元完成并commit后，在§4 Git Commit历史中记录commit hash和本次产出的**全部资产**的完整路径（相对于repo根目录）。格式：`| <hash> | <描述> | <产出资产路径列表> |`。**"全部资产"包括**：dev-docs文档、代码模块（.py/.js等）、测试脚本、原语文件（primitives/）、配置文件、数据文件（.json/.db等）、任务追踪文档本身——凡是本次commit中新增或修改的文件，都属于本次产出资产。**路径必须完整**：写`xishujuzhen/research_runtime/parser/evaluate_accuracy.py`而非`evaluate_accuracy.py`；写`dev-docs/260-v0-2026-08-07-缺口1攻关方案-自然语言到结构化表示的解析器.md`而非`260号文档`。跨Session后的AI需要能直接用路径定位文件，不需要猜。
 
 ### 认知资产索引（活文档）
 
