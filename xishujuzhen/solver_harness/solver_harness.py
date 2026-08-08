@@ -542,7 +542,14 @@ def cmd_launch(args):
 
     if mitm_enabled:
         # 走mitmproxy代理
-        env_prefix = f"HTTPS_PROXY=http://localhost:{MITM_PORT} HTTP_PROXY=http://localhost:{MITM_PORT} "
+        # NODE_EXTRA_CA_CERTS: devin cli是Node.js应用，不读macOS Keychain，
+        # 必须通过这个环境变量指向mitmproxy CA证书，否则SSL验证失败（Connection failed）
+        ca_cert_path = os.path.expanduser("~/.mitmproxy/mitmproxy-ca-cert.pem")
+        env_prefix = (
+            f"HTTPS_PROXY=http://localhost:{MITM_PORT} "
+            f"HTTP_PROXY=http://localhost:{MITM_PORT} "
+            f"NODE_EXTRA_CA_CERTS={ca_cert_path} "
+        )
         full_cmd = f"cd {sdir} && {env_prefix}{devin_cmd} 2>&1 | tee {tmux_log_path}"
     else:
         full_cmd = f"cd {sdir} && {devin_cmd} 2>&1 | tee {tmux_log_path}"
