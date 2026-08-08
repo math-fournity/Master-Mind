@@ -153,9 +153,9 @@
 
 ## 4. Git Commit历史
 
-| Commit | 描述 |
-|---|---|
-| （待开始实施后记录） | |
+| Commit | 描述 | 产出资产（完整路径） |
+|---|---|---|
+| b5bbae3 | 04工作线§2.3-2.5：实时解析+检索+注入管线实现，mock测试通过（7文件） | **代码**: `xishujuzhen/research_runtime/realtime/__init__.py`, `xishujuzhen/research_runtime/realtime/trajectory_watcher.py`, `xishujuzhen/research_runtime/realtime/stall_detector.py`, `xishujuzhen/research_runtime/realtime/pipeline.py`, `xishujuzhen/research_runtime/realtime/hint_injector.py`, `xishujuzhen/research_runtime/realtime/test_realtime.py` **任务追踪**: `任务追踪/04-端到端效果验证-接真实Solver.md` |
 
 ---
 
