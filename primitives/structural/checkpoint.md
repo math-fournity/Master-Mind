@@ -7,8 +7,8 @@
 - 出处：pangu-b: 122v2-P37；nuwa-a: 131-P9；fuxi: 251-P12
 
 ## 验证状态
-[untested]
-设计了完整机制但未在因果实验中验证。
+[partial]
+检查点管理模块已实现（`xishujuzhen/research_runtime/checkpoint/`），253号A1-A10验证通过。SHA-256哈希确定性+无碰撞+恢复一致性+完整性验证全部通过。'从checkpoint继续'的完整语义需在线运行验证，253号只验证了快照存储和恢复一致性。
 
 ## 架构位置
 受控实验和反应式救援的状态管理基础设施。计算状态哈希，存储checkpoint快照。

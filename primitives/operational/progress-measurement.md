@@ -7,8 +7,8 @@
 - 出处：pangu-b: 123-P21；nuwa-a: 132-P22；nuwa-b: 188-P03
 
 ## 验证状态
-[untested]
-设计完成但未在真实运行中验证。
+[tested]
+进展度量模块已实现（`xishujuzhen/research_runtime/measurement/`），253号A1-A10验证通过。5个进展分量从六元组提取（步骤进展/V_t规模/O_t open数/U_t severity/R_t规模），偏序比较产生4种结果（superior/inferior/incomparable/equal），瓶颈识别正确识别A7的未解决问题瓶颈。
 
 ## 使用经验
 从动态工作区提取5个分量，计算偏序。
