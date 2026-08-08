@@ -1,0 +1,113 @@
+{
+  "name": "POC-VMS-9 tell端去特化与形式化过滤验证",
+  "description": "验证tell可以被系统化降低识别难度（去特化），且形式化过滤（拓扑相似/等价）可以有效命中目标tell并排除干扰tell",
+  "version": "v1",
+  "design_date": "2026-08-08",
+
+  "target_tells": [
+    {
+      "id": "tell-1",
+      "source": "POC-VMS-8的1843题",
+      "name": "连续方法处理离散问题",
+      "topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "continuous_analytic",
+        "gap_type": "method_problem_mismatch",
+        "topology_signature": "AI在用连续/分析工具（多项式符号分析/微积分/极限）处理离散/组合/整数问题",
+        "domain": "algebra_combinatorics"
+      },
+      "hint": "T01模算术——把离散问题翻译到模p空间中检查",
+      "source_problem": 1843,
+      "source_problem_description": "擦除因子使方程无实根，AI用多项式符号分析，需要按模4分组"
+    },
+    {
+      "id": "tell-2",
+      "source": "POC-VMS-8的1631题",
+      "name": "穷举方法处理结构问题",
+      "topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch",
+        "topology_signature": "AI在用枚举/穷举/covering system方法处理有隐藏结构/不变量的问题",
+        "domain": "number_theory_algebra"
+      },
+      "hint": "T03二次剩余——利用模p的二次剩余性质得到结构矛盾",
+      "source_problem": 1631,
+      "source_problem_description": "Mersenne序列最大k，AI用枚举+covering system，需要二次剩余+Euler准则"
+    }
+  ],
+
+  "interference_tells": [
+    {
+      "id": "tell-1-interference",
+      "name": "穷举方法处理结构问题（作为tell-1的干扰）",
+      "topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch",
+        "topology_signature": "AI在用枚举/穷举方法处理有隐藏结构的问题",
+        "domain": "number_theory_algebra"
+      },
+      "note": "这个tell的拓扑结构与tell-2相同（穷举→结构），但与tell-1不同（连续→离散 vs 穷举→结构）。在tell-1的题目上注入这个干扰tell的hint应该是无效的。",
+      "is_real_tell": true,
+      "corresponding_hint": "T03二次剩余",
+      "source_problem_candidate": 1681
+    },
+    {
+      "id": "tell-2-interference",
+      "name": "连续方法处理离散问题（作为tell-2的干扰）",
+      "topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "continuous_analytic",
+        "gap_type": "method_problem_mismatch",
+        "topology_signature": "AI在用连续/分析工具处理离散/组合问题",
+        "domain": "algebra_combinatorics"
+      },
+      "note": "这个tell的拓扑结构与tell-1相同（连续→离散），但与tell-2不同（穷举→结构 vs 连续→离散）。在tell-2的题目上注入这个干扰tell的hint应该是无效的。",
+      "is_real_tell": true,
+      "corresponding_hint": "T01模算术",
+      "source_problem_candidate": 1709
+    }
+  ],
+
+  "cross_validation_design": {
+    "description": "两个题目，交叉验证干扰tell无效",
+    "experiment_1": {
+      "problem": 1843,
+      "target_tell": "tell-1",
+      "target_hint": "T01模算术——按模4分组",
+      "interference_tell": "tell-2（穷举→结构）",
+      "interference_hint": "T03二次剩余",
+      "groups": {
+        "bare": "只有题目",
+        "target_lineage": "题目+脉络+target_tell的hint（T01模算术）→应该成功",
+        "interference_lineage": "题目+脉络+interference_tell的hint（T03二次剩余）→应该失败"
+      },
+      "hypothesis": "target_lineage成功，interference_lineage失败，bare失败"
+    },
+    "experiment_2": {
+      "problem": 1681,
+      "target_tell": "tell-2",
+      "target_hint": "对每个素数p单独分析模p结构——f保持模p同余→f(n)=n",
+      "interference_tell": "tell-1（连续→离散）",
+      "interference_hint": "T01模算术——按模4分组",
+      "groups": {
+        "bare": "只有题目",
+        "target_lineage": "题目+脉络+target_tell的hint→应该成功",
+        "interference_lineage": "题目+脉络+interference_tell的hint（T01模算术/按模4分组）→应该失败"
+      },
+      "hypothesis": "target_lineage成功，interference_lineage失败，bare失败"
+    }
+  },
+
+  "pipe_validation": {
+    "description": "验证Pipe 0拓扑化+Pipe 1形式化过滤",
+    "pipe_0": "将bare AI的thinking编码为拓扑结构（problem_type + ai_method_type + gap_type）",
+    "pipe_1": "用拓扑相似/等价匹配数据基座中的tell，筛出候选tell",
+    "success_criteria": {
+      "pipe_1_recall": "Pipe 1必须筛出target_tell（不漏）",
+      "pipe_1_interference": "Pipe 1可能也筛出interference_tell（因为拓扑相似）——这正是Pipe 2（辅助AI）要做的精准判断",
+      "pipe_2_precision": "Pipe 2（辅助AI）从Pipe 1的候选中精准识别出target_tell，排除interference_tell"
+    }
+  }
+}
