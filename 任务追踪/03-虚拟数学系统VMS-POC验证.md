@@ -186,11 +186,25 @@
 - AI最常用的是element-order和group-structure（20个实验全部使用）——这两个是最基础的群论操作
 - 闭环路径完整：trajectory→Pattern提炼→ArangoDB加载→检索→引导新AI→新AI trajectory→再提炼
 
-#### 2.10 POC-VMS-6：跨域迁移验证
+#### 2.10 POC-VMS-6：跨域迁移验证 ✅
 
 **为什么做**：验证虚拟群论Pattern能否引导真实群论题的解题——这是VMS的终极目标。
 
-- [ ] POC-VMS-6：跨域迁移验证（虚拟Pattern→真实群论）
+- [x] 准备5道真实群论题（S₃共轭类/D₄子群/Q₈正规子群/Z₁₂循环判定/A₄中心）
+- [x] 虚拟Pattern检索方向Q——5道真实题全部检索到相关方向Q
+- [x] A/B对照实验（遵守2并发约束，5批次串行完成）
+- [x] 跨域迁移可行性判定：✅ PASS
+
+**A/B对照结果**：
+- bare平均5.8 rounds/4929 chars
+- guided平均5.0 rounds/6296 chars
+- guided/bare chars比=1.28（guided思考更深入）
+- guided rounds更少（方向Q让AI更快切入正题）
+
+**关键发现**：
+- 群论操作不依赖符号系统——虚拟群论（αβγ符号）的Pattern对真实群论（S₃/D₄/Q₈等标准记号）完全适用
+- guided的thinking更深入（多28%），但rounds更少——方向Q让AI少走弯路
+- 跨域迁移的核心可行性：Pattern的Q字段描述的是数学操作（如"计算元素阶"/"用Lagrange定理"），不是符号特定的指令
 
 ### P2-低优先级（后续优化）
 
