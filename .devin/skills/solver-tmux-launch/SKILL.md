@@ -239,13 +239,30 @@ solver-harness自动添加`--export`参数，导出到`<exp-id>/exports/conversa
 ### MITM数据产物
 
 ```
-/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/
-├── mitm_raw/
-│   ├── capture.log              # 截获日志（每个文件的URL/大小/时间）
-│   ├── api_log.txt              # 所有API调用记录（URL/状态/大小/时间）
-│   ├── chatmsg_NNN_HHMMSS.bin   # raw protobuf响应
-│   └── chatmsg_NNN_HHMMSS_req.bin  # raw protobuf请求
-└── mitm_flows.mitm              # mitmproxy flow文件（可回放分析）
+/data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/
+├── thinking_live.jsonl          # 流式实时thinking（每个chunk一行，JSONL格式）
+├── thinking_live.txt            # 流式实时thinking（人类可读，可tail -f）
+└── trajectory.jsonl             # stop时decode-all生成的完整trajectory
+
+/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/
+├── thinking_live.txt            # 所有实验的thinking流（可tail -f实时查看）
+├── capture.log                  # 截获日志（每个文件的URL/大小/时间）
+├── api_log.txt                  # 所有API调用记录（URL/状态/大小/时间）
+├── chatmsg_NNN_HHMMSS.bin       # raw protobuf响应
+└── chatmsg_NNN_HHMMSS_req.bin   # raw protobuf请求
 ```
 
-**mitmproxy截获范围**：所有`ApiServerService` API（GetChatMessage/GetCliModelConfigs/GetUserStatus等），排除seat_management和product_analytics。thinking内容通过GetChatMessage的`field 9`返回，用`decode_connect_proto.py`解码。
+### 流式实时thinking机制（2026-08-08建立）
+
+**核心原理**：mitmproxy的`responseheaders` hook在响应头到达时（body之前）触发，设置`flow.response.stream = callable`。之后每个HTTP chunk到达时，callable被调用，实时解析Connect streaming protobuf，每解析出一个thinking chunk（field 9）立即落盘。
+
+**这是真正的流式实时处理**——不需要等响应完成，Solver思考过程中每个token实时写入文件。
+
+**三路落盘**：
+1. `_shared/mitm_raw/thinking_live.txt`：所有实验的thinking流（可`tail -f`实时查看）
+2. `<exp_id>/mitm/thinking_live.txt`：按实验隔离的人类可读格式（可`tail -f`）
+3. `<exp_id>/mitm/thinking_live.jsonl`：JSONL格式，每个chunk一行（含timestamp/chunk_index/content）
+
+**验证数据**：120秒内11,397行txt + 10,971行jsonl，chunk粒度1-7字符/token，毫秒级时间戳。
+
+**mitmproxy截获范围**：所有`ApiServerService` API（GetChatMessage/GetCliModelConfigs/GetUserStatus等），排除seat_management和product_analytics。GetChatMessage走流式处理，其他API走完整响应处理。

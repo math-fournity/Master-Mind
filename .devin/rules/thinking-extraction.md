@@ -24,10 +24,15 @@ trigger: model_decision
 
 | 方式 | 工具 | 实时性 | 数据完整性 | 适用场景 |
 |---|---|---|---|---|
+| **MITM流式实时截获** | `mitmproxy` responseheaders+stream callable | **token级实时**（思考过程中每个token立即落盘） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
 | **sessions.db提取** | `thinking_extractor.py` | session结束后 | thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
-| **MITM实时截获** | `mitmproxy` + `decode_connect_proto.py` | 接近实时（响应返回后） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
 
-两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式适合需要实时感知Solver thinking的场景（如检索提示突破闭环）；sessions.db方式适合事后完整分析。
+**MITM流式实时截获**是核心机制：mitmproxy的`responseheaders` hook在响应头到达时设置`flow.response.stream = callable`，每个HTTP chunk到达时callable被调用，实时解析Connect streaming protobuf，每解析出一个thinking chunk（field 9）立即写入3个位置：
+1. `_shared/mitm_raw/thinking_live.txt`（可`tail -f`实时查看）
+2. `<exp_id>/mitm/thinking_live.txt`（按实验隔离，可`tail -f`）
+3. `<exp_id>/mitm/thinking_live.jsonl`（JSONL格式，每个chunk一行）
+
+两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式在Solver思考过程中实时落盘（不需要等响应完成）；sessions.db方式在session结束后提供完整数据。
 
 ## 原因
 
