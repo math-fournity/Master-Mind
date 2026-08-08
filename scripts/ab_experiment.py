@@ -278,6 +278,10 @@ def run_group_a(exp_id: str, model: str, max_time: int, no_mitm: bool = False):
             round_data = Round(
                 round_index=round_index,
                 agent_output=thinking_text[-8000:],  # 取最后8000字符（parser有token限制）
+                thinking=thinking_text[-8000:],
+                content="",
+                tool_calls=[],
+                node_ids=[],
                 start_timestamp=start_time,
                 end_timestamp=time.time(),
             )
