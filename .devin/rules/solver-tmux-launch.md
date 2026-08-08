@@ -1,9 +1,10 @@
 ---
 description: >
-  启动数学大师Solver的devin cli实例时，必须用tmux启动，不能用exec后台(timeout=0)或nohup。
-  原因：tmux pipe-pane是179号方案中兜底记录devin cli trajectory的手段；
-  用tmux启动可以持续观察Solver工作过程；不用tmux进程可能被杀掉导致trajectory丢失。
-  WHEN to use: 通过GuidedLoop/DevinCliAdapter启动Solver，或裸跑测试时。
+  启动数学大师Solver的devin cli实例时，必须通过solver-harness启动，不能用exec后台(timeout=0)或nohup或手动tmux。
+  原因：solver-harness自动完成tmux启动+mitmproxy代理+pipe-pane兜底+sessions.db轮询+事后批量解码，
+  手动启动会丢失MITM token级trajectory。任何时候启动Solver都必须用solver-harness——裸跑测试、
+  GuidedLoop引导、批量测试、DFS回溯实验，无一例外。
+  WHEN to use: 任何启动Solver的devin cli实例的场景。
   WHEN NOT to use: 一般命令行操作、非Solver的devin cli调用。
 trigger: model_decision
 ---
@@ -12,50 +13,62 @@ trigger: model_decision
 
 ## 硬约束
 
-**启动数学大师Solver的devin cli实例必须用tmux，不能用exec后台(timeout=0)或nohup。**
+**启动数学大师Solver的devin cli实例必须通过solver-harness，禁止手动tmux启动、禁止exec后台(timeout=0)、禁止nohup。**
 
-## 两种启动路径（按场景选择）
+**适用所有场景**：裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验——无一例外。任何场景下启动Solver都必须走solver-harness，确保MITM token级trajectory采集。
 
-### 路径A：裸跑测试 → 用solver-harness（推荐）
+## 原因
 
-**裸跑测试**（不走GuidedLoop，直接让AI做题）**必须用solver-harness**，不要手动启动tmux。
+1. **MITM trajectory采集（最关键）**：solver-harness通过mitmproxy代理捕获GetChatMessage的raw protobuf响应，解码出token级thinking+tool_calls数据。手动启动无法采集MITM数据——这是solver-harness存在的核心价值。
+2. **审计兜底**：solver-harness自动启动pipe-pane（tmux兜底记录），无需手动启动。
+3. **持续观察**：solver-harness用tmux启动，可通过`tmux capture-pane -t harness-<exp-id> -p`持续观察Solver工作过程。
+4. **进程安全**：tmux session独立于Devin CLI的shell session，不会被shell session结束而杀掉。
+5. **自动回填**：solver-harness自动回填devin_session_id，自动启动sessions.db轮询，自动在stop时decode-all。
 
-solver-harness自动完成：tmux启动 + mitmproxy代理 + pipe-pane兜底 + sessions.db轮询 + devin_session_id回填 + 事后批量解码。手动启动会丢失MITM token级trajectory。
+## 实施规范
+
+### 所有场景统一用solver-harness
 
 ```bash
-# 启动mitmproxy（全局共享，只需启动一次）
+# 1. 启动共享mitmproxy（全局，只需启动一次）
 python3 xishujuzhen/solver_harness/solver_harness.py mitm start
 
-# 启动实验
+# 2. 启动实验（裸跑测试、GuidedLoop、批量测试都一样）
 python3 xishujuzhen/solver_harness/solver_harness.py launch \
   --exp-id <experiment-id> \
   --problem-file <problem.txt路径> \
   --model glm-5-2
 
-# 查看状态
+# 3. 观察
 python3 xishujuzhen/solver_harness/solver_harness.py status --exp-id <experiment-id>
+tmux capture-pane -t harness-<experiment-id> -p
 
-# 停止实验（自动decode-all）
+# 4. 停止（自动decode-all，不影响共享mitmproxy）
 python3 xishujuzhen/solver_harness/solver_harness.py stop --exp-id <experiment-id>
+
+# 5. 所有实验结束后停止mitmproxy
+python3 xishujuzhen/solver_harness/solver_harness.py mitm stop
 ```
 
-详见skill: `solver-tmux-launch`的"裸跑测试（solver-harness）"章节。
+### GuidedLoop集成
 
-### 路径B：GuidedLoop引导 → 手动tmux启动（暂不集成solver-harness）
+GuidedLoop引导实验也必须通过solver-harness启动。当前solver-harness的`launch`命令支持`--prompt`自定义prompt，可用于GuidedLoop的单轮启动。多轮引导的集成方式：
+- 每轮用solver-harness launch启动新实验（exp-id带轮次后缀，如`guided-006-turn1`）
+- 或扩展solver-harness支持多轮模式（未来工作）
 
-**GuidedLoop引导实验**目前仍用手动tmux启动，因为solver-harness和GuidedLoop的集成已确认独立使用（先验证裸跑trajectory采集可靠，再考虑集成）。
+**无论如何集成，每轮都必须走mitmproxy代理**——这是硬约束，不可妥协。
 
-手动启动流程见skill: `solver-tmux-launch`的"GuidedLoop引导（手动tmux）"章节。
+### Solver工作目录
 
-## 原因
+solver-harness自动创建`/data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/`，自动复制AGENTS.md模板和problem.txt。无需手动创建。
 
-1. **审计兜底**：179号方案定义了三层trajectory记录，其中tmux pipe-pane是兜底手段。solver-harness自动启动pipe-pane；手动启动GuidedLoop时需手动启动pipe-pane。
-2. **持续观察**：用tmux启动后，可以通过`tmux capture-pane -t <session> -p`持续观察Solver的工作过程。
-3. **进程安全**：tmux session独立于Devin CLI的shell session，不会被shell session结束而杀掉。
-4. **MITM trajectory采集（solver-harness专属）**：solver-harness通过mitmproxy代理捕获GetChatMessage的raw protobuf响应，解码出token级thinking+tool_calls数据。手动启动无法采集MITM数据。
+## 禁止的做法
 
-## Solver工作目录
+- ❌ 手动`tmux new-session -d -s solver-xxx "devin -p ..."`——丢失MITM数据
+- ❌ `exec`后台`timeout=0`运行devin cli——进程会被杀掉，丢失所有trajectory
+- ❌ `nohup devin -p ... &`——同上
+- ❌ GuidedLoop内部直接调用`devin -p`不走代理——丢失MITM数据
 
-**solver-harness模式**：自动创建`/data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/`，自动复制AGENTS.md模板和problem.txt。
+## 详见
 
-**手动GuidedLoop模式**：在`/data/math-agent-glm5.2-tmux-agents-dir/`下手动创建实验目录，或用旧三固定目录`/data/math-agent-glm5.2-{1,2,3}`（已废弃）。
+skill: `solver-tmux-launch`的完整工作流和注意事项。

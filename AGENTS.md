@@ -128,10 +128,11 @@
 - 不知道就说"我不知道"，系统通过提示引导
 - **启动必须加`--permission-mode dangerous`**——否则exec被rejected，AI只做2步就停
 
-**启动方式约束**：GuidedLoop必须用tmux启动，禁止用exec后台(timeout=0)或nohup。原因：
-1. tmux pipe-pane是179号方案中兜底记录devin cli trajectory的手段——不用tmux则兜底记录断了
-2. 用tmux可以持续观察Solver工作过程（`tmux capture-pane -t solver-<run_id> -p`）
-3. exec后台模式的进程在session结束时会被杀掉，导致trajectory丢失
+**启动方式约束**：所有场景启动Solver都必须通过solver-harness，禁止手动tmux、禁止exec后台(timeout=0)、禁止nohup。原因：
+1. solver-harness通过mitmproxy代理捕获GetChatMessage的raw protobuf响应，解码出token级thinking+tool_calls数据——手动启动无法采集MITM数据
+2. solver-harness自动启动pipe-pane（tmux兜底记录）、sessions.db轮询、--export、事后批量解码
+3. 用tmux可以持续观察Solver工作过程（`tmux capture-pane -t harness-<exp-id> -p`）
+4. exec后台模式的进程在session结束时会被杀掉，导致trajectory丢失
 
 具体启动规范见 `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
 

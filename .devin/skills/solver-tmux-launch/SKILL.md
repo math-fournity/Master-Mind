@@ -1,35 +1,27 @@
 ---
 name: solver-tmux-launch
 description: >
-  启动数学大师Solver的devin cli实例。两种路径：裸跑测试用solver-harness（推荐，自动采集MITM trajectory），GuidedLoop引导用手动tmux启动。
-  WHEN to use: 需要运行Solver做题时（裸跑测试或GuidedLoop引导）。
+  通过solver-harness启动数学大师Solver的devin cli实例，自动采集完整trajectory（MITM token级+sessions.db step级+pipe-pane兜底+--export）。
+  所有场景（裸跑测试、GuidedLoop引导、批量测试、DFS回溯）统一用solver-harness。
+  WHEN to use: 任何需要运行Solver做题的场景。
   WHEN NOT to use: 一般命令行操作、非Solver的devin cli调用。
 ---
 
 # solver-tmux-launch skill
 
-## 两种启动路径
+## 硬约束
 
-| 场景 | 路径 | 工具 | trajectory采集 |
-|---|---|---|---|
-| 裸跑测试（直接让AI做题） | A | solver-harness | MITM token级 + sessions.db step级 + pipe-pane兜底 + --export |
-| GuidedLoop引导（多轮提示） | B | 手动tmux | pipe-pane兜底 + --export（无MITM） |
+**所有场景启动Solver都必须用solver-harness，禁止手动tmux、禁止exec后台、禁止nohup。**
 
----
+solver-harness自动完成：tmux启动 + mitmproxy代理 + pipe-pane兜底 + sessions.db轮询 + devin_session_id回填 + 事后批量解码。手动启动会丢失MITM token级trajectory——这是不可接受的。
 
-## 路径A：裸跑测试（solver-harness）
-
-### 何时用
-
-- baseline测试（测AI裸能力）
-- 单道题测试
-- 需要完整trajectory采集（含token级thinking）的所有场景
-
-### 前置条件
+## 前置条件
 
 - mitmproxy已安装（`brew install mitmproxy`）
 - mitmproxy CA证书已生成（`~/.mitmproxy/mitmproxy-ca-cert.pem`，运行过一次mitmdump即可生成）
 - solver-harness脚本存在（`xishujuzhen/solver_harness/solver_harness.py`）
+
+## 完整工作流
 
 ### 步骤1：启动共享mitmproxy（全局，只需启动一次）
 
@@ -50,6 +42,10 @@ python3 xishujuzhen/solver_harness/solver_harness.py launch \
   --problem-file <problem.txt路径> \
   --model glm-5-2
 ```
+
+**可选参数**：
+- `--prompt "自定义prompt"`：默认是"请读取当前目录下的problem.txt文件，解答其中的数学题。"
+- `--no-mitm`：不启用MITM代理（仅特殊调试场景，正常使用不要加）
 
 自动完成：
 1. 创建Solver工作目录（`/data/math-agent-glm5.2-tmux-agents-dir/<exp-id>/`）
@@ -85,7 +81,9 @@ python3 xishujuzhen/solver_harness/solver_harness.py stop --exp-id <exp-id>
 1. 停止该实验的tmux sessions（devin cli + db monitor，**不影响共享mitmproxy**）
 2. 调用decode-all：扫描共享raw目录，通过_req文件中的work_dir匹配实验，解码分发到`<exp-id>/mitm/trajectory.jsonl`
 
-### 步骤5（可选）：手动decode-all
+**可选**：`--no-decode`跳过自动解码（仅特殊场景，正常使用不要加）
+
+### 步骤5（可选）：手动decode-all和list
 
 ```bash
 # 解码所有共享raw数据（按work_dir分发到各实验）
@@ -93,6 +91,9 @@ python3 xishujuzhen/solver_harness/solver_harness.py decode-all
 
 # 列出所有实验
 python3 xishujuzhen/solver_harness/solver_harness.py list
+
+# 查看mitmproxy状态
+python3 xishujuzhen/solver_harness/solver_harness.py mitm status
 ```
 
 ### 步骤6：停止共享mitmproxy（所有实验结束后）
@@ -101,7 +102,7 @@ python3 xishujuzhen/solver_harness/solver_harness.py list
 python3 xishujuzhen/solver_harness/solver_harness.py mitm stop
 ```
 
-### 数据产物
+## 数据产物
 
 ```
 /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/
@@ -117,86 +118,33 @@ python3 xishujuzhen/solver_harness/solver_harness.py mitm stop
     └── conversation.json      # devin cli --export
 ```
 
----
+## 各场景的exp-id命名规范
 
-## 路径B：GuidedLoop引导（手动tmux）
+| 场景 | exp-id格式 | 示例 |
+|---|---|---|
+| 裸跑测试 | `<dev-docs编号>-<描述>` | `258-matrix-test` |
+| GuidedLoop单轮 | `guided-<NNN>-turn<N>` | `guided-006-turn1` |
+| 批量测试 | `batch-<批次名>-<题号>` | `batch-imo2025-p5` |
+| DFS回溯 | `dfs-<run_id>-branch<N>` | `dfs-run001-branch2` |
 
-### 何时用
+## GuidedLoop集成
 
-- GuidedLoop多轮引导实验
-- DFS回溯实验
-- 需要Python进程控制devin cli调用序列的场景
+GuidedLoop引导实验也必须通过solver-harness启动。当前`launch`命令支持`--prompt`自定义prompt。
 
-### 步骤1：准备run目录
+**多轮引导的两种集成方式**：
 
-```bash
-RUN_ID="run_20260806_<描述>"
-mkdir -p runs/${RUN_ID}
-```
+1. **每轮独立launch**（当前可用）：每轮用solver-harness launch启动新实验，exp-id带轮次后缀（如`guided-006-turn1`、`guided-006-turn2`）。每轮独立采集trajectory，stop后自动decode-all。
 
-### 步骤2：选择Solver工作目录
+2. **扩展solver-harness多轮模式**（未来工作）：在solver-harness中增加`launch-guided`命令，内部管理多轮devin cli调用，共享同一个mitmproxy session。
 
-在`/data/math-agent-glm5.2-tmux-agents-dir/`下创建实验目录：
+**无论哪种方式，每轮都必须走mitmproxy代理**——这是硬约束。
 
-```bash
-EXP_DIR="/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>"
-mkdir -p ${EXP_DIR}/exports
-cp templates/solver_agents_md.md ${EXP_DIR}/AGENTS.md
-```
+## 注意事项
 
-### 步骤3：用tmux启动GuidedLoop
-
-```bash
-tmux new-session -d -s solver-${RUN_ID} ".venv/bin/python3 -c '
-import sys
-sys.path.insert(0, \"xishujuzhen\")
-from research_runtime.runtime.guided_loop import GuidedLoop
-
-loop = GuidedLoop(
-    run_id=\"${RUN_ID}\",
-    run_dir=\"runs/${RUN_ID}\",
-    problem=\"<问题文本>\",
-    model=\"glm-5-2\",
-    max_turns=3,
-    max_hints=2,
-    timeout=600,
-    work_dir=\"${EXP_DIR}\",
-)
-result = loop.run()
-print()
-print(f\"turns={result.n_turns} hints={result.n_hints} completed={result.completed} session={result.session_id}\")
-' 2>&1 | tee runs/${RUN_ID}/tmux.log"
-```
-
-### 步骤4：启动pipe-pane兜底记录
-
-```bash
-tmux pipe-pane -t solver-${RUN_ID} "cat >> ${EXP_DIR}/tmux_pipe.log"
-```
-
-### 步骤5：观察Solver工作过程
-
-```bash
-tmux capture-pane -t solver-${RUN_ID} -p
-tmux attach -t solver-${RUN_ID}
-```
-
-### 步骤6：结束后清理
-
-```bash
-tmux kill-session -t solver-${RUN_ID}
-```
-
----
-
-## 通用注意事项
-
-1. **--permission-mode dangerous必须加**：否则exec/web_search被rejected，AI只做2步就停，无法观察真实解题能力
-2. **题目通过文件传递**：`devin -p`只适合短指令（<200字符），长题目写入problem.txt让AI读文件
-3. **pipe-pane必须启动**：179号方案三层trajectory记录的兜底层
-4. **不要用exec后台**：exec的timeout=0后台模式不是tmux，进程会被杀掉
-5. **session命名**：solver-harness用`harness-<exp-id>`，手动GuidedLoop用`solver-<run_id>`
-6. **solver-harness的共享mitmproxy**：全局单实例，固定18888端口，所有实验共享。stop单个实验不影响mitmproxy
+1. **--permission-mode dangerous自动添加**：solver-harness的launch命令已内置此参数，无需手动加
+2. **题目通过文件传递**：`devin -p`只适合短指令（<200字符），长题目写入problem.txt让AI读文件（solver-harness自动复制problem.txt到Solver目录）
+3. **共享mitmproxy**：全局单实例，固定18888端口，所有实验共享。stop单个实验不影响mitmproxy
+4. **session命名**：solver-harness用`harness-<exp-id>`，mitmproxy用`harness-mitmproxy`，db monitor用`harness-dbmon-<exp-id>`
 
 ## 题目传递规范（铁律）
 
@@ -208,9 +156,13 @@ tmux kill-session -t solver-${RUN_ID}
 
 ### 正确做法
 
+solver-harness的`--problem-file`参数自动处理：把problem.txt复制到Solver目录，devin cli的prompt是"请读取当前目录下的problem.txt文件，解答其中的数学题。"——短指令，不会截断。
+
+如果题目内容需要自定义格式，在传入`--problem-file`前把内容写入文件：
+
 ```python
-# 1. 把完整题目+指令写入work_dir下的problem.txt
-problem_file = os.path.join(work_dir, "problem.txt")
+# 准备problem.txt
+problem_file = "/tmp/problem.txt"
 with open(problem_file, "w") as f:
     f.write(f"""你是数学大师。请解答以下竞赛数学题。
 
@@ -222,40 +174,44 @@ with open(problem_file, "w") as f:
 2. 最终答案用\\boxed{{答案}}格式给出
 3. 数学公式用LaTeX
 4. 如果你不知道，明确说"我不知道"
-5. 可以搜索任何内容，但不允许通过搜索获取这道题的答案或解答（不能搜题目原文/题号）
 """)
 
-# 2. devin -p只传短指令："请读取当前目录下的problem.txt并解答"
-cmd = ["devin", "-p", "请读取当前目录下的problem.txt文件，解答其中的数学题。", "--model", model, ...]
-
-# 3. 运行前清理problem.txt（session隔离铁律）
-# 4. 运行后清理problem.txt
+# 用solver-harness启动
+subprocess.run([
+    "python3", "xishujuzhen/solver_harness/solver_harness.py",
+    "launch",
+    "--exp-id", exp_id,
+    "--problem-file", problem_file,
+    "--model", "glm-5-2",
+])
 ```
 
-### hint传递同理
+### hint传递（GuidedLoop多轮）
 
-多turn引导时，hint也写入文件：
-```python
-hint_file = os.path.join(work_dir, "hint.txt")
-with open(hint_file, "w") as f:
-    f.write(hint_text)
-cmd = ["devin", "-p", "请读取当前目录下的hint.txt文件，这是对你上一轮解答的提示，请继续解答。", ...]
+多turn引导时，hint也写入文件，用`--prompt`指定读hint文件：
+
+```bash
+python3 xishujuzhen/solver_harness/solver_harness.py launch \
+  --exp-id guided-006-turn2 \
+  --problem-file /tmp/hint.txt \
+  --prompt "请读取当前目录下的problem.txt文件，这是对你上一轮解答的提示，请继续解答。" \
+  --model glm-5-2
 ```
 
 ### 批量测试中的清理
 
-每道题运行前必须清理work_dir下的problem.txt/hint.txt，防止下一题读到上一题的文件（session隔离铁律，见`batch-test-session-isolation` rule）。
+每道题运行前必须清理work_dir下的problem.txt/hint.txt，防止下一题读到上一题的文件（session隔离铁律，见`batch-test-session-isolation` rule）。solver-harness每次launch创建独立exp-id目录，天然隔离。
 
 ## 对话导出规范（--export）
 
-**devin cli支持`--export <PATH>`参数，在每轮对话后自动导出对话记录到JSON文件。**
+solver-harness自动添加`--export`参数，导出到`<exp-id>/exports/conversation.json`。
 
-### 与pipe-pane的关系
+### 三层trajectory记录
 
-| 记录手段 | 层次 | 说明 |
-|---|---|---|
-| `--export` | devin cli原生 | 结构化JSON，每轮自动导出，包含完整对话内容 |
-| `pipe-pane` | tmux兜底 | 纯文本terminal输出，捕获所有屏幕内容包括非对话部分 |
-| MITM（solver-harness专属） | 网络层 | raw protobuf解码，token级thinking+tool_calls |
+| 记录手段 | 层次 | 说明 | 自动采集 |
+|---|---|---|---|
+| MITM（solver-harness专属） | 网络层 | raw protobuf解码，token级thinking+tool_calls | ✅ stop时自动decode-all |
+| `--export` | devin cli原生 | 结构化JSON，每轮自动导出，包含完整对话内容 | ✅ launch时自动添加 |
+| `pipe-pane` | tmux兜底 | 纯文本terminal输出，捕获所有屏幕内容包括非对话部分 | ✅ launch时自动启动 |
 
-三者互补：`--export`提供结构化数据，`pipe-pane`提供完整terminal记录，MITM提供token级流式数据。
+三者互补：MITM提供token级流式数据，`--export`提供结构化数据，`pipe-pane`提供完整terminal记录。
