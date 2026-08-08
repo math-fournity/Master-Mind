@@ -263,6 +263,7 @@ def backfill_ai_to_tree(db, problem: dict, group: dict, tree_info: dict,
 # ============================================================
 
 MAX_CONCURRENT = 2  # 硬约束：最多2个并发AI
+MAX_TOTAL_AIS = 60  # 安全阀：总AI数上限（防止动态扩展无限生成）
 
 
 def count_running_ais() -> int:
@@ -411,14 +412,16 @@ def main():
             task = task_queue.pop(0)
             task_idx += 1
             exp_id = task['exp_id']
-            print(f"[{task_idx}/{len(all_tasks)}] 启动 {exp_id}...")
+            print(f"[{task_idx}] 启动 {exp_id}...")
             ok = launch_ai(exp_id, task['problem_file'])
             if ok:
                 print(f"  ✅ {exp_id} 已启动")
+                # 动态任务的node_keys从entry_node开始（不是从root）
+                entry_node = task.get('entry_node_key', task['tree_info']['root_node_key'])
                 running_ais[exp_id] = {
                     'task': task,
                     'last_round_count': 0,  # 上次读到的thinking round数
-                    'node_keys': [task['tree_info']['root_node_key']],  # 已创建的节点key序列
+                    'node_keys': [entry_node],  # 已创建的节点key序列（从entry_node开始）
                     'start_time': time.time(),
                 }
             else:
@@ -535,26 +538,13 @@ def main():
                     tree_store.update_problem_status(db, problem['pid'], 'solved', solution_path=state['node_keys'])
                     print(f"  ✅ {exp_id}: problem {problem['pid']} solved!")
 
-        # --- 步骤3: 检查AI终止 ---
+        # --- 步骤3: 检查AI终止 + 推动关系3（叶节点检索+启动新AI）---
         for exp_id, state in list(running_ais.items()):
             if check_ai_terminated(exp_id):
                 task = state['task']
                 problem = task['problem']
+                group = task['group']
                 tree_info = task['tree_info']
-
-                # 最后再读一次thinking，确保所有round都提取了
-                thinking_path = os.path.join(
-                    '/data/math-agent-glm5.2-tmux-agents-trajectory', exp_id,
-                    'mitm', 'thinking_readable.txt'
-                )
-                if os.path.exists(thinking_path):
-                    from xishujuzhen.vms.node_extractor import parse_thinking_rounds
-                    rounds = parse_thinking_rounds(thinking_path)
-                    if len(rounds) > state['last_round_count']:
-                        # 还有未提取的round——提取最后一批
-                        # （简化：用backfill_ai_to_tree补齐）
-                        # 实际上上面的步骤2应该已经提取了，这里只是兜底
-                        pass
 
                 # 判断终止原因
                 end_reason = 'solution_found' if any(
@@ -572,6 +562,103 @@ def main():
                 elapsed = time.time() - state['start_time']
                 node_count = len(state['node_keys']) - 1  # 不含根节点
                 print(f"  📦 {exp_id} 终止 ({end_reason}, {node_count} nodes, {elapsed:.0f}s)")
+
+                # ===== 推动关系3：在叶节点检索方向Q，启动新AI =====
+                # 立刻在终点节点检索方向Q。如果检索成功，构造脉络，启动新推理AI。
+                # 如果检索失败，这是循环断裂点——不能跳过。
+                # 除非problem已经solved（停机条件：与正确解答的脉络相遇时停机）
+
+                problem_doc = tree_store.get_problem(db, problem['pid'])
+                if problem_doc and problem_doc.get('status') == 'solved':
+                    # problem已solved，停机——不从叶节点启动新AI
+                    print(f"  ⏹️ {exp_id}: problem {problem['pid']} already solved, 停机")
+                elif end_reason == 'solution_found':
+                    # 这个AI自己解出来了，problem标记solved
+                    print(f"  ⏹️ {exp_id}: solution found, 停机")
+                else:
+                    # AI没解出来——在叶节点检索方向Q
+                    leaf_node_key = state['node_keys'][-1]
+                    leaf_node = tree_store.get_node(db, leaf_node_key)
+
+                    if leaf_node and not leaf_node.get('retrieval_done'):
+                        # 在叶节点检索
+                        problem_metadata = {
+                            'problem_type': problem['problem_type'],
+                            'group_order': group['order'],
+                            'group_type': group['group_type'],
+                        }
+                        directions = retrieve_for_node(db, leaf_node, problem_metadata)
+
+                        # 标记叶节点retrieval_done
+                        tree_store.mark_retrieval_done(db, leaf_node_key,
+                                                        [d['pattern_id'] for d in directions])
+
+                        print(f"  🔍 {exp_id} 叶节点 [{leaf_node_key[:8]}] 检索到 {len(directions)} 个方向")
+
+                        if directions:
+                            # 构造脉络——从根到叶节点的完整路径
+                            path_nodes = []
+                            for nk in state['node_keys'][1:]:  # 跳过根节点
+                                n = tree_store.get_node(db, nk)
+                                if n:
+                                    path_nodes.append({
+                                        '_key': n['_key'],
+                                        'situation_text': n.get('situation_text', ''),
+                                        'node_type': n.get('node_type', ''),
+                                    })
+
+                            # 为每个方向创建新AI任务（动态加入task_queue）
+                            # 安全阀：总AI数不超过MAX_TOTAL_AIS
+                            for i, direction in enumerate(directions[:2]):  # 最多2个分支
+                                if len(completed_ais) + len(running_ais) + len(task_queue) >= MAX_TOTAL_AIS:
+                                    print(f"  ⚠️ 达到总AI数上限{MAX_TOTAL_AIS}，停止扩展")
+                                    break
+                                new_exp_id = f'{exp_id}-ext{i+1}'
+                                path_text = construct_path_text(
+                                    problem['full_problem'], path_nodes, direction['Q']
+                                )
+
+                                # 写入题目文件
+                                new_problem_file = os.path.join(
+                                    REPO_DIR,
+                                    f'runs/vms_poc_0/vms2_problem_files/{new_exp_id}.txt'
+                                )
+                                with open(new_problem_file, 'w', encoding='utf-8') as f:
+                                    f.write(path_text)
+
+                                # 注册AI实例
+                                tree_store.register_ai_instance(
+                                    db, new_exp_id, problem['pid'],
+                                    entry_node_key=leaf_node_key,
+                                    hint_q=direction['Q'],
+                                    hint_q_id=direction['pattern_id'],
+                                    path_text=path_text,
+                                    trajectory_dir=f'/data/math-agent-glm5.2-tmux-agents-trajectory/{new_exp_id}',
+                                )
+
+                                # 更新叶节点的ai_instances_started
+                                db.collection('tree_nodes').update({
+                                    '_key': leaf_node_key,
+                                    'ai_instances_started': db.collection('tree_nodes').get(leaf_node_key).get('ai_instances_started', []) + [new_exp_id]
+                                })
+
+                                # 动态加入task_queue
+                                task_queue.append({
+                                    'exp_id': new_exp_id,
+                                    'problem_file': new_problem_file,
+                                    'problem': problem,
+                                    'group': group,
+                                    'tree_info': tree_info,
+                                    'direction': direction,
+                                    'parent_exp_id': exp_id,
+                                    'entry_node_key': leaf_node_key,
+                                })
+
+                                print(f"  🌱 {exp_id} → 新任务 {new_exp_id}（方向: {direction['pattern_id'][:30]}）")
+                        else:
+                            print(f"  ⚠️ {exp_id} 叶节点检索失败——循环断裂点！无Pattern匹配")
+                    else:
+                        print(f"  ⏭️ {exp_id} 叶节点已检索过，跳过")
 
                 del running_ais[exp_id]
                 completed_ais.add(exp_id)
