@@ -35,7 +35,7 @@ trigger: model_decision
 **关键参数**：
 - `--permission-mode dangerous`：必须加——让exec/web_search等工具自动approve。否则AI想用Python计算时被rejected，只做2步就停，无法观察真实解题能力。
 - `--export <PATH>`：每轮自动导出conversation.json（含reasoning_content + tool_calls + observation）
-- AGENTS.md中定义搜索纪律：允许搜索通用数学知识，禁止搜索题目答案
+- AGENTS.md中定义搜索纪律：不允许通过搜索获取题目答案/解答，其他内容均可搜索
 
 ```bash
 # 当前模式：创建实验目录并启动
