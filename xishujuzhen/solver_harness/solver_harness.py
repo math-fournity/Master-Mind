@@ -281,7 +281,13 @@ def stop_db_monitor(exp_id):
 # ============================================================
 
 def build_session_id_to_exp_mapping():
-    """构建session_id → exp_id映射表（读所有实验的session_info.json）。"""
+    """构建session_id → exp_id映射表（读所有实验的session_info.json）。
+
+    注意：MITM protobuf中的session_id是云端UUID，和sessions.db中的本地session名称不同。
+    此映射表用devin_session_id（本地名称）做映射，但MITM数据匹配不用这个——
+    MITM数据通过_req文件中的work_dir路径匹配实验（见_match_exp_by_req_file）。
+    此函数保留用于未来可能的UUID映射。
+    """
     mapping = {}
     tbase = Path(TRAJECTORY_BASE)
     if not tbase.exists():
@@ -304,23 +310,76 @@ def build_session_id_to_exp_mapping():
 
     return mapping
 
+def build_workdir_to_exp_mapping():
+    """构建work_dir路径 → exp_id映射表。
+
+    MITM _req文件中包含work_dir路径（如/data/.../harness-test-001），
+    通过此路径匹配实验。这是MITM数据分发的主要匹配方式。
+    """
+    mapping = {}
+    tbase = Path(TRAJECTORY_BASE)
+    if not tbase.exists():
+        return mapping
+
+    for d in tbase.iterdir():
+        if not d.is_dir() or d.name == "_shared":
+            continue
+        info_path = d / "session_info.json"
+        if not info_path.exists():
+            continue
+        try:
+            with open(info_path) as f:
+                info = json.load(f)
+            solver_dir = info.get("solver_dir")
+            if solver_dir:
+                mapping[solver_dir] = d.name
+        except (json.JSONDecodeError, KeyError):
+            continue
+
+    return mapping
+
+def _match_exp_by_req_file(req_filepath, workdir_mapping):
+    """从_req文件中提取work_dir路径，匹配实验。
+
+    _req文件是Connect protocol的request body，包含work_dir路径。
+    搜索所有mapping中的work_dir路径，找到匹配的exp_id。
+    """
+    try:
+        with open(req_filepath, "rb") as f:
+            data = f.read()
+        text = data.decode("utf-8", errors="replace")
+
+        for work_dir, exp_id in workdir_mapping.items():
+            if work_dir in text:
+                return exp_id
+    except Exception:
+        pass
+    return None
+
 def cmd_decode_all(args):
-    """扫描共享raw目录，解码每个.bin，按session_id分发到各实验的mitm/trajectory.jsonl。"""
+    """扫描共享raw目录，解码每个.bin，通过_req文件中的work_dir匹配实验。
+
+    匹配策略：
+    1. 每个chatmsg_NNN_*.bin有对应的chatmsg_NNN_*_req.bin（request body）
+    2. _req文件中包含work_dir路径（如/data/.../harness-test-001）
+    3. 通过work_dir路径匹配到实验的exp_id
+    4. 解码response .bin，写入对应实验的mitm/trajectory.jsonl
+    """
     if not os.path.exists(SHARED_RAW_DIR):
         print(f"Shared raw dir not found: {SHARED_RAW_DIR}")
         return 1
 
-    # 构建映射表
-    mapping = build_session_id_to_exp_mapping()
-    if not mapping:
-        print("No devin_session_id mapping found (no experiments with backfilled session_id)")
+    # 构建work_dir → exp_id映射表
+    workdir_mapping = build_workdir_to_exp_mapping()
+    if not workdir_mapping:
+        print("No experiments with solver_dir found in session_info.json")
         print("Will decode all to _shared/unmatched/")
     else:
-        print(f"Session mapping ({len(mapping)} experiments):")
-        for sid, exp_id in mapping.items():
-            print(f"  {sid[:8]}... → {exp_id}")
+        print(f"Work-dir mapping ({len(workdir_mapping)} experiments):")
+        for work_dir, exp_id in workdir_mapping.items():
+            print(f"  {exp_id} ← {work_dir}")
 
-    # 扫描所有.bin文件（排除_req文件）
+    # 扫描所有response .bin文件（排除_req文件）
     raw_files = sorted([
         f for f in os.listdir(SHARED_RAW_DIR)
         if f.endswith(".bin") and "_req" not in f
@@ -340,13 +399,19 @@ def cmd_decode_all(args):
     for fname in raw_files:
         fpath = os.path.join(SHARED_RAW_DIR, fname)
         try:
+            # 从文件名推导_req文件名
+            # chatmsg_001_024646_324511.bin → chatmsg_001_024646_324511_req.bin
+            req_fname = fname.replace(".bin", "_req.bin")
+            req_fpath = os.path.join(SHARED_RAW_DIR, req_fname)
+
+            # 通过_req文件匹配实验
+            exp_id = None
+            if os.path.exists(req_fpath):
+                exp_id = _match_exp_by_req_file(req_fpath, workdir_mapping)
+
+            # 解码response
             result = extract_streaming_data(fpath)
-
-            # 提取session_id（field 17）——需要从原始protobuf中找
             session_id = _extract_session_id(fpath)
-
-            # 确定目标实验
-            exp_id = mapping.get(session_id) if session_id else None
 
             if exp_id:
                 target_jsonl = trajectory_dir(exp_id) / "mitm" / "trajectory.jsonl"
@@ -359,6 +424,7 @@ def cmd_decode_all(args):
             entry = {
                 "source_file": fname,
                 "session_id": session_id,
+                "matched_exp": exp_id,
                 "decoded_at": time.time(),
                 "total_messages": result["total_messages"],
                 "content_thinking": result["content_thinking"],
