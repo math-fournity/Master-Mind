@@ -135,6 +135,17 @@
 
 具体启动规范见 `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
 
+### 任务追踪（跨Session工作意识维持）
+
+**`任务追踪/任务追踪.md`** — 跨Session的工作追踪文档。新Session的AI进入本repo后，先读本文件，了解"之前做了什么、现在在做什么、接下来该做什么"。
+
+**维护规则**：
+- 每完成一个工作单元，立即更新对应条目的状态
+- 新增任务时追加到末尾，不删除历史条目
+- 包含：当前工作焦点、已完成工作（含为什么做）、待办清单（按优先级+为什么做）、验证状态总览、关键决策记录、Git commit历史、跨Session读取指南
+
+**与AGENTS.md的分工**：AGENTS.md是项目总目录（always-on硬约束+认知资产索引），任务追踪是工作流追踪（当前在做什么+接下来做什么）。AGENTS.md指向任务追踪，任务追踪指向具体dev-docs和代码模块。
+
 ### 认知资产索引（活文档）
 
 认知资产索引（隔离实施状态、ArangoDB 初始化状态、认知图/依赖图/题库统计）在 `xishujuzhen/cognition_asset_index.md`，由工作系统持续维护。每次新增认知单元、新增 dev-docs、ArangoDB 状态变更后更新该文档。
