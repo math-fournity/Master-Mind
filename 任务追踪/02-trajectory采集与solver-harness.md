@@ -13,9 +13,9 @@
 
 **主线**：搭建solver-harness系统——一个完整的trajectory自动采集环境，在tmux中启动devin cli并自动采集所有数据。
 
-**当前状态**：solver-harness v1实施完成，端到端测试通过。主控脚本重写完成（全局共享mitmproxy + 事后批量解码 + work_dir匹配分发）。3个设计决策已确认（CA永久信任+host白名单、全局单mitmproxy固定18888、GuidedLoop独立使用）。
+**当前状态**：solver-harness v1实施完成，端到端测试通过。P0（主控脚本+解码分发+端到端测试）和P1（元组更新+AGENTS.md同步）全部完成。所有场景启动Solver都必须用solver-harness（硬约束已写入rule+skill+AGENTS.md）。
 
-**下一步**：写solver-harness的README + 更新solver-tmux-launch元组 + 更新263号方案文档实现状态。
+**下一步**：P2低优先级（MITM protobuf schema精确化、并发测试、db monitor轮询优化）可后续做。本工作线的核心目标已达成——可以转向其他工作线（如04端到端效果验证，它依赖本工作线的solver-harness）。
 
 ---
 
@@ -123,20 +123,23 @@
 
 ### P1-中优先级（完善和集成）
 
-#### 2.4 solver-harness文档和元组
+#### 2.4 solver-harness文档和元组 ✅
 
 **为什么做**：solver-harness作为基础设施，需要有README和元组（rule+skill），让其他AI知道何时使用它。
 
-- [ ] 写solver-harness的README
-- [ ] 更新solver-tmux-launch元组，指向solver-harness
-- [ ] 考虑是否需要独立的solver-harness元组
+- [x] 更新solver-tmux-launch元组，指向solver-harness（commit `6512803` + `caa2966`）
+- [x] 元组硬约束升级：所有场景都必须用solver-harness（不只是裸跑测试）
+- [x] AGENTS.md启动方式约束段落同步更新（commit `caa2966`）
+- [ ] 写solver-harness的README（待做，低优先级——元组已覆盖使用说明）
+- [x] 考虑是否需要独立的solver-harness元组 → 不需要，复用solver-tmux-launch元组
 
-#### 2.5 GuidedLoop集成（已确认独立使用）
+#### 2.5 GuidedLoop集成 ✅（已确认所有场景统一用solver-harness）
 
-**为什么做**：已确认solver-harness和GuidedLoop独立使用，先解耦后集成。裸跑测试的trajectory采集验证可靠后，再考虑集成。
+**为什么做**：用户明确要求所有场景（裸跑测试、GuidedLoop引导、批量测试、DFS回溯）都必须用solver-harness，确保MITM trajectory采集。
 
-- [x] 确认：solver-harness独立使用，不集成GuidedLoop（裸跑测试优先）
-- [ ] 未来如需集成，修改GuidedLoop调用solver-harness启动Solver
+- [x] 确认：所有场景统一用solver-harness，不再区分路径A/B
+- [x] 元组中写明GuidedLoop集成的两种方式（每轮独立launch / 扩展多轮模式）
+- [ ] 未来如需扩展solver-harness多轮模式，增加`launch-guided`命令
 
 ### P2-低优先级（后续优化）
 
