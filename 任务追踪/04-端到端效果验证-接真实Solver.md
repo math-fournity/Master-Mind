@@ -156,6 +156,10 @@
 | Commit | 描述 | 产出资产（完整路径） |
 |---|---|---|
 | b5bbae3 | 04工作线§2.3-2.5：实时解析+检索+注入管线实现，mock测试通过（7文件） | **代码**: `xishujuzhen/research_runtime/realtime/__init__.py`, `xishujuzhen/research_runtime/realtime/trajectory_watcher.py`, `xishujuzhen/research_runtime/realtime/stall_detector.py`, `xishujuzhen/research_runtime/realtime/pipeline.py`, `xishujuzhen/research_runtime/realtime/hint_injector.py`, `xishujuzhen/research_runtime/realtime/test_realtime.py` **任务追踪**: `任务追踪/04-端到端效果验证-接真实Solver.md` |
+| 22f80dd | 落盘264号方案：端到端效果验证-接真实Solver的实时检索提示突破闭环 | **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md` |
+| 829566f | 6.1完成+solver-harness新增--interactive模式 | **代码**: `xishujuzhen/solver_harness/solver_harness.py` **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md` |
+| 0e229a0 | 04工作线P0核心实现：TrajectoryAdapter + HintInjector + RealtimePipeline（已删除，与b5bbae3重复） | ~~`xishujuzhen/research_runtime/runtime/trajectory_adapter.py`~~, ~~`xishujuzhen/research_runtime/runtime/hint_injector.py`~~, ~~`xishujuzhen/research_runtime/runtime/realtime_pipeline.py`~~ |
+| 9dee6a3 | 合并6.1验证结果到realtime/hint_injector.py + 更新04任务追踪 | **代码**: `xishujuzhen/research_runtime/realtime/hint_injector.py` **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md`, `任务追踪/04-端到端效果验证-接真实Solver.md` |
 
 ---
 
