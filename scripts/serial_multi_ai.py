@@ -327,49 +327,45 @@ def run_serial_multi_ai(
                 doc["devin_session_id"] = devin_session_id
                 col.replace(doc)
 
-        # Step 5: 等待AI终止 + 实时增量提取节点
+        # Step 5: 等待AI终止 + 实时增量提取节点（从sessions.db读取thinking）
         print(f"\n  等待AI终止（max {max_time_per_ai}s）...")
-        print(f"  ⚡ 实时模式：thinking增长时增量提取节点写入树")
+        print(f"  ⚡ 辅助智能体模式：你是系统Pipe，不是旁观者。AI在thinking时你实时采集、实时整理树。不要干等。")
+        print(f"  📡 thinking来源：sessions.db（不依赖MITM）")
         termination_detector.reset()
         start_time = time.time()
         term_event = None
 
-        # 初始化增量提取器
+        # 初始化sessions.db模式的增量提取器
         extractor = NodeExtractor(tree_store=tree_store)
-        extractor.init_incremental(
+        extractor.init_sessions_db(
             ai_instance_id=ai_key,
             problem_id=problem_id,
+            devin_session_id=devin_session_id,
             entry_node_key=entry_node_key,
             entry_edge=entry_edge,
             problem_text=problem_text,
         )
         total_nodes_extracted = 0
-        last_extract_time = 0
 
         while (time.time() - start_time) < max_time_per_ai:
             term_event = termination_detector.check_terminated(tmux_session, exp_id)
             if term_event:
                 break
             elapsed = time.time() - start_time
-            thinking = read_thinking_readable(exp_id)
-            thinking_size = len(thinking)
 
-            if thinking_size > 0:
-                # 实时增量提取——每30秒提取一次新增内容
-                if elapsed - last_extract_time >= 30 and thinking_size > extractor._incremental_offset + 500:
-                    new_keys = extractor.extract_increment(thinking)
-                    if new_keys:
-                        total_nodes_extracted += len(new_keys)
-                        print(f"  [{elapsed:.0f}s] thinking: {thinking_size} bytes | 🌳 新增{len(new_keys)}节点 (总{total_nodes_extracted})")
-                        last_extract_time = elapsed
-                    else:
-                        print(f"  [{elapsed:.0f}s] thinking: {thinking_size} bytes | 缓冲中...")
-                        last_extract_time = elapsed
-                else:
-                    print(f"  [{elapsed:.0f}s] thinking: {thinking_size} bytes | 节点{total_nodes_extracted}")
+            # 从sessions.db轮询新thinking
+            new_keys = extractor.extract_from_sessions_db()
+            if new_keys:
+                total_nodes_extracted += len(new_keys)
+                thinking_len = extractor._db_reader.get_total_thinking_length() if extractor._db_reader else 0
+                print(f"  [{elapsed:.0f}s] 🌳 新增{len(new_keys)}节点 (总{total_nodes_extracted}) | thinking: {thinking_len} chars")
             else:
-                print(f"  [{elapsed:.0f}s] 等待thinking开始...")
-            time.sleep(15)
+                thinking_len = extractor._db_reader.get_total_thinking_length() if extractor._db_reader else 0
+                if thinking_len > 0:
+                    print(f"  [{elapsed:.0f}s] thinking: {thinking_len} chars | 节点{total_nodes_extracted} | 等待新thinking...")
+                else:
+                    print(f"  [{elapsed:.0f}s] 等待thinking开始...")
+            time.sleep(10)
 
         if term_event:
             print(f"\n  AI终止: {term_event.reason} - {term_event.details}")
@@ -381,32 +377,16 @@ def run_serial_multi_ai(
         # Step 6: 停止Solver
         stop_solver(exp_id)
 
-        # Step 7: flush剩余的thinking片段
-        print(f"\n  刷新剩余thinking片段...")
-        thinking_text = read_thinking_readable(exp_id)
-        if not thinking_text or len(thinking_text) < 100:
-            print(f"  thinking内容为空（{len(thinking_text)} bytes），跳过节点提取")
-            tree_store.update_ai_status(ai_key, "completed", end_reason=end_reason)
-            ai_results.append({
-                "ai_key": ai_key,
-                "exp_id": exp_id,
-                "end_reason": end_reason,
-                "last_node_key": entry_node_key,
-                "direction_q": "",
-                "thinking_size": len(thinking_text),
-            })
-            continue
-
-        # 最后一次增量提取（处理剩余buffer）
-        remaining_keys = extractor.extract_increment(thinking_text)
-        flush_keys = extractor.flush_incremental()
-        final_keys = remaining_keys + flush_keys
-        if final_keys:
-            total_nodes_extracted += len(final_keys)
-            print(f"  🌳 flush新增{len(final_keys)}节点")
+        # Step 7: flush剩余的thinking
+        print(f"\n  刷新剩余thinking...")
+        flush_keys = extractor.flush_sessions_db()
+        if flush_keys:
+            total_nodes_extracted += len(flush_keys)
+            print(f"  🌳 flush新增{len(flush_keys)}节点")
 
         node_keys = extractor.get_all_incremental_keys()
-        print(f"  thinking: {len(thinking_text)} bytes | 总节点: {len(node_keys)}")
+        thinking_len = extractor._db_reader.get_total_thinking_length() if extractor._db_reader else 0
+        print(f"  thinking: {thinking_len} chars | 总节点: {len(node_keys)}")
 
         if not node_keys:
             print(f"  未提取到节点，跳过检索")
@@ -417,7 +397,7 @@ def run_serial_multi_ai(
                 "end_reason": end_reason,
                 "last_node_key": entry_node_key,
                 "direction_q": "",
-                "thinking_size": len(thinking_text),
+                "thinking_size": thinking_len,
             })
             continue
 

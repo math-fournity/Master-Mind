@@ -17,6 +17,7 @@ import time
 from typing import List, Optional, Dict, Any
 
 from .tree_store import TreeStore, TreeNode, TreeEdge
+from .sessions_db_reader import SessionsDBThinkingReader, ThinkingChunk
 from ..parser.models import ParseRequest, ParseResult, TurnRecord
 from ..parser.parser import MathParser
 from ..parser.llm_parser import LLMParser
@@ -79,6 +80,9 @@ class NodeExtractor:
         self._incremental_problem_id: str = ""
         self._incremental_problem_text: str = ""
         self._incremental_all_keys: List[str] = []  # 所有提取的node_key
+
+        # sessions.db reader（可选，替代MITM的thinking_readable.txt）
+        self._db_reader: Optional[SessionsDBThinkingReader] = None
 
     def extract_nodes_from_trajectory(
         self,
@@ -240,6 +244,99 @@ class NodeExtractor:
     def get_all_incremental_keys(self) -> List[str]:
         """获取增量提取过程中创建的所有node_key。"""
         return list(self._incremental_all_keys)
+
+    # ============================================================
+    # sessions.db模式（替代MITM：从sessions.db实时读取thinking）
+    # ============================================================
+
+    def init_sessions_db(
+        self,
+        ai_instance_id: str,
+        problem_id: str,
+        devin_session_id: str,
+        entry_node_key: str,
+        entry_edge: Optional[TreeEdge] = None,
+        problem_text: str = "",
+    ):
+        """
+        初始化sessions.db模式的增量提取。
+
+        在AI启动后调用一次。后续用extract_from_sessions_db()轮询新thinking。
+
+        Args:
+            devin_session_id: devin cli的session ID
+        """
+        # 复用增量提取的状态
+        self._incremental_offset = 0
+        self._incremental_parent_key = entry_node_key
+        self._incremental_parent_edge = entry_edge._key if entry_edge else None
+        self._incremental_round_index = 0
+        self._incremental_buffer = ""
+        self._incremental_ai_id = ai_instance_id
+        self._incremental_problem_id = problem_id
+        self._incremental_problem_text = problem_text
+        self._incremental_all_keys = []
+
+        # 创建sessions.db reader
+        self._db_reader = SessionsDBThinkingReader(devin_session_id)
+        self._db_reader.init()
+
+    def extract_from_sessions_db(self) -> List[str]:
+        """
+        从sessions.db轮询新thinking，提取为树节点。
+
+        在AI运行过程中周期性调用。每次返回新创建的node_key列表。
+
+        每个ThinkingChunk对应一个树节点——sessions.db的node边界
+        就是天然的轮次边界，不需要像MITM模式那样按字符数切分。
+
+        Returns:
+            本次新创建的node_key列表（可能为空）
+        """
+        if self._db_reader is None:
+            return []
+
+        new_chunks = self._db_reader.poll_new_thinking()
+        if not new_chunks:
+            return []
+
+        new_keys = []
+        for chunk in new_chunks:
+            thinking = chunk.thinking
+            if not thinking or len(thinking.strip()) < 50:
+                continue
+
+            # 每个chunk就是一个节点——sessions.db的node边界是天然的轮次边界
+            node_key = self._extract_single_chunk(thinking)
+            if node_key:
+                new_keys.append(node_key)
+                self._incremental_all_keys.append(node_key)
+
+        return new_keys
+
+    def flush_sessions_db(self) -> List[str]:
+        """
+        AI终止后调用：获取最后一批未处理的thinking块并提取为节点。
+        """
+        if self._db_reader is None:
+            return []
+
+        remaining_chunks = self._db_reader.flush()
+        if not remaining_chunks:
+            return []
+
+        new_keys = []
+        for chunk in remaining_chunks:
+            thinking = chunk.thinking
+            if not thinking or len(thinking.strip()) < 50:
+                continue
+
+            node_key = self._extract_single_chunk(thinking)
+            if node_key:
+                new_keys.append(node_key)
+                self._incremental_all_keys.append(node_key)
+
+        return new_keys
 
     def _split_buffer_at_boundary(self) -> tuple:
         """
