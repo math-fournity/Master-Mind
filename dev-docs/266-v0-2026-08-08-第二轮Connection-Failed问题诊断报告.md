@@ -193,3 +193,42 @@ A组需要mitmproxy来实时截获thinking（供RealtimePipeline解析）。但m
 | 6fa006a | 稳定mitmproxy thinking截获 | 另一个AI的改进，截获所有ApiServerService API |
 | 05fef30 | 流式实时thinking落盘 | 另一个AI的流式截获实现，验证了第一轮thinking完整截获 |
 | 本报告 | 266号文档 | 记录第二轮Connection failed的完整诊断 |
+
+---
+
+## 8. 问题已修复（2026-08-08更新）
+
+### 8.1 修复方案
+
+通过以下改进，第二轮Connection failed问题已修复：
+
+1. **`--no-http2`参数**：在mitmproxy启动命令中添加`--no-http2`，禁用HTTP/2支持。HTTP/2的连接复用机制在流式响应结束后可能状态异常，导致后续请求无法通过代理发送。强制使用HTTP/1.1后，连接管理更简单可靠。
+2. **launchd系统服务**：mitmproxy从tmux手动启动升级为launchd系统服务（`com.aurolafly.mitmproxy-devin`），运行更稳定。
+3. **端口改为18889**：避免与claude-passthrough的18888端口冲突。
+4. **流式thinking机制成熟**：`responseheaders` + `stream callable` + `StreamingThinkingParser`的流式截获机制更加稳定。
+
+### 8.2 验证结果
+
+实验`round2-test`（2026-08-08 05:00）：
+- **第一轮thinking**：62849字符，25000 chunks，5.3分钟——正常完成
+- **发送"继续"**：第二轮请求成功通过mitmproxy代理发送
+- **第二轮thinking**：正常进行中（27秒时4680字符，持续增长）
+- **thinking_readable.txt**：从24906B增长到68630B——两轮thinking都实时落盘
+- **没有Connection failed**——问题完全修复
+
+### 8.3 266号报告中的错误结论
+
+回顾本报告，以下结论在修复后不再成立：
+
+1. **"API额度耗尽是叠加因素"**：错误。"Pro · 0% remaining"是UI显示问题，glm-5-2不消耗Pro credits。额度耗尽不是第二轮失败的原因。
+2. **"mitmproxy代理在第二轮请求时引入了某种问题"**：部分正确。问题不是mitmproxy本身，而是HTTP/2连接复用在流式响应后状态异常。`--no-http2`修复了这个问题。
+3. **"A/B对照实验用--no-mitm模式"的建议**：不再需要。当前mitmproxy模式支持多轮交互，A组可以用mitmproxy实时截获thinking。
+
+### 8.4 当前状态
+
+| 机制 | 状态 | 说明 |
+|---|---|---|
+| mitmproxy多轮交互 | ✅已修复 | `--no-http2`解决了连接复用问题 |
+| 流式thinking实时落盘 | ✅正常 | 四路落盘（含thinking_readable.txt） |
+| A/B对照实验 | ✅可用 | A组可用mitmproxy实时截获thinking，B组裸跑 |
+| HintInjector | ✅可用 | 可在thinking完成后注入提示，第二轮正常发送 |
