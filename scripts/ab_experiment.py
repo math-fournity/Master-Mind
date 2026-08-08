@@ -72,7 +72,7 @@ def write_problem_file(exp_id: str, problem_text: str) -> str:
     return problem_file
 
 
-def launch_solver(exp_id: str, problem_file: str, model: str = "glm-5-2") -> dict:
+def launch_solver(exp_id: str, problem_file: str, model: str = "glm-5-2", no_mitm: bool = False) -> dict:
     """用solver-harness启动真实Solver（--interactive模式）。"""
     cmd = [
         "python3", str(SOLVER_HARNESS),
@@ -82,6 +82,8 @@ def launch_solver(exp_id: str, problem_file: str, model: str = "glm-5-2") -> dic
         "--model", model,
         "--interactive",
     ]
+    if no_mitm:
+        cmd.append("--no-mitm")
     result = subprocess.run(cmd, capture_output=True, text=True)
     print(result.stdout)
     if result.returncode != 0:
@@ -96,23 +98,104 @@ def launch_solver(exp_id: str, problem_file: str, model: str = "glm-5-2") -> dic
     return {}
 
 
-def run_group_a(exp_id: str, model: str, max_time: int):
+def capture_tmux_pane(tmux_session: str, lines: int = 20) -> str:
+    """捕获tmux pane内容。"""
+    try:
+        result = subprocess.run(
+            ["tmux", "capture-pane", "-t", tmux_session, "-p", "-S", f"-{lines}"],
+            capture_output=True, text=True,
+        )
+        return result.stdout
+    except Exception:
+        return ""
+
+
+def is_solver_thinking(tmux_session: str) -> bool:
+    """检查Solver是否正在thinking中（tmux pane显示Thinking或Connection）。"""
+    pane = capture_tmux_pane(tmux_session, lines=10)
+    return "Thinking" in pane or "Connection" in pane
+
+
+def is_solver_idle(tmux_session: str) -> bool:
+    """
+    检查Solver是否空闲（thinking完成，等待用户输入）。
+
+    判断标志：tmux pane出现"Response truncated"或"Send a message to continue"
+    或"Ask Devin to build features"（devin cli的空闲提示符）。
+    """
+    pane = capture_tmux_pane(tmux_session, lines=15)
+    idle_markers = [
+        "Response truncated",
+        "Send a message to continue",
+        "Ask Devin to build features",
+        "Ask Devin anything",
+    ]
+    return any(marker in pane for marker in idle_markers)
+
+
+def read_thinking_readable(exp_id: str) -> str:
+    """读取mitmproxy流式截获的thinking_readable.txt。"""
+    path = TRAJECTORY_BASE / exp_id / "mitm" / "thinking_readable.txt"
+    if not path.exists():
+        return ""
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        return ""
+
+
+def inject_hint_via_tmux(tmux_session: str, hint_text: str) -> bool:
+    """
+    通过tmux send-keys注入提示到Solver session。
+
+    步骤1：send-keys文本（排队消息）
+    步骤2：send-keys Enter（提交排队消息）
+    """
+    try:
+        lines = hint_text.strip().split("\n")
+        for line in lines:
+            subprocess.run(
+                ["tmux", "send-keys", "-t", tmux_session, line],
+                check=True, capture_output=True,
+            )
+        # 排队
+        subprocess.run(
+            ["tmux", "send-keys", "-t", tmux_session, "Enter"],
+            check=True, capture_output=True,
+        )
+        time.sleep(0.5)
+        # 提交
+        subprocess.run(
+            ["tmux", "send-keys", "-t", tmux_session, "Enter"],
+            check=True, capture_output=True,
+        )
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"  [inject] send-keys失败: {e}")
+        return False
+
+
+def run_group_a(exp_id: str, model: str, max_time: int, no_mitm: bool = False):
     """
     A组：有检索系统。
 
-    流程：
-    1. solver-harness启动Solver（--interactive）
-    2. RealtimePipeline用DevinCliParserProvider实时解析
-    3. 检测到卡点时自动检索+选择提示+注入
+    新流程（基于266号修复后的mitmproxy流式thinking）：
+    1. solver-harness启动Solver（--interactive + mitmproxy）
+    2. 监控tmux pane状态：
+       a. Solver在thinking中 → 等待（不注入）
+       b. Solver thinking完成（Response truncated）→ 读取thinking_readable.txt
+    3. 对thinking内容跑parser→retrieval→policy，选出提示
+    4. 通过tmux send-keys注入提示
+    5. 等待下一轮thinking，重复
     """
     print("\n" + "=" * 60)
-    print("A组：有检索系统（实时解析+检索+提示注入）")
+    print("A组：有检索系统（thinking完成后解析+注入提示）")
     print("=" * 60)
 
     # 1. 启动Solver
     print(f"\n[A.1] 启动Solver（exp_id={exp_id}）...")
     problem_file = write_problem_file(exp_id, PROBLEM_TEXT)
-    session_info = launch_solver(exp_id, problem_file, model)
+    session_info = launch_solver(exp_id, problem_file, model, no_mitm=no_mitm)
     if not session_info:
         return {"error": "solver launch failed"}
     session_id = session_info.get("devin_session_id", "")
@@ -120,8 +203,8 @@ def run_group_a(exp_id: str, model: str, max_time: int):
     print(f"  session_id: {session_id}")
     print(f"  tmux_session: {tmux_session}")
 
-    # 2. 构建pipeline（用DevinCliParserProvider）
-    print(f"\n[A.2] 构建RealtimePipeline（DevinCliParserProvider）...")
+    # 2. 构建pipeline组件（不使用pipeline.run()，手动控制时序）
+    print(f"\n[A.2] 构建pipeline组件（DevinCliParserProvider）...")
     hgraph = create_case_253_graph()
 
     provider = DevinCliParserProvider(timeout=180, max_retries=1)
@@ -145,13 +228,87 @@ def run_group_a(exp_id: str, model: str, max_time: int):
     print(f"  parser work_dir: {provider.work_dir}")
     print(f"  max_time: {max_time}s")
 
-    # 3. 运行pipeline
-    print(f"\n[A.3] 运行RealtimePipeline（监控Solver + 自动注入提示）...")
+    # 3. 手动控制时序的监控循环
+    print(f"\n[A.3] 监控Solver + thinking完成后注入提示...")
     start_time = time.time()
-    results = pipeline.run(max_rounds=10, max_time=max_time, auto_inject=True)
-    elapsed = time.time() - start_time
+    results = []
+    round_index = 0
+    last_thinking_size = 0
+    injected_for_this_round = False
+
+    while (time.time() - start_time) < max_time:
+        elapsed = time.time() - start_time
+
+        # 检查Solver状态
+        thinking = is_solver_thinking(tmux_session)
+        idle = is_solver_idle(tmux_session)
+
+        if thinking:
+            # Solver在thinking中——等待，不注入
+            thinking_size = len(read_thinking_readable(exp_id))
+            if thinking_size > last_thinking_size:
+                print(f"  [{elapsed:.0f}s] thinking中... ({thinking_size} bytes, +{thinking_size - last_thinking_size})")
+                last_thinking_size = thinking_size
+            time.sleep(15)
+            continue
+
+        if idle and not injected_for_this_round:
+            # Solver thinking完成——读取thinking内容并解析
+            thinking_text = read_thinking_readable(exp_id)
+            if not thinking_text or len(thinking_text) < 100:
+                print(f"  [{elapsed:.0f}s] Solver空闲但thinking内容为空，等待...")
+                time.sleep(5)
+                continue
+
+            print(f"  [{elapsed:.0f}s] Solver thinking完成（{len(thinking_text)} bytes），开始解析...")
+
+            # 构造Round数据用于pipeline处理
+            from xishujuzhen.research_runtime.realtime.trajectory_watcher import Round
+            round_data = Round(
+                round_index=round_index,
+                agent_output=thinking_text[-8000:],  # 取最后8000字符（parser有token限制）
+                start_timestamp=start_time,
+                end_timestamp=time.time(),
+            )
+
+            result = pipeline.process_round(round_data)
+            result.round_index = round_index
+            results.append(result)
+
+            if result.selected_q and not budget.is_hint_exhausted():
+                print(f"  [{elapsed:.0f}s] 选中提示: {result.selected_q[:80]}...")
+                success = inject_hint_via_tmux(tmux_session, result.selected_q)
+                result.injected = success
+                budget.consume_hint()
+                injected_for_this_round = True
+                print(f"  [{elapsed:.0f}s] 注入{'成功' if success else '失败'}")
+            elif result.error:
+                print(f"  [{elapsed:.0f}s] 解析错误: {result.error}")
+            else:
+                print(f"  [{elapsed:.0f}s] 未选中提示（无匹配规则或预算耗尽）")
+
+            round_index += 1
+            time.sleep(5)
+            continue
+
+        if idle and injected_for_this_round:
+            # 已注入提示，等待Solver开始新一轮thinking
+            print(f"  [{elapsed:.0f}s] 等待Solver开始新一轮thinking...")
+            time.sleep(10)
+            # 检查Solver是否已开始thinking（注入的提示被接受了）
+            if is_solver_thinking(tmux_session):
+                print(f"  [{elapsed:.0f}s] Solver开始新一轮thinking")
+                injected_for_this_round = False
+                last_thinking_size = len(read_thinking_readable(exp_id))
+            time.sleep(5)
+            continue
+
+        # 既不在thinking也不空闲——可能在启动中或其他状态
+        print(f"  [{elapsed:.0f}s] Solver状态未知，等待...")
+        time.sleep(10)
 
     # 4. 输出结果
+    elapsed = time.time() - start_time
     print(f"\n[A.4] A组完成（{elapsed:.0f}s）")
     print(f"  处理轮数: {len(results)}")
     hints_injected = sum(1 for r in results if r.injected)
@@ -186,10 +343,17 @@ def run_group_a(exp_id: str, model: str, max_time: int):
         json.dump(result_data, f, ensure_ascii=False, indent=2)
     print(f"  结果保存到: {result_path}")
 
+    # 6. 停止Solver
+    print(f"\n[A.5] 停止Solver...")
+    subprocess.run(
+        [".venv/bin/python3", str(SOLVER_HARNESS), "stop", "--exp-id", exp_id, "--no-decode"],
+        capture_output=True, text=True, cwd=str(REPO_ROOT),
+    )
+
     return result_data
 
 
-def run_group_b(exp_id: str, model: str, max_time: int):
+def run_group_b(exp_id: str, model: str, max_time: int, no_mitm: bool = False):
     """
     B组：无检索系统（Solver裸跑）。
 
@@ -206,7 +370,7 @@ def run_group_b(exp_id: str, model: str, max_time: int):
     # 1. 启动Solver
     print(f"\n[B.1] 启动Solver（exp_id={exp_id}）...")
     problem_file = write_problem_file(exp_id, PROBLEM_TEXT)
-    session_info = launch_solver(exp_id, problem_file, model)
+    session_info = launch_solver(exp_id, problem_file, model, no_mitm=no_mitm)
     if not session_info:
         return {"error": "solver launch failed"}
     session_id = session_info.get("devin_session_id", "")
@@ -252,6 +416,13 @@ def run_group_b(exp_id: str, model: str, max_time: int):
         json.dump(result_data, f, ensure_ascii=False, indent=2)
     print(f"  结果保存到: {result_path}")
 
+    # 5. 停止Solver
+    print(f"\n[B.4] 停止Solver...")
+    subprocess.run(
+        [".venv/bin/python3", str(SOLVER_HARNESS), "stop", "--exp-id", exp_id, "--no-decode"],
+        capture_output=True, text=True, cwd=str(REPO_ROOT),
+    )
+
     return result_data
 
 
@@ -286,6 +457,7 @@ def main():
     parser.add_argument("--exp-id", default="ab-253", help="实验ID前缀")
     parser.add_argument("--model", default="glm-5-2", help="模型名")
     parser.add_argument("--max-time", type=int, default=600, help="每组最大运行时间（秒）")
+    parser.add_argument("--no-mitm", action="store_true", help="不启用MITM代理（排除mitmproxy影响）")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -293,6 +465,7 @@ def main():
     print("题目：253号案例（矩条件极差题第二问）")
     print(f"模型：{args.model}")
     print(f"每组最大时间：{args.max_time}s")
+    print(f"MITM: {'禁用' if args.no_mitm else '启用'}")
     print("=" * 60)
 
     if args.both:
@@ -300,21 +473,21 @@ def main():
         a_exp_id = f"{args.exp_id}-A"
         b_exp_id = f"{args.exp_id}-B"
 
-        a_result = run_group_a(a_exp_id, args.model, args.max_time)
+        a_result = run_group_a(a_exp_id, args.model, args.max_time, no_mitm=args.no_mitm)
 
         # 等待A组Solver完全停止后再启动B组
         print("\n等待10秒后启动B组...")
         time.sleep(10)
 
-        b_result = run_group_b(b_exp_id, args.model, args.max_time)
+        b_result = run_group_b(b_exp_id, args.model, args.max_time, no_mitm=args.no_mitm)
 
         compare_results(a_result, b_result)
 
     elif args.group == "A":
-        run_group_a(args.exp_id, args.model, args.max_time)
+        run_group_a(args.exp_id, args.model, args.max_time, no_mitm=args.no_mitm)
 
     elif args.group == "B":
-        run_group_b(args.exp_id, args.model, args.max_time)
+        run_group_b(args.exp_id, args.model, args.max_time, no_mitm=args.no_mitm)
 
     else:
         parser.print_help()
