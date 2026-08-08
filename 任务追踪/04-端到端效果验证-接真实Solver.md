@@ -12,7 +12,7 @@
 
 **当前状态**：6.5端到端集成测试通过 + DevinCliParserProvider实现完成。6.5用降级parser跑通了完整闭环（5轮5次注入），但每次选中Q1而非Q8。DevinCliParserProvider用devin cli作为parser LLM（不需要外部API），25-41秒/次解析，parse_confidence=0.88，能正确解析resolution事件。完整管线测试选中Q4（与mock的Q8不同，因devin cli解析的六元组结构有差异，属真实场景预期行为）。下一步是6.6 A/B对照实验。
 
-**下一步**：跑6.6 A/B对照实验——A组有检索系统（DevinCliParserProvider+retrieval+policy+inject），B组无检索系统（裸跑）。对比成功率和突破卡点情况。
+**下一步**：跑6.6 A/B对照实验——方案已落盘到265号文档。B组裸跑3次（确认stuck），A组有检索系统3次（看是否突破）。对比成功率和突破卡点情况。
 
 ---
 
