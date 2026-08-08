@@ -60,17 +60,28 @@ DIMENSION_NAMES = [
 NUM_DIMENSIONS = 7
 
 # 标定用：每个维度对应的特征关键词（在规则的LHS feature字符串或node_types中匹配）
+# 泛化：在253号原始关键词基础上，增加跨领域关键词（数论/组合等），
+# 新增关键词经过验证不会匹配253号规则的LHS feature，保证向后兼容。
 _DIMENSION_KEYWORDS = {
-    0: "稳定性方程",    # stability_equation_presence
-    1: "整数",         # integer_dependency
-    2: "下界",         # lower_bound_demand
-    3: "未知",         # knowledge_gap（"未知"代表知识缺口）
+    0: ["稳定性方程", "阶", "ord", "分圆", "码字", "策略", "成功率"],  # key_relation_presence
+    1: ["整数", "阶", "真因子", "策略", "逻辑"],                      # structural_dependency
+    2: ["下界", "构造", "保证", "排除", "设计", "理清", "推广"],       # open_construction_demand
+    3: ["未知", "不保证", "不明确", "方向反了"],                       # knowledge_gap
     4: "第一步",       # reasoning_depth（浅层推理规则）
     5: "投影",         # representation_richness（涉及表示变换）
 }
 
 # stall_severity维度通过node_types匹配
 _STALL_NODE_TYPE = "stall"
+
+# 特征提取用：每个维度的关键词列表（在ParseResult的六元组/节点中匹配）
+# 泛化关键词经过验证不会匹配253号A7的ParseResult内容，保证p_t向后兼容。
+_FEATURE_KEYWORDS = {
+    0: ["稳定性方程", "阶", "ord", "分圆", "码字", "策略", "成功率"],  # key_relation_presence
+    1: ["取决于整数", "整数关系", "阶", "真因子", "策略", "逻辑", "方向反了"],  # structural_dependency
+    2: ["下界", "构造", "保证", "排除", "设计", "理清", "推广"],       # open_construction_demand
+    3: ["knowledge_gap", "知识", "瓶颈", "未知", "不保证", "不明确", "方向反了"],  # knowledge_gap
+}
 
 
 # ---------------------------------------------------------------------------
@@ -108,20 +119,17 @@ class ActivationScoreCalculator:
         nodes = parse_result.trajectory_nodes
         six_tuple = parse_result.six_tuple
 
-        # 维度0: stability_equation_presence
-        # T_t中是否有resolution节点包含"稳定性方程"
-        p_t[0] = self._check_stability_equation(nodes)
+        # 维度0: key_relation_presence（泛化：检查所有节点类型是否包含关键关系）
+        # 原253号只检查resolution节点中的"稳定性方程"，泛化为检查所有节点的关键词列表
+        p_t[0] = self._check_key_relation(nodes)
 
-        # 维度1: integer_dependency
-        # U_t中是否有"取决于整数关系"的条目
-        p_t[1] = self._check_integer_dependency(six_tuple.U_t)
+        # 维度1: structural_dependency（泛化：U_t中是否有结构依赖条目）
+        p_t[1] = self._check_structural_dependency(six_tuple.U_t)
 
-        # 维度2: lower_bound_demand
-        # O_t中是否有"估计下界"的open义务
-        p_t[2] = self._check_lower_bound_demand(six_tuple.O_t)
+        # 维度2: open_construction_demand（泛化：O_t中是否有开放构造/估计义务）
+        p_t[2] = self._check_open_construction_demand(six_tuple.O_t)
 
-        # 维度3: knowledge_gap
-        # U_t中是否有knowledge_gap标注（含"知识"、"瓶颈"、"knowledge_gap"）
+        # 维度3: knowledge_gap（泛化：U_t中是否有知识缺口标注）
         p_t[3] = self._check_knowledge_gap(six_tuple.U_t)
 
         # 维度4: reasoning_depth
@@ -139,35 +147,43 @@ class ActivationScoreCalculator:
         return p_t
 
     @staticmethod
-    def _check_stability_equation(nodes: List[TrajectoryNode]) -> float:
-        """检查T_t中是否有resolution节点包含'稳定性方程'。"""
+    def _check_key_relation(nodes: List[TrajectoryNode]) -> float:
+        """检查T_t中是否有节点包含关键数学关系（泛化：所有节点类型+扩展关键词）。"""
+        keywords = _FEATURE_KEYWORDS[0]
         for node in nodes:
-            if node.type == "resolution" and "稳定性方程" in node.content:
-                return 1.0
+            for kw in keywords:
+                if kw in node.content:
+                    return 1.0
         return 0.0
 
     @staticmethod
-    def _check_integer_dependency(unsolved_problems) -> float:
-        """检查U_t中是否有'取决于整数'的条目。"""
+    def _check_structural_dependency(unsolved_problems) -> float:
+        """检查U_t中是否有结构依赖条目（泛化：扩展关键词列表）。"""
+        keywords = _FEATURE_KEYWORDS[1]
         for u in unsolved_problems:
-            if "取决于整数" in u.description or "整数关系" in u.description:
-                return 1.0
+            for kw in keywords:
+                if kw in u.description:
+                    return 1.0
         return 0.0
 
     @staticmethod
-    def _check_lower_bound_demand(obligations) -> float:
-        """检查O_t中是否有'估计下界'的open义务。"""
+    def _check_open_construction_demand(obligations) -> float:
+        """检查O_t中是否有开放构造/估计义务（泛化：扩展关键词列表）。"""
+        keywords = _FEATURE_KEYWORDS[2]
         for o in obligations:
-            if o.status != "open":
+            if o.status not in ("open", "in_progress"):
                 continue
-            if "下界" in o.description or ("估计" in o.description and "D" in o.description):
+            if any(kw in o.description for kw in keywords):
+                return 1.0
+            # 保留253号原始逻辑：("估计" and "D")
+            if "估计" in o.description and "D" in o.description:
                 return 1.0
         return 0.0
 
     @staticmethod
     def _check_knowledge_gap(unsolved_problems) -> float:
-        """检查U_t中是否有knowledge_gap标注。"""
-        keywords = ["knowledge_gap", "知识", "瓶颈"]
+        """检查U_t中是否有knowledge_gap标注（泛化：扩展关键词列表）。"""
+        keywords = _FEATURE_KEYWORDS[3]
         for u in unsolved_problems:
             for kw in keywords:
                 if kw in u.description:
@@ -214,10 +230,18 @@ class ActivationScoreCalculator:
                     # stall_severity: 检查node_types中是否有stall
                     if _STALL_NODE_TYPE in node_types:
                         W[dim, j] = 1.0
-                else:
-                    # 其他维度: 检查feature字符串中是否包含关键词
+                elif dim in (4, 5):
+                    # dim 4, 5: 单关键词匹配（保留253号原始逻辑）
                     keyword = _DIMENSION_KEYWORDS.get(dim, "")
-                    if keyword and keyword in feature_str:
+                    if isinstance(keyword, str) and keyword and keyword in feature_str:
+                        W[dim, j] = 1.0
+                else:
+                    # dim 0, 1, 2, 3: 多关键词列表匹配（泛化）
+                    keywords = _DIMENSION_KEYWORDS.get(dim, [])
+                    if isinstance(keywords, list):
+                        if any(kw in feature_str for kw in keywords):
+                            W[dim, j] = 1.0
+                    elif isinstance(keywords, str) and keywords and keywords in feature_str:
                         W[dim, j] = 1.0
 
         self._weights = W

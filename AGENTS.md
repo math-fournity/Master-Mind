@@ -147,7 +147,7 @@
 
 | 文件 | 工作线 | 焦点 |
 |---|---|---|
-| `任务追踪/01-253号检索机制验证.md` | 253号检索机制验证 | P0+P1原型验证完成，泛化验证通过（3领域6指标达标），P1升级tested待做 |
+| `任务追踪/01-253号检索机制验证.md` | 253号检索机制验证 | P0+P1原型验证完成，泛化验证通过（3领域6指标达标），P1原语升级tested完成（tested 35/72） |
 | `任务追踪/02-trajectory采集与solver-harness.md` | Trajectory采集基础设施 | solver-harness方案v1完成，实施待做 |
 | `任务追踪/03-虚拟数学系统VMS-POC验证.md` | 虚拟数学系统POC验证 | 方案设计完成，7阶段全部未开始，前置工作（258号挑战类型分析）待执行 |
 | `任务追踪/04-端到端效果验证-接真实Solver.md` | 端到端效果验证 | 方案设计阶段，前置工作（01的P1升级tested + 02的solver-harness实施）尚未完成 |
@@ -166,7 +166,7 @@
 4. **不删除历史**——历史条目是工作积累的记录，只打勾不删除。
 5. **新建时必须更新README.md**——新建任务追踪文档时，AI必须考虑更新`任务追踪/README.md`的内容。如果有必要，需写清楚新任务和原有任务之间的逻辑关系（依赖、起源、阻塞等）。不能只新建文件而不更新DAG——那样其他AI无法理解新工作线在全局中的位置。同时，文件名必须顺序编号化（`01-`、`02-`、`03-`、...），编号按创建顺序递增。
 6. **与AGENTS.md的分工**：AGENTS.md是项目总目录（always-on硬约束+认知资产索引），不写任何具体工作线的当前状态。任务追踪是工作流追踪（当前在做什么+接下来做什么）。AGENTS.md指向任务追踪目录，任务追踪指向具体dev-docs和代码模块。
-7. **记录git commit ID和产出文档path**——每个工作单元完成并commit后，在§4 Git Commit历史中记录commit hash和本次产出的文档/代码路径。格式：`| <hash> | <描述> | <产出路径列表> |`。**为什么必须记录**：多个AI在交错提交git、交错生成dev-docs，commit hash是唯一可靠的跨AI工作追溯锚点——光看文件名和文件内容无法判断"这个文件是哪个AI在哪个工作线的哪个commit中创建的"，但commit hash可以精确追溯。不记录commit hash，跨Session后无法定位"上一次做到哪了"。
+7. **记录git commit ID和全部产出资产path**——每个工作单元完成并commit后，在§4 Git Commit历史中记录commit hash和本次产出的**全部资产**的完整路径（相对于repo根目录）。格式：`| <hash> | <描述> | <产出资产路径列表> |`。**"全部资产"包括**：dev-docs文档、代码模块（.py/.js等）、测试脚本、原语文件（primitives/）、配置文件、数据文件（.json/.db等）、任务追踪文档本身——凡是本次commit中新增或修改的文件，都属于本次产出资产。**为什么必须记录全部资产而非仅文档**：多个AI在交错提交git、交错生成各种资产（dev-docs、代码、数据、配置混杂在一起），光看commit message无法判断"这个commit产出了哪些文件"，光看文件名无法判断"这个文件属于哪个工作线的哪个阶段"。commit hash + 完整资产路径列表是唯一可靠的跨AI工作追溯锚点——它能精确回答"这个文件是哪个AI在哪个工作线的哪个commit中创建的"。**路径必须完整**：写`xishujuzhen/research_runtime/parser/evaluate_accuracy.py`而非`evaluate_accuracy.py`；写`dev-docs/260-v0-2026-08-07-缺口1攻关方案-自然语言到结构化表示的解析器.md`而非`260号文档`。跨Session后的AI需要能直接用路径定位文件，不需要猜。
 
 ### 认知资产索引（活文档）
 
@@ -180,7 +180,7 @@
 - **`criteria/`** — 性质标准与探索性隐喻（3个）：自然性、生死条件（判断标准）+ 语义场（隐喻）。
 - **`facets/`** — 面相（切分维度，7个）：系统面相1/2/3/4（两种计算/语料双路径/Pipeline网络/树的生长）+ 设计过程面相A/B/C（实践涌现/知识选取/设计过程自举）。面相横切前三层，通过元素文件"来源"字段中的"面相归属"行正向引用。
 
-原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）、`dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）、`dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md`（面相独立+管理元组）和 `dev-docs/257-v0-2026-08-07-全量原语目录更新方案-以253号检索问题为抓手的全库原语找回.md`（全库原语找回）。验证状态分布（72个原语）：tested 27 / partial 24 / untested 20 / tested_negative 1。P0+P1原型实现后更新了16个原语验证状态。真实LLM解析验证后，P0的3个原语从partial升级到tested：event-sourcing/thinking-trajectory-graph/dynamic-workspace（GLM-5.2解析253号A1-A10，6项准确率指标全部超过目标值）。progress-measurement实现后升级tested，checkpoint实现后升级partial。解析器泛化能力已验证——3个数学领域（代数/分析、数论、组合/概率）6项指标全部达标（事件类型100%/数学对象100%/SymPy验证100%/六元组98.8%/前沿节点100%/卡点类型100%）。端到端测试验证253号A7→Q8完整检索流程跑通（mock+真实LLM响应双重验证）。每次跑实验后更新相关原语的验证状态。
+原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）、`dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）、`dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md`（面相独立+管理元组）和 `dev-docs/257-v0-2026-08-07-全量原语目录更新方案-以253号检索问题为抓手的全库原语找回.md`（全库原语找回）。验证状态分布（72个原语）：tested 35 / partial 16 / untested 20 / tested_negative 1。P0+P1原型实现后更新了16个原语验证状态。真实LLM解析验证后，P0的3个原语从partial升级到tested。progress-measurement实现后升级tested，checkpoint实现后升级partial。解析器泛化能力已验证——3个数学领域（代数/分析、数论、组合/概率）6项指标全部达标。P1泛化验证通过后，8个P1原语从partial升级到tested（activation-score/pattern-matching/retrieval-pipeline/constrained-policy/hint-gradient/gain-attribution/pattern-lifecycle/heuristic-rule-graph在数论和组合2个新案例上全部通过）。端到端测试验证253号A7→Q8完整检索流程跑通（mock+真实LLM响应双重验证）。每次跑实验后更新相关原语的验证状态。
 
 ### 原语化AI数学工程系统设计（活文档 · 论文原语化版）
 

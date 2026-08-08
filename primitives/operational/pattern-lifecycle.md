@@ -7,8 +7,8 @@
 - 出处：pangu-b: 122v2-P31；nuwa-a: 133-P30；nuwa-b: 176-P04；fuxi: 250-P13
 
 ## 验证状态
-[partial]
-生命周期管理模块已实现（`xishujuzhen/research_runtime/lifecycle/`），253号10个Q初始化为published。状态转移链observed→candidate→intervened→validated→published验证正确。
+[tested]
+生命周期管理模块已实现（`xishujuzhen/research_runtime/lifecycle/`），253号10个Q、数论案例6个Q、组合案例6个Q均初始化为published状态。状态转移链observed→candidate→intervened→validated→published验证正确。泛化验证中3个案例共22条规则全部以published状态被检索和匹配，生命周期状态管理跨领域一致。
 
 ## 使用经验
 定义状态枚举和转移条件。

@@ -13,6 +13,16 @@ from .case_253_rules import (
     init_case_253_graph,
     create_case_253_graph,
 )
+from .case_number_theory_rules import (
+    build_case_number_theory_rules,
+    init_case_number_theory_graph,
+    create_case_number_theory_graph,
+)
+from .case_combinatorics_rules import (
+    build_case_combinatorics_rules,
+    init_case_combinatorics_graph,
+    create_case_combinatorics_graph,
+)
 
 __all__ = [
     "HeuristicRule",
@@ -20,4 +30,10 @@ __all__ = [
     "build_case_253_rules",
     "init_case_253_graph",
     "create_case_253_graph",
+    "build_case_number_theory_rules",
+    "init_case_number_theory_graph",
+    "create_case_number_theory_graph",
+    "build_case_combinatorics_rules",
+    "init_case_combinatorics_graph",
+    "create_case_combinatorics_graph",
 ]

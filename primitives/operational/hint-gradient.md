@@ -7,8 +7,8 @@
 - 出处：pangu-b: 122v2-P25；fuxi: 250-P4；suiren: 200-P25
 
 ## 验证状态
-[partial]
-提示梯度模块已实现（`xishujuzhen/research_runtime/gradient/`），253号Q9降级场景验证——Q9 leakage=0.58>0.5触发降级，降级后Level从0.2升到0.5。
+[tested]
+提示梯度模块已实现（`xishujuzhen/research_runtime/gradient/`），253号Q9降级场景验证——Q9 leakage=0.58>0.5触发降级，降级后Level从0.2升到0.5，去掉特定知识"badly approximable"，泄漏风险从0.58降到0.15。generate_gradient从H图按Level降序生成梯度列表。降级机制和梯度生成逻辑验证正确。
 
 ## 使用经验
 设计阶段提出，定义梯度级别，实现排序逻辑。

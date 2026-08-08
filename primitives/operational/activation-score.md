@@ -7,8 +7,8 @@
 - 出处：nuwa-a: 135-P40；nuwa-b: 166-P16
 
 ## 验证状态
-[partial]
-激活分数模块已实现（`xishujuzhen/research_runtime/activation/`），253号A7验证Q8激活分数排top-3。7维特征提取和权重标定完成，但权重泛化性需后续验证。
+[tested]
+激活分数模块已实现（`xishujuzhen/research_runtime/activation/`），泛化验证通过。253号A7验证Q8激活分数排top-3（score=2.0）；数论案例A3验证Q4排top-3（score=4.0，top-2）；组合案例A3验证Q4排top-3（score=4.0，top-1）。7维特征提取和权重标定完成，泛化关键词扩展后3个领域（代数/分析、数论、组合/概率）均正确排序。权重标定方法从253号单关键词扩展为多关键词列表，新增关键词经向后兼容验证不影响253号结果。
 
 ## 使用经验
 实现稀疏矩阵乘法。

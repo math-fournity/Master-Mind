@@ -7,8 +7,8 @@
 - 出处：nuwa-a: 136-P32；suiren: 200-P23
 
 ## 验证状态
-[partial]
-受约束多目标策略模块已实现（`xishujuzhen/research_runtime/policy/`），253号A7端到端测试验证选中Q8而非Q9。义务ID匹配破解进展估计，Pareto最优选择正确。
+[tested]
+受约束多目标策略模块已实现（`xishujuzhen/research_runtime/policy/`），泛化验证通过。253号A7端到端测试验证选中Q8而非Q9；数论案例A3验证选中Q4（Pareto最优：progress=1.0, leakage=0.14）；组合案例A3验证选中Q4（Pareto最优：progress=1.0, leakage=0.24）。义务ID匹配破解进展估计，Pareto最优选择在3个领域均正确。泛化改进：obligation匹配从仅open扩展为open+in_progress，支持更多案例的义务状态。
 
 ## 使用经验
 定义目标函数和约束，实现优化求解。

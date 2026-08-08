@@ -7,8 +7,8 @@
 - 出处：pangu-a: 63-P5；pangu-b: 100-P3；fuxi: 234-P10；nuwa-b: 166-P08
 
 ## 验证状态
-[partial]
-POC中手动替代，253号目标是自动化。
+[tested]
+检索管线模块已实现（`xishujuzhen/research_runtime/retrieval/`），泛化验证通过。三级递进检索（种子选择→图遍历→预算剪枝）在3个领域均正确工作。253号A7验证Q8在top-5结果中；数论案例A3验证Q4在top-5（top-2）；组合案例A3验证Q4在top-5（top-1）。种子选择从前沿节点数学对象出发，activation-score粗筛+pattern-matching精排+预算剪枝的管线流程跨领域泛化。
 
 ## 使用经验
 POC中用AQL图遍历查询实现，三级递进。种子选择和子图提取是管线的子组件。

@@ -158,7 +158,7 @@ class ConstrainedPolicy:
         if not rule.obligation_id:
             return 0.0
         for obligation in six_tuple.O_t:
-            if obligation.status != "open":
+            if obligation.status not in ("open", "in_progress"):
                 continue
             if _obligation_matches(rule.obligation_id, obligation.description):
                 return 1.0
