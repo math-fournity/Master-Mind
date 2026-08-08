@@ -64,14 +64,17 @@ class PatternMatcher:
         lhs_node_types: List[str],
     ) -> float:
         """
-        LHS子图匹配：比较T_t节点类型集合与LHS要求的节点类型集合（261号§4.3）。
+        LHS子图匹配：检查LHS要求的节点类型是否是T_t节点类型的子集（261号§4.3）。
 
-        计算集合差异（对称差），按差异大小确定匹配分数：
-        - 对称差=0 → 1.0（精确匹配）
-        - 对称差=1 → 0.8（1步偏差）
-        - 对称差=2 → 0.6（2步偏差）
-        - 对称差≥3 → 0.0（超过2步偏差）
-          - 附加：若|T_t类型|=|LHS类型|（同规模不同类型）→ 0.5（部分匹配）
+        子集匹配逻辑（修正版）：
+        - LHS所有类型都在T_t中 → 匹配，分数=1.0
+        - LHS有1个类型不在T_t中 → 0.8（1步偏差）
+        - LHS有2个类型不在T_t中 → 0.6（2步偏差）
+        - LHS有3+个类型不在T_t中 → 0.0（超过2步偏差）
+
+        之前的对称差逻辑有bug：当T_t有9种类型而LHS只要求2种时，
+        对称差=7，返回0.0——但LHS的2种类型都在T_t中，应该匹配。
+        子集匹配修正了这个bug。
 
         Args:
             trajectory_nodes: T_t的节点列表
@@ -83,21 +86,19 @@ class PatternMatcher:
         t_types: Set[str] = {n.type for n in trajectory_nodes}
         lhs_types: Set[str] = set(lhs_node_types)
 
-        sym_diff = t_types.symmetric_difference(lhs_types)
-        diff_size = len(sym_diff)
+        # 计算LHS中不在T_t的类型数量
+        missing = lhs_types - t_types
+        missing_count = len(missing)
 
-        # 按对称差大小查表
-        if diff_size in self._SCORE_MAP:
-            return self._SCORE_MAP[diff_size]
-
-        # 对称差≥3
-        if diff_size > 2:
-            # 附加规则：同规模不同类型 → 0.5部分匹配
-            if len(t_types) == len(lhs_types):
-                return 0.5
-            return 0.0
-
-        return 0.0
+        # 按缺失数量查表
+        if missing_count == 0:
+            return 1.0  # LHS是T_t的子集，完全匹配
+        elif missing_count == 1:
+            return 0.8  # 1步偏差
+        elif missing_count == 2:
+            return 0.6  # 2步偏差
+        else:
+            return 0.0  # 超过2步偏差
 
     def check_guards(
         self,
