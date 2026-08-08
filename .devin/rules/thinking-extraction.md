@@ -35,6 +35,17 @@ trigger: model_decision
 
 两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式在Solver思考过程中实时落盘（不需要等响应完成）；sessions.db方式在session结束后提供完整数据。
 
+### 树生长引擎的实时数据源
+
+树生长引擎（`tree_engine.py`）实时读取thinking数据时，用**thinking_live.jsonl**（按实验隔离的JSONL格式）：
+- 路径：`/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/mitm/thinking_live.jsonl`
+- 格式：每个chunk一行JSON，包含`counter`（round编号）、`chunk_index`、`type`、`content`
+- 按`counter`累积chunks得到完整round文本，用`node_extractor.py`提取节点
+
+**注意**：`thinking_readable.txt`是`solver-harness stop`时才生成的解码版本，不是实时的。实时数据源是`thinking_live.txt`/`thinking_live.jsonl`。
+
+**mitmproxy路径配置**：launchd服务`com.aurolafly.mitmproxy-devin`的环境变量`MITM_TRAJECTORY_BASE`必须指向`/data/math-agent-glm5.2-tmux-agents-trajectory`（本repo的trajectory存储）。如果指向旧路径，thinking数据不会落盘到正确位置。
+
 ## 原因
 
 1. **thinking是AI的真实推理**：GLM-5.2的thinking字段包含AI的完整推理链（英文，平均6000+字符/步），content只是输出给用户的摘要（中文，平均50字符/步）

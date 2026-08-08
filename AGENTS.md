@@ -835,6 +835,12 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 - AI缺位修复三方案（已完成）：`dev-docs/203/204/205号` + Check List `206/207/208号`
 - 审计标准建设（已完成）：`dev-docs/183-199号` + `xishujuzhen/audit/`
 - Solver tmux启动规范：`.devin/rules/solver-tmux-launch.md` + `.devin/skills/solver-tmux-launch/SKILL.md`
+- Grove核心循环：`.devin/rules/grove-core-loop.md`（always-on，三个推动关系+辅助智能体SOP）
+- 树生长实验操作流程：`.devin/skills/tree-growth-experiment/SKILL.md`（实验前/中/后Checklist）
+- Solver并发约束：`.devin/rules/solver-concurrency.md`（最多2并发，静态+动态编排）
+- 树生长引擎模块：`xishujuzhen/vms/tree_engine.py`（主循环）、`tree_store.py`（ArangoDB CRUD）、`node_extractor.py`（节点提取）、`retriever.py`（方向检索）
+- 跨AI认知同步：`dev-docs/273-v0-2026-08-08-Grove核心循环与辅助智能体JD-跨AI认知同步.md`
+- 后续工作Checklist：`dev-docs/274-v0-2026-08-08-后续工作Checklist-让核心循环完整转起来.md`
 - 核心代码：`runtime/guided_loop.py`, `runtime/devin_cli_adapter.py`, `heuristics/leakage_audit.py`, `state_reducer/controller_belief.py`, `verification/stall_detector.py`
 - Solver工作目录（当前模式）：`/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/`
 - Solver AGENTS.md模板：`templates/solver_agents_md.md`
