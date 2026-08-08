@@ -11,7 +11,7 @@
 #   ./scripts/backup_arango.sh --dry-run    # 只打印命令不执行
 #
 # cron 定时示例（每天凌晨 3 点）：
-#   0 3 * * * ~/master-mind-glm5.2-worktree/scripts/backup_arango.sh >> /data/master-mind/backups/arango/backup.log 2>&1
+#   0 3 * * * /data/master-mind-glm5.2-grove/scripts/backup_arango.sh >> /data/master-mind/backups/arango/backup.log 2>&1
 
 set -euo pipefail
 

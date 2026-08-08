@@ -1,6 +1,6 @@
-# 项目 AGENTS.md · 数学大师制造
+# 项目 AGENTS.md · Grove — Parallel Guided Tree Growth Engine
 
-> **⚠️ 本文件顶部「Worktree 隔离认知」章节是 glm5.2 worktree 专属内容，下游 `## 项目定位` 起的所有内容继承自上游 D repo（`/data/master-mind`），属于项目方法论本体，与本 worktree 的隔离规则无关。**
+> **⚠️ 本文件顶部「Grove 独立 repo 认知」章节是本 repo 专属内容。下游 `## 项目定位` 起的内容继承自上游 D repo（`/data/master-mind/`），属于项目方法论本体，与本 repo 的隔离规则无关。**
 > **未来 AI 进入本 repo 时，必须先读完本章节再做事。**
 
 ---
@@ -11,52 +11,69 @@
 
 | 角色 | 工作目录 | 职责 | 看到本 AGENTS.md 时该做什么 |
 |---|---|---|---|
-| **Master Agent** | `~/master-mind-glm5.2-worktree/` | 实现、审计、迭代数学大师系统 | 遵守本 AGENTS.md 全部约束，执行工作 |
-| **Subagent** | 由 Master 通过 Devin CLI/tmux 启动 | 执行被分配的子任务 | 只执行分配的任务，不承担 Master 的全部责任；若不确定就问 Master |
+| **Grove AI** | `/data/master-mind-glm5.2-grove/` | 实现、迭代 Grove 树生长引擎 | 遵守本 AGENTS.md 全部约束，执行工作 |
+| **Subagent** | 由 Grove AI 通过 Devin CLI/tmux 启动 | 执行被分配的子任务 | 只执行分配的任务，不承担 Grove AI 的全部责任；若不确定就问 Grove AI |
 
 **关键区分**：
-- Master 负责**做工作**（写代码、审计、测试、commit）
-- Subagent 负责**完成 Master 分配给它的具体任务**，然后回去汇报
+- Grove AI 负责**做工作**（写代码、审计、测试、commit）
+- Subagent 负责**完成 Grove AI 分配给它的具体任务**，然后回去汇报
 
 **如果你是 subagent**：
-- 你看到的是 Master 的 AGENTS.md，因为 Devin CLI 启动 subagent 时会加载项目 AGENTS.md
-- 但你不等于 Master，不需要承担 Master 的长期工作系统迭代责任
-- 你的任务是：完成 Master 通过 tmux/Devin CLI 交给你的具体任务
-- 任务完成后，把成果汇报给 Master
+- 你看到的是 Grove AI 的 AGENTS.md，因为 Devin CLI 启动 subagent 时会加载项目 AGENTS.md
+- 但你不等于 Grove AI，不需要承担 Grove AI 的长期工作系统迭代责任
+- 你的任务是：完成 Grove AI 通过 tmux/Devin CLI 交给你的具体任务
+- 任务完成后，把成果汇报给 Grove AI
 
 ---
 
-## Worktree 隔离认知（glm5.2 专属 · 最高优先级）
+## Grove 独立 repo 认知（最高优先级）
 
 ### 本 repo 是什么
 
-本目录 `~/master-mind-glm5.2-worktree/` 是上游 repo `/data/master-mind/` 的**独立 clone**，不是 git worktree，是物理隔离的第二个 repo。
+本目录 `/data/master-mind-glm5.2-grove/` 是 **Grove — Parallel Guided Tree Growth Engine** 的独立工作 repo。
 
-- **存在原因**：另一个 AI 正在上游 D repo 内活跃工作（有未提交改动）。为让本 AI（GLM-5.2）并发工作而不互相干扰，开辟了这个独立 clone。
-- **上游 repo 路径**：`/data/master-mind/`
-- **本 repo 路径**：`~/master-mind-glm5.2-worktree/`
-- **origin**：`/data/master-mind`（fetch/push 都指向它）
-- **本 repo 工作分支**：`glm5.2`（基于上游 main 的 `f32194f`）
-- **本地 main 分支**：保留为 origin/main 的镜像，**不要在 main 上工作**。
+**Grove 命名含义**：
+- **Grove** = 小树林——多个推理AI并发探索，每个AI的探索贡献一棵树，多棵树并发形成树林
+- 系统是这片树林的**园丁**——采集trajectory、整理两棵树、在节点上识别方向、启动新AI给脉络
+- 和两棵树的概念自然呼应——引导展开树（生长中）和解题记录树（完成态）都在这片grove中
+- 全称：**Grove — Parallel Guided Tree Growth Engine**
+
+### 本 repo 的来历（2026-08-08）
+
+1. **上游 repo**：`/data/master-mind/` —— 数学大师制造项目的原始 repo，另一个AI在其中活跃工作
+2. **中间 repo（已废弃）**：`~/master-mind-glm5.2-worktree/` —— 之前从上游 clone 的独立工作目录，GLM-5.2 曾在此工作。因和另一个AI共享同一台机器存在协调负担，已废弃
+3. **本 repo（Grove）**：`/data/master-mind-glm5.2-grove/` —— 从中间 repo 完整复制而来，是 Grove 任务主线的独立工作 repo。从此之后，本 repo 由 Grove AI 单独使用
+
+**交接文档**：`dev-docs/268-v0-2026-08-08-04工作线交接文档.md` —— 新 Session 的 Grove AI 必须全文加载此文档，恢复 04 工作线（端到端效果验证→树生长引擎）的完整工作意识。
+
+### ⚠️ 绝对禁止碰的路径
+
+**以下路径是其他AI的工作目录，绝对不要以任何方式读取、写入、执行命令：**
+
+- ❌ `~/master-mind-glm5.2-worktree/` —— 旧的工作目录，已废弃，但文件还在
+- ❌ `/data/master-mind/` —— 上游 repo，另一个AI的活跃工作目录
+
+**所有文件读写、代码改动、文档落盘、构建产物，只能在 `/data/master-mind-glm5.2-grove/` 内。**
+
+误触碰上述路径 → 立即停止，告知用户。不要自行回滚——那可能破坏另一个AI的未提交工作。
 
 ### 硬约束 1 · 文件操作边界
 
-**所有文件读写、代码改动、文档落盘、构建产物，只能在 `~/master-mind-glm5.2-worktree/` 内。**
+**所有文件读写、代码改动、文档落盘、构建产物，只能在 `/data/master-mind-glm5.2-grove/` 内。**
 
-- **禁止**以任何方式写入 `/data/master-mind/`（上游 repo）。那是另一个 AI 的工作目录，你的任何写入都会污染它。
-- **禁止**在上游 repo 内执行 `git`、`python`、`arangodb` 等任何会改动文件的命令。
+- **禁止**以任何方式写入 `/data/master-mind/`（上游 repo）或 `~/master-mind-glm5.2-worktree/`（旧工作目录）。
+- **禁止**在上述路径内执行 `git`、`python`、`arangodb` 等任何会改动文件的命令。
 - 读取上游 repo 用于参考是可以的，但写只能写本 repo。
-- 误写入上游 repo → 立即停止，告知用户，由用户决定如何处理。**不要自行回滚上游 repo 的文件**，那可能破坏另一个 AI 的未提交工作。
+- 误写入禁止路径 → 立即停止，告知用户，由用户决定如何处理。
 
-### 硬约束 2 · Git 协调规则
+### 硬约束 2 · Git 规则
 
-1. **只在 `glm5.2` 分支上工作**。不要 commit 到本地 `main`，不要 push 到 `main`。
-2. **拿上游最新成果**：`git fetch origin` → 看 `git log origin/main` → 需要时 `git rebase origin/main` 或 `git merge origin/main` 到 `glm5.2`。注意：上游 AGENTS.md 和 dev-docs 也在被另一个 AI 改动，rebase/merge 时这些文件大概率冲突，需手动处理。
-3. **送成果回上游**：`git push origin glm5.2`（**必须经用户当轮明确授权**）。另一个 AI 在上游 `git fetch` 后可见 `origin/glm5.2`。
-4. **显式路径 add**：遵守全局规范，禁止 `git add -A`/`git add .`/`git add -u`，只 add 具体路径。
-5. **改前清干净 + 改后立即 commit**：遵守全局 Git 管理协议。
+1. **只在 `glm5.2` 分支上工作**。不要 commit 到本地 `main`。
+2. **显式路径 add**：禁止 `git add -A`/`git add .`/`git add -u`，只 add 具体路径。
+3. **改前清干净 + 改后立即 commit**：遵守全局 Git 管理协议。
+4. **不 push 到上游**：本 repo 是独立工作 repo，不需要和上游同步。如需同步，必须经用户当轮明确授权。
 
-### 硬约束 3 · 数据库完全隔离（最重要）
+### 硬约束 3 · 数据库隔离
 
 **本 repo 与上游 repo 共享同一台机器上的同一个 ArangoDB 实例（`localhost:8529`）。如果不做数据库隔离，两个 AI 的研究数据会互相覆盖、互相污染——这是最危险的隐性冲突。**
 
@@ -71,12 +88,10 @@
 
 ### 硬约束 4 · 其他共享资源意识
 
-除 ArangoDB 外，以下资源也是共享的，使用前要意识到：
-
 - **ArangoDB 实例** `localhost:8529`：共享，通过 DB_NAME 隔离（见上）。
-- **文件系统**：本 repo 在内置 SSD，上游在 D 盘 HDD，物理隔离，无冲突。
 - **网络端口**：如果本 repo 要起服务（如 ArangoDB Web、自定义 HTTP 服务），注意端口不要和上游冲突。起服务前先 `lsof -i :<port>` 检查。
 - **Python 环境**：本 repo 用独立 venv（`.venv/`，python3.14 + python-arango 8.3.3，被 gitignore）。
+- **mitmproxy** `localhost:18889`：launchd 系统服务，两AI共享，通过 workdir_mapping 区分。
 
 ### 硬约束 5 · Solver 工作目录隔离
 
@@ -159,22 +174,22 @@
 
 **具体启动规范见** `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
 
-### 任务追踪（跨Session工作意识维持 · 多AI并发）
-
-**⚠️ 多AI并发认知**：本repo可能同时有多个AI在并发工作（不同对话窗口、不同Session），各自推进不同的工作线。**不要假设只有自己的任务在进行**。AGENTS.md是所有AI共享的always-on上下文，但每个AI的当前工作焦点在自己的任务追踪文档中，不在AGENTS.md里——AGENTS.md不写任何具体工作线的"当前焦点"或"当前状态"，避免污染其他AI的工作认知。
+### 任务追踪（跨Session工作意识维持）
 
 **任务追踪文档目录**：`任务追踪/`——每个工作线一个独立文件，顺序编号化（`01-`、`02-`、...），自包含，互不干扰。
 
-**`任务追踪/README.md`** — 任务追踪目录的导航枢纽，记录各任务追踪文档之间的**依赖关系DAG**。工作线之间有依赖（如solver-harness是为VMS打造的，VMS是253号检索机制的验证场景），这些依赖关系记录在README.md中。新Session的AI先读README.md了解工作线全貌和依赖关系，再选择对应工作线的任务追踪文档深入。
+**`任务追踪/README.md`** — 任务追踪目录的导航枢纽，记录各任务追踪文档之间的**依赖关系DAG**。新Session的AI先读README.md了解工作线全貌和依赖关系，再选择对应工作线的任务追踪文档深入。
 
-**当前活跃的任务追踪文档**（新增工作线时在此登记，同时在README.md中登记依赖边）：
+**当前活跃的任务追踪文档**：
 
 | 文件 | 工作线 | 焦点 |
 |---|---|---|
 | `任务追踪/01-253号检索机制验证.md` | 253号检索机制验证 | P0+P1原型验证完成，泛化验证通过（3领域6指标达标），P1原语升级tested完成（tested 35/72） |
 | `任务追踪/02-trajectory采集与solver-harness.md` | Trajectory采集基础设施 | solver-harness方案v1完成，实施待做 |
 | `任务追踪/03-虚拟数学系统VMS-POC验证.md` | 虚拟数学系统POC验证 | 方案设计完成，7阶段全部未开始，前置工作（258号挑战类型分析）待执行 |
-| `任务追踪/04-端到端效果验证-接真实Solver.md` | 端到端效果验证 | ✅A/B实验完成（A组2/3突破，B组0/3）。267号面相认知注入：未来向"系统与推理AI并行运行"的树生长引擎演进（阶段2脉络注入→阶段3并发展开） |
+| `任务追踪/04-端到端效果验证-接真实Solver.md` | 端到端效果验证→Grove树生长引擎 | ✅A/B实验完成（A组2/3突破，B组0/3）。267号面相认知注入：Grove树生长引擎方向——阶段2脉络注入→阶段3并发展开→阶段4自我增殖 |
+
+**Grove AI 的主任务方向**：04工作线 → Grove树生长引擎。交接文档268号。新Session先读268号，再全文加载267号（认知转折点）。
 
 **任务追踪文档编写要求**（硬性规范，所有任务追踪文档必须遵守）：
 
@@ -190,11 +205,11 @@
 4. **不删除历史**——历史条目是工作积累的记录，只打勾不删除。
 5. **新建时必须更新README.md**——新建任务追踪文档时，AI必须考虑更新`任务追踪/README.md`的内容。如果有必要，需写清楚新任务和原有任务之间的逻辑关系（依赖、起源、阻塞等）。不能只新建文件而不更新DAG——那样其他AI无法理解新工作线在全局中的位置。同时，文件名必须顺序编号化（`01-`、`02-`、`03-`、...），编号按创建顺序递增。
 6. **与AGENTS.md的分工**：AGENTS.md是项目总目录（always-on硬约束+认知资产索引），不写任何具体工作线的当前状态。任务追踪是工作流追踪（当前在做什么+接下来做什么）。AGENTS.md指向任务追踪目录，任务追踪指向具体dev-docs和代码模块。
-7. **记录git commit ID和全部产出资产path**——每个工作单元完成并commit后，在§4 Git Commit历史中记录commit hash和本次产出的**全部资产**的完整路径（相对于repo根目录）。格式：`| <hash> | <描述> | <产出资产路径列表> |`。**"全部资产"包括**：dev-docs文档、代码模块（.py/.js等）、测试脚本、原语文件（primitives/）、配置文件、数据文件（.json/.db等）、任务追踪文档本身——凡是本次commit中新增或修改的文件，都属于本次产出资产。**为什么必须记录全部资产而非仅文档**：多个AI在交错提交git、交错生成各种资产（dev-docs、代码、数据、配置混杂在一起），光看commit message无法判断"这个commit产出了哪些文件"，光看文件名无法判断"这个文件属于哪个工作线的哪个阶段"。commit hash + 完整资产路径列表是唯一可靠的跨AI工作追溯锚点——它能精确回答"这个文件是哪个AI在哪个工作线的哪个commit中创建的"。**路径必须完整**：写`xishujuzhen/research_runtime/parser/evaluate_accuracy.py`而非`evaluate_accuracy.py`；写`dev-docs/260-v0-2026-08-07-缺口1攻关方案-自然语言到结构化表示的解析器.md`而非`260号文档`。跨Session后的AI需要能直接用路径定位文件，不需要猜。
+7. **记录git commit ID和全部产出资产path**——每个工作单元完成并commit后，在§4 Git Commit历史中记录commit hash和本次产出的**全部资产**的完整路径（相对于repo根目录）。格式：`| <hash> | <描述> | <产出资产路径列表> |`。**"全部资产"包括**：dev-docs文档、代码模块（.py/.js等）、测试脚本、原语文件（primitives/）、配置文件、数据文件（.json/.db等）、任务追踪文档本身——凡是本次commit中新增或修改的文件，都属于本次产出资产。**路径必须完整**：写`xishujuzhen/research_runtime/parser/evaluate_accuracy.py`而非`evaluate_accuracy.py`；写`dev-docs/260-v0-2026-08-07-缺口1攻关方案-自然语言到结构化表示的解析器.md`而非`260号文档`。
 
 ### 认知资产索引（活文档）
 
-认知资产索引（隔离实施状态、ArangoDB 初始化状态、认知图/依赖图/题库统计）在 `xishujuzhen/cognition_asset_index.md`，由工作系统持续维护。每次新增认知单元、新增 dev-docs、ArangoDB 状态变更后更新该文档。
+认知资产索引（ArangoDB 初始化状态、认知图/依赖图/题库统计）在 `xishujuzhen/cognition_asset_index.md`，由工作系统持续维护。每次新增认知单元、新增 dev-docs、ArangoDB 状态变更后更新该文档。
 
 ### 系统设计原语目录（活文档）
 
@@ -308,13 +323,11 @@
 改造方案见 `dev-docs/216-v0-2026-08-06-214号元组群改造方案.md`。实验方案见 `dev-docs/215-v0-2026-08-06-连续交互启发式引导实验方案.md`。
 
 **相关目录与角色**：
-- **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
+- **本 repo（Grove AI）**：`/data/master-mind-glm5.2-grove/`
 - **Master tmux 脚本**：`scripts/start-master.sh`、`scripts/enter-master.sh`、`scripts/stop-master.sh`
-- **上游 repo**：`/data/master-mind/`
-- **Master 职责**：实现、审计、迭代数学大师系统；**Subagent 职责**：完成 Master 分配的具体任务
+- **Grove AI 职责**：实现、迭代 Grove 树生长引擎；**Subagent 职责**：完成 Grove AI 分配的具体任务
 
 ---
-
 ## 临时章节：如何检查正在工作的Solver AI（2026-08-07）
 
 > 本章节记录Master AI观察和干预在tmux中运行的Solver AI的操作方法。来自bare_q2裸跑测试的实战经验。未来AI在检查Solver工作过程时参考此章节。
@@ -692,59 +705,65 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 > - **与TODO/Memory Section的区别**：TODO是长期待办清单，Memory Section是长期认知基线，本节是**当前正在做什么、做到哪了、下一步是什么**的临时快照。
 > - **压缩后恢复**：压缩后的AI读到本节，应能立即理解当前任务的全貌并继续工作，不需要重新探索上下文。
 
-### 当前任务：虚拟数学系统POC验证（POC-VMS系列）
+### 当前任务：Grove 树生长引擎（从04工作线→267号面相认知→268号交接）
 
-**任务背景**：256-v4原语化论文重构完成（27个文件+README导航），检索系统技术缺口分析完成（5个缺口+已有技术对照——Rete/MiniCon同构）。用户提出构造HoTT同构虚拟数学系统，批量生成Pattern验证超大规模基座检索能力。方案已落盘（`原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md`）。
+**任务背景**：04工作线A/B实验完成（A组2/3突破，B组0/3），验证了检索机制有效。267号面相认知注入了认知转折点——从"让AI停下接受提示"到"系统与推理AI并行运行"。268号交接文档完整记录了04工作线成果和未来演进路径。Grove = Parallel Guided Tree Growth Engine，是这片树林的园丁——采集trajectory、整理两棵树、在节点上识别方向、启动新AI给脉络。
 
-**当前阶段**：POC-VMS-0（虚拟群论基础设施）——尚未开始实现
+**当前阶段**：阶段1（串行单AI）已完成（A/B实验），准备进入阶段2（脉络注入/串行多AI）
 
 **已完成的工作**：
 
-1. **256-v4原语化论文重构**（已commit）：
-   - 27个自包含Markdown文件+README导航，8个子目录（00-基础概念~08-参考文献）
-   - 文件带序号前缀，全部交叉引用已更新
-   - 新增facet-4（树的生长）+面相导航+02-检索系统的技术缺口分析+03-虚拟数学系统POC方案
+1. **04工作线A/B实验**（已commit）：
+   - A组突破率2/3，B组0/3，检索机制有效
+   - 完整闭环验证：mitmproxy流式截获thinking → parser解析 → retrieval+policy选Q → tmux注入 → Solver接受提示
+   - 4个HintInjector时序bug修复
 
-2. **检索系统技术缺口分析**（已commit，`07-验证/02-检索系统的技术缺口分析.md`）：
-   - 5个缺口：状态提取/模式匹配/recall/Pattern生成闭环/覆盖度
-   - 已有技术对照：Rete算法（1982, Forgy）/MiniCon（2001）/K-D Tree/CORGI（2025）
-   - 缺口2难度从"高"降为"中"——已有算法解决同构问题，工作是适配而非设计
-   - "形式化先行+AI收尾"架构已有验证（Rete/UL 100,000+规则）
+2. **267号面相认知注入**（已commit）：
+   - 核心转变：从"让AI停下接受提示"到"系统与推理AI并行运行"
+   - ArangoDB表设计（tree_nodes/tree_edges/problems/ai_instances）
+   - 系统工作流程详细设计（树生长引擎主循环）
 
-3. **虚拟数学系统POC方案**（已commit，`07-验证/03-虚拟数学系统POC方案.md`）：
-   - HoTT同构虚拟群论：4层构造（虚拟群实例/虚拟定理/虚拟题目/虚拟思维模式）
-   - 批量生成：1000虚拟群×8题×6Pattern ≈ 48,000个Pattern
-   - POC-VMS 7阶段方案（VMS-0到VMS-6）
+3. **268号交接文档**（已commit）：
+   - 跨Session/跨压缩边界完整交接
+   - 必须全文加载的5个文档（M1-M5）+ 4个代码文件（C1-C4）
 
-**下一步**：
-1. **POC-VMS-0·挑战抽象**：分析25道MathArena难题的AI response，抽象出挑战类型（为什么AI做不出）
-2. **POC-VMS-0·虚拟构造**：实现虚拟群生成器，构造同类挑战
-3. **POC-VMS-0·baseline**：裸跑AI在虚拟群论上的表现，审查先验知识污染
-4. **POC-VMS-1**：预演模式+Pattern生成（从虚拟QA序列提炼Pattern）
+**下一步（Grove演进路径）**：
 
-**25道难题资源**：`runs/matharena_25_hard_problems.json`（23道数值题+2道证明题，AI 0/25做出来，详见213号方案）
+| 阶段 | 描述 | 状态 |
+|---|---|---|
+| 阶段1 | 串行单AI——thinking完成→解析→检索→选提示→注入→下一轮thinking | ✅ A/B实验已完成 |
+| 阶段2 | 脉络注入——串行多AI。AI跑完（或崩溃）后系统整理脉络→检索识别方向→启动新AI给脉络继续 | **← 当前目标** |
+| 阶段3 | 并发展开——多AI并发。N个AI并发，系统实时整理两棵树+分配新AI | 待实现 |
+| 阶段4 | 自我增殖——树→Pattern→树。解题记录树完成后提炼Pattern存入数据基座 | 待实现 |
+
+**阶段2需要实现的模块**：
+- `path_constructor.py` — 脉络构造（从path_from_root生成给新AI的输入文本）
+- `node_extractor.py` — 从trajectory提取树节点（封装DevinCliParserProvider+六元组提取）
+- `tree_store.py` — ArangoDB树存储（CRUD）
+- 改造`stall_detector.py` — 从"检测卡住"改为"检测终止"
 
 **跨Session恢复指引**：
-- 新Session读本节 → 知道POC-VMS是当前活跃工作
-- 执行 `cognition_checkpoint_math.py start --seeds virtual_math_system,poc_vms_pipeline` → 加载虚拟数学系统认知
-- 读 `dev-docs/257-v0-2026-08-08-POC-VMS进度追踪.md` → 知道每个阶段的详细状态
-- 读 `原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md` → 知道完整方案
+- 新Session读本节 → 知道Grove树生长引擎是当前活跃工作
+- **全文加载268号交接文档**（`dev-docs/268-v0-2026-08-08-04工作线交接文档.md`）→ 完整恢复04工作线意识
+- **全文加载267号面相文档**（`dev-docs/267-v0-2026-08-08-未来系统面相-系统与推理AI并行运行.md`）→ 认知转折点，读完之前不要做任何设计决策
+- 读 `任务追踪/04-端到端效果验证-接真实Solver.md` → 当前工作状态和待办清单
+- 读 268号§8.1 列出的M1-M5五个文档 + §8.2列出的C1-C4四个代码文件 → 安全接续工作的最低认知基线
 
 **关键文件索引**：
-- 虚拟数学系统POC方案：`原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md`
-- 检索系统技术缺口分析：`原语化AI数学工程系统设计/07-验证/02-检索系统的技术缺口分析.md`
-- POC系列方案（原有）：`原语化AI数学工程系统设计/07-验证/01-POC系列方案.md`
-- POC-VMS进度追踪：`dev-docs/257-v0-2026-08-08-POC-VMS进度追踪.md`
-- 原语化论文导航：`原语化AI数学工程系统设计/README.md`
-- AI数学工程系统最完整技术说明书：`dev-docs/239-v0-2026-08-07-AI数学工程系统-最完整技术说明书.md`
-- AI数学工程数据基座转向：`dev-docs/231-v0-2026-08-07-AI数学工程的数据基座转向-从语料喂养到双重知识生产.md`
-- AI缺位修复三方案（已完成）：`dev-docs/203/204/205号` + Check List `206/207/208号`
-- 审计标准建设（已完成）：`dev-docs/183-199号` + `xishujuzhen/audit/`
-- Solver tmux启动规范：`.devin/rules/solver-tmux-launch.md` + `.devin/skills/solver-tmux-launch/SKILL.md`
-- 核心代码：`runtime/guided_loop.py`, `runtime/devin_cli_adapter.py`, `heuristics/leakage_audit.py`, `state_reducer/controller_belief.py`, `verification/stall_detector.py`
-- Solver工作目录（当前模式）：`/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/`
+- 交接文档：`dev-docs/268-v0-2026-08-08-04工作线交接文档.md`
+- 认知转折点：`dev-docs/267-v0-2026-08-08-未来系统面相-系统与推理AI并行运行.md`
+- 两棵树理论：`原语化AI数学工程系统设计/05-两棵树/`（01-引导展开树.md / 02-解题记录树.md / 03-系统本质-生长完整的树.md）
+- 任务追踪：`任务追踪/04-端到端效果验证-接真实Solver.md`
+- A/B实验脚本：`scripts/ab_experiment.py`
+- solver-harness：`xishujuzhen/solver_harness/solver_harness.py`
+- mitmproxy addon：`xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py`
+- 实时管线：`xishujuzhen/research_runtime/realtime/pipeline.py`
+- DevinCliParserProvider：`xishujuzhen/research_runtime/realtime/devin_cli_parser.py`
+- Solver工作目录：`/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/`
+- trajectory存储：`/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/`
 - Solver AGENTS.md模板：`templates/solver_agents_md.md`
 - 验证run：`runs/run_20260806_{verify_001, guided_001-004, complex_001-005}/`
+
 
 
 ## TODO

@@ -4,7 +4,7 @@
 
 | 角色 | 工作目录 | 职责 | 看到本 AGENTS.md 时该做什么 |
 |---|---|---|---|
-| **Master Agent** | `~/master-mind-glm5.2-worktree/` | 实现、审计、迭代数学大师系统 | 遵守本 AGENTS.md 全部约束，执行工作 |
+| **Master Agent** | `/data/master-mind-glm5.2-grove/` | 实现、审计、迭代数学大师系统 | 遵守本 AGENTS.md 全部约束，执行工作 |
 | **Subagent** | 由 Master 通过 Devin CLI/tmux 启动 | 执行被分配的子任务 | 只执行分配的任务，不承担 Master 的全部责任；若不确定就问 Master |
 
 **关键区分**：

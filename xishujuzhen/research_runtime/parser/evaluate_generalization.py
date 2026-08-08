@@ -7,7 +7,7 @@
 3. 输出逐轮对比+汇总指标+达标判断
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.parser.evaluate_generalization
 """
 

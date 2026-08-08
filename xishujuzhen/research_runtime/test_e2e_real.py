@@ -8,7 +8,7 @@
 3. 验证是否仍然选中Q8
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.test_e2e_real
 """
 

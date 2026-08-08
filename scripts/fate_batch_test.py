@@ -128,7 +128,7 @@ def main():
         problems = json.load(f)
 
     # 创建run目录
-    repo_root = "~/master-mind-glm5.2-worktree"
+    repo_root = "/data/master-mind-glm5.2-grove"
     run_dir = os.path.join(repo_root, "runs", run_id)
     os.makedirs(run_dir, exist_ok=True)
 

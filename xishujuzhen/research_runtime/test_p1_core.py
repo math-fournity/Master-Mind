@@ -6,7 +6,7 @@ P1核心检索模块测试脚本。
 测试3：retrieval-pipeline（检索管线）
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.test_p1_core
 """
 

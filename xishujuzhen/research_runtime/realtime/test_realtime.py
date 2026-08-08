@@ -10,7 +10,7 @@
 由于没有真实的sessions.db数据，用mock的Round对象直接测试pipeline.process_round()。
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.realtime.test_realtime
 """
 

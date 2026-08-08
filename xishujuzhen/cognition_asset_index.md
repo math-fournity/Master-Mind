@@ -5,23 +5,23 @@
 
 ## 当前隔离实施状态
 
-**当前隔离实施状态**（截至角色说明更新 commit）：
-- ✅ 文件操作边界：已建立（硬约束 1）
-- ✅ Git 协调规则：已建立（硬约束 2），分支 `glm5.2`
+**当前隔离实施状态**（Grove repo，2026-08-08 迁移后）：
+- ✅ 文件操作边界：已建立（硬约束 1），本 repo `/data/master-mind-glm5.2-grove/` 独立工作
+- ✅ Git 规则：已建立（硬约束 2），分支 `glm5.2`，不 push 到上游
 - ✅ 数据库隔离：已实施（硬约束 3），25 个文件环境变量化，`.env` 配置 `xishujuzhen_math_glm52`
 - ✅ 认证环境变量化：已实施，`REDACTED-DB-PASSWORD` 不再裸硬编码
-- ✅ 上游未提交内容同步：已完成，Phase 7 实现 + 审计方法论 v4.2 已同步到本 repo
 - ✅ Python venv 隔离：已实施，`.venv/`（python3.14 + python-arango 8.3.3），被 gitignore
-- ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
+- ✅ Devin hooks 隔离：已实施，`.devin/hooks.v1.json` 所有命令使用**绝对路径**（已更新为 Grove 路径）并先 source `.env`，确保 hook 从任意 CWD 启动都执行本 repo 脚本
 - ✅ ArangoDB 实例 + 数据库初始化：已完成
-- ✅ 角色说明：已建立，Master/Subagent 边界清晰
+- ✅ 角色说明：已建立，Grove AI/Subagent 边界清晰
 
 **相关目录与角色**：
-- **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
-- **Master tmux 脚本**：`scripts/start-master.sh`（启动 tmux session `master-math` + devin CLI）、`scripts/enter-master.sh`（重新进入）、`scripts/stop-master.sh`（停止）
-- **上游 repo**：`/data/master-mind/`
-- **Master 职责**：实现、审计、迭代数学大师系统
-- **Subagent 职责**：完成 Master 分配的具体任务
+- **本 repo（Grove AI）**：`/data/master-mind-glm5.2-grove/`
+- **Grove tmux 脚本**：`scripts/start-master.sh`（启动 tmux session `master-math` + devin CLI）、`scripts/enter-master.sh`（重新进入）、`scripts/stop-master.sh`（停止）
+- **上游 repo**：`/data/master-mind/`（禁止写入，仅供参考）
+- **旧工作目录**：`~/master-mind-glm5.2-worktree/`（已废弃，禁止触碰）
+- **Grove AI 职责**：实现、迭代 Grove 树生长引擎
+- **Subagent 职责**：完成 Grove AI 分配的具体任务
 
 **ArangoDB 初始化状态**：
 - 数据库：`xishujuzhen_math_glm52`

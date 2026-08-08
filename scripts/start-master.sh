@@ -33,7 +33,7 @@
 
 set -euo pipefail
 
-MASTER_DIR="~/master-mind-glm5.2-worktree"
+MASTER_DIR="/data/master-mind-glm5.2-grove"
 TMUX_SESSION="master-math"
 
 cd "${MASTER_DIR}"

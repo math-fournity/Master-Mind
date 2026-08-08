@@ -6,7 +6,7 @@ P1基础模块测试脚本。
 测试3：预算管理（budget）
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.test_p1_basic
 """
 

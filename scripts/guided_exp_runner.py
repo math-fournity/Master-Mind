@@ -24,7 +24,7 @@ from dfs_tree import DFSTree
 # ============ 配置 ============
 WORK_DIR = "/data/math-agent-glm5.2-1"
 SESSION_NAME = "guided-exp-1"
-RUN_DIR = "~/master-mind-glm5.2-worktree/runs/guided_001"
+RUN_DIR = "/data/master-mind-glm5.2-grove/runs/guided_001"
 EXPORT_DIR = f"{RUN_DIR}/exports"
 TREE_FILE = f"{RUN_DIR}/dfs_tree.json"
 LOG_FILE = f"{RUN_DIR}/interaction_log.md"

@@ -2,19 +2,19 @@
 
 ### 本 repo 是什么
 
-本目录 `~/master-mind-glm5.2-worktree/` 是上游 repo `/data/master-mind/` 的**独立 clone**，不是 git worktree，是物理隔离的第二个 repo。
+本目录 `/data/master-mind-glm5.2-grove/` 是上游 repo `/data/master-mind/` 的**独立 clone**，不是 git worktree，是物理隔离的第二个 repo。
 
 - **存在原因**：另一个 AI 正在上游 D repo 内活跃工作（有未提交改动）。为让本 AI（GLM-5.2）并发工作而不互相干扰，开辟了这个独立 clone。
 - **为什么不用 git worktree**：worktree 共享 `.git`，并发 git 操作有锁冲突风险；且 D repo 的 `.git` 在 HDD 上，git 操作慢。独立 clone 把 `.git` 放到内置 SSD，既隔离又快。
 - **上游 repo 路径**：`/data/master-mind/`
-- **本 repo 路径**：`~/master-mind-glm5.2-worktree/`
+- **本 repo 路径**：`/data/master-mind-glm5.2-grove/`
 - **origin**：`/data/master-mind`（fetch/push 都指向它）
 - **本 repo 工作分支**：`glm5.2`（基于上游 main 的 `f32194f`）
 - **本地 main 分支**：保留为 origin/main 的镜像，**不要在 main 上工作**。
 
 ### 硬约束 1 · 文件操作边界
 
-**所有文件读写、代码改动、文档落盘、构建产物，只能在 `~/master-mind-glm5.2-worktree/` 内。**
+**所有文件读写、代码改动、文档落盘、构建产物，只能在 `/data/master-mind-glm5.2-grove/` 内。**
 
 - **禁止**以任何方式写入 `/data/master-mind/`（上游 repo）。那是另一个 AI 的工作目录，你的任何写入都会污染它。
 - **禁止**在上游 repo 内执行 `git`、`python`、`arangodb` 等任何会改动文件的命令。
@@ -92,7 +92,7 @@
 
 本 repo 已创建独立 venv：
 ```bash
-cd ~/master-mind-glm5.2-worktree
+cd /data/master-mind-glm5.2-grove
 python3 -m venv .venv          # python3.14
 .venv/bin/pip install python-arango==8.3.3
 ```
@@ -116,7 +116,7 @@ python3 -m venv .venv          # python3.14
 - ✅ 角色说明：已建立，Master/Subagent 边界清晰
 
 **相关目录与角色**：
-- **本 repo（Master）**：`~/master-mind-glm5.2-worktree/`
+- **本 repo（Master）**：`/data/master-mind-glm5.2-grove/`
 - **Master tmux 脚本**：`scripts/start-master.sh`（启动 tmux session `master-math` + devin CLI）、`scripts/enter-master.sh`（重新进入）、`scripts/stop-master.sh`（停止）
 - **上游 repo**：`/data/master-mind/`
 - **Master 职责**：实现、审计、迭代数学大师系统

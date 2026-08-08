@@ -10,7 +10,7 @@ DevinCliParserProvider测试：验证devin cli作为parser LLM的完整流程。
 测试用例：用253号A7的文本作为输入，验证devin cli能解析出结构化结果。
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.realtime.test_devin_cli_parser
 """
 

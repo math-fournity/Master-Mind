@@ -86,7 +86,7 @@ ARANGO_PASS = os.environ.get("ARANGO_PASS", "REDACTED-DB-PASSWORD")
 COLLECTION = "math_datasets"
 INGEST_DATE = "2026-08-06"
 
-BASE_PATH = "~/master-mind-glm5.2-worktree/knowledge/problem_banks"
+BASE_PATH = "/data/master-mind-glm5.2-grove/knowledge/problem_banks"
 
 
 def sanitize_key(s: str) -> str:

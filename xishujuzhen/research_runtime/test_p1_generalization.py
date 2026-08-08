@@ -12,7 +12,7 @@ P1泛化验证测试脚本。
 - 组合案例：A3后应触发Q4（引导者问"理清Hamming码策略的逻辑"）
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.test_p1_generalization
 """
 

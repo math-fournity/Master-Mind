@@ -21,7 +21,7 @@ P1决策模块测试脚本：constrained-policy + hint-gradient + gain-attributi
 - 反事实估计：验证"没有Q8不太可能自发分析D的下界"
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.test_p1_decision
 """
 

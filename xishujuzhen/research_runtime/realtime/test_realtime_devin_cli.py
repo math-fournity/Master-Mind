@@ -5,7 +5,7 @@
 在真实devin cli解析下的完整流程。
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.realtime.test_realtime_devin_cli
 """
 

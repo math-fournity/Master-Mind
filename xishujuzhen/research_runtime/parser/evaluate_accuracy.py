@@ -11,7 +11,7 @@
 6. 卡点类型识别率：正确识别的轮数 / 有卡点的轮数
 
 运行：
-    cd ~/master-mind-glm5.2-worktree
+    cd /data/master-mind-glm5.2-grove
     .venv/bin/python3 -m xishujuzhen.research_runtime.parser.evaluate_accuracy
 """
 

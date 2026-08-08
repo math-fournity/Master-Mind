@@ -356,7 +356,7 @@ def main():
     print_stats(merged)
 
     # 保存完整列表到JSON文件
-    output_path = "~/master-mind-glm5.2-worktree/knowledge/problem_banks/math_datasets_catalog.json"
+    output_path = "/data/master-mind-glm5.2-grove/knowledge/problem_banks/math_datasets_catalog.json"
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(merged, f, ensure_ascii=False, indent=2)
     print(f"\n完整目录已保存到: {output_path}")
