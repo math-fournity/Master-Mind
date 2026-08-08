@@ -198,10 +198,11 @@ responseheaders hook（响应头到达时，body之前）
     ↓
 每个HTTP chunk到达时 → parser.feed(chunk) 被调用
     ↓ StreamingThinkingParser实时解析Connect streaming protobuf
-    ↓ 每解析出一个field 9（thinking chunk）立即写入3个位置：
-    ├─ _shared/mitm_raw/thinking_live.txt（全局，可tail -f）
-    ├─ <exp_id>/mitm/thinking_live.txt（按实验，可tail -f）
-    └─ <exp_id>/mitm/thinking_live.jsonl（JSONL，每个chunk一行）
+    ↓ 每解析出一个field 9（thinking chunk）立即写入4个位置：
+    ├─ _shared/mitm_raw/thinking_live.txt（全局，token级碎片，可tail -f）
+    ├─ <exp_id>/mitm/thinking_live.txt（按实验，token级碎片，可tail -f）
+    ├─ <exp_id>/mitm/thinking_live.jsonl（JSONL，每个chunk一行）
+    └─ <exp_id>/mitm/thinking_readable.txt（人可阅读连续文本，可tail -f读文章）
     ↓
 流结束时 → parser.feed(b"") 被调用 → 写stream_complete汇总记录
 ```
@@ -213,15 +214,27 @@ devin cli是Node.js应用，不读macOS Keychain。必须设置`NODE_EXTRA_CA_CE
 ### 实时查看
 
 ```bash
-# 实时查看所有实验的thinking流
+# 查看人可阅读的连续文本（推荐——像读文章一样实时看AI思考）
+tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_readable.txt
+
+# 查看所有实验的thinking流（token级碎片格式）
 tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/thinking_live.txt
 
-# 实时查看特定实验
+# 查看特定实验（token级碎片格式）
 tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.txt
 
 # 程序化读取
 cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
 ```
+
+### 四路落盘格式
+
+| 文件 | 格式 | 用途 |
+|---|---|---|
+| `thinking_readable.txt` | **人可阅读的连续文本** | `tail -f`读文章——thinking实时拼接追加，tool_call用分隔符标记，每轮有START/END |
+| `thinking_live.txt` | token级碎片（每token一行带时间戳） | `tail -f`看token流——适合调试和精确时间分析 |
+| `thinking_live.jsonl` | JSONL（每chunk一行JSON） | 程序读取——含timestamp/chunk_index/content |
+| `_shared/.../thinking_live.txt` | token级碎片（全局） | `tail -f`看所有实验 |
 
 ### JSONL记录类型
 

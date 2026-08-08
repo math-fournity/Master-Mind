@@ -81,9 +81,10 @@ trajectory有两个数据源，互补使用：
 
 | 数据 | 位置 | 获取方式 | 说明 |
 |---|---|---|---|
-| thinking chunks（实时） | `<exp_id>/mitm/thinking_live.jsonl` | mitmproxy自动写入 | 每个token一行JSON（含timestamp/chunk_index/content） |
-| thinking chunks（可读） | `<exp_id>/mitm/thinking_live.txt` | mitmproxy自动写入 | 人类可读格式，可`tail -f`实时查看 |
-| thinking流（全局） | `_shared/mitm_raw/thinking_live.txt` | mitmproxy自动写入 | 所有实验的thinking流，可`tail -f` |
+| **thinking_readable.txt** | `<exp_id>/mitm/thinking_readable.txt` | mitmproxy自动写入 | **人可阅读的连续文本**——thinking实时拼接追加，tool_call用分隔符标记，每轮有START/END。可`tail -f`读文章 |
+| thinking chunks（碎片） | `<exp_id>/mitm/thinking_live.txt` | mitmproxy自动写入 | token级碎片（每token一行带时间戳），可`tail -f` |
+| thinking chunks（全局） | `_shared/mitm_raw/thinking_live.txt` | mitmproxy自动写入 | 所有实验的thinking流（token级碎片），可`tail -f` |
+| thinking chunks（JSONL） | `<exp_id>/mitm/thinking_live.jsonl` | mitmproxy自动写入 | 每个token一行JSON（含timestamp/chunk_index/content） |
 | thinking汇总 | `<exp_id>/mitm/thinking_live.jsonl`的`stream_complete`记录 | mitmproxy自动写入 | 每轮thinking完成后的完整文本+tool_calls列表 |
 | tool_call chunks | `<exp_id>/mitm/thinking_live.jsonl`的`tool_call_chunk`记录 | mitmproxy自动写入 | tool_call的name和args也是流式落盘 |
 | raw protobuf | `_shared/mitm_raw/chatmsg_NNN_*.bin` | mitmproxy自动保存 | 事后可用`decode_connect_proto.py`重新解码 |

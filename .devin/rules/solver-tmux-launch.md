@@ -60,7 +60,7 @@ solver-harness的`mitm start`命令会优先检测launchd服务是否运行，�
 
 ## 原因
 
-1. **MITM流式实时trajectory采集（最关键）**：solver-harness通过mitmproxy的`responseheaders` hook + `flow.response.stream = callable`实现token级实时thinking截获。Solver思考过程中每个token立即落盘到3个位置（共享txt + 实验txt + 实验jsonl）。手动启动无法采集MITM数据——这是solver-harness存在的核心价值。mitmproxy作为launchd系统服务运行，两个AI共享同一实例，不会互相冲突。
+1. **MITM流式实时trajectory采集（最关键）**：solver-harness通过mitmproxy的`responseheaders` hook + `flow.response.stream = callable`实现token级实时thinking截获。Solver思考过程中每个token立即落盘到4个位置（共享txt + 实验txt + 实验jsonl + 实验readable txt）。手动启动无法采集MITM数据——这是solver-harness存在的核心价值。mitmproxy作为launchd系统服务运行，两个AI共享同一实例，不会互相冲突。
 2. **NODE_EXTRA_CA_CERTS关键修复**：devin cli是Node.js应用，不读macOS Keychain，必须通过`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量指向mitmproxy CA证书，否则交互模式SSL验证失败（"Connection failed, retrying..."）。solver-harness已内置此修复。
 3. **审计兜底**：solver-harness自动启动pipe-pane（tmux兜底记录），无需手动启动。
 4. **持续观察**：solver-harness用tmux启动，可通过`tmux capture-pane -t harness-<exp-id> -p`持续观察Solver工作过程。
