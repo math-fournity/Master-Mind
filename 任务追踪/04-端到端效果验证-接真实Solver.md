@@ -10,9 +10,9 @@
 
 **主线**：接真实Solver跑端到端效果验证——验证"检索机制选出提示后，AI是否真的能突破卡点"。
 
-**当前状态**：6.5端到端集成测试通过 + DevinCliParserProvider实现完成。6.5用降级parser跑通了完整闭环（5轮5次注入），但每次选中Q1而非Q8。DevinCliParserProvider用devin cli作为parser LLM（不需要外部API），25-41秒/次解析，parse_confidence=0.88，能正确解析resolution事件。完整管线测试选中Q4（与mock的Q8不同，因devin cli解析的六元组结构有差异，属真实场景预期行为）。下一步是6.6 A/B对照实验。
+**当前状态**：6.6 A/B对照实验A组完整闭环验证成功（ab-253-A8实验）。mitmproxy流式thinking截获→thinking完成后检测idle→DevinCliParserProvider解析（102秒，parse_confidence=0.82）→选中Q7→tmux send-keys注入成功→Solver接受提示开始第二轮thinking。B组裸跑结果：Solver两轮thinking都被"Response truncated"截断，无法完成证明。
 
-**下一步**：跑6.6 A/B对照实验——方案已落盘到265号文档。B组裸跑3次（确认stuck），A组有检索系统3次（看是否突破）。对比成功率和突破卡点情况。
+**下一步**：A8实验已验证完整闭环（1次注入Q7），但第二轮thinking完成后pipeline卡在"等待新一轮thinking"（injected_for_this_round重置bug已修复）。需要重跑A组验证多轮注入（2-3次提示），然后做A/B对照结果对比分析。
 
 ---
 
