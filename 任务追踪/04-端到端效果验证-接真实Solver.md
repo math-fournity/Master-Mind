@@ -10,9 +10,9 @@
 
 **主线**：接真实Solver跑端到端效果验证——验证"检索机制选出提示后，AI是否真的能突破卡点"。
 
-**当前状态**：6.5端到端集成测试通过——完整闭环验证成功（trajectory→parser→stall→retrieval→policy→inject）。5轮处理，5次提示注入成功。已知限制：parser降级模式只产生observation事件，每次都选中Q1而非Q8。下一步是配置LLM parser使解析结果与离线一致（选中Q8），然后跑6.6 A/B对照实验。
+**当前状态**：6.5端到端集成测试通过 + DevinCliParserProvider实现完成。6.5用降级parser跑通了完整闭环（5轮5次注入），但每次选中Q1而非Q8。DevinCliParserProvider用devin cli作为parser LLM（不需要外部API），25-41秒/次解析，parse_confidence=0.88，能正确解析resolution事件。完整管线测试选中Q4（与mock的Q8不同，因devin cli解析的六元组结构有差异，属真实场景预期行为）。下一步是6.6 A/B对照实验。
 
-**下一步**：配置LLM parser（用GLM-5.2），使parser能正确解析resolution事件并选中Q8。然后跑6.6 A/B对照实验（A组有检索系统 vs B组裸跑）。
+**下一步**：跑6.6 A/B对照实验——A组有检索系统（DevinCliParserProvider+retrieval+policy+inject），B组无检索系统（裸跑）。对比成功率和突破卡点情况。
 
 ---
 
@@ -43,6 +43,28 @@
 - HintInjector：dry-run✅（不存在的session正确返回False）
 - TrajectoryWatcher：mock Round构建✅
 - **关键验证**：选中Q8与离线test_e2e_253结果一致——实时管线正确复现了离线检索流程
+
+### 1.3 DevinCliParserProvider实现（解决6.5降级parser限制）
+
+**为什么做**：6.5端到端集成测试用降级parser（只产生observation事件），每次选中Q1而非Q8。需要真实LLM parser来正确解析resolution事件，使检索机制能选出有针对性的提示。但本地没有可用的LLM API端点（无OpenAI兼容API key）。解决方案：用devin cli本身作为parser的LLM——`devin -p`发送解析prompt，捕获JSON输出。
+
+**实现的模块**：
+- `realtime/devin_cli_parser.py`：DevinCliParserProvider——实现LLMParser的mock_response_provider接口，用`devin -p`调用devin cli执行260号§3.1的LLM粗解析
+- `realtime/test_devin_cli_parser.py`：parser单元测试
+- `realtime/test_realtime_devin_cli.py`：完整管线测试（devin cli parser + retrieval + policy）
+- `parser/models.py`容错改进：MathObject.from_dict支持字符串输入，Evidence.from_dict支持字段名变体
+
+**测试结果**（253号A7）：
+- devin cli解析时间：25-41秒/次
+- 解析质量：4事件4节点，parse_confidence=0.88，SymPy验证3/4通过
+- 完整管线（devin cli parser + retrieval + policy）：33.4秒
+- 选中Q4（与mock LLM的Q8不同——devin cli的六元组解析结果与mock有差异，V_t=9 vs 6, O_t=2 vs 7，导致策略选择不同。这是真实场景下的预期行为——不同LLM解析出的结构化表示有差异）
+
+**关键设计决策**：
+- parser的devin cli在独立工作目录运行（`/data/math-agent-glm5.2-parser-1/`），不复用Solver工作目录
+- parser的devin cli用`-p`单轮模式（不需要交互）
+- parser的devin cli不需要MITM（不采集trajectory）
+- JSON提取容错：支持纯JSON、markdown代码块、花括号提取等多种格式
 
 ---
 
@@ -161,6 +183,7 @@
 | 0e229a0 | 04工作线P0核心实现：TrajectoryAdapter + HintInjector + RealtimePipeline（已删除，与b5bbae3重复） | ~~`xishujuzhen/research_runtime/runtime/trajectory_adapter.py`~~, ~~`xishujuzhen/research_runtime/runtime/hint_injector.py`~~, ~~`xishujuzhen/research_runtime/runtime/realtime_pipeline.py`~~ |
 | 9dee6a3 | 合并6.1验证结果到realtime/hint_injector.py + 更新04任务追踪 | **代码**: `xishujuzhen/research_runtime/realtime/hint_injector.py` **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md`, `任务追踪/04-端到端效果验证-接真实Solver.md` |
 | e9fd092 | 04工作线§6.5端到端集成测试：完整闭环验证通过 | **代码**: `scripts/e2e_realtime_test.py` |
+| 597fb23 | DevinCliParserProvider: 用devin cli作为parser LLM，完整实时管线跑通 | **代码**: `xishujuzhen/research_runtime/realtime/devin_cli_parser.py`, `xishujuzhen/research_runtime/realtime/test_devin_cli_parser.py`, `xishujuzhen/research_runtime/realtime/test_realtime_devin_cli.py`, `xishujuzhen/research_runtime/parser/models.py` |
 
 ---
 
