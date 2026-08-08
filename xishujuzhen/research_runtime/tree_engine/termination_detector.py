@@ -140,23 +140,12 @@ class TerminationDetector:
                         details=f"检测到截断标志: {kw}",
                     )
 
-        # 3. 检查sessions.db是否有新node（替代thinking_readable.txt）
-        if self.devin_session_id:
-            current_count = self._get_node_count()
-            if current_count > self._last_node_count:
-                # 有新node→AI还在活动
-                self._last_node_count = current_count
-                self._last_activity_time = now
-            elif (now - self._last_activity_time) > self.timeout:
-                return TerminationEvent(
-                    detected_at=now,
-                    reason="timeout",
-                    tmux_session=tmux_session,
-                    details=f"sessions.db {self.timeout:.0f}秒无新node",
-                )
-        else:
-            # 没有devin_session_id——只靠tmux session检测
-            pass
+        # 3. 不再用timeout杀AI
+        # 核心循环的关键约束："推理AI不需要停下接受提示"——
+        # AI在长thinking是正常状态，不是卡死。系统与AI并行运行：
+        # AI在thinking的同时，辅助Pipe用已有的thinking提取节点、整理树。
+        # 终止只由session_ended/crash/response_truncated判定，
+        # 或者由外层的max_time_per_ai硬超时控制（那是实验预算，不是终止检测）。
 
         return None
 
