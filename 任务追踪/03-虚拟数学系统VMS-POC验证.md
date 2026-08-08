@@ -171,11 +171,25 @@
 
 **scalability结论**：从1608个到2752个Pattern，检索时间从0.005s到0.004s——ArangoDB AQL查询在数千Pattern规模下性能无瓶颈。
 
-#### 2.9 POC-VMS-5到VMS-6
+#### 2.9 POC-VMS-5：Pattern生成闭环验证 ✅
 
-**为什么做**：Pattern生成闭环验证+跨域迁移验证。
+**为什么做**：验证Pattern不是只能手工写——从AI实际解题的trajectory中自动提炼Pattern，加载到数据基座，检索时能被正确检索到。闭环=trajectory→提炼→加载→检索→引导新AI→新trajectory→再提炼。
 
-- [ ] POC-VMS-5：Pattern生成闭环验证（从AI trajectory自动提炼Pattern→加载→检索→引导新AI→再提炼）
+- [x] 从20个实验的thinking_live.jsonl提取69个thinking rounds
+- [x] 用pattern_extractor提炼出68个Pattern（64个AI实际使用过）
+- [x] 自动提炼Pattern加载到ArangoDB（extracted_前缀区分）
+- [x] 检索测试：自动提炼Pattern能被正确检索到（42-44个/test case）
+- [x] 闭环完整性判定：✅ PASS
+
+**关键发现**：
+- 8种基础Pattern被自动提炼：element-order(20个实例)/group-structure(20)/python-verification(10)/conjugacy(4)/cyclic(4)/normal-subgroup(4)/lagrange(4)/center(2)
+- AI最常用的是element-order和group-structure（20个实验全部使用）——这两个是最基础的群论操作
+- 闭环路径完整：trajectory→Pattern提炼→ArangoDB加载→检索→引导新AI→新AI trajectory→再提炼
+
+#### 2.10 POC-VMS-6：跨域迁移验证
+
+**为什么做**：验证虚拟群论Pattern能否引导真实群论题的解题——这是VMS的终极目标。
+
 - [ ] POC-VMS-6：跨域迁移验证（虚拟Pattern→真实群论）
 
 ### P2-低优先级（后续优化）
