@@ -8,9 +8,14 @@
 
 ## 0. 当前工作焦点
 
-**主线**：✅ **04工作线核心目标已达成**——A/B对照实验完成，检索机制效果已验证。**未来演进方向已明确**——向"系统与推理AI并行运行"的树生长引擎演进。
+**主线**：✅ **阶段2核心循环已转通**——串行多AI树生长引擎（Grove）的三个推动关系都成立。AI-1→检索→AI-2→检索→AI-3，树持续生长。
 
-**当前状态**：6.6 A/B对照实验完成（2026-08-08）。结果：A组突破率2/3，B组突破率0/3。检索机制确实帮助Solver突破卡点。详细结果见267号文档。
+**当前状态**：2026-08-08，case_253实验验证了核心循环完整转动。3个AI实例，19个节点，2条边。AI-1探索矩条件极差题→AI-2继续数值验证+多项式方法→AI-3用badly approximable性质推|D|下界。
+
+**待修复的已知问题**：
+1. `retrieve_directions`匹配逻辑——hgraph规则按`node_types`匹配，但六元组没有该字段，当前手动注入方向Q
+2. `sessions_db_reader.init()`重复提取——从-1开始导致每次extract重新提取所有thinking
+3. `serial_multi_ai.py`脚本主循环模式与"你就是主循环"认知冲突
 
 **⚠️ 未来系统面相认知（跨压缩边界必须携带）**：
 
@@ -184,17 +189,26 @@ A/B实验是树生长引擎的**简化版本**（阶段1：1个AI串行展开）
 
 > **⚠️ 以下任务基于267号"未来系统面相"认知。跨压缩边界后的AI进入本工作线时，必须先读267号文档理解这些任务的认知基础。**
 
-#### 2.9 阶段2：脉络注入——串行多AI
+#### 2.9 阶段2：脉络注入——串行多AI ✅ 核心循环已转通
 
 **为什么做**：267号面相认知指出，未来系统不需要让推理AI停下接受提示，而是启动新推理AI给它脉络继续探索。阶段2是A/B实验（阶段1）到并发展开（阶段3）的中间形态——仍然串行，但不需要"让AI停下"。
 
 **认知基础**：267号§4"从A/B实验到未来系统的演进路径"阶段2
 
-- [ ] 实现`path_constructor.py`——从根到当前节点的路径，构造给新推理AI的输入文本（"你之前已经证明了X、Y、Z，现在请继续探索方向W"）
-- [ ] 实现`node_extractor.py`——从推理AI的trajectory中提取树节点（封装DevinCliParserProvider+六元组提取）
-- [ ] 实现`tree_store.py`——ArangoDB树存储（tree_nodes/tree_edges/problems/ai_instances集合的CRUD）
-- [ ] 改造`stall_detector.py`——从"检测卡住触发注入"改为"检测AI终止触发检索分配"
-- [ ] 串行多AI实验：Solver跑完（或崩溃）→系统整理脉络→检索识别方向→启动新Solver给脉络→重复
+**完成状态（2026-08-08）**：核心循环已完整转通——AI-1→检索→AI-2→检索→AI-3，三个推动关系都成立。
+
+- [x] 实现`path_constructor.py`——从根到当前节点的路径，构造给新推理AI的输入文本
+- [x] 实现`node_extractor.py`——从推理AI的trajectory中提取树节点（封装DevinCliParserProvider+六元组提取）
+- [x] 实现`tree_store.py`——ArangoDB树存储（tree_nodes/tree_edges/problems/ai_instances集合的CRUD）
+- [x] 改造`termination_detector.py`——从"检测卡住触发注入"改为"检测AI终止触发检索分配"（移除timeout杀AI逻辑）
+- [x] 实现`sessions_db_reader.py`——从sessions.db读取thinking（替代MITM）
+- [x] 串行多AI实验：Solver跑完（或崩溃）→系统整理脉络→检索识别方向→启动新Solver给脉络→重复
+- [x] **核心循环完整转通验证**：case_253实验，3个AI实例，19个节点，2条边，三个推动关系都成立
+
+**已知问题（待修复）**：
+- [ ] `retrieve_directions`匹配逻辑有gap——hgraph规则按`node_types`匹配，但parser解析出的六元组没有`node_types`字段。当前手动注入方向Q绕过。需要修复检索pipeline从六元组推断node_types
+- [ ] `sessions_db_reader.init()`从-1开始导致重复提取——每次extract都会重新提取所有thinking，产生重复节点。需要去重或改为增量模式
+- [ ] `serial_multi_ai.py`的脚本主循环模式与"你就是主循环"认知冲突——当前实验中辅助Pipe手动执行循环，脚本只做机械部分
 
 #### 2.10 阶段3：并发展开——多AI并发
 
@@ -252,6 +266,11 @@ A/B实验是树生长引擎的**简化版本**（阶段1：1个AI串行展开）
 | 9dee6a3 | 合并6.1验证结果到realtime/hint_injector.py + 更新04任务追踪 | **代码**: `xishujuzhen/research_runtime/realtime/hint_injector.py` **文档**: `dev-docs/264-v0-2026-08-08-端到端效果验证方案-接真实Solver的实时检索提示突破闭环.md`, `任务追踪/04-端到端效果验证-接真实Solver.md` |
 | e9fd092 | 04工作线§6.5端到端集成测试：完整闭环验证通过 | **代码**: `scripts/e2e_realtime_test.py` |
 | 597fb23 | DevinCliParserProvider: 用devin cli作为parser LLM，完整实时管线跑通 | **代码**: `xishujuzhen/research_runtime/realtime/devin_cli_parser.py`, `xishujuzhen/research_runtime/realtime/test_devin_cli_parser.py`, `xishujuzhen/research_runtime/realtime/test_realtime_devin_cli.py`, `xishujuzhen/research_runtime/parser/models.py` |
+| f2d51ba | AGENTS.md: 补回缺失的"系统就是你"认知三section | **文档**: `AGENTS.md` |
+| f14acdc | 新增两个身份觉知rule：core-loop-self-check + grove-core-loop | **规则**: `.devin/rules/core-loop-self-check.md`, `.devin/rules/grove-core-loop.md` |
+| 49d61ea | 新增sleep前自检rule | **规则**: `.devin/rules/sleep-self-check.md` |
+| a3d65da | termination_detector: 移除timeout杀AI逻辑 | **代码**: `xishujuzhen/research_runtime/tree_engine/termination_detector.py` |
+| 04bcbe4 | 修复sessions_db_reader.init()：不跳过已有node | **代码**: `xishujuzhen/research_runtime/tree_engine/sessions_db_reader.py` |
 
 ---
 
