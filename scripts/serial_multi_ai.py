@@ -332,6 +332,7 @@ def run_serial_multi_ai(
         print(f"  ⚡ 辅助智能体模式：你是系统Pipe，不是旁观者。AI在thinking时你实时采集、实时整理树。不要干等。")
         print(f"  📡 thinking来源：sessions.db（不依赖MITM）")
         termination_detector.reset()
+        termination_detector.set_session_id(devin_session_id)
         start_time = time.time()
         term_event = None
 

@@ -8,18 +8,20 @@
   1. session_ended: tmux has-session返回false→AI进程已退出
   2. crash: pane含"Connection failed"/"Error"→进程崩溃
   3. response_truncated: pane最后8行含"Response truncated"→AI token用尽
-  4. timeout: thinking_readable.txt超过timeout秒无增长→可能卡死
+  4. timeout: sessions.db无新node超过timeout秒→可能卡死
 
 优先级：session_ended > crash > response_truncated > timeout
+
+注意：不再依赖thinking_readable.txt（MITM不可靠），
+改为检查sessions.db的message_nodes表是否有新node。
 """
 
 import os
 import subprocess
+import sqlite3
 import time
 from dataclasses import dataclass
 from typing import Optional
-
-from ..realtime.stall_detector import StallDetector
 
 
 @dataclass
@@ -33,7 +35,8 @@ class TerminationEvent:
 
 # 终止检测的默认超时（秒）——比stall_detector的30秒更长
 # 阶段2中AI不需要被中断，给它更多时间自然终止
-DEFAULT_TERMINATION_TIMEOUT = 120.0
+# 注意：AI的thinking block可能持续2-5分钟，所以timeout要足够长
+DEFAULT_TERMINATION_TIMEOUT = 180.0
 
 # 崩溃关键词
 CRASH_KEYWORDS = [
@@ -50,28 +53,39 @@ TRUNCATED_KEYWORDS = [
     "Send a message to continue",
 ]
 
+# sessions.db路径
+SESSIONS_DB_PATH = os.path.expanduser("~/.local/share/devin/cli/sessions.db")
+
 
 class TerminationDetector:
     """
     AI终止检测器。
 
     用法：
-        detector = TerminationDetector(timeout=120.0)
+        detector = TerminationDetector(timeout=180.0, devin_session_id="bird-sodalite")
         event = detector.check_terminated("harness-exp1", "exp1")
         if event:
             print(f"AI终止: {event.reason}")
             # 触发节点提取+检索+启动新AI...
     """
 
-    def __init__(self, timeout: float = DEFAULT_TERMINATION_TIMEOUT):
+    def __init__(self, timeout: float = DEFAULT_TERMINATION_TIMEOUT,
+                 devin_session_id: str = ""):
         """
         Args:
-            timeout: 超时阈值（秒），thinking无增长超过此值视为终止
+            timeout: 超时阈值（秒），sessions.db无新node超过此值视为终止
+            devin_session_id: devin cli的session ID（用于检查sessions.db活动）
         """
         self.timeout = timeout
-        self._last_thinking_size = 0
-        self._last_thinking_check_time = time.time()
-        self._last_thinking_mtime = 0.0
+        self.devin_session_id = devin_session_id
+        self._last_node_count = 0
+        self._last_activity_time = time.time()
+
+    def set_session_id(self, devin_session_id: str):
+        """设置devin session ID（在AI启动后回填时调用）。"""
+        self.devin_session_id = devin_session_id
+        self._last_node_count = self._get_node_count()
+        self._last_activity_time = time.time()
 
     def check_terminated(
         self,
@@ -84,8 +98,8 @@ class TerminationDetector:
 
         Args:
             tmux_session: tmux session名
-            exp_id: 实验ID（用于定位thinking_readable.txt）
-            trajectory_base: trajectory存储根目录
+            exp_id: 实验ID（未使用，保留兼容）
+            trajectory_base: trajectory存储根目录（未使用，保留兼容）
 
         Returns:
             TerminationEvent（如已终止）或None（仍在运行）
@@ -126,32 +140,42 @@ class TerminationDetector:
                         details=f"检测到截断标志: {kw}",
                     )
 
-        # 3. 检查thinking_readable.txt是否有增长
-        thinking_path = os.path.join(trajectory_base, exp_id, "mitm", "thinking_readable.txt")
-        if os.path.exists(thinking_path):
-            mtime = os.path.getmtime(thinking_path)
-            if mtime > self._last_thinking_mtime:
-                self._last_thinking_mtime = mtime
-                self._last_thinking_check_time = now
-            elif (now - self._last_thinking_check_time) > self.timeout:
+        # 3. 检查sessions.db是否有新node（替代thinking_readable.txt）
+        if self.devin_session_id:
+            current_count = self._get_node_count()
+            if current_count > self._last_node_count:
+                # 有新node→AI还在活动
+                self._last_node_count = current_count
+                self._last_activity_time = now
+            elif (now - self._last_activity_time) > self.timeout:
                 return TerminationEvent(
                     detected_at=now,
                     reason="timeout",
                     tmux_session=tmux_session,
-                    details=f"thinking_readable.txt {self.timeout:.0f}秒无增长",
+                    details=f"sessions.db {self.timeout:.0f}秒无新node",
                 )
         else:
-            # thinking_readable.txt不存在——可能MITM未启动或AI还在初始化
-            # 如果超过timeout秒文件还没出现，视为超时
-            if (now - self._last_thinking_check_time) > self.timeout:
-                return TerminationEvent(
-                    detected_at=now,
-                    reason="timeout",
-                    tmux_session=tmux_session,
-                    details="thinking_readable.txt不存在且超时",
-                )
+            # 没有devin_session_id——只靠tmux session检测
+            pass
 
         return None
+
+    def _get_node_count(self) -> int:
+        """获取当前session的node数量。"""
+        if not self.devin_session_id:
+            return 0
+        try:
+            conn = sqlite3.connect(SESSIONS_DB_PATH)
+            c = conn.cursor()
+            c.execute(
+                "SELECT count(*) FROM message_nodes WHERE session_id=?",
+                (self.devin_session_id,),
+            )
+            count = c.fetchone()[0]
+            conn.close()
+            return count
+        except Exception:
+            return 0
 
     def _tmux_session_exists(self, session_name: str) -> bool:
         """检查tmux session是否存在。"""
@@ -174,6 +198,6 @@ class TerminationDetector:
 
     def reset(self):
         """重置状态（用于监控新的AI实例）。"""
-        self._last_thinking_size = 0
-        self._last_thinking_check_time = time.time()
-        self._last_thinking_mtime = 0.0
+        self._last_node_count = 0
+        self._last_activity_time = time.time()
+        self.devin_session_id = ""
