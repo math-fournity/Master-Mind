@@ -73,7 +73,7 @@ def write_problem_file(exp_id: str) -> str:
 
 
 def launch_solver(exp_id: str) -> dict:
-    """用solver-harness启动Solver（--interactive模式）。"""
+    """用solver-harness启动Solver（--interactive模式，--no-mitm避免连接问题）。"""
     problem_file = write_problem_file(exp_id)
     cmd = [
         "python3", SOLVER_HARNESS, "launch",
@@ -81,6 +81,7 @@ def launch_solver(exp_id: str) -> dict:
         "--problem-file", problem_file,
         "--model", MODEL,
         "--interactive",
+        "--no-mitm",  # mitmproxy会导致交互模式连接失败，A/B实验不需要MITM trajectory
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     print(result.stdout)
@@ -411,14 +412,8 @@ def main():
         analyze_results()
         return 0
 
-    # 确认mitmproxy已启动
-    result = subprocess.run(
-        ["python3", SOLVER_HARNESS, "mitm", "status"],
-        capture_output=True, text=True
-    )
-    if "STOPPED" in result.stdout:
-        print("启动mitmproxy...")
-        subprocess.run(["python3", SOLVER_HARNESS, "mitm", "start"], capture_output=True, text=True)
+    # A/B实验用--no-mitm，不需要启动mitmproxy
+    #（mitmproxy会导致交互模式devin cli连接失败）
 
     # 跑实验
     results = run_experiments(args.group, args.runs)
