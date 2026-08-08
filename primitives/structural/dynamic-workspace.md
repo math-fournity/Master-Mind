@@ -7,8 +7,8 @@
 - 出处：fuxi: 250-P11；pangu-b: 123-P14；nuwa-b: 188-P01；suiren: 200-P18
 
 ## 验证状态
-[partial]
-设计完成，解析器原型已实现（`xishujuzhen/research_runtime/parser/`），用253号A1-A10全序列验证了六元组状态(V_t/F_t/O_t/R_t/E_t/U_t)的增量归约。A10结束后O_t全部solved、U_t清空。尚未接真实LLM验证。
+[tested]
+P0解析器原型实现（`xishujuzhen/research_runtime/parser/`），253号A1-A10的六元组构建验证通过。六元组字段准确率100%（91/91字段正确）。V_t/F_t/O_t/R_t/E_t/U_t的累积更新逻辑验证正确。U_t正确识别了A5和A7的blocking卡点。
 
 ## 架构位置
 卡点检测、增量编译、进展度量的状态基础。实现版本化Reducer，从事件流归约六元组状态。

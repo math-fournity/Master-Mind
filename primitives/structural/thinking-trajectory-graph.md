@@ -7,8 +7,8 @@
 - 出处：pangu-b: 122v2-P07；fuxi: 248-P3
 
 ## 验证状态
-[partial]
-设计完成，解析器原型已实现（`xishujuzhen/research_runtime/parser/`），用253号A7案例验证了从语义事件流构建10种节点类型的思维轨迹图。Mock LLM解析的节点结构和前沿节点标记测试通过。尚未接真实LLM验证。
+[tested]
+P0解析器原型实现（`xishujuzhen/research_runtime/parser/`），253号A1-A10的T_t构建验证通过。前沿节点识别率100%（10/10轮正确识别）。10种节点类型中验证了observation/candidate/subgoal/operation/resolution/stall/verification/claim等类型。13种边类型的完备性需更多案例验证。
 
 ## 架构位置
 从Agent输出中解析事件构建图。是模式匹配和卡点检测的输入。

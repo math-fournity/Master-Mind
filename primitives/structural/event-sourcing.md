@@ -7,8 +7,8 @@
 - 出处：pangu-b: 123-P17；nuwa-a: 131-P3；fuxi: 250-P9；suiren: 202-P02
 
 ## 验证状态
-[partial]
-设计完成，解析器原型已实现（`xishujuzhen/research_runtime/parser/`），用253号A7案例验证了从自然语言推理输出到14种语义事件类型的解析。Mock LLM+SymPy验证的混合架构测试通过。尚未接真实LLM验证解析准确率。
+[tested]
+P0解析器原型实现（`xishujuzhen/research_runtime/parser/`），用GLM-5.2作为真实LLM解析253号A1-A10。6项准确率指标全部超过目标值：事件类型100%、数学对象100%、SymPy验证94.1%、六元组100%、前沿节点100%、卡点类型100%。14种语义事件类型在253号案例中验证了OBSERVATION/REPRESENTATION/RESOLUTION/CLAIM/STALL/VERIFICATION等类型。
 
 ## 架构位置
 不可变事件流，是动态工作区、思维轨迹图、检查点的基础设施。
