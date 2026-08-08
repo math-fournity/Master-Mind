@@ -234,44 +234,72 @@ def collect_result(exp_id: str, group: str, run_id: int, session_id: str) -> dic
     result["trajectory_node_count"] = len(nodes)
     result["trajectory_nodes"] = nodes
 
-    # 读mitm trajectory（如果已decode）
-    mitm_path = f"{TRAJECTORY_BASE}/{exp_id}/mitm/trajectory.jsonl"
-    if os.path.exists(mitm_path):
-        result["mitm_available"] = True
-    else:
-        result["mitm_available"] = False
+    # 从tmux_pipe.log提取Solver输出（清理ANSI转义序列）
+    tmux_log_path = f"{TRAJECTORY_BASE}/{exp_id}/tmux/tmux_pipe.log"
+    solver_output = ""
+    if os.path.exists(tmux_log_path):
+        with open(tmux_log_path, errors="replace") as f:
+            raw = f.read()
+        # 清理ANSI转义序列
+        import re
+        ansi_escape = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]|\x1b\][^\x07]*\x07|\x1b\[[0-9;]*m')
+        solver_output = ansi_escape.sub('', raw)
+        # 提取关键内容（Read/Thinking/Output等行）
+        # 保留包含数学内容的行
+        lines = solver_output.split('\n')
+        meaningful_lines = []
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            # 跳过UI装饰行
+            if line.startswith('─') or line.startswith('❭') or line.startswith('GLM-5.2'):
+                continue
+            if 'Thinking' in line and 'esc to interrupt' in line:
+                continue
+            if 'Running tools' in line and 'esc to interrupt' in line:
+                continue
+            if 'Pro ·' in line:
+                continue
+            if line.startswith('⏺') or line.startswith('└'):
+                meaningful_lines.append(line)
+            elif len(line) > 20 and not line.startswith('⠀'):
+                meaningful_lines.append(line)
 
-    # 读exports
-    export_path = f"{TRAJECTORY_BASE}/{exp_id}/exports/conversation.json"
-    if os.path.exists(export_path):
-        with open(export_path) as f:
-            export_data = json.load(f)
-        result["export_available"] = True
-        # 提取最终输出
-        if isinstance(export_data, dict):
-            messages = export_data.get("messages", [])
-            if messages:
-                last_msg = messages[-1]
-                result["final_output"] = str(last_msg.get("content", ""))[:500]
+        solver_output = '\n'.join(meaningful_lines)
+        result["solver_output"] = solver_output[:2000]  # 保留前2000字符
+        result["solver_output_length"] = len(solver_output)
     else:
-        result["export_available"] = False
+        result["solver_output"] = ""
+        result["solver_output_length"] = 0
 
     # 判定最终状态
-    result["final_status"] = judge_status(nodes, result.get("final_output", ""))
+    result["final_status"] = judge_status(nodes, solver_output)
 
     return result
 
 
 def judge_status(nodes: list, final_output: str) -> str:
     """判定Solver的最终状态。"""
-    if not nodes:
+    # 优先用solver_output判定
+    if not final_output and not nodes:
         return "no_data"
 
     # 检查是否有"我不知道"或stuck关键词
-    all_content = " ".join(n.get("content", "") + n.get("thinking", "") for n in nodes if n.get("role") == "assistant")
+    all_content = final_output
+    if not all_content and nodes:
+        all_content = " ".join(n.get("content", "") + n.get("thinking", "") for n in nodes if n.get("role") == "assistant")
+
+    if not all_content:
+        return "no_data"
+
     stuck_keywords = ["我不知道", "I don't know", "无法", "不会", "stuck"]
     if any(kw in all_content for kw in stuck_keywords) and len(all_content) < 500:
         return "stuck"
+
+    # 检查是否有"Response truncated"——说明Solver在做但被截断
+    if "Response truncated" in all_content or "cut short" in all_content:
+        return "truncated"
 
     # 检查是否有证明完成标记
     completion_keywords = ["证毕", "QED", "证明完毕", "证完", "因此原命题得证"]
