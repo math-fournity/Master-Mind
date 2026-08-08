@@ -199,6 +199,7 @@
 | `c533e3c` | 更新02任务追踪文档和263号方案文档的实现状态 | `任务追踪/02-trajectory采集与solver-harness.md`, `dev-docs/263-v1-2026-08-08-Solver-Harness系统方案-完整Trajectory自动采集环境.md` |
 | `e0d04e5` | 02和03任务追踪§4补全commit hash和产出路径 | `任务追踪/02-trajectory采集与solver-harness.md`, `任务追踪/03-虚拟数学系统VMS-POC验证.md` |
 | `6512803` | 更新solver-tmux-launch元组：新增solver-harness路径A | `.devin/rules/solver-tmux-launch.md`, `.devin/skills/solver-tmux-launch/SKILL.md` |
+| `caa2966` | solver-tmux-launch元组+AGENTS.md：所有场景都必须用solver-harness | `.devin/rules/solver-tmux-launch.md`, `.devin/skills/solver-tmux-launch/SKILL.md`, `AGENTS.md` |
 
 ---
 
