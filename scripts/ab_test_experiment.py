@@ -73,7 +73,7 @@ def write_problem_file(exp_id: str) -> str:
 
 
 def launch_solver(exp_id: str) -> dict:
-    """用solver-harness启动Solver（--interactive模式，--no-mitm避免连接问题）。"""
+    """用solver-harness启动Solver（--interactive模式，mitmproxy采集thinking trajectory）。"""
     problem_file = write_problem_file(exp_id)
     cmd = [
         "python3", SOLVER_HARNESS, "launch",
@@ -81,7 +81,7 @@ def launch_solver(exp_id: str) -> dict:
         "--problem-file", problem_file,
         "--model", MODEL,
         "--interactive",
-        "--no-mitm",  # mitmproxy会导致交互模式连接失败，A/B实验不需要MITM trajectory
+        # mitmproxy采集thinking trajectory——NODE_EXTRA_CA_CERTS已解决SSL验证问题
     ]
     result = subprocess.run(cmd, capture_output=True, text=True)
     print(result.stdout)
@@ -97,10 +97,15 @@ def launch_solver(exp_id: str) -> dict:
 
 
 def stop_solver(exp_id: str):
-    """停止solver-harness实验（自动decode-all）。"""
+    """停止solver-harness实验（自动decode-all采集thinking trajectory）。"""
     cmd = ["python3", SOLVER_HARNESS, "stop", "--exp-id", exp_id]
     result = subprocess.run(cmd, capture_output=True, text=True)
     print(result.stdout)
+    # decode mitm raw数据——把protobuf解码为trajectory.jsonl
+    decode_cmd = ["python3", SOLVER_HARNESS, "decode-all"]
+    decode_result = subprocess.run(decode_cmd, capture_output=True, text=True)
+    if decode_result.stdout:
+        print(decode_result.stdout[:500])  # 只显示前500字符
 
 
 def run_b_group(run_id: int) -> dict:
@@ -273,6 +278,23 @@ def collect_result(exp_id: str, group: str, run_id: int, session_id: str) -> dic
         result["solver_output"] = ""
         result["solver_output_length"] = 0
 
+    # 从mitm trajectory.jsonl读取解码后的thinking（如果已decode）
+    mitm_traj_path = f"{TRAJECTORY_BASE}/{exp_id}/mitm/trajectory.jsonl"
+    mitm_thinking = []
+    if os.path.exists(mitm_traj_path):
+        with open(mitm_traj_path) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        entry = json.loads(line)
+                        if entry.get("content_thinking"):
+                            mitm_thinking.append(entry["content_thinking"])
+                    except json.JSONDecodeError:
+                        pass
+    result["mitm_thinking_count"] = len(mitm_thinking)
+    result["mitm_thinking"] = mitm_thinking  # 完整的thinking内容列表
+
     # 判定最终状态
     result["final_status"] = judge_status(nodes, solver_output)
 
@@ -440,8 +462,15 @@ def main():
         analyze_results()
         return 0
 
-    # A/B实验用--no-mitm，不需要启动mitmproxy
-    #（mitmproxy会导致交互模式devin cli连接失败）
+    # 确认mitmproxy已启动（A/B实验需要mitmproxy采集thinking trajectory）
+    result = subprocess.run(
+        ["python3", SOLVER_HARNESS, "mitm", "status"],
+        capture_output=True, text=True
+    )
+    if "STOPPED" in result.stdout:
+        print("启动mitmproxy...")
+        subprocess.run(["python3", SOLVER_HARNESS, "mitm", "start"], capture_output=True, text=True)
+        time.sleep(3)  # 等待mitmproxy完全启动
 
     # 跑实验
     results = run_experiments(args.group, args.runs)

@@ -187,6 +187,7 @@ def start_shared_mitmproxy():
         f"mitmdump --listen-port {MITM_PORT} "
         f"--allow-hosts \"{MITM_ALLOW_HOSTS}\" "
         f"-s {MITM_ADDON} --set ssl_insecure=true "
+        f"-w {TRAJECTORY_BASE}/_shared/mitm_flows.mitm "
         f"2>{stderr_log}"
     )
 
