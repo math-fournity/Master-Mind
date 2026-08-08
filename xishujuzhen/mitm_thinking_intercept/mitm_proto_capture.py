@@ -387,10 +387,10 @@ class ProtoCapture:
         # 保存正在流式处理的parser（用于response hook中读取累积的raw bytes）
         self.active_parsers = {}  # flow_id → parser
 
-    def _get_workdir_mapping(self):
-        """获取work_dir映射表（缓存60秒）。"""
+    def _get_workdir_mapping(self, force_refresh=False):
+        """获取work_dir映射表（缓存10秒，可强制刷新）。"""
         now = time.time()
-        if self.workdir_mapping_cache is None or (now - self.workdir_mapping_time) > 60:
+        if force_refresh or self.workdir_mapping_cache is None or (now - self.workdir_mapping_time) > 10:
             self.workdir_mapping_cache = _build_workdir_mapping()
             self.workdir_mapping_time = now
         return self.workdir_mapping_cache
@@ -418,6 +418,15 @@ class ProtoCapture:
         req_content = flow.request.content or b""
         workdir_mapping = self._get_workdir_mapping()
         exp_id = _match_exp_from_req(req_content, workdir_mapping)
+
+        # 匹配失败时强制刷新缓存重试（解决新实验刚启动时缓存过期问题）
+        if exp_id is None and len(req_content) > 1000:
+            workdir_mapping = self._get_workdir_mapping(force_refresh=True)
+            exp_id = _match_exp_from_req(req_content, workdir_mapping)
+
+        # 调试日志：记录匹配过程
+        self.log.write(f"\n[DEBUG responseheaders] counter={self.counter+1} req_size={len(req_content)} exp_id={exp_id}\n")
+        self.log.flush()
 
         self.counter += 1
         ts = datetime.now().strftime("%H%M%S_%f")
