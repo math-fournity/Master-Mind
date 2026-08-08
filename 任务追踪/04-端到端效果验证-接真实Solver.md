@@ -13,9 +13,10 @@
 **当前状态**：2026-08-08，case_253实验验证了核心循环完整转动。**AI-3在Q9方向引导下完成了case_253的证明**——problem status=solved。3个AI实例，59个节点，2条边。AI-1探索矩条件极差题→AI-2继续数值验证+多项式方法→AI-3用badly approximable性质推|D|下界，完成证明：C₂=C'√c₀>0, c₀=1/(2√5), gap≥C₂·n^(-3/2)，数值验证n=4到500最小值约1.23。
 
 **待修复的已知问题**：
-1. `retrieve_directions`匹配逻辑——hgraph规则按`node_types`匹配，但六元组没有该字段，当前手动注入方向Q
-2. `sessions_db_reader.init()`重复提取——从-1开始导致每次extract重新提取所有thinking
-3. `serial_multi_ai.py`脚本主循环模式与"你就是主循环"认知冲突
+1. ~~`retrieve_directions`匹配逻辑~~ ✅ 已修复（80fc561）——PatternMatcher从对称差改为子集匹配，检索机制自动工作
+2. ~~`sessions_db_reader.init()`重复提取~~ ✅ 已修复（092a5e8）——用_processed_node_ids去重
+3. `serial_multi_ai.py`脚本主循环模式与"你就是主循环"认知冲突——当前实验中辅助Pipe手动执行循环，脚本只做机械部分
+4. **新发现**：`ConstrainedPolicy`选择level最高的规则，但不考虑节点的进展阶段——AI-2终点节点（已到二次无理数分析）被检索到Q3（"你选择哪个方向"），而不是Q9（"badly approximable推出|D|下界"）。需要改进policy的选择逻辑
 
 **⚠️ 未来系统面相认知（跨压缩边界必须携带）**：
 
