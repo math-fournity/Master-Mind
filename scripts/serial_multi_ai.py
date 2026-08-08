@@ -210,7 +210,7 @@ def run_serial_multi_ai(
     tree_store = TreeStore()
     hgraph = create_case_253_graph()
     path_constructor = PathConstructor(tree_store)
-    termination_detector = TerminationDetector(timeout=120.0)
+    termination_detector = TerminationDetector(timeout=300.0)  # 5分钟无新node才判定终止
 
     # 如果problem已存在，先删除重建
     existing = tree_store.get_problem(problem_id)
