@@ -197,6 +197,8 @@
 | `47e80e6` | solver-harness v1实施：重写主控脚本（全局共享mitmproxy+事后批量解码） | `xishujuzhen/solver_harness/solver_harness.py` |
 | `1e7f41c` | fix: decode-all改用_req文件中的work_dir匹配实验（不用session_id UUID） | `xishujuzhen/solver_harness/solver_harness.py` |
 | `c533e3c` | 更新02任务追踪文档和263号方案文档的实现状态 | `任务追踪/02-trajectory采集与solver-harness.md`, `dev-docs/263-v1-2026-08-08-Solver-Harness系统方案-完整Trajectory自动采集环境.md` |
+| `e0d04e5` | 02和03任务追踪§4补全commit hash和产出路径 | `任务追踪/02-trajectory采集与solver-harness.md`, `任务追踪/03-虚拟数学系统VMS-POC验证.md` |
+| `6512803` | 更新solver-tmux-launch元组：新增solver-harness路径A | `.devin/rules/solver-tmux-launch.md`, `.devin/skills/solver-tmux-launch/SKILL.md` |
 
 ---
 
