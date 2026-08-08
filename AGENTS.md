@@ -891,6 +891,8 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 - 审计标准建设（已完成）：`dev-docs/183-199号` + `xishujuzhen/audit/`
 - Solver tmux启动规范：`.devin/rules/solver-tmux-launch.md` + `.devin/skills/solver-tmux-launch/SKILL.md`
 - Grove核心循环：`.devin/rules/grove-core-loop.md`（always-on，三个推动关系+辅助智能体SOP）
+- 核心循环自检：`.devin/rules/core-loop-self-check.md`（always-on，随时检查自己是否该按核心循环行动）
+- 生动性原则：`.devin/rules/vividness-principle.md`（always-on，SOP和场景触发式规则必须生动）
 - 树生长实验操作流程：`.devin/skills/tree-growth-experiment/SKILL.md`（实验前/中/后Checklist）
 - Solver并发约束：`.devin/rules/solver-concurrency.md`（最多2并发，静态+动态编排）
 - 树生长引擎模块：`xishujuzhen/vms/tree_engine.py`（主循环）、`tree_store.py`（ArangoDB CRUD）、`node_extractor.py`（节点提取）、`retriever.py`（方向检索）
