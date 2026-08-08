@@ -206,6 +206,32 @@
 - guided的thinking更深入（多28%），但rounds更少——方向Q让AI少走弯路
 - 跨域迁移的核心可行性：Pattern的Q字段描述的是数学操作（如"计算元素阶"/"用Lagrange定理"），不是符号特定的指令
 
+#### 2.10.1 POC-VMS-6v2：动态引导A/B对照（难题+胜率验证）✅
+
+**为什么做**：VMS-6的5道简单题bare和guided都100%——无法证明guided有胜率优势。需要用裸跑AI会失败的难题+真正的动态引导（不是静态写死Q）+考察胜率。
+
+**动态引导机制**（真正的guide动作）：
+- guided版AGENTS.md加入"每步推理后读hint.txt"指令
+- 辅助Pipe实时观察thinking → 检索方向Q → 写hint.txt到AI工作目录
+- AI读hint.txt → 确认/修正方向 → 继续解题
+- 这是动态的、过程中的引导，不是静态写死在题目里
+
+**6道难题A/B对照结果**：
+
+| 题目 | bare | guided |
+|---|---|---|
+| S₄ Sylow定理 | ❌无proof | ✅完整proof |
+| A₄半直积构造 | ❌无proof | ✅完整proof |
+| D₆类方程 | ❌无proof | ✅完整proof |
+| S₃→Z₂同态 | ❌无proof | ✅完整proof |
+| S₄合成列 | ❌无proof | ✅完整proof |
+| Q₈≠D₄ | ❌无proof | ✅完整proof |
+
+**bare胜率: 0/6 = 0%，guided胜率: 6/6 = 100%，胜率差: 100%**
+
+**bare失败原因**：token_limit终止，来不及写proof.md
+**guided成功原因**：hint.txt引导AI更快切入正题，省去试错，留出token写proof.md
+
 ### P2-低优先级（后续优化）
 
 #### 2.8 VMS长期扩展
