@@ -83,6 +83,9 @@ def retrieve_directions(db, task_type: str, group_order: int, group_type: str) -
       // 硬筛：task_type必须匹配
       FILTER det.task_type == 'any' OR det.task_type == @task_type
 
+      // 硬筛：Level阈值——过滤掉过于基础的Pattern（Level<0.15）
+      FILTER p.Level >= 0.15
+
       // 软筛：group_order条件匹配度
       LET go_cond = det.group_order
       LET go_match = go_cond == null
