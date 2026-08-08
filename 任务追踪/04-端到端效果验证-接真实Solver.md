@@ -10,9 +10,9 @@
 
 **主线**：接真实Solver跑端到端效果验证——验证"检索机制选出提示后，AI是否真的能突破卡点"。
 
-**当前状态**：方案设计阶段。前置工作（01工作线的P0+P1原型验证、02工作线的solver-harness实施）尚未全部完成。
+**当前状态**：前置条件全部满足，可以开始实施。01工作线P1原语升级tested完成（tested 35/72），02工作线solver-harness v1实施完成（端到端测试通过，所有场景统一用solver-harness）。
 
-**下一步**：等待02工作线solver-harness实施完成，再启动本工作线的实施。
+**下一步**：从§2.3开始实施——搭建实时解析管线（Solver输出 → trajectory采集 → 实时parser → ParseResult流）。需要先调查01工作线的parser模块接口和02工作线的solver-harness数据产物格式。
 
 ---
 
@@ -30,19 +30,20 @@
 
 ## 2. 待办清单（按优先级排序）
 
-### P0-前置条件（必须先完成）
+### P0-前置条件（必须先完成） ✅
 
-#### 2.1 等待01工作线P1原语升级tested
+#### 2.1 等待01工作线P1原语升级tested ✅
 
 **为什么做**：本工作线要用完整的检索机制（P0+P1全部模块），如果P1原语还是partial（只在253号单一案例上验证），在新案例上跑可能出问题。先在01工作线完成P1升级tested，确保检索机制本身可靠。
 
-- [ ] 01工作线§2.4-2.6完成（activation-score权重泛化、pattern-matching容差完备性、P1原语升级tested）
+- [x] 01工作线P1原语升级tested完成（tested 35/72，8个P1原语在数论和组合2个新案例上全部通过）
 
-#### 2.2 等待02工作线solver-harness实施完成
+#### 2.2 等待02工作线solver-harness实施完成 ✅
 
 **为什么做**：本工作线需要实时采集Solver的trajectory（thinking+tool_calls+results），这是02工作线solver-harness的核心能力。没有solver-harness，无法实时获取Solver的推理过程，也就无法实时解析和检索。
 
-- [ ] 02工作线solver-harness实施完成（tmux启动devin cli + trajectory自动采集）
+- [x] 02工作线solver-harness v1实施完成（全局共享mitmproxy + 事后批量解码 + 端到端测试通过）
+- [x] 所有场景统一用solver-harness（rule+skill+AGENTS.md硬约束已写入）
 
 ### P1-核心实施
 
