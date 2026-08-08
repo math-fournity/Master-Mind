@@ -131,10 +131,10 @@
 
 - [x] 修复tree_engine.py——AI终止后在叶节点检索+启动新AI（推动关系3代码已实现）
 - [x] 单元测试验证推动关系3代码逻辑
-- [ ] 用更难的题（AI会token_limit的题）验证完整循环——当前虚拟题对GLM-5.2太简单，全部solution_found，停机条件先触发
-- [ ] 作为辅助Pipe手动执行循环——不启动tree_engine.py主循环，而是手动调用工具：读thinking→提取节点→写入ArangoDB→检索→构造脉络→启动新AI
-- [ ] 验证树有多层分叉（depth>2）
-- [ ] 验证循环完整性：三个推动关系都成立
+- [x] 用更难的题（AI会token_limit的题）验证完整循环——VG_067_conjugacy_class_computation，AI-1 token_limit触发推动关系3
+- [x] 作为辅助Pipe手动执行循环——不启动tree_engine.py主循环，而是手动调用工具：读thinking_live.jsonl→提取节点→写入ArangoDB→检索→构造脉络→启动新AI
+- [x] 验证树有多层分叉（depth=8，从d0到d8）
+- [x] 验证循环完整性：三个推动关系都成立（2个AI有方向Q，8个节点有thinking，1个叶节点retrieval_done+1个动态扩展AI）
 
 #### 2.6 POC-VMS-2评估报告
 
