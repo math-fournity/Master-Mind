@@ -16,23 +16,18 @@
 **当前状态**：
 - POC-VMS-0到POC-VMS-6v2全部完成（核心循环、可扩展性、Pattern闭环、跨域迁移、动态引导胜率验证）
 - POC-VMS-7g泛化POC（v1简单题版）完成——验证了"翻译语言"hint在群论和数论两道题上都被AI采纳
-- POC-VMS-7g-v3（奥赛难题版）正在进行——10个bare AI在跑OlympiadBench题，验证bare是否会失败
-- 279号题目侧写系统设计方案已落盘——正在讨论"侧写什么维度"的核心问题
+- POC-VMS-7g-v3（奥赛难题版）完成——**高Level静态hint没有胜出**（bare 0% vs knowledge 25% vs highlevel 12%）
+- 279号题目侧写系统设计方案已落盘（2-Pass工作流），作为05号子任务线，低优先级不着急做
 
-**当前讨论焦点**：题目侧写（Profiling）系统应该侧写什么维度？用户指出需要从"将来需要什么查询"反推侧写维度，而不是"我能想到什么就列什么"。当前识别出的核心查询场景：
-1. POC实验选题——"找一道需要translation思维模式的题，bare AI会在卡点X失败"
-2. 泛化验证配对——"找两道题，思维模式相同但表面特征完全不同"
-3. Level梯度验证——"找同一思维模式下，不同难度的题"
-4. 实验结果追踪——"这道题bare失败了吗？给了translation hint后成功了吗？"
-
-从这些场景反推出的核心侧写维度：卡点、突破方向、表面特征指纹。
+**当前焦点**：POC-VMS-7g-v3结果表明静态高Level hint在奥赛题上没有胜率优势。需要分析原因并决定下一步方向。
 
 **⚠️ 双重角色提醒**：运行POC-VMS实验时，你有双重角色——Master Agent（研发负责人）和辅助智能体（系统Pipe）。详见AGENTS.md"AI的双重角色"章节。
 
-**下一步**：
-1. 继续讨论侧写维度设计（用户正在探讨中）
-2. 等10个bare AI跑完后，检查哪些题bare失败了——那些题就是高Level hint胜率验证的候选题
-3. 对bare失败的题跑knowledge hint和highlevel hint对照
+**下一步**（待与用户讨论）：
+1. 动态高Level引导——在AI解题过程中观察thinking，当AI卡住时实时注入"翻译语言"方向hint（而非静态一次性给）
+2. 公平的knowledge hint——只给定理名称，不给解答步骤
+3. 选择"卡在翻译"的题——选那些bare AI明确卡在"不知道往哪个方向走"的题，而不是卡在"计算太复杂"的题
+4. 题目侧写系统（05任务追踪）——先建设侧写系统，用侧写数据精准选题
 
 ---
 
@@ -281,11 +276,15 @@
 - 结果：6个AI都写了proof（题目对GLM-5.2仍不够难）
 - 局限：GLM-5.2对本科群论/数论题太强，bare自己就能想到翻译
 
-**POC-VMS-7g-v3（奥赛难题版）进行中**：
+**POC-VMS-7g-v3（奥赛难题版）完成**：
 - 从OlympiadBench选了10道奥赛题（Algebra/Number Theory/Combinatorics/Geometry各领域）
-- 10个bare AI已启动（用户允许10并发），正在跑
-- 目标：找出bare AI会失败的题——那些题就是高Level hint胜率验证的候选题
-- 同时还有2个旧AI在跑（v3-01-bare和v3-01-knowledge，做1+2^x+2^{2x+1}=y²这道题）
+- 10个bare AI并发跑（用户允许10并发）
+- bare真实通过率2/11=18%（其中1个是假成功——写了proof但答案错误）
+- 对8道bare失败的题跑knowledge和highlevel对照（16个AI并发）
+- **结果**：bare 0/8=0%，knowledge 2/8=25%，highlevel 1/8=12%
+- **高Level hint没有胜出**——反而比knowledge差。原因：highlevel hint太抽象，AI不知道具体往哪翻译；knowledge hint太详细（不公平对照）；6道题三组全失败（题目太难）
+- **关键发现**：静态高Level hint在奥赛题上没有胜率优势。高Level hint的价值可能需要动态注入才能体现——在AI卡住时实时给方向，而不是开头一次性给
+- 详见280号文档
 
 **相关文档**：
 - 276号：POC-VMS-7方案设计（6道群论题，A/B/C三组对照）
@@ -413,8 +412,9 @@
 10. **读dev-docs/277号**——高Level hint泛化性设计哲学（用户思想记录，POC-VMS-7的真正目标）
 11. **读dev-docs/278号**——如何找到两道表面不同但共享思维模式的题（泛化POC方法论）
 12. **读dev-docs/279号**——题目侧写系统设计（如果正在做侧写相关的工作）
-13. **看§2待办清单**——选择下一步要做的事
-14. **开始工作前**——确认worktree隔离规则（AGENTS.md顶部）、数据库隔离（`echo $ARANGO_DB`输出`xishujuzhen_math_glm52`）
+13. **读dev-docs/280号**——POC-VMS-7g-v3奥赛难题版A/B/C对照结果（高Level静态hint没有胜出）
+14. **看§2待办清单**——选择下一步要做的事
+15. **开始工作前**——确认worktree隔离规则（AGENTS.md顶部）、数据库隔离（`echo $ARANGO_DB`输出`xishujuzhen_math_glm52`）
 
 **工作完成后**：
 - 更新本文件的对应条目状态
