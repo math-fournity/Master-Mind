@@ -289,16 +289,25 @@ def run_group_a(exp_id: str, model: str, max_time: int, no_mitm: bool = False):
             results.append(result)
 
             if result.selected_q and not budget.is_hint_exhausted():
-                print(f"  [{elapsed:.0f}s] 选中提示: {result.selected_q[:80]}...")
+                print(f"  [{time.time()-start_time:.0f}s] 选中提示: {result.selected_q[:80]}...")
                 success = inject_hint_via_tmux(tmux_session, result.selected_q)
                 result.injected = success
                 budget.consume_hint()
                 injected_for_this_round = True
-                print(f"  [{elapsed:.0f}s] 注入{'成功' if success else '失败'}")
+                print(f"  [{time.time()-start_time:.0f}s] 注入{'成功' if success else '失败'}")
             elif result.error:
-                print(f"  [{elapsed:.0f}s] 解析错误: {result.error}")
+                print(f"  [{time.time()-start_time:.0f}s] 解析错误: {result.error}")
             else:
-                print(f"  [{elapsed:.0f}s] 未选中提示（无匹配规则或预算耗尽）")
+                print(f"  [{time.time()-start_time:.0f}s] 未选中提示（无匹配规则或预算耗尽）")
+                # 打印解析结果摘要用于调试
+                if result.parse_result:
+                    pr = result.parse_result
+                    print(f"    parse_confidence={pr.parse_confidence}, events={len(pr.semantic_events)}")
+                    print(f"    six_tuple: V={len(pr.six_tuple.V_t)}, F={len(pr.six_tuple.F_t)}, O={len(pr.six_tuple.O_t)}, R={len(pr.six_tuple.R_t)}")
+                if result.matched_rules:
+                    print(f"    matched_rules: {len(result.matched_rules)}")
+                else:
+                    print(f"    matched_rules: 0（无匹配规则）")
 
             round_index += 1
             time.sleep(5)
