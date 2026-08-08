@@ -634,83 +634,58 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 > - **与TODO/Memory Section的区别**：TODO是长期待办清单，Memory Section是长期认知基线，本节是**当前正在做什么、做到哪了、下一步是什么**的临时快照。
 > - **压缩后恢复**：压缩后的AI读到本节，应能立即理解当前任务的全貌并继续工作，不需要重新探索上下文。
 
-### 当前任务：AI缺位修复三方案实施（203-205号 + 206-208号Check List）
+### 当前任务：虚拟数学系统POC验证（POC-VMS系列）
 
-**任务背景**：审计标准建设（197号方案5个Phase）已全部完成。用户指出系统有两个地方没有积极引入AI：运行前（知识吸收，201号）和运行中（引导决策，202号），以及提示作弊问题（200号）。三份方案文档（203/204/205号）和三份细化Check List（206/207/208号）已全部完成。现在开始实施。
+**任务背景**：256-v4原语化论文重构完成（27个文件+README导航），检索系统技术缺口分析完成（5个缺口+已有技术对照——Rete/MiniCon同构）。用户提出构造HoTT同构虚拟数学系统，批量生成Pattern验证超大规模基座检索能力。方案已落盘（`原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md`）。
+
+**当前阶段**：POC-VMS-0（虚拟群论基础设施）——尚未开始实现
 
 **已完成的工作**：
 
-1. **审计标准建设全部完成**（197号方案5个Phase全部完成）：
-   - Phase A: 审计脚本框架（xishujuzhen/audit/）
-   - Phase B: P0审计自动化+回测（184/194/195脚本化，5个历史run回测）
-   - Phase C: 12份文档60项待细化全部落实（subagent提取代码值）
-   - Phase D: P1-P3标准脚本化（185-193共9个标准全部脚本化）
-   - Phase E: 5个复杂run生成+审计+回测+标准修订（198/199号）
-   - 12个标准全部可自动执行，5个复杂run回测发现4个标准修订项并全部修复
+1. **256-v4原语化论文重构**（已commit）：
+   - 27个自包含Markdown文件+README导航，8个子目录（00-基础概念~08-参考文献）
+   - 文件带序号前缀，全部交叉引用已更新
+   - 新增facet-4（树的生长）+面相导航+02-检索系统的技术缺口分析+03-虚拟数学系统POC方案
 
-2. **Solver tmux启动规范固化**（已commit）：
-   - Rule: .devin/rules/solver-tmux-launch.md（always-on硬约束）
-   - Skill: .devin/skills/solver-tmux-launch/SKILL.md（7步工作流）
-   - AGENTS.md硬约束5更新：禁止exec后台/nohup启动GuidedLoop
+2. **检索系统技术缺口分析**（已commit，`07-验证/02-检索系统的技术缺口分析.md`）：
+   - 5个缺口：状态提取/模式匹配/recall/Pattern生成闭环/覆盖度
+   - 已有技术对照：Rete算法（1982, Forgy）/MiniCon（2001）/K-D Tree/CORGI（2025）
+   - 缺口2难度从"高"降为"中"——已有算法解决同构问题，工作是适配而非设计
+   - "形式化先行+AI收尾"架构已有验证（Rete/UL 100,000+规则）
 
-3. **AI缺位问题诊断三文档**（200/201/202号，已commit）：
-   - 200号：提示作弊问题分析——5条硬编码提示中2条给知识，无泄漏审计/truth_vault/增益归因
-   - 201号：AI在知识吸收中的缺位——三层提取未常态化，L4哲学层不存在
-   - 202号：AI在运行过程中的缺位——步骤7-10全部经典计算，无AI引导者
+3. **虚拟数学系统POC方案**（已commit，`07-验证/03-虚拟数学系统POC方案.md`）：
+   - HoTT同构虚拟群论：4层构造（虚拟群实例/虚拟定理/虚拟题目/虚拟思维模式）
+   - 批量生成：1000虚拟群×8题×6Pattern ≈ 48,000个Pattern
+   - POC-VMS 7阶段方案（VMS-0到VMS-6）
 
-4. **AI缺位修复三方案**（203/204/205号，已commit）：
-   - 203号：提示作弊解决方案——提示分级+泄漏审计+truth_vault+诚实降级实验
-   - 204号：高阶知识提取解决方案——L1-L3 pipeline化+L4新建+增益验证
-   - 205号：运行过程AI引导解决方案——AI诊断+AI编译+多轮规划+成本控制
+**下一步**：
+1. **POC-VMS-0**：实现虚拟群生成器（程序生成不同规模/结构的虚拟群，验证群公理）
+2. **POC-VMS-0**：实现虚拟题目生成器（子群/正规子群/同态/循环性/中心/共轭类）
+3. **POC-VMS-0**：裸跑AI baseline测试（10道虚拟题，记录无提示下AI表现）
+4. **POC-VMS-1**：预演模式+Pattern生成（从虚拟QA序列提炼Pattern）
 
-5. **三份细化Check List**（206/207/208号，已commit）：
-   - 206号：203提示作弊CheckList（3 Phase/15项，D1-D4深度等级）
-   - 207号：204高阶知识CheckList（3 Phase/20项）
-   - 208号：205运行过程AI引导CheckList（5 Phase/24项）
-
-**关键调查发现**：
-- devin cli的sessions.db已记录AI完整trajectory（thinking + tool_calls + tool结果 + 性能指标）
-- `--export <PATH>`每turn自动导出ATIF-v1.7 JSON
-- Solver必须在外部目录运行，否则工作系统规则会劫持其行为
-- web_search必须禁用——搜索是作弊
-- leakage_audit.py四门审计已实现但GuidedLoop未调用
-- visibility_labels.py角色隔离已定义但GuidedLoop未使用
-- batch_extractor.py三层提取已设计但只在POC3做过一次
-- stall_detector.py 7种卡点全部关键词+阈值检测，不理解Solver思路内容
-
-**下一步（正在执行）**：
-按206/207/208号Check List实施三方案，执行顺序：
-1. **203-A**（提示分级+泄漏审计）→ 先做，205-B依赖它
-2. **204-A**（L1-L3 pipeline化）→ 与203-A并行
-3. **203-B**（truth_vault隔离）→ 203-A之后
-4. **205-A**（步骤7 AI诊断）→ 203-A之后
-5. **205-B**（步骤10 AI编译+泄漏审计）→ 203-A完成后
-6. **204-B**（L4哲学层新建）→ 204-A之后
-7. **205-C**（多轮智能规划）→ 205-A/B之后
-8. **205-D**（成本控制）→ 205-A/B/C并行
-9. **203-C + 204-C + 205-E**（三组对比实验）→ 共享同一问题集，最后做
+**跨Session恢复指引**：
+- 新Session读本节 → 知道POC-VMS是当前活跃工作
+- 执行 `cognition_checkpoint_math.py start --seeds virtual_math_system,poc_vms_pipeline` → 加载虚拟数学系统认知
+- 读 `dev-docs/257-v0-2026-08-08-POC-VMS进度追踪.md` → 知道每个阶段的详细状态
+- 读 `原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md` → 知道完整方案
 
 **关键文件索引**：
-- AI数学工程数据基座转向：dev-docs/231-v0-2026-08-07-AI数学工程的数据基座转向-从语料喂养到双重知识生产.md（把224—230号讨论推进为“数学语料双重生产”：黑盒AI能力与白盒工程数据基座在经典计算闭环中合流）
-- AI数学工程系统最完整技术说明书：dev-docs/239-v0-2026-08-07-AI数学工程系统-最完整技术说明书.md（基于218-237全部讨论的结构化参考手册：理念层/核心概念/技术争论双方观点/路线选择理由/工程实现规范。236号是“我们理解了什么”，239号是“系统是什么样子的”）
-- AI数学工程框架讨论完整链条（218-237号）：218(非特定性危机)→219-221(拓扑化)→222(形式化边界)→223(外骨骼)→224(纤维化)→225(语义场证书)→226-v0/v1(数学化)→227(反绑架)→228-codex/glm5.2(工程化vs数学化)→229(结合)→230(综合v1)→231(数据基座)→232(评价)→233(边界推进机制)→234(五问题重审)→235(综合v2)→236(最终综合框架)→237(POC认知超越人话版)
-- 对238与239的分析：dev-docs/240-v0-2026-08-07-对238与239的分析.md（238有empirical core提问激活但非特定性危机未修复，239有深层结构形式化边界但未测试且丢了提问激活；建议先跑guided_003再建239闭环基础设施）
-- 系统设计原语目录方案：dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md（理念层三面相：两种计算/语料双路径/Pipeline网络中的Pipe；系统设计过程两面相：实践涌现/知识选取；提出primitives/目录，每个原语一个文件，带验证状态tested/untested/borrowed_unoperationalized；第一批写5个核心原语）
-- 原语目录重构方案：dev-docs/244-v0-2026-08-07-原语目录重构方案.md（区分原语/概念/性质标准三层；原语三判据：可执行性+可验证性+构造性；26个文件重组为primitives/16个+concepts/7个+criteria/3个）
-- 面相独立目录与管理元组方案：dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md（面相独立为第四层facets/；5个面相（系统1/2/3+过程A/B）；4个管理元组设计；正向引用关系记录）
-- 设计过程自举——原语集合作为多约束求解的域：dev-docs/246-v0-2026-08-07-设计过程自举-原语集合作为多约束求解的域.md（用户提出系统设计是自举的CSP，AI修正为开放世界CSP：原语=domain，面相/标准=constraint，每代系统=solution；新增面相C+概念design-as-constraint-solving）
-- AI缺位诊断：dev-docs/200(作弊), 201(知识吸收), 202(运行过程)
-- 修复方案：dev-docs/203(作弊方案), 204(高阶知识方案), 205(AI引导方案)
-- Check List：dev-docs/206(203 CL), 207(204 CL), 208(205 CL)
-- 审计标准：dev-docs/183-195(12份标准), 196(回测), 197(方案), 198(复杂run设计), 199(回测报告)
-- 审计代码：xishujuzhen/audit/（framework.py + cli.py + standards/std_184-195）
-- 审计元组：.devin/rules/audit-trigger.md + .devin/skills/audit-module/SKILL.md
-- tmux元组：.devin/rules/solver-tmux-launch.md + .devin/skills/solver-tmux-launch/SKILL.md
-- 核心代码：runtime/guided_loop.py, runtime/devin_cli_adapter.py, heuristics/leakage_audit.py, state_reducer/controller_belief.py, verification/stall_detector.py
-- Solver工作目录（当前模式）：/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/（每个实验独立目录，运行后保留全部记录）
-- Solver工作目录（旧模式，legacy）：/data/math-agent-glm5.2-{1,2,3}/AGENTS.md
-- Solver AGENTS.md模板：templates/solver_agents_md.md
-- 验证run：runs/run_20260806_{verify_001, guided_001-004, complex_001-005}/
+- 虚拟数学系统POC方案：`原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md`
+- 检索系统技术缺口分析：`原语化AI数学工程系统设计/07-验证/02-检索系统的技术缺口分析.md`
+- POC系列方案（原有）：`原语化AI数学工程系统设计/07-验证/01-POC系列方案.md`
+- POC-VMS进度追踪：`dev-docs/257-v0-2026-08-08-POC-VMS进度追踪.md`
+- 原语化论文导航：`原语化AI数学工程系统设计/README.md`
+- AI数学工程系统最完整技术说明书：`dev-docs/239-v0-2026-08-07-AI数学工程系统-最完整技术说明书.md`
+- AI数学工程数据基座转向：`dev-docs/231-v0-2026-08-07-AI数学工程的数据基座转向-从语料喂养到双重知识生产.md`
+- AI缺位修复三方案（已完成）：`dev-docs/203/204/205号` + Check List `206/207/208号`
+- 审计标准建设（已完成）：`dev-docs/183-199号` + `xishujuzhen/audit/`
+- Solver tmux启动规范：`.devin/rules/solver-tmux-launch.md` + `.devin/skills/solver-tmux-launch/SKILL.md`
+- 核心代码：`runtime/guided_loop.py`, `runtime/devin_cli_adapter.py`, `heuristics/leakage_audit.py`, `state_reducer/controller_belief.py`, `verification/stall_detector.py`
+- Solver工作目录（当前模式）：`/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/`
+- Solver AGENTS.md模板：`templates/solver_agents_md.md`
+- 验证run：`runs/run_20260806_{verify_001, guided_001-004, complex_001-005}/`
+
 
 ## TODO
 
@@ -730,11 +705,46 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 - [ ] **POC-7方向**：依赖POC-6修正版，在更多领域验证"发现型"问题增量
 - [ ] **P1知识搜集**：MathLib/OEIS/数学家全集/教材/竞赛题等（109号方案剩余来源）
 
+### POC-VMS系列（虚拟数学系统POC验证）
+
+> 方案详见 `原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md`，进度详见 `dev-docs/257-v0-2026-08-08-POC-VMS进度追踪.md`
+
+- [ ] **POC-VMS-0**：虚拟群论基础设施（生成器+题目+baseline）
+- [ ] **POC-VMS-1**：预演模式+Pattern生成（验证缺口4）
+- [ ] **POC-VMS-2**：小规模检索验证10个Pattern（验证缺口1+2）
+- [ ] **POC-VMS-3**：中规模检索验证1000个Pattern（验证Rete/MiniCon scalability）
+- [ ] **POC-VMS-4**：大规模检索验证10,000+Pattern（核心验证）
+- [ ] **POC-VMS-5**：Pattern生成闭环验证（验证缺口4闭环）
+- [ ] **POC-VMS-6**：跨域迁移验证（虚拟Pattern能否用于真实群论）
+
 > 数据丢失修复（事件2026-08-05-A）详见 dev-docs/172。
 
 ## Memory Section
 
 > 本节记录跨 Session 需要保持的认知。
+
+### 虚拟数学系统方法论（POC-VMS）
+
+构造HoTT同构虚拟数学系统，用于POC验证检索系统技术方案。核心原理：虚拟系统和真实数学结构相同（HoTT同构），AI在虚拟系统中做真实推理（逻辑推理过程真实，对象虚拟）。像虚拟世界测试自动驾驶——物理引擎虚拟，AI决策过程真实。
+
+**关键技术映射**：
+- Pattern匹配 ≅ Rete算法（alpha network=形式化粗筛，beta network=AI精筛）
+- Pattern匹配 ≅ MiniCon算法（快速排除+详细检查）
+- "形式化先行+AI收尾"架构已有验证（Rete/UL 100,000+规则，MiniCon大量视图）
+- 辅助智能体是最后一个环节——看到形式化处理后的结构化状态+候选Pattern集合
+
+**5个技术缺口**（四代合并后仍存在）：
+1. 状态提取（形式化+AI混合，难度中）
+2. 模式匹配（算法适配缺口，难度中——Rete/MiniCon已有同构方案）
+3. recall检索（架构缺口，难度高——最大技术空白）
+4. Pattern生成闭环（工程缺口，难度中）
+5. 覆盖度（根本性缺口，难度极高——虚拟系统可快速积累Pattern缓解）
+
+**实现路径**：虚拟群论（结构简单/证明丰富/AI有能力/可批量生成）→ 1000虚拟群×8题×6Pattern ≈ 48,000个Pattern → 大规模基座检索测试 → 跨域迁移验证（虚拟Pattern用于真实群论）
+
+**认知种子**：`virtual_math_system`, `poc_vms_pipeline`（CP1加载用）
+
+详见：`原语化AI数学工程系统设计/07-验证/03-虚拟数学系统POC方案.md` + `02-检索系统的技术缺口分析.md`
 
 ### 第一性原理重构基线（123号v1，当前最高架构与建设基线）
 
