@@ -20,10 +20,11 @@ trigger: model_decision
 ## 原因
 
 1. **MITM trajectory采集（最关键）**：solver-harness通过mitmproxy代理捕获GetChatMessage的raw protobuf响应，解码出token级thinking+tool_calls数据。手动启动无法采集MITM数据——这是solver-harness存在的核心价值。
-2. **审计兜底**：solver-harness自动启动pipe-pane（tmux兜底记录），无需手动启动。
-3. **持续观察**：solver-harness用tmux启动，可通过`tmux capture-pane -t harness-<exp-id> -p`持续观察Solver工作过程。
-4. **进程安全**：tmux session独立于Devin CLI的shell session，不会被shell session结束而杀掉。
-5. **自动回填**：solver-harness自动回填devin_session_id，自动启动sessions.db轮询，自动在stop时decode-all。
+2. **NODE_EXTRA_CA_CERTS关键修复**：devin cli是Node.js应用，不读macOS Keychain，必须通过`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量指向mitmproxy CA证书，否则交互模式SSL验证失败（"Connection failed, retrying..."）。solver-harness已内置此修复。
+3. **审计兜底**：solver-harness自动启动pipe-pane（tmux兜底记录），无需手动启动。
+4. **持续观察**：solver-harness用tmux启动，可通过`tmux capture-pane -t harness-<exp-id> -p`持续观察Solver工作过程。
+5. **进程安全**：tmux session独立于Devin CLI的shell session，不会被shell session结束而杀掉。
+6. **自动回填**：solver-harness自动回填devin_session_id，自动启动sessions.db轮询，自动在stop时decode-all。
 
 ## 实施规范
 

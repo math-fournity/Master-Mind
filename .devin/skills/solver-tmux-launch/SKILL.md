@@ -21,6 +21,26 @@ solver-harness自动完成：tmux启动 + mitmproxy代理 + pipe-pane兜底 + se
 - mitmproxy CA证书已生成（`~/.mitmproxy/mitmproxy-ca-cert.pem`，运行过一次mitmdump即可生成）
 - solver-harness脚本存在（`xishujuzhen/solver_harness/solver_harness.py`）
 
+## NODE_EXTRA_CA_CERTS关键修复（2026-08-08验证）
+
+**devin cli是Node.js应用，不读macOS Keychain。** 如果只把mitmproxy CA证书加入Keychain，devin cli仍然SSL验证失败——交互模式出现"Connection failed, retrying..."，Solver无法工作。
+
+**修复**：solver-harness在启动devin cli时设置`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量，让Node.js直接读取CA证书。
+
+```python
+# solver_harness.py中的关键代码（mitm_enabled时）
+ca_cert_path = os.path.expanduser("~/.mitmproxy/mitmproxy-ca-cert.pem")
+env_prefix = (
+    f"HTTPS_PROXY=http://localhost:{MITM_PORT} "
+    f"HTTP_PROXY=http://localhost:{MITM_PORT} "
+    f"NODE_EXTRA_CA_CERTS={ca_cert_path} "
+)
+```
+
+**已验证**：mitmproxy + NODE_EXTRA_CA_CERTS + 交互模式 = Solver正常工作，mitmproxy成功截获thinking内容。
+
+**不要删除这个环境变量**——没有它，mitmproxy+交互模式就不工作。`--no-mitm`是唯一不需要它的模式，但那样会丢失MITM trajectory。
+
 ## 完整工作流
 
 ### 步骤1：启动共享mitmproxy（全局，只需启动一次）
@@ -210,8 +230,22 @@ solver-harness自动添加`--export`参数，导出到`<exp-id>/exports/conversa
 
 | 记录手段 | 层次 | 说明 | 自动采集 |
 |---|---|---|---|
-| MITM（solver-harness专属） | 网络层 | raw protobuf解码，token级thinking+tool_calls | ✅ stop时自动decode-all |
+| MITM（solver-harness专属） | 网络层 | raw protobuf解码，token级thinking+tool_calls。截获所有ApiServerService API（不只是GetChatMessage） | ✅ stop时自动decode-all |
 | `--export` | devin cli原生 | 结构化JSON，每轮自动导出，包含完整对话内容 | ✅ launch时自动添加 |
 | `pipe-pane` | tmux兜底 | 纯文本terminal输出，捕获所有屏幕内容包括非对话部分 | ✅ launch时自动启动 |
 
 三者互补：MITM提供token级流式数据，`--export`提供结构化数据，`pipe-pane`提供完整terminal记录。
+
+### MITM数据产物
+
+```
+/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/
+├── mitm_raw/
+│   ├── capture.log              # 截获日志（每个文件的URL/大小/时间）
+│   ├── api_log.txt              # 所有API调用记录（URL/状态/大小/时间）
+│   ├── chatmsg_NNN_HHMMSS.bin   # raw protobuf响应
+│   └── chatmsg_NNN_HHMMSS_req.bin  # raw protobuf请求
+└── mitm_flows.mitm              # mitmproxy flow文件（可回放分析）
+```
+
+**mitmproxy截获范围**：所有`ApiServerService` API（GetChatMessage/GetCliModelConfigs/GetUserStatus等），排除seat_management和product_analytics。thinking内容通过GetChatMessage的`field 9`返回，用`decode_connect_proto.py`解码。

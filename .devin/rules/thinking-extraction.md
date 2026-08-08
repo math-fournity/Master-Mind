@@ -1,10 +1,12 @@
 ---
 description: >
-  分析AI解题过程时，必须用thinking_extractor.py从sessions.db提取完整thinking数据。
-  thinking数据在chat_message JSON的thinking.thinking字段中（不是reasoning_content）。
+  分析AI解题过程时，必须用thinking_extractor.py从sessions.db提取完整thinking数据，
+  或用mitmproxy实时截获thinking（通过decode_connect_proto.py解码）。
+  thinking数据在chat_message JSON的thinking.thinking字段中（不是reasoning_content），
+  或在mitmproxy截获的protobuf field 9中。
   包含AI的完整推理链：尝试了什么、为什么失败、下一步打算做什么。
-  WHEN to use: 需要分析AI为什么做不出某道题、需要理解AI的推理过程、需要提取挑战类型时。
-  WHEN NOT to use: 只需要AI的最终答案而不关心过程、session还没结束（数据不完整）。
+  WHEN to use: 需要分析AI为什么做不出某道题、需要理解AI的推理过程、需要提取挑战类型时、需要实时监控AI thinking时。
+  WHEN NOT to use: 只需要AI的最终答案而不关心过程。
 trigger: model_decision
 ---
 
@@ -14,7 +16,18 @@ trigger: model_decision
 
 **分析AI解题过程时，必须使用 `xishujuzhen/thinking_extractor.py` 提取完整thinking数据。**
 
+**需要实时监控AI thinking时，使用mitmproxy截获+`decode_connect_proto.py`解码。**
+
 不能只看AI的content（输出给用户的内容）——content只是thinking的摘要。thinking才是AI的真实推理过程。
+
+## 两种获取方式
+
+| 方式 | 工具 | 实时性 | 数据完整性 | 适用场景 |
+|---|---|---|---|---|
+| **sessions.db提取** | `thinking_extractor.py` | session结束后 | thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
+| **MITM实时截获** | `mitmproxy` + `decode_connect_proto.py` | 接近实时（响应返回后） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
+
+两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式适合需要实时感知Solver thinking的场景（如检索提示突破闭环）；sessions.db方式适合事后完整分析。
 
 ## 原因
 
@@ -77,9 +90,13 @@ thinking-extraction元组负责从sessions.db提取trajectory中的thinking数�
 
 | 数据 | 位置 | 字段 |
 |---|---|---|
-| thinking | sessions.db → message_nodes → chat_message JSON | `thinking.thinking` |
+| thinking（sessions.db） | sessions.db → message_nodes → chat_message JSON | `thinking.thinking` |
+| thinking（MITM实时） | `_shared/mitm_raw/chatmsg_NNN_*.bin` → decode后 | protobuf field 9（content_thinking） |
 | content | sessions.db → message_nodes → chat_message JSON | `content` |
 | tool_calls | sessions.db → message_nodes → chat_message JSON | `tool_calls` |
+| tool_calls（MITM实时） | `_shared/mitm_raw/chatmsg_NNN_*.bin` → decode后 | protobuf field 6 |
 | tool_results | sessions.db → tool_call_state | `tool_call_update_json` |
 | session元信息 | sessions.db → sessions | `id, title, working_directory, model, created_at` |
 | --export JSON | 运行时指定路径 | `steps[].reasoning_content`（导出时映射了thinking→reasoning_content） |
+| API调用日志 | `_shared/mitm_raw/api_log.txt` | URL/状态/大小/时间 |
+| flow文件 | `_shared/mitm_flows.mitm` | 可用`mitmdump -r`回放 |

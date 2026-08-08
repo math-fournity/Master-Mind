@@ -174,11 +174,46 @@ trajectory是检索系统工作的基础数据：
 ## 与solver-tmux-launch元组的关系
 
 ```
-solver-tmux-launch启动Solver → Solver做题产生trajectory数据（sessions.db）
+solver-tmux-launch启动Solver → Solver做题产生trajectory数据
     ↓
-trajectory-extraction提取trajectory → 导出为JSONL
+    ├─ sessions.db（事后完整提取）→ trajectory_extractor.py → JSONL
+    └─ MITM（实时截获）→ decode-all → trajectory.jsonl（token级thinking）
     ↓
 检索系统索引trajectory → 当AI遇到新问题时检索相似推理模式
     ↓
 thinking-extraction（子集）→ 分析AI为什么做不出（关注thinking）
 ```
+
+## MITM实时thinking截获（2026-08-08稳定化）
+
+solver-harness通过mitmproxy截获devin cli的API响应，实现接近实时的thinking采集：
+
+### 截获链路
+
+```
+devin cli → HTTPS_PROXY=localhost:18888 → mitmproxy → server.self-serve.windsurf.com
+    ↓
+mitm_proto_capture.py截获ApiServerService响应 → chatmsg_NNN_*.bin（raw protobuf）
+    ↓
+decode_connect_proto.py解码 → trajectory.jsonl（content_thinking + tool_calls）
+```
+
+### 关键修复：NODE_EXTRA_CA_CERTS
+
+devin cli是Node.js应用，不读macOS Keychain。必须设置`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量，否则交互模式SSL验证失败。solver-harness已内置此修复（见solver-tmux-launch元组）。
+
+### 实时解码
+
+```bash
+# 实时解码单个bin文件
+python3 xishujuzhen/mitm_thinking_intercept/decode_connect_proto.py <file.bin> --stream
+
+# 批量解码所有raw数据（按work_dir分发到各实验）
+python3 xishujuzhen/solver_harness/solver_harness.py decode-all
+```
+
+### 验证结果
+
+mitmproxy截获的thinking与sessions.db完全一致——两个数据源互补：
+- MITM：接近实时，适合实时监控和流式分析
+- sessions.db：session结束后完整，适合事后分析和检索系统索引
