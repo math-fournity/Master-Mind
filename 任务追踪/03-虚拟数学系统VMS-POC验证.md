@@ -145,11 +145,24 @@
 - [x] 循环完整性评估（批量模式：只转了半圈；手动模式：完整转了一圈半）
 - [x] 落盘评估报告到dev-docs（275号）
 
-#### 2.7 POC-VMS-3到VMS-6
+#### 2.7 POC-VMS-3：中规模检索验证 ✅
 
-**为什么做**：递进验证检索能力——从小规模（10个Pattern）到大规模（10,000+个Pattern），最终验证跨域迁移（虚拟Pattern→真实群论）。
+**为什么做**：验证检索算法在中规模（1000+个Pattern）基座下的scalability。
 
-- [ ] POC-VMS-3：中规模检索验证（1000个Pattern）
+- [x] 批量生成1608个Pattern实例（8原始模板+12扩展模板 × 13 order×type × 6 task_type × challenge_template维度）
+- [x] 加载到ArangoDB patterns集合
+- [x] 检索准确性测试：10道题，precision=1.0，recall=1.0，检索时间0.005s
+- [x] 通过条件全部满足：时间<1s ✅，recall≥0.8 ✅，precision≥0.9 ✅
+
+**关键发现**：
+- deterministic粗筛在1608个Pattern下仍然足够快（0.005s）
+- task_type=any的模板会导致false positive——需要给通用模板指定更具体的task_type
+- 按base_pattern_id去重避免同一模板的多个实例重复计数
+
+#### 2.8 POC-VMS-4到VMS-6
+
+**为什么做**：递进验证检索能力——从大规模（10,000+个Pattern）到跨域迁移（虚拟Pattern→真实群论）。
+
 - [ ] POC-VMS-4：大规模检索验证（10,000+个Pattern）
 - [ ] POC-VMS-5：Pattern生成闭环验证
 - [ ] POC-VMS-6：跨域迁移验证（虚拟Pattern→真实群论）
