@@ -187,10 +187,16 @@
 
 ## 4. Git Commit 历史（本工作线）
 
-| Commit | 描述 | 文件数 |
+| Commit | 描述 | 产出路径 |
 |---|---|---|
-| (前序) | MITM thinking拦截方案验证 | 8 |
-| 72a0ebf | 落盘262号调查结果+263号solver-harness方案+初版主控脚本 | 3 |
+| `7bd106f` | MITM thinking拦截方案验证 | `xishujuzhen/mitm_thinking_intercept/README.md`, `xishujuzhen/mitm_thinking_intercept/decode_connect_proto.py`, `xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py`, `xishujuzhen/mitm_thinking_intercept/sample_capture/` |
+| `72a0ebf` | 落盘262号调查结果+263号solver-harness方案+初版主控脚本 | `dev-docs/262-v0-2026-08-08-Devin-CLI-trajectory数据源调查与MITM-thinking拦截验证.md`, `dev-docs/263-v0-2026-08-08-Solver-Harness系统方案-完整Trajectory自动采集环境.md`, `xishujuzhen/solver_harness/solver_harness.py` |
+| `cb6a51a` | 建立多AI并发任务追踪机制+为trajectory采集工作线建独立任务追踪文档 | `AGENTS.md`, `任务追踪/trajectory采集与solver-harness.md`（后重命名为`02-trajectory采集与solver-harness.md`） |
+| `48ff87a` | 263号方案v1：完整技术方案（含讨论中确认的设计决策） | `dev-docs/263-v1-2026-08-08-Solver-Harness系统方案-完整Trajectory自动采集环境.md`（同时删除v0） |
+| `8a2d5a2` | 新增任务追踪README.md（工作线DAG）+ 更新AGENTS.md | `任务追踪/README.md`, `AGENTS.md` |
+| `47e80e6` | solver-harness v1实施：重写主控脚本（全局共享mitmproxy+事后批量解码） | `xishujuzhen/solver_harness/solver_harness.py` |
+| `1e7f41c` | fix: decode-all改用_req文件中的work_dir匹配实验（不用session_id UUID） | `xishujuzhen/solver_harness/solver_harness.py` |
+| `c533e3c` | 更新02任务追踪文档和263号方案文档的实现状态 | `任务追踪/02-trajectory采集与solver-harness.md`, `dev-docs/263-v1-2026-08-08-Solver-Harness系统方案-完整Trajectory自动采集环境.md` |
 
 ---
 
