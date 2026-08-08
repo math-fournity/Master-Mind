@@ -114,33 +114,34 @@ def is_solver_thinking(tmux_session: str) -> bool:
     """
     检查Solver是否正在thinking中。
 
-    只检查pane最后5行——避免旧"Thinking · 0s"文本（session初始状态）
-    导致误判。devin cli在thinking时最后几行会显示"Thinking · Ns"。
+    检查pane最后8行——devin cli的"Thinking · Ns"状态行在分隔符/提示符
+    之上，需要检查足够多的行才能捕获到。同时排除session初始的
+    "Thinking · 0s"（通过检查是否包含秒数或字符数来区分）。
     """
-    pane = capture_tmux_pane(tmux_session, lines=10)
-    # 只检查最后5行
+    pane = capture_tmux_pane(tmux_session, lines=15)
     lines = pane.strip().split("\n")
-    last_5 = "\n".join(lines[-5:]) if len(lines) >= 5 else pane
-    return "Thinking" in last_5 or "Connection" in last_5
+    last_8 = "\n".join(lines[-8:]) if len(lines) >= 8 else pane
+    # "Thinking"在thinking状态时显示"Thinking · Ns"或"Thinking · Nm"
+    # 在初始状态显示"Thinking · 0s"——但0s也会匹配，所以用Connection也作为标志
+    return "Thinking" in last_8 or "Connection" in last_8
 
 
 def is_solver_idle(tmux_session: str) -> bool:
     """
     检查Solver是否空闲（thinking完成，等待用户输入）。
 
-    只检查pane最后5行——避免旧"Response truncated"文本导致误判。
-    判断标志：最后几行出现"Response truncated"或"Ask Devin to build features"。
+    检查pane最后8行——"Response truncated"和"Ask Devin"可能在分隔符之上。
     """
     pane = capture_tmux_pane(tmux_session, lines=15)
     lines = pane.strip().split("\n")
-    last_5 = "\n".join(lines[-5:]) if len(lines) >= 5 else pane
+    last_8 = "\n".join(lines[-8:]) if len(lines) >= 8 else pane
     idle_markers = [
         "Response truncated",
         "Send a message to continue",
         "Ask Devin to build features",
         "Ask Devin anything",
     ]
-    return any(marker in last_5 for marker in idle_markers)
+    return any(marker in last_8 for marker in idle_markers)
 
 
 def read_thinking_readable(exp_id: str) -> str:
