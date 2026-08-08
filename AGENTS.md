@@ -146,7 +146,8 @@
 | 文件 | 工作线 | 焦点 |
 |---|---|---|
 | `任务追踪/任务追踪.md` | 253号检索机制验证 | P0+P1原型验证完成，泛化验证待做 |
-| `任务追踪/trajectory采集与solver-harness.md` | Trajectory采集基础设施 | solver-harness方案设计完成，实施待做 |
+| `任务追踪/trajectory采集与solver-harness.md` | Trajectory采集基础设施 | solver-harness方案v1完成，实施待做 |
+| `任务追踪/虚拟数学系统VMS-POC验证.md` | 虚拟数学系统POC验证 | 方案设计完成，7阶段全部未开始，前置工作（258号挑战类型分析）待执行 |
 
 **任务追踪文档编写要求**（硬性规范，所有任务追踪文档必须遵守）：
 
