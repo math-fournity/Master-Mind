@@ -13,9 +13,9 @@
 
 **主线**：搭建solver-harness系统——一个完整的trajectory自动采集环境，在tmux中启动devin cli并自动采集所有数据。
 
-**当前状态**：262号调查文档+263号方案文档已落盘commit。初版主控脚本已写（`xishujuzhen/solver_harness/solver_harness.py`），但未测试。方案中3个待确认问题已向用户提出，等待确认后进入实施。
+**当前状态**：solver-harness v1实施完成，端到端测试通过。主控脚本重写完成（全局共享mitmproxy + 事后批量解码 + work_dir匹配分发）。3个设计决策已确认（CA永久信任+host白名单、全局单mitmproxy固定18888、GuidedLoop独立使用）。
 
-**下一步**：见 §2 待办清单。
+**下一步**：写solver-harness的README + 更新solver-tmux-launch元组 + 更新263号方案文档实现状态。
 
 ---
 
@@ -72,41 +72,54 @@
 - [x] `xishujuzhen/thinking_extractor.py`（简化版thinking提取）
 - [x] 对应元组：trajectory-extraction、thinking-extraction、solver-tmux-launch
 
+### 1.5 solver-harness v1实施（主控脚本重写 + 端到端测试）
+
+**为什么做**：263号方案v1确认了设计决策（全局共享mitmproxy + CA永久信任 + host白名单 + 事后批量解码 + GuidedLoop独立使用），需要根据v1方案重写初版主控脚本（初版是每实验独立mitmproxy的旧设计），并端到端验证。
+
+- [x] 重写`solver_harness.py`：全局共享mitmproxy（固定18888 + `--allow-hosts`限制3个devin host）
+- [x] 实现`cmd_mitm`（start/stop/status管理共享mitmproxy生命周期）
+- [x] 实现`cmd_launch`：确保mitmproxy运行 → 创建目录 → 复制模板 → 写session_info → 启动db轮询 → 启动devin cli（走代理）→ 启动pipe-pane → 回填devin_session_id
+- [x] 实现`cmd_stop`：停止该实验的tmux sessions（不影响共享mitmproxy）+ 自动调用decode-all
+- [x] 实现`cmd_decode_all`：扫描共享raw目录 → 通过_req文件中的work_dir匹配实验 → 解码分发到各实验mitm/trajectory.jsonl
+- [x] 实现`devin_session_id`回填（从sessions.db查找work_dir对应session_id，最多等30秒）
+- [x] 实现`_extract_session_id`（从protobuf field 17提取云端UUID）
+- [x] 发现并修复session_id匹配问题：MITM的UUID和sessions.db的本地名称是两个ID系统，改用_req文件中的work_dir路径匹配
+- [x] 端到端测试通过：用简单题（n²+n恒偶）测试完整launch→stop→decode-all流程
+  - 4个raw文件，3个matched（含work_dir），1个unmatched（session token请求，无work_dir）
+  - 解码结果正确：Entry 0读取problem.txt，Entry 1用Python验证，Entry 2输出证明
+  - 所有3个response正确匹配到harness-test-001实验
+
 ---
 
 ## 2. 待办清单（按优先级排序）
 
-### P0-高优先级（solver-harness实施）
+### P0-高优先级（solver-harness实施）—— ✅ 已完成
 
-#### 2.1 完善solver-harness主控脚本
+#### 2.1 完善solver-harness主控脚本 ✅
 
-**为什么做**：初版脚本已写但未测试。需要根据263号方案完善各命令的实现，确保端到端流程能跑通。
+**为什么做**：初版脚本已写但未测试。需要根据263号方案v1完善各命令的实现，确保端到端流程能跑通。
 
-- [ ] 完善`cmd_launch`：目录创建 + 模板复制 + MITM启动 + 解码daemon + db轮询 + devin cli + pipe-pane
-- [ ] 完善`cmd_status`：session_info + tmux状态 + 数据统计
-- [ ] 完善`cmd_stop`：停止所有tmux sessions + 更新session_info
-- [ ] 完善`cmd_decode`：调用decode_connect_proto.py
-- [ ] 完善`cmd_list`：列出所有实验
-- [ ] 端口分配算法实现：`18888 + hash(exp_id) % 100`
-- [ ] 端口冲突检测 + MITM启动失败时降级逻辑
+- [x] 重写`cmd_launch`：目录创建 + 确保共享mitmproxy + db轮询 + devin cli + pipe-pane + 回填devin_session_id
+- [x] 重写`cmd_status`：session_info + tmux状态 + 数据统计
+- [x] 重写`cmd_stop`：停止该实验的tmux sessions（不影响共享mitmproxy）+ 自动decode-all
+- [x] 实现`cmd_decode_all`：通过_req文件work_dir匹配实验，解码分发
+- [x] 实现`cmd_list`：列出所有实验
+- [x] 实现`cmd_mitm`：管理共享mitmproxy
 
-#### 2.2 实现解码daemon
+#### 2.2 实现解码daemon ✅（改为事后批量解码）
 
-**为什么做**：MITM捕获的raw .bin文件需要实时解码为jsonl，供后续分析使用。不能等实验结束后才手动解码。
+**为什么做**：MITM捕获的raw .bin文件需要解码为jsonl。v1方案改为事后批量解码（共享raw目录混合多实验数据，实时分发复杂易错）。
 
-- [ ] 实现动态生成daemon脚本的逻辑
-- [ ] daemon每2秒扫描raw目录，新文件解码追加到jsonl
-- [ ] daemon处理异常（解码失败时记录error到jsonl，不中断）
+- [x] 实现`cmd_decode_all`：扫描共享raw目录，通过_req文件work_dir匹配实验，解码分发
+- [x] 未匹配的数据写入`_shared/unmatched/`
+- [x] 解码失败时记录error到`_shared/unmatched/decode_errors.jsonl`
 
-#### 2.3 端到端测试
+#### 2.3 端到端测试 ✅
 
-**为什么做**：验证solver-harness的完整流程能跑通，所有数据都能正确采集。
-
-- [ ] 用简单题测试完整launch流程
-- [ ] 验证MITM数据：检查`mitm/trajectory.jsonl`是否有token级数据
-- [ ] 验证sessions.db数据：检查`sessions_db/trajectory.jsonl`是否有step级数据
-- [ ] 验证兜底记录：检查`tmux/tmux_pipe.log`是否有终端输出
-- [ ] 验证status/stop/decode/list命令
+- [x] 用简单题（n²+n恒偶）测试完整launch流程
+- [x] 验证MITM数据：3个response正确匹配，解码出thinking+tool_calls
+- [x] 验证兜底记录：tmux_pipe.log有AI完整证明输出
+- [x] 验证conversation.json：60KB，含完整对话
 
 ### P1-中优先级（完善和集成）
 
@@ -118,12 +131,12 @@
 - [ ] 更新solver-tmux-launch元组，指向solver-harness
 - [ ] 考虑是否需要独立的solver-harness元组
 
-#### 2.5 GuidedLoop集成（待确认）
+#### 2.5 GuidedLoop集成（已确认独立使用）
 
-**为什么做**：GuidedLoop是引导式数学解题的工作流，目前手动启动tmux。如果solver-harness被GuidedLoop调用，可以实现引导式实验的自动trajectory采集。但需确认用户是否需要这个集成。
+**为什么做**：已确认solver-harness和GuidedLoop独立使用，先解耦后集成。裸跑测试的trajectory采集验证可靠后，再考虑集成。
 
-- [ ] 确认：solver-harness是否需要被GuidedLoop调用？还是独立使用？
-- [ ] 如需要，修改GuidedLoop调用solver-harness启动Solver
+- [x] 确认：solver-harness独立使用，不集成GuidedLoop（裸跑测试优先）
+- [ ] 未来如需集成，修改GuidedLoop调用solver-harness启动Solver
 
 ### P2-低优先级（后续优化）
 

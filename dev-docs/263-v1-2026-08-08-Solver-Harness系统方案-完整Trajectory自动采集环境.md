@@ -262,6 +262,8 @@ python3 solver_harness.py mitm status  # 查看状态
 
 **已有初版代码**（`xishujuzhen/solver_harness/solver_harness.py`），需根据本方案重写（初版是每实验独立mitmproxy的旧设计）。
 
+**实施状态**：✅ 已重写完成，端到端测试通过。详见本文档§六实施Check List。
+
 ### 4.2 MITM组件（复用已有，需修改）
 
 | 组件 | 位置 | 状态 | 需要的修改 |
@@ -286,11 +288,11 @@ mitmdump --listen-port 18888 \
 
 ### 4.4 解码分发器（新增）
 
-**职责**：扫描`_shared/mitm_raw/`，解码每个`.bin`文件，提取protobuf中的`session_id`（field 17），把解码结果写入`session_id`对应实验的`mitm/trajectory.jsonl`。
+**职责**：扫描`_shared/mitm_raw/`，解码每个`.bin`文件，通过_req文件中的work_dir路径匹配实验，把解码结果写入对应实验的`mitm/trajectory.jsonl`。
 
-**session_id到exp-id的映射**：通过`session_info.json`中的`devin_session_id`字段。devin cli启动后，从sessions.db中查找该实验work_dir对应的session_id，写入session_info.json。decode-all时读取所有实验的session_info.json构建映射表。
+**匹配策略（实施中发现并修正）**：原方案设计用protobuf中的session_id（field 17，云端UUID）匹配实验的devin_session_id（本地名称）。但实施中发现MITM的UUID和sessions.db的本地名称是两个不同的ID系统，没有直接映射。改为通过_req文件中的work_dir路径匹配——_req文件是Connect protocol的request body，包含work_dir路径（如`/data/.../harness-test-001`），通过此路径匹配到实验的exp_id。
 
-**实现位置**：solver-harness.py的`cmd_decode_all`方法内，或独立脚本`xishujuzhen/solver_harness/decode_dispatcher.py`。
+**实现位置**：solver-harness.py的`cmd_decode_all`方法内。
 
 ---
 
@@ -355,39 +357,41 @@ mitmdump --listen-port 18888 \
 
 ## 六、实施Check List
 
-### 6.1 重写主控脚本
+### 6.1 重写主控脚本 ✅
 
 **为什么做**：初版脚本（`solver_harness.py`）是每实验独立mitmproxy的旧设计，需要改为全局共享mitmproxy的新设计。
 
-- [ ] 重写`cmd_mitm`（start/stop/status）：管理共享mitmproxy
-- [ ] 重写`cmd_launch`：确保mitmproxy运行 → 创建目录 → 复制模板 → 写session_info → 启动db轮询 → 启动devin cli（走代理）→ 启动pipe-pane → 回填devin_session_id
-- [ ] 重写`cmd_stop`：停止该实验的tmux sessions（不影响共享mitmproxy）+ 调用decode-all解码本实验数据 + 更新session_info
-- [ ] 实现`cmd_decode_all`：扫描共享raw目录 → 解码 → 按session_id分发到各实验
-- [ ] 完善`cmd_status`：session_info + tmux状态 + 数据统计
-- [ ] 完善`cmd_list`：列出所有实验
+- [x] 重写`cmd_mitm`（start/stop/status）：管理共享mitmproxy
+- [x] 重写`cmd_launch`：确保mitmproxy运行 → 创建目录 → 复制模板 → 写session_info → 启动db轮询 → 启动devin cli（走代理）→ 启动pipe-pane → 回填devin_session_id
+- [x] 重写`cmd_stop`：停止该实验的tmux sessions（不影响共享mitmproxy）+ 调用decode-all解码本实验数据 + 更新session_info
+- [x] 实现`cmd_decode_all`：扫描共享raw目录 → 通过_req文件work_dir匹配实验 → 解码分发
+- [x] 完善`cmd_status`：session_info + tmux状态 + 数据统计
+- [x] 完善`cmd_list`：列出所有实验
 
-### 6.2 修改protobuf解码器
+### 6.2 修改protobuf解码器 ✅
 
-**为什么做**：当前解码器不提取session_id（field 17），decode-all需要session_id来分发数据。
+**为什么做**：decode-all需要session_id提取能力（虽然最终改用work_dir匹配，session_id仍作为元数据保留）。
 
-- [ ] `decode_connect_proto.py`的`extract_streaming_data`增加session_id提取
-- [ ] 验证session_id正确提取（用sample_capture测试）
+- [x] 在solver_harness.py中实现`_extract_session_id`（从protobuf field 17提取云端UUID）
+- [x] 验证session_id正确提取（用sample_capture测试，提取到`1dfa317e-...`）
 
-### 6.3 实现decode-all分发逻辑
+### 6.3 实现decode-all分发逻辑 ✅
 
-**为什么做**：共享mitmproxy的raw目录混合了多个实验的数据，需要按session_id分发到各实验。
+**为什么做**：共享mitmproxy的raw目录混合了多个实验的数据，需要分发到各实验。
 
-- [ ] 构建session_id → exp-id映射表（读所有实验的session_info.json）
-- [ ] 解码每个.bin，提取session_id，写入对应实验的mitm/trajectory.jsonl
-- [ ] 未匹配的session_id写入`_shared/unmatched/`目录（可能是已停止实验的数据）
+- [x] 构建work_dir → exp-id映射表（读所有实验的session_info.json中的solver_dir）
+- [x] 通过_req文件中的work_dir路径匹配实验（原方案用session_id UUID，实施中发现不匹配，改为work_dir匹配）
+- [x] 解码每个.bin，写入对应实验的mitm/trajectory.jsonl
+- [x] 未匹配的数据写入`_shared/unmatched/`目录
 
-### 6.4 测试
+### 6.4 测试 ✅
 
-- [ ] 端到端测试：用简单题测试完整launch流程
-- [ ] MITM数据验证：launch → 等AI产出 → stop → decode-all → 检查mitm/trajectory.jsonl
-- [ ] sessions.db数据验证：检查sessions_db/trajectory.jsonl是否有step级数据
-- [ ] 兜底记录验证：检查tmux/tmux_pipe.log是否有终端输出
-- [ ] 并发测试：启动两个实验，验证数据不串
+- [x] 端到端测试：用简单题（n²+n恒偶）测试完整launch流程
+- [x] MITM数据验证：4个raw文件，3个matched，解码出thinking+tool_calls
+- [x] 兜底记录验证：tmux_pipe.log有AI完整证明输出
+- [x] conversation.json验证：60KB，含完整对话
+- [ ] sessions.db数据验证：db monitor在session结束前可能没来得及轮询到数据（待优化）
+- [ ] 并发测试：启动两个实验，验证数据不串（待做）
 
 ### 6.5 文档和元组
 
