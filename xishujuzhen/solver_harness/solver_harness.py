@@ -184,6 +184,7 @@ def start_shared_mitmproxy():
 
     cmd = (
         f"MITM_RAW_DIR={SHARED_RAW_DIR} "
+        f"MITM_TRAJECTORY_BASE={TRAJECTORY_BASE} "
         f"mitmdump --listen-port {MITM_PORT} "
         f"--allow-hosts \"{MITM_ALLOW_HOSTS}\" "
         f"-s {MITM_ADDON} --set ssl_insecure=true "
@@ -258,10 +259,12 @@ def backfill_devin_session_id(exp_id, max_wait=30):
     return None
 
 def start_db_monitor(exp_id):
-    """启动sessions.db轮询进程：step级trajectory。"""
+    """启动sessions.db轮询进程：step级trajectory实时落盘。"""
     tdir = trajectory_dir(exp_id)
     sdir = solver_dir(exp_id)
     jsonl_path = tdir / "sessions_db" / "trajectory.jsonl"
+    # 确保目录存在——否则trajectory_monitor.py的open(args.output, "a")会失败
+    os.makedirs(jsonl_path.parent, exist_ok=True)
 
     tname = f"harness-dbmon-{exp_id}"
     subprocess.run(
@@ -523,11 +526,7 @@ def cmd_launch(args):
 
     update_session_info(exp_id, {"mitm_enabled": mitm_enabled})
 
-    # 6. 启动sessions.db轮询
-    start_db_monitor(exp_id)
-    print(f"DB monitor started (step-level trajectory)")
-
-    # 7. 启动devin cli in tmux
+    # 6. 启动devin cli in tmux
     tname = tmux_session_name(exp_id)
     export_path = tdir / "exports" / "conversation.json"
     tmux_pipe_path = tdir / "tmux" / "tmux_pipe.log"
@@ -560,7 +559,7 @@ def cmd_launch(args):
         capture_output=True
     )
 
-    # 8. 启动pipe-pane兜底
+    # 7. 启动pipe-pane兜底
     time.sleep(1)
     subprocess.run(
         ["tmux", "pipe-pane", "-t", tname, f"cat >> {tmux_pipe_path}"],
@@ -569,9 +568,13 @@ def cmd_launch(args):
 
     update_session_info(exp_id, {"status": "running"})
 
-    # 9. 回填devin_session_id（异步，不阻塞launch返回）
+    # 8. 回填devin_session_id（等session出现在sessions.db中）
     print(f"\nBackfilling devin_session_id...")
     backfill_devin_session_id(exp_id, max_wait=30)
+
+    # 9. 启动sessions.db轮询（必须在backfill之后——否则找不到session就退出）
+    start_db_monitor(exp_id)
+    print(f"DB monitor started (step-level trajectory)")
 
     print(f"\n=== Launched ===")
     print(f"tmux session: {tname}")
