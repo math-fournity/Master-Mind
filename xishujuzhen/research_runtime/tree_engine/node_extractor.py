@@ -276,6 +276,7 @@ class NodeExtractor:
         self._incremental_problem_id = problem_id
         self._incremental_problem_text = problem_text
         self._incremental_all_keys = []
+        self._processed_node_ids = set()  # 已处理的sessions.db node_id，用于去重
 
         # 创建sessions.db reader
         self._db_reader = SessionsDBThinkingReader(devin_session_id)
@@ -290,6 +291,8 @@ class NodeExtractor:
         每个ThinkingChunk对应一个树节点——sessions.db的node边界
         就是天然的轮次边界，不需要像MITM模式那样按字符数切分。
 
+        用_processed_node_ids去重，避免重复提取同一个thinking block。
+
         Returns:
             本次新创建的node_key列表（可能为空）
         """
@@ -302,8 +305,14 @@ class NodeExtractor:
 
         new_keys = []
         for chunk in new_chunks:
+            # 去重：跳过已处理的node_id
+            if chunk.node_id in self._processed_node_ids:
+                continue
+
             thinking = chunk.thinking
             if not thinking or len(thinking.strip()) < 50:
+                # 即使跳过也要记录node_id，避免重复poll
+                self._processed_node_ids.add(chunk.node_id)
                 continue
 
             # 每个chunk就是一个节点——sessions.db的node边界是天然的轮次边界
@@ -311,6 +320,7 @@ class NodeExtractor:
             if node_key:
                 new_keys.append(node_key)
                 self._incremental_all_keys.append(node_key)
+            self._processed_node_ids.add(chunk.node_id)
 
         return new_keys
 
