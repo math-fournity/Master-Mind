@@ -10,9 +10,9 @@
 
 **主线**：接真实Solver跑端到端效果验证——验证"检索机制选出提示后，AI是否真的能突破卡点"。
 
-**当前状态**：实时管线（§2.3-2.5）实现完成，mock测试通过——253号A7→Q8与离线test_e2e_253结果一致。下一步是§2.6端到端效果验证A/B对照实验（需用solver-harness启动真实Solver）。
+**当前状态**：P0核心组件全部实现完成（TrajectoryAdapter + HintInjector + RealtimePipeline）。264号方案文档已落盘。6.1（devin cli运行时输入调查）✅——交互模式支持tmux send-keys两步注入提示。solver-harness新增`--interactive`模式。mock测试已通过（另一个AI完成，253号A7→Q8与离线结果一致）。下一步是6.5端到端集成测试（接真实Solver）。
 
-**下一步**：用solver-harness启动真实Solver跑253号案例，连接RealtimePipeline到真实sessions.db，验证实时解析+检索+注入的完整流程。
+**下一步**：6.5端到端集成测试——用solver-harness启动真实Solver（--interactive模式），启动RealtimePipeline监听sessions_db/trajectory.jsonl，验证完整闭环：trajectory → parser → stall检测 → retrieval → policy → 提示注入。
 
 ---
 

@@ -7,13 +7,18 @@
 2. 在Solver的下一次输入前注入提示
 3. 注入后等待Solver响应，不重复注入
 
-注入方式：
-  tmux send-keys -t <session> "<hint text>" Enter
+注入方式（基于264号§6.1验证结果）：
+  devin cli交互模式（不带-p）的运行时输入需要两步send-keys：
+  步骤1：tmux send-keys -t <session> "<hint text>" Enter  → 排队消息
+  步骤2：tmux send-keys -t <session> Enter                  → 发送排队消息
+
+  验证过程：send-keys后devin cli显示"Press Enter to send queued message"，
+  需要再按一次Enter才能发送。devin cli中断当前思考处理新输入。
 
 注意：
-- 提示文本可能多行，需要逐行send-keys后统一发Enter
-- devin cli的输入框可能需要先按Enter进入输入模式
+- 提示文本可能多行，逐行send-keys后统一发Enter排队，再发Enter提交
 - 注入前检查tmux session是否存在
+- 前提条件：solver-harness必须用--interactive模式启动（不带-p）
 """
 
 import subprocess
@@ -109,7 +114,7 @@ class HintInjector:
         # 注入前捕获pane（用于验证）
         before_pane = self.capture_pane(lines=10) if self.verify_injection else ""
 
-        # 逐行send-keys
+        # 逐行send-keys（不带Enter，把多行文本逐行输入）
         lines = hint_text.strip().split("\n")
         try:
             for line in lines:
@@ -119,7 +124,17 @@ class HintInjector:
                     capture_output=True,
                 )
 
-            # 发送Enter提交
+            # 步骤1：发送Enter排队消息（devin cli显示"Press Enter to send queued message"）
+            subprocess.run(
+                ["tmux", "send-keys", "-t", self.tmux_session, "Enter"],
+                check=True,
+                capture_output=True,
+            )
+
+            # 短暂等待让devin cli处理排队
+            time.sleep(0.5)
+
+            # 步骤2：发送Enter提交排队消息（基于264号§6.1验证）
             subprocess.run(
                 ["tmux", "send-keys", "-t", self.tmux_session, "Enter"],
                 check=True,
