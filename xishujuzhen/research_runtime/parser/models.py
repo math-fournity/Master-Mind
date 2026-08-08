@@ -47,7 +47,10 @@ class MathObject:
         }
 
     @classmethod
-    def from_dict(cls, d: dict) -> "MathObject":
+    def from_dict(cls, d) -> "MathObject":
+        # 容错：devin cli可能返回字符串而非dict（如"方程(1)"）
+        if isinstance(d, str):
+            return cls(name=d, latex="", sympy_expr=None)
         return cls(
             name=d["name"],
             latex=d.get("latex", ""),
@@ -231,9 +234,12 @@ class Evidence:
 
     @classmethod
     def from_dict(cls, d: dict) -> "Evidence":
+        # 容错：devin cli可能用不同的字段名
+        if isinstance(d, str):
+            return cls(kind="numerical", content=d)
         return cls(
-            kind=d["kind"],
-            content=d["content"],
+            kind=d.get("kind", d.get("source", "numerical")),
+            content=d.get("content", d.get("description", "")),
             supports=d.get("supports", ""),
         )
 
