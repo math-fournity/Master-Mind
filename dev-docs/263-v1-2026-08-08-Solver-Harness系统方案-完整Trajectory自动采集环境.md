@@ -468,13 +468,14 @@ solver-harness**不影响**：
 - `StreamingThinkingParser`实时解析Connect streaming protobuf
 - 每解析出一个field 9（thinking chunk）立即落盘——**不需要等响应完成**
 
-### 10.2 三路落盘
+### 10.2 四路落盘
 
 | 位置 | 格式 | 用途 |
 |---|---|---|
-| `_shared/mitm_raw/thinking_live.txt` | 人类可读 | `tail -f`实时查看所有实验 |
-| `<exp_id>/mitm/thinking_live.txt` | 人类可读 | `tail -f`按实验查看 |
+| `_shared/mitm_raw/thinking_live.txt` | token级碎片 | `tail -f`实时查看所有实验 |
+| `<exp_id>/mitm/thinking_live.txt` | token级碎片 | `tail -f`按实验查看 |
 | `<exp_id>/mitm/thinking_live.jsonl` | JSONL | 每个chunk一行，程序读取 |
+| `<exp_id>/mitm/thinking_readable.txt` | **人可阅读连续文本** | `tail -f`读文章——thinking实时拼接，tool_call用分隔符标记 |
 
 ### 10.3 JSONL记录类型
 
@@ -497,6 +498,7 @@ solver-harness**不影响**：
 - **chunk粒度**：1-7字符/token（如`+T`、`+(k`、`+approx`）
 - **时间戳精度**：毫秒级（04:22:13.250 → 04:22:13.447）
 - **第二轮thinking**：12,865个chunks在2分钟内实时落盘
+- **thinking_readable.txt**：30秒内6,261 bytes连续文本实时落盘，内容是人可阅读的数学推理
 
 ### 10.6 更新后的设计决策
 
@@ -504,6 +506,6 @@ solver-harness**不影响**：
 |---|---|---|
 | 解码时机 | **流式实时**（responseheaders+stream callable）+ 事后批量（decode-all） | 流式实时用于实时监控；事后批量用于完整trajectory分发 |
 | db monitor启动顺序 | 在backfill之后启动 | 避免找不到session而退出 |
-| thinking落盘位置 | 三路（共享txt + 实验txt + 实验jsonl） | 共享txt便于全局监控；实验txt/jsonl便于按实验隔离 |
+| thinking落盘位置 | 四路（共享txt + 实验txt + 实验jsonl + 实验readable txt） | 共享txt便于全局监控；实验txt/jsonl便于按实验隔离；readable txt便于人可阅读 |
 | mitmproxy运行方式 | **launchd系统服务**（开机自启动+崩溃重启） | 两AI共享不冲突；不随单个实验stop而停止；addon在~/.mitmproxy/共享位置 |
 | GuidedLoop集成 | 独立使用，不集成 | 先解耦后集成，裸跑测试优先 |

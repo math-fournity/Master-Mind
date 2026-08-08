@@ -210,13 +210,14 @@ AI想得太多，thinking把output token额度全部用完，导致没有任何c
 - `StreamingThinkingParser`实时解析Connect streaming protobuf
 - 每解析出一个field 9（thinking chunk）立即落盘——**不需要等响应完成**
 
-### 10.2 三路落盘
+### 10.2 四路落盘
 
 | 位置 | 格式 | 用途 |
 |---|---|---|
-| `_shared/mitm_raw/thinking_live.txt` | 人类可读 | `tail -f`实时查看所有实验 |
-| `<exp_id>/mitm/thinking_live.txt` | 人类可读 | `tail -f`按实验查看 |
+| `_shared/mitm_raw/thinking_live.txt` | token级碎片 | `tail -f`实时查看所有实验 |
+| `<exp_id>/mitm/thinking_live.txt` | token级碎片 | `tail -f`按实验查看 |
 | `<exp_id>/mitm/thinking_live.jsonl` | JSONL | 每个chunk一行，程序读取 |
+| `<exp_id>/mitm/thinking_readable.txt` | **人可阅读连续文本** | `tail -f`读文章——thinking实时拼接，tool_call用分隔符标记 |
 
 ### 10.3 JSONL记录类型
 
@@ -232,6 +233,7 @@ AI想得太多，thinking把output token额度全部用完，导致没有任何c
 - **chunk粒度**：1-7字符/token（如`+T`、`+(k`、`+approx`）
 - **时间戳精度**：毫秒级（04:22:13.250 → 04:22:13.447）
 - **第二轮thinking**：12,865个chunks在2分钟内实时落盘
+- **thinking_readable.txt**：30秒内6,261 bytes连续文本实时落盘，内容是人可阅读的数学推理（均值/方差/三阶矩计算）
 
 ### 10.5 db monitor启动顺序修复
 
