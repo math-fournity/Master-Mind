@@ -240,7 +240,18 @@ AI想得太多，thinking把output token额度全部用完，导致没有任何c
 - **修复**：将`start_db_monitor`从步骤6移到步骤9（在`backfill_devin_session_id`之后）
 - **效果**：db monitor现在能正确找到session，3秒轮询step级trajectory实时落盘到`sessions_db/trajectory.jsonl`
 
-### 10.6 粒度对比（更新）
+### 10.6 mitmproxy升级为launchd系统服务
+
+同时将mitmproxy从tmux手动启动升级为macOS launchd系统服务：
+- **服务Label**：`com.aurolafly.mitmproxy-devin`
+- **端口**：18889（18888被claude-passthrough占用）
+- **addon脚本**：`~/.mitmproxy/mitm_proto_capture.py`（共享位置，两个AI共用）
+- **开机自启动**：`RunAtLoad=true`
+- **崩溃自动重启**：`KeepAlive.SuccessfulExit=false`
+- **两AI共享不冲突**：系统服务常驻，两个AI的solver-harness都检测端口18889，复用同一实例
+- solver-harness的`is_mitmproxy_running()`改为端口检测（lsof），兼容launchd和tmux
+
+### 10.7 粒度对比（更新）
 
 | 方案 | 粒度 | 延迟 | 实现复杂度 | 风险 | 状态 |
 |---|---|---|---|---|---|

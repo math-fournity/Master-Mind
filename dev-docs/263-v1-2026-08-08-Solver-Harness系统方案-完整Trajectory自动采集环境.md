@@ -64,7 +64,7 @@ Trajectory数据目录（AI不可见，harness在这里存数据）:
 
 ### 2.2 全局单mitmproxy + CA永久信任 + host白名单
 
-**设计**：所有实验共享一个mitmproxy实例（固定端口18888），不每实验启动独立实例。
+**设计**：所有实验共享一个mitmproxy实例（固定端口18889），不每实验启动独立实例。
 
 **为什么全局单实例**：
 - 端口只有一个，无冲突问题
@@ -83,7 +83,7 @@ Trajectory数据目录（AI不可见，harness在这里存数据）:
 mitmproxy启动时加`--allow-hosts`参数，**只对devin相关的host做MITM解密**，其他host的HTTPS流量直接TCP透传不解密：
 
 ```bash
-mitmdump --listen-port 18888 \
+mitmdump --listen-port 18889 \
   --allow-hosts "server\.self-serve\.windsurf\.com|api\.devin\.ai|static\.devin\.ai" \
   -s mitm_proto_capture.py
 ```
@@ -98,11 +98,15 @@ mitmdump --listen-port 18888 \
 
 **代理隔离**：`HTTPS_PROXY`通过环境变量传给devin cli进程，是进程级的，只影响devin cli，不影响本机其他程序。其他程序不走mitmproxy代理，不受影响。
 
-**mitmproxy生命周期**：
-- solver-harness首次launch时，如果mitmproxy未运行，则启动（tmux session `harness-mitmproxy`）
-- 后续实验复用已运行的mitmproxy
-- mitmproxy不随单个实验stop而停止——它是共享设施
-- 提供`python3 solver_harness.py mitm stop`手动停止
+**mitmproxy生命周期（2026-08-08升级为launchd系统服务）**：
+- mitmproxy已制作为macOS launchd系统服务（`com.aurolafly.mitmproxy-devin`），**开机自启动**
+- plist：`~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist`
+- addon脚本在共享位置：`~/.mitmproxy/mitm_proto_capture.py`（两个AI共用）
+- 崩溃自动重启（`KeepAlive.SuccessfulExit=false`）
+- solver-harness的`mitm start`优先`launchctl load`启动系统服务，plist不存在时fallback到tmux
+- `is_mitmproxy_running()`改为端口检测（lsof），兼容launchd和tmux两种启动方式
+- mitmproxy不随单个实验stop而停止——它是系统级常驻服务
+- **两个AI共享同一mitmproxy实例，不会互相冲突**
 
 ### 2.3 三层数据采集（互为补充）
 
@@ -177,7 +181,7 @@ solver-harness.py (主控脚本)
 │         cloud API (server.self-serve.windsurf.com)           │
 │                        │ HTTPS                               │
 │                        ▼                                     │
-│         mitmproxy (port 18888, --allow-hosts 限制)            │
+│         mitmproxy (port 18889, --allow-hosts 限制)            │
 │         addon: mitm_proto_capture                            │
 │                        │                                     │
 │                        ▼                                     │
@@ -274,7 +278,7 @@ python3 solver_harness.py mitm status  # 查看状态
 **mitmproxy启动命令**（由solver-harness的`cmd_mitm start`执行）：
 ```bash
 MITM_RAW_DIR=/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw \
-mitmdump --listen-port 18888 \
+mitmdump --listen-port 18889 \
   --allow-hosts "server\.self-serve\.windsurf\.com|api\.devin\.ai|static\.devin\.ai" \
   -s xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py \
   --set ssl_insecure=true
@@ -309,7 +313,7 @@ mitmdump --listen-port 18888 \
   "solver_dir": "/data/math-agent-glm5.2-tmux-agents-dir/258-matrix-test",
   "trajectory_dir": "/data/math-agent-glm5.2-tmux-agents-trajectory/258-matrix-test",
   "tmux_session": "harness-258-matrix-test",
-  "mitm_port": 18888,
+  "mitm_port": 18889,
   "mitm_enabled": true,
   "devin_session_id": null,
   "start_timestamp": "2026-08-08T02:15:00Z",
@@ -447,7 +451,7 @@ solver-harness**不影响**：
 |---|---|---|
 | CA信任策略 | 永久信任 | 并发场景下每次信任/移除不可行；CA私钥不离开本机，风险可控 |
 | MITM作用范围 | `--allow-hosts`限制3个devin host | 确保MITM只影响目标devin，不影响本机其他程序 |
-| mitmproxy实例数 | 全局一个，固定18888 | 端口无冲突，资源开销小，并发实验通过session_id区分 |
+| mitmproxy实例数 | 全局一个，固定18889，launchd系统服务 | 端口无冲突，资源开销小，并发实验通过session_id区分，两AI共享不冲突 |
 | 解码时机 | 事后批量（cmd_decode_all） | 共享raw目录混合多实验数据，实时分发复杂易错，事后批量更可靠 |
 
 ---
@@ -501,4 +505,5 @@ solver-harness**不影响**：
 | 解码时机 | **流式实时**（responseheaders+stream callable）+ 事后批量（decode-all） | 流式实时用于实时监控；事后批量用于完整trajectory分发 |
 | db monitor启动顺序 | 在backfill之后启动 | 避免找不到session而退出 |
 | thinking落盘位置 | 三路（共享txt + 实验txt + 实验jsonl） | 共享txt便于全局监控；实验txt/jsonl便于按实验隔离 |
+| mitmproxy运行方式 | **launchd系统服务**（开机自启动+崩溃重启） | 两AI共享不冲突；不随单个实验stop而停止；addon在~/.mitmproxy/共享位置 |
 | GuidedLoop集成 | 独立使用，不集成 | 先解耦后集成，裸跑测试优先 |
