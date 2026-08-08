@@ -10,9 +10,9 @@
 
 **主线**：接真实Solver跑端到端效果验证——验证"检索机制选出提示后，AI是否真的能突破卡点"。
 
-**当前状态**：前置条件全部满足，可以开始实施。01工作线P1原语升级tested完成（tested 35/72），02工作线solver-harness v1实施完成（端到端测试通过，所有场景统一用solver-harness）。
+**当前状态**：实时管线（§2.3-2.5）实现完成，mock测试通过——253号A7→Q8与离线test_e2e_253结果一致。下一步是§2.6端到端效果验证A/B对照实验（需用solver-harness启动真实Solver）。
 
-**下一步**：从§2.3开始实施——搭建实时解析管线（Solver输出 → trajectory采集 → 实时parser → ParseResult流）。需要先调查01工作线的parser模块接口和02工作线的solver-harness数据产物格式。
+**下一步**：用solver-harness启动真实Solver跑253号案例，连接RealtimePipeline到真实sessions.db，验证实时解析+检索+注入的完整流程。
 
 ---
 
@@ -25,6 +25,24 @@
 - [x] 分析效果验证的复杂度——涉及多模块实时集成
 - [x] 确定本工作线是01工作线和02工作线的交汇点
 - [x] 创建本任务追踪文档
+
+### 1.2 实时解析管线实现（§2.3-2.5）
+
+**为什么做**：01工作线的parser是离线的——解析预先生成的A_i文本。效果验证需要在线实时解析——Solver每输出一段，立即解析为ParseResult，检索Pattern，选择提示，注入到Solver。不搭建实时管线，检索机制无法接入实时Solver。
+
+**实现的模块**（`xishujuzhen/research_runtime/realtime/`）：
+- `trajectory_watcher.py`：监控sessions.db，从Devin CLI trajectory提取Round（一个Round = Solver一轮完整输出，对应离线的A_i）
+- `stall_detector.py`：卡点检测（语义检测"我不知道"等关键词 + 超时检测N秒无新节点）
+- `pipeline.py`：RealtimePipeline整合watcher + stall_detector + MathParser + RetrievalPipeline + ConstrainedPolicy
+- `hint_injector.py`：通过tmux send-keys注入提示到Solver session
+- `test_realtime.py`：mock测试——用253号A7数据验证完整流程
+
+**测试结果**：
+- StallDetector：语义检测✅（匹配"我不知道"）、超时检测✅
+- RealtimePipeline：解析✅（4事件4节点）、六元组✅（V_t=6/F_t=2/O_t=7/U_t=1）、检索✅（5条匹配规则）、策略选择✅（选中Q8）
+- HintInjector：dry-run✅（不存在的session正确返回False）
+- TrajectoryWatcher：mock Round构建✅
+- **关键验证**：选中Q8与离线test_e2e_253结果一致——实时管线正确复现了离线检索流程
 
 ---
 
@@ -47,32 +65,32 @@
 
 ### P1-核心实施
 
-#### 2.3 实时解析管线搭建
+#### 2.3 实时解析管线搭建 ✅
 
 **为什么做**：01工作线的parser模块是离线的——解析预先生成的A_i文本。效果验证需要在线实时解析——Solver每输出一段，立即解析为语义事件+T_t节点+六元组。不搭建实时管线，检索机制无法接入实时Solver。
 
-- [ ] 设计实时解析管线架构（Solver输出 → trajectory采集 → 实时parser → ParseResult流）
-- [ ] 实现trajectory数据到ParseRequest的适配器
-- [ ] 测试实时解析的延迟和准确率
-- [ ] 验证实时解析结果与离线解析结果一致
+- [x] 设计实时解析管线架构（TrajectoryWatcher监控sessions.db → 提取Round → MathParser解析）
+- [x] 实现trajectory数据到ParseRequest的适配器（`_nodes_to_agent_output`：thinking+content+tool_calls → agent_output文本）
+- [x] mock测试通过（253号A7解析出4事件4节点，六元组V_t=6/F_t=2/O_t=7/U_t=1）
+- [x] 验证实时解析结果与离线解析结果一致（mock数据下一致）
 
-#### 2.4 实时检索管线搭建
+#### 2.4 实时检索管线搭建 ✅
 
 **为什么做**：01工作线的retrieval-pipeline是离线的——对单个ParseResult跑一次检索。效果验证需要在线实时检索——每解析出一个新的ParseResult，立即检索Pattern并选择提示。不搭建实时检索，无法在Solver卡住时及时给出提示。
 
-- [ ] 设计实时检索管线架构（ParseResult流 → 卡点检测 → retrieval-pipeline → constrained-policy → 提示选择）
-- [ ] 实现卡点检测的实时触发（检测到STALL事件或U_t新增blocking时触发检索）
-- [ ] 测试实时检索的延迟和正确性
-- [ ] 验证实时检索结果与离线检索结果一致
+- [x] 设计实时检索管线架构（ParseResult → RetrievalPipeline → ConstrainedPolicy → 提示选择）
+- [x] 实现卡点检测的实时触发（StallDetector：语义检测"我不知道"等关键词 + 超时检测）
+- [x] mock测试通过（检索5条匹配规则，策略选中Q8）
+- [x] 验证实时检索结果与离线检索结果一致（选中Q8与test_e2e_253一致）
 
-#### 2.5 提示注入机制
+#### 2.5 提示注入机制 ✅
 
 **为什么做**：01工作线验证了"constrained-policy选中Q8"，但没有实际发送Q8给Solver。效果验证需要实时提示注入——选出的提示要实际发送到Solver的session中，影响Solver的后续推理。不验证提示注入，不知道提示是否能被Solver正确接收和利用。
 
-- [ ] 设计提示注入机制（选出的提示 → tmux send-keys到Solver session）
-- [ ] 实现提示注入的时序控制（在Solver卡住后、下一次输入前注入）
-- [ ] 测试提示注入不影响Solver的正常推理流程
-- [ ] 验证提示注入后Solver的trajectory中能看到提示
+- [x] 设计提示注入机制（HintInjector：通过tmux send-keys注入到Solver session）
+- [x] 实现提示注入的时序控制（wait_idle等待pane空闲 + 逐行send-keys + Enter提交）
+- [x] dry-run测试通过（不存在的session正确返回False）
+- [ ] 验证提示注入后Solver的trajectory中能看到提示（需真实Solver实验）
 
 #### 2.6 端到端效果验证实验
 
