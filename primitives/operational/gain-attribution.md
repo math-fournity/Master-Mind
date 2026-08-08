@@ -7,8 +7,8 @@
 - 出处：suiren: 200-P12；fuxi: 252-P19；nuwa-a: 136-P26
 
 ## 验证状态
-[untested]
-设计完成但未在真实运行中验证。
+[partial]
+增益归因模块已实现（`xishujuzhen/research_runtime/attribution/`），253号10轮QA验证提示链记录和进展归因。反事实估计通过U_t severity判断。
 
 ## 使用经验
 记录提示链，计算归因，做反事实估计。

@@ -7,8 +7,8 @@
 - 出处：nuwa-a: 136-P32；suiren: 200-P23
 
 ## 验证状态
-[untested]
-公式已定义但未在真实运行中验证。
+[partial]
+受约束多目标策略模块已实现（`xishujuzhen/research_runtime/policy/`），253号A7端到端测试验证选中Q8而非Q9。义务ID匹配破解进展估计，Pareto最优选择正确。
 
 ## 使用经验
 定义目标函数和约束，实现优化求解。

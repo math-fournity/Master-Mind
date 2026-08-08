@@ -7,8 +7,8 @@
 - 出处：nuwa-a: 135-P40；nuwa-b: 166-P16
 
 ## 验证状态
-[untested]
-公式已实现但未在真实Pattern库上验证。
+[partial]
+激活分数模块已实现（`xishujuzhen/research_runtime/activation/`），253号A7验证Q8激活分数排top-3。7维特征提取和权重标定完成，但权重泛化性需后续验证。
 
 ## 使用经验
 实现稀疏矩阵乘法。

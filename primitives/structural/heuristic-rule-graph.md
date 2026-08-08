@@ -7,8 +7,8 @@ H图保存经过实验验证的"触发→激活"关系，每条规则形式化�
 - 出处：pangu-b: 122v2-P13；fuxi: 248-P17
 
 ## 验证状态
-[untested]
-设计完成但无Pattern走完完整生命周期。
+[partial]
+H图存储模块已实现（`xishujuzhen/research_runtime/hgraph/`），253号10个Q作为Pattern初始化到H图。LHS图模式定义完成，published状态规则可被检索。LHS的完备性需更多案例验证。
 
 ## 架构位置
 启发式干预的知识库。是pattern-matching和activation-score的数据源。

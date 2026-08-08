@@ -7,8 +7,8 @@
 - 出处：pangu-b: 122v2-P19；suiren: 200-P20, 214-P6；fuxi: 238-P7
 
 ## 验证状态
-[untested]
-设计阶段提出，未在真实Pattern库上验证。
+[partial]
+模式匹配模块已实现（`xishujuzhen/research_runtime/matching/`），253号A7验证Q8匹配分数0.8+guard通过，Q9部分匹配0.5。近似匹配容差定义完成。
 
 ## 使用经验
 设计阶段提出，实现LHS子图匹配+Guard条件检查+RHS动作输出。

@@ -7,8 +7,8 @@
 - 出处：nuwa-b: 186-P01；suiren: 205-P29
 
 ## 验证状态
-[untested]
-设计完成但未在真实运行中验证。
+[tested]
+预算管理模块已实现（`xishujuzhen/research_runtime/budget/`），253号10轮QA验证预算追踪和超限停止。Hint预算独立追踪正确。
 
 ## 使用经验
 定义预算类型和上限，每次消耗前检查。
