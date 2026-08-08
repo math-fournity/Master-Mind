@@ -128,13 +128,36 @@
 - 不知道就说"我不知道"，系统通过提示引导
 - **启动必须加`--permission-mode dangerous`**——否则exec被rejected，AI只做2步就停
 
-**启动方式约束**：所有场景启动Solver都必须通过solver-harness，禁止手动tmux、禁止exec后台(timeout=0)、禁止nohup。原因：
-1. solver-harness通过mitmproxy代理捕获GetChatMessage的raw protobuf响应，解码出token级thinking+tool_calls数据——手动启动无法采集MITM数据
-2. solver-harness自动启动pipe-pane（tmux兜底记录）、sessions.db轮询、--export、事后批量解码
-3. 用tmux可以持续观察Solver工作过程（`tmux capture-pane -t harness-<exp-id> -p`）
-4. exec后台模式的进程在session结束时会被杀掉，导致trajectory丢失
+### 硬约束 6 · Solver启动必须通过solver-harness（最重要）
 
-具体启动规范见 `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
+**启动数学大师Solver的devin cli实例，必须通过`xishujuzhen/solver_harness/solver_harness.py launch`，禁止任何其他方式。**
+
+**禁止的方式**：
+- ❌ 手动`tmux new-session ... devin`
+- ❌ `exec`后台（`timeout=0`）直接跑`devin`
+- ❌ `nohup devin ... &`
+- ❌ `subprocess.run(["devin", "-p", ...])`直接调用
+- ❌ 任何绕过solver-harness的脚本
+
+**适用所有场景**（无一例外）：
+- 裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验
+- MathArena测试、FATE测试、A/B对照实验
+
+**为什么这是硬约束**：
+1. solver-harness通过mitmproxy代理（launchd系统服务，端口18889）捕获token级thinking+tool_calls——手动启动无法采集MITM trajectory
+2. solver-harness自动完成：tmux启动 + mitmproxy代理 + pipe-pane兜底 + sessions.db轮询 + 事后批量解码
+3. `--no-http2`修复了多轮交互的Connection failed问题——只有通过harness启动才能享受这个修复
+4. `NODE_EXTRA_CA_CERTS`修复了SSL验证问题——只有通过harness启动才会设置这个环境变量
+
+**已知的违规脚本**（必须修复，新AI不要模仿）：
+- `scripts/matharena_batch_test.py` — 直接`subprocess.run(["devin", "-p", ...])`
+- `scripts/fate_batch_test.py` — 直接`subprocess.run(["devin", "-p", ...])`
+- `scripts/guided_exp_runner.py` — 直接`tmux new-session ... devin`
+- `xishujuzhen/research_runtime/runtime/devin_cli_adapter.py` — 直接`subprocess.run(["devin", "-p", ...])`
+
+**例外**：`xishujuzhen/research_runtime/realtime/devin_cli_parser.py`中的`DevinCliParserProvider`用`devin -p`做LLM parser（不是Solver，不采集trajectory），可以保留直接调用。
+
+**具体启动规范见** `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
 
 ### 任务追踪（跨Session工作意识维持 · 多AI并发）
 

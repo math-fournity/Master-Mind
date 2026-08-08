@@ -15,9 +15,33 @@ trigger: model_decision
 
 ## 硬约束
 
-**启动数学大师Solver的devin cli实例必须通过solver-harness，禁止手动tmux启动、禁止exec后台(timeout=0)、禁止nohup。**
+**启动数学大师Solver的devin cli实例必须通过solver-harness，禁止手动tmux启动、禁止exec后台(timeout=0)、禁止nohup、禁止subprocess.run直接调用devin -p。**
 
-**适用所有场景**：裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验——无一例外。任何场景下启动Solver都必须走solver-harness，确保MITM token级trajectory采集。
+**适用所有场景**：裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验、MathArena测试、FATE测试——无一例外。任何场景下启动Solver都必须走solver-harness，确保MITM token级trajectory采集。
+
+### 已知的违规模式（必须修复）
+
+以下脚本当前直接调用`devin -p`绕过harness，是违规的：
+
+| 脚本 | 违规方式 | 修复方向 |
+|---|---|---|
+| `scripts/matharena_batch_test.py` | `subprocess.run(["devin", "-p", ...])` | 改为调用`solver_harness.py launch` |
+| `scripts/fate_batch_test.py` | `subprocess.run(["devin", "-p", ...])` | 改为调用`solver_harness.py launch` |
+| `scripts/guided_exp_runner.py` | `tmux new-session ... devin` | 改为调用`solver_harness.py launch --interactive` |
+| `xishujuzhen/research_runtime/runtime/devin_cli_adapter.py` | `subprocess.run(["devin", "-p", ...])` | 改为调用`solver_harness.py launch` |
+
+**例外**：`xishujuzhen/research_runtime/realtime/devin_cli_parser.py`中的`DevinCliParserProvider`用`devin -p`做LLM parser（不是Solver），不需要MITM trajectory采集，可以保留直接调用。但必须是`-p`单轮模式且工作目录独立于Solver目录。
+
+### 判别标准
+
+| 场景 | 是否必须用harness | 原因 |
+|---|---|---|
+| Solver做数学题 | **必须** | 需要MITM trajectory采集 |
+| GuidedLoop引导Solver | **必须** | 需要MITM + 交互模式 |
+| 批量测试Solver | **必须** | 需要MITM trajectory采集 |
+| DFS回溯实验 | **必须** | 需要MITM trajectory采集 |
+| Parser用devin -p做LLM | 不需要 | 不是Solver，不采集trajectory |
+| 用户自己手动跑devin | 不需要 | 用户自主，但会丢失MITM数据 |
 
 ## mitmproxy系统服务（2026-08-08建立）
 
