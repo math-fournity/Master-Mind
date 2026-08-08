@@ -84,18 +84,48 @@
 
 原因：本 repo 的 AGENTS.md 包含工作系统规则（CP1-CP3、认知种子、七步骤pipeline等），如果 Solver 在本 repo 内运行 devin cli，这些规则会劫持 Solver 的行为——Solver 不做数学，而是去加载认知种子。这在 run_20260806_guided_001/002 中已验证发生。
 
-**Solver 工作目录**（D 盘上的三个独立目录）：
+#### 当前模式 · tmux-agents-dir（2026-08-07起）
+
+**每个实验在 `/data/math-agent-glm5.2-tmux-agents-dir/` 下有独立的工作目录，运行后保留全部记录（AGENTS.md、problem.txt、proof、exports、tmux_pipe.log等）。**
+
+**目录命名规范**：`<dev-docs编号>-<实验名>`，例如：
+- `255-poc-1` —— 255号POC系列的第1个POC
+- `255-poc-2` —— 255号POC系列的第2个POC
+- `guided-006` —— guided系列第6次实验
+
+**每个实验目录的结构**（自包含，运行后保留）：
+```
+/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/
+├── AGENTS.md              # Solver角色定义（从templates/solver_agents_md.md复制，可定制）
+├── .devin/                # devin cli本地配置（config.local.json等）
+├── problem.txt            # 题目文件（运行前写入，运行后保留）
+├── hint.txt               # 提示文件（多轮引导时写入，运行后保留）
+├── proof*.md              # AI写的证明草稿（运行后保留）
+├── exports/               # --export导出的对话JSON（运行后保留）
+│   └── session_*.json
+├── tmux_pipe.log          # pipe-pane兜底记录（运行后保留）
+├── dfs_tree.json          # DFS树状态（guided模式，运行后保留）
+└── session_info.json      # session元信息（run_id/session_name/model/start_timestamp等）
+```
+
+**AGENTS.md模板**：`templates/solver_agents_md.md`（本repo内，git-tracked）。每个新实验目录创建时从此模板复制。不同实验可定制AGENTS.md（如POC-6需要AI-B角色定义，与标准Solver不同）。
+
+**DevinCliAdapter**（`runtime/devin_cli_adapter.py`）的 `work_dir` 参数指向实验目录。run的导出文件同时写入实验目录的 `exports/` 子目录。
+
+#### 旧模式 · 三固定目录（legacy，2026-08-07前）
+
+以下三个目录是旧模式，仍可用但已废弃（deprecated）：
 - `/data/math-agent-glm5.2-1`
 - `/data/math-agent-glm5.2-2`
 - `/data/math-agent-glm5.2-3`
 
-每个目录有专门的 `AGENTS.md`，只定义 Solver 角色：
+旧模式的问题：目录在run之间被清理复用，运行记录（problem.txt、proof、hint等）不保留。新模式解决了这个问题——每个实验有独立目录，运行后全部保留。
+
+**Solver角色定义**（无论新旧模式，AGENTS.md内容一致）：
 - 直接做数学，不走工作系统流程
 - **禁止 `web_search`**——搜索是作弊，数学大师的价值在于内部知识能力
 - 允许 `exec`（Python/SymPy计算验证）、`read`/`write`/`edit`（保存证明草稿）
 - 不知道就说"我不知道"，系统通过提示引导
-
-**DevinCliAdapter**（`runtime/devin_cli_adapter.py`）自动选择这些目录作为 `cwd` 运行 devin cli。run 的导出文件（conversation.json等）仍存在本 repo 的 `runs/` 目录中。
 
 **启动方式约束**：GuidedLoop必须用tmux启动，禁止用exec后台(timeout=0)或nohup。原因：
 1. tmux pipe-pane是179号方案中兜底记录devin cli trajectory的手段——不用tmux则兜底记录断了
@@ -114,7 +144,7 @@
 - **`primitives/`** — 原语（构造系统的积木，16个）：`operational/`（操作原语9个：可执行的动作/策略/约束/协议）+ `structural/`（结构原语7个：可放置的组件/角色/接口）。验证状态四等级：tested / tested_negative / partial / untested。
 - **`concepts/`** — 概念框架（理解系统的视角，8个）：形式化边界、两种计算、闭环、处境、系统设计即多约束求解等。不需要验证状态，用"适用边界"替代。
 - **`criteria/`** — 性质标准与探索性隐喻（3个）：自然性、生死条件（判断标准）+ 语义场（隐喻）。
-- **`facets/`** — 面相（切分维度，6个）：系统面相1/2/3（两种计算/语料双路径/Pipeline网络）+ 设计过程面相A/B/C（实践涌现/知识选取/设计过程自举）。面相横切前三层，通过元素文件"来源"字段中的"面相归属"行正向引用。
+- **`facets/`** — 面相（切分维度，7个）：系统面相1/2/3/4（两种计算/语料双路径/Pipeline网络/树的生长）+ 设计过程面相A/B/C（实践涌现/知识选取/设计过程自举）。面相横切前三层，通过元素文件"来源"字段中的"面相归属"行正向引用。
 
 原语三判据：可执行性 + 可验证性 + 构造性。不满足的归入concepts/或criteria/。方案见 `dev-docs/241-v1-2026-08-07-系统设计原语目录方案.md`（原始方案）、`dev-docs/244-v0-2026-08-07-原语目录重构方案.md`（三层分类重构）和 `dev-docs/245-v0-2026-08-07-面相独立目录与设计元素管理元组群方案.md`（面相独立+管理元组）。验证状态分布：操作原语 tested 4 / partial 1 / tested_negative 1 / untested 3；结构原语 partial 1 / untested 6。guided_003实验后更新了non-specificity（→tested）、cognitive-activation（→partial）、implicit-filtering（→tested_negative）。每次跑实验后更新相关原语的验证状态。
 
@@ -230,22 +260,25 @@
 ### 启动Solver session
 
 ```bash
-# 1. 选择空闲的Solver工作目录（检查占用）
-tmux list-sessions | grep -E "solver|bare|guided"
-# 三个目录：/data/math-agent-glm5.2-{1,2,3}
+# 1. 创建实验目录（新模式：tmux-agents-dir）
+EXP_DIR="/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>"
+mkdir -p ${EXP_DIR}/exports
+cp templates/solver_agents_md.md ${EXP_DIR}/AGENTS.md  # 从模板复制
 
-# 2. 写problem.txt到工作目录
+# 检查占用
+tmux list-sessions | grep -E "solver|bare|guided"
+
+# 2. 写problem.txt到实验目录
 # 3. 用tmux启动devin cli
-tmux new-session -d -s <session-name> "cd /data/math-agent-glm5.2-<n> && devin"
+tmux new-session -d -s <session-name> "cd ${EXP_DIR} && devin"
 sleep 8
 tmux capture-pane -t <session-name> -p | tail -15  # 检查是否启动
 
 # 4. 如果出现trust prompt，选择"Yes, trust"
 tmux send-keys -t <session-name> "1" Enter
 
-# 5. 启动pipe-pane兜底记录
-mkdir -p runs/<run_id>
-tmux pipe-pane -t <session-name> "cat >> runs/<run_id>/tmux_pipe.log"
+# 5. 启动pipe-pane兜底记录（写入实验目录）
+tmux pipe-pane -t <session-name> "cat >> ${EXP_DIR}/tmux_pipe.log"
 
 # 6. 发送题目指令
 tmux send-keys -t <session-name> "请读取当前目录下的problem.txt文件，然后做题。" Enter
@@ -261,7 +294,7 @@ tmux capture-pane -t <session-name> -p -S -100 | tail -30
 tmux capture-pane -t <session-name> -p -S -300 | grep -v '^\[' | grep -v '^$' | tail -60
 
 # 检查AI是否写了文件
-ls -la /data/math-agent-glm5.2-<n>/proof* 2>/dev/null
+ls -la ${EXP_DIR}/proof* 2>/dev/null
 
 # 检查AI的thinking字符数（判断思考深度）
 # 屏幕上会显示 "Thinking · Xm Ys · (NNNNNc · ctrl+o for details)"
@@ -335,8 +368,8 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 
 ### 判断Solver是否"做出来了"
 
-1. **检查文件**：`ls -la /data/math-agent-glm5.2-<n>/proof*` ——AI是否写了证明文件
-2. **读证明**：`cat /data/math-agent-glm5.2-<n>/proof.md` ——证明内容是否正确
+1. **检查文件**：`ls -la ${EXP_DIR}/proof*` ——AI是否写了证明文件
+2. **读证明**：`cat ${EXP_DIR}/proof.md` ——证明内容是否正确
 3. **看对话状态**：AI是否说了"证毕"或"QED"
 4. **看thinking字符数**：如果AI在第二问上thinking超过50k字符但没写文件，可能是"想了很多但做不出来"
 5. **看工具调用**：AI是否调用了exec做数值验证——调用exec通常表示AI在认真尝试；不调用exec只在thinking里转，可能是卡住了
@@ -670,7 +703,9 @@ cat runs/<run_id>/tmux_pipe.log | perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g' | perl -
 - 审计元组：.devin/rules/audit-trigger.md + .devin/skills/audit-module/SKILL.md
 - tmux元组：.devin/rules/solver-tmux-launch.md + .devin/skills/solver-tmux-launch/SKILL.md
 - 核心代码：runtime/guided_loop.py, runtime/devin_cli_adapter.py, heuristics/leakage_audit.py, state_reducer/controller_belief.py, verification/stall_detector.py
-- Solver工作目录：/data/math-agent-glm5.2-{1,2,3}/AGENTS.md
+- Solver工作目录（当前模式）：/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>/（每个实验独立目录，运行后保留全部记录）
+- Solver工作目录（旧模式，legacy）：/data/math-agent-glm5.2-{1,2,3}/AGENTS.md
+- Solver AGENTS.md模板：templates/solver_agents_md.md
 - 验证run：runs/run_20260806_{verify_001, guided_001-004, complex_001-005}/
 
 ## TODO
