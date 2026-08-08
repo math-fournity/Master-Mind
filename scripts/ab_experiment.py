@@ -254,6 +254,10 @@ def run_group_a(exp_id: str, model: str, max_time: int, no_mitm: bool = False):
 
         if thinking:
             # Solver在thinking中——等待，不注入
+            # 如果之前注入了提示且Solver开始thinking，重置注入标志
+            if injected_for_this_round:
+                print(f"  [{elapsed:.0f}s] Solver开始新一轮thinking（提示已被接受）")
+                injected_for_this_round = False
             thinking_size = len(read_thinking_readable(exp_id))
             if thinking_size > last_thinking_size:
                 print(f"  [{elapsed:.0f}s] thinking中... ({thinking_size} bytes, +{thinking_size - last_thinking_size})")
