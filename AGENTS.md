@@ -123,9 +123,10 @@
 
 **Solver角色定义**（无论新旧模式，AGENTS.md内容一致）：
 - 直接做数学，不走工作系统流程
-- **禁止 `web_search`**——搜索是作弊，数学大师的价值在于内部知识能力
-- 允许 `exec`（Python/SymPy计算验证）、`read`/`write`/`edit`（保存证明草稿）
+- **可以搜索通用数学知识（定理/定义/公式），但禁止搜索题目答案/解答**——搜索纪律详见`templates/solver_agents_md.md`
+- 允许 `exec`（Python/SymPy计算验证）、`read`/`write`/`edit`（保存证明草稿）、`web_search`（搜通用数学知识）
 - 不知道就说"我不知道"，系统通过提示引导
+- **启动必须加`--permission-mode dangerous`**——否则exec被rejected，AI只做2步就停
 
 **启动方式约束**：GuidedLoop必须用tmux启动，禁止用exec后台(timeout=0)或nohup。原因：
 1. tmux pipe-pane是179号方案中兜底记录devin cli trajectory的手段——不用tmux则兜底记录断了
