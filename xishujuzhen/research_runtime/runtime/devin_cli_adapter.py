@@ -139,7 +139,8 @@ class DevinCliAdapter:
         # export路径必须是绝对路径——因为devin cli的cwd是work_dir（外部目录），不是run_dir
         export_path = os.path.abspath(os.path.join(self.run_dir, f"turn_{turn_id}_conversation.json"))
 
-        cmd = ["devin", "-p", prompt, "--model", self.model, "--respect-workspace-trust", "false"]
+        cmd = ["devin", "-p", prompt, "--model", self.model, "--respect-workspace-trust", "false",
+               "--permission-mode", "dangerous"]
 
         if self.export:
             cmd.extend(["--export", export_path])

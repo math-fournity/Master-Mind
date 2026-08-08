@@ -22,9 +22,27 @@ trigger: model_decision
 
 ## 实施规范
 
+### Solver工作目录选择
+
+**当前模式（2026-08-07起）· tmux-agents-dir**：
+
+每个实验在 `/data/math-agent-glm5.2-tmux-agents-dir/` 下有独立目录，命名规范 `<dev-docs编号>-<实验名>`（如 `255-poc-1`）。目录自包含，运行后保留全部记录。
+
+**旧模式（legacy）· 三固定目录**：`/data/math-agent-glm5.2-{1,2,3}`，仍可用但已废弃。旧模式在run之间清理复用，不保留运行记录。
+
 ### 启动Solver的devin cli
 
+**关键参数**：
+- `--permission-mode dangerous`：必须加——让exec/web_search等工具自动approve。否则AI想用Python计算时被rejected，只做2步就停，无法观察真实解题能力。
+- `--export <PATH>`：每轮自动导出conversation.json（含reasoning_content + tool_calls + observation）
+- AGENTS.md中定义搜索纪律：允许搜索通用数学知识，禁止搜索题目答案
+
 ```bash
+# 当前模式：创建实验目录并启动
+EXP_DIR="/data/math-agent-glm5.2-tmux-agents-dir/<experiment-id>"
+mkdir -p ${EXP_DIR}/exports
+cp templates/solver_agents_md.md ${EXP_DIR}/AGENTS.md  # 从模板复制（含搜索纪律）
+
 # 创建tmux session运行GuidedLoop
 tmux new-session -d -s solver-<run_id> ".venv/bin/python3 -c '
 import sys
@@ -39,17 +57,36 @@ loop = GuidedLoop(
     max_turns=3,
     max_hints=2,
     timeout=600,
-    work_dir=\"/data/math-agent-glm5.2-<n>\",
+    work_dir=\"${EXP_DIR}\",
 )
 result = loop.run()
 ' 2>&1 | tee runs/<run_id>/tmux.log"
 ```
 
+### 裸跑测试（不走GuidedLoop）
+
+```bash
+# 直接用devin -p测试单道题（用于baseline测试）
+WORK_DIR="/data/math-agent-glm5.2-1"  # 或tmux-agents-dir下的实验目录
+EXPORT_PATH="runs/<run_id>/conversation.json"
+
+devin -p "请读取当前目录下的problem.txt文件，解答其中的数学题。" \
+  --model glm-5-2 \
+  --respect-workspace-trust false \
+  --permission-mode dangerous \
+  --export ${EXPORT_PATH}
+```
+
+**注意**：裸跑测试也必须用`--permission-mode dangerous`，否则exec被rejected，无法观察AI真实解题能力。
+
 ### 启动pipe-pane兜底记录
 
 ```bash
-# 在启动tmux session后，立即启动pipe-pane
-tmux pipe-pane -t solver-<run_id> "cat >> runs/<run_id>/tmux_pipe.log"
+# 当前模式：pipe-pane写入实验目录（自包含）
+tmux pipe-pane -t solver-<run_id> "cat >> ${EXP_DIR}/tmux_pipe.log"
+
+# 旧模式：pipe-pane写入runs目录
+# tmux pipe-pane -t solver-<run_id> "cat >> runs/<run_id>/tmux_pipe.log"
 ```
 
 ### 观察Solver工作过程

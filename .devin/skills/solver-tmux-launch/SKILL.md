@@ -99,6 +99,7 @@ tmux kill-session -t solver-${RUN_ID}
 4. **不要用exec后台**：exec的timeout=0后台模式不是tmux，进程会被杀掉
 5. **session命名**：`solver-<run_id>`，便于识别和管理
 6. **题目通过文件传递，不用-p传长文本**：见下方"题目传递规范"
+7. **--permission-mode dangerous必须加**：否则exec/web_search被rejected，AI只做2步就停，无法观察真实解题能力。搜索纪律在AGENTS.md中定义（允许搜通用数学知识，禁止搜题目答案）
 
 ## 题目传递规范（铁律）
 
@@ -124,7 +125,7 @@ with open(problem_file, "w") as f:
 2. 最终答案用\\boxed{{答案}}格式给出
 3. 数学公式用LaTeX
 4. 如果你不知道，明确说"我不知道"
-5. 禁止搜索网络
+5. 可以搜索通用数学知识（定理/定义/公式），但禁止搜索这道题的答案或解答
 """)
 
 # 2. devin -p只传短指令："请读取当前目录下的problem.txt并解答"

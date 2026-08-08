@@ -71,7 +71,7 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
 2. 数学公式用LaTeX
 3. 证明完成后用"证毕"标记
 4. 如果你不知道如何证明，明确说"我不知道"
-5. 禁止搜索网络
+5. 可以搜索通用数学知识（定理/定义/公式），但禁止搜索这道题的答案或解答
 
 请开始："""
     else:
@@ -85,7 +85,7 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
 2. 最终答案用\\boxed{{答案}}格式给出
 3. 数学公式用LaTeX
 4. 如果你不知道，明确说"我不知道"
-5. 禁止搜索网络
+5. 可以搜索通用数学知识（定理/定义/公式），但禁止搜索这道题的答案或解答
 
 请开始："""
 
@@ -96,7 +96,8 @@ def run_one_problem(problem: dict, work_dir: str, run_dir: str, model: str, time
 
     export_path = os.path.abspath(os.path.join(run_dir, f"problem_{pid}_conversation.json"))
     cmd = ["devin", "-p", "请读取当前目录下的problem.txt文件，解答其中的数学题。",
-           "--model", model, "--respect-workspace-trust", "false", "--export", export_path]
+           "--model", model, "--respect-workspace-trust", "false",
+           "--permission-mode", "dangerous", "--export", export_path]
 
     start = time.time()
     try:
