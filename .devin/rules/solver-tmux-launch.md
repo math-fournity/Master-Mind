@@ -4,6 +4,8 @@ description: >
   原因：solver-harness自动完成tmux启动+mitmproxy代理+pipe-pane兜底+sessions.db轮询+事后批量解码，
   手动启动会丢失MITM token级trajectory。任何时候启动Solver都必须用solver-harness——裸跑测试、
   GuidedLoop引导、批量测试、DFS回溯实验，无一例外。
+  mitmproxy已制作为launchd系统服务（com.aurolafly.mitmproxy-devin），开机自启动，端口18889，
+  两个AI共享不冲突。addon脚本在~/.mitmproxy/mitm_proto_capture.py（共享位置）。
   WHEN to use: 任何启动Solver的devin cli实例的场景。
   WHEN NOT to use: 一般命令行操作、非Solver的devin cli调用。
 trigger: model_decision
@@ -17,9 +19,48 @@ trigger: model_decision
 
 **适用所有场景**：裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验——无一例外。任何场景下启动Solver都必须走solver-harness，确保MITM token级trajectory采集。
 
+## mitmproxy系统服务（2026-08-08建立）
+
+mitmproxy已制作为macOS launchd系统服务，**开机自启动，两个AI共享，不冲突**：
+
+| 属性 | 值 |
+|---|---|
+| 服务Label | `com.aurolafly.mitmproxy-devin` |
+| plist路径 | `~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist` |
+| 端口 | **18889**（注意：不是18888，18888被claude-passthrough占用） |
+| addon脚本 | `~/.mitmproxy/mitm_proto_capture.py`（共享位置，两个AI共用） |
+| 日志 | `~/.mitmproxy/mitm_stdout.log` + `~/.mitmproxy/mitm_stderr.log` |
+| 崩溃重启 | `KeepAlive.SuccessfulExit=false`（非正常退出自动重启） |
+| 启动时机 | `RunAtLoad=true`（登录时自动启动） |
+
+**管理命令**：
+```bash
+# 查看状态
+launchctl list | grep mitmproxy
+python3 xishujuzhen/solver_harness/solver_harness.py mitm status
+
+# 手动启动（如果服务未运行）
+launchctl load ~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist
+
+# 手动停止
+launchctl unload ~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist
+
+# 崩溃后检查日志
+cat ~/.mitmproxy/mitm_stderr.log
+```
+
+**addon脚本同步**：当`xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py`更新后，需要同步到共享位置：
+```bash
+cp xishujuzhen/mitm_thinking_intercept/mitm_proto_capture.py ~/.mitmproxy/mitm_proto_capture.py
+launchctl unload ~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist
+launchctl load ~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist
+```
+
+solver-harness的`mitm start`命令会优先检测launchd服务是否运行，如果未运行则尝试`launchctl load`启动它；如果plist不存在则fallback到tmux启动。
+
 ## 原因
 
-1. **MITM流式实时trajectory采集（最关键）**：solver-harness通过mitmproxy的`responseheaders` hook + `flow.response.stream = callable`实现token级实时thinking截获。Solver思考过程中每个token立即落盘到3个位置（共享txt + 实验txt + 实验jsonl）。手动启动无法采集MITM数据——这是solver-harness存在的核心价值。
+1. **MITM流式实时trajectory采集（最关键）**：solver-harness通过mitmproxy的`responseheaders` hook + `flow.response.stream = callable`实现token级实时thinking截获。Solver思考过程中每个token立即落盘到3个位置（共享txt + 实验txt + 实验jsonl）。手动启动无法采集MITM数据——这是solver-harness存在的核心价值。mitmproxy作为launchd系统服务运行，两个AI共享同一实例，不会互相冲突。
 2. **NODE_EXTRA_CA_CERTS关键修复**：devin cli是Node.js应用，不读macOS Keychain，必须通过`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量指向mitmproxy CA证书，否则交互模式SSL验证失败（"Connection failed, retrying..."）。solver-harness已内置此修复。
 3. **审计兜底**：solver-harness自动启动pipe-pane（tmux兜底记录），无需手动启动。
 4. **持续观察**：solver-harness用tmux启动，可通过`tmux capture-pane -t harness-<exp-id> -p`持续观察Solver工作过程。
@@ -31,8 +72,9 @@ trigger: model_decision
 ### 所有场景统一用solver-harness
 
 ```bash
-# 1. 启动共享mitmproxy（全局，只需启动一次）
-python3 xishujuzhen/solver_harness/solver_harness.py mitm start
+# 1. mitmproxy已作为系统服务自启动——通常不需要手动启动
+#    如果需要确认状态：
+python3 xishujuzhen/solver_harness/solver_harness.py mitm status
 
 # 2. 启动实验（裸跑测试、GuidedLoop、批量测试都一样）
 python3 xishujuzhen/solver_harness/solver_harness.py launch \
@@ -44,11 +86,11 @@ python3 xishujuzhen/solver_harness/solver_harness.py launch \
 python3 xishujuzhen/solver_harness/solver_harness.py status --exp-id <experiment-id>
 tmux capture-pane -t harness-<experiment-id> -p
 
-# 4. 停止（自动decode-all，不影响共享mitmproxy）
+# 4. 停止（自动decode-all，不影响共享mitmproxy系统服务）
 python3 xishujuzhen/solver_harness/solver_harness.py stop --exp-id <experiment-id>
 
-# 5. 所有实验结束后停止mitmproxy
-python3 xishujuzhen/solver_harness/solver_harness.py mitm stop
+# 5. 所有实验结束后——不需要停mitmproxy（系统服务常驻）
+#    如确需停止：launchctl unload ~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist
 ```
 
 ### GuidedLoop集成

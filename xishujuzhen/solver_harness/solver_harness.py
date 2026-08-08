@@ -43,7 +43,7 @@ from decode_connect_proto import extract_streaming_data, parse_connect_stream, d
 SOLVER_BASE = "/data/math-agent-glm5.2-tmux-agents-dir"
 TRAJECTORY_BASE = "/data/math-agent-glm5.2-tmux-agents-trajectory"
 SHARED_RAW_DIR = os.path.join(TRAJECTORY_BASE, "_shared", "mitm_raw")
-MITM_PORT = 18888
+MITM_PORT = 18889
 MITM_ALLOW_HOSTS = r"server\.self-serve\.windsurf\.com|api\.devin\.ai|static\.devin\.ai"
 SESSIONS_DB = os.path.expanduser("~/.local/share/devin/cli/sessions.db")
 SCRIPT_DIR = Path(__file__).parent.parent  # xishujuzhen/
@@ -134,7 +134,18 @@ def tmux_has_session(name):
 # ============================================================
 
 def is_mitmproxy_running():
-    """检查共享mitmproxy是否在运行。"""
+    """检查mitmproxy是否在运行（检测端口，兼容tmux和launchd两种启动方式）。"""
+    # 方式1：检测端口是否在监听（launchd系统服务或tmux启动都能检测到）
+    try:
+        result = subprocess.run(
+            ["lsof", "-i", f":{MITM_PORT}", "-t"],
+            capture_output=True, text=True, timeout=5
+        )
+        if result.stdout.strip():
+            return True
+    except Exception:
+        pass
+    # 方式2：兼容旧tmux session检测
     return tmux_has_session(MITM_TMUX_NAME)
 
 def ensure_mitmproxy_ca_trusted():
@@ -168,17 +179,43 @@ def ensure_mitmproxy_ca_trusted():
     return True
 
 def start_shared_mitmproxy():
-    """启动全局共享mitmproxy实例（固定18888端口，--allow-hosts限制只拦截devin host）。"""
-    if is_mitmproxy_running():
-        print(f"mitmproxy already running (tmux: {MITM_TMUX_NAME})")
-        return True
+    """启动全局共享mitmproxy实例。
 
+    优先使用launchd系统服务（开机自启动，两个AI共享，不冲突）。
+    如果launchd服务未运行，fallback到tmux启动。
+    """
+    if is_mitmproxy_running():
+        # 检测是launchd服务还是tmux
+        try:
+            result = subprocess.run(
+                ["lsof", "-i", f":{MITM_PORT}", "-t"],
+                capture_output=True, text=True, timeout=5
+            )
+            if result.stdout.strip():
+                print(f"mitmproxy already running on port {MITM_PORT} (system service)")
+                return True
+        except Exception:
+            pass
+        if tmux_has_session(MITM_TMUX_NAME):
+            print(f"mitmproxy already running (tmux: {MITM_TMUX_NAME})")
+            return True
+
+    # 先尝试启动launchd服务
+    plist_path = os.path.expanduser("~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist")
+    if os.path.exists(plist_path):
+        subprocess.run(["launchctl", "load", plist_path], capture_output=True)
+        time.sleep(3)
+        if is_mitmproxy_running():
+            print(f"mitmproxy started via launchd on port {MITM_PORT}")
+            print(f"  raw dir: {SHARED_RAW_DIR}")
+            print(f"  addon: ~/.mitmproxy/mitm_proto_capture.py")
+            return True
+
+    # fallback：tmux启动
     if not ensure_mitmproxy_ca_trusted():
         return False
 
-    # 确保共享raw目录存在
     os.makedirs(SHARED_RAW_DIR, exist_ok=True)
-
     stderr_log = os.path.join(TRAJECTORY_BASE, "_shared", "mitm_stderr.log")
     os.makedirs(os.path.dirname(stderr_log), exist_ok=True)
 
@@ -197,7 +234,6 @@ def start_shared_mitmproxy():
         capture_output=True
     )
 
-    # 等mitmproxy启动
     time.sleep(3)
 
     if is_mitmproxy_running():
@@ -211,9 +247,14 @@ def start_shared_mitmproxy():
         return False
 
 def stop_shared_mitmproxy():
-    """停止全局共享mitmproxy实例。"""
+    """停止mitmproxy实例（launchd服务和tmux都停）。"""
+    # 停launchd服务
+    plist_path = os.path.expanduser("~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist")
+    if os.path.exists(plist_path):
+        subprocess.run(["launchctl", "unload", plist_path], capture_output=True)
+    # 停tmux session
     subprocess.run(["tmux", "kill-session", "-t", MITM_TMUX_NAME], capture_output=True)
-    print(f"mitmproxy stopped (tmux: {MITM_TMUX_NAME})")
+    print(f"mitmproxy stopped (launchd + tmux)")
 
 # ============================================================
 # sessions.db轮询 + devin_session_id回填
@@ -743,9 +784,28 @@ def cmd_mitm(args):
         return 0
     elif sub == "status":
         if is_mitmproxy_running():
-            print(f"mitmproxy: RUNNING (tmux: {MITM_TMUX_NAME}, port: {MITM_PORT})")
+            # 检测是launchd还是tmux
+            try:
+                result = subprocess.run(
+                    ["lsof", "-i", f":{MITM_PORT}", "-t"],
+                    capture_output=True, text=True, timeout=5
+                )
+                port_listening = bool(result.stdout.strip())
+            except Exception:
+                port_listening = False
+            tmux_running = tmux_has_session(MITM_TMUX_NAME)
+
+            if port_listening and not tmux_running:
+                mode = "launchd system service"
+            elif tmux_running:
+                mode = f"tmux: {MITM_TMUX_NAME}"
+            else:
+                mode = "unknown"
+
+            print(f"mitmproxy: RUNNING ({mode}, port: {MITM_PORT})")
             print(f"  raw dir: {SHARED_RAW_DIR}")
             print(f"  allow-hosts: {MITM_ALLOW_HOSTS}")
+            print(f"  addon: ~/.mitmproxy/mitm_proto_capture.py (shared)")
             if os.path.exists(SHARED_RAW_DIR):
                 raw_files = [f for f in os.listdir(SHARED_RAW_DIR)
                              if f.endswith(".bin") and "_req" not in f]
@@ -753,6 +813,7 @@ def cmd_mitm(args):
         else:
             print(f"mitmproxy: STOPPED")
             print(f"  start with: python3 solver_harness.py mitm start")
+            print(f"  (or: launchctl load ~/Library/LaunchAgents/com.aurolafly.mitmproxy-devin.plist)")
         return 0
     else:
         print("Usage: mitm start|stop|status")

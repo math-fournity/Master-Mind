@@ -191,7 +191,7 @@ solver-harness通过mitmproxy截获devin cli的API响应，实现**token级实�
 ### 核心机制：responseheaders + stream callable
 
 ```
-devin cli → HTTPS_PROXY=localhost:18888 → mitmproxy → server.self-serve.windsurf.com
+devin cli → HTTPS_PROXY=localhost:18889 → mitmproxy → server.self-serve.windsurf.com
     ↓
 responseheaders hook（响应头到达时，body之前）
     ↓ 设置 flow.response.stream = parser.feed

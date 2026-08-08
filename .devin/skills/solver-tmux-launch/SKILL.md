@@ -49,7 +49,7 @@ env_prefix = (
 python3 xishujuzhen/solver_harness/solver_harness.py mitm start
 ```
 
-- 固定端口18888，`--allow-hosts`限制只拦截3个devin host（不影响其他本地应用）
+- 固定端口18889（launchd系统服务），`--allow-hosts`限制只拦截3个devin host（不影响其他本地应用）
 - CA证书自动加入Keychain信任（首次需要密码）
 - tmux session名：`harness-mitmproxy`
 - raw数据写入：`/data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/`
@@ -163,7 +163,7 @@ GuidedLoop引导实验也必须通过solver-harness启动。当前`launch`命令
 
 1. **--permission-mode dangerous自动添加**：solver-harness的launch命令已内置此参数，无需手动加
 2. **题目通过文件传递**：`devin -p`只适合短指令（<200字符），长题目写入problem.txt让AI读文件（solver-harness自动复制problem.txt到Solver目录）
-3. **共享mitmproxy**：全局单实例，固定18888端口，所有实验共享。stop单个实验不影响mitmproxy
+3. **共享mitmproxy**：launchd系统服务（开机自启动），固定18889端口，所有实验共享，两个AI共享不冲突。stop单个实验不影响mitmproxy系统服务
 4. **session命名**：solver-harness用`harness-<exp-id>`，mitmproxy用`harness-mitmproxy`，db monitor用`harness-dbmon-<exp-id>`
 
 ## 题目传递规范（铁律）
