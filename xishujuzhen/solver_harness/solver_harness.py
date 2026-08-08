@@ -479,6 +479,7 @@ def cmd_launch(args):
     model = args.model
     prompt = args.prompt or "请读取当前目录下的problem.txt文件，解答其中的数学题。"
     no_mitm = args.no_mitm
+    interactive = args.interactive
 
     print(f"=== Launching solver-harness for {exp_id} ===")
 
@@ -505,7 +506,7 @@ def cmd_launch(args):
         return 1
 
     # 4. 写session_info
-    write_session_info(exp_id, problem_file, model, prompt)
+    write_session_info(exp_id, problem_file, model, prompt, extra={"interactive": interactive})
 
     # 5. 确保共享mitmproxy运行
     mitm_enabled = not no_mitm
@@ -532,7 +533,12 @@ def cmd_launch(args):
     tmux_log_path = tdir / "tmux" / "tmux.log"
 
     # 构建devin cli命令
-    devin_cmd = f"devin -p '{prompt}' --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path}"
+    if interactive:
+        # 交互模式（不带-p，用--分隔prompt）——支持运行时send-keys提示注入
+        devin_cmd = f"devin --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path} -- '{prompt}'"
+    else:
+        # 单轮模式（-p）——完成后自动退出，不支持运行时输入
+        devin_cmd = f"devin -p '{prompt}' --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path}"
 
     if mitm_enabled:
         # 走mitmproxy代理
@@ -758,6 +764,7 @@ def main():
     p_launch.add_argument("--model", default="glm-5-2", help="模型名")
     p_launch.add_argument("--prompt", help="自定义prompt（默认读problem.txt）")
     p_launch.add_argument("--no-mitm", action="store_true", help="不启用MITM代理")
+    p_launch.add_argument("--interactive", action="store_true", help="交互模式（支持运行时send-keys提示注入）")
 
     # status
     p_status = sub.add_parser("status", help="查看实验状态")
