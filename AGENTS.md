@@ -1000,11 +1000,46 @@ Pass 2（用Schema final，对所有题做穷举标注）→ problem_profiles集
 
 ### 做到哪了——进度追踪
 
-**ArangoDB集合**：`problem_extraction_progress`——每道题处理完写入一条记录：
+**ArangoDB集合**：`problem_extraction_progress`——每道题（无论是否处理）都在此集合中有一条记录，精确到单个题目：
+
 ```json
-{"problem_id": "...", "source_dataset": "...", "extraction_status": "completed",
- "schema_version": 3, "extracted_at": "2026-08-08T...", "profile_doc_id": "problem_profiles/..."}
+{
+  "problem_id": "aops_instruct_000001",
+  "source_dataset": "aops_instruct",
+  "source_dataset_doc_id": "math_datasets/aops_instruct",
+  "extraction_status": "completed | pending | skipped | in_progress",
+  "skip_reason": "no_solution | not_textualized | pdf_only | null",
+
+  "external_ref": {
+    "local_path": "knowledge/problem_banks/aops_instruct/data/problem_000001.json",
+    "original_index": 1,
+    "original_id_in_source": "..."
+  },
+
+  "metadata": {
+    "domain": "number_theory",
+    "subfield": "Number Theory",
+    "difficulty_source": "competition",
+    "competition_tier": "IMO",
+    "answer_type": "Numerical",
+    "has_solution": true,
+    "question_length": 234,
+    "source_year": 1998,
+    "source_competition": "IMO 1998 Problem 3"
+  },
+
+  "schema_version": 3,
+  "extracted_at": "2026-08-08T...",
+  "profile_doc_id": "problem_profiles/aops_instruct_000001",
+  "extracted_by_subagent_id": "..."
+}
 ```
+
+**关键约束**：
+- **精确到单个题目**——每道题一条记录，不按数据集批量记录
+- **外部索引**——`external_ref.local_path`指向硬盘上这道题的原始文件，回头能在硬盘上找到从题目到解答的完整内容
+- **元数据记录**——从哪里来的（source_dataset）、原始外部信息中它是什么难度的（difficulty_source）、是第几道题（original_index）、来自什么竞赛/年份等
+- **所有题都有记录**——包括没处理的题（`extraction_status="skipped"`，`skip_reason`标注原因），不只是处理了的题
 
 **下一个AI进来怎么知道做到哪了**：
 ```python
@@ -1012,8 +1047,10 @@ Pass 2（用Schema final，对所有题做穷举标注）→ problem_profiles集
 db.aql.execute('RETURN COUNT(FOR p IN problem_extraction_progress FILTER p.extraction_status == "completed" RETURN 1)')
 # 查当前Schema版本
 db.aql.execute('FOR p IN problem_extraction_progress SORT p.schema_version DESC LIMIT 1 RETURN p.schema_version')
-# 查哪些题还没处理
-db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" ...')
+# 查哪些题还没处理（只查可处理的——有解答且已文本化的）
+db.aql.execute('FOR p IN problem_extraction_progress FILTER p.extraction_status == "pending" AND p.skip_reason == null RETURN p')
+# 查某个数据集的处理进度
+db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == "aops_instruct" COLLECT WITH COUNT INTO c RETURN c')
 ```
 
 **Schema文件路径**：`knowledge/problem_banks/extraction_schema.json`——活的文件，每次Pass 1发现新维度就更新版本号。
@@ -1025,9 +1062,128 @@ db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" .
 1. **读Schema文件**：`knowledge/problem_banks/extraction_schema.json`——了解当前所有已发现的维度和类别值
 2. **查ArangoDB进度**：`problem_extraction_progress`集合——了解哪些题处理了、当前Schema版本
 3. **读最小认知包**（下方§最小认知包）——恢复tell/hint/概念树的操作认知
-4. **读QA序列分析方法+完整示例**（上方§QA序列分析和§完整示例A/B）——恢复QA序列分析的操作方法
-5. **继续处理下一批未处理的题**——按"每道题的完整处理流程"执行（含QA序列分析）
-6. **每批处理完**：入库`problem_profiles` + 更新`problem_extraction_progress` + 更新Schema（如有新维度）+ commit
+4. **读QA序列分析方法+完整示例**（上方§QA序列分析和§完整示例A/B/C）——恢复QA序列分析的操作方法
+5. **读数据库Schema设计**（下方§数据库Schema设计）——了解集合结构和字段定义
+6. **继续处理下一批未处理的题**——按"每道题的完整处理流程"执行（含QA序列分析），可用subagent并发（见下方§并发处理）
+7. **每批处理完**：入库`problem_profiles` + 更新`problem_extraction_progress` + 更新Schema（如有新维度）+ commit
+
+### 数据库Schema设计
+
+> **本节记录题海梳理工作线涉及的ArangoDB集合和它们的Schema。按需迭代——新增字段或集合时更新本节。**
+
+**集合1：`problem_extraction_progress`**——题目处理进度（每道题一条记录，见上方§做到哪了）
+
+```
+字段：
+  problem_id          : string  (主键，格式：{source_dataset}_{original_index:06d})
+  source_dataset      : string  (来源数据集名)
+  source_dataset_doc_id: string (math_datasets集合中的文档ID)
+  extraction_status   : string  (completed | pending | skipped | in_progress)
+  skip_reason         : string  (no_solution | not_textualized | pdf_only | null)
+  external_ref        : object  ({local_path, original_index, original_id_in_source})
+  metadata            : object  ({domain, subfield, difficulty_source, competition_tier,
+                                  answer_type, has_solution, question_length,
+                                  source_year, source_competition})
+  schema_version      : int     (处理时使用的Schema版本)
+  extracted_at        : string  (ISO时间戳)
+  profile_doc_id      : string  (指向problem_profiles集合中的文档ID)
+  extracted_by_subagent_id: string (处理此题的subagent ID)
+```
+
+**集合2：`problem_profiles`**——题目完整侧写（处理完成的题一条记录）
+
+```
+字段：
+  _key                : string  (同problem_id)
+  source_id           : string
+  source_dataset      : string
+  domain              : string
+  subfield            : string
+  answer_type         : string
+  answer              : string
+
+  problem_type        : string
+  structure_features  : string
+  key_objects         : array[string]
+
+  thinking_patterns   : array[string]
+  primary_pattern     : string
+  knowledge_required  : array[string]
+  key_insight         : string
+
+  translation_from    : string
+  translation_to      : string
+  translation_type    : string
+
+  tell_topology       : object  ({problem_type, ai_method_type, gap_type})
+  tell_small_concepts : array[string]
+  expected_ai_method  : string
+  correct_method      : string
+
+  tell_hint_pairs     : array[object]  (局部视角的(tell, hint)对)
+  global_tell_hint_pairs: array[object]  (全局视角的(tell, hint)对，含路径特征型和蕴含型)
+
+  bare_ai_expected    : string  (pass | fail | marginal)
+  suitable_for_poc    : array[string]
+  discriminates_levels: boolean
+
+  qa_sequence         : object  ({rounds, metacognitive_rounds, knowledge_rounds,
+                                  level_sum, knowledge_bottleneck, thinking_bottleneck})
+```
+
+**集合3：`math_datasets`**（已有）——数据集元数据（不变，见212号）
+
+**集合4：`extraction_schema_versions`**（按需创建）——Schema版本历史
+
+```
+字段：
+  version             : int
+  schema_json         : object  (完整的Schema定义)
+  created_at          : string
+  created_by          : string
+  changes_from_prev   : string  (本版相对上版的变化描述)
+```
+
+**索引建议**：
+- `problem_extraction_progress`上按`source_dataset`建索引
+- `problem_extraction_progress`上按`extraction_status`建索引
+- `problem_profiles`上按`domain`建索引
+- `problem_profiles`上按`thinking_patterns`建数组索引
+
+### 并发处理——subagent流水线
+
+**可以用subagent并发处理题目，但必须遵守以下约束**：
+
+**最大并发数**：5个subagent同时运行。
+
+**流水线并发，不是批处理并发**：
+- ❌ 错误做法：启动5个subagent，等5个都结束了再启动下一组5个——这浪费并发槽位（快的subagent结束后空等慢的）
+- ✅ 正确做法：始终保持5个subagent在运行。一个subagent完成了一道题，立刻启动下一个subagent处理下一道题，补满5个槽位。这是流水线并发——任何时刻都有5个槽位在被使用。
+
+**subagent的工作内容**：
+每个subagent处理一道题，完整执行"每道题的完整处理流程"（10步，含QA序列分析）：
+1. 从ArangoDB `problem_extraction_progress`中领取一道`extraction_status="pending"`的题
+2. 将状态改为`in_progress`
+3. 通过`external_ref.local_path`从硬盘读取题目和解答
+4. 执行QA序列分析（局部视角7步+全局视角1步）
+5. 输出完整profile JSON
+6. 入库`problem_profiles`
+7. 更新`problem_extraction_progress`状态为`completed`
+8. 如发现新维度，追加到Schema文件并更新版本号
+
+**subagent需要的信息**（Master Agent在启动subagent时提供）：
+- Schema文件路径：`knowledge/problem_banks/extraction_schema.json`
+- 数据库连接信息：`localhost:8529`，数据库`xishujuzhen_math_glm52`
+- 数据库Schema定义（上方§数据库Schema设计）
+- 最小认知包（上方§最小认知包）
+- QA序列分析方法+示例（上方§QA序列分析和§完整示例A/B/C）
+- 当前要处理的题的`problem_id`
+
+**Master Agent的职责**（不委托给subagent）：
+- 管理并发槽位——始终保持5个subagent在运行
+- 监控subagent状态——完成一个立刻补一个
+- Schema版本管理——多个subagent同时发现新维度时合并到Schema
+- 处理异常——subagent失败时记录原因，将题目状态改回`pending`
 
 ### 最小认知包——做提取工作所需的最低认知
 
@@ -1054,26 +1210,29 @@ db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" .
 
 ### 已下载的有答案的题库（提取对象）
 
+**处理范围约束**：
+1. **只分析有解答的题**——没有答案的题（如ConjectureBench）不在提取范围内
+2. **只分析已经文本化的题**——不理会PDF中的题目。PDF格式的题（吉米多维奇、Demidovich、Engel等）需要先OCR或人工转录为文本后才处理
+3. **数据库中记录所有题的状态**——包括没处理的题（PDF未文本化的、无答案的），都要在数据库中有记录，标注处理状态
+
 **当前已下载完成的数据集**（12个，详见ArangoDB `math_datasets`集合，`download_status == "completed"`）：
 
-| 数据集 | 题量 | 有答案 | 格式 |
-|---|---|---|---|
-| 吉米多维奇（中文+解答） | 5000 | ✅ | PDF |
-| Demidovich英文版 | 3000 | ✅ | PDF |
-| Komjáth集合论 | 700 | ✅ | PDF |
-| Engel解题策略 | 300 | ✅ | PDF |
-| 俄罗斯546题 | 546 | ✅ | PDF |
-| 莫斯科MO 1993-2005 | 300 | ✅ | PDF |
-| TaichiLi题集 | 1000 | ✅ | 混合 |
-| awesome-math | ? | ? | 索引 |
-| ConjectureBench | 15000 | ❌ | JSON |
-| compfiles (Lean IMO) | 520 | ✅ | Lean |
-| Berkeley | 200 | ✅ | PDF |
-| AoPS-Instruct | 600000 | ✅ | JSON |
+| 数据集 | 题量 | 有答案 | 格式 | 可处理 |
+|---|---|---|---|---|
+| 吉米多维奇（中文+解答） | 5000 | ✅ | PDF | ❌（未文本化） |
+| Demidovich英文版 | 3000 | ✅ | PDF | ❌（未文本化） |
+| Komjáth集合论 | 700 | ✅ | PDF | ❌（未文本化） |
+| Engel解题策略 | 300 | ✅ | PDF | ❌（未文本化） |
+| 俄罗斯546题 | 546 | ✅ | PDF | ❌（未文本化） |
+| 莫斯科MO 1993-2005 | 300 | ✅ | PDF | ❌（未文本化） |
+| TaichiLi题集 | 1000 | ✅ | 混合 | 部分可处理（需检查文本化部分） |
+| awesome-math | ? | ? | 索引 | ❌（是索引不是题目） |
+| ConjectureBench | 15000 | ❌ | JSON | ❌（无答案） |
+| compfiles (Lean IMO) | 520 | ✅ | Lean | ✅ |
+| Berkeley | 200 | ✅ | PDF | ❌（未文本化） |
+| AoPS-Instruct | 600000 | ✅ | JSON | ✅ |
 
-**注意**：ConjectureBench没有答案（开放问题），不在提取范围内。PDF格式需要先OCR或人工读取。电子化格式（JSON/Lean）可以直接处理。
-
-**优先处理顺序**：先处理电子化格式的（AoPS-Instruct 60万题、compfiles 520题），再处理PDF格式的（吉米多维奇、Engel等竞赛题优先）。
+**当前可处理的数据集**：compfiles（520题）、AoPS-Instruct（60万题）。PDF数据集等文本化后再处理。
 
 ### 关键文档引用
 
