@@ -1239,24 +1239,56 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 2. **只分析已经文本化的题**——不理会PDF中的题目。PDF格式的题（吉米多维奇、Demidovich、Engel等）需要先OCR或人工转录为文本后才处理
 3. **数据库中记录所有题的状态**——包括没处理的题（PDF未文本化的、无答案的），都要在数据库中有记录，标注处理状态
 
-**当前已下载完成的数据集**（12个，详见ArangoDB `math_datasets`集合，`download_status == "completed"`）：
+**已入库的文本化数据集**（67837题，已全部入库`problem_extraction_progress`集合）：
 
-| 数据集 | 题量 | 有答案 | 格式 | 可处理 |
+| 数据集 | 题量 | 有解答 | 格式 | 来源 |
 |---|---|---|---|---|
-| 吉米多维奇（中文+解答） | 5000 | ✅ | PDF | ❌（未文本化） |
-| Demidovich英文版 | 3000 | ✅ | PDF | ❌（未文本化） |
-| Komjáth集合论 | 700 | ✅ | PDF | ❌（未文本化） |
-| Engel解题策略 | 300 | ✅ | PDF | ❌（未文本化） |
-| 俄罗斯546题 | 546 | ✅ | PDF | ❌（未文本化） |
-| 莫斯科MO 1993-2005 | 300 | ✅ | PDF | ❌（未文本化） |
-| TaichiLi题集 | 1000 | ✅ | 混合 | 部分可处理（需检查文本化部分） |
-| awesome-math | ? | ? | 索引 | ❌（是索引不是题目） |
-| ConjectureBench | 15000 | ❌ | JSON | ❌（无答案） |
-| compfiles (Lean IMO) | 520 | ✅ | Lean | ✅ |
-| Berkeley | 200 | ✅ | PDF | ❌（未文本化） |
-| AoPS-Instruct | 600000 | ✅ | JSON | ✅ |
+| numina_math | 35153 | 31427有效 | JSONL | 奥赛proof题 |
+| hendrycks_math | 12500 | ✅ | Parquet | MATH数据集Level 1-5 |
+| mathnet | 7952 | 6900有解答 | Parquet | 59个国家竞赛题 |
+| aops_1224 | 5328 | ✅ | JSONL | AoPS社区2024年题 |
+| omni_math | 4428 | ✅ | JSONL | 多源奥赛题（含difficulty 1-9.5） |
+| olympiadbench | 675 | ✅ | JSONL | 奥赛benchmark |
+| compfiles | 507 | ✅ | Lean | IMO/USAMO形式化题 |
+| minif2f | 488 | ✅ | Lean | 形式化竞赛题 |
+| fate | 380 | ✅ | JSON | 形式化代数证明（FATE-M/FATE-X） |
+| matharena | 356 | ✅ | JSON | 2024-2026竞赛（含hard_problems 43题） |
+| amc | 40 | ✅ | JSONL | AMC 2023 |
+| aime | 30 | ✅ | JSONL | AIME 2024 |
 
-**当前可处理的数据集**：compfiles（520题）、AoPS-Instruct（60万题）。PDF数据集等文本化后再处理。
+**未文本化的数据集**（PDF格式，不入库，等文本化后再处理）：
+吉米多维奇（5000题）、Demidovich（3000题）、Komjáth（700题）、Engel（300题）、俄罗斯546题、莫斯科MO（300题）、Berkeley（200题）、TaichiLi（1000题）
+
+**无答案的数据集**（不入库）：ConjectureBench（15000题，开放问题）
+
+### 难度分级方案与优先级排序
+
+> **已入库的67837题都有`difficulty_tier`和`priority`字段。Master Agent按`priority`升序派发题目（priority=1最先处理）。**
+
+**5级难度分级**（difficulty_tier，1=最难，5=最易）：
+
+| Tier | 含义 | 题量 | 典型来源 |
+|---|---|---|---|
+| 1 (最难) | IMO P5/P6, USAMO P5/P6, Putnam, FATE-X, MathArena hard(diff_score>=130) | 452 | compfiles IMO P5/P6, FATE-X, MathArena hard |
+| 2 (难) | IMO P3/P4, USA TST, HMMT/CMIMC/SMT最后几题, FATE-M, omni_math difficulty>=7 | 1732 | compfiles IMO P3/P4, numina顶级奥赛, AIME #13-15 |
+| 3 (中) | IMO P1/P2, USA P1-P4, olympiadbench, numina olympiads, mathnet proof | 40717 | numina大部分, mathnet proof, olympiadbench |
+| 4 (中易) | AIME #1-12, AMC, hendrycks Level 5, aops_1224 | 14260 | hendrycks Level 5, aops_1224, mathnet非proof |
+| 5 (易) | hendrycks Level 1-4, mathd_algebra/numbertheory, K12 | 10676 | hendrycks Level 1-4, miniF2F mathd |
+
+**先难后易的派发顺序**：
+```python
+# Master Agent查询下一批要派发的题（按priority升序=先难后易）
+db.aql.execute('''
+  FOR p IN problem_extraction_progress
+    FILTER p.extraction_status == "pending"
+    FILTER p.skip_reason == null
+    SORT p.priority ASC
+    LIMIT 5
+    RETURN p
+''')
+```
+
+**入库脚本**：`scripts/ingest_problem_extraction_progress.py`——扫描所有文本化数据集，为每道题建立记录含难度分级和优先级。可重复运行（先truncate再import）。
 
 ### 关键文档引用
 
