@@ -2089,3 +2089,30 @@
 **数学内容审查结论**：2个profile的数学内容全部准确——
 - omni_math #58：未出现的数m必然整除每个窗口乘积+将存在性问题转化为整除性约束+LCM指数增长与固定m的矛盾收尾，key_insight准确
 - omni_math #80：最小m分解为n+v_p(n!)+n来自逐因子valuation的p-adic平移增量+v_p(n!)来自n个整数的累积p-adic结构，key_insight准确
+
+### 第42a批（seq 289-291）— 2025-01-24
+
+**批次范围**：global_sequence 289~291（AoPS omni_math #96 + #102 + #107）
+**累计完成**：287/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部AoPS omni_math中国国家队选拔题。omni_math_000096首次空通知，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 289 | omni_math_000096 | ✅合格 | 无（重试1次） | ✅已落盘 |
+| 290 | omni_math_000102 | ✅合格 | 无 | ✅已落盘 |
+| 291 | omni_math_000107 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #96：函数方程f:Z→Z→b=c=0代入得f(x²)=f(x)²→f(1)分岔→f≡0或f=id
+- omni_math #102：逼近论→整数选择等价于mod 1圆上4点→等距分布→和5/4
+- omni_math #107：三维格点pebbling→权函数w=p^{-x}·q^{-y}·r^{-z}不变量→总权值≥1→p^a·q^b·r^c
+- stats类型约束持续生效（连续74批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #96：b=c=0代入得f(x²)=f(x)²+f(1)=f(1)²分出f≡0和f=id+代数恒等式化简为可加性验证，key_insight准确
+- omni_math #102：选择整数k_i等价于在周长1的圆上放置4个点+最坏情况是等距分布给出和5/4，key_insight准确
+- omni_math #107：构造权函数w(x,y,z)=p^{-x}·q^{-y}·r^{-z}作为操作不变量+将"能否到达原点"转化为"总权值是否≥1"+底数精确匹配操作压缩比率，key_insight准确
