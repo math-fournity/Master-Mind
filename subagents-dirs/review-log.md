@@ -1957,3 +1957,30 @@
 - FATE-X 374：根式扩张在R中不能产生非平凡奇数次Galois扩张+Galois闭包需要复数单位根（奇数n>1）或给出2-幂次度（偶数n），key_insight准确
 - FATE-X 375：S⊗_R S/I²在formally unramified时退化为S+改用多项式呈现S=P/J构造S'=P/J²+P自由性解决存在性+formally unramified解决唯一性，key_insight准确
 - FATE-X 376：将环论性质'整闭'翻译为几何'光滑性'（Jacobian判据）+范数映射证明分歧素理想p₁=(y,x-t₁)不是主理想，key_insight准确
+
+### 第39b批（seq 274-276）— 2025-01-24
+
+**批次范围**：global_sequence 274~276（MathArena CMIMC 2025 #38 ~ HMMT Feb 2025 #29）
+**累计完成**：275/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：首次进入MathArena竞赛题来源（非FATE-X）。纯文本竞赛题，无Lean形式化。cmimc_2025_0038和cmimc_2025_0039首次空通知，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 274 | matharena_MathArena_cmimc_2025_0038 | ✅合格 | 无（重试1次） | ✅已落盘 |
+| 275 | matharena_MathArena_cmimc_2025_0039 | ✅合格 | 无（重试1次） | ✅已落盘 |
+| 276 | matharena_MathArena_hmmt_feb_2025_0029 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- MathArena CMIMC 2025 #38：三角形AB=78,BC=50,AC=112+外正方形+中点三角形面积=8222，90°旋转算子+叉积恒等式
+- MathArena CMIMC 2025 #39：2024×2024网格黑白染色+蚂蚁闭合路径→二部图+K_{n,n}生成树+Matrix-Tree定理=2024^{4046}
+- MathArena HMMT Feb 2025 #29：平面截长方体六边形+对边比值编码隐藏对称性la=mb=nc+6未知数压缩为1参数
+- stats类型约束持续生效（连续69批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- CMIMC 2025 #38：90°旋转算子R统一表示外正方形顶点+叉积展开利用Ra×b=-(a·b)恒等式+面积公式(a²+b²+c²)/4+(7/4)·Area(ABC)=8222，key_insight准确
+- CMIMC 2025 #39：蚂蚁闭合环对应二部图中的环+极大简单染色=K_{n,n}生成树+Matrix-Tree定理n^{2n-2}=2024^{4046}，key_insight准确
+- HMMT Feb 2025 #29：对边比值9/11和11/9编码隐藏对称性la=mb=nc+将6个未知数压缩为1个参数K+坐标参数化+模式识别，key_insight准确
