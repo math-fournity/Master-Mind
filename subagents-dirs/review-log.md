@@ -1714,3 +1714,30 @@
 - FATE-X 335：不等式是凹性条件dim R[t]-dim R在迭代下非增+Spec R[x]→Spec R纤维维数至多1保证，key_insight准确
 - FATE-X 336：R[x]≅S[x]几何翻译为X×A¹≅Y×A¹+Danielewski曲面W_n⇏W_m但W_n×A¹≅W_m×A¹，key_insight准确
 - FATE-X 337：UFD性质等价于H₁(link,Z)=0（Mumford定理）+Brieskorn-Pham奇点(2,3,7)两两互素→link同调球→局部UFD→全局UFD，key_insight准确
+
+### 第35a批（seq 247-249）— 2025-01-24
+
+**批次范围**：global_sequence 247~249（FATE-X 338 ~ FATE-X 340）
+**累计完成**：248/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，群论/交换代数/理想理论。fate_000339第1次subagent完全失败（空通知），第1次重试成功（重试中subagent发现ArangoDB Docker容器停止，自行docker start后继续）。
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 247 | fate_000338 | ✅合格 | 无 | ✅已落盘 |
+| 248 | fate_000339 | ✅合格 | 无（第1次重试成功） | ✅已落盘 |
+| 249 | fate_000340 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 338：#G=336则G不是单群，Sylow n₇∈{1,8}+AGL(1,7)含奇置换x↦3x是6-圈+符号同态指数2正规子群
+- FATE-X 339：存在n>0和子域K⊆k(x₁,...,xₙ)使K∩k[x₁,...,xₙ]非有限生成，Nagata对Hilbert第14问题反例+不变量环
+- FATE-X 340：Pic(k[x,y]/(xy(x+y-1)))≅k×，三条直线三角形坐标环+粘贴正合序列(k×)³/(k×)²
+- stats类型约束持续生效（连续60批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 338：Sylow n₇∈{1,8}+n₇=1正规+n₇=8共轭作用G→S₈+AGL(1,7)含奇置换x↦3x是6-圈+符号同态指数2正规子群，key_insight准确
+- FATE-X 339：将子域交问题转化为不变量环问题k[x₁,...,xₙ]^G非有限生成+群作用不动域构造K+Nagata对Hilbert第14问题反例，key_insight准确
+- FATE-X 340：A=k[x,y]/(xy(x+y-1))是三条直线构成三角形的坐标环+粘贴正合序列将Pic(A)归结为(k×)³/(k×)²≅k×，key_insight准确
