@@ -383,3 +383,30 @@
 - IMO 2025 P6：Erdős-Szekeres+方向标签+incidence counting+AM-GM+模运算构造，key_insight准确
 - IMO 2026 P5：平方+夹逼+迭代公式+等差轨道+缺陷分析+球密度反证，key_insight准确
 - IMO 2026 P6：三层翻译链+贪心最小性约束+极小支撑有限性+周期L+归纳，key_insight准确
+
+### 第10a批（seq 97-99）— 2025-01-24
+
+**批次范围**：global_sequence 97~99（USA 1973 P5 ~ USA 1976 P5）
+**累计完成**：98/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**里程碑**：IMO系列全部处理完（1959-2026），开始USA系列
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 97 | compfiles_usa1973p5 | ✅合格 | 无 | ✅已落盘 |
+| 98 | compfiles_usa1975p5 | ✅合格 | 无 | ✅已落盘 |
+| 99 | compfiles_usa1976p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1975 P5只有6个local pairs（对称性论证步骤较少，5-8范围内合理）
+- USA 1975 P5的bare_ai_expected="marginal"——AI可能通过直接计算得到答案但不会发现对称性论证
+- USA 1976 P5的关键是本原5次单位根+辅助多项式构造
+- stats类型约束持续生效（连续10批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1973 P5：立方运算产生∛(pqr)交叉项+素因子分解mod 3矛盾，key_insight准确
+- USA 1975 P5：反射对称性+mid(S)→n+1-mid(S)+双射平均值=中点，key_insight准确
+- USA 1976 P5：辅助多项式f(t)+本原5次单位根求值+3个根迫使f≡0，key_insight准确
