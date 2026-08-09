@@ -147,3 +147,28 @@
 - IMO 2002 P5：函数方程分层降维+稠密性延拓，implicit tell指出复数乘法结构
 - IMO 2003 P5：绝对差线性化+CS，key_insight准确
 - IMO 2003 P6：构造N+阶论论证，key_insight准确
+
+### 第5b批（seq 60-64）— 2025-01-24
+
+**批次范围**：global_sequence 60~64（IMO 2004 P6 ~ IMO 2007 P6）
+**累计完成**：63/452（Tier 1）
+**审计方式**：5个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 60 | compfiles_imo2004p6 | ✅合格 | 无 | ✅已落盘 |
+| 61 | compfiles_imo2005p6 | ✅合格 | 无 | ✅已落盘 |
+| 62 | compfiles_imo2006p5 | ✅合格 | 无 | ✅已落盘 |
+| 63 | compfiles_imo2007p5 | ✅合格 | 无 | ✅已落盘 |
+| 64 | compfiles_imo2007p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**改进效果确认**：从第5b批起，subagent指令中新增了stats字段类型约束（knowledge_bottleneck和thinking_bottleneck必须是字符串"R4"不是数字4）。本批5个profile的stats字段类型全部正确（字符串类型），证明该约束有效消除了第5a批中发现的系统性小问题。
+
+**数学内容审查结论**：5个profile的数学内容全部准确——
+- IMO 2004 P6：交替数刻画，Nice数字块+Euler定理，key_insight准确
+- IMO 2005 P6：双计数+模3同余，C(4,2)=6≡0 mod 3使4题解者消失，key_insight准确
+- IMO 2006 P5：迭代多项式不动点计数，周期归约k→≤2+整除链，key_insight准确
+- IMO 2007 P5：无穷递降，对t=na取模提取商k=tc-1，key_insight准确
+- IMO 2007 P6：多项式方法+Combinatorial Nullstellensatz，几何→多项式翻译，key_insight准确
