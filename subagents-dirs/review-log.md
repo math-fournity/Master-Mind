@@ -79,3 +79,21 @@
 **审计结果摘要**：10个全部合格，0个大问题，0个小问题。
 
 **数学内容审查结论**：10个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。answer字段全部正确。per-pair拓扑有区分度（5-7种不同组合）。包含IMO 1988 P6（Vieta jumping名题）和IMO 1990 P5（博弈分类）等经典难题，分析质量高。
+
+### 第4a批（seq 45-49）— 2025-01-24
+
+**批次范围**：global_sequence 45~49（IMO 1993 P6 ~ IMO 1996 P6）
+**累计完成**：48/452（Tier 1）
+**批次大小**：从本批起改为5个一组（之前10个触发rate limit）
+
+| seq | problem_id | 审计结果 | 修复内容 |
+|---|---|---|---|
+| 45 | compfiles_imo1993p6 | ✅合格 | 无 |
+| 46 | compfiles_imo1994p5 | ✅合格 | 无 |
+| 47 | compfiles_imo1994p6 | ✅合格 | 无 |
+| 48 | compfiles_imo1995p6 | ✅合格 | 无 |
+| 49 | compfiles_imo1996p6 | ✅合格 | 无 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**数学内容审查结论**：5个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。answer字段全部正确。per-pair拓扑有区分度（6-7种不同组合）。
