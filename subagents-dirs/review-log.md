@@ -122,3 +122,28 @@
 - Phase 6：元审查无改进需求
 
 **审计方法反思**：之前3批（30个profile）的审计是粗审（只检查格式+高层读key_insight），没有按audit-checklist-template.md要求逐项审查。第4b批起改为完整审计。完整审计1个profile约15-20分钟，10万级数据基座下需要抽样审计（检查点2每5道做1个完整审计+其余粗审）。
+
+### 第5a批（seq 55-59）— 2025-01-24
+
+**批次范围**：global_sequence 55~59（IMO 2001 P5 ~ IMO 2003 P6）
+**累计完成**：58/452（Tier 1）
+**审计方式**：5个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 55 | compfiles_imo2001p5 | ✅合格 | 1个小问题(stats类型) | ✅已落盘 |
+| 56 | compfiles_imo2001p6 | ✅合格 | 无 | ✅已落盘 |
+| 57 | compfiles_imo2002p5 | ✅合格 | 1个小问题(stats类型) | ✅已落盘 |
+| 58 | compfiles_imo2003p5 | ✅合格 | 无 | ✅已落盘 |
+| 59 | compfiles_imo2003p6 | ✅合格 | 1个小问题(stats类型) | ✅已落盘 |
+
+**审计结果摘要**：5个全部合格，0个大问题，3个小问题。
+
+**发现的系统性小问题**：qa_sequence.stats中knowledge_bottleneck和thinking_bottleneck的类型不一致——有的profile用字符串"R4"，有的用数字4。需要批量修复统一为字符串类型。
+
+**数学内容审查结论**：5个profile的数学内容全部准确——
+- IMO 2001 P5：正弦定理归约，key_insight准确（QB不可达信号），QA序列逐轮与Lean一致
+- IMO 2001 P6：隐藏恒等式(ab+cd)(ad+bc)=(ac+bd)(b²+bd+d²)，key_insight准确
+- IMO 2002 P5：函数方程分层降维+稠密性延拓，implicit tell指出复数乘法结构
+- IMO 2003 P5：绝对差线性化+CS，key_insight准确
+- IMO 2003 P6：构造N+阶论论证，key_insight准确
