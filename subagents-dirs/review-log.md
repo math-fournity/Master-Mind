@@ -3058,3 +3058,30 @@
 - omni_math #4116：d次幂比值条件+"对所有n"→P(x)=a(rx+s)^d，key_insight准确
 - omni_math #4119：交替移动不变量R=j(r-1)+gcd论证→r=(a+1)/a, a≤1010，key_insight准确
 - omni_math #4121：x=1代入+乘法周期性+倒数形式→f(x)=1/x，key_insight准确
+
+### 第60a批（seq 397-399）— 2025-01-24
+
+**批次范围**：global_sequence 397~399（AoPS omni_math #4123 + #4127 + #4128）
+**累计完成**：392/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO题，difficulty 9.0。涵盖组合、组合、多项式
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 397 | omni_math_004123 | ✅合格 | 无 | ✅已落盘 |
+| 398 | omni_math_004127 | ✅合格 | 无 | ✅已落盘 |
+| 399 | omni_math_004128 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4123：IMO SL组合→Fibonacci差集+偶数下标Fibonacci数构造+恒等式F_{2j+2}-F_{2j}=F_{2j+1}→ceil(n/2)+1（subagent发现原解答构造S={0,1,...,ceil(n/2)}对n≥6错误，正确构造应用偶数下标Fibonacci数，但答案正确）
+- omni_math #4127：IMO SL组合→圆环项链涂色+gap计数论证+每种颜色gap≤n+求和矛盾→m=n²-n-1不可能
+- omni_math #4128：IMO多项式→k次首一多项式P(a_n)=a_{n+1}...a_{n+k}+等差数列连续k项乘积=首一多项式且系数非负→所有非减等差正整数序列
+- stats类型约束持续生效（连续110批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4123：偶数下标Fibonacci数+奇偶配对→ceil(n/2)+1，key_insight准确（原解答构造错误已被subagent发现并修正标注）
+- omni_math #4127：gap计数论证+求和矛盾→n²-n-1，key_insight准确
+- omni_math #4128：等差数列乘积=首一多项式+渐近分析必要性→非减等差正整数序列，key_insight准确
