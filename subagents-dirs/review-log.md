@@ -904,3 +904,30 @@
 - USA 2023 P5：素数n AP公差k不被n整除→k在Z/nZ可逆→遍历所有剩余类各一次→双射性使列排列构造可能+合数Trygub反例，key_insight准确
 - USA 2024 P6：指示函数重写|Aᵢ∩Aⱼ|+交换求和顺序+∑_{p,q}v_{p,q}²平方和+对角/非对角QM-AM+ℓ-子集对称构造验证，key_insight准确
 - USA 2025 P5：下降阶乘分裂p|(j+1)和p∤(j+1)+关键同余n.choose(i)≡(-1)^(i-i/p)·(M-1).choose(i/p)+分p块求和S(n)≡p·S(M-1)+强归纳，key_insight准确
+
+### 第20a批（seq 157-159）— 2025-01-24
+
+**批次范围**：global_sequence 157~159（USA 2025 P6 ~ FATE-X 250）
+**累计完成**：158/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：本批包含首个FATE-X问题（fate_000250），需特殊处理JSON格式问题文件
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 157 | compfiles_usa2025p6 | ✅合格 | 无 | ✅已落盘 |
+| 158 | compfiles_usa2026p6 | ✅合格 | 无 | ✅已落盘 |
+| 159 | fate_000250 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2025 P6用强归纳+Hall亏值定理+圆形手术+合并引理——cupcake分配问题
+- USA 2026 P6用结构case analysis——奇偶性→素数幂+Vieta跳跃(e=1)+模运算(e≥2)，答案a,b是Fibonacci数
+- **首个FATE-X问题fate_000250**：UFD有两个非相伴素元→PID，用良序原理+赋值结构+加法封闭性反证
+- stats类型约束持续生效（连续30批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2025 P6：强归纳on n+Hall亏值定理分M和B+圆形手术删除M弧段+合并引理（得分<1弧段删除后相邻弧段合并仍≥1）+归纳+合并分配，key_insight准确
+- USA 2026 P6：奇偶性→ab+1=素数幂p^e+e=1: Vieta跳跃a²+b²+1=3ab匹配F_{n+4}+F_n=3F_{n+2}+e≥2: p^(e-1)|(a²+a+1)(a²-a+1)互素+p=3+e=2+ab=8+(1,8)，key_insight准确
+- FATE-X 250：元素分解u·p^a·q^b+良序原理找最小赋值对(α,β)+g=p^α·q^β候选生成元+理想加法封闭性反证（x+y赋值矛盾低于最小值），key_insight准确
