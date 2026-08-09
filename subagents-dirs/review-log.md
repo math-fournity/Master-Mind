@@ -1417,3 +1417,30 @@
 - FATE-X 302：环A是Artinian局部环（dim_k A=5）+Gorenstein归结为socle 1维性+socle=(t)为1维，key_insight准确
 - FATE-X 303：对xa=0应用D+Leibniz得a∈xA→归纳提升a∈xⁿA∀n（Q-代数保证n+1可逆）→Hausdorff条件收尾a=0，key_insight准确
 - FATE-X 304：M非有限生成→M⊕N无穷秩κ→R^κ≅R^κ⊕R^n吸收→Eilenberg swindle→M⊕R^κ≅R^κ→M≅R^κ，key_insight准确
+
+### 第29b批（seq 214-216）— 2025-01-24
+
+**批次范围**：global_sequence 214~216（FATE-X 305 ~ FATE-X 307）
+**累计完成**：215/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/光滑性/Dedekind domain/同调方法
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 214 | fate_000305 | ✅合格 | 无 | ✅已落盘 |
+| 215 | fate_000306 | ✅合格 | 无 | ✅已落盘 |
+| 216 | fate_000307 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 305：忠实平坦下降投射性，Tor₁刻画+Tor与平坦基变换交换（Hom-张量对非有限展示模不成立）
+- FATE-X 306：A完全整闭→A[X]完全整闭，两阶段归约：PID互素性+首系数分析
+- FATE-X 307：商平坦∀n→M平坦，核包含翻译+Krull交定理（6轮QA，在5-8轮范围内）
+- stats类型约束持续生效（连续49批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 305：朴素Hom-张量方法失败（非有限展示模）→Tor₁刻画+Tor与平坦基变换交换+忠实平坦反映零化，key_insight准确
+- FATE-X 306：两阶段归约K(X)→K[X]（PID互素性）→A[X]（首系数分析提取几乎整性），key_insight准确
+- FATE-X 307：对所有n条件翻译商平坦为核被Pⁿ(I⊗M)包含+Krull交定理使∩Pⁿ(I⊗M)=0+核为零→M平坦，key_insight准确
