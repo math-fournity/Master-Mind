@@ -1768,3 +1768,30 @@
 - FATE-X 341：参数k是非Noetherian行为在多项式扩张中持续的变量个数+前k个变量每个贡献+2（Seidenberg上界）+之后Noetherian化使每个变量只贡献+1，key_insight准确
 - FATE-X 342：非交换性使混合词不可约化+Golod-Shafarevich构造的有限生成nil-代数同时满足整（幂零→整）、有限生成、无限维三个条件，key_insight准确
 - FATE-X 343：φ(f^n(x))的值满足线性递推（étale+有限型→特征多项式→递推）+Skolem-Mahler-Lech定理适用+零集有限或含等差数列，key_insight准确
+
+### 第36a批（seq 253-255）— 2025-01-24
+
+**批次范围**：global_sequence 253~255（FATE-X 344 ~ FATE-X 346）
+**累计完成**：254/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/理想理论/多项式自同构/算术动力学/多项式自同态
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 253 | fate_000344 | ✅合格 | 无 | ✅已落盘 |
+| 254 | fate_000345 | ✅合格 | 无 | ✅已落盘 |
+| 255 | fate_000346 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 344：C[x,y]自同构f:x↦p(x)+ay,y↦x+height-1素理想→f(𝔭)≠𝔭，UFD+主理想+迭代次数增长矛盾
+- FATE-X 345：f∈Q(x)次数≥2+轨道含无穷多整数→f²是多项式，resultant+分母增长+轨道偶/奇分裂
+- FATE-X 346：多项式自同态φ+每个f_i次数≥2→存在Zariski稠密轨道点，deg≥2双重作用+坏集压缩
+- stats类型约束持续生效（连续62批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 344：C[x,y]是UFD+height-1素理想=主理想+迭代f使deg(f^n(g))增长如(deg p)^n vs f(g)=cg次数恒定→矛盾，key_insight准确
+- FATE-X 345：非多项式有理函数轨道只含有限整数（resultant限制整数到整数映射+分母增长阻止返回）+轨道偶/奇分裂+pigeonhole→f²必须是多项式，key_insight准确
+- FATE-X 346：deg≥2条件同时保证φ的单射性和p∘φᵐ的次数指数增长+将每个坏集B_p压缩到有限集+并集无法覆盖无限域kⁿ，key_insight准确
