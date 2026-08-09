@@ -2653,3 +2653,30 @@
 - omni_math #3871：传递性迫使规则必须是单一比较a_k>b_k对某个固定k+恰好100种，key_insight准确
 - omni_math #3872：答案等于S₂(2020)=popcount(2020)=7+通过range不变量和2-adic赋值连接二进制表示与最优策略，key_insight准确
 - omni_math #3875：二重计数三类格子（选中行、选中列、平衡对角线）+交叉处格子被计4次而其余计1次+迫使k²个交叉格子平衡+故3|k即9|n，key_insight准确
+
+### 第52b批（seq 352-354）— 2025-01-24
+
+**批次范围**：global_sequence 352~354（AoPS omni_math #3880 + #3882 + #3886）
+**累计完成**：347/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO/IMO Shortlist题，difficulty 9.0。三个problem.lean的solution文本均被截断，subagent从官方PDF/已知解答重建完整解答
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 352 | omni_math_003880 | ✅合格 | 无 | ✅已落盘 |
+| 353 | omni_math_003882 | ✅合格 | 无 | ✅已落盘 |
+| 354 | omni_math_003886 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3880：IMO 2019 SL C9→加权势w(S)=Σ2^{-r_S(x)}≤1+最小scale d只出现在相邻元素间+奇偶拆分使归纳以因子1/2闭合→答案2^k
+- omni_math #3882：IMO SL数论→整除→QR翻译+Fermat数分解正向+2^q-1≡3(mod 4)反向推出p≡3(mod 4)使-9非QR→答案n=2^k
+- omni_math #3886：IMO函数方程→特殊化代入得f(0)∈{0,2}+f(0)=2直接得f(x)=2-x+f(0)=0需证奇性后消元得f(x)=x
+- stats类型约束持续生效（连续95批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3880：加权势归纳法+最小scale相邻性+奇偶拆分闭合，key_insight准确
+- omni_math #3882：整除→QR翻译+Fermat数分解+mod 4素因子分布双向证明，key_insight准确
+- omni_math #3886：特殊化代入+不动点分析+f(0)分情况+奇函数证明，key_insight准确
