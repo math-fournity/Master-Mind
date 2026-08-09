@@ -2896,3 +2896,30 @@
 - omni_math #3993：additive basis density分析+k=3/k=4临界边界，key_insight准确（原解答模3剩余类构造缺陷已被subagent发现并标注）
 - omni_math #3996：代数变换→因子计数→(τ(a²)-1)/2→a=1680处121，key_insight准确（原解答推导错误已被subagent发现并修正标注）
 - omni_math #4005：(1,0)代入+f(-1)≠0消除+递推→f(x)=x-1，key_insight准确
+
+### 第57a批（seq 379-381）— 2025-01-24
+
+**批次范围**：global_sequence 379~381（AoPS omni_math #4014 + #4021 + #4036）
+**累计完成**：374/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO题，difficulty 9.0。涵盖代数、数论、组合
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 379 | omni_math_004014 | ✅合格 | 无 | ✅已落盘 |
+| 380 | omni_math_004021 | ✅合格 | 无 | ✅已落盘 |
+| 381 | omni_math_004036 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4014：IMO SL代数→f(xf(x+y))=f(yf(x))+x²+y=0,x=0特化代入→f(0)=0,f(xf(x))=x²→猜f(x)=±x验证
+- omni_math #4021：IMO SL数论→n的约数填矩形表格+行列和相等+r=1/c=1迫使所有约数相等+r,c≥2乘性配对与加性冲突→n=1
+- omni_math #4036：IMO组合→反帕斯卡三角形+|a-b|≡a+b mod 2→mod 2归约+Lucas定理计数奇数项1018586>161787矛盾→No
+- stats类型约束持续生效（连续104批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4014：特化代入+候选猜测验证f(x)=±x，key_insight准确
+- omni_math #4021：r=1/c=1+乘性配对与加性冲突→n=1，key_insight准确
+- omni_math #4036：mod 2归约+Lucas定理奇数项计数矛盾→No，key_insight准确
