@@ -852,3 +852,29 @@
 - USA 2019 P6：通分+参数化z=(x+y)/(2xy-1)+维度论证PhiPoly≡0+偶函数+复数延拓h²=-1/2二阶差分+度数≤2+代入(1,1,2)定系数a=3b，key_insight准确
 - USA 2020 P5：flooded m点集最多1个overdetermined (m-1)-子集（插值唯一性）+double counting+归纳+极值构造，key_insight准确
 - USA 2020 P6：随机置换σ+S(σ)+E[S]=0+E[S²]=1/(n-1)+Popoviciu方差界Var≤(M-m)²/4+max-min≥2/√(n-1)+排序不等式，key_insight准确
+
+### 第19a批（seq 151-153）— 2025-01-24
+
+**批次范围**：global_sequence 151~153（USA 2021 P5 ~ USA 2022 P6）
+**累计完成**：152/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 151 | compfiles_usa2021p5 | ✅合格 | 无 | ✅已落盘 |
+| 152 | compfiles_usa2022p5 | ✅合格 | 无 | ✅已落盘 |
+| 153 | compfiles_usa2022p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2021 P5用极值法——消去奇数下标+偶数递推+min-max argument夹逼min=max，答案(1,2,1,2,...)
+- USA 2022 P5的implicit型tell指出dominating constant B必须同时支配值和差分（dual domination），答案k=11
+- USA 2022 P6有8个local pairs，clique cover不变量+theta_bound 3|K|≤2e+4+4-环构造，答案3031
+- stats类型约束持续生效（连续28批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2021 P5：消去奇数下标+偶数递推a_k=1/a_{k-1}+2/a_k+1/a_{k+1}+极值法min-max+方向相反不等式+夹逼min=max+回代c=2,b=1，key_insight准确
+- USA 2022 P5：临界量2^k-1+鸽巢计数支撑模式（下界）+二进制层级构造范围（上界）+2^10-1=1023<2022<2047=2^11-1，key_insight准确
+- USA 2022 P6：clique cover不变量+theta_bound 3|K|≤2e+4+merge算法终止+单一大clique+3n≤2e+4→e≥3031+4-环构造上界1+1010×3=3031，key_insight准确
