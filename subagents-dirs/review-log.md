@@ -2116,3 +2116,30 @@
 - omni_math #96：b=c=0代入得f(x²)=f(x)²+f(1)=f(1)²分出f≡0和f=id+代数恒等式化简为可加性验证，key_insight准确
 - omni_math #102：选择整数k_i等价于在周长1的圆上放置4个点+最坏情况是等距分布给出和5/4，key_insight准确
 - omni_math #107：构造权函数w(x,y,z)=p^{-x}·q^{-y}·r^{-z}作为操作不变量+将"能否到达原点"转化为"总权值是否≥1"+底数精确匹配操作压缩比率，key_insight准确
+
+### 第42b批（seq 292-294）— 2025-01-24
+
+**批次范围**：global_sequence 292~294（AoPS omni_math #109 + #113 + #114）
+**累计完成**：290/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部AoPS omni_math中国国家队选拔题。omni_math_000109首次出现8个local pairs（total_rounds=8）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 292 | omni_math_000109 | ✅合格 | 无 | ✅已落盘 |
+| 293 | omni_math_000113 | ✅合格 | 无 | ✅已落盘 |
+| 294 | omni_math_000114 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #109：函数方程f:R²→R→降维+三元条件重构+射线二择性+非递减强制全局一致→c+min或c+max（8轮，首次超过7轮）
+- omni_math #113：2002个不同正整数→推广F>2002+费马小定理+CRT→No
+- omni_math #114：算术同余半群→d²∤x不可约判据+双素数递归分裂+Davenport常数→t=max{2q, q-1+2M}
+- stats类型约束持续生效（连续75批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #109：条件1(非递减)看似正则性条件实则排除混合解的判别器+将"每条射线独立二择"提升为"全局统一二择"，key_insight准确
+- omni_math #113：将2002推广为F>2002+费马小定理将无穷问题归约为有限组合问题+CRT找到使所有k_i·2^n+1同时合数的n，key_insight准确
+- omni_math #114：d整除所有S元素+x不可约当且仅当d²∤x+用d的两个不同素因子递归分裂任何元素，key_insight准确
