@@ -800,3 +800,29 @@
 - USA 2015 P6：缺陷序列x(n)=λn-|A_n|+反证法+运行平均+相邻缺陷差≥min(λ,1-λ)>0+运行平均变负+与非负性矛盾，key_insight准确
 - USA 2016 P6：滑动窗口策略(k<n)+相邻窗口标签集合差+推断2n-k>n个位置+鸽巢找匹配+巫师置换不变量(k=n)，key_insight准确
 - USA 2017 P5：√2是格点最小非零距离+squeeze argument归纳上界(c≥√2不可能)+递归奇偶标号下界(c<√2构造)，key_insight准确
+
+### 第18a批（seq 145-147）— 2025-01-24
+
+**批次范围**：global_sequence 145~147（USA 2017 P6 ~ USA 2019 P5）
+**累计完成**：146/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 145 | compfiles_usa2017p6 | ✅合格 | 无 | ✅已落盘 |
+| 146 | compfiles_usa2018p6 | ✅合格 | 无 | ✅已落盘 |
+| 147 | compfiles_usa2019p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2017 P6有3个全局pair（2 path_feature+1 implicit），切线trick线性下界1/4-k/12≤1/(k³+4)+循环积和因式分解，答案2/3
+- USA 2018 P6有8个local pairs，三重对合缩减链（逆映射+flip构造+顶点递推）精巧
+- USA 2019 P5用不变量方法——m+n的奇素因子p给出不变量p|(a+b)且p∤b，答案m+n是2的幂
+- stats类型约束持续生效（连续26批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2017 P6：切线trick线性下界1/4-k/12（k=2处紧）+循环积和归约+因式分解(x₀+x₂)(x₁+x₃)≤4+答案2/3在(2,2,0,0)，key_insight准确
+- USA 2018 P6：三重对合缩减链（逆映射对合+flip构造+顶点递推）逐步归约到已知奇数集合，key_insight准确
+- USA 2019 P5：不变量p|(a+b)且p∤b（m+n奇素因子p）+两种操作保持+1=a/a违反+正向m+n=2^k的dyadic构造，key_insight准确
