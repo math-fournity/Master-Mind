@@ -2197,3 +2197,29 @@
 - omni_math #133：直线y=ax+b上xy为整数⟺1+az为完全平方数（判别式转化）+素数乘积参数化+CRT控制整除性，key_insight准确
 - omni_math #138：倍映射x→2x在Z/aⱼZ上是双射当且仅当aⱼ为奇数+连接组合packing条件与数论奇偶约束的桥梁，key_insight准确
 - omni_math #139：混合角纤维——固定两个坐标到相反极端——同时是join-prime和meet-prime+移除后保持子格性质，key_insight准确
+
+### 第44a批（seq 301-303）— 2025-01-24
+
+**批次范围**：global_sequence 301~303（AoPS omni_math #146 + #147 + #155）
+**累计完成**：298/452（Tier 1）（omni_math_000146跳过，待后续重试）
+**审计方式**：2个按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组（2个完成，1个跳过）
+**备注**：全部AoPS omni_math中国国家队选拔题。omni_math_000146因3次subagent空通知跳过待后续排查。omni_math_000147只有6轮（total_rounds=6）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 301 | omni_math_000146 | ⏸跳过 | 3次空通知 | 待后续 |
+| 302 | omni_math_000147 | ✅合格 | 无 | ✅已落盘 |
+| 303 | omni_math_000155 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：2个合格，0个大问题，0个小问题。1个跳过。
+
+**本批特点**：
+- omni_math #146：跳过（因子分解方式数f(k)，3次空通知）
+- omni_math #147：interesting数2018|d(n)→2018=2×1009+两情形分解+p-adic赋值构造AP（6轮）
+- omni_math #155：数论不等式→中间和重写为Σf(m)+f(m)积性+素数幂验证
+- stats类型约束持续生效（连续78批0个小问题）
+
+**数学内容审查结论**：2个profile的数学内容全部准确——
+- omni_math #147：2018=2×1009（1009素数）+将2018|d(n)分解为两种情形+p-adic赋值锁定构造AP+必要性阻碍论证，key_insight准确
+- omni_math #155：将中间和重写为Σf(m)其中f(m)=Σ_{d|m}τ(d)²是积性的+逐项不等式归约到素数幂验证5≤(a+1)(a+2)(2a+3)/6≤5^a，key_insight准确
