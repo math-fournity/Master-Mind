@@ -1795,3 +1795,30 @@
 - FATE-X 344：C[x,y]是UFD+height-1素理想=主理想+迭代f使deg(f^n(g))增长如(deg p)^n vs f(g)=cg次数恒定→矛盾，key_insight准确
 - FATE-X 345：非多项式有理函数轨道只含有限整数（resultant限制整数到整数映射+分母增长阻止返回）+轨道偶/奇分裂+pigeonhole→f²必须是多项式，key_insight准确
 - FATE-X 346：deg≥2条件同时保证φ的单射性和p∘φᵐ的次数指数增长+将每个坏集B_p压缩到有限集+并集无法覆盖无限域kⁿ，key_insight准确
+
+### 第36b批（seq 256-258）— 2025-01-24
+
+**批次范围**：global_sequence 256~258（FATE-X 347 ~ FATE-X 349）
+**累计完成**：257/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/理想理论/自同态/自同构群/Bass大投射模定理
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 256 | fate_000347 | ✅合格 | 无 | ✅已落盘 |
+| 257 | fate_000348 | ✅合格 | 无 | ✅已落盘 |
+| 258 | fate_000349 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 347：数域K+有限型K-代数A+非有限阶自同态f→存在极大理想m使f^{-n}(m)≠m，整环性质+不动点理想J_n非零+密度论证
+- FATE-X 348：有限型C-代数A+Aut_C(A)≅Aut_C(C[x₁,...,xₙ])→A≅C[x₁,...,xₙ]，自同构群完备不变量+不变量恢复
+- FATE-X 349：Noetherian环R+可数生成投射模P+P_m无限rank→P自由，Bass大投射模定理+Eilenberg swindle
+- stats类型约束持续生效（连续63批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 347：f^n≠id结合A是整环推出不动点理想J_n非零+使每个不动点集是真闭子集+数域上可数个真闭子集不能覆盖所有极大理想，key_insight准确
+- FATE-X 348：自同构群是多项式环在有限型C-整环中的完备不变量+通过提取几何不变量恢复代数结构+n=1时Aut_C(C[x])=C*⋉C模板，key_insight准确
+- FATE-X 349：infinite local rank启用Eilenberg swindle P≅P⊕F+结合P⊕Q=F和迭代得P≅F^(ℵ₀)是自由模，key_insight准确
