@@ -223,3 +223,31 @@
 - IMO 2012 P6：mod 2约简必要性+归纳构造充分性，key_insight准确
 - IMO 2013 P5：a^N桥+超可加性挤压+解析幂比较反证+整数缩放推广，key_insight准确
 - IMO 2014 P5：归一化（合并偶数面额+提取奇数组）+贪心装箱（容量函数cap(k)），key_insight准确
+
+### 第7a批（seq 75-79）— 2025-01-24
+
+**批次范围**：global_sequence 75~79（IMO 2014 P6 ~ IMO 2017 P5）
+**累计完成**：78/452（Tier 1）
+**审计方式**：5个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 75 | compfiles_imo2014p6 | ✅合格 | 无 | ✅已落盘 |
+| 76 | compfiles_imo2015p5 | ✅合格 | 无 | ✅已落盘 |
+| 77 | compfiles_imo2015p6 | ✅合格 | 无 | ✅已落盘 |
+| 78 | compfiles_imo2016p5 | ✅合格 | 无 | ✅已落盘 |
+| 79 | compfiles_imo2017p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- IMO 2014 P6有8个local pairs（复杂组合题步骤多，5-8范围内合理）
+- IMO 2014 P6、2015 P6、2016 P5各有3个global pairs（题目结构复杂需要更多全局tell）
+- stats类型约束持续生效（连续4批0个小问题）
+
+**数学内容审查结论**：5个profile的数学内容全部准确——
+- IMO 2014 P6：极大性论证+见证区域+关联映射+每个蓝点至多2条红线→n≤k²即k≥√n，key_insight准确
+- IMO 2015 P5：不动点集S+f(0)分情况+奇函数性，key_insight准确
+- IMO 2015 P6：juggling物理模型+pool稳定+望远镜求和+AM-GM→1007²，key_insight准确
+- IMO 2016 P5：鸽巢下界+模4分组配对+恒等式保证不等，key_insight准确
+- IMO 2017 P5：着色分组+扫描+鸽巢+归纳，key_insight准确
