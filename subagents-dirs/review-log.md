@@ -592,3 +592,29 @@
 - USA 1997 P6：交叉不等式n·aₘ+1≤m·aₙ+m+强归纳+取最大比值a_p/p+floor条件，key_insight准确
 - USA 1998 P5：归纳构造+L=pairwise差平方积+平移S_{n+1}={L+a}∪{0}+(L+a)(L+b)分解，key_insight准确
 - USA 1999 P5：S_ _S陷阱+成对losing squares+偶数性+奇偶论证+safe move存在+两阶段策略，key_insight准确
+
+### 第14a批（seq 121-123）— 2025-01-24
+
+**批次范围**：global_sequence 121~123（USA 2000 P5 ~ USA 2001 P5）
+**累计完成**：122/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 121 | compfiles_usa2000p5 | ✅合格 | 无 | ✅已落盘 |
+| 122 | compfiles_usa2000p6 | ✅合格 | 无 | ✅已落盘 |
+| 123 | compfiles_usa2001p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2000 P5用有向角递推+mod 3周期性+6步telescoping证明圆链闭合ω₇=ω₁
+- USA 2000 P6的min-kernel PSD归约精巧——implicit型tell指出min-kernel PSD是Brownian运动协方差的离散影子
+- USA 2001 P5从成员性问题到不变性问题的结构转换+shifty整数子群+Bézout
+- stats类型约束持续生效（连续18批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2000 P5：有向角递推θₖ+θₖ₊₁+τₖ=π+mod 3周期+6步telescoping+θ₀=θ₆+ω₇=ω₁，key_insight准确
+- USA 2000 P6：Dᵢⱼ=σᵢσⱼmin(uᵢwⱼ,uⱼwᵢ)+σᵀMσ二次型+min-kernel PSD+归纳法剥离最小值，key_insight准确
+- USA 2001 P5：成员性→不变性转换+shifty整数子群+闭包导出+gcd条件+素数分析+Bézout得1是shifty+S=ℤ，key_insight准确
