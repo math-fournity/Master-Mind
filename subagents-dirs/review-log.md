@@ -2734,3 +2734,30 @@
 - omni_math #3909：p-adic赋值比较+增长率论证+case-by-case验证，key_insight准确（原解答算术错误已被subagent发现并标注）
 - omni_math #3910：y=0特殊化降维+单项式形式+整除性质x^a-y^a|x^n-y^n验证，key_insight准确
 - omni_math #3916：a-adic赋值分析+d大小决定赋值上界→⌈log_a d⌉，key_insight准确
+
+### 第54a批（seq 361-363）— 2025-01-24
+
+**批次范围**：global_sequence 361~363（AoPS omni_math #3917 + #3920 + #3923）
+**累计完成**：356/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖数论/组合、代数、群论
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 361 | omni_math_003917 | ✅合格 | 无 | ✅已落盘 |
+| 362 | omni_math_003920 | ✅合格 | 无 | ✅已落盘 |
+| 363 | omni_math_003923 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3917：IMO SL组合→好划分切值v可比性约束+互素块乘积结构+2015=5×13×31分解构造→3024
+- omni_math #3920：IMO SL代数→f(m)+f(n)-mn|mf(m)+nf(n)+特殊值代入猜f(x)=x²+m³+n³因式分解验证
+- omni_math #3923：IMO SL群论→admissible集合+gcd>1时整除性保持+k=-2给(x-y)²模拟Euclidean算法→gcd(m,n)=1
+- stats类型约束持续生效（连续98批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3917：可比性约束+乘积结构+因子分解构造，key_insight准确
+- omni_math #3920：特殊值代入+立方和因式分解m³+n³=(m+n)(m²-mn+n²)验证，key_insight准确
+- omni_math #3923：closure保持gcd整除性+k=-2模拟Euclidean约减，key_insight准确
