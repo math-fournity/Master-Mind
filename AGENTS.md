@@ -519,3 +519,159 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 - **Pipe 0/1/2**：tell识别的三层架构。Pipe 0拓扑化，Pipe 1大概念过滤，Pipe 2小概念标记分辨。
 - **概念树**：大概念→小概念→概念树的层次化管理，应对tell数量增长和概念膨胀。
 - **AGENTS-星学版.md**：本目录中保留的星学项目完整 AGENTS.md，是方法论参考资产，不是工作对象。
+
+---
+
+## 当前工作线：题海梳理与数据基座建设
+
+> **本节是自包含的任务文档。任何AI进入本repo做题海梳理工作时，读完本节即可接手——不依赖Session上下文中的其他内容。**
+>
+> **本节被AGENTS.md always-on守护。跨压缩边界后，AI加载AGENTS.md时自动看到本节。**
+
+### 任务是什么
+
+分层次地、系统化地梳理所有已下载到本地的有答案的数学题，从每道题的**题目+解答**对中提炼喂给第五代系统数据基座的东西，放入ArangoDB。
+
+### 为什么要做
+
+第五代系统的核心是tell+hint二元组和三层Pipe架构。系统要工作，需要数据基座中有大量的(tell, hint)对。目前数据基座中的(tell, hint)对只有POC实验中手工积累的少量条目（24个翻译方向、2个tell）。有答案的题海是天然的(tell, hint)对收集源——每道题的解答本质上就是一个"问题处境→正确方向"的映射。遍历完所有有答案的题，数据基座就从实验级增长到生产级。
+
+### 从每道题中提取什么（放入数据库的东西）
+
+每道有答案的题，提取以下内容，存为ArangoDB `problem_profiles`集合中的一个文档：
+
+**元数据层**（从数据源继承，自动提取）：
+- `source_id` / `source_dataset` / `domain` / `subfield` / `answer_type` / `answer` / `question_length` / `has_solution`
+
+**问题拓扑层**（tell的大概念——分析题目结构后标注）：
+- `problem_type`：问题类型（discrete_combinatorial / structural_existence / extremal / ...）
+- `structure_features`：结构特征（存在性/唯一性/极值/构造/判定/...）
+- `key_objects`：核心对象（多项式/序列/群/矩阵/图/...）
+
+**解答思维模式层**（hint的高Level分类——分析解答后标注）：
+- `thinking_patterns`：思维模式列表（["translation", "contradiction", "invariant", ...]）
+- `primary_pattern`：主要思维模式
+- `knowledge_required`：需要的知识点列表
+- `key_insight`：关键转折点的一句话描述（"啊哈时刻"——解答中从哪里到哪里是关键跳跃）
+
+**翻译方向层**（hint的Low Level具体形式——分析解答中的翻译操作后标注）：
+- `translation_from`：翻译的源语言（如"整数方程"）
+- `translation_to`：翻译的目标语言（如"模算术" / "p-adic赋值" / "二次剩余" / ...）
+- `translation_type`：翻译类型（如"连续→离散" / "穷举→结构" / ...）
+
+**tell拓扑标注层**（这道题贡献给tell数据基座的条目）：
+- `tell_topology`：{problem_type, ai_method_type, gap_type}——如果bare AI做这道题，它可能用什么方法（ai_method_type），这个方法和问题类型之间的不匹配是什么类型（gap_type）
+- `tell_small_concepts`：小概念信号词列表（从题目和解答中提取的领域特定概念关键词，如["mersenne", "primality", "covering_system"]）
+- `expected_ai_method`：bare AI预期会用的方法（可能走错的路）
+- `correct_method`：解答中实际用的正确方法
+
+**(tell, hint)对**（这道题贡献给数据基座的核心条目）：
+- `tell_hint_pairs`：[{tell_topology, tell_small_concepts, hint_direction, hint_level}]——这道题识别出的tell和对应的hint
+
+**实验适用性层**（用于POC实验选题）：
+- `bare_ai_expected`："pass" / "fail" / "marginal"——bare AI能否解出
+- `suitable_for_poc`：适合哪些POC实验
+- `discriminates_levels`：能否区分高Level hint和低Level hint的效果
+
+### 怎么做——2-Pass工作流
+
+**Pass 1（探索性·发现维度）**：分析少量题目→发现新维度/新类别值→追加到Schema。Pass 1的产出是一个不断增长的Schema文件。
+
+**Pass 2（穷举性·完整标注）**：用Schema final对所有题做穷举标注，每道题输出完整profile JSON，存入ArangoDB。
+
+**关键递进关系**：
+```
+Pass 1（5-10道题）→ Schema v1
+Pass 1（再5-10道题）→ Schema v2（追加新维度/新类别值）
+...
+Pass 1（所有题分析完）→ Schema final
+Pass 2（用Schema final，对所有题做穷举标注）→ problem_profiles集合
+```
+
+**初始Schema种子**：279号文档的四类维度（元数据/难度/思维模式/实验适用性）+ 上面"从每道题中提取什么"中列出的所有维度。Pass 1在种子基础上发现新维度。
+
+### 做到哪了——进度追踪
+
+**ArangoDB集合**：`problem_extraction_progress`——每道题处理完写入一条记录：
+```json
+{"problem_id": "...", "source_dataset": "...", "extraction_status": "completed",
+ "schema_version": 3, "extracted_at": "2026-08-08T...", "profile_doc_id": "problem_profiles/..."}
+```
+
+**下一个AI进来怎么知道做到哪了**：
+```python
+# 查已处理多少题
+db.aql.execute('RETURN COUNT(FOR p IN problem_extraction_progress FILTER p.extraction_status == "completed" RETURN 1)')
+# 查当前Schema版本
+db.aql.execute('FOR p IN problem_extraction_progress SORT p.schema_version DESC LIMIT 1 RETURN p.schema_version')
+# 查哪些题还没处理
+db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" ...')
+```
+
+**Schema文件路径**：`knowledge/problem_banks/extraction_schema.json`——活的文件，每次Pass 1发现新维度就更新版本号。
+
+### 跨Session怎么续
+
+**新AI进入本repo，看到本节，知道要做题海梳理工作时**：
+
+1. **读Schema文件**：`knowledge/problem_banks/extraction_schema.json`——了解当前所有已发现的维度和类别值
+2. **查ArangoDB进度**：`problem_extraction_progress`集合——了解哪些题处理了、当前Schema版本
+3. **读最小认知包**（下方§最小认知包）——恢复tell/hint/概念树的操作认知
+4. **继续处理下一批未处理的题**——按2-Pass工作流执行
+5. **每批处理完**：入库`problem_profiles` + 更新`problem_extraction_progress` + 更新Schema（如有新维度）+ commit
+
+### 最小认知包——做提取工作所需的最低认知
+
+**tell**：从推理AI的thinking中读出的分叉信号——AI走了哪条路、没走哪条路。tell取自poker术语。不是"AI卡住了"，而是"AI走错路了，在它没走的路上开新分支"。
+
+**hint**：给新AI的翻译方向。从字典中匹配的具体翻译方向。高Level hint（"翻译到另一种语言"）太抽象，需要系统化地Low Level化——遍历各数学领域列出具体形式（"翻译到模算术" / "翻译到p-adic赋值" / "翻译到二次剩余" / ...）。Low Level化是有限枚举问题，能应用的数学领域就那么多。
+
+**(tell, hint)对**：tell是输入（从推理AI读出），hint是输出（给新AI注入）。一个tell可以对应多个hint，一个hint可以被多个tell触发——多对多关系。每道有答案的题，它的解答本质上就是一个(问题处境→正确方向)的映射，也就是一个(tell, hint)对。
+
+**大概念/小概念/概念树**：
+- 大概念：tell的拓扑结构，用(problem_type, ai_method_type, gap_type)三个维度描述。用于Pipe 1形式化过滤——从10万级tell中缩小范围。
+- 小概念：当大概念不足以区分两个相似tell时，用更细的概念信号词区分。只要两个tell能用语言表达出区别，就能定义概念来区分。
+- 概念树：当概念数量膨胀时，用树状层次结构管理概念关系。同一细分范围的概念放入同一文件，AI按需加载。
+
+**Pipe 0/1/2**：tell识别的三层架构。Pipe 0将thinking拓扑化（提取大概念），Pipe 1用大概念做形式化过滤缩小范围，Pipe 2用小概念做标记分辨精准识别。
+
+**提取质量标准**：
+- problem_type和ai_method_type的标注必须能泛化（不是题目特化的，而是方法类型的）
+- key_insight必须是一句话描述的关键转折点（不是解答摘要，而是"啊哈时刻"）
+- translation_from/to必须具体（不是"翻译到另一种语言"，而是"翻译到模算术"）
+- tell_small_concepts必须是从题目和解答文本中实际出现的关键词（不是凭空构造的）
+
+### 已下载的有答案的题库（提取对象）
+
+**当前已下载完成的数据集**（12个，详见ArangoDB `math_datasets`集合，`download_status == "completed"`）：
+
+| 数据集 | 题量 | 有答案 | 格式 |
+|---|---|---|---|
+| 吉米多维奇（中文+解答） | 5000 | ✅ | PDF |
+| Demidovich英文版 | 3000 | ✅ | PDF |
+| Komjáth集合论 | 700 | ✅ | PDF |
+| Engel解题策略 | 300 | ✅ | PDF |
+| 俄罗斯546题 | 546 | ✅ | PDF |
+| 莫斯科MO 1993-2005 | 300 | ✅ | PDF |
+| TaichiLi题集 | 1000 | ✅ | 混合 |
+| awesome-math | ? | ? | 索引 |
+| ConjectureBench | 15000 | ❌ | JSON |
+| compfiles (Lean IMO) | 520 | ✅ | Lean |
+| Berkeley | 200 | ✅ | PDF |
+| AoPS-Instruct | 600000 | ✅ | JSON |
+
+**注意**：ConjectureBench没有答案（开放问题），不在提取范围内。PDF格式需要先OCR或人工读取。电子化格式（JSON/Lean）可以直接处理。
+
+**优先处理顺序**：先处理电子化格式的（AoPS-Instruct 60万题、compfiles 520题），再处理PDF格式的（吉米多维奇、Engel等竞赛题优先）。
+
+### 关键文档引用
+
+- **279号**：题目侧写系统设计（2-Pass工作流的原始设计）
+- **281号**：高Level Hint的工程化（hint字典的Low Level化方法论）
+- **287号**：tell端的去特化与规模检索（三层Pipe架构+概念树设计哲学）
+- **290号**：第五代系统从前四代继承了什么（29项继承+7项独特贡献）
+- **212号**：数学各门类可下载题海清单（数据集目录和ArangoDB math_datasets集合）
+
+### 任务追踪
+
+`任务追踪/06-题海梳理与数据基座建设.md`——记录这条工作线的状态、进度、关键决策。
