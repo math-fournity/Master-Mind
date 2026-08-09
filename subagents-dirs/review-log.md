@@ -462,3 +462,29 @@
 - USA 1980 P5：拆分LHS≤1+1≤RHS+分母放缩到x+y+z，key_insight准确
 - USA 1981 P5：分解到小数部分+次可加性+强归纳+最小a(m)/m拆分，key_insight准确
 - USA 1983 P5：间距约束→整除反链→oddPart单射→计数上界(n+1)/2，key_insight准确
+
+### 第11b批（seq 106-108）— 2025-01-24
+
+**批次范围**：global_sequence 106~108（USA 1984 P5 ~ USA 1986 P5）
+**累计完成**：107/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 106 | compfiles_usa1984p5 | ✅合格 | 无 | ✅已落盘 |
+| 107 | compfiles_usa1985p5 | ✅合格 | 无 | ✅已落盘 |
+| 108 | compfiles_usa1986p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1984 P5用有限差分+单位根编码求解n=4，Lean中solution_value=4验证
+- USA 1985 P5的stats中kb="R4"和tb="R4"相同——又一个相同轮次（R4同时是知识瓶颈和思维瓶颈）
+- USA 1986 P5的双计数法精巧——擦去m的双射将含m的划分化为π(n-m)
+- stats类型约束持续生效（连续13批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1984 P5：有限差分+单位根编码+二项式定理+奇偶分情况求解n=4，key_insight准确
+- USA 1985 P5：a和b互补关系+指示函数重写+不变量1700，key_insight准确
+- USA 1986 P5：双计数+(划分,特定部分)配对+擦去m双射+∑π(k)，key_insight准确
