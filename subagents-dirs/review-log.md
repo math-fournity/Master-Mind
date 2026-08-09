@@ -2545,3 +2545,30 @@
 - omni_math #3846：用5-adic赋值（而非2-adic）分析平方根x_k+赋值必须至少线性增长(2γ_n≥n)+但这迫使平方根增长过快产生含零数字，key_insight准确
 - omni_math #3848：将方程移项重写为c²(a²b²-c)=a³+b³+使变量间关系可被不等式控制+从而逐层压缩变量的取值范围，key_insight准确
 - omni_math #3852：按max(L_c)=t分组颜色+每种颜色必须占据一个不同的立方体(t,j,k)且j,k≤t+故每层至多t²种颜色，key_insight准确
+
+### 第50b批（seq 340-342）— 2025-01-24
+
+**批次范围**：global_sequence 340~342（AoPS omni_math #3853 + #3855 + #3857）
+**累计完成**：335/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题。omni_math_003853第二次重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 340 | omni_math_003853 | ✅合格 | 无 | ✅已落盘 |
+| 341 | omni_math_003855 | ✅合格 | 无 | ✅已落盘 |
+| 342 | omni_math_003857 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3853：IMO Shortlist 2022 C7→二次多项式1-2(i-j)²尖峰构造+max操作提取标准基向量→3
+- omni_math #3855：IMO Shortlist→势函数F/G+max-of-two反消去+周期4 pattern (+1,-1,-1,+1)→506
+- omni_math #3857：IMO Shortlist→x=0代入+P(0)<0时vacuous truth（两边恒假使iff自动成立）→P(0)∈(-∞,0)∪{1}
+- stats类型约束持续生效（连续91批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3853：用二次多项式1-2(i-j)²构造尖峰元组（一个坐标等于1，其他≤-1）+再用max操作提取标准基向量，key_insight准确
+- omni_math #3855：定义F[i]=max(0,f[i])和G[i]=max(0,-g[i])+DP的max-of-two机制防止平衡块中正负贡献完全消去+保证每4个位置max(F,G)至少增长1，key_insight准确
+- omni_math #3857：代入x=0将条件化为y²=P(0)⟺|P(y)|≤2|y|+当P(0)<0时两边恒假使等价vacuously成立——这是最反直觉的关键转折，key_insight准确
