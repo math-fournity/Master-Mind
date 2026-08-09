@@ -2950,3 +2950,30 @@
 - omni_math #4041：齐次性+GCD+周期7+相位偏移→a=1，key_insight准确（原解答周期3错误已被subagent发现并修正为周期7）
 - omni_math #4044：相邻差分不变量+有界性+均匀分配→n=960，key_insight准确
 - omni_math #4047：固定n策略+因式分解+cube-free验证→n=2，key_insight准确
+
+### 第58a批（seq 385-387）— 2025-01-24
+
+**批次范围**：global_sequence 385~387（AoPS omni_math #4049 + #4068 + #4076）
+**累计完成**：380/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO题，difficulty 9.0。涵盖代数/数论、几何/组合、代数
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 385 | omni_math_004049 | ✅合格 | 无 | ✅已落盘 |
+| 386 | omni_math_004068 | ✅合格 | 无 | ✅已落盘 |
+| 387 | omni_math_004076 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4049：IMO SL代数/数论→序列F三条件+163质数+费马小定理n^163≡n mod 163+周期163+F(F(361))=0简化条件(c)为恒等式→Yes
+- omni_math #4068：IMO几何/组合→n只跳蚤+等距排列最坏情况+几何级数收敛λ(n-1)<1+阈值→λ≥1/(n-1)
+- omni_math #4076：IMO代数→齐次不等式求最佳常数+归一化到单位球面+Lagrange乘子+非对称构型极值→M=9/(16√2)
+- stats类型约束持续生效（连续106批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4049：费马小定理+周期构造+F(F(361))=0简化，key_insight准确
+- omni_math #4068：等距排列+几何级数+阈值1/(n-1)，key_insight准确
+- omni_math #4076：齐次性+Lagrange乘子+非对称构型极值→M=9/(16√2)，key_insight准确
