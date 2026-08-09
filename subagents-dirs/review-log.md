@@ -1498,3 +1498,30 @@
 - FATE-X 311：分裂结构S≅R⊕I+光滑性→形式提升+I/I²生成元→形式坐标+完备化→纯幂级数环，key_insight准确
 - FATE-X 312：S'=P/J²构造+形式非分支定义给唯一性（"免费唯一性"）+P自由性给存在性，key_insight准确
 - FATE-X 313：Hilbert函数H=1,4,9,13,17,...+h-向量二阶差分h(3)=-1<0+CM环h-向量必须非负→矛盾+根因s²t²∉R，key_insight准确
+
+### 第31a批（seq 223-225）— 2025-01-24
+
+**批次范围**：global_sequence 223~225（FATE-X 314 ~ FATE-X 316）
+**累计完成**：224/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/同调方法/CM环/维数理论
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 223 | fate_000314 | ✅合格 | 无 | ✅已落盘 |
+| 224 | fate_000315 | ✅合格 | 无 | ✅已落盘 |
+| 225 | fate_000316 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 314：Noetherian Gorenstein环A→A[X]也是Gorenstein，局部化归约+平坦局部扩张定理
+- FATE-X 315：正则序列生成理想→任意置换仍正则，rs'=rs本身+相邻对换+Krull交定理+对称群提升
+- FATE-X 316：A⊗_k A ≇ k[[x,y]]，1+x₁y₁单位性差异+秩论证+同构不变量
+- stats类型约束持续生效（连续52批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 314：R[X]_M是R_m平坦局部扩张+纤维k[X]局部化是DVR→正则局部→Gorenstein+平坦局部扩张保持Gorenstein，key_insight准确
+- FATE-X 315：rs'=rs本身+正则序列置换不变性+归约到相邻对换+二元情形Krull交定理+相邻对换生成对称群，key_insight准确
+- FATE-X 316：1+x₁y₁在完备环中是单位（几何级数收敛）但在非完备张量积中不是单位（秩论证）+单位性是同构不变量→不同构，key_insight准确
