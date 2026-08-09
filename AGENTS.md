@@ -1093,7 +1093,15 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 
 ### 数据库Schema设计
 
-> **本节记录题海梳理工作线涉及的ArangoDB集合和它们的Schema。按需迭代——新增字段或集合时更新本节。**
+> **本节记录题海梳理工作线涉及的ArangoDB集合和它们的Schema。**
+>
+> **⚠️ 数据库设计是可迭代的，不是一成不变的！** 分析题目的过程中，如果发现现有Schema无法记录某个有价值的信息，或者某个字段定义不够精确，**可以而且应该更新数据库设计**。但每次更新必须：
+> 1. **更新本节**——修改AGENTS.md中的Schema定义，让所有AI（Master和subagent）看到最新设计
+> 2. **记录变更原因**——在本节末尾的"Schema变更历史"中记录为什么改、改了什么
+> 3. **向后兼容**——新增字段不破坏已有记录，已有字段改名时保留旧字段为别名
+> 4. **通知subagent**——Master Agent在派发下一批任务时，把最新Schema告诉subagent
+>
+> **当前Schema版本：v2**（2026-08-08，基于3道Tier 1题目的分析经验修订）
 
 **集合1：`problem_extraction_progress`**——题目处理进度（每道题一条记录，见上方§做到哪了）
 
@@ -1103,56 +1111,114 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
   source_dataset      : string  (来源数据集名)
   source_dataset_doc_id: string (math_datasets集合中的文档ID)
   extraction_status   : string  (completed | pending | skipped | in_progress)
-  skip_reason         : string  (no_solution | not_textualized | pdf_only | null)
+  skip_reason         : string  (no_solution | not_textualized | pdf_only | incomplete_solution | null)
   external_ref        : object  ({local_path, original_index, original_id_in_source})
   metadata            : object  ({domain, subfield, difficulty_source, competition_tier,
                                   answer_type, has_solution, question_length,
-                                  source_year, source_competition})
+                                  source_year, source_competition, country})
+  difficulty_tier     : int     (1-5，1=最难，5=最易，见§难度分级方案)
+  priority            : int     (同difficulty_tier，Master Agent按此升序派发)
   schema_version      : int     (处理时使用的Schema版本)
   extracted_at        : string  (ISO时间戳)
   profile_doc_id      : string  (指向problem_profiles集合中的文档ID)
-  extracted_by_subagent_id: string (处理此题的subagent ID)
+  extracted_by        : string  (处理此题的AI标识——"master"或subagent ID)
 ```
 
 **集合2：`problem_profiles`**——题目完整侧写（处理完成的题一条记录）
 
 ```
-字段：
+=== 基本元数据 ===
   _key                : string  (同problem_id)
   source_id           : string
   source_dataset      : string
-  domain              : string
-  subfield            : string
-  answer_type         : string
-  answer              : string
+  schema_version      : int     (本profile使用的Schema版本)
 
-  problem_type        : string
-  structure_features  : string
-  key_objects         : array[string]
+=== 题目与解答原文（v2新增——避免subagent每次重新读文件）===
+  problem_text        : string  (题目原文，从文件中提取的纯文本)
+  solution_text       : string  (解答原文，从文件中提取的纯文本)
+  solution_summary    : string  (解答方法的1-2句话概括——不是解答全文，是"用什么方法解的")
 
-  thinking_patterns   : array[string]
-  primary_pattern     : string
-  knowledge_required  : array[string]
-  key_insight         : string
+=== 题目结构分析 ===
+  domain              : string  (数学领域：algebra/number_theory/combinatorics/geometry/analysis)
+  subfield            : string  (子领域，如"trigonometric identities"、"constraint satisfaction")
+  answer_type         : string  (Proof | Numerical | Expression | Formal Proof)
+  answer              : string  (最终答案，proof题则为"QED"或证明结论)
 
-  translation_from    : string
-  translation_to      : string
-  translation_type    : string
+  problem_type        : string  (题目类型——从题目结构读出的类型，如"trigonometric identity verification")
+  solution_method_type: string  (v2新增——解答方法类型，如"telescoping sum"、"exhaustive enumeration"
+                                          区别于problem_type：同一题型可能有不同解法类型)
+  structure_features  : string  (题目结构特征描述)
+  key_objects         : array[string]  (题目中的关键数学对象)
 
+=== 思维模式分析 ===
+  thinking_patterns   : array[string]  (解答中使用的思维模式，如"telescoping"、"WLOG sorting"、"auxiliary factor")
+  primary_pattern     : string  (主导思维模式)
+  knowledge_required  : array[string]  (解答所需的前置知识，如"product-to-sum formula"、"permutation")
+  key_insight         : string  (一句话描述的关键转折点——"啊哈时刻")
+
+=== 翻译分析 ===
+  translation_from    : string  (从什么方法/语言翻译，如"direct calculation")
+  translation_to      : string  (翻译到什么方法/语言，如"telescoping sum via auxiliary factor")
+  translation_type    : string  (翻译类型分类)
+
+=== tell拓扑与概念 ===
   tell_topology       : object  ({problem_type, ai_method_type, gap_type})
-  tell_small_concepts : array[string]
-  expected_ai_method  : string
-  correct_method      : string
+  tell_small_concepts : array[string]  (从题目和解答文本中实际出现的关键概念词)
+  expected_ai_method  : string  (bare AI预期会用的方法——可能走错的方法)
+  correct_method      : string  (正确方法——解答实际用的方法)
 
-  tell_hint_pairs     : array[object]  (局部视角的(tell, hint)对)
-  global_tell_hint_pairs: array[object]  (全局视角的(tell, hint)对，含路径特征型和蕴含型)
+=== (tell, hint)对——局部视角 ===
+  tell_hint_pairs     : array[object]  (逐轮QA中提取的(tell, hint)对)
+    每个object:
+      qa_round        : int     (对应QA序列的第几轮)
+      tell            : string  (AI在这个位置的状态/分叉信号)
+      hint            : string  (给AI的提示方向)
+      hint_level      : float   (0-1，越高越抽象)
+      situation_type  : string  (情况类型：纯元认知观察|自由列举|小尝试|思维操作引导|推进|能量传递引导)
+      is_knowledge_bottleneck: boolean  (这轮是否是纯知识瓶颈——必须给知识性提示)
 
+=== (tell, hint)对——全局视角 ===
+  global_tell_hint_pairs: array[object]  (全局视角的(tell, hint)对)
+    每个object:
+      scope_type      : string  (v2新增——"path_feature"或"implicit"，区分路径特征型和蕴含型)
+      scope           : string  (具体范围描述，如"translation_type"或"implicit_unity")
+      observation_point: string (蕴含型：观察点Q编号；路径特征型：null)
+      tell            : string  (全局tell)
+      hint            : string  (全局hint)
+      hint_level      : float   (0-1)
+      generalizability: string  (high/medium/low + 泛化描述)
+      why_not_visible_locally: string  (蕴含型专用——为什么在局部不可见)
+
+=== bare AI预测 ===
   bare_ai_expected    : string  (pass | fail | marginal)
-  suitable_for_poc    : array[string]
-  discriminates_levels: boolean
+  bare_ai_error_prediction: string  (v2新增——bare AI会犯什么错的具体描述，
+                                              如"会试图直接计算cos(π/7)的值而不是变换表达式结构")
+  suitable_for_poc    : array[string]  (适合哪些POC实验)
+  discriminates_levels: boolean  (是否能区分不同Level的AI)
 
-  qa_sequence         : object  ({rounds, metacognitive_rounds, knowledge_rounds,
-                                  level_sum, knowledge_bottleneck, thinking_bottleneck})
+=== QA序列完整记录（v2重构——从只存统计量改为存完整轮次）===
+  qa_sequence         : object
+    rounds            : array[object]  (完整QA轮次记录)
+      每个object:
+        round         : int     (轮次编号，从1开始)
+        question      : string  (Q——给AI的提示/问题)
+        expected_answer: string (A——预期回复)
+        situation_type: string  (情况类型)
+        level         : float   (Level值0-1)
+    stats             : object  (统计量)
+      total_rounds    : int
+      metacognitive_rounds: int  (情况类型为纯元认知观察/自由列举/推进/能量传递的轮数)
+      knowledge_rounds: int     (情况类型为思维操作引导的轮数)
+      level_sum       : float
+      knowledge_bottleneck: string  (知识瓶颈在哪轮，或null)
+      thinking_bottleneck: string  (思维瓶颈在哪轮，或null)
+
+=== 分析元数据（v2新增）===
+  analysis_metadata   : object
+    analyzed_by       : string  ("master"或subagent ID)
+    analyzed_at       : string  (ISO时间戳)
+    analysis_duration : string  (分析耗时，如"15min"——粗略估计)
+    notes             : string  (分析过程中的备注，如"此题解答很长，QA序列可能不完整")
 ```
 
 **集合3：`math_datasets`**（已有）——数据集元数据（不变，见212号）
@@ -1171,8 +1237,31 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 **索引建议**：
 - `problem_extraction_progress`上按`source_dataset`建索引
 - `problem_extraction_progress`上按`extraction_status`建索引
+- `problem_extraction_progress`上按`difficulty_tier`建索引
+- `problem_extraction_progress`上按`priority`建索引
 - `problem_profiles`上按`domain`建索引
+- `problem_profiles`上按`solution_method_type`建索引
 - `problem_profiles`上按`thinking_patterns`建数组索引
+- `problem_profiles`上按`tell_small_concepts`建数组索引（用于tell检索）
+
+**Schema变更历史**：
+
+| 版本 | 日期 | 变更 | 原因 |
+|---|---|---|---|
+| v1 | 2026-08-08 | 初始设计 | 279号文档四类维度+AGENTS.md提取维度 |
+| v2 | 2026-08-08 | 重大修订 | 3道Tier 1题目分析经验（IMO 1963 P5/P6, IMO 1966 P5） |
+
+**v2变更详情**（基于3道题分析经验）：
+1. **新增`problem_text`和`solution_text`**——分析时需要反复读题目和解答，每次从文件读取效率低且Lean格式需要解析。存入profile后subagent可以直接用。
+2. **新增`solution_summary`**——解答方法的1-2句话概括，用于快速浏览和检索。
+3. **新增`solution_method_type`**——区别于`problem_type`。IMO 1963 P5的problem_type是"trigonometric identity verification"，但solution_method_type是"telescoping sum via auxiliary factor"——同一题型可能有不同解法。
+4. **`tell_hint_pairs`结构化**——从模糊的"array[object]"改为明确的字段定义（qa_round, tell, hint, hint_level, situation_type, is_knowledge_bottleneck）。
+5. **`global_tell_hint_pairs`新增`scope_type`字段**——区分"path_feature"（路径特征型）和"implicit"（蕴含型）。3道题分析中发现这两种全局(tell, hint)有本质区别，必须区分。
+6. **新增`why_not_visible_locally`字段**——蕴含型(tell, hint)专用，记录为什么在局部不可见。这是蕴含型的核心特征。
+7. **新增`bare_ai_error_prediction`**——不只是pass/fail，还要描述bare AI会犯什么错。如"会试图直接计算cos值而不是变换结构"。
+8. **`qa_sequence`从只存统计量重构为存完整轮次**——每轮的Q/A/情况类型/Level都存入`rounds`数组，统计量移入`stats`子对象。
+9. **新增`analysis_metadata`**——记录谁分析的、什么时候、分析耗时、备注。
+10. **`problem_extraction_progress`新增`difficulty_tier`和`priority`字段**——67837题已入库，含5级难度分级。
 
 ### 并发处理——subagent流水线
 
