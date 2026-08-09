@@ -195,3 +195,31 @@
 - IMO 2009 P6：蝗虫跳跃，强归纳+关键变量x+三种情况+鸽巢论证，key_insight准确
 - IMO 2010 P5：硬币操作，push+swap指数放大+幂塔+递减精确到达，key_insight准确
 - IMO 2010 P6：max-卷积递推，线性化残差+有界+有限值域+最终周期性，key_insight准确
+
+### 第6b批（seq 70-74）— 2025-01-24
+
+**批次范围**：global_sequence 70~74（IMO 2011 P5 ~ IMO 2014 P5）
+**累计完成**：73/452（Tier 1）
+**审计方式**：5个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 70 | compfiles_imo2011p5 | ✅合格 | 无 | ✅已落盘 |
+| 71 | compfiles_imo2012p5 | ✅合格 | 无 | ✅已落盘 |
+| 72 | compfiles_imo2012p6 | ✅合格 | 无 | ✅已落盘 |
+| 73 | compfiles_imo2013p5 | ✅合格 | 无 | ✅已落盘 |
+| 74 | compfiles_imo2014p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- IMO 2012 P5有8个local pairs（几何题步骤多，在5-8范围内合理）
+- IMO 2013 P5和IMO 2014 P5各有3个global pairs（题目结构复杂需要更多全局tell）
+- stats类型约束持续生效（连续3批0个小问题）
+
+**数学内容审查结论**：5个profile的数学内容全部准确——
+- IMO 2011 P5：锚点f(0)+偶函数性+桥梁变量f(m+n)三重约束矛盾，key_insight准确
+- IMO 2012 P5：辅助圆+切线+幂定理+反射C'+共圆→切线长相等，key_insight准确
+- IMO 2012 P6：mod 2约简必要性+归纳构造充分性，key_insight准确
+- IMO 2013 P5：a^N桥+超可加性挤压+解析幂比较反证+整数缩放推广，key_insight准确
+- IMO 2014 P5：归一化（合并偶数面额+提取奇数组）+贪心装箱（容量函数cap(k)），key_insight准确
