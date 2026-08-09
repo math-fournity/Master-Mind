@@ -306,3 +306,28 @@
 - IMO 2021 P5：染色+mod 2不变量+2021奇数矛盾，key_insight准确
 - IMO 2021 P6：关联矩阵+Siegel引理+m进制唯一性矛盾（三重翻译），key_insight准确
 - IMO 2022 P5：三段分类+整除链+升幂引理(LTE)排除p≥5，key_insight准确
+
+### 第8b批（seq 88-90）— 2025-01-24
+
+**批次范围**：global_sequence 88~90（IMO 2022 P6 ~ IMO 2023 P6）
+**累计完成**：89/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 88 | compfiles_imo2022p6 | ✅合格 | 无 | ✅已落盘 |
+| 89 | compfiles_imo2023p5 | ✅合格 | 无 | ✅已落盘 |
+| 90 | compfiles_imo2023p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- IMO 2023 P6的Lean proof为sorry（未形式化），subagent从外部来源（T's Lab博客、Lake Forest PDF）获取数学解答——经审查数学上准确
+- IMO 2023 P5的知识瓶颈R4是DP行和聚合——从局部贪心到结构转换的关键洞察
+- stats类型约束持续生效（连续7批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- IMO 2022 P6：边-路径映射+注入下界+构造上界（生成树结构），key_insight准确
+- IMO 2023 P5：DP行和聚合+递推归纳+鸽巢+极反例构造，key_insight准确
+- IMO 2023 P6：外心识别+等幂轴/共轴圆+两个等幂点构造+scalene保证不同，key_insight准确
