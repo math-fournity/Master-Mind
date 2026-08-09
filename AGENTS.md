@@ -1101,7 +1101,7 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 > 3. **向后兼容**——新增字段不破坏已有记录，已有字段改名时保留旧字段为别名
 > 4. **通知subagent**——Master Agent在派发下一批任务时，把最新Schema告诉subagent
 >
-> **当前Schema版本：v2**（2026-08-08，基于3道Tier 1题目的分析经验修订）
+> **当前Schema版本：v3**（2026-08-08，修复v2中丢失的per-pair拓扑标注）
 
 **集合1：`problem_extraction_progress`**——题目处理进度（每道题一条记录，见上方§做到哪了）
 
@@ -1176,11 +1176,17 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
       hint_level      : float   (0-1，越高越抽象)
       situation_type  : string  (情况类型：纯元认知观察|自由列举|小尝试|思维操作引导|推进|能量传递引导)
       is_knowledge_bottleneck: boolean  (这轮是否是纯知识瓶颈——必须给知识性提示)
+      tell_topology   : object  (v3恢复——每个tell的拓扑标注，Pipe 0/1检索的依据)
+        {problem_type, ai_method_type, gap_type}
+        problem_type    : string  (问题类型大概念，如structural_existence/extremal/trigonometric_identity/...)
+        ai_method_type  : string  (bare AI在此位置预期会用的方法类型，如enumeration_brute_force/direct_calculation/case_by_case/...)
+        gap_type        : string  (AI方法和问题之间的不匹配类型，如method_problem_mismatch/knowledge_gap/structural_transformation/search_space_estimation/...)
+      tell_small_concepts: array[string]  (v3恢复——这个tell的小概念信号词，Pipe 2标记分辨的依据)
 
 === (tell, hint)对——全局视角 ===
   global_tell_hint_pairs: array[object]  (全局视角的(tell, hint)对)
     每个object:
-      scope_type      : string  (v2新增——"path_feature"或"implicit"，区分路径特征型和蕴含型)
+      scope_type      : string  ("path_feature"或"implicit"，区分路径特征型和蕴含型)
       scope           : string  (具体范围描述，如"translation_type"或"implicit_unity")
       observation_point: string (蕴含型：观察点Q编号；路径特征型：null)
       tell            : string  (全局tell)
@@ -1188,6 +1194,9 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
       hint_level      : float   (0-1)
       generalizability: string  (high/medium/low + 泛化描述)
       why_not_visible_locally: string  (蕴含型专用——为什么在局部不可见)
+      tell_topology   : object  (v3新增——全局tell的拓扑标注)
+        {problem_type, ai_method_type, gap_type}
+      tell_small_concepts: array[string]  (v3新增——全局tell的小概念信号词)
 
 === bare AI预测 ===
   bare_ai_expected    : string  (pass | fail | marginal)
@@ -1250,6 +1259,7 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 |---|---|---|---|
 | v1 | 2026-08-08 | 初始设计 | 279号文档四类维度+AGENTS.md提取维度 |
 | v2 | 2026-08-08 | 重大修订 | 3道Tier 1题目分析经验（IMO 1963 P5/P6, IMO 1966 P5） |
+| v3 | 2026-08-08 | 修复per-pair拓扑标注 | v2重构时丢失了每个(tell,hint)对的tell_topology和tell_small_concepts |
 
 **v2变更详情**（基于3道题分析经验）：
 1. **新增`problem_text`和`solution_text`**——分析时需要反复读题目和解答，每次从文件读取效率低且Lean格式需要解析。存入profile后subagent可以直接用。
@@ -1262,6 +1272,13 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 8. **`qa_sequence`从只存统计量重构为存完整轮次**——每轮的Q/A/情况类型/Level都存入`rounds`数组，统计量移入`stats`子对象。
 9. **新增`analysis_metadata`**——记录谁分析的、什么时候、分析耗时、备注。
 10. **`problem_extraction_progress`新增`difficulty_tier`和`priority`字段**——67837题已入库，含5级难度分级。
+
+**v3变更详情**（修复v2的设计缺陷）：
+1. **`tell_hint_pairs`恢复`tell_topology`字段**——v2重构时丢失了每个局部(tell,hint)对的`tell_topology`。原始设计（示例A）中每个pair都有自己的拓扑标注`{problem_type, ai_method_type, gap_type}`，这是Pipe 0/1检索的依据。没有per-pair拓扑标注，数据基座无法按拓扑检索Pattern，整个三层Pipe架构失效。
+2. **`tell_hint_pairs`恢复`tell_small_concepts`字段**——同上，v2丢失了每个pair的小概念信号词。这是Pipe 2标记分辨的依据。
+3. **`global_tell_hint_pairs`新增`tell_topology`字段**——v2中全局(tell,hint)对没有拓扑标注。全局tell也需要拓扑分类才能被Pipe 0/1检索。
+4. **`global_tell_hint_pairs`新增`tell_small_concepts`字段**——全局tell的小概念信号词。
+5. **影响范围**：已入库的8个profile（3个master分析+5个subagent分析）都缺少per-pair拓扑标注，需要回补。
 
 ### 并发处理——subagent流水线
 
