@@ -1255,3 +1255,30 @@
 - FATE-X 284：Cohen/Oka定理——反证法+Zorn引理取极大非fg理想+证明极大非fg理想是素理想（若ab∈Σ但a,b∉Σ则Σ+(a)和Σ+(b)有限生成推出Σ有限生成矛盾）+与素理想fg假设矛盾，key_insight准确
 - FATE-X 285：局部化在p处——Hom_{R_p}(M_p,N_p)≠0 iff M_p≠0且N_p有p-准素元素+Supp(M)={p|ann(M)⊆p}+Ass(N)局部化保持，key_insight准确
 - FATE-X 286：局部化x_nn+Schur complement将det=1化为x_nn·det(M_{n-1})=1+局部化后环≅C[GL_{n-1}坐标环][x_nn,1/x_nn]是UFD+Nagata下降定理推出整体UFD，key_insight准确
+
+### 第26b批（seq 196-198）— 2025-01-24
+
+**批次范围**：global_sequence 196~198（FATE-X 287 ~ FATE-X 289）
+**累计完成**：197/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/张量积/维数理论/正则局部环
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 196 | fate_000287 | ✅合格 | 无 | ✅已落盘 |
+| 197 | fate_000288 | ✅合格 | 无 | ✅已落盘 |
+| 198 | fate_000289 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 287：R=k[t]/(t²)上p(x)商环自由rank 2，nilpotent→unit识别+因式分解化简
+- FATE-X 288：正规Noetherian域整闭包中位于p之上的素理想有限，纤维环Artin结构（不需要R̄有限over R）
+- FATE-X 289：reduced local ring上有限生成模自由性刻画，Nakayama+张量正合+零因子=极小素并集
+- stats类型约束持续生效（连续43批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 287：p(x)=x(x+1)(tx-1)+t nilpotent→(tx-1) unit→(p)=(x²+x)+monic degree 2→rank 2自由R-模，key_insight准确
+- FATE-X 288：不需要R̄有限over R（不可分扩张下可能失败）+只需R̄/pR̄有限κ(p)-代数→Artin环→有限素理想，key_insight准确
+- FATE-X 289：Nakayama→满射A^r→P核K+张量正合得K⊗K(p)=0+reduced环零因子=极小素并集+非零因子消去K→K=0，key_insight准确
