@@ -3004,3 +3004,30 @@
 - omni_math #4099：多项式恒等式+四变量恒等式验证q∈{-2,0,2}，key_insight准确
 - omni_math #4100：完全加性函数+对称条件排除多素数→f(x)=a·ν_p(x)，key_insight准确
 - omni_math #4104：奇偶不变量+起始偶+目标偶→No，key_insight准确
+
+### 第59a批（seq 391-393）— 2025-01-24
+
+**批次范围**：global_sequence 391~393（AoPS omni_math #4105 + #4108 + #4110）
+**累计完成**：386/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO题，difficulty 9.0。涵盖代数、组合、函数方程
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 391 | omni_math_004105 | ✅合格 | 无 | ✅已落盘 |
+| 392 | omni_math_004108 | ✅合格 | 无 | ✅已落盘 |
+| 393 | omni_math_004110 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4105：IMO SL代数→n个不同实数每个元素=k个其他元素之和+对称集构造上界k+4+过约束论证下界k+3不可能→n=k+4
+- omni_math #4108：IMO SL组合→2^N国家旗帜多样化+二部图完美匹配+后缀分区2^{N-2}类+鸽巢+Hall定理→M=2^{N-2}+1
+- omni_math #4110：IMO代数→f(⌊x⌋y)=f(x)⌊f(y)⌋+x=0代入+⌊0⌋=0+二分支→f(x)=0或f(x)=c(1≤c<2)
+- stats类型约束持续生效（连续108批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4105：对称集构造+过约束论证→n=k+4，key_insight准确
+- omni_math #4108：二部图完美匹配+后缀分区+鸽巢+Hall定理→M=2^{N-2}+1，key_insight准确
+- omni_math #4110：x=0代入+二分支→f(x)=0或f(x)=c(1≤c<2)，key_insight准确
