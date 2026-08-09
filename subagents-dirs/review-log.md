@@ -1876,3 +1876,30 @@
 - FATE-X 356：多项式变量x₁,...,xₙ构成正则序列+使depth和dimension同时增加n+depth=dim等式保持不变，key_insight准确
 - FATE-X 357：UFD→每个rank 1 reflexive模自由+canonical module是rank 1 reflexive+canonical module自由→Gorenstein，key_insight准确
 - FATE-X 358：正则局部环既是整域（排除height 0）又是UFD（Auslander-Buchsbaum定理，排除height 1）+故height≥2，key_insight准确
+
+### 第38a批（seq 265-267）— 2025-01-24
+
+**批次范围**：global_sequence 265~267（FATE-X 362 ~ FATE-X 364）
+**累计完成**：266/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：FATE-X hard_batch_1，CM/张量积/Gorenstein/局部factorial
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 265 | fate_000362 | ✅合格 | 无 | ✅已落盘 |
+| 266 | fate_000363 | ✅合格 | 无 | ✅已落盘 |
+| 267 | fate_000364 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 362：齐次理想I+R=k[x₀,...,xₙ]/I→R是CM iff R_P是CM（无关理想P），标准分次k-代数+齐次参数系传播depth-dim等式
+- FATE-X 363：R=k[s⁴,s³t,st³,t⁴]不是CM，缺失s²t²+整闭包S是CM+depth引理→depth(R)=1<2=dim(R)
+- FATE-X 364：Noetherian整环+局部factorial+理想I→I可逆iff纯余维数1，局部主理想桥梁概念+UFD中高度1素理想
+- stats类型约束持续生效（连续66批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 362：标准分次k-代数的CM性质可在无关理想处检验+分次结构通过齐次参数系将depth-dim等式从无关理想传播到所有素理想，key_insight准确
+- FATE-X 363：R缺失s²t²从4次Veronese S+S=R[s²t²]是CM且S/R≅k(-1)+depth引理on 0→R→S→k(-1)→0得depth(R)=1<2=dim(R)，key_insight准确
+- FATE-X 364：可逆理想等价于局部主理想+UFD中局部主理想恰好对应于相伴素理想余维数1+局部主理想是连接可逆性和余维数的桥梁概念，key_insight准确
