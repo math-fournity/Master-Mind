@@ -1552,3 +1552,30 @@
 - FATE-X 317：Jacobson环等价刻画归约到整域+Noetherian性连接极大素理想与所有素理想+(0):f^∞=(0)，key_insight准确
 - FATE-X 318：两步分解R→R[x]→R[x]_P+多项式扩张保持正则性+素理想处局部化保持正则性，key_insight准确
 - FATE-X 319：所有极小素理想收缩交集=(0)（injectivity+domain）+domain中有限个非零素理想不可能交集为零（乘积论证）→至少一个收缩为零，key_insight准确
+
+### 第32a批（seq 229-231）— 2025-01-24
+
+**批次范围**：global_sequence 229~231（FATE-X 320 ~ FATE-X 322）
+**累计完成**：230/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/正则局部环/完备化/张量积
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 229 | fate_000320 | ✅合格 | 无 | ✅已落盘 |
+| 230 | fate_000321 | ✅合格 | 无 | ✅已落盘 |
+| 231 | fate_000322 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 320：有限群G特征0作用于CM环R→R^G是CM，Reynolds算子+直和项定理（Hochster-Roberts/Boutot推论）
+- FATE-X 321：CM模M→M⊗R[x₁,...,xₙ]保持CM，局部化归约+正则序列使depth/dim同时增加n
+- FATE-X 322：齐次理想I的R=k[x₀,...,xₙ]/I，R是CM iff R_P是CM，正向trivial+反向graded local-global定理
+- stats类型约束持续生效（连续54批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 320：特征0→|G|可逆→Reynolds算子→R^G是R的直和项→直和项定理保持CM，key_insight准确
+- FATE-X 321：多项式变量x₁,...,xₙ构成正则序列+depth和dimension同时增加n+保持depth=dim，key_insight准确
+- FATE-X 322：正向由CM环定义直接得出（trivial）+反向graded local-global定理（CM at irrelevant maximal ideal→CM globally），key_insight准确
