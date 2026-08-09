@@ -2411,3 +2411,29 @@
 **数学内容审查结论**：2个profile的数学内容全部准确——
 - omni_math #3266：系数和1+1+2+...+63=2017≡0给出平移不变性+将问题降为轨道计数并简化Möbius反演，key_insight准确
 - omni_math #3273：取对数将乘法条件转化为加法条件+定义比值h(x)=g(x)/x后利用2和3的乘法独立性导致的稠密性论证证明h为常数，key_insight准确
+
+### 第48a批（seq 325-327）— 2025-01-24
+
+**批次范围**：global_sequence 325~327（AoPS omni_math #3535 + #3648 + #3677）
+**累计完成**：320/452（Tier 1）
+**审计方式**：2个按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组（#3677跳过）
+**备注**：omni_math_003677连续3次空通知跳过，加入跳过题列表（共6题）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 325 | omni_math_003535 | ✅合格 | 无 | ✅已落盘 |
+| 326 | omni_math_003648 | ✅合格 | 无 | ✅已落盘 |
+| 327 | omni_math_003677 | ⏭️跳过 | 3次空通知 | 待后续重试 |
+
+**审计结果摘要**：2个合格，0个大问题，0个小问题。1个跳过。
+
+**本批特点**：
+- omni_math #3535：Putnam递归级数→分块重组+自指Σ_d 1/f(d)=S+积分比较H_d>ln(b)+S>ln(b)·S→b=2收敛/b≥3发散
+- omni_math #3648：Balkan MO函数方程→RHS关于y线性→倒数ansatz f(x)=c/x→f(x)=1/x
+- omni_math #3677：Balkan MO函数方程（跳过）
+- stats类型约束持续生效（连续86批0个小问题）
+
+**数学内容审查结论**：2个profile的数学内容全部准确——
+- omni_math #3535：按位数分块后sum_d 1/f(d)恰好等于原级数S形成自指不等式S>ln(b)*S+b>=3时ln(b)>1导致矛盾，key_insight准确
+- omni_math #3648：RHS关于y线性这一结构特征暗示f(x)=c/x+倒数函数能使LHS的复合参数简化后也关于y线性，key_insight准确
