@@ -931,3 +931,30 @@
 - USA 2025 P6：强归纳on n+Hall亏值定理分M和B+圆形手术删除M弧段+合并引理（得分<1弧段删除后相邻弧段合并仍≥1）+归纳+合并分配，key_insight准确
 - USA 2026 P6：奇偶性→ab+1=素数幂p^e+e=1: Vieta跳跃a²+b²+1=3ab匹配F_{n+4}+F_n=3F_{n+2}+e≥2: p^(e-1)|(a²+a+1)(a²-a+1)互素+p=3+e=2+ab=8+(1,8)，key_insight准确
 - FATE-X 250：元素分解u·p^a·q^b+良序原理找最小赋值对(α,β)+g=p^α·q^β候选生成元+理想加法封闭性反证（x+y赋值矛盾低于最小值），key_insight准确
+
+### 第20b批（seq 160-162）— 2025-01-24
+
+**批次范围**：global_sequence 160~162（FATE-X 251 ~ FATE-X 253）
+**累计完成**：161/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，群论主题
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 160 | fate_000251 | ✅合格 | 无 | ✅已落盘 |
+| 161 | fate_000252 | ✅合格 | 无 | ✅已落盘 |
+| 162 | fate_000253 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 251：极大子群+Burnside p^a q^b定理→极小正规子群≤2，case_analysis_with_contradiction
+- FATE-X 252有8个local pairs，双陪集分解+h₁gh₂同时membership+完美匹配，double_coset_decomposition
+- FATE-X 253：Sylow计数+Burnside正规p-补定理+共轭作用忠实+群元素阶到算术约束翻译→p+1=2^n
+- stats类型约束持续生效（连续31批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 251：极大性二分法+L◁G/L≁G分情况反证+Burnside p^a q^b定理（|L|非素数幂→N非交换且Z(N)={e}→第三个被困在Z(N1)×Z(N2)={e}），key_insight准确
+- FATE-X 252：双陪集分解G=∪HgH+h₁gh₂同时属于左陪集h₁gH和右陪集Hgh₂+共轭不变性|H∩gHg⁻¹|=|H∩g⁻¹Hg|+完美匹配合并得S，key_insight准确
+- FATE-X 253：Sylow计数n_p=p+1+Burnside正规p-补定理→N◁G|N|=p+1+共轭作用忠实→单轨道→同阶d+d奇则p=d^a-1合数矛盾→d=2→p+1=2^n，key_insight准确
