@@ -1930,3 +1930,30 @@
 - FATE-X 368：6个二次生成元构成斜对称矩阵的Pfaffian理想+应用Buchsbaum-Eisenbud结构定理保证CM性，key_insight准确
 - FATE-X 369：ℤ≥0分次允许通过乘以x_r逐度分裂正合序列+对变量数做归纳证明核自由，key_insight准确
 - FATE-X 370：增长间隔条件的双重用途（高度增长→无穷维数+块分离→有限支撑→Noether）+素理想对应+结构性素理想回避，key_insight准确
+
+### 第39a批（seq 271-273）— 2025-01-24
+
+**批次范围**：global_sequence 271~273（FATE-X 374 ~ FATE-X 376）
+**累计完成**：272/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：FATE-X hard_batch_1，Galois理论/形式非分歧/Dedekind域。fate_000375首次空通知，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 271 | fate_000374 | ✅合格 | 无 | ✅已落盘 |
+| 272 | fate_000375 | ✅合格 | 无（重试1次） | ✅已落盘 |
+| 273 | fate_000376 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 374：E⊂R+K/E有限Galois奇数次>1→不能嵌入R中根式塔，单位根障碍+Galois闭包度数只能是2幂或1
+- FATE-X 375：形式非分歧环映射R→S→S'→S满射泛性质，多项式呈现S=P/J构造S'=P/J²+P自由性+formally unramified唯一性
+- FATE-X 376：A=k[x,y]/(y²-f(x))是Dedekind域+类群非平凡，代数-几何翻译（Jacobian判据）+范数映射反证法
+- stats类型约束持续生效（连续68批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 374：根式扩张在R中不能产生非平凡奇数次Galois扩张+Galois闭包需要复数单位根（奇数n>1）或给出2-幂次度（偶数n），key_insight准确
+- FATE-X 375：S⊗_R S/I²在formally unramified时退化为S+改用多项式呈现S=P/J构造S'=P/J²+P自由性解决存在性+formally unramified解决唯一性，key_insight准确
+- FATE-X 376：将环论性质'整闭'翻译为几何'光滑性'（Jacobian判据）+范数映射证明分歧素理想p₁=(y,x-t₁)不是主理想，key_insight准确
