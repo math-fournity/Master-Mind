@@ -2626,3 +2626,30 @@
 - omni_math #3867：令y=0时f(0)=-1<0使max简化为f(x²)+得到f(x²)=f(x)(f(x)+2)+再设g=f+1转化为乘性方程g(x²)=g(x)²+max的两个分支恰好对应两个解，key_insight准确
 - omni_math #3868：令w=y,x=z发现f(x)²-f(x²)是不变量（常数0）+从而f(x²)=f(x)²将四变量方程降维为二变量比值方程+再用g(x)=f(x)/x代换因式分解得到逐点解，key_insight准确
 - omni_math #3869：代入m=n+整除不等式得f(n)≥n下界+再pin住f(2)=2后用m=2+一般n得f(n)≤n上界+夹逼得f(n)=n，key_insight准确
+
+### 第52a批（seq 349-351）— 2025-01-24
+
+**批次范围**：global_sequence 349~351（AoPS omni_math #3871 + #3872 + #3875）
+**累计完成**：344/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO/IMO Shortlist题。omni_math_003871的kb=null（无纯知识瓶颈）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 349 | omni_math_003871 | ✅合格 | 无 | ✅已落盘 |
+| 350 | omni_math_003872 | ✅合格 | 无 | ✅已落盘 |
+| 351 | omni_math_003875 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3871：IMO Shortlist→传递性迫使规则必须是单一比较a_k>b_k对某个固定k→恰好100种（kb=null）
+- omni_math #3872：IMO 2020 Shortlist C8→popcount(2020)=7+range不变量+平衡符号集合2-adic赋值→7
+- omni_math #3875：IMO 2016 P2→二重计数三类格子+交叉处计4次其余计1次+迫使k²个交叉格子平衡→9|n→n=9k
+- stats类型约束持续生效（连续94批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3871：传递性迫使规则必须是单一比较a_k>b_k对某个固定k+恰好100种，key_insight准确
+- omni_math #3872：答案等于S₂(2020)=popcount(2020)=7+通过range不变量和2-adic赋值连接二进制表示与最优策略，key_insight准确
+- omni_math #3875：二重计数三类格子（选中行、选中列、平衡对角线）+交叉处格子被计4次而其余计1次+迫使k²个交叉格子平衡+故3|k即9|n，key_insight准确
