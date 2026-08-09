@@ -634,30 +634,21 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 > - 数据基座的最终用途是支撑AI数学系统的三层Pipe检索。在审计每个profile时，要问自己：**这个(tell,hint)对在AI数学系统运行时真的会被检索到吗？检索到后真的能帮AI找到正确方向吗？** 如果答案是"不确定"或"不会"，这个(tell,hint)对的价值存疑。
 > - 数据基座不是"存了就有用"——它必须能被检索、检索结果必须有效。审计时要从"检索有效性"的角度审视每个(tell,hint)对。
 
-#### 检查点1：每道subagent完成后——快速质量审查（必须执行）
+#### 检查点1：每道subagent完成后——完整审计（必须执行）
 
-subagent汇报后、派发下一道题之前，Master Agent必须对刚完成的profile做以下检查：
+subagent汇报后、派发下一道题之前，Master Agent必须对刚完成的profile做完整审计。
 
-**1a. QA序列合理性**：
-- QA序列是否反映了一个真实的"引导AI从题目走到解答"的过程？还是机械地走形式？
-- 第1轮是否是`纯元认知观察`（让AI描述题目结构）？第2轮是否是`自由列举`？如果不是，为什么？
-- situation_type值是否是6个规范值之一？（如果不是→subagent违反了checklist约束→需要修正数据+检查checklist是否不够明确）
-- hint_level是否是0-1浮点数？（如果不是→同上）
-- QA轮数是否在5-8轮之间？过少可能分析不充分，过多可能冗余
+**审计方式**：使用`subagents-dirs/audit-checklist-template.md`模板。每次审计从一张干净的模板开始，填充`{{PROBLEM_ID}}`、`{{SUBAGENT_ID}}`、`{{AUDIT_TIME}}`、`{{FILE_PATH}}`等占位符，生成`subagents-dirs/{problem_id}/audit-checklist.md`。Master Agent全文加载这个audit-checklist.md，逐项检查，每完成一项把`[ ]`改为`[x]`并填写审计结论。
 
-**1b. 拓扑标注质量**：
-- profile级tell_topology的三个维度值是否在已有拓扑分类体系中？（如果新建了值→检查粒度是否一致）
-- per-pair tell_topology是否逐pair不同？（如果所有pair用同一个拓扑→分析太粗糙，per-pair拓扑是Pipe 0/1检索的依据）
-- is_knowledge_bottleneck=True的pair，gap_type是否是`knowledge_gap`？（如果不是→标注不一致）
+**⚠️ 所有项目必须全部check完，不允许跳过任何一项。** 审计checklist末尾有"审计员签字"确认区，必须确认所有Phase的所有项目都已check完才能提交审计结论。
 
-**1c. (tell, hint)对质量**：
-- tell是否描述了AI在这个位置的具体状态/分叉信号？还是泛泛而谈？（泛泛而谈→质量不合格）
-- hint是否是具体的提示方向？还是"继续努力"之类的废话？
-- 全局(tell, hint)对中implicit型的why_not_visible_locally是否真的解释了为什么在局部不可见？
-- bare_ai_error_prediction是否具体描述了bare AI会犯什么错？还是只说"会失败"？
-
-**1d. solution_method_type vs problem_type**：
-- 两者是否明确区分？problem_type是题目结构类型，solution_method_type是解答方法类型。如果两者相同或混淆→分析不到位
+审计checklist包含5个Phase：
+- **Phase 0: 加载审计材料**——读profile、读Lean文件亲自理解题目和解答、读subagent的checklist.md和profile.json
+- **Phase 1: 格式检查（最低线）**——situation_type值规范、hint_level格式、per-pair拓扑字段存在性、必填字段完整性、QA序列结构
+- **Phase 2: 数学内容审查（核心审计）**——题目理解准确性、解答理解准确性、solution_method_type vs problem_type区分、key_insight准确性、QA序列逐轮合理性、局部(tell,hint)对质量、全局(tell,hint)对质量、拓扑标注准确性、bare_ai_error_prediction具体性、thinking_patterns和knowledge_required、translation分析
+- **Phase 3: 拓扑分类体系审查**——拓扑值粒度一致性、是否需要新增拓扑值、拓扑进化建议评估
+- **Phase 4: 超大规模前瞻审查**——(tell,hint)对的检索有效性、Schema扩展性、AI数学系统有效性
+- **Phase 5: 审计结论**——总体判断、大问题处理、流程改进、审计记录
 
 **审查结果处理**：
 - **合格**：继续派发下一道题
