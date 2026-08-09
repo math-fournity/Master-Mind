@@ -642,6 +642,12 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 
 **⚠️ 所有项目必须全部check完，不允许跳过任何一项。** 审计checklist末尾有"审计员签字"确认区，必须确认所有Phase的所有项目都已check完才能提交审计结论。
 
+**⚠️ 审计纪律铁律（不可违反）**：
+1. **必须严格按照`audit-checklist-template.md`逐项检查**——Phase 0到Phase 6的每一项都要实际执行，不允许跳过、不允许合并、不允许用批量脚本替代逐项审查。
+2. **Phase 2的16项（2a-2p）必须逐项做**——特别是2e（QA序列逐轮审查，对每一轮单独填写situation_type/question/level/遗漏的判断）和2f/2g（逐对审查tell/hint质量），不允许只读key_insight就判"合格"。
+3. **粗审不算审计**——只检查格式+高层读key_insight是粗审，不是审计。审计必须包含数学内容审查（Phase 2）。
+4. **审计产出必须落盘**——每个审计过的profile要有`subagents-dirs/{problem_id}/audit-checklist.md`，记录逐项检查结果。
+
 审计checklist包含6个Phase：
 - **Phase 0: 加载审计材料**——读profile、读Lean文件亲自理解题目和解答、读subagent的checklist.md和profile.json
 - **Phase 1: 格式检查（最低线）**——situation_type值规范、hint_level格式、per-pair拓扑字段存在性、必填字段完整性、QA序列结构

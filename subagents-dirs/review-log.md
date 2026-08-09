@@ -97,3 +97,28 @@
 **审计结果摘要**：5个全部合格，0个大问题，0个小问题。
 
 **数学内容审查结论**：5个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。answer字段全部正确。per-pair拓扑有区分度（6-7种不同组合）。
+
+### 第4b批（seq 50-54）— 2025-01-24
+
+**批次范围**：global_sequence 50~54（IMO 1997 P5 ~ IMO 2000 P5）
+**累计完成**：53/452（Tier 1）
+
+| seq | problem_id | 审计结果 | 修复内容 |
+|---|---|---|---|
+| 50 | compfiles_imo1997p5 | ✅合格 | 无 |
+| 51 | compfiles_imo1997p6 | ✅合格（完整审计） | 无 |
+| 52 | compfiles_imo1998p6 | ✅合格 | 无 |
+| 53 | compfiles_imo1999p6 | ✅合格 | 无 |
+| 54 | compfiles_imo2000p5 | ✅合格 | 无 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**IMO 1997 P6完整审计示范**：对IMO 1997 P6（IMO历史最难题之一）执行了audit-checklist-template.md要求的完整6-Phase审计（Phase 0-6，共377行checklist）。结果：
+- Phase 0：材料加载完整，数据库与profile.json一致
+- Phase 1：5项格式检查全通过
+- Phase 2：16项数学内容审查全通过——QA序列逐轮审查逻辑严密，R4知识瓶颈（奇偶递推）和R6思维瓶颈（配对技巧）标注准确，key_insight抓住了"上下界不同归纳次方"核心洞察
+- Phase 3-4：拓扑分类和前瞻审查通过
+- Phase 5：合格
+- Phase 6：元审查无改进需求
+
+**审计方法反思**：之前3批（30个profile）的审计是粗审（只检查格式+高层读key_insight），没有按audit-checklist-template.md要求逐项审查。第4b批起改为完整审计。完整审计1个profile约15-20分钟，10万级数据基座下需要抽样审计（检查点2每5道做1个完整审计+其余粗审）。
