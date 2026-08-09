@@ -3112,3 +3112,30 @@
 - omni_math #4133：Fermat素数构造+φ(n)为2的幂+φ(d(n))指数增长→No，key_insight准确（原解答严格性问题已被subagent发现并标注）
 - omni_math #4138：增长率排除高次+常数和恒等验证→P(x)=c或P(x)=x，key_insight准确
 - omni_math #4139：y=1代入+ansatz猜测+验证→f(x)=ax+b/x，key_insight准确
+
+### 第61a批（seq 403-405）— 2025-01-24
+
+**批次范围**：global_sequence 403~405（AoPS omni_math #4146 + #4147 + #4152）
+**累计完成**：398/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖数论、群论/函数方程、组合。004146原Answer字段为空（subagent从solution推导答案0）。004152前两次静默失败，第三次foreground重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 403 | omni_math_004146 | ✅合格 | 无 | ✅已落盘 |
+| 404 | omni_math_004147 | ✅合格 | 无 | ✅已落盘 |
+| 405 | omni_math_004152 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4146：IMO SL数论→good整数（|n|非完全平方数）+三数之和+乘积为奇数平方+无穷多种表示+对称构造正负配对→m=0（原Answer字段为空，subagent从solution推导）
+- omni_math #4147：IMO SL群论/函数方程→f(x+f(y))=f(x)+f(y)的F集合+全称量词"对每个f∈F"+完整刻画解类型求交集→(n+1)/n（subagent发现原解答验证步骤数学错误但答案正确，已标注）
+- omni_math #4152：IMO SL组合→2009个三角形按颜色排序+极值论证（最大边+排序单调性传递三角不等式）+构造反例（2008扁平+1等边）→k=1（subagent发现原解答hand-wavy，重构严格证明）
+- stats类型约束持续生效（连续112批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4146：素因子偶次条件+对称构造→m=0，key_insight准确
+- omni_math #4147：全称量词约束+完整刻画F解类型求交集→(n+1)/n，key_insight准确（原解答验证步骤错误已被subagent发现并标注）
+- omni_math #4152：极值论证+排序单调性+构造反例→k=1，key_insight准确（原解答hand-wavy已被subagent发现并重构）
