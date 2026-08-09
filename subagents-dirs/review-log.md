@@ -1579,3 +1579,30 @@
 - FATE-X 320：特征0→|G|可逆→Reynolds算子→R^G是R的直和项→直和项定理保持CM，key_insight准确
 - FATE-X 321：多项式变量x₁,...,xₙ构成正则序列+depth和dimension同时增加n+保持depth=dim，key_insight准确
 - FATE-X 322：正向由CM环定义直接得出（trivial）+反向graded local-global定理（CM at irrelevant maximal ideal→CM globally），key_insight准确
+
+### 第32b批（seq 232-234）— 2025-01-24
+
+**批次范围**：global_sequence 232~234（FATE-X 323 ~ FATE-X 325）
+**累计完成**：233/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/CM环/理想与模/维数理论
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 232 | fate_000323 | ✅合格 | 无 | ✅已落盘 |
+| 233 | fate_000324 | ✅合格 | 无 | ✅已落盘 |
+| 234 | fate_000325 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 323：正则局部环R+正则序列+y∉(x₁,...,x_c)→R/J是Gorenstein，结构归约+零化子引理
+- FATE-X 324：标准分次代数A的CM iff 齐次素理想处(A_p)_0是CM，齐次局部化depth/维数保持+齐次素理想充分性归约
+- FATE-X 325：Noetherian UFD维数d≤3→catenary，height-1素理想主理想(Kaplansky)+Krull PIT+dim情形分析
+- stats类型约束持续生效（连续55批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 323：结构归约R/J→(R/I)/(0:_{R/I} ȳ)+R/I是Gorenstein（正则局部环商正则序列）+零化子引理保持Gorenstein，key_insight准确
+- FATE-X 324：齐次局部化depth/维数保持+齐次素理想充分性归约+(A_p)_0忠实反映A_p的CM性质，key_insight准确
+- FATE-X 325：height-1素理想是主理想(Kaplansky)+Krull PIT+dim≤2自动catenary+dim=3商去height-1主素理想降维，key_insight准确
