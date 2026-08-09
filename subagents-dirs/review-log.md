@@ -2842,3 +2842,30 @@
 - omni_math #3964：a_k=k(2^n-1)-(2^k-1)m+分子简化+floor项重构m，key_insight准确
 - omni_math #3969：素数整除等价编码加性方程+满射→f(n)=n，key_insight准确
 - omni_math #3973：完全乘性对合=素数置换+最优交换→120，key_insight准确（原Lean解答质量差已被subagent发现并还原）
+
+### 第56a批（seq 373-375）— 2025-01-24
+
+**批次范围**：global_sequence 373~375（AoPS omni_math #3982 + #3988 + #3989）
+**累计完成**：368/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO题，difficulty 9.0。涵盖代数/数论、代数、代数
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 373 | omni_math_003982 | ✅合格 | 无 | ✅已落盘 |
+| 374 | omni_math_003988 | ✅合格 | 无 | ✅已落盘 |
+| 375 | omni_math_003989 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3982：IMO SL代数/数论→立方和最小t+mod 9排除（立方数mod 9∈{0,±1}+2002^2002≡4）+构造2002=10³+10³+1³+1³→t=4（subagent发现原解答mod 9计算错误2002≡2应为4，但答案正确）
+- omni_math #3988：IMO SL代数→f(f(m)+n)+f(m)=f(n)+f(3m)+2014+m=0准周期性→线性假设f(n)=an+b→a=2,b=1007（subagent发现原解答代数错误b=2014应为1007，boxed答案正确）
+- omni_math #3989：IMO代数→f:R+→R+唯一性条件+猜f(x)=1/x+AM-GM(x-y)²≤0→y=x唯一
+- stats类型约束持续生效（连续102批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3982：mod 9排除+立方数性质+2002=10³+10³+1³+1³构造，key_insight准确（原解答mod 9错误已被subagent发现并修正标注）
+- omni_math #3988：准周期性→线性假设→系数比较a=2,b=1007，key_insight准确（原解答代数错误b=2014已被subagent发现并标注）
+- omni_math #3989：f(x)=1/x+AM-GM唯一性验证，key_insight准确
