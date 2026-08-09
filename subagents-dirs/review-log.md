@@ -3571,3 +3571,41 @@
 - omni_math #4361：Pythagorean参数化+完全平方数封闭性→yes，key_insight准确（原正多边形方法不正确已重构）
 - omni_math #4368：偏序集线性扩展+计算构造+链padding→yes，key_insight准确（原hand-wavy已重构）
 - omni_math #4371：共线性+角追逐+圆幂定理→相切，key_insight准确（原解答事实错误已注明）
+
+### 跳过题重试批（6题）— 2025-01-24
+
+**批次范围**：之前多次subagent失败被跳过的6个题目（hmmt_feb_2026_0032 + omni_math_000032 + omni_math_000073 + omni_math_000146 + omni_math_003286 + omni_math_003677）
+**累计完成**：452/452（Tier 1全部完成！）
+**审计方式**：6个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：6个一组（全部并发重试）
+**备注**：6个之前因subagent静默失败被跳过的题目，本次全部重试成功。hmmt_feb_2026_0032无原解答，subagent自行通过BFS小case发现⌊3(n-1)/2⌋规律并构造证明
+
+| problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|
+| omni_math_000032 | ✅合格 | 无 | ✅已落盘 |
+| omni_math_000073 | ✅合格 | 无 | ✅已落盘 |
+| omni_math_000146 | ✅合格 | 无 | ✅已落盘 |
+| omni_math_003286 | ✅合格 | 无 | ✅已落盘 |
+| omni_math_003677 | ✅合格 | 无 | ✅已落盘 |
+| matharena_MathArena_hmmt_feb_2026_0032 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：6个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #000032：China TST复数→单位圆240复数+弧密度约束+stride-40分组+每组模长≤2+√3+三角不等式→80+40√3
+- omni_math #000073：China TST图论→100顶点图+邻居不相交+好边→星图分解+引理+Cauchy-Schwarz→3822
+- omni_math #000146：China TST数论→f(n)因子分解数≤n/p+强归纳+除数求和+Euler函数恒等式→f(n)≤n/p
+- omni_math #003286：China TST代数→整数序列符号约束+Lipschitz条件+反证+计数论证→No
+- omni_math #003677：Balkan MO SL代数→f:R+→R+函数方程+y=1代入+猜f(x)=x+验证+唯一性→f(x)=x
+- hmmt_feb_2026 #0032：MathArena组合→1..2026黑板操作+BFS发现⌊3(n-1)/2⌋+两阶段构造→3037（无原解答，subagent自行推导）
+- stats类型约束持续生效（连续129批0个小问题）
+
+**数学内容审查结论**：6个profile的数学内容全部准确——
+- omni_math #000032：stride-40分组+弧约束→80+40√3，key_insight准确
+- omni_math #000073：好边→星图分解+Cauchy-Schwarz→3822，key_insight准确
+- omni_math #000146：强归纳+Euler函数恒等式→f(n)≤n/p，key_insight准确
+- omni_math #003286：反证+计数论证→No，key_insight准确
+- omni_math #003677：y=1代入+验证+唯一性→f(x)=x，key_insight准确
+- hmmt_feb_2026 #0032：BFS+两阶段构造→3037，key_insight准确（无原解答自行推导）
+
+**里程碑：Tier 1全部452题审计完成！**
