@@ -574,6 +574,24 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 
 > **Master Agent不只是派发器和入库器，更是审查者和流程改进者。每道题的subagent完成后，Master Agent必须审查其产出质量。每5道题完成后，Master Agent必须做一次批量审查。审查中发现的任何问题——从数据库表设计到checklist.md到AGENTS.md——必须立即修正，让后续的subagent受益。**
 
+> **⚠️ 审计的深度要求——不惜代价地审计，不是走形式**
+>
+> 审计不是检查格式对不对（situation_type值对不对、hint_level格式对不对、per-pair拓扑存不存在）——这些是最低线的格式检查，是审计的起点不是终点。
+>
+> 审计是**Master Agent重新理解这道题的数学内容，然后判断subagent的理解对不对**：
+> - Master Agent必须**亲自读题目和解答**，理解这道题在数学上是什么、解答的核心思路是什么、关键转折点在哪里
+> - Master Agent必须**自己思考**：如果我是AI，我会怎么解这道题？我会在哪里走错路？正确的方向是什么？
+> - 然后Master Agent**对比subagent的分析**：
+>   - QA序列：这个序列真的能引导AI从题目走到解答吗？有没有遗漏关键步骤？有没有不必要的轮次？每轮的Q真的对应了AI在这个位置需要的提示吗？还是机械地走形式？
+>   - tell/hint对：tell真的描述了AI在这个位置的分叉信号吗？还是泛泛而谈？hint真的能帮AI找到正确方向吗？还是"继续努力"之类的废话？全局蕴含型(tell,hint)的why_not_visible_locally真的解释了为什么在局部不可见吗？还是编了一个理由？
+>   - 拓扑标注：problem_type真的准确反映了题目的结构类型吗？ai_method_type真的预测了bare AI会用的方法吗？gap_type真的抓住了方法-问题不匹配的核心吗？还是随便填了一个值交差？
+>   - key_insight：这个"啊哈时刻"真的是解答中最关键的转折点吗？还是只是随便找了一句话填上去？
+>   - bare_ai_error_prediction：这个预测真的具体吗？还是只说"会失败"？
+>
+> **虽然不是完全重做**（不需要Master Agent从头到尾重新构造完整profile），但Master Agent必须对每道题做**实质性的数学理解**，才能判断subagent的分析质量。审计的成本是值得的——一个不合格的profile入库后会污染数据基座，后续的Pipe检索会被错误的(tell,hint)对误导，代价远大于审计成本。
+>
+> **审计的底线**：如果你（Master Agent）读完subagent的分析后，无法说出"这个分析我理解了，我认为它是对的"或"这个分析在X处有问题"——说明你的审计深度不够，你需要更深入地理解这道题。
+
 #### 检查点1：每道subagent完成后——快速质量审查（必须执行）
 
 subagent汇报后、派发下一道题之前，Master Agent必须对刚完成的profile做以下检查：
