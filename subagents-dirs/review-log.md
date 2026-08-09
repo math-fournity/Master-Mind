@@ -1687,3 +1687,30 @@
 - FATE-X 332：平坦性同时控制Krull维数可加性dim(B)=dim(A)+dim(B/M_AB)和嵌入维数可加性edim(B)=edim(A)+edim(B/M_AB)+正则性假设→edim(B)=dim(B)，key_insight准确
 - FATE-X 333：取N=F^ω利用Eilenberg swindle使M⊕M^ω≅M^ω+M⊕N≅F^ω为自由模+有限构造无法同时满足N自由和M⊕N自由必须跳到无穷，key_insight准确
 - FATE-X 334：构造R=k+xK[x]（K/k真域扩张）为超限Euclidean domain（φ取值ω+2）+ℕ良序性取最小范数元素+除法证明余数有更小范数形成矛盾，key_insight准确
+
+### 第34b批（seq 244-246）— 2025-01-24
+
+**批次范围**：global_sequence 244~246（FATE-X 335 ~ FATE-X 337）
+**累计完成**：245/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/维数不等式/多项式环同构/UFD。fate_000336第1次subagent完全失败（空通知），第1次重试成功。
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 244 | fate_000335 | ✅合格 | 无 | ✅已落盘 |
+| 245 | fate_000336 | ✅合格 | 无（第1次重试成功） | ✅已落盘 |
+| 246 | fate_000337 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 335：dim A[x,y]+dim A ≤ 2*dim A[x]，凹性条件+Spec R[x]→Spec R纤维维数至多1
+- FATE-X 336：存在R,S使R[x]≅S[x]但R⇏S，几何翻译+Danielewski曲面W_n={x^n·y=z²-1}
+- FATE-X 337：C[x,y,z]/(x²+y³+z⁷)是UFD，Mumford定理+Brieskorn准则(2,3,7)两两互素→link同调球
+- stats类型约束持续生效（连续59批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 335：不等式是凹性条件dim R[t]-dim R在迭代下非增+Spec R[x]→Spec R纤维维数至多1保证，key_insight准确
+- FATE-X 336：R[x]≅S[x]几何翻译为X×A¹≅Y×A¹+Danielewski曲面W_n⇏W_m但W_n×A¹≅W_m×A¹，key_insight准确
+- FATE-X 337：UFD性质等价于H₁(link,Z)=0（Mumford定理）+Brieskorn-Pham奇点(2,3,7)两两互素→link同调球→局部UFD→全局UFD，key_insight准确
