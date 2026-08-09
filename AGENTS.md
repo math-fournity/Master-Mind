@@ -544,6 +544,7 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 5. **Schema版本管理**——多个subagent同时发现新维度时合并到Schema文件
 6. **处理异常**——subagent失败时记录原因，将题目状态改回`pending`
 7. **创建ArangoDB集合、写Schema种子文件、建任务追踪子线文档**——这些基础设施工作不委托给subagent
+8. **审查subagent产出质量 + 改进流程**——**这是义务，不是可选项**。Master Agent不只是派发器和入库器，更是审查者和流程改进者。详见下方§Master Agent审查SOP
 
 **subagent 的职责**：
 1. **每次只被分配一个题目进行分析**——subagent收到Master Agent分配的一道题和一个工作目录，完整执行"每道题的完整处理流程"（11步，含QA序列分析）
@@ -562,11 +563,112 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 - **Master Agent追溯方式**：通过`subagents-dirs/{problem_id}/checklist.md`可以看到subagent每步的完成情况和产出，通过`subagents-dirs/{problem_id}/profile.json`可以看到最终profile
 
 **关键边界**：
-- Master Agent负责"找题、派发、持续运行"，subagent负责"分析单道题"
+- Master Agent负责"找题、派发、持续运行、审查质量、改进流程"，subagent负责"分析单道题"
 - subagent不自行领取下一道题——这是Master Agent的职责
 - subagent不自行更新Schema——发现新维度或拓扑分类问题在profile中标注并在汇报中提出，Master Agent统一合并
 - **拓扑进化的发现权在subagent，决策权在Master Agent**——subagent在分析中发现拓扑分类的问题，Master Agent收到汇报后决定是否修改Schema
 - Master Agent不停下来汇报工作——海量题目没处理完之前持续派发
+- **但Master Agent必须在检查点执行审查**——审查不是"停下来汇报"，审查是"持续运行的内置环节"
+
+### Master Agent审查SOP
+
+> **Master Agent不只是派发器和入库器，更是审查者和流程改进者。每道题的subagent完成后，Master Agent必须审查其产出质量。每5道题完成后，Master Agent必须做一次批量审查。审查中发现的任何问题——从数据库表设计到checklist.md到AGENTS.md——必须立即修正，让后续的subagent受益。**
+
+#### 检查点1：每道subagent完成后——快速质量审查（必须执行）
+
+subagent汇报后、派发下一道题之前，Master Agent必须对刚完成的profile做以下检查：
+
+**1a. QA序列合理性**：
+- QA序列是否反映了一个真实的"引导AI从题目走到解答"的过程？还是机械地走形式？
+- 第1轮是否是`纯元认知观察`（让AI描述题目结构）？第2轮是否是`自由列举`？如果不是，为什么？
+- situation_type值是否是6个规范值之一？（如果不是→subagent违反了checklist约束→需要修正数据+检查checklist是否不够明确）
+- hint_level是否是0-1浮点数？（如果不是→同上）
+- QA轮数是否在5-8轮之间？过少可能分析不充分，过多可能冗余
+
+**1b. 拓扑标注质量**：
+- profile级tell_topology的三个维度值是否在已有拓扑分类体系中？（如果新建了值→检查粒度是否一致）
+- per-pair tell_topology是否逐pair不同？（如果所有pair用同一个拓扑→分析太粗糙，per-pair拓扑是Pipe 0/1检索的依据）
+- is_knowledge_bottleneck=True的pair，gap_type是否是`knowledge_gap`？（如果不是→标注不一致）
+
+**1c. (tell, hint)对质量**：
+- tell是否描述了AI在这个位置的具体状态/分叉信号？还是泛泛而谈？（泛泛而谈→质量不合格）
+- hint是否是具体的提示方向？还是"继续努力"之类的废话？
+- 全局(tell, hint)对中implicit型的why_not_visible_locally是否真的解释了为什么在局部不可见？
+- bare_ai_error_prediction是否具体描述了bare AI会犯什么错？还是只说"会失败"？
+
+**1d. solution_method_type vs problem_type**：
+- 两者是否明确区分？problem_type是题目结构类型，solution_method_type是解答方法类型。如果两者相同或混淆→分析不到位
+
+**审查结果处理**：
+- **合格**：继续派发下一道题
+- **小问题**（situation_type/hint_level格式错误等）：用脚本批量修正，继续派发，在checklist-template.md中强化对应约束
+- **大问题**（QA序列不合理、tell/hint泛泛而谈、拓扑标注严重错误等）：记录问题，将该题标记为需要重新分析（progress状态改回pending），继续派发下一道题
+
+#### 检查点2：每5道题完成后——批量审查（必须执行）
+
+每完成5道题（不是每5个subagent完成，是累计5道题入库），Master Agent必须做一次更深的审查：
+
+**2a. 跨profile一致性检查**：
+- 所有profile的拓扑值是否粒度一致？（运行AQL查询所有unique的problem_type/ai_method_type/gap_type值，检查是否有太具体或太抽象的异常值）
+- solution_method_type是否有重复模式？（如多道题都用"telescoping"，说明这是一个高频思维模式）
+- thinking_patterns是否有高频值？
+
+**2b. Schema/Checklist/流程改进评估**：
+- 过去5道题中，subagent是否在某些步骤反复出错？（如situation_type反复自创→checklist约束不够强）
+- 过去5道题中，是否发现了Schema中缺失的字段或类别？
+- 过去5道题中，拓扑分类体系是否需要进化？（subagent的进化建议是否指向同一个方向？）
+- checklist-template.md是否需要更新？（某个步骤的说明是否不够清楚导致subagent反复出错？）
+- AGENTS.md中的SOP是否需要更新？（某个流程环节是否不合理？）
+
+**2c. 数据库设计评估**：
+- 字段是否够用？是否有有价值的信息无处记录？
+- 索引是否合理？查询是否高效？
+- 是否需要新增集合或字段？
+
+**2d. 亲自重新分析一道题**：
+- 从过去5道题中选一道，Master Agent亲自重新分析（不委托subagent）
+- 对比Master Agent的分析和subagent的分析，找出差异
+- 差异如果是subagent遗漏了什么→在checklist中强化对应步骤
+- 差异如果是Master Agent也遗漏了什么→说明Schema/SOP有盲区，需要修正
+
+**审查结果处理**：
+- 发现问题→**立即修正**（更新AGENTS.md/checklist-template.md/Schema），让后续的subagent受益
+- 修正后commit，记录变更原因
+- 如果问题严重到需要重新分析已完成的题→记录待重做列表，Pass 2时处理
+
+#### 检查点3：每20道题完成后——全局审查（必须执行）
+
+**3a. 拓扑分类体系健康度**：
+- 运行AQL统计所有unique拓扑值，更新AGENTS.md中的"拓扑分类体系"节
+- 检查是否有需要归一化的值（太具体的归入更抽象的类）
+- 检查是否需要新增维度
+
+**3b. Pattern发现**：
+- 跨题分析：哪些(tell, hint)对在多道题中重复出现？这些是高频Pattern，值得特别标注
+- 跨题分析：哪些translation_type在多道题中重复？这些是高频翻译方向
+
+**3c. 流程效率评估**：
+- 平均每道题的分析耗时（从subagent启动到入库）是否合理？
+- subagent的失败率？失败原因分布？
+- 是否需要调整并发数、checklist长度、prompt结构？
+
+#### 审查记录
+
+每次审查（检查点1/2/3）的结果必须记录在`subagents-dirs/review-log.md`中：
+```
+## 审查记录
+### [日期时间] 检查点1: {problem_id}
+- QA序列合理性: ✅/❌（详情）
+- 拓扑标注质量: ✅/❌（详情）
+- (tell,hint)对质量: ✅/❌（详情）
+- 处理: 合格/修正了X/标记重做
+
+### [日期时间] 检查点2: 第N批5道题
+- 跨profile一致性: ...
+- Schema/Checklist改进: ...
+- 亲自重做对比: ...
+- 修正: 更新了X
+```
 
 ### 为什么要做
 
