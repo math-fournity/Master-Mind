@@ -514,3 +514,29 @@
 - USA 1987 P5：三元组按相邻相等分三类+Vandermonde合并+C(f(i),2)+奇数n最小值交替序列，key_insight准确
 - USA 1988 P5：倍增变换p(x)p(-x)+保持乘积结构+平方线性系数+减半消失范围+4次迭代降维，key_insight准确
 - USA 1989 P5：V(u)-U(u)=u⁹(10u-9)(u+1)+因子10u-9与u<9/10关联+V单调递增+u<v，key_insight准确
+
+### 第12b批（seq 112-114）— 2025-01-24
+
+**批次范围**：global_sequence 112~114（USA 1992 P5 ~ USA 1994 P5）
+**累计完成**：113/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 112 | compfiles_usa1992p5 | ✅合格 | 无 | ✅已落盘 |
+| 113 | compfiles_usa1993p5 | ✅合格 | 无 | ✅已落盘 |
+| 114 | compfiles_usa1994p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1992 P5有2个knowledge bottleneck（R4求值复合结构+R7互素整除），精巧的复多项式迭代构造
+- USA 1993 P5的对数凹性识别是implicit型tell——条件以乘法形式出现但"改写为比值"的翻译不在表面可见
+- USA 1994 P5的Pascal恒等式+差分算子框架是精巧的组合恒等式证明
+- stats类型约束持续生效（连续15批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1992 P5：中点碰撞+求值复合结构+集合缩减归纳+互素线性因子整除，key_insight准确
+- USA 1993 P5：对数凹性+对称乘积界+AM-GM配对+纯代数推导，key_insight准确
+- USA 1994 P5：Pascal恒等式+|S|阶前向差分+步长乘积π(S)+结构归纳+望远镜求和，key_insight准确
