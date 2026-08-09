@@ -3031,3 +3031,30 @@
 - omni_math #4105：对称集构造+过约束论证→n=k+4，key_insight准确
 - omni_math #4108：二部图完美匹配+后缀分区+鸽巢+Hall定理→M=2^{N-2}+1，key_insight准确
 - omni_math #4110：x=0代入+二分支→f(x)=0或f(x)=c(1≤c<2)，key_insight准确
+
+### 第59b批（seq 394-396）— 2025-01-24
+
+**批次范围**：global_sequence 394~396（AoPS omni_math #4116 + #4119 + #4121）
+**累计完成**：389/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖多项式、群论/博弈、域论/函数方程
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 394 | omni_math_004116 | ✅合格 | 无 | ✅已落盘 |
+| 395 | omni_math_004119 | ✅合格 | 无 | ✅已落盘 |
+| 396 | omni_math_004121 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4116：IMO SL多项式→奇数次整系数多项式+d次幂比值条件+"对所有n"→P(x)=a(rx+s)^d
+- omni_math #4119：IMO SL群论/博弈→Alice数轴游戏+交替移动不变量R=j(r-1)+gcd论证→r=(a+1)/a, a≤1010
+- omni_math #4121：IMO SL域论/函数方程→f(f(x)²y)=x³f(xy)+x=1代入+乘法周期性+倒数形式猜测→f(x)=1/x
+- stats类型约束持续生效（连续109批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4116：d次幂比值条件+"对所有n"→P(x)=a(rx+s)^d，key_insight准确
+- omni_math #4119：交替移动不变量R=j(r-1)+gcd论证→r=(a+1)/a, a≤1010，key_insight准确
+- omni_math #4121：x=1代入+乘法周期性+倒数形式→f(x)=1/x，key_insight准确
