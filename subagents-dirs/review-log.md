@@ -3139,3 +3139,30 @@
 - omni_math #4146：素因子偶次条件+对称构造→m=0，key_insight准确
 - omni_math #4147：全称量词约束+完整刻画F解类型求交集→(n+1)/n，key_insight准确（原解答验证步骤错误已被subagent发现并标注）
 - omni_math #4152：极值论证+排序单调性+构造反例→k=1，key_insight准确（原解答hand-wavy已被subagent发现并重构）
+
+### 第61b批（seq 406-408）— 2025-01-24
+
+**批次范围**：global_sequence 406~408（AoPS omni_math #4155 + #4157 + #4164）
+**累计完成**：401/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖组合、组合/棋盘、代数/函数方程
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 406 | omni_math_004155 | ✅合格 | 无 | ✅已落盘 |
+| 407 | omni_math_004157 | ✅合格 | 无 | ✅已落盘 |
+| 408 | omni_math_004164 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4155：IMO SL组合→N×100表每行1..100排列+任意两行某列差≥2+连续整数配对50对+正交阵列构造→N=100!/2^50
+- omni_math #4157：IMO SL组合→100×100棋盘2500个互不攻击王+每行每列25个+2×2区块分解+鸽巢+区块间邻接→全局对角线一致性→2种
+- omni_math #4164：IMO SL代数→xf(x²)f(f(y))+f(yf(x))=f(xy)(f(f(x²))+f(f(y²)))+f(f(·))模式暗示involution→f(x)=1/x→验证
+- stats类型约束持续生效（连续113批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4155：连续整数配对+正交阵列→N=100!/2^50，key_insight准确
+- omni_math #4157：2×2区块分解+鸽巢+邻接约束传播→2种，key_insight准确
+- omni_math #4164：involution识别+f(x)=1/x验证→f(x)=1/x，key_insight准确
