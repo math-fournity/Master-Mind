@@ -1174,3 +1174,30 @@
 - FATE-X 275：Galois对应将闭子群H翻译为不动点域L=K̄^H+G(L)≅H+Artin-Schreier定理（代数闭|G|=1或实闭|G|=2）→|H|∈{1,2}，key_insight准确
 - FATE-X 276：ζ_{p²}∈K蕴含ζ_p∈K+L=K(a^{1/p})（Kummer）+构造L'=K(a^{1/p²})+ζ_{p²}保证所有共轭在L'中+L'/K是p²次循环Galois+塔性质L'/L为p次Galois，key_insight准确
 - FATE-X 277：Chebotarev密度定理证明g在G(ℚ)中共轭类无穷+G(K)在G(ℚ)中有限指标[G(ℚ):G(K)]=[K:ℚ]+G(ℚ)共轭类分解为有限个G(K)共轭类平移+有限并无穷则至少一项无穷，key_insight准确
+
+### 第25a批（seq 187-189）— 2025-01-24
+
+**批次范围**：global_sequence 187~189（FATE-X 278 ~ FATE-X 280）
+**累计完成**：188/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/理想理论（profinite群论+整闭性+UFD）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 187 | fate_000278 | ✅合格 | 无 | ✅已落盘 |
+| 188 | fate_000279 | ✅合格 | 无 | ✅已落盘 |
+| 189 | fate_000280 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 278：⟨g⟩闭⟺g挠元，profinite紧性论证（ℤ不profinite是隐藏障碍）
+- FATE-X 279：B\A乘法封闭→A整闭，逆否命题迭代提取x因子
+- FATE-X 280：C[x₁,...,xₙ]/(x₁²+...+xₙ²)是UFD（n≥5），Grothendieck parafactorial定理
+- stats类型约束持续生效（连续40批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 278：(←)挠元→⟨g⟩有限→Hausdorff中有限集闭+(→)⟨g⟩闭→闭子群of profinite是profinite+若g无限阶则⟨g⟩≅ℤ不profinite（不紧）→矛盾，key_insight准确
+- FATE-X 279：B\A乘法封闭取逆否命题（xy∈A⟹x∈A或y∈A）+对整方程迭代提取x因子+反复应用逆否命题+n步后强制x∈A+与假设矛盾，key_insight准确
+- FATE-X 280：R是超曲面（完全交）+dim R=n-1≥4+R正规（Serre判据）+Grothendieck parafactorial定理顶点处局部环factorial+分次正规环Cl(R)=0→R是UFD，key_insight准确
