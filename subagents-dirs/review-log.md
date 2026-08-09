@@ -33,3 +33,27 @@
 **流程改进待办**：
 - [ ] 在checklist-template.md中强化path_feature型global pair的why_not_visible_locally必填约束
 - [ ] 在checklist-template.md中强化answer字段必填（即使是proof类型）
+
+### 第2批（seq 25-34）— 2025-01-24
+
+**批次范围**：global_sequence 25~34（IMO 1978 P6 ~ IMO 1986 P6）
+**累计完成**：33/452（Tier 1）
+
+| seq | problem_id | 审计结果 | 修复内容 |
+|---|---|---|---|
+| 25 | compfiles_imo1978p6 | ✅合格 | 无 |
+| 26 | compfiles_imo1979p5 | ✅合格 | 无 |
+| 27 | compfiles_imo1979p6 | ✅合格 | 无 |
+| 28 | compfiles_imo1981p6 | ✅合格 | 无 |
+| 29 | compfiles_imo1983p5 | ✅合格 | 无 |
+| 30 | compfiles_imo1983p6 | ✅合格 | 无 |
+| 31 | compfiles_imo1984p6 | ✅合格 | 无 |
+| 32 | compfiles_imo1985p6 | ✅合格 | 无 |
+| 33 | compfiles_imo1986p5 | ✅合格 | 无 |
+| 34 | compfiles_imo1986p6 | ✅合格 | 无 |
+
+**审计结果摘要**：10个全部合格，0个大问题，0个小问题。
+
+**checklist强化效果**：第1批审计后强化的两个约束（path_feature的why_not_visible_locally必填、answer字段必填）在第2批中完全生效——10个profile全部0问题。相比第1批的12个小问题，改善显著。
+
+**数学内容审查结论**：10个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。answer字段全部正确。per-pair拓扑有区分度（4-7种不同组合）。
