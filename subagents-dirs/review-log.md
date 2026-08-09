@@ -1525,3 +1525,30 @@
 - FATE-X 314：R[X]_M是R_m平坦局部扩张+纤维k[X]局部化是DVR→正则局部→Gorenstein+平坦局部扩张保持Gorenstein，key_insight准确
 - FATE-X 315：rs'=rs本身+正则序列置换不变性+归约到相邻对换+二元情形Krull交定理+相邻对换生成对称群，key_insight准确
 - FATE-X 316：1+x₁y₁在完备环中是单位（几何级数收敛）但在非完备张量积中不是单位（秩论证）+单位性是同构不变量→不同构，key_insight准确
+
+### 第31b批（seq 226-228）— 2025-01-24
+
+**批次范围**：global_sequence 226~228（FATE-X 317 ~ FATE-X 319）
+**累计完成**：227/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/CM环/正则局部环
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 226 | fate_000317 | ✅合格 | 无 | ✅已落盘 |
+| 227 | fate_000318 | ✅合格 | 无 | ✅已落盘 |
+| 228 | fate_000319 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 317：Noetherian局部环f∈m非幂零→A_f是Jacobson，Jacobson环等价刻画归约+Noetherian性连接
+- FATE-X 318：正则局部环R+P∩R=m→R[x]_P正则局部，两步分解+两个标准保持定理
+- FATE-X 319：整域R含于局部环(S,Q)→存在极小素理想收缩为零，有限交集归约+乘积论证
+- stats类型约束持续生效（连续53批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 317：Jacobson环等价刻画归约到整域+Noetherian性连接极大素理想与所有素理想+(0):f^∞=(0)，key_insight准确
+- FATE-X 318：两步分解R→R[x]→R[x]_P+多项式扩张保持正则性+素理想处局部化保持正则性，key_insight准确
+- FATE-X 319：所有极小素理想收缩交集=(0)（injectivity+domain）+domain中有限个非零素理想不可能交集为零（乘积论证）→至少一个收缩为零，key_insight准确
