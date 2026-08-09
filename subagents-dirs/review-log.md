@@ -3409,3 +3409,30 @@
 - omni_math #4249：形式幂级数翻译+奇偶性矛盾→不存在，key_insight准确（原answer为空已由subagent推导）
 - omni_math #4250：鸽巢原理+链长度极值分析→n≤k≤⌈3n/2⌉，key_insight准确
 - omni_math #4253：弧中点+三角不等式+AM-GM→16Q³≥27r⁴P，key_insight准确
+
+### 第66b批（seq 436-438）— 2025-01-24
+
+**批次范围**：global_sequence 436~438（AoPS omni_math #4263 + #4265 + #4270）
+**累计完成**：431/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist数论+多项式+组合，difficulty 9.0。004263原Lean解答简略（仅用Wilson定理），subagent用群论自同构论证重构
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 436 | omni_math_004263 | ✅合格 | 无 | ✅已落盘 |
+| 437 | omni_math_004265 | ✅合格 | 无 | ✅已落盘 |
+| 438 | omni_math_004270 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4263：IMO SL数论→n!|a^n+1唯一解+群论自同构论证（gcd(p,φ(q^k))=1使x→x^p为自同构→唯一a=p!-1）+合数时gcd(n,φ(p^k))>1破坏唯一性→素数或n=1（原解答简略已重构）
+- omni_math #4265：IMO SL多项式→P^m迭代模n剩余类数⌈n/2^m⌉+素数用乘法群+2^k用加法二进制减半→素数或2^k
+- omni_math #4270：IMO SL组合→0-1序列连续窗口和严格递增+n+1块长度n+块和恰为0,1,...,n+三角阈值构造→唯一解
+- stats类型约束持续生效（连续123批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4263：群论自同构+CRT→素数或n=1，key_insight准确（原解答简略已重构）
+- omni_math #4265：乘法群+加法二进制减半→素数或2^k，key_insight准确
+- omni_math #4270：分块+极值强制+三角阈值→唯一解，key_insight准确
