@@ -436,3 +436,29 @@
 - USA 1977 P5：凸性端点归约+归纳+2^5角点+对称性压缩+逐一验证，key_insight准确
 - USA 1978 P5：反证法+鸽巢（每人最多与3人共享）+计数找3人两两不共享+矛盾，key_insight准确
 - USA 1979 P5：反证法+强归纳+Case 1共现锁定+Case 2有界度数双计数，key_insight准确
+
+### 第11a批（seq 103-105）— 2025-01-24
+
+**批次范围**：global_sequence 103~105（USA 1980 P5 ~ USA 1983 P5）
+**累计完成**：104/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 103 | compfiles_usa1980p5 | ✅合格 | 无 | ✅已落盘 |
+| 104 | compfiles_usa1981p5 | ✅合格 | 无 | ✅已落盘 |
+| 105 | compfiles_usa1983p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1980 P5和1981 P5都用了problem_type="inequality_proof"（第二批和第三批使用此新值，确认扩展合理）
+- USA 1981 P5的stats中kb="R5"和tb="R5"相同——R5同时具有知识瓶颈和思维瓶颈的双重性质。建议未来subagent尽量区分，但不构成问题
+- USA 1983 P5的oddPart单射法是精巧的数论论证
+- stats类型约束持续生效（连续12批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1980 P5：拆分LHS≤1+1≤RHS+分母放缩到x+y+z，key_insight准确
+- USA 1981 P5：分解到小数部分+次可加性+强归纳+最小a(m)/m拆分，key_insight准确
+- USA 1983 P5：间距约束→整除反链→oddPart单射→计数上界(n+1)/2，key_insight准确
