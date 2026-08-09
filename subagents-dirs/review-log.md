@@ -357,3 +357,29 @@
 - IMO 2024 P5：侦察+列约束+两侧绕行+zigzag+对称性，key_insight准确
 - IMO 2024 P6：对合性质f(-f(-x))=x+矛盾论证g≤2+floor-fract构造，key_insight准确
 - IMO 2025 P5：Cauchy-Schwarz阈值√2/2+Alice蓄力策略+Bazza二次预算约束，key_insight准确
+
+### 第9b批（seq 94-96）— 2025-01-24
+
+**批次范围**：global_sequence 94~96（IMO 2025 P6 ~ IMO 2026 P6）
+**累计完成**：95/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 94 | compfiles_imo2025p6 | ✅合格 | 无 | ✅已落盘 |
+| 95 | compfiles_imo2026p5 | ✅合格 | 无 | ✅已落盘 |
+| 96 | compfiles_imo2026p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- IMO 2025 P6有3499行Lean文件（最长之一），解答用Erdős-Szekeres+方向标签+AM-GM
+- IMO 2026 P5和P6都是最新IMO题目（2026年），来自humanfia/imo2026
+- IMO 2026 P6的三层翻译链（贪心→枚举→有限性→周期性）结构清晰
+- stats类型约束持续生效（连续9批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- IMO 2025 P6：Erdős-Szekeres+方向标签+incidence counting+AM-GM+模运算构造，key_insight准确
+- IMO 2026 P5：平方+夹逼+迭代公式+等差轨道+缺陷分析+球密度反证，key_insight准确
+- IMO 2026 P6：三层翻译链+贪心最小性约束+极小支撑有限性+周期L+归纳，key_insight准确
