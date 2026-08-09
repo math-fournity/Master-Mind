@@ -532,6 +532,30 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 
 分层次地、系统化地梳理所有已下载到本地的有答案的数学题，从每道题的**题目+解答**对中提炼喂给第五代系统数据基座的东西，放入ArangoDB。
 
+### 角色与任务说明——题海梳理工作线
+
+> **本节明确题海梳理工作线中Master Agent和subagent各自做什么。subagent也会看到AGENTS.md，必须知道自己该做什么、不该做什么。**
+
+**Master Agent 的职责**：
+1. **找下一个给subagent分析的题目**——从ArangoDB `problem_extraction_progress`中查`extraction_status="pending"`的题，优先选最难的，分配给subagent
+2. **让整个分析过程持续进行**——始终保持5个subagent在运行（流水线并发），一个完成立刻补一个，不停下来汇报工作，直到所有可处理的题目都处理完
+3. **管理并发槽位**——监控5个subagent的状态，完成一个立刻派发下一道题
+4. **Schema版本管理**——多个subagent同时发现新维度时合并到Schema文件
+5. **处理异常**——subagent失败时记录原因，将题目状态改回`pending`
+6. **创建ArangoDB集合、写Schema种子文件、建任务追踪子线文档**——这些基础设施工作不委托给subagent
+
+**subagent 的职责**：
+1. **每次只被分配一个题目进行分析**——subagent收到Master Agent分配的一道题，完整执行"每道题的完整处理流程"（10步，含QA序列分析）
+2. **不要自行分析更多题目**——subagent处理完分配的这道题后，输出profile JSON，入库，更新进度，然后结束。不要自行从数据库中领取下一道题，不要自行决定分析什么题
+3. **不要做Master Agent的工作**——不管理并发槽位，不更新Schema版本（如发现新维度，在profile中标注，由Master Agent合并到Schema），不建集合，不写任务追踪文档
+4. **任务完成后汇报**——向Master Agent报告这道题的处理结果（profile_doc_id、是否发现新维度、是否遇到异常）
+
+**关键边界**：
+- Master Agent负责"找题、派发、持续运行"，subagent负责"分析单道题"
+- subagent不自行领取下一道题——这是Master Agent的职责
+- subagent不自行更新Schema——发现新维度在profile中标注，Master Agent统一合并
+- Master Agent不停下来汇报工作——海量题目没处理完之前持续派发
+
 ### 为什么要做
 
 第五代系统的核心是tell+hint二元组和三层Pipe架构。系统要工作，需要数据基座中有大量的(tell, hint)对。目前数据基座中的(tell, hint)对只有POC实验中手工积累的少量条目（24个翻译方向、2个tell）。有答案的题海是天然的(tell, hint)对收集源——每道题的解答本质上就是一个"问题处境→正确方向"的映射。遍历完所有有答案的题，数据基座就从实验级增长到生产级。
