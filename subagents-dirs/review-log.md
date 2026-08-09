@@ -1336,3 +1336,30 @@
 - FATE-X 293：0维局部环+edim=3+length=5+0维局部CI的length≥2^e=8>5→矛盾，key_insight准确
 - FATE-X 294：对r归纳+Hilbert series非负性→自由性+Z_{≥0}分次约束保证syzygy模Hilbert series系数非负，key_insight准确
 - FATE-X 295：Lazard定理（平坦模=自由模的滤余极限）+正向用Lazard构造滤系统+反向用分解性质验证张量正合，key_insight准确
+
+### 第28a批（seq 205-207）— 2025-01-24
+
+**批次范围**：global_sequence 205~207（FATE-X 296 ~ FATE-X 298）
+**累计完成**：206/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/Dedekind domain/绝对平坦/理想幂等
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 205 | fate_000296 | ✅合格 | 无 | ✅已落盘 |
+| 206 | fate_000297 | ✅合格 | 无 | ✅已落盘 |
+| 207 | fate_000298 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 296：k[x,y]/(y²-f(x))是Dedekind domain且类群非平凡，Jacobian准则证明光滑+ramification素理想2-torsion
+- FATE-X 297：绝对平坦 iff 主理想幂等，A/(a)平坦性张量正合列+幂等生成元e=ab
+- FATE-X 298：主理想幂等 iff 有限生成理想是直和项，幂等元桥梁e=ar+正交幂等元归纳（6轮QA，在5-8轮范围内）
+- stats类型约束持续生效（连续46批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 296：Jacobian准则证明曲线光滑→A整闭→Dedekind+ramification素理想2-torsion→类群含(Z/2Z)^(n-1)子群→非平凡，key_insight准确
+- FATE-X 297：正向用A/(a)平坦性张量正合列迫使(a)/(a²)=0+反向从(a)=(a²)提取幂等生成元e=ab翻译为模论结构，key_insight准确
+- FATE-X 298：幂等元桥梁e=ar（从理想幂等到元素幂等元生成）+正交幂等元归纳（从主理想推广到有限生成理想），key_insight准确
