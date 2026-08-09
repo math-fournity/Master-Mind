@@ -2923,3 +2923,30 @@
 - omni_math #4014：特化代入+候选猜测验证f(x)=±x，key_insight准确
 - omni_math #4021：r=1/c=1+乘性配对与加性冲突→n=1，key_insight准确
 - omni_math #4036：mod 2归约+Lucas定理奇数项计数矛盾→No，key_insight准确
+
+### 第57b批（seq 382-384）— 2025-01-24
+
+**批次范围**：global_sequence 382~384（AoPS omni_math #4041 + #4044 + #4047）
+**累计完成**：377/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖代数、组合博弈、代数/数论。004041第一次subagent静默失败，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 382 | omni_math_004041 | ✅合格 | 无 | ✅已落盘 |
+| 383 | omni_math_004044 | ✅合格 | 无 | ✅已落盘 |
+| 384 | omni_math_004047 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4041：IMO SL代数→递推序列+齐次性+GCD=1+周期7循环(0,1,2,2,1,1,1)+14^14≡0 mod 7+相位偏移→a=1（subagent发现原解答周期3错误，实际周期7，但答案正确）
+- omni_math #4044：IMO SL组合博弈→60盒子+Bob分割只影响边界相邻差d_k+Alice控制符号→所有相邻差有界+均匀分配16个/盒→n=960
+- omni_math #4047：IMO SL代数/数论→n=(ab+3b+8)/(a²+b+3)+固定n=2+因式分解b=2(a-1)+a=2,b=2+验证cube-free→n=2
+- stats类型约束持续生效（连续105批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4041：齐次性+GCD+周期7+相位偏移→a=1，key_insight准确（原解答周期3错误已被subagent发现并修正为周期7）
+- omni_math #4044：相邻差分不变量+有界性+均匀分配→n=960，key_insight准确
+- omni_math #4047：固定n策略+因式分解+cube-free验证→n=2，key_insight准确
