@@ -3544,3 +3544,30 @@
 - omni_math #4341：素数模排列+floor求和→n+1素数，key_insight准确
 - omni_math #4352：2D→3D自由度松弛+反例构造→No，key_insight准确
 - omni_math #4356：不变量+因式分解+矛盾→No，key_insight准确（原解答模糊已重构）
+
+### 第69a批（seq 451-453）— 2025-01-24
+
+**批次范围**：global_sequence 451~453（AoPS omni_math #4361 + #4368 + #4371）
+**累计完成**：446/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO平面几何+IMO Shortlist组合+IMO Shortlist平面几何，difficulty 9.0。三题原解答均有问题：004361正1975边形方法不正确（subagent用Pythagorean参数化重构），004368 hand-wavy无构造（subagent计算搜索构造），004371含事实错误BD=DC（subagent注明）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 451 | omni_math_004361 | ✅合格 | 无 | ✅已落盘 |
+| 452 | omni_math_004368 | ✅合格 | 无 | ✅已落盘 |
+| 453 | omni_math_004371 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4361：IMO平面几何→圆上1975点弦距离全有理+Pythagorean参数化(1+t²=q²)+完全平方数乘法封闭性使pairwise自动有理→yes（原正1975边形方法不正确已重构）
+- omni_math #4368：IMO SL组合→20歌手恰好2010个满足愿望顺序+偏序集线性扩展计数+10元素偏序集恰好2010扩展+链padding→yes（原hand-wavy已计算构造）
+- omni_math #4371：IMO SL平面几何→△AID和△I_AEF外接圆相切+A,I,I_A共线于角平分线+角追逐+圆幂定理→相切（原解答含事实错误BD=DC已注明）
+- stats类型约束持续生效（连续128批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4361：Pythagorean参数化+完全平方数封闭性→yes，key_insight准确（原正多边形方法不正确已重构）
+- omni_math #4368：偏序集线性扩展+计算构造+链padding→yes，key_insight准确（原hand-wavy已重构）
+- omni_math #4371：共线性+角追逐+圆幂定理→相切，key_insight准确（原解答事实错误已注明）
