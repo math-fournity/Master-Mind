@@ -665,6 +665,20 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 
 **批次完成条件**：批次中10道题全部审计完成（合格或已修正）后，才能发起下一批。
 
+**重做机制**：
+- **重做上一批**：如果审计中发现上一批有系统性问题（如多个profile的QA序列都犯了同类错误、拓扑标注整体方向偏了等），可以重新运行上一批——将该批题目的progress状态改回`pending`，重新派发subagent，并在prompt中给出修正提示
+- **从头重新运行**：如果审计中发现的问题严重到需要从头开始（如Schema设计根本不对、checklist有系统性缺陷导致所有已完成的profile都需要重做等），记录当前进度到`subagents-dirs/review-log.md`：
+  - 记录"重做前最后完成的global_sequence"——每条`problem_extraction_progress`记录有`global_sequence`字段（按difficulty_tier ASC, problem_id ASC排序的全局顺序编号，1~67838），Tier 1范围是2~453
+  - 记录重做原因
+  - 记录哪些已完成profile需要重做、哪些可以保留
+  - 然后将需要重做的题目的progress状态改回`pending`，从第一批重新开始
+
+**进度记录**：每批完成后，在`subagents-dirs/review-log.md`中记录：
+- 当前批次号
+- 本批的global_sequence范围（如"第3批：seq 22~31"）
+- 累计完成数 / Tier 1总数（如"13/452"）
+- 审计结果摘要（几个合格、几个小问题、几个大问题）
+
 #### 检查点2：每2批（约20道题）完成后——批量审查（必须执行）
 
 每完成2批（约20道题，累计入库），Master Agent必须做一次更深的跨profile审查：
