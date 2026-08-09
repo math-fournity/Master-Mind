@@ -1849,3 +1849,30 @@
 - FATE-X 350：r≠p,q迫使Z/pZ和Z/qZ因子来自H+Zassenhaus引理+合成列与H相交+非平凡因子保持原序+i<j得q在p前，key_insight准确
 - FATE-X 351：Reynolds算子使R^G成为R作为R^G-模的直和分量+CM模的直和分量是CM+CM在有限扩张下传递，key_insight准确
 - FATE-X 352：colon ideal J在商环A=R/(x₁,...,x_c)中变为零化子Ann_A(ȳ)+Gorenstein环中linkage理论知A/Ann(ȳ)是Gorenstein，key_insight准确
+
+### 第37b批（seq 262-264）— 2025-01-24
+
+**批次范围**：global_sequence 262~264（FATE-X 356 ~ FATE-X 358）
+**累计完成**：263/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：FATE-X hard_batch_1，CM模多项式延拓/UFD→Gorenstein/正则局部环height
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 262 | fate_000356 | ✅合格 | 无 | ✅已落盘 |
+| 263 | fate_000357 | ✅合格 | 无 | ✅已落盘 |
+| 264 | fate_000358 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 356：Noetherian环R+CM模M→M⊗R R[x₁,...,xₙ]是CM，多项式变量构成正则序列+depth和dim同时增加n
+- FATE-X 357：局部CM环A（正则局部环的商）+UFD→Gorenstein，canonical module桥梁+UFD→rank 1 reflexive模自由
+- FATE-X 358：正则局部环B+理想I+B/I Gorenstein但非完全交→height≠0,1，Auslander-Buchsbaum定理+整域排除height 0+UFD排除height 1
+- stats类型约束持续生效（连续65批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 356：多项式变量x₁,...,xₙ构成正则序列+使depth和dimension同时增加n+depth=dim等式保持不变，key_insight准确
+- FATE-X 357：UFD→每个rank 1 reflexive模自由+canonical module是rank 1 reflexive+canonical module自由→Gorenstein，key_insight准确
+- FATE-X 358：正则局部环既是整域（排除height 0）又是UFD（Auslander-Buchsbaum定理，排除height 1）+故height≥2，key_insight准确
