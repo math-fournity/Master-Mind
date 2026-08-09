@@ -566,3 +566,29 @@
 - USA 1995 P5：存在性→全局求和+双重计数+Cauchy-Schwarz+握手定理→个体存在性，key_insight准确
 - USA 1996 P6：负四进制表示+数字拆分lowBit+2·highBit+a+2b=n对应数字拆分+X=base -4二进制集合，key_insight准确
 - USA 1997 P5：a³+b³≥a²b+ab²放缩+分母变为ab(a+b+c)+循环求和+(a+b+c)约掉，key_insight准确
+
+### 第13b批（seq 118-120）— 2025-01-24
+
+**批次范围**：global_sequence 118~120（USA 1997 P6 ~ USA 1999 P5）
+**累计完成**：119/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 118 | compfiles_usa1997p6 | ✅合格 | 无 | ✅已落盘 |
+| 119 | compfiles_usa1998p5 | ✅合格 | 无 | ✅已落盘 |
+| 120 | compfiles_usa1999p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1997 P6用交叉不等式+强归纳+取最大比值a_p/p作为x，characterization类型
+- USA 1998 P5引入新ai_method_type值"direct_construction"——合理扩展，与direct_calculation/direct_manipulation同级
+- USA 1999 P5有3个全局pair（1 path_feature+2 implicit），Y2K游戏的陷阱模式+奇偶论证精巧
+- stats类型约束持续生效（连续17批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1997 P6：交叉不等式n·aₘ+1≤m·aₙ+m+强归纳+取最大比值a_p/p+floor条件，key_insight准确
+- USA 1998 P5：归纳构造+L=pairwise差平方积+平移S_{n+1}={L+a}∪{0}+(L+a)(L+b)分解，key_insight准确
+- USA 1999 P5：S_ _S陷阱+成对losing squares+偶数性+奇偶论证+safe move存在+两阶段策略，key_insight准确
