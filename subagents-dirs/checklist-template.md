@@ -195,7 +195,7 @@
 - `hint`: 全局hint
 - `hint_level`: float（0-1）
 - `generalizability`: "high/medium/low + 泛化描述"
-- `why_not_visible_locally`: 蕴含型专用——为什么在局部不可见
+- `why_not_visible_locally`: **必填字段，不能为None**。path_feature型和implicit型都要填。path_feature型填"完整路径特征为什么在局部视角看不到"；implicit型填"这个蕴含信息为什么在局部步骤中不可见"
 - `tell_topology`: object（**⚠️ 每个全局pair也要有**）
 - `tell_small_concepts`: array[string]（**⚠️ 每个全局pair也要有**）
 
@@ -231,7 +231,7 @@
 - [ ] domain
 - [ ] subfield
 - [ ] answer_type
-- [ ] answer
+- [ ] answer（**⚠️ 必填，不能为None**。proof类型填要证明的结论，如"sum >= ..."；existence_construction类型填构造的存在性结论；numerical类型填数值答案）
 - [ ] problem_type
 - [ ] solution_method_type
 - [ ] structure_features

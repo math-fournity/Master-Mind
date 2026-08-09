@@ -3,3 +3,33 @@
 > 每次审查（检查点1/2/3）的结果记录在此。详见AGENTS.md中的§Master Agent审查SOP。
 
 ## 审查记录
+
+### 第1批（seq 15-24）— 2025-01-24
+
+**批次范围**：global_sequence 15~24（IMO 1973 P6 ~ IMO 1978 P5）
+**累计完成**：23/452（Tier 1）
+
+| seq | problem_id | 审计结果 | 修复内容 |
+|---|---|---|---|
+| 15 | compfiles_imo1973p6 | ✅合格 | path_feature缺why_not |
+| 16 | compfiles_imo1974p5 | ✅合格 | path_feature缺why_not + R7 gap_type标注错误 |
+| 17 | compfiles_imo1974p6 | ✅合格 | path_feature缺why_not |
+| 18 | compfiles_imo1975p5 | ✅合格 | path_feature缺why_not |
+| 19 | compfiles_imo1975p6 | ✅合格 | path_feature缺why_not |
+| 20 | compfiles_imo1976p5 | ✅合格 | path_feature缺why_not |
+| 21 | compfiles_imo1976p6 | ✅合格 | 2个path_feature缺why_not |
+| 22 | compfiles_imo1977p5 | ✅合格 | path_feature缺why_not |
+| 23 | compfiles_imo1977p6 | ✅合格 | path_feature缺why_not |
+| 24 | compfiles_imo1978p5 | ✅合格 | answer=None |
+
+**审计结果摘要**：10个全部合格，0个大问题，共修复12个小问题。
+
+**系统性问题发现**：
+1. **path_feature型global pair的why_not_visible_locally反复为None**（10个中9个都有此问题）——checklist-template.md中对path_feature型global pair的why_not_visible_locally约束不够强。需要在checklist-template.md中强化：path_feature型global pair的why_not_visible_locally是必填字段，不能为None。
+2. **answer字段偶尔为None**（1978p5）——proof类型题目的answer字段也应该有值（描述要证明的结论）。
+
+**数学内容审查结论**：10个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。bare_ai_error_prediction具体且有针对性。per-pair拓扑有区分度（5-7种不同组合）。
+
+**流程改进待办**：
+- [ ] 在checklist-template.md中强化path_feature型global pair的why_not_visible_locally必填约束
+- [ ] 在checklist-template.md中强化answer字段必填（即使是proof类型）
