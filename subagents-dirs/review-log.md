@@ -410,3 +410,29 @@
 - USA 1973 P5：立方运算产生∛(pqr)交叉项+素因子分解mod 3矛盾，key_insight准确
 - USA 1975 P5：反射对称性+mid(S)→n+1-mid(S)+双射平均值=中点，key_insight准确
 - USA 1976 P5：辅助多项式f(t)+本原5次单位根求值+3个根迫使f≡0，key_insight准确
+
+### 第10b批（seq 100-102）— 2025-01-24
+
+**批次范围**：global_sequence 100~102（USA 1977 P5 ~ USA 1979 P5）
+**累计完成**：101/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 100 | compfiles_usa1977p5 | ✅合格 | 无 | ✅已落盘 |
+| 101 | compfiles_usa1978p5 | ✅合格 | 无 | ✅已落盘 |
+| 102 | compfiles_usa1979p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1977 P5引入新problem_type值"inequality_proof"——合理扩展，不等式证明确实是独立问题类型
+- USA 1979 P5有8个local pairs和3个global pairs（强归纳+两种case步骤多）
+- USA 1979 P5的知识瓶颈R6是共现锁定论证——需同时应用第三元素引理到三对集合
+- stats类型约束持续生效（连续11批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1977 P5：凸性端点归约+归纳+2^5角点+对称性压缩+逐一验证，key_insight准确
+- USA 1978 P5：反证法+鸽巢（每人最多与3人共享）+计数找3人两两不共享+矛盾，key_insight准确
+- USA 1979 P5：反证法+强归纳+Case 1共现锁定+Case 2有界度数双计数，key_insight准确
