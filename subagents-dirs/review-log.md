@@ -1822,3 +1822,30 @@
 - FATE-X 347：f^n≠id结合A是整环推出不动点理想J_n非零+使每个不动点集是真闭子集+数域上可数个真闭子集不能覆盖所有极大理想，key_insight准确
 - FATE-X 348：自同构群是多项式环在有限型C-整环中的完备不变量+通过提取几何不变量恢复代数结构+n=1时Aut_C(C[x])=C*⋉C模板，key_insight准确
 - FATE-X 349：infinite local rank启用Eilenberg swindle P≅P⊕F+结合P⊕Q=F和迭代得P≅F^(ℵ₀)是自由模，key_insight准确
+
+### 第37a批（seq 259-261）— 2025-01-24
+
+**批次范围**：global_sequence 259~261（FATE-X 350 ~ FATE-X 352）
+**累计完成**：260/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：进入fate_hard_batch_1.json，题目来源结构变化（用original_id_in_source匹配id字段）。Galois理论/正则序列/Cohen-Macaulay/Gorenstein
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 259 | fate_000350 | ✅合格 | 无 | ✅已落盘 |
+| 260 | fate_000351 | ✅合格 | 无 | ✅已落盘 |
+| 261 | fate_000352 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 350：三个素数p,q,r+|G/H|=r^t+合成列因子顺序可交换，Zassenhaus引理+合成列与H相交
+- FATE-X 351：有限群G作用+char 0+R是CM→R^G是CM，Boutot/Hochster-Eagon定理+Reynolds算子+直和分量
+- FATE-X 352：正则局部环R+正则序列+colon ideal J→R/J是Gorenstein，两步结构归约+linkage理论
+- stats类型约束持续生效（连续64批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 350：r≠p,q迫使Z/pZ和Z/qZ因子来自H+Zassenhaus引理+合成列与H相交+非平凡因子保持原序+i<j得q在p前，key_insight准确
+- FATE-X 351：Reynolds算子使R^G成为R作为R^G-模的直和分量+CM模的直和分量是CM+CM在有限扩张下传递，key_insight准确
+- FATE-X 352：colon ideal J在商环A=R/(x₁,...,x_c)中变为零化子Ann_A(ȳ)+Gorenstein环中linkage理论知A/Ann(ȳ)是Gorenstein，key_insight准确
