@@ -57,3 +57,25 @@
 **checklist强化效果**：第1批审计后强化的两个约束（path_feature的why_not_visible_locally必填、answer字段必填）在第2批中完全生效——10个profile全部0问题。相比第1批的12个小问题，改善显著。
 
 **数学内容审查结论**：10个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。answer字段全部正确。per-pair拓扑有区分度（4-7种不同组合）。
+
+### 第3批（seq 35-44）— 2025-01-24
+
+**批次范围**：global_sequence 35~44（IMO 1987 P6 ~ IMO 1993 P5）
+**累计完成**：43/452（Tier 1）
+
+| seq | problem_id | 审计结果 | 修复内容 |
+|---|---|---|---|
+| 35 | compfiles_imo1987p6 | ✅合格 | 无 |
+| 36 | compfiles_imo1988p6 | ✅合格 | 无 |
+| 37 | compfiles_imo1989p5 | ✅合格 | 无 |
+| 38 | compfiles_imo1989p6 | ✅合格 | 无 |
+| 39 | compfiles_imo1990p5 | ✅合格 | 无 |
+| 40 | compfiles_imo1991p5 | ✅合格 | 无 |
+| 41 | compfiles_imo1991p6 | ✅合格 | 无 |
+| 42 | compfiles_imo1992p5 | ✅合格 | 无 |
+| 43 | compfiles_imo1992p6 | ✅合格 | 无 |
+| 44 | compfiles_imo1993p5 | ✅合格 | 无 |
+
+**审计结果摘要**：10个全部合格，0个大问题，0个小问题。
+
+**数学内容审查结论**：10个profile的数学内容全部准确——key_insight、solution_method_type、QA序列逻辑、知识瓶颈标注都与Lean解答一致。answer字段全部正确。per-pair拓扑有区分度（5-7种不同组合）。包含IMO 1988 P6（Vieta jumping名题）和IMO 1990 P5（博弈分类）等经典难题，分析质量高。
