@@ -2250,3 +2250,30 @@
 - omni_math #186：比值恒等式x_n/x_{n-1}=2(2n-1)/n将中心二项式系数乘积转化为有理函数乘积+503=2×252-1连接素因子到索引+参数族望远镜消去，key_insight准确
 - omni_math #253：P(Q(x))-Q(P(x))的次数奇偶性是主变量+奇次必有实根（不可能）+偶次可构造恒正/恒负（可能），key_insight准确
 - omni_math #281：代入x=f(y)提取常数c=f(0)/2+转化为准周期性f(x+T_y)=f(x)-c+多项式增长迫使周期群退化，key_insight准确
+
+### 第45a批（seq 307-309）— 2025-01-24
+
+**批次范围**：global_sequence 307~309（AoPS omni_math #303 + #324 + #358）
+**累计完成**：304/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：来源多样化（中国国家队选拔+IMC+阿里巴巴全球竞赛）。omni_math_000303有8轮（total_rounds=8）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 307 | omni_math_000303 | ✅合格 | 无 | ✅已落盘 |
+| 308 | omni_math_000324 | ✅合格 | 无 | ✅已落盘 |
+| 309 | omni_math_000358 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #303：鸽巢取余数mod c+4n²+4n个值>c+差值符号分类讨论（8轮）
+- omni_math #324：IMC特殊素数概念+密度阈值+有限个+非特殊素数构造n
+- omni_math #358：阿里巴巴PDE+M(t)辅助量+干净ODE+Gronwall+Fourier分解能量估计
+- stats类型约束持续生效（连续80批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #303：在0≤x≤2n, -2n≤y≤0的网格上生成4n²+4n个ax+by值+c≤3n²+4n<4n²+4n用鸽巢原理找到同余重复+差值符号分类讨论提取有界解，key_insight准确
+- omni_math #324：定义特殊素数（以密度ε为阈值区分素数对f(j)的整除行为）+证明只有有限个+非特殊素数足够多以构造g(n)大的n，key_insight准确
+- omni_math #358：直接计算dN/dt被v=0边界项阻塞+切换到M(t)=∫vρ dv得干净ODE dM/dt=u₀+u₁N-M+M≤N关闭Gronwall论证，key_insight准确
