@@ -774,3 +774,29 @@
 - USA 2013 P5：数字计数→模(10^t-1)旋转+乘10^e循环旋转+剥离2,5因子构造D+乘法阶t=ord_D(10)+c=(10^t-1)/D+同余式，key_insight准确
 - USA 2014 P6：网格重构+筛法计数（阈值M=n²/1000）+鸽巢+注入论证+乘积界+数值比较+c=1/65536，key_insight准确
 - USA 2015 P5：设p=ac+bd+模p下ac≡-bd+因式分解(a-d)(a+d)(a²+d²)e⁵≡0+排除e⁵+大小估计+a<c→d<b矛盾，key_insight准确
+
+### 第17b批（seq 142-144）— 2025-01-24
+
+**批次范围**：global_sequence 142~144（USA 2015 P6 ~ USA 2017 P5）
+**累计完成**：143/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 142 | compfiles_usa2015p6 | ✅合格 | 无 | ✅已落盘 |
+| 143 | compfiles_usa2016p6 | ✅合格 | 无 | ✅已落盘 |
+| 144 | compfiles_usa2017p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2015 P6用反证法+解析引理——缺陷序列x(n)=λn-|A_n|+运行平均+相邻缺陷差≥min(λ,1-λ)>0+运行平均最终变负
+- USA 2016 P6有3个全局pair（1 path_feature+2 implicit），双向证明——滑动窗口策略(k<n)+巫师置换不变量(k=n)，答案k<n
+- USA 2017 P5用双向证明——√2是格点最小非零距离+squeeze argument上界+递归奇偶标号下界，答案(0,√2)
+- stats类型约束持续生效（连续25批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2015 P6：缺陷序列x(n)=λn-|A_n|+反证法+运行平均+相邻缺陷差≥min(λ,1-λ)>0+运行平均变负+与非负性矛盾，key_insight准确
+- USA 2016 P6：滑动窗口策略(k<n)+相邻窗口标签集合差+推断2n-k>n个位置+鸽巢找匹配+巫师置换不变量(k=n)，key_insight准确
+- USA 2017 P5：√2是格点最小非零距离+squeeze argument归纳上界(c≥√2不可能)+递归奇偶标号下界(c<√2构造)，key_insight准确
