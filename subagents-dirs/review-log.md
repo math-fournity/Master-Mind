@@ -172,3 +172,26 @@
 - IMO 2006 P5：迭代多项式不动点计数，周期归约k→≤2+整除链，key_insight准确
 - IMO 2007 P5：无穷递降，对t=na取模提取商k=tc-1，key_insight准确
 - IMO 2007 P6：多项式方法+Combinatorial Nullstellensatz，几何→多项式翻译，key_insight准确
+
+### 第6a批（seq 65-69）— 2025-01-24
+
+**批次范围**：global_sequence 65~69（IMO 2008 P5 ~ IMO 2010 P6）
+**累计完成**：68/452（Tier 1）
+**审计方式**：5个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 65 | compfiles_imo2008p5 | ✅合格 | 无 | ✅已落盘 |
+| 66 | compfiles_imo2009p5 | ✅合格 | 无 | ✅已落盘 |
+| 67 | compfiles_imo2009p6 | ✅合格 | 无 | ✅已落盘 |
+| 68 | compfiles_imo2010p5 | ✅合格 | 无 | ✅已落盘 |
+| 69 | compfiles_imo2010p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**数学内容审查结论**：5个profile的数学内容全部准确——
+- IMO 2008 P5：模n归约满射+均匀纤维2^(k-n)，key_insight准确
+- IMO 2009 P5：三角不等式→对合f(f(x))=x→周期性反证法f(0)=0→强归纳，key_insight准确
+- IMO 2009 P6：蝗虫跳跃，强归纳+关键变量x+三种情况+鸽巢论证，key_insight准确
+- IMO 2010 P5：硬币操作，push+swap指数放大+幂塔+递减精确到达，key_insight准确
+- IMO 2010 P6：max-卷积递推，线性化残差+有界+有限值域+最终周期性，key_insight准确
