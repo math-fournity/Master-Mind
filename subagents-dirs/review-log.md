@@ -2815,3 +2815,30 @@
 - omni_math #3955：速率分析9:4+增长压制条件k>4N/9+5N/9=2271380+紧界论证，key_insight准确
 - omni_math #3956：m=0,n=0代入keystone约束f(f(0))=1+迭代上界+构造验证，key_insight准确
 - omni_math #3957：退化薄三角形周长趋近4+可对任意n packing+t=4临界阈值，key_insight准确
+
+### 第55b批（seq 370-372）— 2025-01-24
+
+**批次范围**：global_sequence 370~372（AoPS omni_math #3964 + #3969 + #3973）
+**累计完成**：365/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：Balkan MO SL/IMO SL/IMO题，difficulty 9.0。涵盖代数、群论/数论、代数
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 370 | omni_math_003964 | ✅合格 | 无 | ✅已落盘 |
+| 371 | omni_math_003969 | ✅合格 | 无 | ✅已落盘 |
+| 372 | omni_math_003973 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3964：Balkan MO SL代数→floor函数求和+a_k=k(2^n-1)-(2^k-1)m使分子简化+求和重构m（subagent注意到解答是非正式sketch）
+- omni_math #3969：IMO SL群论/数论→素数整除等价→正整数相等→f(m+n)=f(m)+f(n)→f加性+满射→f(n)=n
+- omni_math #3973：IMO代数→f(n²f(m))=m(f(n))²+完全乘性对合=素数置换+1998=2·3³·37交换2↔3和5↔37→120（subagent正确指出原Lean解答质量差但已还原正确解法）
+- stats类型约束持续生效（连续101批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3964：a_k=k(2^n-1)-(2^k-1)m+分子简化+floor项重构m，key_insight准确
+- omni_math #3969：素数整除等价编码加性方程+满射→f(n)=n，key_insight准确
+- omni_math #3973：完全乘性对合=素数置换+最优交换→120，key_insight准确（原Lean解答质量差已被subagent发现并还原）
