@@ -2869,3 +2869,30 @@
 - omni_math #3982：mod 9排除+立方数性质+2002=10³+10³+1³+1³构造，key_insight准确（原解答mod 9错误已被subagent发现并修正标注）
 - omni_math #3988：准周期性→线性假设→系数比较a=2,b=1007，key_insight准确（原解答代数错误b=2014已被subagent发现并标注）
 - omni_math #3989：f(x)=1/x+AM-GM唯一性验证，key_insight准确
+
+### 第56b批（seq 376-378）— 2025-01-24
+
+**批次范围**：global_sequence 376~378（AoPS omni_math #3993 + #3996 + #4005）
+**累计完成**：371/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO Longlist/IMO SL题，difficulty 9.0。涵盖组合、数论、域论/函数方程。003993第一次subagent静默失败，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 376 | omni_math_003993 | ✅合格 | 无 | ✅已落盘 |
+| 377 | omni_math_003996 | ✅合格 | 无 | ✅已落盘 |
+| 378 | omni_math_004005 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3993：IMO SL组合→正整数集划分为k个子集+additive basis density分析+k=3可行(density 1/3)+k=4不可行(density 1/4)→k=3（subagent发现原解答模3剩余类构造有缺陷但答案正确）
+- omni_math #3996：IMO Longlist数论→M(a)计数+代数变换a+b|ab→b=a²/d-a→M(a)=(τ(a²)-1)/2+a=1680=2⁴×3×5×7处τ(a²)=243→121（subagent发现原解答推导有误但答案正确）
+- omni_math #4005：IMO SL域论/函数方程→f(1+xy)-f(x+y)=f(x)f(y)+(1,0)代入+f(-1)≠0消除→f(0)=-1,f(1)=0→递推→f(x)=x-1
+- stats类型约束持续生效（连续103批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3993：additive basis density分析+k=3/k=4临界边界，key_insight准确（原解答模3剩余类构造缺陷已被subagent发现并标注）
+- omni_math #3996：代数变换→因子计数→(τ(a²)-1)/2→a=1680处121，key_insight准确（原解答推导错误已被subagent发现并修正标注）
+- omni_math #4005：(1,0)代入+f(-1)≠0消除+递推→f(x)=x-1，key_insight准确
