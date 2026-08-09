@@ -1606,3 +1606,30 @@
 - FATE-X 323：结构归约R/J→(R/I)/(0:_{R/I} ȳ)+R/I是Gorenstein（正则局部环商正则序列）+零化子引理保持Gorenstein，key_insight准确
 - FATE-X 324：齐次局部化depth/维数保持+齐次素理想充分性归约+(A_p)_0忠实反映A_p的CM性质，key_insight准确
 - FATE-X 325：height-1素理想是主理想(Kaplansky)+Krull PIT+dim≤2自动catenary+dim=3商去height-1主素理想降维，key_insight准确
+
+### 第33a批（seq 235-237）— 2025-01-24
+
+**批次范围**：global_sequence 235~237（FATE-X 326 ~ FATE-X 328）
+**累计完成**：236/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/理想与模/局部化/Gorenstein
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 235 | fate_000326 | ✅合格 | 无 | ✅已落盘 |
+| 236 | fate_000327 | ✅合格 | 无 | ✅已落盘 |
+| 237 | fate_000328 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 326：Noetherian环素理想P⊂Q+ht Q/P=d>1→无穷多中间素理想，商环约化+素避任引理+Krull主理想定理
+- FATE-X 327：局部CM环+正则局部环商+UFD→Gorenstein，canonical module桥接+Cl(A)=0+ω_A≅A
+- FATE-X 328：正则局部环B+I使B/I是Gorenstein非CI→ht(I)≥2，两步反证法+unmixedness隐藏桥梁
+- stats类型约束持续生效（连续56批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 326：商环约化到A/P+dim(A/P)≥2+素避任引理+Krull主理想定理反证法，key_insight准确
+- FATE-X 327：canonical module桥接（正则环商→ω_A存在→CM→MCM→UFD→Cl(A)=0→ω_A free→ω_A≅A→Gorenstein），key_insight准确
+- FATE-X 328：Gorenstein→CM→unmixed→principal(in UFD)→complete intersection性质链+unmixedness隐藏桥梁+两步反证法，key_insight准确
