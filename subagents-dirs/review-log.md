@@ -618,3 +618,29 @@
 - USA 2000 P5：有向角递推θₖ+θₖ₊₁+τₖ=π+mod 3周期+6步telescoping+θ₀=θ₆+ω₇=ω₁，key_insight准确
 - USA 2000 P6：Dᵢⱼ=σᵢσⱼmin(uᵢwⱼ,uⱼwᵢ)+σᵀMσ二次型+min-kernel PSD+归纳法剥离最小值，key_insight准确
 - USA 2001 P5：成员性→不变性转换+shifty整数子群+闭包导出+gcd条件+素数分析+Bézout得1是shifty+S=ℤ，key_insight准确
+
+### 第14b批（seq 124-126）— 2025-01-24
+
+**批次范围**：global_sequence 124~126（USA 2002 P5 ~ USA 2003 P5）
+**累计完成**：125/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 124 | compfiles_usa2002p5 | ✅合格 | 无 | ✅已落盘 |
+| 125 | compfiles_usa2002p6 | ✅合格 | 无 | ✅已落盘 |
+| 126 | compfiles_usa2003p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2002 P5用(a+b)|ab⟺(a+b)|a²代数变形+基本link+归纳降维t~t-1+hub=3连通
+- USA 2002 P6有3个全局pair（1 path_feature+2 implicit），双技巧分裂——下界"14"界+上界周期5相位偏移
+- USA 2003 P5有8个local pairs（切线技巧需要更多步骤分解），用逐项SOS上界(2a-b-c)²(5a+b+c)≥0
+- stats类型约束持续生效（连续19批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2002 P5：(a+b)|ab⟺(a+b)|a²+t~t(t-1)+scaling+2t~t(t-2)+归纳降维+hub=3连通，key_insight准确
+- USA 2002 P6：下界"14"界（5同向+9交叉）+双重计数+上界周期5相位偏移+3连续行覆盖5个mod5值，key_insight准确
+- USA 2003 P5：切线技巧+逐项上界4a/(a+b+c)+4/3+(2a-b-c)²(5a+b+c)≥0+求和=8，key_insight准确
