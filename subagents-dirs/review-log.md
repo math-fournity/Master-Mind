@@ -2761,3 +2761,30 @@
 - omni_math #3917：可比性约束+乘积结构+因子分解构造，key_insight准确
 - omni_math #3920：特殊值代入+立方和因式分解m³+n³=(m+n)(m²-mn+n²)验证，key_insight准确
 - omni_math #3923：closure保持gcd整除性+k=-2模拟Euclidean约减，key_insight准确
+
+### 第54b批（seq 364-366）— 2025-01-24
+
+**批次范围**：global_sequence 364~366（AoPS omni_math #3926 + #3939 + #3948）
+**累计完成**：359/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/Balkan MO Shortlist题，difficulty 9.0。涵盖代数、环论、函数方程
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 364 | omni_math_003926 | ✅合格 | 无 | ✅已落盘 |
+| 365 | omni_math_003939 | ✅合格 | 无 | ✅已落盘 |
+| 366 | omni_math_003948 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3926：IMO SL代数→数字之和平方迭代+mod 9不变量+2-循环{169,256}+奇偶论证→256（subagent发现原解答mod 9计算错误2^1990≡2应为7，但答案正确，已修正标注）
+- omni_math #3939：IMO SL环论→理想(e1,e2,e3)+商环是S3 coinvariant algebra+top degree 3→n=4
+- omni_math #3948：Balkan MO SL函数方程→常数ansatz f(x)=c+2c=c²+f(0)≠0排除c=0→f(x)=2
+- stats类型约束持续生效（连续99批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3926：mod 9不变量+循环检测+奇偶匹配，key_insight准确（原解答mod 9错误已被subagent发现并修正标注）
+- omni_math #3939：商环Z[x,y,z]/(e1,e2,e3)是S3 coinvariant algebra+top degree 3→n=4，key_insight准确
+- omni_math #3948：常数ansatz+2c=c²+f(0)≠0判别器，key_insight准确

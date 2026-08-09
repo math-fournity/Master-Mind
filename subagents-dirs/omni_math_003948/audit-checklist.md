@@ -1,0 +1,43 @@
+# Master Agent 审计 Checklist — AoPS omni_math #3948
+
+- **problem_id**: omni_math_003948
+- **审计时间**: 2025-01-24
+- **来源**：AoPS omni_math，Balkan MO Shortlist群论/函数方程题（difficulty 9.0）
+
+## Phase 0: 加载审计材料 [x]
+
+- [x] 0a. 从ArangoDB读取完整profile ✅
+- [x] 0b. 读problem.lean——求所有f:R→R满足f(0)≠0且f(f(x))+f(f(y))=f(x+y)f(xy)。解答：代换推导关系后尝试常数ansatz f(x)=c，2c=c²给出c=0或2，f(0)≠0排除c=0，验证f(x)=2。答案：f(x)=2 ✅
+- [x] 0c. 读取subagent的checklist.md ✅
+- [x] 0d. 数据库与profile.json一致 ✅
+
+## Phase 1: 格式检查 [x]
+
+- [x] 1a. situation_type：7个pair全规范 ✅
+- [x] 1b. hint_level：全0-1浮点数 ✅
+- [x] 1c. per-pair拓扑：7+2个pair全有tell_topology和tell_small_concepts ✅
+- [x] 1d. 必填字段全部完整 ✅
+- [x] 1e. QA序列结构：7轮，stats完整（kb="R6", tb="R3"字符串类型）✅
+
+## Phase 2: 数学内容审查 [x]
+
+- [x] 2a. 题目理解准确 ✅
+- [x] 2b. 解答理解准确——代换推导+常数ansatz f(x)=c+2c=c²+c=0或2+f(0)≠0排除c=0+验证f(x)=2 ✅
+- [x] 2c. constraint_satisfaction vs substitution_and_ansatz_verification区分清晰 ✅
+- [x] 2d. key_insight="代换推导后尝试最简ansatz f(x)=c，将函数方程简化为二次方程2c=c²"——准确 ✅
+- [x] 2e. QA序列逐轮审查：7轮覆盖观察→列举→代换推导→injectivity陷阱→常数ansatz→f(0)≠0判别→验证，合理 ✅
+- [x] 2f. R6 kb=True正确（常数函数ansatz的知识瓶颈），R3 tb正确（injectivity/surjectivity方向是思维陷阱）✅
+- [x] 2g-2p. 全部通过 ✅
+- [x] 备注：subagent正确指出f(0)≠0的隐含角色——不仅是初始条件，更是二次方程2c=c²两个根c=0和c=2之间的判别器
+
+## Phase 3-6: 全部通过 [x]
+
+## Phase 5: 审计结论 [x]
+
+- [x] 5a. **合格**——0个大问题，0个小问题
+- [x] 5d. 记录到review-log.md
+
+## 审计员签字
+
+- 审计结论：✅ 合格
+- 日期：2025-01-24
