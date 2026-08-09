@@ -2277,3 +2277,30 @@
 - omni_math #303：在0≤x≤2n, -2n≤y≤0的网格上生成4n²+4n个ax+by值+c≤3n²+4n<4n²+4n用鸽巢原理找到同余重复+差值符号分类讨论提取有界解，key_insight准确
 - omni_math #324：定义特殊素数（以密度ε为阈值区分素数对f(j)的整除行为）+证明只有有限个+非特殊素数足够多以构造g(n)大的n，key_insight准确
 - omni_math #358：直接计算dN/dt被v=0边界项阻塞+切换到M(t)=∫vρ dv得干净ODE dM/dt=u₀+u₁N-M+M≤N关闭Gronwall论证，key_insight准确
+
+### 第45b批（seq 310-312）— 2025-01-24
+
+**批次范围**：global_sequence 310~312（AoPS omni_math #386 + #401 + #3171）
+**累计完成**：307/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：来源多样化（中国国家队选拔+丘成桐竞赛+Putnam）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 310 | omni_math_000386 | ✅合格 | 无 | ✅已落盘 |
+| 311 | omni_math_000401 | ✅合格 | 无 | ✅已落盘 |
+| 312 | omni_math_003171 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #386：生成多项式P(x)=∏(1-x^{p_i})+归纳+Pascal恒等式闭合→C(k,k/2)
+- omni_math #401：Euler定理p=x²+3y²→Q(√-3)范数+二次互反律+PID
+- omni_math #3171：Putnam奇因子A(k)→约束重写+因子对计数+积分表示+arctan级数→π²/16
+- stats类型约束持续生效（连续81批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #386：将|S₁|-|S₂|重构为P(x)=∏(1-x^{p_i})的连续系数和+P=Q(1-x^{p_k})因式分解做归纳+Pascal恒等式在k为偶时精确闭合，key_insight准确
+- omni_math #401：识别x²+3y²是Q(√-3)的范数形式+将p能否表示翻译为p在Q(√-3)中是否有范数为p的元素+由二次互反律和PID共同保证，key_insight准确
+- omni_math #3171：约束d<√(2k)重写为d<2m后A(k)变为因子对计数+交换求和顺序后1/(2n-1)权重与交替调和级数尾部的积分表示结合产生arctan(√x)/√x+最终换元得π²/16，key_insight准确
