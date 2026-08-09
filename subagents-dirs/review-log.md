@@ -3274,3 +3274,30 @@
 - omni_math #4195：接触点二阶导匹配→a_n=2^{n-1}，key_insight准确（原解答不严格已被subagent重构）
 - omni_math #4201：差值加法结构→多项式方程+过约束排除→n∈{2,3,4}，key_insight准确
 - omni_math #4203：递推差分简化+模m分析+反证法→k=m-1，key_insight准确（原解答非必要假设已被subagent简化）
+
+### 第64a批（seq 421-423）— 2025-01-24
+
+**批次范围**：global_sequence 421~423（AoPS omni_math #4208 + #4210 + #4213）
+**累计完成**：416/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist代数题，difficulty 9.0。涵盖抽象代数/函数方程、抽象代数/函数方程、多项式
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 421 | omni_math_004208 | ✅合格 | 无 | ✅已落盘 |
+| 422 | omni_math_004210 | ✅合格 | 无 | ✅已落盘 |
+| 423 | omni_math_004213 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4208：IMO SL抽象代数→f:Z→Z满足n²+4f(n)=f(f(n))²+因式分解(f(f(n))-n)(f(f(n))+n)=4f(n)+不同因子分配→三类分段解族
+- omni_math #4210：IMO SL抽象代数→f(x²+y²+2f(xy))=(f(x+y))²+标准解f=x,f=0+二元值函数族f∈{±1}+X⊂(-∞,-2/3)约束
+- omni_math #4213：IMO SL多项式→(x²+ax+b)·P(x)系数全±1+常数项bc₀=±1→b=±1+一次项约束→a有限集→8对
+- stats类型约束持续生效（连续118批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4208：因式分解+因子分配→三类分段解族，key_insight准确
+- omni_math #4210：标准解+二元值函数族+值域分析→f=x,f=0,或f∈{±1}，key_insight准确
+- omni_math #4213：常数项约束→b=±1+一次项传播→8对，key_insight准确
