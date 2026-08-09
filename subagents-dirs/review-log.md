@@ -2170,3 +2170,30 @@
 - omni_math #119：利用z₁+z₂+z₃=0做比值消元得a+b=1+将三元复数问题降为一元约束优化|a²-a+1|²+|a(1-a)|²，key_insight准确
 - omni_math #120：辅助量A_n=1+Σ1/a_i消去部分和+交叉相乘得a_{n+1}²=a_n·a_{n+2}（等比）+b_n不变量b_n·B_n=2n+b₁-1，key_insight准确
 - omni_math #121：约束改写为k的有效区间+区间长度n/((α+1)(α+2))随n线性增长+强归纳+小n反向传播，key_insight准确
+
+### 第43b批（seq 298-300）— 2025-01-24
+
+**批次范围**：global_sequence 298~300（AoPS omni_math #133 + #138 + #139）
+**累计完成**：296/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部AoPS omni_math中国国家队选拔题。omni_math_000139首次空通知，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 298 | omni_math_000133 | ✅合格 | 无 | ✅已落盘 |
+| 299 | omni_math_000138 | ✅合格 | 无 | ✅已落盘 |
+| 300 | omni_math_000139 | ✅合格 | 无（重试1次） | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #133：组合染色+数论构造→判别式几何-数论转化+素数参数化+CRT→Yes
+- omni_math #138：n元正整数组→倍映射双射性⟺奇数+Shannon容量→a₁=k·2^n+1且a₂,...,aₙ为奇数
+- omni_math #139：链乘积格→混合角纤维移除+join-prime/meet-prime+投影降维上界→(n+1)!-(n-1)!
+- stats类型约束持续生效（连续77批0个小问题，第43a批的1个小问题已修复）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #133：直线y=ax+b上xy为整数⟺1+az为完全平方数（判别式转化）+素数乘积参数化+CRT控制整除性，key_insight准确
+- omni_math #138：倍映射x→2x在Z/aⱼZ上是双射当且仅当aⱼ为奇数+连接组合packing条件与数论奇偶约束的桥梁，key_insight准确
+- omni_math #139：混合角纤维——固定两个坐标到相反极端——同时是join-prime和meet-prime+移除后保持子格性质，key_insight准确
