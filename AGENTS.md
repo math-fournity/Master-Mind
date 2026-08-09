@@ -645,7 +645,7 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 审计checklist包含6个Phase：
 - **Phase 0: 加载审计材料**——读profile、读Lean文件亲自理解题目和解答、读subagent的checklist.md和profile.json
 - **Phase 1: 格式检查（最低线）**——situation_type值规范、hint_level格式、per-pair拓扑字段存在性、必填字段完整性、QA序列结构
-- **Phase 2: 数学内容审查（核心审计）**——题目理解准确性、解答理解准确性、solution_method_type vs problem_type区分、key_insight准确性、QA序列逐轮合理性、局部(tell,hint)对质量、全局(tell,hint)对质量、拓扑标注准确性、bare_ai_error_prediction具体性、thinking_patterns和knowledge_required、translation分析
+- **Phase 2: 数学内容审查（核心审计，16项）**——题目理解准确性(2a)、解答理解准确性(2b)、solution_method_type vs problem_type区分(2c)、key_insight准确性(2d)、QA序列逐轮合理性(2e)、局部(tell,hint)对质量(2f)、全局(tell,hint)对质量(2g)、拓扑标注准确性(2h)、bare_ai_error_prediction具体性(2i)、thinking_patterns和knowledge_required(2j)、translation分析(2k)、structure_features和key_objects(2l)、expected_ai_method和correct_method(2m)、bare_ai_expected和实验适用性(2n)、answer和answer_type(2o)、analysis_metadata(2p)
 - **Phase 3: 拓扑分类体系审查**——拓扑值粒度一致性、是否需要新增拓扑值、拓扑进化建议评估
 - **Phase 4: 超大规模前瞻审查**——(tell,hint)对的检索有效性、Schema扩展性、AI数学系统有效性
 - **Phase 5: 审计结论**——总体判断、大问题处理、流程改进、审计记录

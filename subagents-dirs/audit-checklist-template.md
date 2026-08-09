@@ -187,6 +187,41 @@
 - [ ] 这个翻译是否真的是解答中的关键操作？
 - **结论**：✅ 准确 / ❌ 问题描述
 
+### 2l. structure_features和key_objects [ ]
+- [ ] structure_features是否准确描述了题目的结构特征（存在性/唯一性/极值/构造/判定/...）？
+- [ ] structure_features是否和problem_type一致？（如果problem_type是inequality_proof，structure_features应该描述不等式结构）
+- [ ] key_objects是否准确列出了核心数学对象（多项式/序列/群/矩阵/图/点集/...）？
+- [ ] key_objects有没有遗漏重要对象或包含不必要的对象？
+- **结论**：✅ 准确 / ❌ 问题描述
+
+### 2m. expected_ai_method和correct_method [ ]
+- [ ] expected_ai_method是否准确预测了bare AI会用的方法（可能走错的路）？
+- [ ] expected_ai_method是否和tell_topology.ai_method_type一致？（两者应该描述同一个东西的不同粒度）
+- [ ] correct_method是否准确描述了解答实际用的方法？
+- [ ] correct_method是否和solution_method_type一致？（两者应该描述同一个东西的不同粒度）
+- [ ] expected_ai_method和correct_method之间的差异是否清晰？（这个差异就是gap_type要捕捉的）
+- **结论**：✅ 准确 / ❌ 问题描述
+
+### 2n. bare_ai_expected和实验适用性 [ ]
+- [ ] bare_ai_expected的值（pass/fail/marginal）是否合理？
+- [ ] bare_ai_expected的描述是否和bare_ai_error_prediction一致？
+- [ ] suitable_for_poc列出的POC实验是否合理？（这道题真的适合那些实验吗？）
+- [ ] discriminates_levels的值是否合理？（这道题真的能区分AI能力等级吗？）
+- **结论**：✅ 准确 / ❌ 问题描述
+
+### 2o. answer和answer_type [ ]
+- [ ] answer是否正确？（对照Lean解答验证）
+- [ ] answer_type是否合理？（如"proof"/"numerical"/"expression"等）
+- [ ] 如果answer_type是"proof"，answer字段是否合理描述了证明的结论？
+- **结论**：✅ 准确 / ❌ 问题描述
+
+### 2p. analysis_metadata [ ]
+- [ ] analyzed_by是否正确标记（"subagent"或"master"）？
+- [ ] analyzed_at是否有合理的时间戳？
+- [ ] notes字段是否有有价值的内容？（如拓扑进化建议、异常记录等）
+- [ ] 如果notes中有拓扑进化建议，是否在Phase 3中已评估？
+- **结论**：✅ 准确 / ❌ 问题描述
+
 ---
 
 ## Phase 3: 拓扑分类体系审查 [ ]
@@ -264,7 +299,9 @@
 - [ ] 现有的检查项是否有表述不清楚、导致我不确定该怎么检查的？
 - [ ] 如果是，哪个检查项需要改表述：
 - [ ] 现有的检查项是否有冗余的（两个检查项实际上在检查同一件事）？
-- [ ] Phase 2的11项数学内容审查是否覆盖了profile的所有重要内容？有没有遗漏的审查维度？
+- [ ] **字段覆盖完整性固定检查**：Phase 2的16项（2a-2p）是否覆盖了profile的所有顶层字段？逐一对照profile字段列表，确认每个字段都有对应的检查项。如果发现未覆盖的字段，在此列出并补充检查项。
+  - profile字段清单：problem_text, solution_text, solution_summary, problem_type, solution_method_type, structure_features, key_objects, thinking_patterns, primary_pattern, knowledge_required, key_insight, translation_from, translation_to, translation_type, tell_topology, tell_small_concepts, expected_ai_method, correct_method, tell_hint_pairs, global_tell_hint_pairs, bare_ai_expected, bare_ai_error_prediction, suitable_for_poc, discriminates_levels, qa_sequence, answer, answer_type, analysis_metadata, domain, subfield, source_id, source_dataset, schema_version
+  - 未覆盖的字段（如有）：
 - **结论**：✅ checklist完备 / ❌ 需要修改（具体修改建议：...）
 
 ### 6b. 本审计checklist自身的合理性 [ ]
@@ -327,7 +364,7 @@
 **在提交审计结论前，必须确认**：
 - [ ] Phase 0的所有材料已加载
 - [ ] Phase 1的所有格式检查项已check
-- [ ] Phase 2的所有数学内容审查项已check（2a-2k全部完成）
+- [ ] Phase 2的所有数学内容审查项已check（2a-2p全部完成，共16项）
 - [ ] Phase 3的拓扑分类体系审查已check
 - [ ] Phase 4的超大规模前瞻审查已check
 - [ ] Phase 5的审计结论已填写
