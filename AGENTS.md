@@ -642,13 +642,21 @@ subagent汇报后、派发下一道题之前，Master Agent必须对刚完成的
 
 **⚠️ 所有项目必须全部check完，不允许跳过任何一项。** 审计checklist末尾有"审计员签字"确认区，必须确认所有Phase的所有项目都已check完才能提交审计结论。
 
-审计checklist包含5个Phase：
+审计checklist包含6个Phase：
 - **Phase 0: 加载审计材料**——读profile、读Lean文件亲自理解题目和解答、读subagent的checklist.md和profile.json
 - **Phase 1: 格式检查（最低线）**——situation_type值规范、hint_level格式、per-pair拓扑字段存在性、必填字段完整性、QA序列结构
 - **Phase 2: 数学内容审查（核心审计）**——题目理解准确性、解答理解准确性、solution_method_type vs problem_type区分、key_insight准确性、QA序列逐轮合理性、局部(tell,hint)对质量、全局(tell,hint)对质量、拓扑标注准确性、bare_ai_error_prediction具体性、thinking_patterns和knowledge_required、translation分析
 - **Phase 3: 拓扑分类体系审查**——拓扑值粒度一致性、是否需要新增拓扑值、拓扑进化建议评估
 - **Phase 4: 超大规模前瞻审查**——(tell,hint)对的检索有效性、Schema扩展性、AI数学系统有效性
 - **Phase 5: 审计结论**——总体判断、大问题处理、流程改进、审计记录
+- **Phase 6: 元审查——审查审查工具本身是否需要改进**——每次审计都必须执行。审计工具本身的不完备会导致系统性漏审。包含：
+  - 6a. 本审计checklist自身的完备性（是否有缺失的检查项？表述不清楚的检查项？冗余的检查项？）
+  - 6b. 本审计checklist自身的合理性（顺序/Phase划分/粒度/时间成本是否合理？）
+  - 6c. 数据库表设计是否需要改进（缺字段？多余字段？值域不合理？索引不支持审计查询？）
+  - 6d. subagent用的checklist-template.md是否需要改进（步骤说明不够清楚？约束需要强化？拓扑值列表需要更新？）
+  - 6e. AGENTS.md中的SOP是否需要改进（流程环节不合理？步骤需要调整？检查点频率需要调整？拓扑分类体系需要更新？）
+  - 6f. subagent的每一个工作项目是否需要反思其是否需要更新（逐个审视SOP的11个步骤，判断审计结果是否暴露了该步骤本身需要改进）
+  - 6g. 改进落实（6a-6f中标记"需要改进"的项目是否已落实？未落实的记录为待办）
 
 **审查结果处理**：
 - **合格**：继续派发下一道题
