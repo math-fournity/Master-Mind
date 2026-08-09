@@ -2437,3 +2437,30 @@
 **数学内容审查结论**：2个profile的数学内容全部准确——
 - omni_math #3535：按位数分块后sum_d 1/f(d)恰好等于原级数S形成自指不等式S>ln(b)*S+b>=3时ln(b)>1导致矛盾，key_insight准确
 - omni_math #3648：RHS关于y线性这一结构特征暗示f(x)=c/x+倒数函数能使LHS的复合参数简化后也关于y线性，key_insight准确
+
+### 第48b批（seq 328-330）— 2025-01-24
+
+**批次范围**：global_sequence 328~330（AoPS omni_math #3792 + #3793 + #3805）
+**累计完成**：323/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部IMO题。omni_math_003792第二次重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 328 | omni_math_003792 | ✅合格 | 无 | ✅已落盘 |
+| 329 | omni_math_003793 | ✅合格 | 无 | ✅已落盘 |
+| 330 | omni_math_003805 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3792：IMO 2024 P5+Turbo蜗牛棋盘→鸽巢原理+列安全性→约束转化为导航资源→3
+- omni_math #3793：IMO 2013 P5+Colombian配置→扫描线+红蓝计数差+归纳+平衡分割→2013
+- omni_math #3805：IMO 2010 P1+函数方程→y=0代入得主关系f(af(x))=a-f(x)→分情况+满射→3个解
+- stats类型约束持续生效（连续87批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3792：知道怪物在(r,c)意味着c列在所有其他行都安全+将"一列至多一个怪物"从描述性约束转化为操作性资源+3次尝试足以找到安全路径，key_insight准确
+- omni_math #3793：扫描线追踪红蓝计数差从0到r-b=-1+某位置两个子配置仍Colombian+归纳，key_insight准确
+- omni_math #3805：y=0代入得主关系f(af(x))=a-f(x)+编码整个解结构（分情况a=0 vs a≠0、满射性证明、线性形式确定），key_insight准确
