@@ -538,18 +538,28 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 
 **Master Agent 的职责**：
 1. **找下一个给subagent分析的题目**——从ArangoDB `problem_extraction_progress`中查`extraction_status="pending"`的题，优先选最难的，分配给subagent
-2. **让整个分析过程持续进行**——始终保持5个subagent在运行（流水线并发），一个完成立刻补一个，不停下来汇报工作，直到所有可处理的题目都处理完
-3. **管理并发槽位**——监控5个subagent的状态，完成一个立刻派发下一道题
-4. **Schema版本管理**——多个subagent同时发现新维度时合并到Schema文件
-5. **处理异常**——subagent失败时记录原因，将题目状态改回`pending`
-6. **创建ArangoDB集合、写Schema种子文件、建任务追踪子线文档**——这些基础设施工作不委托给subagent
+2. **为每道题准备工作目录**——用`scripts/prepare_subagent_dir.py`在`subagents-dirs/{problem_id}/`下创建工作目录，生成填充好的checklist.md。派发subagent时告诉它工作目录路径
+3. **让整个分析过程持续进行**——始终保持5个subagent在运行（流水线并发），一个完成立刻补一个，不停下来汇报工作，直到所有可处理的题目都处理完
+4. **管理并发槽位**——监控5个subagent的状态，完成一个立刻派发下一道题
+5. **Schema版本管理**——多个subagent同时发现新维度时合并到Schema文件
+6. **处理异常**——subagent失败时记录原因，将题目状态改回`pending`
+7. **创建ArangoDB集合、写Schema种子文件、建任务追踪子线文档**——这些基础设施工作不委托给subagent
 
 **subagent 的职责**：
-1. **每次只被分配一个题目进行分析**——subagent收到Master Agent分配的一道题，完整执行"每道题的完整处理流程"（10步，含QA序列分析）
-2. **不要自行分析更多题目**——subagent处理完分配的这道题后，输出profile JSON，入库，更新进度，然后结束。不要自行从数据库中领取下一道题，不要自行决定分析什么题
-3. **不要做Master Agent的工作**——不管理并发槽位，不更新Schema版本（如发现新维度，在profile中标注，由Master Agent合并到Schema），不建集合，不写任务追踪文档
-4. **任务完成后汇报**——向Master Agent报告这道题的处理结果（profile_doc_id、是否发现新维度、是否遇到异常）
-5. **拓扑进化是subagent的义务**——分析每道题时，subagent必须思考拓扑分类是否需要进化（见SOP第6步）。这不是Master Agent的工作——Master Agent不分析题目，无法发现拓扑分类的问题。只有subagent在分析具体题目的过程中才能发现"现有拓扑分类不够用/粒度不一致/需要新维度"。发现问题时在汇报中明确提出，由Master Agent决定是否合并到Schema
+1. **每次只被分配一个题目进行分析**——subagent收到Master Agent分配的一道题和一个工作目录，完整执行"每道题的完整处理流程"（11步，含QA序列分析）
+2. **一上来全文加载checklist.md**——Master Agent为每道题在`subagents-dirs/{problem_id}/`下创建工作目录，放入填充好的`checklist.md`。subagent的第一步是用read工具全文读取这个checklist.md，然后按步骤执行，每完成一步把`[ ]`改为`[x]`并填写产出
+3. **不要自行分析更多题目**——subagent处理完分配的这道题后，输出profile JSON，入库，更新进度，然后结束。不要自行从数据库中领取下一道题，不要自行决定分析什么题
+4. **不要做Master Agent的工作**——不管理并发槽位，不更新Schema版本（如发现新维度，在profile中标注，由Master Agent合并到Schema），不建集合，不写任务追踪文档
+5. **任务完成后汇报**——向Master Agent报告这道题的处理结果（profile_doc_id、是否发现新维度、是否遇到异常、拓扑分类是否有进化建议）
+6. **拓扑进化是subagent的义务**——分析每道题时，subagent必须思考拓扑分类是否需要进化（见SOP第6步）。这不是Master Agent的工作——Master Agent不分析题目，无法发现拓扑分类的问题。只有subagent在分析具体题目的过程中才能发现"现有拓扑分类不够用/粒度不一致/需要新维度"。发现问题时在汇报中明确提出，由Master Agent决定是否合并到Schema
+
+**subagent工作目录机制**：
+- **总目录**：`subagents-dirs/`
+- **每道题的子目录**：`subagents-dirs/{problem_id}/`——目录名与题目在数据库中的problem_id一致，方便追溯
+- **checklist.md**：Master Agent用`scripts/prepare_subagent_dir.py`从`subagents-dirs/checklist-template.md`模板生成，填充了problem_id、文件路径、来源、ArangoDB progress记录的_key
+- **checklist.md的内容**：对应SOP的11个步骤，每步有完整的步骤说明和严格的要求说明。checklist对任务的说明和规范化程度**只能比AGENTS.md中的subagent执行此次任务相关内容多，不能比其中的内容少**
+- **subagent执行方式**：一上来全文加载checklist.md，每完成一步更新checklist中的checkbox和产出说明，最终profile.json也写入这个工作目录
+- **Master Agent追溯方式**：通过`subagents-dirs/{problem_id}/checklist.md`可以看到subagent每步的完成情况和产出，通过`subagents-dirs/{problem_id}/profile.json`可以看到最终profile
 
 **关键边界**：
 - Master Agent负责"找题、派发、持续运行"，subagent负责"分析单道题"
