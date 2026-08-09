@@ -2977,3 +2977,30 @@
 - omni_math #4049：费马小定理+周期构造+F(F(361))=0简化，key_insight准确
 - omni_math #4068：等距排列+几何级数+阈值1/(n-1)，key_insight准确
 - omni_math #4076：齐次性+Lagrange乘子+非对称构型极值→M=9/(16√2)，key_insight准确
+
+### 第58b批（seq 388-390）— 2025-01-24
+
+**批次范围**：global_sequence 388~390（AoPS omni_math #4099 + #4100 + #4104）
+**累计完成**：383/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist/IMO题，difficulty 9.0。涵盖代数、群论、组合/算法
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 388 | omni_math_004099 | ✅合格 | 无 | ✅已落盘 |
+| 389 | omni_math_004100 | ✅合格 | 无 | ✅已落盘 |
+| 390 | omni_math_004104 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4099：IMO SL代数→10个实数构造三行数+多项式恒等式+交叉项系数匹配+四变量恒等式2(a-b)(c-d)=(a-d)²+(b-c)²-(a-c)²-(b-d)²→q∈{-2,0,2}
+- omni_math #4100：IMO SL群论→f(xy)=f(x)+f(y)完全加性函数+对称条件(iii)排除多素数解→f(x)=a·ν_p(x)
+- omni_math #4104：IMO组合/算法→6盒子硬币操作+奇偶不变量+起始6(偶)+目标2010^2010^2010(偶)→No
+- stats类型约束持续生效（连续107批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4099：多项式恒等式+四变量恒等式验证q∈{-2,0,2}，key_insight准确
+- omni_math #4100：完全加性函数+对称条件排除多素数→f(x)=a·ν_p(x)，key_insight准确
+- omni_math #4104：奇偶不变量+起始偶+目标偶→No，key_insight准确
