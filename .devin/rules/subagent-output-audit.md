@@ -14,6 +14,20 @@ trigger: model_decision
 
 ## 审计流程
 
+### 0. 构建批次todo list（每批次开始时执行一次）
+
+**每批次（3个subagent一组）开始时，Master Agent必须用`todo_write`工具精确构建7步todo list**，步骤名称和顺序固定不变：
+
+1. 领取题目+准备文件（problem.lean + checklist.md）
+2. 并发启动3个subagent
+3. 等待3个subagent完成+逐个格式检查
+4. 读题目+profile关键内容做数学内容审查
+5. 写3个audit-checklist.md
+6. 更新review-log.md
+7. git commit
+
+**详见`.devin/rules/batch-todo-list.md`铁律。** 每完成一步立即更新todo list中对应项的状态。
+
 ### 1. 加载审计模板
 
 每次审计从一张干净的`audit-checklist-template.md`模板开始，填充占位符，生成`subagents-dirs/{problem_id}/audit-checklist.md`。

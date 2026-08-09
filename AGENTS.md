@@ -539,7 +539,7 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 **Master Agent 的职责**：
 1. **找下一个给subagent分析的题目**——从ArangoDB `problem_extraction_progress`中查`extraction_status="pending"`的题，优先选最难的，分配给subagent
 2. **为每道题准备工作目录**——用`scripts/prepare_subagent_dir.py`在`subagents-dirs/{problem_id}/`下创建工作目录，生成填充好的checklist.md。派发subagent时告诉它工作目录路径
-3. **让整个分析过程以批次进行**——每批5个subagent并发，全部完成后Master Agent逐个审计，审计全部完成后再发起下一批。不是流水线补位，是批次制：5个启动→5个完成→5个审计→下一批5个启动
+3. **让整个分析过程以批次进行**——每批3个subagent并发，全部完成后Master Agent逐个审计，审计全部完成后再发起下一批。不是流水线补位，是批次制：3个启动→3个完成→3个审计→下一批3个启动。**⚠️ 每批次必须用`todo_write`工具精确构建7步todo list，步骤名称和顺序固定不变，详见`.devin/rules/batch-todo-list.md`铁律。**
 4. **管理批次**——监控当前批次5个subagent的状态，全部完成后开始逐个审计
 5. **Schema版本管理**——多个subagent同时发现新维度时合并到Schema文件
 6. **处理异常**——subagent失败时记录原因，将题目状态改回`pending`
@@ -636,7 +636,7 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 
 #### 检查点1：每批5道subagent全部完成后——逐个完整审计（必须执行）
 
-**批次制工作节奏**：5个subagent并发启动→全部完成→Master Agent逐个审计（5个审计）→审计全部完成→发起下一批5个。不是流水线补位，是批次制。
+**批次制工作节奏**：3个subagent并发启动→全部完成→Master Agent逐个审计（3个审计）→审计全部完成→发起下一批3个。不是流水线补位，是批次制。**⚠️ 每批次必须用`todo_write`工具精确构建7步todo list（领取题目+准备文件→并发启动→等待完成+格式检查→数学内容审查→写audit-checklist→更新review-log→git commit），步骤名称和顺序固定不变，详见`.devin/rules/batch-todo-list.md`。**
 
 **审计方式**：使用`subagents-dirs/audit-checklist-template.md`模板。每次审计从一张干净的模板开始，填充`{{PROBLEM_ID}}`、`{{SUBAGENT_ID}}`、`{{AUDIT_TIME}}`、`{{FILE_PATH}}`等占位符，生成`subagents-dirs/{problem_id}/audit-checklist.md`。Master Agent全文加载这个audit-checklist.md，逐项检查，每完成一项把`[ ]`改为`[x]`并填写审计结论。
 

@@ -11,6 +11,15 @@
 
 ---
 
+## Phase -1: 批次todo list构建（每批次开始时执行一次） [ ]
+
+> **每批次（3个subagent一组）开始时，Master Agent必须用`todo_write`工具精确构建7步todo list，步骤名称和顺序固定不变。详见`.devin/rules/batch-todo-list.md`铁律。**
+
+- [ ] -1a. 用`todo_write`写入7步todo list（领取题目+准备文件→并发启动→等待完成+格式检查→数学内容审查→写audit-checklist→更新review-log→git commit）
+- [ ] -1b. 每完成一步立即更新todo list中对应项的状态（completed→下一项in_progress）
+
+---
+
 ## Phase 0: 加载审计材料 [ ]
 
 **操作**：加载以下材料，全部读完后再开始逐项审计
@@ -362,6 +371,7 @@
 ## ⚠️ 审计完成确认
 
 **在提交审计结论前，必须确认**：
+- [ ] Phase -1的批次todo list已构建且每步状态已更新
 - [ ] Phase 0的所有材料已加载
 - [ ] Phase 1的所有格式检查项已check
 - [ ] Phase 2的所有数学内容审查项已check（2a-2p全部完成，共16项）
