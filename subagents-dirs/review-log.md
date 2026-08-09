@@ -2063,3 +2063,29 @@
 - omni_math #41：条件分离+CRT让ω(n)=1且ω(n+k)任意大+Dirichlet让Ω(n+k)=1且Ω(n)任意大，key_insight准确
 - omni_math #42：good序列刻画n|a_n²且a_n|n²+计数公式f(α)模3永不为0+2019被3整除故不存在，key_insight准确
 - omni_math #56：模4分析分裂a≥2和a=1+x^n+1因式分解将c奇数转化为整除性(p+3)|2p^b+缩小搜索空间，key_insight准确
+
+### 第41b批（seq 286-288）— 2025-01-24
+
+**批次范围**：global_sequence 286~288（AoPS omni_math #58 + #73 + #80）
+**累计完成**：284/452（Tier 1）（omni_math_000073跳过，待后续重试）
+**审计方式**：2个按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组（2个完成，1个跳过）
+**备注**：全部AoPS omni_math中国国家队选拔题。omni_math_000073因3次subagent空通知跳过待后续排查
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 286 | omni_math_000058 | ✅合格 | 无 | ✅已落盘 |
+| 287 | omni_math_000073 | ⏸跳过 | 3次空通知 | 待后续 |
+| 288 | omni_math_000080 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：2个合格，0个大问题，0个小问题。1个跳过。
+
+**本批特点**：
+- omni_math #58：序列构造+反证法+未出现m必整除窗口乘积+LCM指数增长与固定m矛盾
+- omni_math #73：跳过（100顶点图论+邻域不相交条件，3次空通知）
+- omni_math #80：p-adic分析+最小m=n+v_p(n!)+逐因子平移增量+累积p-adic结构
+- stats类型约束持续生效（连续73批0个小问题）
+
+**数学内容审查结论**：2个profile的数学内容全部准确——
+- omni_math #58：未出现的数m必然整除每个窗口乘积+将存在性问题转化为整除性约束+LCM指数增长与固定m的矛盾收尾，key_insight准确
+- omni_math #80：最小m分解为n+v_p(n!)+n来自逐因子valuation的p-adic平移增量+v_p(n!)来自n个整数的累积p-adic结构，key_insight准确
