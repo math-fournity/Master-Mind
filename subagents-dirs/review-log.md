@@ -1741,3 +1741,30 @@
 - FATE-X 338：Sylow n₇∈{1,8}+n₇=1正规+n₇=8共轭作用G→S₈+AGL(1,7)含奇置换x↦3x是6-圈+符号同态指数2正规子群，key_insight准确
 - FATE-X 339：将子域交问题转化为不变量环问题k[x₁,...,xₙ]^G非有限生成+群作用不动域构造K+Nagata对Hilbert第14问题反例，key_insight准确
 - FATE-X 340：A=k[x,y]/(xy(x+y-1))是三条直线构成三角形的坐标环+粘贴正合序列将Pic(A)归结为(k×)³/(k×)²≅k×，key_insight准确
+
+### 第35b批（seq 250-252）— 2025-01-24
+
+**批次范围**：global_sequence 250~252（FATE-X 341 ~ FATE-X 343）
+**累计完成**：251/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/理想理论/维数序列/Kurosh问题/étale自同态
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 250 | fate_000341 | ✅合格 | 无 | ✅已落盘 |
+| 251 | fate_000342 | ✅合格 | 无 | ✅已落盘 |
+| 252 | fate_000343 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 341：dim A=1的所有可能a_n=dim A[x₁,...,xₙ]序列，Seidenberg上界+赋值环实现+参数k是非Noetherian行为持续变量个数
+- FATE-X 342：存在域k和非交换环A使A在k上整且有限生成但无限维，Golod-Shafarevich nil-代数（Kurosh问题否定解）
+- FATE-X 343：étale自同态迭代零集有限或含等差数列，Skolem-Mahler-Lech定理+线性递推
+- stats类型约束持续生效（连续61批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 341：参数k是非Noetherian行为在多项式扩张中持续的变量个数+前k个变量每个贡献+2（Seidenberg上界）+之后Noetherian化使每个变量只贡献+1，key_insight准确
+- FATE-X 342：非交换性使混合词不可约化+Golod-Shafarevich构造的有限生成nil-代数同时满足整（幂零→整）、有限生成、无限维三个条件，key_insight准确
+- FATE-X 343：φ(f^n(x))的值满足线性递推（étale+有限型→特征多项式→递推）+Skolem-Mahler-Lech定理适用+零集有限或含等差数列，key_insight准确
