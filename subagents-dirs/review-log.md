@@ -251,3 +251,33 @@
 - IMO 2015 P6：juggling物理模型+pool稳定+望远镜求和+AM-GM→1007²，key_insight准确
 - IMO 2016 P5：鸽巢下界+模4分组配对+恒等式保证不等，key_insight准确
 - IMO 2017 P5：着色分组+扫描+鸽巢+归纳，key_insight准确
+
+### 第7b批（seq 80-84）— 2025-01-24
+
+**批次范围**：global_sequence 80~84（IMO 2017 P6 ~ IMO 2020 P6）
+**累计完成**：83/452（Tier 1）
+**审计方式**：5个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发调整**：本批从5个一组改为3个一组（前3个seq 80-82先运行，后2个seq 83-84再运行），避免触发rate limit
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 80 | compfiles_imo2017p6 | ✅合格 | 无 | ✅已落盘 |
+| 81 | compfiles_imo2018p5 | ✅合格 | 无 | ✅已落盘 |
+| 82 | compfiles_imo2019p5 | ✅合格 | 无 | ✅已落盘 |
+| 83 | compfiles_imo2020p5 | ✅合格 | 无 | ✅已落盘 |
+| 84 | compfiles_imo2020p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：5个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- 并发从5个改为3个一组，避免rate limit
+- IMO 2019 P5的bare_ai_expected="marginal"（而非"fail"）——势函数构造形式相对简单，强AI有可能通过尝试找到，这是合理判断
+- IMO 2020 P5使用了多种已有gap_type值（structural_understanding, direction_enumeration等），全部在已有体系中
+- stats类型约束持续生效（连续5批0个小问题）
+
+**数学内容审查结论**：5个profile的数学内容全部准确——
+- IMO 2017 P6：CRT+Euler定理+消没形式修正+齐次多项式构造，key_insight准确
+- IMO 2018 P5：差分+整除关系+p-adic赋值+有界+鸽巢+无闭游走，key_insight准确
+- IMO 2019 P5：势函数meas=2*weightedSum-numHeads²+线性期望，key_insight准确
+- IMO 2020 P5：gcd缩放+互质+素数P整除M+极值b+AM-GM矛盾，key_insight准确
+- IMO 2020 P6：直径D分情况+鸽巢+勾股定理+间距计数，key_insight准确
