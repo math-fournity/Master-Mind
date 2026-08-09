@@ -573,11 +573,207 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 - `suitable_for_poc`：适合哪些POC实验
 - `discriminates_levels`：能否区分高Level hint和低Level hint的效果
 
+### QA序列分析——(tell, hint)对的提取方法
+
+**QA序列是什么**：辅助智能体引导推理智能体解题的完整对话记录。每一轮包含一个Q（辅助智能体发送的提示=hint）和一个A（推理智能体的回复）。QA序列是预演模式的产物——在知道答案的情况下，回溯"什么样的提示序列能引导AI从题目走到解答"。
+
+**为什么必须做QA序列分析**：直接从解答文本中标注思维模式和翻译方向是不够的——你只能看到"解答用了什么方法"，但看不到"AI在什么状态下需要什么提示才能走到下一步"。QA序列分析把解答分解为一连串(状态, 提示)对，每一对就是一个(tell, hint)对。**QA序列分析是从题目+解答中提取(tell, hint)对的唯一正确方法。**
+
+**QA序列中的6种情况类型**（每种Q对应不同Level的hint）：
+
+| 情况类型 | 什么时候出现 | hint Level | 能否用元认知替代 |
+|---|---|---|---|
+| 纯元认知观察 | 序列开始，让AI描述形状 | 1.0（最高） | 本身就是元认知 |
+| 自由列举方向 | 序列早期，让AI发散 | 1.0 | 本身就是元认知 |
+| 思维操作引导 | AI卡在某个操作步骤 | 0.7-0.8 | 可以——给操作方向不给知识 |
+| 量级感知引导 | AI有方程但不知道下一步问什么 | 0.5 | 可以——引导AI关注正确的量 |
+| 知识性提示（必须） | AI遇到纯知识瓶颈 | 0.2（最低） | **不能**——纯知识瓶颈 |
+| 能量传递引导 | AI有中间结果但不知道怎么传递 | 0.6 | 可以——引导传递方向 |
+
+**关键洞察**：QA序列中大部分Q是元认知提示（高Level hint），但有时必须提供知识性提示（低Level hint）。系统必须能区分"该给元认知提示"和"必须给知识"这两种情况。知识性提示的Q是低Level的（Level 0.2），因为它是具体知识点，不是思维操作。
+
+**QA序列分析的具体步骤**：
+
+1. **读题目和解答**——理解题目在问什么，解答的完整路径
+2. **将解答分解为步骤**——解答中的每一步做了什么，用了什么知识/思维模式
+3. **对每一步，重构QA对**：
+   - Q：什么样的提示能引导AI走到这一步？（是元认知提示还是知识性提示？）
+   - A：AI收到Q后会做什么？（预期回复）
+   - 状态（tell）：Q之前AI处于什么状态？（已做了什么，卡在哪里，缺什么）
+4. **标注每轮的情况类型**——这轮Q属于6种情况类型中的哪一种
+5. **标注每轮的Level和非特定性**——Q有多抽象？有多依赖答案知识？
+6. **从QA序列中提取(tell, hint)对**——每轮(Q之前的状态, Q)就是一个(tell, hint)对
+7. **识别知识瓶颈**——哪些步骤是纯知识瓶颈（必须给知识性提示），哪些是思维瓶颈（元认知提示就够）
+
+### 完整示例A：1631题（Mersenne序列最大k）的提取全过程
+
+> 这道题在POC-VMS-8/9/10中验证过，tell和hint都已被实验确认有效。用它作为标准demo。
+
+**题目**：定义Mersenne序列 x₀=1, xₙ₊₁=2^xₙ - 1。求使xₙ为素数的最大k。（简化表述，实际题目更具体）
+
+**解答路径**：x₃=4a+3≡7(mod 8) → 2是模x₃的二次剩余 → Euler准则：2^((x₃-1)/2)≡1(mod x₃) → 但x₃ | 2^x₂ - 1意味着2^x₂≡1(mod x₃) → 矛盾（因为x₂和(x₃-1)/2的奇偶性不匹配）→ k≤2
+
+**第一步：QA序列重构**
+
+| 轮 | Q（hint） | A（预期回复） | 情况类型 | Level | tell（Q之前的状态） |
+|---|---|---|---|---|---|
+| Q1 | "描述这道题的结构形状：结论是什么类型？序列有什么特殊结构？" | 求最大k使xₙ为素数。序列指数增长，xₙ₊₁=2^xₙ-1。需要证明k有上界。 | 纯元认知观察 | 1.0 | 空白——AI还没开始 |
+| Q2 | "列出你能想到的所有可能方向" | 枚举前几项看模式、分析模运算性质、尝试归纳、分析素性条件... | 自由列举方向 | 1.0 | AI描述了题目结构 |
+| Q3 | "试着计算前几项，看看有什么模式" | x₀=1, x₁=1, x₂=3, x₃=7, x₄=63=7×9... x₃=7是素数，x₄不是 | 小尝试 | 0.9 | AI列出了方向 |
+| Q4 | "x₃=7，x₄=63。注意xₙ₊₁=2^xₙ-1。x₃≡? (mod 8)？这个模8的值和2的幂有什么关系？" | x₃=7≡7(mod 8)。2^x₃≡2^7≡0(mod 8)... 不太对。等等，2^xₙ-1，所以x₄=2^7-1=127？不对，让我重新算... | 思维操作引导 | 0.7 | AI算出了前几项但没注意到mod 8结构 |
+| Q5 | "关注x₃≡7(mod 8)。在模x₃的世界里，2是什么角色？想想二次剩余" | 2是模7的二次剩余？检查：1²=1, 2²=4, 3²=2(mod 7)。是的！2≡3²(mod 7)。所以2是模7的二次剩余。 | 思维操作引导 | 0.6 | AI注意到了mod 8但不知道往哪走 |
+| Q6 | "用Euler准则把'2是模x₃的二次剩余'形式化。然后想想x₃ | 2^x₂-1意味着什么" | Euler准则：2^((x₃-1)/2)≡1(mod x₃)。而x₃ | 2^x₂-1意味着2^x₂≡1(mod x₃)。所以需要(x₃-1)/2 | x₂... 但x₂=3, (x₃-1)/2=3，确实整除！ | 思维操作引导 | 0.5 | AI发现了二次剩余但没形式化 |
+| Q7 | "x₂=3, (x₃-1)/2=3。所以2^3≡1(mod x₃)。但Euler准则说2^((x₃-1)/2)≡1。这意味着什么？如果x₄也是素数呢？" | 如果x₄是素数，需要2^((x₄-1)/2)≡1(mod x₄)。但x₄=2^x₃-1，所以(x₄-1)/2=(2^x₃-2)/2=2^x₃/2-1=2^(x₃-1)-1。需要2^(2^(x₃-1)-1)≡1(mod x₄)... 这越来越复杂 | 量级感知引导 | 0.5 | AI形式化了但看不出矛盾 |
+| Q8 | "回到x₃。你证明了2^x₂≡1(mod x₃)且2^((x₃-1)/2)≡1(mod x₃)。x₂=3, (x₃-1)/2=3。如果x₃>7呢？x₃≡7(mod 8)对一般情况成立吗？(x₃-1)/2的奇偶性呢？" | x₃=4a+3≡7(mod 8)对一般情况成立。(x₃-1)/2=(4a+2)/2=2a+1是奇数。而x₂=2^x₁-1... 如果x₁>1，x₂=2^x₁-1是奇数。所以2^x₂≡1(mod x₃)需要ord(2)|x₂，而Euler准则说ord(2)|(x₃-1)/2。x₂和(x₃-1)/2都是奇数... | 知识性提示+量级感知 | 0.3 | AI接近矛盾但需要数论知识 |
+| Q9 | "关键事实：如果p≡±3(mod 8)，则2是模p的二次非剩余。如果p≡±1(mod 8)，则2是模p的二次剩余。x₃≡7≡-1(mod 8)，所以2是模x₃的二次剩余。但x₃ | 2^x₂-1意味着ord_x₃(2)|x₂。Euler准则说ord_x₃(2)|(x₃-1)/2。你能推出矛盾吗？" | x₃≡7(mod 8)→2是二次剩余→Euler准则：2^((x₃-1)/2)≡1。但x₃|2^x₂-1→2^x₂≡1→ord(2)|x₂。所以ord(2)|gcd(x₂, (x₃-1)/2)。x₃=4a+3, (x₃-1)/2=2a+1（奇）。x₂=2^x₁-1（奇）。如果a>1，gcd可能>1... 需要更仔细 | 知识性提示（必须） | 0.2 | AI需要二次剩余判定的具体知识 |
+| Q10 | "整理一下：x₃≡7(mod 8)→2是二次剩余→(x₃-1)/2整除ord... 不对，Euler准则给出的是2^((x₃-1)/2)≡1，意味着ord(2)|(x₃-1)/2。而2^x₂≡1意味着ord(2)|x₂。所以ord(2)|gcd(x₂,(x₃-1)/2)。但x₂=2^x₁-1, (x₃-1)/2=(2^x₂-2)/2=2^(x₂-1)-1。gcd(2^x₁-1, 2^(x₂-1)-1)=2^gcd(x₁,x₂-1)-1。能推出矛盾吗？" | gcd(2^x₁-1, 2^(x₂-1)-1)=2^gcd(x₁,x₂-1)-1。x₁=1→gcd(1,x₂-1)=1→gcd=1→ord(2)=1→2≡1(mod x₃)→x₃|1→x₃=1矛盾！所以k≤2。 | 能量传递引导 | 0.6 | AI有了所有部件但需要组装矛盾 |
+
+**第二步：从QA序列中提取profile**
+
+```json
+{
+  "source_id": "1631",
+  "source_dataset": "olympiadbench",
+  "domain": "number_theory",
+  "subfield": "Number Theory",
+  "answer_type": "Numerical",
+  "answer": "k=2",
+
+  "problem_type": "structural_existence",
+  "structure_features": "存在性上界——证明k有最大值",
+  "key_objects": ["Mersenne序列", "素数", "模运算"],
+
+  "thinking_patterns": ["translation", "contradiction", "case_analysis"],
+  "primary_pattern": "translation",
+  "knowledge_required": ["quadratic_residue", "euler_criterion", "order_of_element", "gcd_identity"],
+  "key_insight": "x₃≡7(mod 8)时2是模x₃的二次剩余，用Euler准则和序列的整除关系推出ord(2)=1的矛盾",
+
+  "translation_from": "Mersenne序列的素性判定",
+  "translation_to": "二次剩余/Euler准则",
+  "translation_type": "穷举→结构",
+
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_problem_mismatch"
+  },
+  "tell_small_concepts": ["mersenne", "primality", "covering_system", "exponential_growth"],
+  "expected_ai_method": "枚举前几项+covering system尝试覆盖所有情况",
+  "correct_method": "二次剩余+Euler准则推出矛盾",
+
+  "tell_hint_pairs": [
+    {
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "enumeration_brute_force", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["mersenne", "primality", "covering_system"],
+      "hint_direction": "T03 二次剩余——x₃≡7(mod 8)→2是二次剩余→Euler准则",
+      "hint_level": 0.6
+    },
+    {
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "enumeration_brute_force", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["quadratic_residue", "euler_criterion"],
+      "hint_direction": "知识注入：p≡±3(mod 8)时2是二次非剩余，p≡±1(mod 8)时2是二次剩余",
+      "hint_level": 0.2
+    }
+  ],
+
+  "bare_ai_expected": "fail",
+  "suitable_for_poc": ["VMS-8-translation", "VMS-9-tell-despecialization"],
+  "discriminates_levels": true,
+
+  "qa_sequence": {
+    "rounds": 10,
+    "metacognitive_rounds": 8,
+    "knowledge_rounds": 1,
+    "level_sum": 6.7,
+    "knowledge_bottleneck": "Q9——二次剩余判定定理（p≡±1(mod 8)↔2是二次剩余）是纯知识瓶颈",
+    "thinking_bottleneck": "Q4-Q5——从枚举转向mod 8结构分析是思维瓶颈，需要'注意x₃≡7(mod 8)'这个方向引导"
+  }
+}
+```
+
+**第三步：这个profile贡献给数据基座什么**
+
+1. **hint字典新增/确认**：T03二次剩余方向已存在，但这道题确认了它在Mersenne序列问题中的具体形式——"x₃≡7(mod 8)→2是二次剩余→Euler准则"
+2. **tell数据基座新增**：tell_topology=(structural_existence, enumeration_brute_force, method_problem_mismatch)——这个拓扑在POC-VMS-9中已验证可被Pipe 0/1识别
+3. **小概念积累**：mersenne/primality/covering_system——这些信号词可用于Pipe 2小概念标记分辨
+4. **(tell, hint)对**：两个对——一个是思维瓶颈（穷举→结构的翻译），一个是知识瓶颈（二次剩余判定定理）
+5. **QA序列分析**：10轮中8轮元认知+1轮知识注入，知识瓶颈在Q9（二次剩余判定定理）
+
+### 完整示例B：矩条件极差题第二问的QA序列分析
+
+> 这道题有完整的10轮QA序列（详见`原语化AI数学工程系统设计/02-案例/01-矩条件极差题第二问.md`），是QA序列分析的canonical example。这里只展示提取结果。
+
+**题目**：已知a₁,...,aₙ满足Σaᵢ=n, Σaᵢ²=2n, Σaᵢ³=3n。证明存在C₂>0使max aᵢ - min aᵢ ≥ √5 + C₂n^(-3/2)。
+
+**QA序列核心特征**：10轮中9轮元认知提示（Q1-Q8, Q10），只有1轮知识性提示（Q9）。但如果没有Q9，整个证明无法完成——badly approximable是纯知识瓶颈。
+
+**关键提取结果**：
+
+```json
+{
+  "problem_type": "extremal",
+  "structure_features": "渐近精细下界——从δ≥0提升到δ≥c/n^(3/2)",
+  "key_objects": ["矩条件", "多项式q(x)=x²+x-1", "偏差eᵢ", "稳定性方程"],
+
+  "thinking_patterns": ["translation", "invariant", "extremal", "energy_transmission"],
+  "primary_pattern": "extremal",
+  "knowledge_required": ["badly_approximable", "cauchy_schwarz", "compactness", "quadratic_irrational"],
+  "key_insight": "p=(5-√5)/10是二次无理数→badly approximable→|D|≥c/n→偏差能量下界→极差下界",
+
+  "translation_from": "矩条件不等式",
+  "translation_to": "badly approximable数论",
+  "translation_type": "分析→数论",
+
+  "tell_topology": {
+    "problem_type": "extremal",
+    "ai_method_type": "direct_computation",
+    "gap_type": "knowledge_gap"
+  },
+  "tell_small_concepts": ["moment_condition", "quadratic_irrational", "badly_approximable", "stability_equation", "energy_transmission"],
+
+  "tell_hint_pairs": [
+    {
+      "tell_topology": {"problem_type": "extremal", "ai_method_type": "direct_computation", "gap_type": "method_problem_mismatch"},
+      "hint_direction": "投影到根+偏差分解——把每个点分解成最近关键点+偏差",
+      "hint_level": 0.7
+    },
+    {
+      "tell_topology": {"problem_type": "extremal", "ai_method_type": "direct_computation", "gap_type": "knowledge_gap"},
+      "hint_direction": "知识注入：二次无理数是badly approximable——|p-k/n|≥c₀/n²",
+      "hint_level": 0.2
+    }
+  ],
+
+  "qa_sequence": {
+    "rounds": 10,
+    "metacognitive_rounds": 9,
+    "knowledge_rounds": 1,
+    "level_sum": 7.8,
+    "knowledge_bottleneck": "Q9——badly approximable性质是纯知识瓶颈，元认知无法替代",
+    "thinking_bottleneck": "Q6——投影到根+偏差分解是思维瓶颈，需要'分解成最近关键点+偏差'这个方向引导"
+  }
+}
+```
+
+**这道题的特殊价值**：它展示了QA序列分析的核心洞察——10轮中9轮是元认知提示（高Level hint），只有1轮是知识性提示（低Level hint）。但如果没有这1轮知识注入，整个证明无法完成。**系统必须能区分思维瓶颈和知识瓶颈**——思维瓶颈给元认知提示（高Level hint），知识瓶颈必须给知识性提示（低Level hint）。
+
 ### 怎么做——2-Pass工作流
 
-**Pass 1（探索性·发现维度）**：分析少量题目→发现新维度/新类别值→追加到Schema。Pass 1的产出是一个不断增长的Schema文件。
+**Pass 1（探索性·发现维度）**：分析少量题目（含QA序列分析）→发现新维度/新类别值→追加到Schema。Pass 1的产出是一个不断增长的Schema文件。
 
-**Pass 2（穷举性·完整标注）**：用Schema final对所有题做穷举标注，每道题输出完整profile JSON，存入ArangoDB。
+**Pass 2（穷举性·完整标注）**：用Schema final对所有题做穷举标注（含QA序列分析），每道题输出完整profile JSON，存入ArangoDB。
+
+**每道题的完整处理流程**（Pass 1和Pass 2都遵循）：
+1. **读题目和解答**
+2. **QA序列分析**——重构"什么提示序列能引导AI从题目走到解答"，分解为(状态, Q)对
+3. **标注问题拓扑层**——从题目结构中提取problem_type/structure_features/key_objects
+4. **标注解答思维模式层**——从QA序列中提取thinking_patterns/primary_pattern/key_insight
+5. **标注翻译方向层**——从QA序列中识别翻译操作，标注translation_from/to/type
+6. **标注tell拓扑层**——从QA序列中提取tell_topology/small_concepts/expected_ai_method
+7. **提取(tell, hint)对**——从QA序列的每轮(状态, Q)中提取
+8. **标注实验适用性层**——判断bare_ai_expected/suitable_for_poc
+9. **输出完整profile JSON**
+10. **Pass 1额外**：检查是否有Schema中没有的新维度/新类别值，如有则追加到Schema
 
 **关键递进关系**：
 ```
@@ -617,8 +813,9 @@ db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" .
 1. **读Schema文件**：`knowledge/problem_banks/extraction_schema.json`——了解当前所有已发现的维度和类别值
 2. **查ArangoDB进度**：`problem_extraction_progress`集合——了解哪些题处理了、当前Schema版本
 3. **读最小认知包**（下方§最小认知包）——恢复tell/hint/概念树的操作认知
-4. **继续处理下一批未处理的题**——按2-Pass工作流执行
-5. **每批处理完**：入库`problem_profiles` + 更新`problem_extraction_progress` + 更新Schema（如有新维度）+ commit
+4. **读QA序列分析方法+完整示例**（上方§QA序列分析和§完整示例A/B）——恢复QA序列分析的操作方法
+5. **继续处理下一批未处理的题**——按"每道题的完整处理流程"执行（含QA序列分析）
+6. **每批处理完**：入库`problem_profiles` + 更新`problem_extraction_progress` + 更新Schema（如有新维度）+ commit
 
 ### 最小认知包——做提取工作所需的最低认知
 
@@ -634,6 +831,8 @@ db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" .
 - 概念树：当概念数量膨胀时，用树状层次结构管理概念关系。同一细分范围的概念放入同一文件，AI按需加载。
 
 **Pipe 0/1/2**：tell识别的三层架构。Pipe 0将thinking拓扑化（提取大概念），Pipe 1用大概念做形式化过滤缩小范围，Pipe 2用小概念做标记分辨精准识别。
+
+**QA序列**：辅助智能体引导推理智能体解题的完整对话记录。每轮一个Q（hint）和一个A（回复）。QA序列分析是从题目+解答中提取(tell, hint)对的唯一正确方法——把解答分解为一连串(状态, 提示)对，每对就是一个(tell, hint)对。QA序列中有6种情况类型，其中5种是元认知提示（高Level hint），1种是知识性提示（低Level hint，必须提供，元认知无法替代）。详见上方§QA序列分析和§完整示例A/B。
 
 **提取质量标准**：
 - problem_type和ai_method_type的标注必须能泛化（不是题目特化的，而是方法类型的）
@@ -671,6 +870,8 @@ db.aql.execute('FOR d IN math_datasets FILTER d.download_status == "completed" .
 - **287号**：tell端的去特化与规模检索（三层Pipe架构+概念树设计哲学）
 - **290号**：第五代系统从前四代继承了什么（29项继承+7项独特贡献）
 - **212号**：数学各门类可下载题海清单（数据集目录和ArangoDB math_datasets集合）
+- **QA序列定义**：`原语化AI数学工程系统设计/00-基础概念/02-QA序列.md`（QA序列的完整定义和6种情况类型）
+- **QA序列canonical案例**：`原语化AI数学工程系统设计/02-案例/01-矩条件极差题第二问.md`（10轮完整QA序列，含每轮的情况类型标注和Level/非特定性值）
 
 ### 任务追踪
 
