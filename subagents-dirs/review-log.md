@@ -3328,3 +3328,30 @@
 - omni_math #4218：short→数论条件+乘法阶+容斥计数→807，key_insight准确
 - omni_math #4221：素数参数化+大素数极限+代数恒等式→f(n)=n，key_insight准确
 - omni_math #4223：质因数约束+完备性排除→{(a,1,n),(1,m,n),(2,3,n),n>1}，key_insight准确
+
+### 第65a批（seq 427-429）— 2025-01-24
+
+**批次范围**：global_sequence 427~429（AoPS omni_math #4225 + #4227 + #4228）
+**累计完成**：422/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组（004227 background静默失败，foreground重试成功）
+**备注**：IMO Longlists组合+IMO组合+IMO Longlists代数。004225原解答缺乏严格证明，004228原Lean解答质量极差（含计算错误），均被subagent发现并重构
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 427 | omni_math_004225 | ✅合格 | 无 | ✅已落盘 |
+| 428 | omni_math_004227 | ✅合格 | 无 | ✅已落盘 |
+| 429 | omni_math_004228 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4225：IMO LL组合→排列i(p)≤c·d(p)+层饼分解d(p)=2Σg(k)建立结构联系→c=1最优（原解答缺乏严格证明）
+- omni_math #4227：IMO组合→Nordic square最小uphill path+蛇形boustrophedon排列单一valley+2n(n-1)+1+下界匹配证明最优
+- omni_math #4228：IMO LL代数→x^n+(2+x)^n+(2-x)^n=0整数根+n=1直接解+偶数n≥2非负无解+奇数n≥3模2递降两步mod 4余2矛盾→n=1（原Lean解答质量极差已完全重构）
+- stats类型约束持续生效（连续120批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4225：层饼分解+结构联系→c=1最优，key_insight准确（原解答不严格已被subagent发现）
+- omni_math #4227：蛇形排列+单一valley+下界匹配→2n(n-1)+1，key_insight准确
+- omni_math #4228：模2递降+mod 4矛盾→n=1，key_insight准确（原解答质量极差已被subagent完全重构）
