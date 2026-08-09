@@ -488,3 +488,29 @@
 - USA 1984 P5：有限差分+单位根编码+二项式定理+奇偶分情况求解n=4，key_insight准确
 - USA 1985 P5：a和b互补关系+指示函数重写+不变量1700，key_insight准确
 - USA 1986 P5：双计数+(划分,特定部分)配对+擦去m双射+∑π(k)，key_insight准确
+
+### 第12a批（seq 109-111）— 2025-01-24
+
+**批次范围**：global_sequence 109~111（USA 1987 P5 ~ USA 1989 P5）
+**累计完成**：110/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 109 | compfiles_usa1987p5 | ✅合格 | 无 | ✅已落盘 |
+| 110 | compfiles_usa1988p5 | ✅合格 | 无 | ✅已落盘 |
+| 111 | compfiles_usa1989p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1987 P5用Vandermonde恒等式C(x+y,2)=C(x,2)+C(y,2)+xy合并三类三元组计数
+- USA 1988 P5的倍增变换p(x)→p(x)p(-x)是非显然的代数构造，bare AI几乎不可能自发发现
+- USA 1989 P5用间接比较V(u)-U(u)=u⁹(10u-9)(u+1)的因子分析
+- stats类型约束持续生效（连续14批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1987 P5：三元组按相邻相等分三类+Vandermonde合并+C(f(i),2)+奇数n最小值交替序列，key_insight准确
+- USA 1988 P5：倍增变换p(x)p(-x)+保持乘积结构+平方线性系数+减半消失范围+4次迭代降维，key_insight准确
+- USA 1989 P5：V(u)-U(u)=u⁹(10u-9)(u+1)+因子10u-9与u<9/10关联+V单调递增+u<v，key_insight准确
