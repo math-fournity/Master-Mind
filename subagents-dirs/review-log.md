@@ -3166,3 +3166,30 @@
 - omni_math #4155：连续整数配对+正交阵列→N=100!/2^50，key_insight准确
 - omni_math #4157：2×2区块分解+鸽巢+邻接约束传播→2种，key_insight准确
 - omni_math #4164：involution识别+f(x)=1/x验证→f(x)=1/x，key_insight准确
+
+### 第62a批（seq 409-411）— 2025-01-24
+
+**批次范围**：global_sequence 409~411（AoPS omni_math #4166 + #4175 + #4176）
+**累计完成**：404/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖几何、代数/函数方程、组合
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 409 | omni_math_004166 | ✅合格 | 无 | ✅已落盘 |
+| 410 | omni_math_004175 | ✅合格 | 无 | ✅已落盘 |
+| 411 | omni_math_004176 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4166：IMO SL几何→R³中集合M使每个平面与M交集有限非空+稀疏点+非共面线构造→yes
+- omni_math #4175：IMO SL代数→f(xy)(f(x)-f(y))=(x-y)f(x)f(y)+f(0)=0+y=1代入→f(x)=f(1)·x线性关系+集合S区分零非零
+- omni_math #4176：IMO SL组合→(n-1)×(n-1)方格染色+每单位正方形恰好2红+XOR分解a[i][j]=r[i]⊕c[j]+交替条件+等价计数→2^{n+1}-2
+- stats类型约束持续生效（连续114批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4166：稀疏点+非共面线构造→yes，key_insight准确
+- omni_math #4175：f(0)=0+y=1代入+集合S→f(x)=f(1)·x或0，key_insight准确
+- omni_math #4176：XOR分解+交替条件+等价计数→2^{n+1}-2，key_insight准确
