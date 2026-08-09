@@ -1179,8 +1179,9 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
       qa_round        : int     (对应QA序列的第几轮)
       tell            : string  (AI在这个位置的状态/分叉信号)
       hint            : string  (给AI的提示方向)
-      hint_level      : float   (0-1，越高越抽象)
-      situation_type  : string  (情况类型：纯元认知观察|自由列举|小尝试|思维操作引导|推进|能量传递引导)
+      hint_level      : float   (**⚠️ 必须是0-1之间的浮点数**，越高越抽象。禁止用1-4整数)
+      situation_type  : string  (**⚠️ 只能取以下6个值之一，禁止自创**：
+                                  纯元认知观察 | 自由列举 | 小尝试 | 思维操作引导 | 推进 | 能量传递引导)
       is_knowledge_bottleneck: boolean  (这轮是否是纯知识瓶颈——必须给知识性提示)
       tell_topology   : object  (v3恢复——每个tell的拓扑标注，Pipe 0/1检索的依据)
         {problem_type, ai_method_type, gap_type}
