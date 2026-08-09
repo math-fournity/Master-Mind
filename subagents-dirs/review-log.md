@@ -3463,3 +3463,30 @@
 - omni_math #4273：整数-小数分解+n=2约束→所有偶整数，key_insight准确
 - omni_math #4275：二进制串重构+前缀和+2的幂次分组→⌊log₂n⌋+1，key_insight准确
 - omni_math #4277：gcd特征化+鸽巢+lcm→k=180180，key_insight准确
+
+### 第67b批（seq 442-444）— 2025-01-24
+
+**批次范围**：global_sequence 442~444（AoPS omni_math #4279 + #4282 + #4287）
+**累计完成**：437/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist抽象代数+多项式+离散数学/逻辑，difficulty 9.0。004287原Lean解答有计算错误（错误声称f(n)=n+1不满足方程，实际满足），答案本身正确，subagent已注明
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 442 | omni_math_004279 | ✅合格 | 无 | ✅已落盘 |
+| 443 | omni_math_004282 | ✅合格 | 无 | ✅已落盘 |
+| 444 | omni_math_004287 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4279：IMO SL抽象代数→f:R+→R+函数方程+猜x^k失败+精炼为x^k+1/x^k+(t+1/t)乘积展开匹配求和结构→f(x)=x^k+1/x^k
+- omni_math #4282：IMO SL多项式→rad(f(n))|rad(f(n^rad(n)))+单项式成立（rad不变性）+非单项式失败（素数幂次替换策略排除）→f(x)=ax^m
+- omni_math #4287：IMO SL离散数学→f(f(f(n)))=f(n+1)+1+线性解f(n)=n+1+模4分段解（三重复合模4传播结构）→两个解（原Lean解答有计算错误但答案正确）
+- stats类型约束持续生效（连续125批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4279：ansatz精炼+乘积展开匹配→f(x)=x^k+1/x^k，key_insight准确
+- omni_math #4282：rad不变性+素数幂次替换排除→f(x)=ax^m，key_insight准确
+- omni_math #4287：线性解+模4分段解→两个解，key_insight准确（原解答计算错误已注明）
