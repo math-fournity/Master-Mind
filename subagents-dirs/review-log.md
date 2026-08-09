@@ -3193,3 +3193,30 @@
 - omni_math #4166：稀疏点+非共面线构造→yes，key_insight准确
 - omni_math #4175：f(0)=0+y=1代入+集合S→f(x)=f(1)·x或0，key_insight准确
 - omni_math #4176：XOR分解+交替条件+等价计数→2^{n+1}-2，key_insight准确
+
+### 第62b批（seq 412-414）— 2025-01-24
+
+**批次范围**：global_sequence 412~414（AoPS omni_math #4181 + #4182 + #4184）
+**累计完成**：407/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖几何、代数/多项式、组合/概率。004181原Answer字段为空（subagent从solution推导答案）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 412 | omni_math_004181 | ✅合格 | 无 | ✅已落盘 |
+| 413 | omni_math_004182 | ✅合格 | 无 | ✅已落盘 |
+| 414 | omni_math_004184 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4181：IMO SL几何→射影几何+调和分割(KT,KN;KS,KD)=-1+调和四边形+Apollonius圆→N是位似中心且NK平分∠BNC（原Answer为空，subagent推导）
+- omni_math #4182：IMO SL代数→魔术师n次多项式trick+维度计数论证（2n方程2n+2未知数→解空间≥2维→P≠Q相同排序多重集）→No
+- omni_math #4184：IMO SL组合/概率→三角格递归泛函方程+随机游走期望命中时间+对称ansatz 3pqr/(p+q+r)+代数验证+最大值原理唯一性→f=3pqr/(p+q+r)
+- stats类型约束持续生效（连续115批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4181：调和分割+Apollonius圆+位似论证→N是位似中心且NK平分∠BNC，key_insight准确
+- omni_math #4182：维度计数论证+解空间≥2维→No，key_insight准确
+- omni_math #4184：随机游走解释+对称ansatz+最大值原理→f=3pqr/(p+q+r)，key_insight准确
