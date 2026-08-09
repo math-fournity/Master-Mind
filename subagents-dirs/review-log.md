@@ -644,3 +644,29 @@
 - USA 2002 P5：(a+b)|ab⟺(a+b)|a²+t~t(t-1)+scaling+2t~t(t-2)+归纳降维+hub=3连通，key_insight准确
 - USA 2002 P6：下界"14"界（5同向+9交叉）+双重计数+上界周期5相位偏移+3连续行覆盖5个mod5值，key_insight准确
 - USA 2003 P5：切线技巧+逐项上界4a/(a+b+c)+4/3+(2a-b-c)²(5a+b+c)≥0+求和=8，key_insight准确
+
+### 第15a批（seq 127-129）— 2025-01-24
+
+**批次范围**：global_sequence 127~129（USA 2003 P6 ~ USA 2005 P6）
+**累计完成**：128/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 127 | compfiles_usa2003p6 | ✅合格 | 无 | ✅已落盘 |
+| 128 | compfiles_usa2004p5 | ✅合格 | 无 | ✅已落盘 |
+| 129 | compfiles_usa2005p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2003 P6有8个local pairs+3个全局pair（2 path_feature+1 implicit），ZMod 2线性化奇偶不变量精巧
+- USA 2004 P5用桥接表达式(a³+2)(b³+2)(c³+2)+Hölder不等式链式传递
+- USA 2005 P6的10^e-1是连接上下界的桥梁——implicit型tell指出R3模9失败中隐含"升级到模10^e-1"的方向信号
+- stats类型约束持续生效（连续20批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2003 P6：ZMod 2线性化|a-b|≡a+b+奇和条件+归约单奇数项+最大值强归纳，key_insight准确
+- USA 2004 P5：桥接表达式(a³+2)(b³+2)(c³+2)+x⁵-x²+3≥x³+2因式分解+三元Hölder+链式传递，key_insight准确
+- USA 2005 P6：10^e-1桥梁+上界互补数字构造+下界鸽巢模10^e-1+倍数数字和≥9e，key_insight准确
