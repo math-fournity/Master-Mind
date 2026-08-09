@@ -696,3 +696,29 @@
 - USA 2006 P5：过滤删除特定跳跃+nu_congr(2-adic赋值平移不变)+剩余路径有效+到达2^i且更短，key_insight准确
 - USA 2007 P5：t^7+1分解+Aurifeuillean差平方分解+7x完全平方（7^d奇→7^d+1偶）+归纳每次+2素因子，key_insight准确
 - USA 2008 P5：系数更新不变量+权重|a₁|+|a₂|+|a₃|严格递减+某系数为零+归约两变量欧几里得，key_insight准确
+
+### 第16a批（seq 133-135）— 2025-01-24
+
+**批次范围**：global_sequence 133~135（USA 2008 P6 ~ USA 2010 P5）
+**累计完成**：134/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 133 | compfiles_usa2008p6 | ✅合格 | 无 | ✅已落盘 |
+| 134 | compfiles_usa2009p6 | ✅合格 | 无 | ✅已落盘 |
+| 135 | compfiles_usa2010p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2008 P6将组合条件翻译为F_2上图Laplacian线性方程——交叉项模2消去（每边计两次2=0）是精巧的图结构性质
+- USA 2009 P6用p-adic赋值分析——归一化+t_i整数+gcd+赋值界v_p(s_i)≥-v_p(d)
+- USA 2010 P5用部分分式分解+对称配对1/(p-i)+1/(p+i)=2p/(p²-i²)提取p因子
+- stats类型约束持续生效（连续22批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2008 P6：F_2编码+图Laplacian Lx=d+解集=ker(L)陪集+2^k+交叉项消去+degree正交ker(L)+L对称→存在性，key_insight准确
+- USA 2009 P6：归一化+t_i整数(p-adic赋值引理)+d=gcd(t_i)+v_p(s_i)≥-v_p(d)赋值界+r=d/w，key_insight准确
+- USA 2010 P5：部分分式2/(k(k+1)(k+2))=1/k-2/(k+1)+1/(k+2)+对称配对+提取p因子+p∤V+整除性传递，key_insight准确
