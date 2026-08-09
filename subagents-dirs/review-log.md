@@ -878,3 +878,29 @@
 - USA 2021 P5：消去奇数下标+偶数递推a_k=1/a_{k-1}+2/a_k+1/a_{k+1}+极值法min-max+方向相反不等式+夹逼min=max+回代c=2,b=1，key_insight准确
 - USA 2022 P5：临界量2^k-1+鸽巢计数支撑模式（下界）+二进制层级构造范围（上界）+2^10-1=1023<2022<2047=2^11-1，key_insight准确
 - USA 2022 P6：clique cover不变量+theta_bound 3|K|≤2e+4+merge算法终止+单一大clique+3n≤2e+4→e≥3031+4-环构造上界1+1010×3=3031，key_insight准确
+
+### 第19b批（seq 154-156）— 2025-01-24
+
+**批次范围**：global_sequence 154~156（USA 2023 P5 ~ USA 2025 P5）
+**累计完成**：155/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 154 | compfiles_usa2023p5 | ✅合格 | 无 | ✅已落盘 |
+| 155 | compfiles_usa2024p6 | ✅合格 | 无 | ✅已落盘 |
+| 156 | compfiles_usa2025p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2023 P5有3个全局pair（2 path_feature+1 implicit），素数n的AP剩余类双射性+合数Trygub反例，答案n为素数
+- USA 2024 P6用指示函数重写+平方和+QM-AM分对角/非对角，答案c=(n+ℓ²-2ℓ)/(n(n-1))
+- USA 2025 P5的implicit型tell指出偶数k条件扮演双重角色（必要性n=2测试+充分性(-1)^(rk)=1消去），答案所有偶数k
+- stats类型约束持续生效（连续29批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2023 P5：素数n AP公差k不被n整除→k在Z/nZ可逆→遍历所有剩余类各一次→双射性使列排列构造可能+合数Trygub反例，key_insight准确
+- USA 2024 P6：指示函数重写|Aᵢ∩Aⱼ|+交换求和顺序+∑_{p,q}v_{p,q}²平方和+对角/非对角QM-AM+ℓ-子集对称构造验证，key_insight准确
+- USA 2025 P5：下降阶乘分裂p|(j+1)和p∤(j+1)+关键同余n.choose(i)≡(-1)^(i-i/p)·(M-1).choose(i/p)+分p块求和S(n)≡p·S(M-1)+强归纳，key_insight准确
