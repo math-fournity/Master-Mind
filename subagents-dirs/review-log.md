@@ -540,3 +540,29 @@
 - USA 1992 P5：中点碰撞+求值复合结构+集合缩减归纳+互素线性因子整除，key_insight准确
 - USA 1993 P5：对数凹性+对称乘积界+AM-GM配对+纯代数推导，key_insight准确
 - USA 1994 P5：Pascal恒等式+|S|阶前向差分+步长乘积π(S)+结构归纳+望远镜求和，key_insight准确
+
+### 第13a批（seq 115-117）— 2025-01-24
+
+**批次范围**：global_sequence 115~117（USA 1995 P5 ~ USA 1997 P5）
+**累计完成**：116/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 115 | compfiles_usa1995p5 | ✅合格 | 无 | ✅已落盘 |
+| 116 | compfiles_usa1996p6 | ✅合格 | 无 | ✅已落盘 |
+| 117 | compfiles_usa1997p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 1995 P5用存在性→全局求和的双重计数+Cauchy-Schwarz+握手定理
+- USA 1996 P6的负四进制（base -4）表示是精巧的构造——数字拆分lowBit+2·highBit自然对应a+2b=n
+- USA 1997 P5只有6个local pairs（放缩+消元步骤较少，5-8范围内合理）
+- stats类型约束持续生效（连续16批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 1995 P5：存在性→全局求和+双重计数+Cauchy-Schwarz+握手定理→个体存在性，key_insight准确
+- USA 1996 P6：负四进制表示+数字拆分lowBit+2·highBit+a+2b=n对应数字拆分+X=base -4二进制集合，key_insight准确
+- USA 1997 P5：a³+b³≥a²b+ab²放缩+分母变为ab(a+b+c)+循环求和+(a+b+c)约掉，key_insight准确
