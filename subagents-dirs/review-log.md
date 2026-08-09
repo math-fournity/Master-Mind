@@ -3436,3 +3436,30 @@
 - omni_math #4263：群论自同构+CRT→素数或n=1，key_insight准确（原解答简略已重构）
 - omni_math #4265：乘法群+加法二进制减半→素数或2^k，key_insight准确
 - omni_math #4270：分块+极值强制+三角阈值→唯一解，key_insight准确
+
+### 第67a批（seq 439-441）— 2025-01-24
+
+**批次范围**：global_sequence 439~441（AoPS omni_math #4273 + #4275 + #4277）
+**累计完成**：434/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO数论+IMO组合+IMO Shortlist组合，difficulty 9.0
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 439 | omni_math_004273 | ✅合格 | 无 | ✅已落盘 |
+| 440 | omni_math_004275 | ✅合格 | 无 | ✅已落盘 |
+| 441 | omni_math_004277 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4273：IMO数论→求所有实数α使Σ⌊kα⌋是n的倍数+整数-小数分解+非零β破坏整除性+n=2约束强制m偶→所有偶整数
+- omni_math #4275：IMO组合→Japanese triangle ninja path最大k+几何路径重构为二进制串+前缀和+2的幂次行分组→⌊log₂n⌋+1
+- omni_math #4277：IMO SL组合→k-clique最小k使>200元素+gcd(Δx,Δy)|2k+鸽巢>d²点迫使d|2k+14²<200≤15²→lcm(1,...,14)|2k→k=180180
+- stats类型约束持续生效（连续124批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4273：整数-小数分解+n=2约束→所有偶整数，key_insight准确
+- omni_math #4275：二进制串重构+前缀和+2的幂次分组→⌊log₂n⌋+1，key_insight准确
+- omni_math #4277：gcd特征化+鸽巢+lcm→k=180180，key_insight准确
