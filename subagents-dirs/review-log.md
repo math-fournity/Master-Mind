@@ -2599,3 +2599,30 @@
 - omni_math #3859：左边f(x-f(y))只通过f(y)依赖y+故image元素的差产生平移不变性f(t+d)=f(t)+d+迫使f为常数或移位，key_insight准确
 - omni_math #3861：固定a+研究商q_b=(a²+bf(a))/(a+f(b))当b→∞+证明它稳定到常数+再用f(b)与a的独立性推出f(a)=ka，key_insight准确
 - omni_math #3864：每个公司的缆车图是顶点不相交有向路径集合（n²-k条路径）+问题归约为证明n²元素的两种n-1部分划分必有公共单元，key_insight准确
+
+### 第51b批（seq 346-348）— 2025-01-24
+
+**批次范围**：global_sequence 346~348（AoPS omni_math #3867 + #3868 + #3869）
+**累计完成**：341/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部函数方程题。omni_math_003867和omni_math_003869的kb=null（无纯知识瓶颈）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 346 | omni_math_003867 | ✅合格 | 无 | ✅已落盘 |
+| 347 | omni_math_003868 | ✅合格 | 无 | ✅已落盘 |
+| 348 | omni_math_003869 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3867：IMO Shortlist函数方程→y=0代入+f(0)=-1<0使max简化为f(x²)+g=f+1转化为g(x²)=g(x)²→f=-1或f=x-1（kb=null）
+- omni_math #3868：IMO函数方程→w=y,x=z对称代换→f(x²)=f(x)²不变量→降维+g(x)=f(x)/x因式分解→f=x或f=1/x
+- omni_math #3869：IMO Shortlist 2013 N1→m=n代入得下界f(n)≥n+pin f(2)=2+m=2得上界f(n)≤n+夹逼→f(n)=n（kb=null）
+- stats类型约束持续生效（连续93批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3867：令y=0时f(0)=-1<0使max简化为f(x²)+得到f(x²)=f(x)(f(x)+2)+再设g=f+1转化为乘性方程g(x²)=g(x)²+max的两个分支恰好对应两个解，key_insight准确
+- omni_math #3868：令w=y,x=z发现f(x)²-f(x²)是不变量（常数0）+从而f(x²)=f(x)²将四变量方程降维为二变量比值方程+再用g(x)=f(x)/x代换因式分解得到逐点解，key_insight准确
+- omni_math #3869：代入m=n+整除不等式得f(n)≥n下界+再pin住f(2)=2后用m=2+一般n得f(n)≤n上界+夹逼得f(n)=n，key_insight准确
