@@ -1228,3 +1228,30 @@
 - FATE-X 281：A→Â忠实平坦+Â整环推出A整环+UFD高度1素理想主刻画+flat going-down+主性忠实平坦下降→A是UFD，key_insight准确
 - FATE-X 282：B是Noetherian环+B作为A-模有限生成→用BM构造证明B是Noetherian A-模+A的理想作为A-子模有限生成→A Noetherian，key_insight准确
 - FATE-X 283：dim≥2→素理想链0⊂p1⊂p2+选b∈p1非零、a∈p2\\p1+valuation dichotomy证明b/a^n∈R+构造f为T²+aT+X的根+bf∈R[[X]]但f∉R[[X]]且f积分→R[[X]]不整闭，key_insight准确
+
+### 第26a批（seq 193-195）— 2025-01-24
+
+**批次范围**：global_sequence 193~195（FATE-X 284 ~ FATE-X 286）
+**累计完成**：194/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：全部FATE-X问题，交换代数/理想与模/行列式超曲面
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 193 | fate_000284 | ✅合格 | 无 | ✅已落盘 |
+| 194 | fate_000285 | ✅合格 | 无 | ✅已落盘 |
+| 195 | fate_000286 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- FATE-X 284：素理想有限生成→环Noetherian，Cohen/Oka定理（Zorn引理取极大非fg理想+证明它是素理想+矛盾）
+- FATE-X 285：Ass Hom_R(M,N) = Supp(M) ∩ Ass(N)，局部化方法（在p处局部化后Hom非零条件）
+- FATE-X 286：C[x_ij]/(det-1)是UFD，局部化x_nn+Schur complement+Nagata下降定理
+- stats类型约束持续生效（连续42批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- FATE-X 284：Cohen/Oka定理——反证法+Zorn引理取极大非fg理想+证明极大非fg理想是素理想（若ab∈Σ但a,b∉Σ则Σ+(a)和Σ+(b)有限生成推出Σ有限生成矛盾）+与素理想fg假设矛盾，key_insight准确
+- FATE-X 285：局部化在p处——Hom_{R_p}(M_p,N_p)≠0 iff M_p≠0且N_p有p-准素元素+Supp(M)={p|ann(M)⊆p}+Ass(N)局部化保持，key_insight准确
+- FATE-X 286：局部化x_nn+Schur complement将det=1化为x_nn·det(M_{n-1})=1+局部化后环≅C[GL_{n-1}坐标环][x_nn,1/x_nn]是UFD+Nagata下降定理推出整体UFD，key_insight准确
