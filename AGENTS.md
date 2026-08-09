@@ -539,8 +539,8 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 **Master Agent 的职责**：
 1. **找下一个给subagent分析的题目**——从ArangoDB `problem_extraction_progress`中查`extraction_status="pending"`的题，优先选最难的，分配给subagent
 2. **为每道题准备工作目录**——用`scripts/prepare_subagent_dir.py`在`subagents-dirs/{problem_id}/`下创建工作目录，生成填充好的checklist.md。派发subagent时告诉它工作目录路径
-3. **让整个分析过程以批次进行**——每批10个subagent并发，全部完成后Master Agent逐个审计，审计全部完成后再发起下一批。不是流水线补位，是批次制：10个启动→10个完成→10个审计→下一批10个启动
-4. **管理批次**——监控当前批次10个subagent的状态，全部完成后开始逐个审计
+3. **让整个分析过程以批次进行**——每批5个subagent并发，全部完成后Master Agent逐个审计，审计全部完成后再发起下一批。不是流水线补位，是批次制：5个启动→5个完成→5个审计→下一批5个启动
+4. **管理批次**——监控当前批次5个subagent的状态，全部完成后开始逐个审计
 5. **Schema版本管理**——多个subagent同时发现新维度时合并到Schema文件
 6. **处理异常**——subagent失败时记录原因，将题目状态改回`pending`
 7. **创建ArangoDB集合、写Schema种子文件、建任务追踪子线文档**——这些基础设施工作不委托给subagent
@@ -634,9 +634,9 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 > - 数据基座的最终用途是支撑AI数学系统的三层Pipe检索。在审计每个profile时，要问自己：**这个(tell,hint)对在AI数学系统运行时真的会被检索到吗？检索到后真的能帮AI找到正确方向吗？** 如果答案是"不确定"或"不会"，这个(tell,hint)对的价值存疑。
 > - 数据基座不是"存了就有用"——它必须能被检索、检索结果必须有效。审计时要从"检索有效性"的角度审视每个(tell,hint)对。
 
-#### 检查点1：每批10道subagent全部完成后——逐个完整审计（必须执行）
+#### 检查点1：每批5道subagent全部完成后——逐个完整审计（必须执行）
 
-**批次制工作节奏**：10个subagent并发启动→全部完成→Master Agent逐个审计（10个审计）→审计全部完成→发起下一批10个。不是流水线补位，是批次制。
+**批次制工作节奏**：5个subagent并发启动→全部完成→Master Agent逐个审计（5个审计）→审计全部完成→发起下一批5个。不是流水线补位，是批次制。
 
 **审计方式**：使用`subagents-dirs/audit-checklist-template.md`模板。每次审计从一张干净的模板开始，填充`{{PROBLEM_ID}}`、`{{SUBAGENT_ID}}`、`{{AUDIT_TIME}}`、`{{FILE_PATH}}`等占位符，生成`subagents-dirs/{problem_id}/audit-checklist.md`。Master Agent全文加载这个audit-checklist.md，逐项检查，每完成一项把`[ ]`改为`[x]`并填写审计结论。
 
@@ -1537,10 +1537,10 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 
 **可以用subagent并发处理题目，但必须遵守以下约束**：
 
-**最大并发数**：10个subagent同时运行（批次制）。
+**最大并发数**：5个subagent同时运行（批次制）。
 
 **批次制工作节奏**：
-- 每批10个subagent并发启动→全部完成→Master Agent逐个审计（10个审计）→审计全部完成→发起下一批10个
+- 每批5个subagent并发启动→全部完成→Master Agent逐个审计（5个审计）→审计全部完成→发起下一批5个
 - 不是流水线补位——不补位，等全批完成
 - 审计是批与批之间的门槛——不审计完不发起下一批
 
@@ -1564,7 +1564,7 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 - 当前要处理的题的`problem_id`
 
 **Master Agent的职责**（不委托给subagent）：
-- 管理并发槽位——每批10个subagent，批次制运行
+- 管理并发槽位——每批5个subagent，批次制运行
 - 监控subagent状态——等全批完成后逐个审计
 - Schema版本管理——多个subagent同时发现新维度时合并到Schema
 - 处理异常——subagent失败时记录原因，将题目状态改回`pending`
