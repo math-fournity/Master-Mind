@@ -3355,3 +3355,30 @@
 - omni_math #4225：层饼分解+结构联系→c=1最优，key_insight准确（原解答不严格已被subagent发现）
 - omni_math #4227：蛇形排列+单一valley+下界匹配→2n(n-1)+1，key_insight准确
 - omni_math #4228：模2递降+mod 4矛盾→n=1，key_insight准确（原解答质量极差已被subagent完全重构）
+
+### 第65b批（seq 430-432）— 2025-01-24
+
+**批次范围**：global_sequence 430~432（AoPS omni_math #4241 + #4242 + #4246）
+**累计完成**：425/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist组合+数论+组合，difficulty 9.0
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 430 | omni_math_004241 | ✅合格 | 无 | ✅已落盘 |
+| 431 | omni_math_004242 | ✅合格 | 无 | ✅已落盘 |
+| 432 | omni_math_004246 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4241：IMO SL组合→(n,k)-tournament+条件(ii)是F_2^t中平行四边形定律+标号n=2^t个玩家为向量+第v轮配对x与x+v→n=2^t, k≤2^t-1
+- omni_math #4242：IMO SL数论→数字旋转+平方+旋转→代数表示b=r·10^(k-1)+(a-r)/10→约束数字结构→22...21, 2, 3
+- omni_math #4246：IMO SL组合→2^m×2^m棋盘矩形剖分最小周长和+递归四叉树分解+S(m)=2S(m-1)+2^{m+2}→2^{m+2}(m+1)
+- stats类型约束持续生效（连续121批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4241：F_2^t平行四边形定律+向量配对→n=2^t, k≤2^t-1，key_insight准确
+- omni_math #4242：数字旋转代数表示+数字结构约束→22...21, 2, 3，key_insight准确
+- omni_math #4246：递归四叉树分解+递推求解→2^{m+2}(m+1)，key_insight准确
