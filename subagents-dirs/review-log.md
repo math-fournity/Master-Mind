@@ -670,3 +670,29 @@
 - USA 2003 P6：ZMod 2线性化|a-b|≡a+b+奇和条件+归约单奇数项+最大值强归纳，key_insight准确
 - USA 2004 P5：桥接表达式(a³+2)(b³+2)(c³+2)+x⁵-x²+3≥x³+2因式分解+三元Hölder+链式传递，key_insight准确
 - USA 2005 P6：10^e-1桥梁+上界互补数字构造+下界鸽巢模10^e-1+倍数数字和≥9e，key_insight准确
+
+### 第15b批（seq 130-132）— 2025-01-24
+
+**批次范围**：global_sequence 130~132（USA 2006 P5 ~ USA 2008 P5）
+**累计完成**：131/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 130 | compfiles_usa2006p5 | ✅合格 | 无 | ✅已落盘 |
+| 131 | compfiles_usa2007p5 | ✅合格 | 无 | ✅已落盘 |
+| 132 | compfiles_usa2008p5 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2006 P5用过滤归纳——2-adic赋值平移不变性nu_congr是关键引理
+- USA 2007 P5的Aurifeuillean型差平方分解精巧——7x=7^(7^d+1)完全平方隐藏在底数7的奇偶性中
+- USA 2008 P5有3个全局pair（2 path_feature+1 implicit），系数更新不变量+权重递减+欧几里得归约
+- stats类型约束持续生效（连续21批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2006 P5：过滤删除特定跳跃+nu_congr(2-adic赋值平移不变)+剩余路径有效+到达2^i且更短，key_insight准确
+- USA 2007 P5：t^7+1分解+Aurifeuillean差平方分解+7x完全平方（7^d奇→7^d+1偶）+归纳每次+2素因子，key_insight准确
+- USA 2008 P5：系数更新不变量+权重|a₁|+|a₂|+|a₃|严格递减+某系数为零+归约两变量欧几里得，key_insight准确
