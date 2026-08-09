@@ -722,3 +722,29 @@
 - USA 2008 P6：F_2编码+图Laplacian Lx=d+解集=ker(L)陪集+2^k+交叉项消去+degree正交ker(L)+L对称→存在性，key_insight准确
 - USA 2009 P6：归一化+t_i整数(p-adic赋值引理)+d=gcd(t_i)+v_p(s_i)≥-v_p(d)赋值界+r=d/w，key_insight准确
 - USA 2010 P5：部分分式2/(k(k+1)(k+2))=1/k-2/(k+1)+1/(k+2)+对称配对+提取p因子+p∤V+整除性传递，key_insight准确
+
+### 第16b批（seq 136-138）— 2025-01-24
+
+**批次范围**：global_sequence 136~138（USA 2010 P6 ~ USA 2012 P6）
+**累计完成**：137/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 136 | compfiles_usa2010p6 | ✅合格 | 无 | ✅已落盘 |
+| 137 | compfiles_usa2011p6 | ✅合格 | 无 | ✅已落盘 |
+| 138 | compfiles_usa2012p6 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- USA 2010 P6有8个local pairs+3个全局pair（2 path_feature+1 implicit），概率方法q=(√5-1)/2+极值构造8值5环，答案43
+- USA 2011 P6的implicit型tell指出45=C(10,2)、9=C(9,1)、165=C(11,3)三个数隐含指向同一组合结构
+- USA 2012 P6用二阶矩方法——Σ_A S_A²=2^(n-2)+互补配对S_{A^c}=-S_A+Markov界
+- stats类型约束持续生效（连续23批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- USA 2010 P6：概率方法q=(√5-1)/2+棋盘条件排除最坏对+68q>42→≥43+极值构造8值5环+5a+28-C(a,2)≤43，key_insight准确
+- USA 2011 P6：元素重数m(a)+双重计数Σm=495+Σm²=1485+Cauchy-Schwarz得|U|≥165+等号构造Fin 11的C(11,3)个3元子集，key_insight准确
+- USA 2012 P6：二阶矩Σ_A S_A²=2^(n-2)+互补配对S_{A^c}=-S_A+正子集求和2^(n-3)+Markov界+等号(1/√2,-1/√2,0,...,0)，key_insight准确
