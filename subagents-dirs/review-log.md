@@ -2707,3 +2707,30 @@
 - omni_math #3900：乘性公式转化+指数结构约束+整除条件耦合确定指数形式p_i^{α_i}-1，key_insight准确
 - omni_math #3902：Ramsey理论覆盖论证+不着色边需覆盖所有6元子集+3条不够，key_insight准确
 - omni_math #3904：代数恒等式是桥梁+线性/三次均给出m³=m，key_insight准确（subagent正确指出完备性缺口）
+
+### 第53b批（seq 358-360）— 2025-01-24
+
+**批次范围**：global_sequence 358~360（AoPS omni_math #3909 + #3910 + #3916）
+**累计完成**：353/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist数论题，difficulty 9.0。三个均为数论题
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 358 | omni_math_003909 | ✅合格 | 无 | ✅已落盘 |
+| 359 | omni_math_003910 | ✅合格 | 无 | ✅已落盘 |
+| 360 | omni_math_003916 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3909：IMO SL数论→n!整除素数对p+q之积+case-by-case验证n=3~7→答案7（subagent发现原解答算术错误120∤280但答案正确，已标注）
+- omni_math #3910：IMO SL数论→f(x)-f(y)|x^n-y^n（n奇）+y=0特殊化降维+单项式形式e·x^a（a|n）+整除性质验证
+- omni_math #3916：IMO SL数论→递归序列a-adic赋值分析+gcd(d,a)=1保证可达任何剩余类+d大小决定赋值上界→⌈log_a d⌉
+- stats类型约束持续生效（连续97批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3909：p-adic赋值比较+增长率论证+case-by-case验证，key_insight准确（原解答算术错误已被subagent发现并标注）
+- omni_math #3910：y=0特殊化降维+单项式形式+整除性质x^a-y^a|x^n-y^n验证，key_insight准确
+- omni_math #3916：a-adic赋值分析+d大小决定赋值上界→⌈log_a d⌉，key_insight准确
