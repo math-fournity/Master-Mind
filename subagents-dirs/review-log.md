@@ -3085,3 +3085,30 @@
 - omni_math #4123：偶数下标Fibonacci数+奇偶配对→ceil(n/2)+1，key_insight准确（原解答构造错误已被subagent发现并修正标注）
 - omni_math #4127：gap计数论证+求和矛盾→n²-n-1，key_insight准确
 - omni_math #4128：等差数列乘积=首一多项式+渐近分析必要性→非减等差正整数序列，key_insight准确
+
+### 第60b批（seq 400-402）— 2025-01-24
+
+**批次范围**：global_sequence 400~402（AoPS omni_math #4133 + #4138 + #4139）
+**累计完成**：395/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题，difficulty 9.0。涵盖数论、数论、代数/函数方程。004133首次静默失败，重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 400 | omni_math_004133 | ✅合格 | 无 | ✅已落盘 |
+| 401 | omni_math_004138 | ✅合格 | 无 | ✅已落盘 |
+| 402 | omni_math_004139 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4133：IMO SL数论→φ(d(n))/d(φ(n))是否有界+Fermat素数构造n=2^a×(Fermat素数之积)→φ(n)为2的幂+d(φ(n))最小化+φ(d(n))指数增长→无界→No（subagent发现原解答依赖Fermat素数无穷多未证猜想，已标注）
+- omni_math #4138：IMO SL数论→整系数多项式P(n)>0且S(P(n))=P(S(n))+常数c∈{1,...,9}和P(x)=x验证+增长率排除高次（S(P(n))=O(log n) vs P(S(n))=O((log n)^d)）
+- omni_math #4139：IMO SL代数→(x+1/x)f(y)=f(xy)+f(y/x)+y=1代入+ansatz f(x)=ax+b/x+验证
+- stats类型约束持续生效（连续111批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4133：Fermat素数构造+φ(n)为2的幂+φ(d(n))指数增长→No，key_insight准确（原解答严格性问题已被subagent发现并标注）
+- omni_math #4138：增长率排除高次+常数和恒等验证→P(x)=c或P(x)=x，key_insight准确
+- omni_math #4139：y=1代入+ansatz猜测+验证→f(x)=ax+b/x，key_insight准确
