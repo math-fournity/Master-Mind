@@ -2464,3 +2464,30 @@
 - omni_math #3792：知道怪物在(r,c)意味着c列在所有其他行都安全+将"一列至多一个怪物"从描述性约束转化为操作性资源+3次尝试足以找到安全路径，key_insight准确
 - omni_math #3793：扫描线追踪红蓝计数差从0到r-b=-1+某位置两个子配置仍Colombian+归纳，key_insight准确
 - omni_math #3805：y=0代入得主关系f(af(x))=a-f(x)+编码整个解结构（分情况a=0 vs a≠0、满射性证明、线性形式确定），key_insight准确
+
+### 第49a批（seq 331-333）— 2025-01-24
+
+**批次范围**：global_sequence 331~333（AoPS omni_math #3816 + #3817 + #3825）
+**累计完成**：326/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO/IMO Shortlist题。omni_math_003816有8轮+3个global pairs。omni_math_003817的kb=null（无纯知识瓶颈）
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 331 | omni_math_003816 | ✅合格 | 无 | ✅已落盘 |
+| 332 | omni_math_003817 | ✅合格 | 无 | ✅已落盘 |
+| 333 | omni_math_003825 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3816：IMO函数方程→x=z代换→平行四边形法则f(y+t)+f(y-t)=2f(y)+2f(t)→二次型特征方程→f(x)=0,1/2,x²（8轮，3个global pairs）
+- omni_math #3817：IMO 2017 P1→mod 3不变性+归纳峰值递减+周期{3,6,9}→3|a_0（kb=null）
+- omni_math #3825：IMO Shortlist→d(x,z)+d(complement(x),z)=n恒等式+Vandermonde→n=2k时2次否则1次
+- stats类型约束持续生效（连续88批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3816：令x=z是关键转折+将四变量方程化简为平行四边形法则f(y+t)+f(y-t)=2f(y)+2f(t)+将问题从"解一个陌生的四变量函数方程"翻译为"识别一个已知的二次型特征方程"，key_insight准确
+- omni_math #3817：mod 3不变性是核心枢纽+3|a_0时序列始终在3的倍数中运行+通过归纳证明峰值递减+最终进入周期{3,6,9}，key_insight准确
+- omni_math #3825：n=2k时串和补串有相同k-邻域因为d(x,z)=k iff d(complement(x),z)=n-k=k+n≠2k时Vandermonde代数条件迫使唯一，key_insight准确
