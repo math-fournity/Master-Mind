@@ -3301,3 +3301,30 @@
 - omni_math #4208：因式分解+因子分配→三类分段解族，key_insight准确
 - omni_math #4210：标准解+二元值函数族+值域分析→f=x,f=0,或f∈{±1}，key_insight准确
 - omni_math #4213：常数项约束→b=±1+一次项传播→8对，key_insight准确
+
+### 第64b批（seq 424-426）— 2025-01-24
+
+**批次范围**：global_sequence 424~426（AoPS omni_math #4218 + #4221 + #4223）
+**累计完成**：419/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist数论题，difficulty 9.0。涵盖同余、素数、整除
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 424 | omni_math_004218 | ✅合格 | 无 | ✅已落盘 |
+| 425 | omni_math_004221 | ✅合格 | 无 | ✅已落盘 |
+| 426 | omni_math_004223 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #4218：IMO SL数论/同余→short有理数+乘法阶+max|S(m)|={1,...,2017}中与10互素的整数个数→807
+- omni_math #4221：IMO SL数论/素数→f:Z+→Z+使(f(a))²+f(b)|(a²+b)²+素数参数化+大素数极限参数+代数恒等式提取(f(n)-n)²→f(n)=n
+- omni_math #4223：IMO SL数论/整除→a^m+1|(a+1)^n+质因数约束+m=1和a=1平凡+a=2,m=3时9|3^n→{(a,1,n),(1,m,n),(2,3,n),n>1}
+- stats类型约束持续生效（连续119批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #4218：short→数论条件+乘法阶+容斥计数→807，key_insight准确
+- omni_math #4221：素数参数化+大素数极限+代数恒等式→f(n)=n，key_insight准确
+- omni_math #4223：质因数约束+完备性排除→{(a,1,n),(1,m,n),(2,3,n),n>1}，key_insight准确
