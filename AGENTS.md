@@ -549,11 +549,13 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 2. **不要自行分析更多题目**——subagent处理完分配的这道题后，输出profile JSON，入库，更新进度，然后结束。不要自行从数据库中领取下一道题，不要自行决定分析什么题
 3. **不要做Master Agent的工作**——不管理并发槽位，不更新Schema版本（如发现新维度，在profile中标注，由Master Agent合并到Schema），不建集合，不写任务追踪文档
 4. **任务完成后汇报**——向Master Agent报告这道题的处理结果（profile_doc_id、是否发现新维度、是否遇到异常）
+5. **拓扑进化是subagent的义务**——分析每道题时，subagent必须思考拓扑分类是否需要进化（见SOP第6步）。这不是Master Agent的工作——Master Agent不分析题目，无法发现拓扑分类的问题。只有subagent在分析具体题目的过程中才能发现"现有拓扑分类不够用/粒度不一致/需要新维度"。发现问题时在汇报中明确提出，由Master Agent决定是否合并到Schema
 
 **关键边界**：
 - Master Agent负责"找题、派发、持续运行"，subagent负责"分析单道题"
 - subagent不自行领取下一道题——这是Master Agent的职责
-- subagent不自行更新Schema——发现新维度在profile中标注，Master Agent统一合并
+- subagent不自行更新Schema——发现新维度或拓扑分类问题在profile中标注并在汇报中提出，Master Agent统一合并
+- **拓扑进化的发现权在subagent，决策权在Master Agent**——subagent在分析中发现拓扑分类的问题，Master Agent收到汇报后决定是否修改Schema
 - Master Agent不停下来汇报工作——海量题目没处理完之前持续派发
 
 ### 为什么要做
@@ -1005,11 +1007,15 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 3. **标注问题拓扑层**——从题目结构中提取problem_type/structure_features/key_objects
 4. **标注解答思维模式层**——从QA序列中提取thinking_patterns/primary_pattern/key_insight
 5. **标注翻译方向层**——从QA序列中识别翻译操作，标注translation_from/to/type
-6. **标注tell拓扑层**——从QA序列中提取tell_topology/small_concepts/expected_ai_method
-7. **提取(tell, hint)对**——从QA序列的每轮(状态, Q)中提取
+6. **标注tell拓扑层 + 反思拓扑分类是否需要进化**——从QA序列中提取tell_topology/small_concepts/expected_ai_method。**这一步不只是机械标注，subagent必须同时思考以下问题**：
+   - **当前拓扑分类是否够用**——这道题的problem_type/ai_method_type/gap_type能否归入已有的拓扑类别？如果不能，是否需要新增类别值？
+   - **粒度是否一致**——已有的拓扑值是否粒度统一？（反例：`structural_existence`很抽象，`word_problem_with_diophantine_constraint`很具体——粒度不一致会导致Pipe 1过滤失效）
+   - **是否需要新的拓扑维度**——三个维度(problem_type, ai_method_type, gap_type)是否足够区分这道题的tell和已有tell？如果两个拓扑相同但实际不同的tell无法用小概念区分，是否需要增加第四个维度？
+   - **如何在汇报中提出**——如果发现拓扑分类需要进化，在汇报中明确说明：发现了什么问题、建议怎么改、影响哪些已有profile
+7. **提取(tell, hint)对**——从QA序列的每轮(状态, Q)中提取。**每个(tell, hint)对必须包含tell_topology和tell_small_concepts**——这是Pipe 0/1/2三层检索架构的依据（见§数据库Schema设计v3）
 8. **标注实验适用性层**——判断bare_ai_expected/suitable_for_poc
 9. **输出完整profile JSON**
-10. **Pass 1额外**：检查是否有Schema中没有的新维度/新类别值，如有则追加到Schema
+10. **Pass 1额外**：检查是否有Schema中没有的新维度/新类别值，如有则追加到Schema。**同时检查拓扑分类是否需要进化**（见第6步的反思）
 
 **关键递进关系**：
 ```
@@ -1252,6 +1258,65 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 - `problem_profiles`上按`solution_method_type`建索引
 - `problem_profiles`上按`thinking_patterns`建数组索引
 - `problem_profiles`上按`tell_small_concepts`建数组索引（用于tell检索）
+
+### 拓扑分类体系（活文档·随分析进化）
+
+> **本节记录tell_topology三个维度的已有类别值和已知问题。subagent分析题目时必须参考本节，确保拓扑标注粒度一致、分类合理。发现问题时在汇报中提出，Master Agent更新本节。**
+
+**当前已有拓扑值**（来自8道已分析题+2道POC题）：
+
+**problem_type**（问题类型大概念）：
+| 已有值 | 来源 | 粒度评价 |
+|---|---|---|
+| structural_existence | 1631题(POC) | ✅ 抽象，好 |
+| discrete_combinatorial | 1843题(POC) | ✅ 抽象，好 |
+| trigonometric_identity | IMO1963P5 | ✅ 中等 |
+| constraint_satisfaction | IMO1963P6 | ✅ 中等 |
+| absolute_value_system | IMO1966P5 | ⚠️ 偏具体 |
+| word_problem_with_diophantine_constraint | IMO1967P6 | ❌ 太具体，应归入更抽象的类 |
+| infinite_sum_evaluation_with_floor | IMO1968P6 | ❌ 太具体 |
+| characterization | IMO1967P5 | ✅ 抽象，好 |
+| functional_equation_periodicity | IMO1968P5 | ⚠️ 偏具体 |
+| inequality_proof | IMO1969P6 | ✅ 中等 |
+
+**ai_method_type**（bare AI预期方法类型）：
+| 已有值 | 来源 | 粒度评价 |
+|---|---|---|
+| enumeration_brute_force | 1631题(POC) | ✅ 抽象，好 |
+| continuous_analytic | 1843题(POC) | ✅ 抽象，好 |
+| direct_calculation | IMO1963P5 | ✅ 抽象，好 |
+| logical_deduction | IMO1963P6 | ✅ 抽象，好 |
+| case_by_case | IMO1966P5 | ✅ 抽象，好 |
+| brute_force_simulation_or_simultaneous_equations | IMO1967P6 | ❌ 太长太具体 |
+| direct_evaluation_or_small_cases_only | IMO1968P6 | ❌ 太长太具体 |
+| algebraic_identity | IMO1967P5 | ✅ 中等 |
+| equation_solving | IMO1968P5 | ✅ 抽象，好 |
+| direct_manipulation | IMO1969P6 | ✅ 抽象，好 |
+
+**gap_type**（方法-问题不匹配类型）：
+| 已有值 | 来源 | 粒度评价 |
+|---|---|---|
+| method_problem_mismatch | 1631/1843题(POC) | ✅ 抽象，好 |
+| knowledge_gap | 1631题(POC) | ✅ 抽象，好 |
+| structural_transformation | IMO1963P5 | ✅ 中等 |
+| search_space_estimation | IMO1963P6 | ✅ 中等 |
+| global_sorting | IMO1966P5 | ⚠️ 偏具体 |
+| recurrence_solving_and_number_theoretic_argument | IMO1967P6 | ❌ 太具体，应拆分 |
+| knowledge_bottleneck_on_floor_identity | IMO1968P6 | ❌ 太具体，应归入knowledge_gap |
+| method_translation | IMO1967P5 | ✅ 中等 |
+| strategic_algebraic_identity | IMO1968P5 | ⚠️ 偏具体 |
+| method_selection_and_hidden_structure_recognition | IMO1969P6 | ❌ 太长，应拆分 |
+
+**已知问题**（subagent分析时需注意）：
+1. **粒度不一致**——有些值很抽象（`structural_existence`），有些很具体（`word_problem_with_diophantine_constraint`）。Pipe 1过滤需要粒度统一——如果两个tell的problem_type一个用`structural_existence`一个用`word_problem_with_diophantine_constraint`，它们不会被匹配到一起，即使可能应该匹配。
+2. **需要归一化**——太具体的值应归入更抽象的类。例如`word_problem_with_diophantine_constraint`应归入`diophantine`或`number_theory`，`knowledge_bottleneck_on_floor_identity`应归入`knowledge_gap`。
+3. **gap_type可能需要更多维度**——当前gap_type混合了"方法不匹配"和"知识缺失"两种不同类型的不匹配。随着分析更多题，可能需要拆分。
+
+**subagent标注拓扑时的规则**：
+- **优先使用已有值**——如果这道题的拓扑可以归入已有的某个类别值，用已有的，不要新建
+- **新建值时检查粒度**——如果必须新建，确保粒度与同维度其他值一致（参考上表中标注✅的值作为粒度基准）
+- **太具体的值要归一化**——如果发现已有的某个值太具体，在汇报中提出归一化建议
+- **在汇报中报告拓扑进化建议**——如果发现需要新增类别值、归一化已有值、或增加新维度，在汇报中明确说明
 
 **Schema变更历史**：
 
