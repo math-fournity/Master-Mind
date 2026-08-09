@@ -2518,3 +2518,30 @@
 - omni_math #3830：√5距离是骑士跳+骑士跳总改变棋盘颜色+同色site两两距离≠√5+将距离约束翻译为染色策略，key_insight准确
 - omni_math #3833：first-fit decreasing中每组首元素>1/2+故至多2n-1组+2n-1个n/(2n-1)>1/2迫使恰好2n-1组，key_insight准确
 - omni_math #3845：循环表达式的最大值不在全对称点a=b=c=d+而在棋盘模式a=c=1,b=d=49+利用隐藏的shift-by-2对称性，key_insight准确
+
+### 第50a批（seq 337-339）— 2025-01-24
+
+**批次范围**：global_sequence 337~339（AoPS omni_math #3846 + #3848 + #3852）
+**累计完成**：332/452（Tier 1）
+**审计方式**：3个全部按audit-checklist-template.md完整6-Phase审计，审计结果落盘到各自的audit-checklist.md
+**并发**：3个一组
+**备注**：IMO Shortlist题。omni_math_003846有8轮。omni_math_003848的kb=null（无纯知识瓶颈）。omni_math_003852第一次空通知后重试成功
+
+| seq | problem_id | 审计结果 | 修复内容 | audit-checklist.md |
+|---|---|---|---|---|
+| 337 | omni_math_003846 | ✅合格 | 无 | ✅已落盘 |
+| 338 | omni_math_003848 | ✅合格 | 无 | ✅已落盘 |
+| 339 | omni_math_003852 | ✅合格 | 无 | ✅已落盘 |
+
+**审计结果摘要**：3个全部合格，0个大问题，0个小问题。
+
+**本批特点**：
+- omni_math #3846：IMO Shortlist 2013 N4→5-adic赋值（而非2-adic）+赋值线性增长→平方根增长过快→含零数字矛盾→No（8轮）
+- omni_math #3848：IMO Shortlist→方程移项重写c²(a²b²-c)=a³+b³+不等式控制+逐层压缩→(1,2,3)的6个排列（kb=null）
+- omni_math #3852：IMO Shortlist→按max(L_c)=t层级分解+每层至多t²种颜色+求和∑t²→n(n+1)(2n+1)/6
+- stats类型约束持续生效（连续90批0个小问题）
+
+**数学内容审查结论**：3个profile的数学内容全部准确——
+- omni_math #3846：用5-adic赋值（而非2-adic）分析平方根x_k+赋值必须至少线性增长(2γ_n≥n)+但这迫使平方根增长过快产生含零数字，key_insight准确
+- omni_math #3848：将方程移项重写为c²(a²b²-c)=a³+b³+使变量间关系可被不等式控制+从而逐层压缩变量的取值范围，key_insight准确
+- omni_math #3852：按max(L_c)=t分组颜色+每种颜色必须占据一个不同的立方体(t,j,k)且j,k≤t+故每层至多t²种颜色，key_insight准确
