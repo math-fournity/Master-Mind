@@ -60,6 +60,7 @@ from .loops import (
 )
 from .references import DOCS, TYPE_REFS, POCS, CORE_PROBLEMS, FUNDAMENTAL_INSIGHT
 from .principles import LIBERATION_PRINCIPLE, SUBPIPE_EVOLUTION
+from .reflection import REFLECTION_PRINCIPLE, ReflectionPoint, REFLECTION_DISTRIBUTION
 
 __all__ = [
     # 基础数据结构
@@ -88,4 +89,5 @@ __all__ = [
     "DOCS", "TYPE_REFS", "POCS", "CORE_PROBLEMS", "FUNDAMENTAL_INSIGHT",
     # 设计原则
     "LIBERATION_PRINCIPLE", "SUBPIPE_EVOLUTION",
+    "REFLECTION_PRINCIPLE", "ReflectionPoint", "REFLECTION_DISTRIBUTION",
 ]
