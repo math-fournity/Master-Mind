@@ -84,6 +84,16 @@ PROMPTS = [
         notes="格化+trace识别提示词V3。在V2基础上新增三个章节：第零部分'为什么我们要拿trace'（trace驱动引导树生长，trace层次决定引导树生长层次），第零点五部分'影响例子'（局部/非局部/全局trace被拿到后的不同影响——单步层面/策略层面/战略层面），第三点五部分'反模式'（7种：只看两极/把操作流水账当trace/机械合并/只识别操作型/描述太具体或太抽象/忽略跨域构造/不反思）。反模式2修正：trace是多level的，Level 0上每步可以有trace，问题不是'每步当trace'而是'把操作流水账当trace'。",
     ),
     Prompt(
+        prompt_id="prompt_parser_grid_004",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V4",
+        content_ref="324号§1",
+        verification_poc="VMS-28",
+        verification_status="pending",
+        source_doc="324号——POC-VMS-28提示词V4",
+        notes="格化+trace识别提示词V4。在V3基础上采用方案C：基础部分共用（FCA/Hasse图/trace定义/反模式/为什么/影响例子），新增第四点五部分'输入性质——树状vs线性'。附加章节A处理树状输入（过程A——分析推理AI上下文）：5步——识别树结构/拆成N条脉络/每条脉络独立格化/识别分叉位置trace/识别折返后语义关联trace。附加章节B处理线性输入（过程B——分析已有题目和解答）：直接格化，没有分叉位置trace和折返后语义关联trace。AI根据输入性质选读对应附加章节。",
+    ),
+    Prompt(
         prompt_id="prompt_parser_analyze_001",
         pipe="pipe_1_parser/step_1_analyze_vein",
         version="待设计",
