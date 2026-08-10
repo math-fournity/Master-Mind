@@ -100,7 +100,7 @@ PROMPTS = [
         version="V5",
         content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v5.md",
         verification_poc="VMS-28b",
-        verification_status="pending",
+        verification_status="verified",
         source_doc="329号§8.3审计报告——VMS-28审计发现V4反思太软",
         notes="格化+trace识别提示词V5。在V4完整版基础上，把§4'反思'升级为§4'自我审计报告'（9项硬要求）："
              "1.段划分完备性论证（为什么只有N段）"
@@ -113,7 +113,11 @@ PROMPTS = [
              "8.不确定性承认（至少识别1个不确定性）"
              "9.tell库对接预期（哪些能匹配已有tell/哪些是新类型/哪些太宽泛/太狭窄）"
              "改进原因：VMS-28审计发现V4的反思允许subagent说'我觉得没漏'就结束，无法保证完备性。V5把反思变成硬要求——subagent必须论证为什么只找到这些，不允许'我觉得没有了'。"
-             "待VMS-28b验证——用同一道题（IMO 2009 P6）重跑，对比V4和V5的产出质量。",
+             "【VMS-28b验证结果2026-08-10】V5改进有效——9项自我审计报告全部有效，其中2项极有效："
+             "（1）审计项2中subagent自己发现'跨Case非相邻合并不在标准FCA的闭元素中'——FCA框架的局限性；"
+             "（2）审计项8中subagent识别了4个不确定性——V4的subagent说'我都很确定'。"
+             "V5的审计项9让subagent为tell库对接做了准备——预测了7个能匹配已有tell、4个新类型tell。"
+             "详见329号§8.7。",
     ),
     Prompt(
         prompt_id="prompt_parser_analyze_001",

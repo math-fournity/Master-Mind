@@ -99,7 +99,14 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
         审计发现：V4提示词的§4"反思"太软——subagent可以说"我觉得没漏"
         就结束。V5把反思升级为自我审计报告（9项硬要求）。
         详见329号§8.3审计报告。
-      - VMS-28b：V5提示词验证——待执行（用同一道题重跑，对比V4和V5）
+      - VMS-28b：V5提示词验证——2026-08-10验证成功（V5改进有效）
+        结果：9项自我审计报告全部有效，其中2项极有效：
+        （1）审计项2中subagent自己发现"跨Case非相邻合并不在标准FCA的
+        闭元素中"——FCA框架的局限性，但方式A不受此限制
+        （2）审计项8中subagent识别了4个不确定性——V4说"我都很确定"
+        V5的审计项9让subagent为tell库对接做了准备。
+        step_2_grid_vein()的提示词应该用V5（或V6加术语表后）。
+        详见329号§8.7。
       - VMS-29/30：方式B/C——方式A已成功，B/C优先级降低
     """
     raise NotImplementedError("Pipe 1 Parser AI 待实现")
