@@ -58,6 +58,7 @@ from .loops import (
     get_archived_orphan_traces,
     save_tell_to_agents_md,
 )
+from .references import DOCS, TYPE_REFS, POCS, CORE_PROBLEMS, FUNDAMENTAL_INSIGHT
 
 __all__ = [
     # 基础数据结构
@@ -82,4 +83,6 @@ __all__ = [
     "grove_core_loop", "tell_library_growth_loop",
     "archive_orphan_traces", "get_archived_orphan_traces",
     "save_tell_to_agents_md",
+    # 研发文档索引（晾衣架）
+    "DOCS", "TYPE_REFS", "POCS", "CORE_PROBLEMS", "FUNDAMENTAL_INSIGHT",
 ]

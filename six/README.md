@@ -10,7 +10,32 @@ six/
 ├── types.py       # 所有数据结构（dataclass定义）
 ├── pipes.py       # 四个Pipe函数 + 步骤5分叉函数
 ├── loops.py       # 两个完整流程函数 + 辅助函数
+├── references.py  # 研发文档索引（晾衣架）——代码元素到研发文档的映射
 └── README.md      # 本文件
+```
+
+## 研发文档索引（晾衣架）
+
+`six/references.py`是整个第六代系统研发过程的"晾衣架"——把代码中每个元素（数据结构、函数、参数）都索引到对应的研发文档。
+
+通过references.py可以：
+- 查询每个代码元素的来源文档（`TYPE_REFS`）
+- 查询所有POC验证的清单和状态（`POCS`）
+- 查询314号三个必须着力解决的问题（`CORE_PROBLEMS`）
+- 查询系统的根本认知（`FUNDAMENTAL_INSIGHT`）
+- 查询所有研发过程文档清单（`DOCS`）
+
+```python
+import six
+
+# 查询某个数据结构的来源文档
+six.TYPE_REFS["Trace"]  # → trace的定义来源、level/is_branch_position等字段的来源
+
+# 查询某个POC的详情
+six.POCS["VMS-24"]  # → 第一个要做的POC——当前分析方法局限性验证
+
+# 查询314号三个问题
+six.CORE_PROBLEMS["问题1（库侧）"]  # → 现有tell库只有局部tell没有非局部tell
 ```
 
 ## 四个Pipe
