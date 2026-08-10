@@ -778,6 +778,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 
 | rule | 文件 | 触发条件 | 来源 |
 |---|---|---|---|
+| **代码为中心铁律** | `.devin/rules/six-codebase-first.md` | **always-on——任何时候回答或响应用户提问时** | 用户原话 |
 | 解放思想原则 | `.devin/rules/six-liberation-principle.md` | 设计或修改任何函数时 | 318号/`principles.py` |
 | 反射原则 | `.devin/rules/six-reflection-principle.md` | 设计或修改任何Pipe函数时 | `reflection.py` |
 | 提示词原则+三处对齐同步 | `.devin/rules/six-prompt-principle.md` | 设计或修改任何Pipe函数时；新增/改进/验证提示词时 | 321/325/326号/`prompts.py` |
