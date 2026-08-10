@@ -787,6 +787,9 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | POC三层组织 | `.devin/rules/six-poc-organization.md` | 设计新POC时 | 317号/`references.py` |
 | 形式化定义同步 | `.devin/rules/six-formal-def-sync.md` | 修改任何dataclass或Pipe函数签名时 | 319号/`types.py`/`pipes.py` |
 | 完整工作流对照 | `.devin/rules/six-workflow-alignment.md` | 设计或修改任何Pipe衔接关系时 | 315号/`loops.py` |
+| 双轨术语原则 | `.devin/rules/six-dual-terminology.md` | 编写或修订提示词、技术文档、代码注释时涉及术语选择 | 330号§4 |
+| 提示词自包含 | `.devin/rules/six-prompt-selfcontained.md` | 创建或修订提示词文件时 | 328号/330号§4建议D |
+| **机械化过程描述+程序验证** | `.devin/rules/six-mechanization-reference.md` + `.devin/skills/mechanization-reference/SKILL.md` | 设计提示词时，当认知任务有对应机械化算法且AI用直觉做但产出需完备性保证时 | 332号/用户原话（系统创新） |
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围

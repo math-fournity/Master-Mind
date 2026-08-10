@@ -148,6 +148,39 @@ PROMPTS = [
              "待VMS-28c验证——用同一道题重跑，对比V5和V6的产出质量。",
     ),
     Prompt(
+        prompt_id="prompt_parser_grid_007",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V7",
+        content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v7.md",
+        verification_poc="VMS-28c",
+        verification_status="pending",
+        source_doc="332号——机械化过程描述+规范化审计+程序验证（系统创新）",
+        notes="格化+trace识别提示词V7。在V6基础上，按机械化过程描述原则"
+             "（.devin/rules/six-mechanization-reference.md）新增三点："
+             "(1)§1.5机械化过程参考——给出FCA Next Closure算法的完整步骤"
+             "（构造形式上下文→定义闭包算子→按lectic order枚举所有闭元素→"
+             "在每个闭元素上识别trace→输出完全格），标注'不要求你按此执行，"
+             "但你的产出应达到此标准——犹如你执行过此过程了一般'；"
+             "(2)审计项2升级为完全格元素清单——每个闭元素(A,B)都有入选/排除"
+             "判定和理由，不是'你觉得漏了什么'的软反思，而是'每个格元素都有"
+             "判定'的硬形式化验证。排除理由必须是形式化的（数学理由/泛化理由/"
+             "冗余理由/平凡理由）；"
+             "(3)§6结构化JSON输出——AI必须输出JSON（formal_context+"
+             "closed_elements+ai_advantage_elements+traces），程序运行"
+             "Next Closure算法验证完全格完备性。"
+             "新增5个术语：机械化过程描述/规范化审计/程序验证完全格完备性/"
+             "Next Closure算法/闭包运算。"
+             "这是系统创新——机械化过程描述+规范化审计+程序验证作为提示词设计技术。"
+             "FCA术语映射：机械化过程描述→提示词设计技术（无FCA对应）；"
+             "规范化审计→提示词设计技术（无FCA对应）；"
+             "程序验证→Next Closure算法验证B(G,M,I)完备性；"
+             "Next Closure算法→Ganter & Wille 1999经典FCA算法；"
+             "闭包运算→A'=共同属性，A''=属性闭包，A''=A则A是闭元素。"
+             "立场声明：FCA语言用于机械化过程描述和程序验证，"
+             "不要求AI按FCA算法执行——AI用直觉做（方式A），"
+             "但产出被FCA算法验证。",
+    ),
+    Prompt(
         prompt_id="prompt_parser_analyze_001",
         pipe="pipe_1_parser/step_1_analyze_vein",
         version="待设计",
