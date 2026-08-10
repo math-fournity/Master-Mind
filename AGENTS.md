@@ -531,6 +531,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - 319号：第六代系统流程Pipe图——形式化定义（Python代码+dataclass）
 - 320号：POC-VMS-28执行方案——AI一眼做格化+trace识别（IMO 2009 P6蚱蜢问题）
 - 321号：第六代系统设计认知——提示词是核心资产
+- 322号：POC-VMS-28提示词V2——用FCA和Hasse图启发AI，列8种复杂情况
 
 **第六代系统架构代码**（`six/`目录）——研发过程的"晾衣架"：
 

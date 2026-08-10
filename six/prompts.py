@@ -64,6 +64,16 @@ PROMPTS = [
         notes="格化+trace识别提示词V1。包含FCA闭包算子概念但不运行FCA算法。待VMS-28验证。",
     ),
     Prompt(
+        prompt_id="prompt_parser_grid_002",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V2",
+        content_ref="322号§1",
+        verification_poc="VMS-28",
+        verification_status="pending",
+        source_doc="322号——POC-VMS-28提示词V2",
+        notes="格化+trace识别提示词V2。用FCA和Hasse图启发AI直觉，举8段划分例子，列8种复杂情况（嵌套/跨域构造/反证法+归约/构造-分析-排除/探索-诊断-修复/辅助函数+非负性/模分析无尽追逐/段间依赖），要求AI反思可能漏掉的Level视图和trace。比V1更丰富。",
+    ),
+    Prompt(
         prompt_id="prompt_parser_analyze_001",
         pipe="pipe_1_parser/step_1_analyze_vein",
         version="待设计",
