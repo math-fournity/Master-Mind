@@ -204,6 +204,30 @@ PROMPTS = [
              "它揭示'为什么这个证明能work'的核心。",
     ),
     Prompt(
+        prompt_id="prompt_parser_grid_009",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V9",
+        content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v9.md",
+        verification_poc="VMS-28e",
+        verification_status="verified",
+        source_doc="332号§8.12——V9改进（三层验证体系）",
+        notes="格化+trace识别提示词V9。在V8基础上新增三层验证体系："
+             "第一层=闭元素完备性（V8已有，Next Closure算法数学保证）；"
+             "第二层=关键实体贯穿性验证（V9新增，AI列举key_entities，"
+             "程序验证每个贯穿≥2闭元素的实体是否被考虑）；"
+             "第三层=元反思（V9新增审计项10，完成所有步骤后回到证明本身重新审视，"
+             "明确指出系统化方法的局限类型：不按段集合组织的、对比型的、递进型的）。"
+             "JSON schema新增key_entities和meta_reflection_traces字段，"
+             "ai_advantage_elements新增key_entity_id字段。"
+             "验证脚本扩展：贯穿性验证+伪元模式过滤。"
+             "VMS-28e验证：闭元素完备性100%（15/15），13个关键实体，"
+             "元反思发现5个V8未覆盖的新trace（其中2个V5也没有的新发现："
+             "WLOG排序闭环、好index r的生命周期）。"
+             "trace总数23（V8的18+元反思5）。"
+             "三层递进：数学保证→列举保证→直觉引导。"
+             "并发（V9结构化+V5自由直觉）可进一步覆盖元反思盲区。",
+    ),
+    Prompt(
         prompt_id="prompt_parser_analyze_001",
         pipe="pipe_1_parser/step_1_analyze_vein",
         version="待设计",

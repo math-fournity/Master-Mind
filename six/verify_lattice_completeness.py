@@ -285,14 +285,88 @@ def verify_completeness(ai_output: dict) -> dict:
     # AI优势元素分析
     for ext, elem in ai_advantage_extents.items():
         is_actually_closed = ext in program_extents
+        adv_type = elem.get("advantage_type", "unknown")
         report["ai_advantage_analysis"].append({
             "segments": sorted(list(ext)),
             "description": elem.get("description", ""),
             "ai_reason": elem.get("reason", ""),
+            "advantage_type": adv_type,
             "is_actually_closed_element": is_actually_closed,
             "verdict": "FCA确实不会找出（AI优势成立）" if not is_actually_closed
-                       else "FCA实际上会找出（AI优势不成立——这个合并是闭元素）",
+                       else "FCA实际上会找出（伪元模式——段集合本身是闭元素，应作为闭元素trace处理）",
+            "is_pseudo_meta_pattern": is_actually_closed and adv_type == "cross_element_meta_pattern",
         })
+
+    # ── V9新增：关键实体贯穿性验证 ──
+    key_entities = ai_output.get("key_entities", [])
+    if key_entities:
+        report["key_entity_analysis"] = []
+        # 构建闭元素段集合列表
+        closed_extents_list = [ext for ext, _ in all_closed]
+
+        for ke in key_entities:
+            ke_segments = set(ke.get("segments", []))
+            # 找出这个key_entity的段跨越了哪些闭元素
+            covered_closed_elements = []
+            for ce_ext in closed_extents_list:
+                overlap = ke_segments & set(ce_ext)
+                if overlap:
+                    covered_closed_elements.append({
+                        "extent": sorted(list(ce_ext)),
+                        "overlap_segments": sorted(list(overlap)),
+                    })
+
+            num_covered = len(covered_closed_elements)
+            is_permeating = num_covered >= 2
+
+            # 如果是贯穿性的，检查AI是否在ai_advantage_elements中列出了对应的元模式
+            ke_id = ke.get("id", "")
+            ke_name = ke.get("name", "")
+            has_matching_advantage = False
+            matching_adv_id = None
+            if is_permeating:
+                for adv in ai_advantage:
+                    adv_ke_id = adv.get("key_entity_id", "")
+                    if adv_ke_id == ke_id:
+                        has_matching_advantage = True
+                        matching_adv_id = adv.get("id", "")
+                        break
+
+            report["key_entity_analysis"].append({
+                "id": ke_id,
+                "name": ke_name,
+                "entity_type": ke.get("entity_type", ""),
+                "segments": sorted(list(ke_segments)),
+                "num_segments": len(ke_segments),
+                "covered_closed_elements_count": num_covered,
+                "is_permeating": is_permeating,
+                "covered_closed_elements": covered_closed_elements,
+                "has_matching_advantage": has_matching_advantage,
+                "matching_advantage_id": matching_adv_id,
+                "verdict": (
+                    "贯穿≥2个闭元素，AI已识别为元模式 ✓" if is_permeating and has_matching_advantage
+                    else "贯穿≥2个闭元素，但AI未在ai_advantage_elements中列出对应元模式 ⚠️ 可能遗漏" if is_permeating
+                    else "未贯穿多个闭元素（无需元模式）"
+                ),
+            })
+
+        # 统计
+        permeating_count = sum(1 for r in report["key_entity_analysis"] if r["is_permeating"])
+        covered_count = sum(1 for r in report["key_entity_analysis"] if r["is_permeating"] and r["has_matching_advantage"])
+        missed_count = permeating_count - covered_count
+        report["key_entity_summary"] = {
+            "total_key_entities": len(key_entities),
+            "permeating_count": permeating_count,
+            "covered_by_advantage": covered_count,
+            "missed_permeating": missed_count,
+        }
+
+    # ── V9新增：元反思trace检查 ──
+    meta_reflection_traces = ai_output.get("meta_reflection_traces", [])
+    report["meta_reflection"] = {
+        "count": len(meta_reflection_traces),
+        "traces": meta_reflection_traces,
+    }
 
     return report
 
@@ -352,10 +426,46 @@ def print_report(report: dict):
         print(f"\n{'─' * 50}")
         print(f"AI优势元素分析（{len(report['ai_advantage_analysis'])}个）:")
         for elem in report['ai_advantage_analysis']:
+            atype = elem.get('advantage_type', 'unknown')
+            pseudo = elem.get('is_pseudo_meta_pattern', False)
             print(f"  段: {{{', '.join(elem['segments'])}}}")
+            print(f"  类型: {atype}")
             print(f"  描述: {elem['description']}")
             print(f"  AI理由: {elem['ai_reason']}")
             print(f"  程序验证: {elem['verdict']}")
+            if pseudo:
+                print(f"  ⚠️ 伪元模式——段集合本身是闭元素，应作为闭元素trace处理")
+
+    # V9新增：关键实体贯穿性验证
+    if 'key_entity_summary' in report:
+        print(f"\n{'─' * 50}")
+        print(f"关键实体贯穿性验证（V9）:")
+        summary = report['key_entity_summary']
+        print(f"  关键实体总数: {summary['total_key_entities']}")
+        print(f"  贯穿≥2个闭元素的实体: {summary['permeating_count']}")
+        print(f"  其中AI已识别为元模式的: {summary['covered_by_advantage']}")
+        print(f"  其中AI遗漏的: {summary['missed_permeating']}")
+        print()
+        for ke in report.get('key_entity_analysis', []):
+            print(f"  {ke['id']} [{ke['entity_type']}] {ke['name']}")
+            print(f"    段({ke['num_segments']}): {', '.join(ke['segments'])}")
+            print(f"    跨越闭元素数: {ke['covered_closed_elements_count']}")
+            print(f"    判定: {ke['verdict']}")
+
+    # V9新增：元反思trace
+    if 'meta_reflection' in report:
+        mr = report['meta_reflection']
+        print(f"\n{'─' * 50}")
+        print(f"元反思trace（V9）:")
+        if mr['count'] == 0:
+            print(f"  AI报告：经元反思审视，未发现系统化步骤未覆盖的有价值trace")
+        else:
+            print(f"  元反思发现{mr['count']}个新trace:")
+            for t in mr['traces']:
+                print(f"    {t.get('id', '?')}: {t.get('description', '')}")
+                print(f"      未覆盖原因: {t.get('reason_not_covered', '')}")
+                added = t.get('added_to_traces', False)
+                print(f"      已加入traces: {'是' if added else '否'}")
 
     print("\n" + "=" * 70)
 
