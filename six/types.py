@@ -56,6 +56,22 @@ class Trace:
     trace是Parser AI的产出，Telling AI的输入。
     trace描述"推理AI在这里可以分叉但没分叉"（过程A）
     或"解答者在这里做了某个操作"（过程B）。
+
+    【自我审计要求——V5提示词§4，2026-08-10】
+    Parser AI产出trace时，必须同时产出自我审计报告（9项）：
+    1. 段划分完备性论证——为什么只有N段
+    2. Level视图完备性论证——为什么只有N个Level视图
+    3. trace完备性论证——逐Level论证为什么只有这些trace
+    4. 7种反模式自查——逐一回答是/否
+    5. 8种复杂情况逐一检查——逐一回答有/无
+    6. trace去重检查——有没有重复或高度相似的trace
+    7. trace可泛化性检查——逐个检查太具体/太抽象
+    8. 不确定性承认——至少识别1个不确定性
+    9. tell库对接预期——哪些能匹配已有tell/哪些是新类型
+
+    来源：329号§8.3审计报告——VMS-28审计发现V4的反思太软，
+    subagent可以说"我觉得没漏"就结束。V5把反思升级为9项硬要求。
+    self_audit_report字段存储自我审计报告的文本。
     """
     trace_id: str
     level: int                          # 来自哪个Level视图（0=最细, N=最粗）
@@ -64,6 +80,10 @@ class Trace:
     source_segment_ids: list[str]       # 涉及的段ID（局部trace=1个段，非局部trace=多个段）
     # 过程A特有
     is_branch_position: bool = False    # 是否是分叉位置本身的trace（仅过程A）
+    # 自我审计（V5提示词§4要求，2026-08-10）
+    # self_audit_report: Optional[str] = None  # 自我审计报告文本（9项）
+    # 注：self_audit_report是Parser AI产出的一部分，但不是每个trace一个——
+    # 它是整批trace的审计报告，应该放在ParserOutput中而不是每个Trace中。
 
 
 @dataclass
@@ -212,6 +232,14 @@ class ParserOutput:
     veins: list[Vein]                   # 分析出的脉络
     level_views: list[LevelView]        # 所有Level视图
     process: Literal["A", "B"]
+    # 自我审计报告（V5提示词§4要求，2026-08-10）
+    # 来源：329号§8.3审计报告——VMS-28审计发现V4的反思太软
+    # self_audit_report: Optional[str] = None
+    #   # Parser AI产出trace时必须同时产出自我审计报告（9项）：
+    #   # 1.段划分完备性 2.Level视图完备性 3.trace完备性
+    #   # 4.反模式自查 5.复杂情况检查 6.去重检查
+    #   # 7.可泛化性检查 8.不确定性承认 9.tell库对接预期
+    #   # 详见V5提示词§4
 
 
 # ============================================================================

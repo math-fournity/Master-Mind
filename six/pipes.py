@@ -92,7 +92,15 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
       - VMS-12：脉络格化能力
       - VMS-14：完整管线（步骤1-4）
       - VMS-27：已有产物二次分析
-      - VMS-28/29/30：格化方法三种方式对比
+      - VMS-28：格化方法方式A——2026-08-10验证成功
+        结果：7个Level（6个中间Level）、23个非局部trace、识别出
+        "强归纳+情况分析+鸽巢计数"组合策略。4个成功条件全部满足。
+        step_2_grid_vein()选方式A——用提示词驱动AI做格化，不用FCA算法。
+        审计发现：V4提示词的§4"反思"太软——subagent可以说"我觉得没漏"
+        就结束。V5把反思升级为自我审计报告（9项硬要求）。
+        详见329号§8.3审计报告。
+      - VMS-28b：V5提示词验证——待执行（用同一道题重跑，对比V4和V5）
+      - VMS-29/30：方式B/C——方式A已成功，B/C优先级降低
     """
     raise NotImplementedError("Pipe 1 Parser AI 待实现")
 

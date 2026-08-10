@@ -89,9 +89,31 @@ PROMPTS = [
         version="V4",
         content_ref="324号§1",
         verification_poc="VMS-28",
-        verification_status="pending",
+        verification_status="verified",
         source_doc="324号——POC-VMS-28提示词V4",
-        notes="格化+trace识别提示词V4。在V3基础上采用方案C：基础部分共用（FCA/Hasse图/trace定义/反模式/为什么/影响例子），新增第四点五部分'输入性质——树状vs线性'。附加章节A处理树状输入（过程A——分析推理AI上下文）：5步——识别树结构/拆成N条脉络/每条脉络独立格化/识别分叉位置trace/识别折返后语义关联trace。附加章节B处理线性输入（过程B——分析已有题目和解答）：直接格化，没有分叉位置trace和折返后语义关联trace。AI根据输入性质选读对应附加章节。",
+        notes="格化+trace识别提示词V4。在V3基础上采用方案C：基础部分共用（FCA/Hasse图/trace定义/反模式/为什么/影响例子），新增第四点五部分'输入性质——树状vs线性'。附加章节A处理树状输入（过程A——分析推理AI上下文）：5步——识别树结构/拆成N条脉络/每条脉络独立格化/识别分叉位置trace/识别折返后语义关联trace。附加章节B处理线性输入（过程B——分析已有题目和解答）：直接格化，没有分叉位置trace和折返后语义关联trace。AI根据输入性质选读对应附加章节。"
+             + "【VMS-28验证结果2026-08-10】成功——7个Level（6个中间Level）、23个非局部trace、识别出'强归纳+情况分析+鸽巢计数'组合策略。4个成功条件全部满足。但发现V4的§4'反思'是软的——subagent可以说'我觉得没漏'就结束。V5把反思升级为自我审计报告（9项硬要求）。详见329号§8.3审计报告。",
+    ),
+    Prompt(
+        prompt_id="prompt_parser_grid_005",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V5",
+        content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v5.md",
+        verification_poc="VMS-28b",
+        verification_status="pending",
+        source_doc="329号§8.3审计报告——VMS-28审计发现V4反思太软",
+        notes="格化+trace识别提示词V5。在V4完整版基础上，把§4'反思'升级为§4'自我审计报告'（9项硬要求）："
+             "1.段划分完备性论证（为什么只有N段）"
+             "2.Level视图完备性论证（为什么只有N个+FCA会找出哪些漏掉的）"
+             "3.trace完备性论证（逐Level论证为什么只有这些trace）"
+             "4.7种反模式自查（逐一回答是/否）"
+             "5.8种复杂情况逐一检查（逐一回答有/无）"
+             "6.trace去重检查"
+             "7.trace可泛化性检查（逐个检查太具体/太抽象）"
+             "8.不确定性承认（至少识别1个不确定性）"
+             "9.tell库对接预期（哪些能匹配已有tell/哪些是新类型/哪些太宽泛/太狭窄）"
+             "改进原因：VMS-28审计发现V4的反思允许subagent说'我觉得没漏'就结束，无法保证完备性。V5把反思变成硬要求——subagent必须论证为什么只找到这些，不允许'我觉得没有了'。"
+             "待VMS-28b验证——用同一道题（IMO 2009 P6）重跑，对比V4和V5的产出质量。",
     ),
     Prompt(
         prompt_id="prompt_parser_analyze_001",
