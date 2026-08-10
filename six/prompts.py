@@ -74,6 +74,16 @@ PROMPTS = [
         notes="格化+trace识别提示词V2。用FCA和Hasse图启发AI直觉，举8段划分例子，列8种复杂情况（嵌套/跨域构造/反证法+归约/构造-分析-排除/探索-诊断-修复/辅助函数+非负性/模分析无尽追逐/段间依赖），要求AI反思可能漏掉的Level视图和trace。比V1更丰富。",
     ),
     Prompt(
+        prompt_id="prompt_parser_grid_003",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V3",
+        content_ref="323号§1",
+        verification_poc="VMS-28",
+        verification_status="pending",
+        source_doc="323号——POC-VMS-28提示词V3",
+        notes="格化+trace识别提示词V3。在V2基础上新增三个章节：第零部分'为什么我们要拿trace'（trace驱动引导树生长，trace层次决定引导树生长层次），第零点五部分'影响例子'（局部/非局部/全局trace被拿到后的不同影响——单步层面/策略层面/战略层面），第三点五部分'反模式'（7种：只看两极/把每步当trace/机械合并/只识别操作型/描述太具体或太抽象/忽略跨域构造/不反思）。",
+    ),
+    Prompt(
         prompt_id="prompt_parser_analyze_001",
         pipe="pipe_1_parser/step_1_analyze_vein",
         version="待设计",
