@@ -647,6 +647,69 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | `six/types.py` → `Step5Input/Step5Output` | 步骤5输入输出 | 319号§1+315号§6.2.1/6.4 | 讨论步骤5分叉时 |
 | `six/types.py` → `GuideInput/GuideOutput/TreeState` | Pipe 3输入输出+树状态 | 319号§1+315号§6.5/6.6 | 讨论Guide AI时 |
 | `six/pipes.py` → `pipe_0_solver()` | Solver AI函数 | 318号§2.1+第五代03-引导树闭环.md | 讨论推理AI时 |
+
+**第六代系统词汇表**（术语定义 + 代码Schema结合）：
+
+> 以下每个术语给出：定义、来源文档、对应的代码Schema（dataclass/字段）。AI看到术语时，既知道定义，又知道代码中的对应。术语新增时必须追加到此表（工作系统纪律第1条）。
+
+**基础概念**：
+
+| 术语 | 定义 | 来源 | 代码Schema |
+|---|---|---|---|
+| **题目（Problem）** | 一道数学题——有problem_id/problem_text/domain/answer | 第五代01-基础概念 | `types.py`→`Problem`：problem_id, problem_text, domain, answer |
+| **提示Q / hint** | 引导从一个数学处境移动到另一个处境的语义移动。tell的注入端。tell+hint构成二元组。 | 000号§引导树闭环 | `types.py`→`Hint`：hint_id, hint_text, hint_level(0=最具体,N=最抽象), tell_id |
+| **tell** | 从trace去特化后存入库中的可泛化思维模式。tell是trace的"泛化版"——从这道题的trace提取出可以启发其他题的思维模式。tell的四个成分：分叉信号/分叉类型/未探索诊断/方向匹配。 | 000号+285号v2修正 | `types.py`→`Tell`：tell_id, branch_signal, branch_type, unexplored_diagnosis, direction_matching, domain, trace_type, segment_pattern, specific_concept |
+| **trace** | 在脉络的某个Level视图上识别出的思维模式。trace是Parser AI的产出，Telling AI的输入。过程A描述"AI在这里可以分叉但没分叉"，过程B描述"解答者在这里做了某个操作"。 | 309号+314号问题2+319号 | `types.py`→`Trace`：trace_id, level(0=最细,N=最粗), trace_type(local/non_local/global), pattern_description, source_segment_ids, is_branch_position(仅过程A) |
+| **局部trace** | 在单个段上（Level 0）识别出的思维模式。 | 322号§1第二部分 | `Trace.trace_type="local"`，`Trace.source_segment_ids`长度=1 |
+| **非局部trace** | 跨多个段的思维模式——只有把几个段合在一起看才能识别出的模式。中间Level视图上的trace。 | 303号+322号§1第二部分 | `Trace.trace_type="non_local"`，`Trace.source_segment_ids`长度>1 |
+| **全局trace** | 整个脉络层面的策略模式——只有把所有段合在一起看（最粗Level）才能识别出的模式。 | 322号§1第二部分 | `Trace.trace_type="global"`，`Trace.source_segment_ids`包含所有段 |
+| **数学处境（MathSituation）** | 引导树/解题树的节点——一个数学处境。有node_type(root/internal/leaf_success/leaf_deadend/leaf_truncated)。 | 第五代04-两棵树 | `types.py`→`MathSituation`：node_id, problem_id, node_type, situation_text, depth, path_from_root, parent_edge_key |
+| **树的边（TreeEdge）** | 引导树/解题树的边——一个提示Q。连接父节点和子节点。 | 第五代04-两棵树 | `types.py`→`TreeEdge`：edge_id, from_node, to_node, hint(Hint), level |
+
+**脉络相关概念**：
+
+| 术语 | 定义 | 来源 | 代码Schema |
+|---|---|---|---|
+| **脉络（Vein）** | 从推理内容中分析出的思维脉络。过程A从Thinking分析→可能有分叉的树/DAG；过程B从SolutionRecord分析→通常线性。 | 312号+319号 | `types.py`→`Vein`：vein_id, source_id, source_type(thinking/solution_record), structure(linear/tree/dag), segments(list[Segment]), branches(list[Branch]) |
+| **段（Segment）** | 脉络中的一个推理步骤或一段推理。最细的段划分是把脉络分成最小的推理步骤。段有特征（用于FCA形式上下文的属性）。 | 314号问题2+319号 | `types.py`→`Segment`：segment_id, vein_id, segment_text, segment_features(dict), order |
+| **分叉（Branch）** | 脉络中AI选了A没选B的位置（仅过程A）。 | 000号+319号 | `types.py`→`Branch`：branch_id, vein_id, at_segment_id, chosen_path, unchosen_paths(list) |
+| **Level视图（LevelView）** | 段的一种合并方式形成的"看法"。最细Level=每个段独立；最粗Level=所有段合并；中间Level=几个段合并。 | 322号§1第一部分+319号 | `types.py`→`LevelView`：view_id, vein_id, level(0=最细,N=最粗), merged_segments(list[list[str]]), view_features(dict) |
+| **格化（grid_vein）** | 把脉络分成段后，考虑段的不同合并方式。每种合并方式形成一个Level视图。"有意义的合并"是把"在思维上属于同一层"的段合在一起。 | 314号问题2+319号§step_2_grid_vein | `pipes.py`→`pipe_1_parser()`的子pipe `step_2_grid_vein()`；产出`list[LevelView]` |
+| **FCA（形式概念分析）** | 用闭包算子定义"有意义的合并"——闭元素是指属性闭包等于自身的段集合。直觉上说，闭元素就是"在思维上属于同一层"的段集合。 | 304号 | `Segment.segment_features`是FCA形式上下文的属性集 |
+| **Hasse图** | 格的可视化——最下面是最细Level，最上面是最粗Level，中间是各个中间Level，节点之间的边表示"从细到粗的合并关系"。 | 322号§1第一部分 | `LevelView`的level字段定义了Hasse图的层次 |
+
+**过程A/B和输入**：
+
+| 术语 | 定义 | 来源 | 代码Schema |
+|---|---|---|---|
+| **过程A** | 分析推理AI的上下文——输入是树状的（推理AI探索后折返）。Parser AI在过程A中分析推理AI的thinking/trajectory。 | 319号§pipe_1_parser+324号附加章节A | `ParserInput.process="A"`，`ParserInput.thinking: Thinking` |
+| **过程B** | 分析已有题目和解答记录——输入是线性的（已完成解答）。Parser AI在过程B中分析外部解答文本。 | 319号§pipe_1_parser+324号附加章节B | `ParserInput.process="B"`，`ParserInput.solution_record: SolutionRecord` |
+| **Thinking** | 推理AI的thinking/trajectory——Pipe 0的输出，Pipe 1过程A的输入。 | 第五代03-引导树闭环+315号 | `types.py`→`Thinking`：solver_ai_id, problem_id, trajectory, rounds(list[dict]), entry_node_id, entry_hint(Hint) |
+| **解答记录（SolutionRecord）** | 外部解答记录——Pipe 1过程B的输入。和Thinking的区别：解答记录是已完成的、正确的、通常线性的脉络。 | 315号§6.2.1 | `types.py`→`SolutionRecord`：record_id, problem(Problem), solution_text, is_verified |
+| **孤悬trace（orphan trace）** | 没匹配到tell的trace。过程A的孤悬trace存档后用于启发过程B——"从什么Level观察外部解答记录"。 | 315号§6.2 | `TellingOutput.unmatched_traces: list[Trace]`；`Step5Output.orphan_traces`；`loops.py`→`archive_orphan_traces()`/`get_archived_orphan_traces()` |
+
+**Pipe和AI角色**：
+
+| 术语 | 定义 | 来源 | 代码Schema |
+|---|---|---|---|
+| **Pipe 0 / Solver AI** | 推理AI——做数学。输入是题目+脉络文本+方向Q，输出是thinking+最终状态+终点节点。 | 318号§2.1+315号§6.8 | `pipes.py`→`pipe_0_solver()`；`SolverInput`(problem, path_text, hint)→`SolverOutput`(thinking, final_status, final_situation) |
+| **Pipe 1 / Parser AI** | 分析AI——从Thinking(过程A)或SolutionRecord(过程B)中分析脉络、格化、识别全Level Trace。三个子step：step_1_analyze_vein / step_2_grid_vein / step_3_identify_traces。 | 318号§3.1+315号§6.2.2+319号 | `pipes.py`→`pipe_1_parser()`；`ParserInput`(process, thinking, solution_record, orphan_traces)→`ParserOutput`(traces, veins, level_views, process) |
+| **Pipe 2 / Telling AI** | 匹配AI——把trace匹配到tell库中的tell。311号后改为多AI并发，每个Telling AI负责一个domain分区。不需要汇总AI（315号确认）。 | 318号§2.1+311号+315号§6.3 | `pipes.py`→`pipe_2_telling()`；`TellingInput`(traces, tell_library_path)→`TellingOutput`(results(list[TellingResult]), unmatched_traces) |
+| **步骤5分叉** | Pipe 2输出后的分叉——过程A：匹配到tell→取hint送入Pipe 3；没匹配到→孤悬trace存档。过程B：新建tell+hint存入AGENTS.md。 | 315号§6.2.1/6.4+319号 | `pipes.py`→`step_5_branch()`；`Step5Input`(telling_output, process)→`Step5Output`(process, hints, orphan_traces, new_tells, new_hints) |
+| **Pipe 3 / Guide AI** | 引导AI——把hint变成引导树的新边，构造新SolverInput，启动新推理AI。 | 318号§2.1+315号§6.5/6.6 | `pipes.py`→`pipe_3_guide()`；`GuideInput`(hints, problem_id, tree_state)→`GuideOutput`(new_edges, new_solver_inputs, tree_state, stop) |
+| **引导树（Guided Expansion Tree）** | "应该往哪走"的视图。每个节点是一个数学处境，每条边是一个提示Q。活的、正在生长的。 | AGENTS.md§Grove核心循环 | `types.py`→`TreeState`：problem_id, nodes(list[MathSituation]), edges(list[TreeEdge]), status(growing/solved/exhausted), running_solvers |
+| **解题树（Solution Record Tree）** | "实际走了什么"的视图。引导展开树展开完成后凝固的树。包含成功路径、失败路径、分叉点。 | AGENTS.md§Grove核心循环 | 同`TreeState`——两棵树是同一棵树的两个面 |
+
+**系统级概念**：
+
+| 术语 | 定义 | 来源 | 代码Schema |
+|---|---|---|---|
+| **tell分类学** | tell的四层分类位置——第一层domain(数论/代数/...)、第二层trace_type(local/non_local/global)、第三层segment_pattern(段结构模式)、第四层specific_concept(具体概念)。 | 313号§4.1 | `Tell`的四个字段：domain, trace_type, segment_pattern, specific_concept |
+| **三个核心问题** | 314号定义的三个必须着力解决的问题——①非局部tell库缺失②推理脉络格化③Tell分类学。 | 314号 | `references.py`→`CORE_PROBLEMS` |
+| **方式A/B/C** | 317号定义的三种格化方式——A：AI做全部格化+trace识别，FCA是理论指导；B：脚本运行FCA格遍历算法；C：AI做+FCA验证。 | 317号§VMS-28/29/30 | `pipes.py`→`step_2_grid_vein()`的docstring标注POC验证状态 |
+| **多套提示词并发** | 同一Pipe阶段可以有多套不同的提示词（不是不同版本号，是完全不同的设计），并发给多个AI实例处理同一输入。 | 325号§1 | `prompts.py`→`PROMPTS`中的set_A/set_B/... |
+| **三处对齐同步** | 提示词在三个地方有记录——A目录(完整文本)、B代码清单(prompts.py)、C POC验证文档——三处必须对齐同步。 | 326号§1 | `prompts.py`→`PROMPTS`的prompt_id/pipe/版本/内容位置/验证POC |
+| **trace→tell匹配（TraceTellMatch）** | 一个trace匹配到一个tell的结果——有trace_id/tell_id/confidence/matched。 | 319号 | `types.py`→`TraceTellMatch`：trace_id, tell_id, confidence(float), matched(bool) |
 | `six/pipes.py` → `pipe_1_parser()` | Parser AI函数（步骤1-3） | 318号§3.1+315号§6.2.2+319号§4 | 讨论提取格化全Level Trace时 |
 | `six/pipes.py` → `pipe_2_telling()` | Telling AI函数（步骤4） | 318号§2.1+311号+315号§6.3 | 讨论并发trace→tell匹配时 |
 | `six/pipes.py` → `step_5_branch()` | 步骤5分叉函数 | 319号§1+315号§6.2.1/6.4 | 讨论过程A/B分叉时 |
