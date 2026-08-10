@@ -117,7 +117,35 @@ PROMPTS = [
              "（1）审计项2中subagent自己发现'跨Case非相邻合并不在标准FCA的闭元素中'——FCA框架的局限性；"
              "（2）审计项8中subagent识别了4个不确定性——V4的subagent说'我都很确定'。"
              "V5的审计项9让subagent为tell库对接做了准备——预测了7个能匹配已有tell、4个新类型tell。"
-             "详见329号§8.7。",
+             "详见329号§8.7。"
+             "【FCA术语映射】（双轨术语——330号/双轨术语rule）"
+             "格化=计算概念格B(G,M,I)；Level视图=形式概念(A,B)；"
+             "段=对象g∈G；段特征=属性m∈M；"
+             "merged_segments=外延A(extent)；view_features=内涵B(intent)；"
+             "脉络=形式上下文(G,M,I)；trace=概念内涵B；"
+             "去特化=缩放(scaling)；泛化=跨上下文概念普适性。"
+             "注意：FCA语言用于术语规范化，不用于算法实现（方式A——AI做全部，不用FCA算法）。"
+             "工程术语trace/tell/hint/格化/Level视图保持不变——它们承载系统设计意图的语义，"
+             "FCA术语无法承载（双轨术语原则）。",
+    ),
+    Prompt(
+        prompt_id="prompt_parser_grid_006",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V6",
+        content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v6.md",
+        verification_poc="VMS-28c",
+        verification_status="pending",
+        source_doc="330号FCA术语规范化+提示词自包含rule+双轨术语rule",
+        notes="格化+trace识别提示词V6。在V5基础上，按提示词自包含原则"
+             "（.devin/rules/six-prompt-selfcontained.md）和双轨术语原则"
+             "（.devin/rules/six-dual-terminology.md），在提示词开头加入术语表——"
+             "每个术语同时给出FCA标准定义（数学语言）和工程含义（人话）。"
+             "10个术语：脉络(形式上下文)/段(对象)/段特征(属性)/格化(计算概念格)/"
+             "Level视图(形式概念)/闭元素/Hasse图/trace(概念内涵)/"
+             "去特化(缩放)/tell库(多上下文概念格)/可泛化(跨上下文普适性)。"
+             "改进原因：V5提示词中'去特化'等术语被使用但没有定义——subagent不知道"
+             "什么是'去特化'就被要求做去特化。V6在开头建术语表，确保自包含。"
+             "待VMS-28c验证——用同一道题重跑，对比V5和V6的产出质量。",
     ),
     Prompt(
         prompt_id="prompt_parser_analyze_001",

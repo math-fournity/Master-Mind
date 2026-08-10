@@ -72,6 +72,13 @@ class Trace:
     来源：329号§8.3审计报告——VMS-28审计发现V4的反思太软，
     subagent可以说"我觉得没漏"就结束。V5把反思升级为9项硬要求。
     self_audit_report字段存储自我审计报告的文本。
+
+    【FCA对应】（双轨术语——330号/双轨术语rule）
+    trace对应FCA形式概念的**内涵** B——一个可识别的思维模式的属性集。
+    trace去特化后存入tell库，对应FCA的**跨上下文概念**——在多个形式上下文中
+    都出现的形式概念。trace的"可泛化性"对应概念的"跨上下文普适性"。
+    注意：trace比FCA的内涵承载更多语义——trace强调"可泛化的思维模式"，
+    这是工程人话的语义，FCA的"内涵"无法承载这个语义（双轨术语原则）。
     """
     trace_id: str
     level: int                          # 来自哪个Level视图（0=最细, N=最粗）
@@ -144,6 +151,13 @@ class Vein:
 
     过程A：从Thinking中分析 → 可能是有分叉的树/DAG
     过程B：从SolutionRecord中分析 → 通常是线性脉络
+
+    【FCA对应】（双轨术语——330号/双轨术语rule）
+    脉络对应FCA的**形式上下文** (G, M, I)：
+    - G（对象集）= segments（脉络的段序列）
+    - M（属性集）= 所有段特征的并集
+    - I（关系）= 段具有某个特征
+    脉络的segments构成形式上下文的对象集，格化就是在这个形式上下文上计算概念格。
     """
     vein_id: str
     source_id: str                      # Thinking.solver_ai_id 或 SolutionRecord.record_id
@@ -155,7 +169,13 @@ class Vein:
 
 @dataclass
 class Segment:
-    """段——脉络中的一个推理步骤或一段推理"""
+    """
+    段——脉络中的一个推理步骤或一段推理
+
+    【FCA对应】（双轨术语——330号/双轨术语rule）
+    段对应FCA形式上下文(G, M, I)中的**对象** g ∈ G。
+    segment_features对应对象g的属性集 g' = {m ∈ M | (g, m) ∈ I}。
+    """
     segment_id: str
     vein_id: str
     segment_text: str                   # 段内容
@@ -182,6 +202,15 @@ class LevelView:
     最细Level：每个段是一个节点
     最粗Level：整个脉络是一个节点
     中间Level：几个段合并成一段
+
+    【FCA对应】（双轨术语——330号/双轨术语rule）
+    Level视图对应FCA的**形式概念** (A, B)：
+    - merged_segments对应**外延** A（extent）——合并的段集合（对象集）
+    - view_features对应**内涵** B（intent）——这些段的共同特征（属性集）
+    - level对应概念在概念格Hasse图中的深度
+    最细Level（Level 0）对应最细概念——每个段是一个外延
+    最粗Level对应最粗概念——所有段是一个外延
+    中间Level对应中间概念——几个段合并成一个外延
     """
     view_id: str
     vein_id: str

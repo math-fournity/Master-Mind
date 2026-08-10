@@ -87,6 +87,15 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
       - 步骤2的格化方法由VMS-28/29/30的POC验证结果决定
         （方式A：AI做全部 / 方式B：脚本做格化 / 方式C：AI做+FCA验证）
 
+    【FCA立场声明】（双轨术语——330号/双轨术语rule）
+      FCA语言用于术语规范化，不用于算法实现。
+      step_2_grid_vein()选方式A——用提示词驱动AI做格化，不直接实现FCA的
+      Next Closure/In-Close/Close-by-One算法。但提示词中用的术语（格化、
+      Level视图、闭元素等）用FCA的数学定义来规范化，确保术语的精确性。
+      这不是矛盾——FCA的数学框架提供了精确的术语体系，即使算法不直接使用。
+      工程术语trace/tell/hint/格化/Level视图保持不变——它们承载系统设计意图
+      的语义，FCA术语无法承载（双轨术语原则）。
+
     POC验证状态：
       - VMS-11：非局部trace识别能力
       - VMS-12：脉络格化能力
