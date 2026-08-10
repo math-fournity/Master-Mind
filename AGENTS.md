@@ -455,14 +455,99 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 - 318号：第六代系统流程Pipe图——Pipe命名与AI命名（Solver/Parser/Telling/Guide）
 - 319号：第六代系统流程Pipe图——形式化定义（Python代码+dataclass）
 
-**第六代系统架构代码**（`six/`目录）：
-- `six/types.py`：所有数据结构（16个dataclass）
-- `six/pipes.py`：四个Pipe函数 + 步骤5分叉函数
+**第六代系统架构代码**（`six/`目录）——研发过程的"晾衣架"：
+
+> **核心定位**：`six/`不只是实现代码，更是整个第六代系统研发过程的"晾衣架"。代码中每个元素（数据结构、函数、参数）都通过`six/references.py`索引到研发文档。以后的Session AI看到用户提到某个概念，知道去代码的哪个位置看具体内容；看到代码中的某个元素，知道去哪份研发文档追溯它的来源。
+
+**文件结构**：
+- `six/__init__.py`：包初始化，导出40个公共接口
+- `six/types.py`：所有数据结构（16个dataclass）——系统的形式化Schema
+- `six/pipes.py`：四个Pipe函数 + 步骤5分叉函数（签名+docstring，实现待POC验证后填充）
 - `six/loops.py`：两个完整流程函数（`grove_core_loop()` + `tell_library_growth_loop()`）+ 辅助函数
-- `six/__init__.py`：包初始化，导出35个公共接口
+- `six/references.py`：研发文档索引（晾衣架）——代码元素到研发文档的映射
 - `six/README.md`：说明文档
 - 来源：319号文档中的形式化定义代码提取
 - 当前状态：所有函数只有签名和docstring，实现待POC验证后填充
+
+**Schema——晾衣架的完整地形图**：
+
+| 代码位置 | 内容 | 对应的研发文档 | 什么时候看 |
+|---|---|---|---|
+| `six/types.py` → `Problem` | 题目数据结构 | 第五代01-基础概念/04-两棵树.md | 讨论题目时 |
+| `six/types.py` → `Hint` | 提示Q数据结构 | 000号+315号§5阶段6 | 讨论hint时 |
+| `six/types.py` → `Tell` | tell数据结构（含分类学四层位置） | 000号+313号§4.1+287号+315号§4.1 | 讨论tell时 |
+| `six/types.py` → `Trace` | trace数据结构（含is_branch_position） | 309号+314号问题2+313号§4.1+315号§6.2.2 | 讨论trace时 |
+| `six/types.py` → `Vein/Segment/Branch/LevelView` | 脉络相关数据结构 | 312号+304号§8.9+318号§4+314号问题2 | 讨论脉络格化时 |
+| `six/types.py` → `Thinking/SolutionRecord` | Pipe 0输出/过程B输入 | 第五代03-引导树闭环.md+315号§6.2.1 | 讨论过程A/B输入时 |
+| `six/types.py` → `SolverInput/SolverOutput` | Pipe 0输入输出 | 319号§1+315号§6.8 | 讨论Solver AI时 |
+| `six/types.py` → `ParserInput/ParserOutput` | Pipe 1输入输出 | 319号§1+315号§6.2.2 | 讨论Parser AI时 |
+| `six/types.py` → `TellingInput/TellingOutput` | Pipe 2输入输出 | 319号§1+315号§6.3 | 讨论Telling AI时 |
+| `six/types.py` → `Step5Input/Step5Output` | 步骤5输入输出 | 319号§1+315号§6.2.1/6.4 | 讨论步骤5分叉时 |
+| `six/types.py` → `GuideInput/GuideOutput/TreeState` | Pipe 3输入输出+树状态 | 319号§1+315号§6.5/6.6 | 讨论Guide AI时 |
+| `six/pipes.py` → `pipe_0_solver()` | Solver AI函数 | 318号§2.1+第五代03-引导树闭环.md | 讨论推理AI时 |
+| `six/pipes.py` → `pipe_1_parser()` | Parser AI函数（步骤1-3） | 318号§3.1+315号§6.2.2+319号§4 | 讨论提取格化全Level Trace时 |
+| `six/pipes.py` → `pipe_2_telling()` | Telling AI函数（步骤4） | 318号§2.1+311号+315号§6.3 | 讨论并发trace→tell匹配时 |
+| `six/pipes.py` → `step_5_branch()` | 步骤5分叉函数 | 319号§1+315号§6.2.1/6.4 | 讨论过程A/B分叉时 |
+| `six/pipes.py` → `pipe_3_guide()` | Guide AI函数 | 318号§2.1+315号§6.5/6.6+316号§2.4 | 讨论引导树填充时 |
+| `six/loops.py` → `grove_core_loop()` | Grove核心循环（过程A） | 319号§1+第五代03-引导树闭环.md+315号§6 | 讨论端到端工作流时 |
+| `six/loops.py` → `tell_library_growth_loop()` | tell库增长循环（过程B） | 319号§1+315号§6.2.1 | 讨论Parser AI处理外部解答时 |
+| `six/loops.py` → `archive_orphan_traces()` | 孤悬trace存档 | 315号§6.2 | 讨论孤悬trace时 |
+| `six/loops.py` → `get_archived_orphan_traces()` | 获取孤悬trace（过程B启发信号） | 315号§6.2.1 | 讨论Parser AI两个输入时 |
+| `six/loops.py` → `save_tell_to_agents_md()` | 存tell到AGENTS.md | 315号§4.1 | 讨论tell存储方案时 |
+| `six/references.py` → `DOCS` | 17份研发过程文档清单（303-319号） | 全部 | 需要查文档编号时 |
+| `six/references.py` → `TYPE_REFS` | 33个代码元素到研发文档的映射 | 全部 | 需要追溯代码元素来源时 |
+| `six/references.py` → `POCS` | 20个POC验证清单 | 317号 | 讨论POC验证时 |
+| `six/references.py` → `CORE_PROBLEMS` | 314号三个必须着力解决的问题 | 314号 | 讨论系统核心问题时 |
+| `six/references.py` → `FUNDAMENTAL_INSIGHT` | 系统的根本认知 | 315号§6.8+第五代 | 讨论系统设计理念时 |
+
+**如何使用这套代码**：
+
+1. **用户提到某个概念时**→查`six/references.py`的`TYPE_REFS`，找到对应的代码元素和来源文档
+   ```python
+   import six
+   six.TYPE_REFS["Trace"]  # → trace的定义来源、各字段的来源文档
+   ```
+
+2. **需要查POC验证时**→查`six/references.py`的`POCS`
+   ```python
+   import six
+   six.POCS["VMS-24"]  # → 第一个要做的POC的详情
+   ```
+
+3. **需要查研发文档编号时**→查`six/references.py`的`DOCS`
+   ```python
+   import six
+   six.DOCS[315]  # → "第六代系统的完整工作流..."
+   ```
+
+4. **需要看某个数据结构的定义时**→看`six/types.py`中对应的dataclass
+   ```python
+   # 直接读文件
+   # six/types.py → class Trace
+   ```
+
+5. **需要看某个Pipe的接口时**→看`six/pipes.py`中对应的函数签名和docstring
+   ```python
+   # 直接读文件
+   # six/pipes.py → def pipe_1_parser()
+   ```
+
+6. **需要看完整流程时**→看`six/loops.py`中的`grove_core_loop()`或`tell_library_growth_loop()`
+
+**如何维护这套代码**：
+
+1. **新增研发文档时**→在`six/references.py`的`DOCS`中添加条目
+2. **新增或修改数据结构时**→在`six/types.py`中修改，同时在`six/references.py`的`TYPE_REFS`中添加/更新映射
+3. **新增POC时**→在`six/references.py`的`POCS`中添加条目，同时在对应Pipe函数的docstring中更新POC验证状态
+4. **POC验证完成后**→在`six/references.py`的`POCS`中更新状态，在对应Pipe函数中填充实现
+5. **修改Pipe接口时**→同步修改`six/types.py`（输入输出数据结构）、`six/pipes.py`（函数签名）、`six/loops.py`（调用处）、`six/references.py`（映射）
+6. **新增核心问题或认知时**→在`six/references.py`的`CORE_PROBLEMS`或`FUNDAMENTAL_INSIGHT`中添加
+
+**维护规则**：
+- 代码元素（dataclass/函数/参数）和`references.py`中的映射必须同步——改了一个必须改另一个
+- 每个Pipe函数的docstring中必须标注对应的POC验证编号——POC验证完成后更新docstring
+- `references.py`是只读索引——不包含实现逻辑，只包含映射关系
+- 新增代码元素时必须在`__init__.py`的`__all__`中导出
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围
