@@ -125,6 +125,16 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
         step_2_grid_vein()的提示词应该用V7——V7的完备性有程序验证。
         verify_lattice_completeness.py应成为Pipe 1标准审计工具。
         详见332号§8。
+
+        **运行时闭环反馈机制**（系统创新的设计延伸）：
+        verify_lattice_completeness.py不只是研发工具，也是运行时组件。
+        Pipe 1每次产出JSON后，程序验证完备性：
+        - 完备性得分≥80% → 通过，进入Pipe 2
+        - 得分<80% → 反馈遗漏列表给Parser AI，请求补充（最多2轮）
+        - 遗漏的都是平凡合并（B为空集或只有1个特征）→ 直接通过
+        反馈只给遗漏列表，不给建议判定——AI自己判断入选/排除。
+        程序只验证完备性，不判断语义价值。
+        详见.devin/rules/six-mechanization-reference.md §5。
       - VMS-29/30：方式B/C——方式A已成功，B/C优先级降低
     """
     raise NotImplementedError("Pipe 1 Parser AI 待实现")

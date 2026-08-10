@@ -155,6 +155,43 @@ POC完成后：
 4. 更新POC方案文档——执行结果和审计报告
 5. commit
 
+### 步骤8：实现运行时闭环反馈
+
+POC验证通过后，把验证脚本从"研发工具"升级为"运行时组件"——在Pipe的实现中加入闭环反馈机制。
+
+**实现步骤**：
+
+1. **在Pipe函数中加入验证调用**——Pipe产出JSON后，调用验证脚本检查完备性
+
+2. **实现反馈逻辑**：
+   ```python
+   def pipe_with_feedback(input, max_rounds=2, threshold=0.8):
+       json_output = ai_analyze(input)
+       report = verify(json_output)
+
+       for round in range(max_rounds):
+           if report.completeness_score >= threshold:
+               break
+           if all_trivial_missed(report.missed_elements):
+               break
+           # 反馈遗漏列表给AI（不给完整报告——避免照抄）
+           json_output = ai_supplement(json_output, report.missed_elements)
+           report = verify(json_output)
+
+       return json_output
+   ```
+
+3. **反馈提示词设计**——给AI的补充请求中包含：
+   - 遗漏的元素列表（外延+内涵）
+   - "请补充对这些元素的判定（入选/排除+理由），并检查你的trace是否需要补充"
+   - **不包含**程序对这些元素的建议判定——AI自己判断
+
+4. **平凡合并检测**——验证脚本中实现`all_trivial_missed()`函数：
+   - 判断遗漏的闭元素是否都是平凡的（B是空集或只有1个特征）
+   - 如果都是平凡的，直接通过——AI的直觉已覆盖所有有语义价值的元素
+
+5. **在pipes.py的docstring中记录闭环反馈机制**——说明这个Pipe使用了运行时闭环反馈，参数是什么，最大迭代轮数是多少
+
 ## 注意事项
 
 - **机械化过程描述不是执行指令**——措辞必须是"不要求你按此执行，但你的产出应达到此标准"
