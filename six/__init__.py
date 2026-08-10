@@ -59,6 +59,7 @@ from .loops import (
     save_tell_to_agents_md,
 )
 from .references import DOCS, TYPE_REFS, POCS, CORE_PROBLEMS, FUNDAMENTAL_INSIGHT
+from .principles import LIBERATION_PRINCIPLE, SUBPIPE_EVOLUTION
 
 __all__ = [
     # 基础数据结构
@@ -85,4 +86,6 @@ __all__ = [
     "save_tell_to_agents_md",
     # 研发文档索引（晾衣架）
     "DOCS", "TYPE_REFS", "POCS", "CORE_PROBLEMS", "FUNDAMENTAL_INSIGHT",
+    # 设计原则
+    "LIBERATION_PRINCIPLE", "SUBPIPE_EVOLUTION",
 ]
