@@ -153,7 +153,7 @@ PROMPTS = [
         version="V7",
         content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v7.md",
         verification_poc="VMS-28c",
-        verification_status="pending",
+        verification_status="verified",
         source_doc="332号——机械化过程描述+规范化审计+程序验证（系统创新）",
         notes="格化+trace识别提示词V7。在V6基础上，按机械化过程描述原则"
              "（.devin/rules/six-mechanization-reference.md）新增三点："
