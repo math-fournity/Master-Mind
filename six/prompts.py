@@ -181,6 +181,29 @@ PROMPTS = [
              "但产出被FCA算法验证。",
     ),
     Prompt(
+        prompt_id="prompt_parser_grid_008",
+        pipe="pipe_1_parser/step_2_grid_vein",
+        version="V8",
+        content_ref="第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v8.md",
+        verification_poc="VMS-28d",
+        verification_status="verified",
+        source_doc="332号§8.10-8.11——V8改进（AI优势元素扩展）",
+        notes="格化+trace识别提示词V8。在V7基础上，按332号§8.10的改进建议，"
+             "扩展AI优势元素定义——从只有cross_case_merge（跨Case非相邻合并）"
+             "一种类型，新增cross_element_meta_pattern（跨闭元素元模式）第二种类型。"
+             "修改4处：(1)§1.5'你的优势'节明确两种类型；"
+             "(2)审计项2注释扩展为两种类型；"
+             "(3)JSON schema的ai_advantage_elements每个元素增加advantage_type字段；"
+             "(4)JSON字段说明两种类型描述。"
+             "VMS-28d验证：闭元素完备性100%（15/15），4个AI优势元素"
+             "（1 cross_case_merge + 3 cross_element_meta_pattern）。"
+             "V7漏掉的3个trace中2个完全补回（'x贯穿整个证明'最有价值第2名，"
+             "'aₙ作为跳过障碍工具'最有价值第1名），1个部分补回。"
+             "6条成功条件全部满足。"
+             "关键经验：cross_element_meta_pattern往往是最有价值的trace——"
+             "它揭示'为什么这个证明能work'的核心。",
+    ),
+    Prompt(
         prompt_id="prompt_parser_analyze_001",
         pipe="pipe_1_parser/step_1_analyze_vein",
         version="待设计",

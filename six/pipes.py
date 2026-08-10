@@ -125,10 +125,20 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
         元模式trace（特别是"关键变量x贯穿整个证明"——V4/V5最有价值trace
         之一）。V7的AI优势元素定义太窄——只覆盖跨Case非相邻合并，没覆盖
         跨闭元素元模式。需要V8改进。
-        step_2_grid_vein()的提示词应该用V7+V8改进。
         verify_lattice_completeness.py应成为Pipe 1标准审计工具
         （验证闭元素完备性，不验证trace完备性）。
-        详见332号§8。
+        详见332号§8.1-8.10。
+      - VMS-28d：V8提示词验证——2026-08-10验证
+        V8=V7+AI优势元素扩展（新增cross_element_meta_pattern类型）。
+        闭元素完备性：100%（15/15），与V7一致。
+        4个AI优势元素（1 cross_case_merge + 3 cross_element_meta_pattern）。
+        trace完备性修复：V7漏掉的3个trace中2个完全补回
+        （"x贯穿整个证明"列为最有价值trace第2名，
+         "aₙ作为跳过障碍工具"列为最有价值trace第1名），
+        1个部分补回（"归纳递降三种方式"识别了跨闭元素角色但没区分递降幅度）。
+        6条成功条件全部满足。
+        step_2_grid_vein()的提示词应该用V8。
+        详见332号§8.11。
 
         **运行时闭环反馈机制**（系统创新的设计延伸）：
         verify_lattice_completeness.py不只是研发工具，也是运行时组件。
