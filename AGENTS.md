@@ -446,6 +446,23 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 - 303-309号：从 grove repo 复制的7份探索文档（非局部tell、FCA、原语化、trace-tell-hint命名等）
 - 310号：worktree侧对grove侧303-309号文档的评审——判断哪些方向有闪光点、哪些跑偏
 - 311号：并发Telling AI方案——Pipe 0简化（粗domain分类）+ Pipe 2并行化（多Telling AI并行trace识别+汇总AI精筛）
+- 312号：第六代系统的两个核心问题——Trace识别与Trace→Tell匹配
+- 313号：Tell分类学研究——建立第六代Tell的分类体系
+- 314号：第六代系统必须着力解决的三个问题——非局部tell库缺失/推理脉络格化/Tell分类学
+- 315号：第六代系统的完整工作流——从推理AI探索到引导树填充+完备性检查（6个缺失全部不是问题）+Parser AI定义+脉络分析管线
+- 316号：第六代系统理想化工作过程——规范化完整描述（9个章节）
+- 317号：第六代系统POC验证方案——20个POC三层组织（基础能力/管线验证/系统验证）
+- 318号：第六代系统流程Pipe图——Pipe命名与AI命名（Solver/Parser/Telling/Guide）
+- 319号：第六代系统流程Pipe图——形式化定义（Python代码+dataclass）
+
+**第六代系统架构代码**（`six/`目录）：
+- `six/types.py`：所有数据结构（16个dataclass）
+- `six/pipes.py`：四个Pipe函数 + 步骤5分叉函数
+- `six/loops.py`：两个完整流程函数（`grove_core_loop()` + `tell_library_growth_loop()`）+ 辅助函数
+- `six/__init__.py`：包初始化，导出35个公共接口
+- `six/README.md`：说明文档
+- 来源：319号文档中的形式化定义代码提取
+- 当前状态：所有函数只有签名和docstring，实现待POC验证后填充
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围
@@ -453,12 +470,9 @@ Master Agent 不做数学，做的是让循环转起来。两条Pipe并行运行
 3. 并发Telling AI（311号）——Pipe 2从单AI串行变为多AI并行，每个Telling AI负责一个tell分区
 4. Pipe 0简化（311号）——从精确拓扑化（8种组合+手工信号词）降级为粗domain分类
 5. trace/tell/hint命名（309号）——trace=辅助AI识别产物，tell=库中标准化描述，hint=方向提示
-
-**需要进一步想清楚的问题**（311号§6）：
-- 分区依据：按domain分？按大概念拓扑分？层次分区？
-- Telling AI提示词设计
-- 汇总AI的判断标准
-- 规模增长的应对
+6. Parser AI统一（315/318号）——分析AI和Parser AI统一为Parser AI，在过程A和过程B中都用同一套核心能力（提取格化全Level Trace）
+7. 脉络分析管线（315/316号）——过程A和过程B共用步骤1-4，只在步骤5分叉
+8. 四个Pipe命名（318/319号）——Solver AI/Parser AI/Telling AI/Guide AI
 
 **已识别的跑偏方向**（310号评审结论）：
 - 307号原语化——破坏推理AI独立性，拒绝"必须原语化"，保留"可选优化"定位
