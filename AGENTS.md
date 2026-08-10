@@ -710,14 +710,19 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - 每个Pipe函数的docstring中必须标注对应的POC验证编号——POC验证完成后更新docstring
 - `references.py`是只读索引——不包含实现逻辑，只包含映射关系
 - 新增代码元素时必须在`__init__.py`的`__all__`中导出
-- **解放思想原则**：设计或修改任何函数时，时时考虑三个维度——能不能用多种方式？能不能用多个AI？能不能拆成多个子pipe？如果某种维度适用，在`principles.py`中记录决策，在函数docstring中标注
-- **反射原则**：设计或修改任何Pipe函数时，考虑这个Pipe需不需要反射点——在合适的地方插入`reflect_xxx()`子函数。反射点在`reflection.py`的`REFLECTION_DISTRIBUTION`中记录。系统运行时积累反射数据，反射结果反馈到提示词/分类体系/数据结构/Pipe衔接
-- **提示词原则**：设计或修改任何Pipe函数时，考虑这个Pipe的AI需要什么提示词——在`prompts.py`的`PROMPTS`清单中记录提示词（prompt_id/pipe/版本/内容位置/验证POC/来源文档），在`第六代系统提示词积累目录/`中积累完整提示词文本（按`Pipe阶段/子pipe/set_<编号>_<描述>/v<版本>.md`+`README.md`结构）。提示词改进时新增版本，旧版本保留。同一Pipe阶段可以有多套提示词（set_A/set_B/...），并发给AI处理，结果汇总或各自流向下一个Pipe。提示词是核心资产，和代码同等重要。**三处对齐同步（326号硬约束）**：提示词在三个地方有记录——A目录（完整文本）、B代码清单（`six/prompts.py`的`PROMPTS`）、C POC验证文档——三处必须对齐同步，新增/改进/验证完成时三处同步更新，prompt_id/pipe/版本/内容位置/验证POC必须一致
-- **文档自包含与可审计原则（328号硬约束，通用）**：编写或修改任何第六代系统研发过程文档时（不只是POC方案，也包括设计认知文档、提示词设计文档等），必须遵守328号定义的自包含与可审计标准——文档必须包含：§1 文档元信息（编号/目的/代码指向/提示词指向）、§2 概念定义（每个概念给定义+来源文档）、§3 背景认知（为什么做/不确定性/影响）、§9 来源索引（每个认知的来源文档+位置，可审计）。POC方案额外需要§4-§8（选题/执行方式/对比判定/三处同步）。文档reload到上下文后AI必须能完全明白每个概念、为什么做、对应代码哪个函数、每个认知来自哪里。329号是按此标准编写的范例。
-- **三个核心问题原则（314号硬约束）**：设计或修改任何Pipe时，检查是否涉及314号定义的三个核心问题——①非局部tell库缺失（tell不只在卡点，可以在脉络上任意点或跨多节点范围）②推理脉络格化（脉络分成段后段的不同合并方式形成不同Level视图）③Tell分类学（建立第六代Tell的分类体系）。如果涉及，在`six/references.py`的`CORE_PROBLEMS`中记录对应关系，在Pipe函数docstring中标注涉及哪个核心问题。
-- **POC三层组织原则（317号硬约束）**：设计新POC时，必须在317号的三层组织中定位——第一层基础能力（VMS-0到VMS-8，验证单个能力）/第二层管线验证（VMS-9到VMS-19，验证Pipe衔接）/第三层系统验证（VMS-20+，验证完整工作流）。在`six/references.py`的POC索引中记录POC编号、所属层级、验证的Pipe/子pipe。新POC方案按328号自包含标准编写。
-- **形式化定义同步原则（319号硬约束）**：修改任何数据结构（dataclass）或Pipe函数签名时，必须同步更新三处——①`six/types.py`或`six/pipes.py`中的代码定义②319号文档中的形式化定义③`six/references.py`中的映射。三处必须对齐同步，dataclass名称/字段名/函数名/参数名必须一致。新增dataclass或Pipe函数时，在319号文档中添加形式化定义，在`__init__.py`的`__all__`中导出。
-- **完整工作流对照原则（315号硬约束）**：设计或修改任何Pipe的衔接关系时，必须对照315号的完整工作流——从推理AI探索到引导树填充的6步完整流程。确认衔接关系没有断裂：Pipe 0（Solver）→Pipe 1（Parser）→Pipe 2（Telling）→步骤5分叉→Pipe 3（Guide）→回到Pipe 0。如果修改导致衔接关系变化，在315号文档中更新工作流描述，在`six/loops.py`中更新流程函数。
+
+**six/设计原则rule绑定**（rule文件在`.devin/rules/`中，AGENTS.md只保留索引）：
+
+| rule | 文件 | 触发条件 | 来源 |
+|---|---|---|---|
+| 解放思想原则 | `.devin/rules/six-liberation-principle.md` | 设计或修改任何函数时 | 318号/`principles.py` |
+| 反射原则 | `.devin/rules/six-reflection-principle.md` | 设计或修改任何Pipe函数时 | `reflection.py` |
+| 提示词原则+三处对齐同步 | `.devin/rules/six-prompt-principle.md` | 设计或修改任何Pipe函数时；新增/改进/验证提示词时 | 321/325/326号/`prompts.py` |
+| 文档自包含与可审计 | `.devin/rules/six-doc-selfcontained.md` | 编写或修改任何研发过程文档时 | 328号 |
+| 三个核心问题 | `.devin/rules/six-core-problems.md` | 设计或修改任何Pipe时 | 314号/`references.py` |
+| POC三层组织 | `.devin/rules/six-poc-organization.md` | 设计新POC时 | 317号/`references.py` |
+| 形式化定义同步 | `.devin/rules/six-formal-def-sync.md` | 修改任何dataclass或Pipe函数签名时 | 319号/`types.py`/`pipes.py` |
+| 完整工作流对照 | `.devin/rules/six-workflow-alignment.md` | 设计或修改任何Pipe衔接关系时 | 315号/`loops.py` |
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围
