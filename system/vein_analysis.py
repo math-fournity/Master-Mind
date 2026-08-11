@@ -1241,6 +1241,13 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
     with open(os.path.join(synth_dir, "prompt.md"), "w", encoding="utf-8") as f:
         f.write(prompt_content)
 
+    # 综合分析文件拆分流程控制——复制step要求文件（336号方案——4阶段不退化方案）
+    import shutil
+    for step_num in range(1, 5):  # step1=对比+回溯, step2=闭元素解读, step3=内容trace, step4=审计+合并
+        step_src = os.path.join(repo_root, PROMPT_DIR, f"synthesis_step{step_num}_requirements.md")
+        if os.path.exists(step_src):
+            shutil.copy2(step_src, os.path.join(synth_dir, f"step{step_num}_requirements.md"))
+
     # 写input.md——题目+解答文本
     solution_block = _build_solution_block(input)
     with open(os.path.join(synth_dir, "input.md"), "w", encoding="utf-8") as f:
