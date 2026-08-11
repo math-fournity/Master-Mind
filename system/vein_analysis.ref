@@ -1,0 +1,109 @@
+# vein_analysis.py 的参考文档——理解脉络分析阶段需要阅读这些文档
+
+# ── 核心实现依据：4并发方案（2026-08-10决定） ──
+# 脉络分析在运行时采用4并发——V5/V7/V8/V9四个提示词版本并发跑同一道题，取trace并集。
+# 4个版本各有所长不是子集关系，每个版本的结构化约束既是引导也是盲区。
+# 4并发并集~42个trace（去重后），覆盖全部8个独有发现。
+
+# 4并发方案完整记录——运行时架构、实现细节、去重规则、程序验证作用、trace覆盖对比、
+# 理论依据、和Grove核心循环的关系、未来演进、降级选项
+第六代系统技术说明书/06-五代继承/02-第六代的独特贡献.md
+
+# 4并发方案决定记录——332号§8.13
+第六代系统研发过程文档/332-v0-2026-08-10-POC-VMS-28c执行方案-机械化过程描述与程序验证完全格.md
+
+# ── 4个提示词版本（4并发的4个分支） ──
+
+# V5——自由直觉提示词（无结构化约束，9项自我审计报告）
+# 独有发现：归纳递降三种方式（n→n-2 vs n→n-1的递降幅度差异）
+# 注意：V5没有结构化JSON输出要求，产出是自由文本，需要单独解析
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v5.md
+
+# V7——机械化过程描述+规范化审计+JSON输出
+# 独有发现：预防性vs修复性避障的对比、Case间递进关系
+# 加入FCA Next Closure算法步骤、完全格元素清单审计、结构化JSON
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v7.md
+
+# V8——AI优势元素扩展（跨闭元素元模式）
+# 独有发现：x贯穿整个证明、aₙ作为跳过障碍工具
+# 在V7基础上新增cross_element_meta_pattern类型
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v8.md
+
+# V9——三层验证体系（关键实体贯穿性+伪元模式过滤+元反思）——最新验证通过版本
+# 独有发现：WLOG排序闭环、好index r的生命周期
+# 在V8基础上新增key_entities字段、审计项10元反思、meta_reflection_traces字段
+# JSON schema最完整——包含key_entities和meta_reflection_traces
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v9.md
+
+# set_A README——4并发方案在"并发使用"节 + 各版本验证状态
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/README.md
+
+# ── 程序验证脚本（运行时闭环反馈组件） ──
+
+# verify_lattice_completeness.py——三层验证的实现
+# 第一层：闭元素完备性（Next Closure算法数学保证）
+# 第二层：关键实体贯穿性验证（V9新增，程序验证每个贯穿≥2闭元素的实体是否被考虑）
+# 第三层：元反思trace检查（V9新增，输出meta_reflection_traces的数量和内容）
+# 伪元模式过滤——对AI声称的cross_element_meta_pattern检查段集合是否本身是闭元素
+# 运行时闭环反馈：完备性得分低于阈值时反馈给AI重做
+six/verify_lattice_completeness.py
+
+# ── 机械化过程描述+规范化审计+程序验证 元组（提示词设计技术） ──
+
+# rule——触发条件和核心原则 + 三层验证体系（V9改进） + AI优势元素两种类型
+.devin/rules/six-mechanization-reference.md
+
+# skill——经验积累（V7→V8→V9的改进经验，每步的问题-修复-验证-经验）
+.devin/skills/mechanization-reference/SKILL.md
+
+# ── POC验证完整记录（VMS-28c/28d/28e） ──
+
+# 332号文档——从V7到V9的完整POC验证记录
+# §8.1-8.9: V7验证（闭元素完备性100%，trace完备性有缺陷）
+# §8.10: V5 vs V7 trace对比（发现V7漏掉3个跨闭元素元模式trace）
+# §8.11: V8改进与VMS-28d验证（扩展AI优势元素定义，成功补回trace）
+# §8.12: V9改进与VMS-28e验证（三层验证体系，元反思发现5个新trace）
+# §8.13: 4并发方案决定
+第六代系统研发过程文档/332-v0-2026-08-10-POC-VMS-28c执行方案-机械化过程描述与程序验证完全格.md
+
+# V5 vs V8 trace对比文档
+第六代系统研发过程文档/vms28d_v5_v8_trace_comparison.md
+
+# V5 vs V8 vs V9 trace对比文档（含4并发并集分析）
+第六代系统研发过程文档/vms28e_v5_v8_v9_trace_comparison.md
+
+# ── 架构描述代码（参考依据，不是实现） ──
+
+# pipes.py——Pipe 1 step_2 grid_vein的架构描述
+# 含V7/V8/V9验证结果 + 4并发方案 + 运行时闭环反馈机制
+six/pipes.py
+
+# prompts.py——提示词版本登记（V5/V7/V8/V9的元数据）
+six/prompts.py
+
+# types.py——数据结构定义参考
+six/types.py
+
+# ── 系统架构（vein_analysis在系统中的位置） ──
+
+# 系统架构总图——完整数据流
+第六代系统技术说明书/07-工程规格/01-系统架构总图.md
+
+# trace-tell-hint三步链路——基础概念
+第六代系统技术说明书/01-基础概念/02-trace-tell-hint三步链路.md
+
+# 系统物理实现方向——两个入口的定义 + §8.7 会话与启动目录ID化（palyground目录结构）
+第六代系统技术说明书/README.md
+
+# ── 分类学本体（trace匹配阶段需要，但脉络分析产出要为匹配做准备） ──
+
+# 先验Tell分类学——分类学本体（domain×段结构模式×具体概念，观察Level参数）
+FCA学习笔记/08-先验Tell分类学.md
+
+# ── 数据结构定义 ──
+
+# schema.py——AnalysisInput/AnalysisOutput/Trace/Vein/LevelView/Segment等数据结构定义
+system/schema.py
+
+# db_schema.py——get_working_directory()函数，devin cli启动目录路径约定
+system/db_schema.py
