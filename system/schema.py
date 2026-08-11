@@ -232,7 +232,9 @@ class AnalysisOutput:
     traces: list[Trace]                 # 全Level trace集合
     veins: list[Vein]                   # 分析出的脉络
     level_views: list[LevelView]        # 所有Level视图
-    process: Literal["solve", "absorb"]
+    process: Literal["solve", "absorb"] = "absorb"
+    # 340号方案——子管线超时降级
+    all_failed: bool = False            # 是否所有格化子管线都失败
 
 
 # --- trace匹配阶段（两个过程共享） ---

@@ -82,6 +82,12 @@ def main():
     output = vein_analysis_three_phase(input)
     print("=" * 70)
 
+    # 检查是否所有格化子管线失败（340号方案）
+    if getattr(output, 'all_failed', False):
+        print("\n❌ 所有格化子管线失败，无法进行综合分析")
+        print("请检查system/logs/中的日志了解失败原因")
+        sys.exit(1)
+
     # 4. 打印结果
     print(f"三阶段脉络分析完成")
     print(f"trace数量: {len(output.traces)}")

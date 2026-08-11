@@ -1092,6 +1092,28 @@ def _archive_run(workdir_base: str, run_id: int) -> str:
     return archive_dir
 
 
+def _calc_grading_timeout(solution_text: str) -> int:
+    """根据解答文本长度计算格化超时时间（秒）——340号方案
+
+    经验值（基于0004-0011的历史数据）：
+    - 短文本（<2000字符）：10分钟
+    - 中等文本（2000-5000字符）：15分钟
+    - 长文本（5000-10000字符）：20分钟
+    - 超长文本（>10000字符）：30分钟
+
+    IMO 2009 P6解答约2400字符 → 15分钟
+    """
+    text_len = len(solution_text)
+    if text_len < 2000:
+        return 600   # 10分钟
+    elif text_len < 5000:
+        return 900   # 15分钟
+    elif text_len < 10000:
+        return 1200  # 20分钟
+    else:
+        return 1800  # 30分钟
+
+
 def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     """三阶段脉络分析——格化与trace识别分离
 
@@ -1152,14 +1174,43 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     print("\n--- 阶段1：4并发格化 ---")
     grading_dirs = _phase1_grading(workdir_base, input, run_id)
 
-    # 更新数据库——阶段1产出路径
+    # 检查是否所有版本都失败（340号方案）
+    from .log import get_logger
+    logger = get_logger("vein_analysis")
+
+    if not grading_dirs:
+        logger.error("❌ 所有格化子管线失败，无法进行综合分析")
+        db.update_problem_entry(entry_key, status="failed", error_detail="all_grading_failed")
+        print("\n❌ 所有格化子管线失败，无法进行综合分析")
+        # 返回空output
+        from .schema import AnalysisOutput
+        return AnalysisOutput(traces=[], veins=[], level_views=[], all_failed=True)
+
+    # 读取phase1结果meta
+    phase1_meta_path = os.path.join(workdir_base, "phase1_grading", "phase1_results.json")
+    phase1_meta = {}
+    if os.path.exists(phase1_meta_path):
+        phase1_meta = _read_json(phase1_meta_path)
+    success_versions = list(grading_dirs.keys())
+    failed_versions = phase1_meta.get("failed_versions", [])
+    if failed_versions:
+        logger.info(f"综合分析将基于{success_versions}的格化结果，{failed_versions}因超时被舍弃")
+        print(f"  ℹ️ 综合分析基于{success_versions}，{failed_versions}被舍弃")
+
+    # 更新数据库——阶段1产出路径+成功/失败版本（340号方案）
     phase1_output_paths = {}
     for version, vdir in grading_dirs.items():
         phase1_output_paths[version] = {
             "segments": os.path.join(vdir, "segments.json"),
             "formal_context": os.path.join(vdir, "formal_context.json") if os.path.exists(os.path.join(vdir, "formal_context.json")) else None,
         }
-    db.update_problem_entry(entry_key, phase1_output_paths=phase1_output_paths)
+    db.update_problem_entry(
+        entry_key,
+        phase1_output_paths=phase1_output_paths,
+        phase1_success_versions=success_versions,
+        phase1_failed_versions=failed_versions,
+        phase1_results=phase1_meta.get("results", {}),
+    )
 
     # 阶段1.5：程序枚举闭元素
     print("\n--- 阶段1.5：程序枚举闭元素 ---")
@@ -1271,56 +1322,128 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
         else:
             print(f"  ⚠️ {version} 启动失败")
 
-    # 等待4个格化session完成——轮询DONE.md
+    # 等待格化session完成——每个版本独立超时，至少1个通过即可（340号方案）
     import time
-    timeout = 1800  # 30分钟超时（格化比完整流程快）
-    v8_timeout = 900  # V8超时阈值——V8的thinking通常比其他版本大（335号方案）
+    from .log import get_logger
+    logger = get_logger("vein_analysis")
+
+    # 根据解答文本长度计算超时时间（340号方案）
+    solution_text = input.solution_record.solution_text if input.solution_record else ""
+    grading_timeout = _calc_grading_timeout(solution_text)
+    logger.info(f"格化超时设定: {grading_timeout}秒（解答文本{len(solution_text)}字符）")
+
     poll_interval = 20
     started = time.time()
-    v8_failed = False
+    version_status = {}  # {version: "running"/"completed"/"timeout"}
+    version_start_time = {}  # {version: start_timestamp}
+    for version in prepared_dirs:
+        version_status[version] = "running"
+        version_start_time[version] = started
 
     while True:
         elapsed = time.time() - started
-        if elapsed > timeout:
-            print(f"  ⚠️ 格化超时({timeout}秒)，停止等待")
-            break
 
-        # V8超时降级——超过v8_timeout秒后标记V8失败，不等待V8的DONE.md（335号方案）
-        if not v8_failed and "V8" in prepared_dirs:
-            v8_done = os.path.exists(os.path.join(prepared_dirs["V8"], "DONE.md"))
-            if not v8_done and elapsed > v8_timeout:
-                print(f"  ⚠️ V8超时({int(elapsed)}秒)，使用降级选项——用V5/V7/V10继续")
-                v8_failed = True
-                # 创建一个标记文件，让后续阶段知道V8失败
-                with open(os.path.join(prepared_dirs["V8"], "FAILED.md"), "w") as f:
-                    f.write(f"V8超时失败，耗时{int(elapsed)}秒\n")
-
-        all_done = True
-        status = []
+        # 检查每个版本的状态
+        status_parts = []
         for version, vdir in prepared_dirs.items():
-            done = os.path.exists(os.path.join(vdir, "DONE.md"))
-            # V8超时后视为完成（降级）
-            if version == "V8" and v8_failed:
-                done = True
-                status.append(f"{version}: ❌降级")
-            else:
-                status.append(f"{version}: {'✅' if done else '⏳'}")
-            if not done:
-                all_done = False
+            if version_status[version] == "completed":
+                status_parts.append(f"{version}: ✅")
+                continue
+            if version_status[version] == "timeout":
+                status_parts.append(f"{version}: ❌超时")
+                continue
 
-        print(f"  [{int(elapsed)}s] {' '.join(status)}")
-        if all_done:
-            if v8_failed:
-                print("  ✅ 3个格化session完成（V8降级）")
+            # 检查是否完成
+            done = os.path.exists(os.path.join(vdir, "DONE.md"))
+            if done:
+                version_status[version] = "completed"
+                duration = int(time.time() - version_start_time[version])
+                # 读取段数
+                seg_count = 0
+                seg_path = os.path.join(vdir, "segments.json")
+                if os.path.exists(seg_path):
+                    seg_data = _read_json(seg_path)
+                    seg_count = len(seg_data.get("segments", seg_data if isinstance(seg_data, list) else []))
+                logger.info(f"格化版本{version}完成，耗时{duration}秒，段数={seg_count}")
+                status_parts.append(f"{version}: ✅")
+            elif elapsed > grading_timeout:
+                # 超时——标记timeout（340号方案）
+                version_status[version] = "timeout"
+                duration = int(time.time() - version_start_time[version])
+                logger.warning(f"格化版本{version}超时({duration}秒)，标记timeout")
+                # 创建FAILED.md标记文件
+                with open(os.path.join(vdir, "FAILED.md"), "w") as f:
+                    f.write(f"{version}超时失败，耗时{duration}秒\n")
+                # kill卡住的进程
+                pid_file = os.path.join(vdir, "devin_pid.txt")
+                if os.path.exists(pid_file):
+                    with open(pid_file) as f:
+                        pid = f.read().strip()
+                    if pid:
+                        try:
+                            import signal
+                            os.kill(int(pid), signal.SIGTERM)
+                            logger.info(f"已kill版本{version}的进程(PID={pid})")
+                        except Exception:
+                            pass
+                status_parts.append(f"{version}: ❌超时")
             else:
-                print("  ✅ 4个格化session全部完成")
+                status_parts.append(f"{version}: ⏳")
+
+        print(f"  [{int(elapsed)}s] {' '.join(status_parts)}")
+
+        # 退出条件：所有版本要么completed要么timeout
+        all_settled = all(s in ("completed", "timeout") for s in version_status.values())
+        if all_settled:
+            success_count = sum(1 for s in version_status.values() if s == "completed")
+            fail_count = sum(1 for s in version_status.values() if s == "timeout")
+            if fail_count == 0:
+                logger.info(f"✅ {success_count}个格化session全部完成")
+            else:
+                logger.info(f"✅ {success_count}个格化session完成，{fail_count}个超时降级")
             break
+
+        # 安全兜底：总超时2倍grading_timeout
+        if elapsed > grading_timeout * 2:
+            logger.warning(f"⚠️ 总超时({int(elapsed)}秒)，强制停止等待")
+            break
+
         time.sleep(poll_interval)
+
+    # 收集成功的版本——只返回成功的（340号方案）
+    success_versions = {v: d for v, d in prepared_dirs.items() if version_status[v] == "completed"}
+    failed_versions = [v for v in prepared_dirs if version_status[v] == "timeout"]
+
+    # 记录到数据库（340号方案）
+    phase1_results = {}
+    for version in prepared_dirs:
+        vdir = prepared_dirs[version]
+        seg_count = 0
+        seg_path = os.path.join(vdir, "segments.json")
+        if os.path.exists(seg_path):
+            seg_data = _read_json(seg_path)
+            seg_count = len(seg_data.get("segments", seg_data if isinstance(seg_data, list) else []))
+        phase1_results[version] = {
+            "status": version_status[version],
+            "duration_sec": int(time.time() - version_start_time[version]) if version_status[version] == "timeout" else None,
+            "segments_count": seg_count,
+        }
+
+    # 存到工作目录的meta文件中，供vein_analysis_three_phase()读取
+    phase1_meta = {
+        "success_versions": list(success_versions.keys()),
+        "failed_versions": failed_versions,
+        "results": phase1_results,
+    }
+    with open(os.path.join(workdir_base, "phase1_grading", "phase1_results.json"), "w", encoding="utf-8") as f:
+        json.dump(phase1_meta, f, ensure_ascii=False, indent=2)
+
+    logger.info(f"格化阶段结果: 成功={list(success_versions.keys())}, 失败={failed_versions}")
 
     # 清理tmux session
     _cleanup_tmux_sessions_named(prepared_dirs, f"grade-{run_id:04d}")
 
-    return prepared_dirs
+    return success_versions
 
 
 def _phase1_5_enumerate(workdir_base: str, grading_dirs: dict) -> dict:
