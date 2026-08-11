@@ -1100,8 +1100,10 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
     # 等待4个格化session完成——轮询DONE.md
     import time
     timeout = 1800  # 30分钟超时（格化比完整流程快）
+    v8_timeout = 900  # V8超时阈值——V8的thinking通常比其他版本大（335号方案）
     poll_interval = 20
     started = time.time()
+    v8_failed = False
 
     while True:
         elapsed = time.time() - started
@@ -1109,17 +1111,35 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
             print(f"  ⚠️ 格化超时({timeout}秒)，停止等待")
             break
 
+        # V8超时降级——超过v8_timeout秒后标记V8失败，不等待V8的DONE.md（335号方案）
+        if not v8_failed and "V8" in prepared_dirs:
+            v8_done = os.path.exists(os.path.join(prepared_dirs["V8"], "DONE.md"))
+            if not v8_done and elapsed > v8_timeout:
+                print(f"  ⚠️ V8超时({int(elapsed)}秒)，使用降级选项——用V5/V7/V10继续")
+                v8_failed = True
+                # 创建一个标记文件，让后续阶段知道V8失败
+                with open(os.path.join(prepared_dirs["V8"], "FAILED.md"), "w") as f:
+                    f.write(f"V8超时失败，耗时{int(elapsed)}秒\n")
+
         all_done = True
         status = []
         for version, vdir in prepared_dirs.items():
             done = os.path.exists(os.path.join(vdir, "DONE.md"))
-            status.append(f"{version}: {'✅' if done else '⏳'}")
+            # V8超时后视为完成（降级）
+            if version == "V8" and v8_failed:
+                done = True
+                status.append(f"{version}: ❌降级")
+            else:
+                status.append(f"{version}: {'✅' if done else '⏳'}")
             if not done:
                 all_done = False
 
         print(f"  [{int(elapsed)}s] {' '.join(status)}")
         if all_done:
-            print("  ✅ 4个格化session全部完成")
+            if v8_failed:
+                print("  ✅ 3个格化session完成（V8降级）")
+            else:
+                print("  ✅ 4个格化session全部完成")
             break
         time.sleep(poll_interval)
 
