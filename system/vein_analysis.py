@@ -1306,13 +1306,22 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
     # 转成AnalysisOutput
     traces = []
     for t in output_data.get("traces", []):
+        # trace_type映射——AI输出用cross_case_merge/cross_element_meta_pattern等，
+        # 映射到schema的local/non_local/global
+        t_type = t.get("type", "local")
+        if t_type in ("local",):
+            mapped_type = "local"
+        elif t_type in ("global",):
+            mapped_type = "global"
+        else:
+            # non_local, cross_case_merge, cross_element_meta_pattern → non_local
+            mapped_type = "non_local"
         traces.append(Trace(
             trace_id=t.get("id", ""),
-            trace_type=t.get("type", "local"),
-            level=t.get("level", "Level 0"),
-            segments=t.get("segments", []),
+            trace_type=mapped_type,
+            level=t.get("level", 0) if isinstance(t.get("level"), int) else 0,
             pattern_description=t.get("description", ""),
-            generalizable=t.get("generalizable", False),
+            source_segment_ids=[str(s) for s in t.get("segments", [])],
         ))
 
     veins = []
