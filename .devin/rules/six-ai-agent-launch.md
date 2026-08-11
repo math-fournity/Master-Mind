@@ -10,6 +10,8 @@
 
 **启动动作由脚本自动执行**（2026-08-11认知转变）。系统就是脚本——AI Agent的启动由Python代码用subprocess自动执行tmux命令，不需要Master Agent手动执行。Master Agent在系统运行时是检查者，不参与循环执行。
 
+**yolo模式启动**：所有AI Agent的devin cli实例都用`--permission-mode dangerous`启动——自动批准所有工具操作。因为AI Agent在detached tmux session中运行，无法交互式批准文件写入和命令执行。如果不加此参数，AI Agent会在第一次需要写文件时卡住等待批准。
+
 ## 启动前的准备工作
 
 每个AI Agent启动前，必须在其工作目录中准备好以下文件：

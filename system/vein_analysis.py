@@ -265,11 +265,13 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
             f"按提示词要求工作，完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md"
         )
 
-        # 用subprocess启动tmux session
+        # 用subprocess启动tmux session——交互模式，用--分隔prompt
+        # --permission-mode dangerous: yolo模式，自动批准所有工具操作（detached session无法交互批准）
+        # --respect-workspace-trust false: 跳过workspace trust确认
         import subprocess
         cmd = [
             "tmux", "new-session", "-d", "-s", session_name,
-            f"cd {vdir} && devin '{launch_prompt}'"
+            f"cd {vdir} && devin --permission-mode dangerous --respect-workspace-trust false -- '{launch_prompt}'"
         ]
         print(f"启动 {version}: tmux session={session_name}")
         result = subprocess.run(cmd, capture_output=True, text=True)
