@@ -827,6 +827,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | **AI Agent启动规范** | `.devin/rules/six-ai-agent-launch.md` | **always-on——启动系统中任何AI Agent实例时** | 用户原话（全部使用tmux，先到指定目录，准备好AGENTS.md和提示词文件，短启动提示词+提示词文件加载） |
 | **双重检查机制** | `.devin/rules/six-dual-check-mechanism.md` | **always-on——设计或实现系统任何运行阶段后；系统运行中检查健康状态时；系统运行后审计产出质量时** | 用户原话（代码能保证的用代码检查，无法用代码完成的用流程审计AI检查，.ai-check文件记录checklist） |
 | **"更新文档"动作定义** | `.devin/rules/six-update-docs-action.md` | **用户在system系统研发中说"更新文档"时** | 用户原话（"更新文档"代表很多动作，需要思考哪些文档需要更新，以后只说一句更新文档就全面检查） |
+| **系统资产分级与上下文预算** | `.devin/rules/six-asset-grading.md` | **always-on——设计或修改AI Agent的AGENTS.md内容时；设计或修改提示词文件时；向AI Agent发送直接提示词时；向system/添加新的资产文件时** | 用户原话（AGENTS.md和可复用提示词是system资产，题目解答放文件中，大块要求放文件中，直接提示词不大块，分类学资产从AGENTS.md拆分到单独文件，单文件300行限制，超长检测+警报） |
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围

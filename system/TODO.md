@@ -167,3 +167,53 @@ V9产出的trace还有以下字段：
 **问题**：trace_match/knowledge_deposit/get_archived_orphan_traces/save_tell_to_library全部是raise NotImplementedError。这些是解答吸收的4个阶段。
 
 **注意**：vein_analysis占位函数将被替换为从vein_analysis.py导入（TODO-4解决后）。其他3个阶段函数待各自阶段实现时再做。trace_match和process_solve.py的trace_match是同一个函数（两个过程共享）。
+
+---
+
+## 资产分级与上下文预算相关
+
+### TODO-13: file_size_monitor.py未实现——资产文件超长检测 [中优先级]
+
+**来源**：six-asset-grading.md rule + 用户要求（2026-08-11）
+
+**问题**：系统资产分级rule要求单个资产文件限制在300行左右。超长文件需要脚本检测并发出警报。file_size_monitor.py尚未实现。
+
+**需要实现**：
+- `check_file_size(file_path)`——检查单个文件是否超长（行数>300或字符数>9000）
+- `scan_asset_files(asset_dirs)`——扫描所有资产文件，返回超长文件列表
+- 把超长文件警报写入数据库alerts表（TODO-14）
+- 受检测的文件类型：.md/.txt（资产文件）；不受限制：input.md（题目解答文本）、.py（代码文件）
+
+**资产目录**：
+- `第六代系统提示词积累目录/`——提示词文件
+- `taxonomy/`——分类学识别资产文件（TODO-15拆分后）
+- AI Agent工作目录中的AGENTS.md——实例运行版AGENTS.md
+
+---
+
+### TODO-14: alerts表未定义 [中优先级]
+
+**来源**：six-asset-grading.md rule + 用户要求（2026-08-11）
+
+**问题**：db_schema.py中alerts表未定义。文件超长检测（TODO-13）和其他系统警报需要写入alerts表，后续检查的AI可以看到。
+
+**需要定义的字段**：alert_id, alert_type("file_overlong"/"runtime_error"/"trace_anomaly"等), file_path（如适用）, lines, chars, severity("warning"/"error"), detected_at, resolved_at, resolved_by, detail
+
+**和其他表的关系**：alerts表和ai_instances表（TODO-6）一样，是系统运行健康监控的数据库层面保障。alerts表是"代码检查"的一部分——脚本自动检测并写入警报，AI后续检查时读取。
+
+---
+
+### TODO-15: Tell分类学Schema从AGENTS.md拆分到单独文件 [中优先级]
+
+**来源**：six-asset-grading.md rule + 用户要求（2026-08-11）
+
+**问题**：AGENTS.md中的"Tell分类学Schema"节（第913-993行，约80行）放在项目AGENTS.md中。随着分类学增长，这个节会越来越长，污染AGENTS.md。按资产分级rule，分类学识别资产应该从AGENTS.md拆分到单独文件中。
+
+**需要做**：
+1. 创建`taxonomy/`目录
+2. 把AGENTS.md中"Tell分类学Schema"节的内容拆分到`taxonomy/schema.md`（分类学结构定义）和按domain拆分的文件（如`taxonomy/domain_algebra.md`等）
+3. 每个文件限制在300行左右
+4. AGENTS.md中只保留"必须加载的分类学文件清单"——不保留分类学内容本身
+5. 更新`.devin/rules/tell-taxonomy-schema-maintenance.md`——维护规则改为维护taxonomy/目录下的文件，而不是AGENTS.md中的Schema节
+
+**注意**：这个TODO涉及修改AGENTS.md的核心内容，需要谨慎执行——确保拆分后AI仍然能通过"必须加载的文件清单"找到分类学知识。
