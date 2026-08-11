@@ -223,6 +223,10 @@ def update_problem_entry(
     phase1_5_output_paths: Optional[dict] = None,
     phase2_session_id: Optional[str] = None,
     phase2_output_paths: Optional[dict] = None,
+    # 339号方案——研发资产管理字段
+    manifest_path: Optional[str] = None,
+    archive_path: Optional[str] = None,
+    git_commit: Optional[str] = None,
 ):
     """更新题目录入记录——vein_analysis各阶段完成时调用
 
@@ -275,6 +279,13 @@ def update_problem_entry(
         doc["phase2_session_id"] = phase2_session_id
     if phase2_output_paths is not None:
         doc["phase2_output_paths"] = phase2_output_paths
+    # 339号方案——研发资产管理字段
+    if manifest_path is not None:
+        doc["manifest_path"] = manifest_path
+    if archive_path is not None:
+        doc["archive_path"] = archive_path
+    if git_commit is not None:
+        doc["git_commit"] = git_commit
     if status in ("completed", "failed"):
         doc["completed_at"] = _now_iso()
 
