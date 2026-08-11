@@ -140,6 +140,10 @@ USE_TMUX = True
 def _launch_devin(session_name: str, workdir: str, prompt: str) -> bool:
     """启动devin cli实例——根据USE_TMUX开关选择tmux交互模式或非交互模式
 
+    两种模式都带--export导出ATIF v1.7格式trajectory到工作目录下的trajectory.json。
+    trajectory.json包含完整推理过程（thinking + tool_calls + tool_results + token usage），
+    用于审计、调试和trajectory提取。
+
     Args:
         session_name: tmux session名（tmux模式时用）
         workdir: 工作目录
@@ -148,11 +152,13 @@ def _launch_devin(session_name: str, workdir: str, prompt: str) -> bool:
     Returns:
         True=启动成功, False=启动失败
     """
+    trajectory_path = os.path.join(workdir, "trajectory.json")
+
     if USE_TMUX:
         # tmux交互模式——detached session，可attach查看进度
         cmd = [
             "tmux", "new-session", "-d", "-s", session_name,
-            f"cd {workdir} && devin --permission-mode dangerous --respect-workspace-trust false -- '{prompt}'"
+            f"cd {workdir} && devin --permission-mode dangerous --respect-workspace-trust false --export {trajectory_path} -- '{prompt}'"
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
         if result.returncode != 0:
@@ -161,12 +167,14 @@ def _launch_devin(session_name: str, workdir: str, prompt: str) -> bool:
         return True
     else:
         # 非交互模式——subprocess后台启动，-p/--print，跑完自动退出
+        # stdout输出AI响应文本，--export导出完整trajectory
         # 用Popen不等待——后台运行，轮询DONE.md判断完成
         log_path = os.path.join(workdir, "devin_cli.log")
         log_f = open(log_path, "w")
         proc = subprocess.Popen(
             ["devin", "--permission-mode", "dangerous",
              "--respect-workspace-trust", "false",
+             "--export", trajectory_path,
              "-p", prompt],
             stdout=log_f, stderr=subprocess.STDOUT,
             cwd=workdir,
