@@ -13,6 +13,7 @@
 1. 加载当前工作目录下的 prompt.md 中的完整提示词
 2. 按提示词要求分析解答文本
 3. 产出写入当前工作目录下的 output.json（结构化JSON）和 output.md（人类可读报告）
+4. 全部产出写完后，在当前工作目录下创建一个空的 DONE.md 文件作为完成信号
 
 ## 产出要求
 
@@ -24,4 +25,8 @@
 
 ## 痕迹保留
 
-你的所有产出（prompt.md/input.md/output.json/output.md）都会保留在工作目录中，用于未来的审计和调试。请确保产出完整、可追溯。
+你的所有产出（prompt.md/input.md/output.json/output.md/DONE.md）都会保留在工作目录中，用于未来的审计和调试。请确保产出完整、可追溯。
+
+## 完成信号
+
+**DONE.md是空文件**，只是表示你确认所有工作已完成——output.json和output.md都已写好。系统通过检测DONE.md的出现来判断你已完成，并自动回收你的tmux session。不要在写完output.json/output.md之前创建DONE.md。

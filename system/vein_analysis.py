@@ -14,14 +14,16 @@
 实现说明
 ═══════════════════════════════════════════════════════════════════════
 
-本模块实现absorb模式的4并发方案——V5/V7/V8/V9四个提示词版本并发跑同一道题，
+本模块实现absorb模式的4并发方案——V5/V7/V8/V10四个提示词版本并发跑同一道题，
 取trace并集。
 
 4个版本各有所长，不是简单的子集关系：
 - V5独有"归纳递降三种方式"（自由直觉发现）
 - V7独有"预防性vs修复性避障"+"Case间递进"（结构化约束让注意力分布不同）
 - V8独有"x贯穿"+"aₙ作为工具"（跨闭元素元模式引导）
-- V9独有"WLOG闭环"+"r的生命周期"（元反思步骤）
+- V10独有"WLOG闭环"+"r的生命周期"（元反思步骤）+ "先写文件后做验证"执行顺序
+- V10 = V9改进版——伪元模式过滤和贯穿性验证移到程序中（verify_lattice_completeness.py已实现），
+  AI只做关键实体列举和元反思；加"先写文件后做验证"防止token超限
 
 每个版本的结构化约束既是引导也是盲区，4并发取并集覆盖所有优势区。
 
@@ -81,7 +83,7 @@ from .schema import (
 
 # 4个提示词版本，按提示词积累目录的相对路径
 # 每个版本的特点见模块docstring
-PROMPT_VERSIONS = ["V5", "V7", "V8", "V9"]
+PROMPT_VERSIONS = ["V5", "V7", "V8", "V10"]
 
 # 提示词文件的相对路径（相对repo根目录）
 PROMPT_DIR = "第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee"
@@ -89,7 +91,7 @@ PROMPT_FILES = {
     "V5": os.path.join(PROMPT_DIR, "v5.md"),
     "V7": os.path.join(PROMPT_DIR, "v7.md"),
     "V8": os.path.join(PROMPT_DIR, "v8.md"),
-    "V9": os.path.join(PROMPT_DIR, "v9.md"),
+    "V10": os.path.join(PROMPT_DIR, "v10.md"),
 }
 
 # 提示词中解答文本的占位符——替换为实际解答文本
@@ -100,7 +102,7 @@ AGENTS_TEMPLATES = {
     "V5": "assets/vein_analysis/AGENTS_V5.md",
     "V7": "assets/vein_analysis/AGENTS_V7.md",
     "V8": "assets/vein_analysis/AGENTS_V8.md",
-    "V9": "assets/vein_analysis/AGENTS_V9.md",
+    "V10": "assets/vein_analysis/AGENTS_V10.md",
 }
 
 # 程序验证脚本路径（相对repo根目录）
@@ -139,7 +141,7 @@ def vein_analysis(input: AnalysisInput) -> AnalysisOutput:
     - solve：从Thinking分析，可能有分叉，分叉位置本身可能是trace
     - absorb：从SolutionRecord分析，通常线性，接收孤悬trace作为启发信号
 
-    absorb模式采用4并发方案——V5/V7/V8/V9四个提示词版本并发跑同一道题，
+    absorb模式采用4并发方案——V5/V7/V8/V10四个提示词版本并发跑同一道题，
     取trace并集。详见模块docstring和技术说明书"4并发方案"节。
 
     solve模式的提示词尚未设计（TODO-1），当前留NotImplementedError。
@@ -262,7 +264,9 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
             f"先加载 {vdir}/AGENTS.md 了解你的角色和约束，"
             f"然后加载 {vdir}/prompt.md 中的提示词，"
             f"读取 {vdir}/input.md 中的解答文本作为分析对象，"
-            f"按提示词要求工作，完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md"
+            f"按提示词要求工作，完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md。"
+            f"全部产出写完后，在 {vdir}/ 下创建一个空的 DONE.md 文件作为完成信号——"
+            f"DONE.md是空文件，只是表示你确认所有工作已完成。"
         )
 
         # 用subprocess启动tmux session——交互模式，用--分隔prompt
@@ -305,6 +309,35 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
     return output
 
 
+def _cleanup_tmux_sessions(prepared_dirs: dict):
+    """清理已完成的tmux session——自动回收devin cli实例
+
+    在collect_vein_analysis_output完成后调用。检查每个版本的工作目录中
+    是否有DONE.md，有的话kill对应的tmux session。
+
+    Args:
+        prepared_dirs: {version: workdir_path}
+    """
+    import subprocess
+    for version, vdir in prepared_dirs.items():
+        done_path = os.path.join(vdir, "DONE.md")
+        if not os.path.exists(done_path):
+            continue
+        # tmux session名和_prepare_version_workdir中一致
+        problem_id = os.path.basename(os.path.dirname(vdir))  # imo2009p6
+        session_name = f"absorb-vein_analysis-{problem_id}-{version}"
+        try:
+            result = subprocess.run(
+                ["tmux", "kill-session", "-t", session_name],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0:
+                print(f"🧹 已清理 {version} 的tmux session: {session_name}")
+            # session不存在也不报错——可能已经被手动kill了
+        except Exception as e:
+            print(f"⚠️ 清理 {version} 的tmux session失败: {e}")
+
+
 def _wait_and_collect(workdir_base: str, prepared_dirs: dict,
                        meta: dict, meta_path: str) -> AnalysisOutput:
     """等待4个AI完成并收集产出
@@ -327,8 +360,8 @@ def _wait_and_collect(workdir_base: str, prepared_dirs: dict,
         all_done = True
         status = []
         for version, vdir in prepared_dirs.items():
-            output_path = os.path.join(vdir, "output.json")
-            done = os.path.exists(output_path)
+            done_path = os.path.join(vdir, "DONE.md")
+            done = os.path.exists(done_path)
             status.append(f"{version}: {'✅' if done else '⏳'}")
             if not done:
                 all_done = False
@@ -342,7 +375,12 @@ def _wait_and_collect(workdir_base: str, prepared_dirs: dict,
         time.sleep(poll_interval)
 
     # 收集产出
-    return collect_vein_analysis_output(workdir_base)
+    output = collect_vein_analysis_output(workdir_base)
+
+    # 清理已完成的tmux session——自动回收devin cli实例
+    _cleanup_tmux_sessions(prepared_dirs)
+
+    return output
 
 
 def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
@@ -350,7 +388,7 @@ def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
 
     流程：
     1. 读取4个版本的output.json
-    2. 对V9的output.json运行verify_lattice_completeness.py
+    2. 对V10的output.json运行verify_lattice_completeness.py
     3. 合并4个版本的trace（取并集）
     4. 解析成AnalysisOutput返回
 
@@ -389,17 +427,17 @@ def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
     if not version_outputs:
         raise RuntimeError(f"没有找到任何版本的产出——请检查4个AI Agent是否都已完成。工作目录: {workdir_base}")
 
-    # 2. 对V9的产出运行程序验证
-    v9_audit_report = None
-    if "V9" in version_outputs:
-        v9_output_path = os.path.join(version_workdirs["V9"], "output.json")
-        audit_report_path = os.path.join(version_workdirs["V9"], "audit_report.json")
-        v9_audit_report = _run_lattice_completeness_verify(v9_output_path, audit_report_path)
-        if v9_audit_report:
-            score = v9_audit_report.get("completeness_score", 0)
-            print(f"✅ V9程序验证完成: 闭元素完备性得分={score:.1%}")
+    # 2. 对V10的产出运行程序验证
+    v10_audit_report = None
+    if "V10" in version_outputs:
+        v10_output_path = os.path.join(version_workdirs["V10"], "output.json")
+        audit_report_path = os.path.join(version_workdirs["V10"], "audit_report.json")
+        v10_audit_report = _run_lattice_completeness_verify(v10_output_path, audit_report_path)
+        if v10_audit_report:
+            score = v10_audit_report.get("completeness_score", 0)
+            print(f"✅ V10程序验证完成: 闭元素完备性得分={score:.1%}")
         else:
-            print("⚠️ V9程序验证失败——verify_lattice_completeness.py运行出错")
+            print("⚠️ V10程序验证失败——verify_lattice_completeness.py运行出错")
 
     # 3. 合并4个版本的trace（取并集，按语义去重）
     merged_traces, merged_veins, merged_level_views = _merge_version_outputs(
@@ -425,8 +463,8 @@ def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
     meta["completed_at"] = datetime.now(timezone.utc).isoformat()
     meta["version_trace_counts"] = merged_data["version_trace_counts"]
     meta["merged_trace_count"] = len(merged_traces)
-    if v9_audit_report:
-        meta["v9_completeness_score"] = v9_audit_report.get("completeness_score", 0)
+    if v10_audit_report:
+        meta["v10_completeness_score"] = v10_audit_report.get("completeness_score", 0)
     _write_json(meta_path, meta)
 
     # 6. 更新数据库记录——题目录入记录（抓手）和会话记录
@@ -446,7 +484,7 @@ def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
             entry_key,
             status="completed",
             output_paths=output_paths,
-            audit_report_path=os.path.join(version_workdirs["V9"], "audit_report.json") if "V9" in version_outputs else None,
+            audit_report_path=os.path.join(version_workdirs["V10"], "audit_report.json") if "V10" in version_outputs else None,
             merged_traces_path=merged_path,
             trace_count=len(merged_traces),
         )
@@ -485,11 +523,11 @@ def _vein_analysis_solve(input: AnalysisInput) -> AnalysisOutput:
     """solve模式的脉络分析
 
     solve模式从推理AI的thinking分析脉络，可能有分叉（树/DAG结构）。
-    solve模式的提示词尚未设计（TODO-1）——V5-V9都是absorb模式提示词。
+    solve模式的提示词尚未设计（TODO-1）——V5-V10都是absorb模式提示词。
     """
     raise NotImplementedError(
         "solve模式的脉络分析尚未实现——solve模式提示词未设计（TODO-1）。"
-        "V5-V9都是absorb模式提示词（分析完整解答文本，线性脉络）。"
+        "V5-V10都是absorb模式提示词（分析完整解答文本，线性脉络）。"
         "solve模式需要从推理AI的thinking分析脉络，可能有分叉（树/DAG结构），"
         "需要设计新的提示词变体并POC验证。"
     )
@@ -524,7 +562,7 @@ def _prepare_version_workdir(workdir_base: str, version: str,
 
     Args:
         workdir_base: 工作目录基路径
-        version: 版本名（V5/V7/V8/V9）
+        version: 版本名（V5/V7/V8/V10）
         solution_block: 解答文本块（题目+解答+孤悬trace启发信号）
         problem_id: 题目ID
 
@@ -579,10 +617,10 @@ def _generate_agents_md(version: str, problem_id: str) -> str:
 
 def _run_lattice_completeness_verify(v9_output_path: str,
                                       audit_report_path: str) -> Optional[dict]:
-    """对V9的产出运行verify_lattice_completeness.py
+    """对V10的产出运行verify_lattice_completeness.py
 
     Args:
-        v9_output_path: V9的output.json路径
+        v9_output_path: V10的output.json路径
         audit_report_path: 审计报告输出路径
 
     Returns:
@@ -725,11 +763,11 @@ def _parse_level_views_from_output(output: dict, version: str,
     """从版本产出中解析LevelView列表
 
     LevelView从output的closed_elements或level_views字段获取。
-    V7/V8/V9有闭元素，可以构造LevelView。V5没有闭元素，跳过。
+    V7/V8/V10有闭元素，可以构造LevelView。V5没有闭元素，跳过。
     """
     level_views = []
 
-    # V7/V8/V9的闭元素可以构造LevelView
+    # V7/V8/V10的闭元素可以构造LevelView
     closed_elements = output.get("closed_elements", [])
     for i, ce in enumerate(closed_elements):
         extent = ce.get("extent", [])
