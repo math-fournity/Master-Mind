@@ -843,6 +843,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | **系统资产分级与上下文预算** | `.devin/rules/six-asset-grading.md` | **always-on——设计或修改AI Agent的AGENTS.md内容时；设计或修改提示词文件时；向AI Agent发送直接提示词时；向system/添加新的资产文件时** | 用户原话（AGENTS.md和可复用提示词是system资产，题目解答放文件中，大块要求放文件中，直接提示词不大块，分类学资产从AGENTS.md拆分到单独文件，单文件300行限制，超长检测+警报） |
 | **系统测试规矩** | `.devin/rules/six-test-discipline.md` | **always-on——为系统模块编写测试、POC验证、回归验证时；在`system/tests/`下创建测试资产时；架构改动后需要验证不退化时** | 用户原话（测试不是用完就扔的临时文件，方案先行、按模块组织、内容全留存） |
 | **文件拆分流程控制** | `.devin/rules/six-file-staged-flow.md` | **always-on——设计提示词时，当一个AI session的工作流程有多个阶段且thinking可能过大时** | 用户原话（335号V8改进为例） |
+| **运行数字ID命名规范** | `.devin/rules/six-run-id-naming.md` | **always-on——任何系统运行、测试、实验、审计存档时** | 用户原话（数字ID是可查可审计的保证，应该在任何它应该出现的地方出现） |
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围
