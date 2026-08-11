@@ -1,0 +1,475 @@
+{
+  "formal_context": {
+    "objects": [
+      "段1", "段2", "段3", "段4", "段5", "段6", "段7", "段8", "段9",
+      "段10", "段11", "段12", "段13", "段14", "段15", "段16", "段17",
+      "段18", "段19", "段20", "段21"
+    ],
+    "attributes": [
+      "WLOG排序", "定义辅助变量", "强归纳", "情况分析", "鸽巢论证",
+      "注入映射", "存在性构造", "归纳假设应用", "排列构造", "swap避障",
+      "正确性验证", "归约"
+    ],
+    "incidence": [
+      [1,0,0,0,0,0,0,0,0,0,0,0],
+      [0,1,0,0,0,0,0,0,0,0,0,0],
+      [0,0,1,0,0,0,0,0,0,0,0,0],
+      [0,0,0,1,0,0,0,0,0,0,0,0],
+      [0,0,0,1,0,0,0,0,0,0,0,0],
+      [0,1,0,0,0,0,1,0,0,0,0,0],
+      [0,0,0,0,0,1,1,0,0,0,0,0],
+      [0,0,0,0,1,0,1,0,0,0,0,0],
+      [0,1,0,0,0,0,0,0,0,0,0,0],
+      [0,0,1,0,0,0,0,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,0],
+      [0,0,0,1,0,0,0,0,0,0,0,0],
+      [0,1,0,0,0,0,0,0,0,0,0,0],
+      [0,0,1,0,0,0,0,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,0,1,0],
+      [0,0,0,1,0,0,0,0,0,0,0,0],
+      [0,1,1,0,0,0,0,1,0,0,0,0],
+      [0,0,0,0,0,0,0,0,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,1,0],
+      [1,0,0,0,0,0,0,0,0,0,0,1]
+    ]
+  },
+  "segments": [
+    {"id": "段1", "content": "WLOG排序 a₁ < a₂ < ... < aₙ（通过置换）", "features": ["WLOG排序"]},
+    {"id": "段2", "content": "定义关键变量 x = a₁ + ... + a_{n-1}（去掉最大元素后的和）", "features": ["定义辅助变量"]},
+    {"id": "段3", "content": "决定对n做强归纳", "features": ["强归纳"]},
+    {"id": "段4", "content": "情况分类——按M中元素相对x的位置分三种情况", "features": ["情况分析"]},
+    {"id": "段5", "content": "Case 1前提设定：x ∈ M 且 ∃ y ∈ M, y > x，则 n ≥ 3", "features": ["情况分析"]},
+    {"id": "段6", "content": "Case 1中定义'bad' index i：x - aᵢ ∈ M 或 s - aᵢ ∈ M", "features": ["定义辅助变量", "存在性构造"]},
+    {"id": "段7", "content": "Case 1中构造注入映射：bad indices → M\\{x}，证明单射", "features": ["注入映射", "存在性构造"]},
+    {"id": "段8", "content": "Case 1中鸽巢论证：|M\\{x}| = n-2，至多n-2个bad，n-1个中至少1个good r", "features": ["鸽巢论证", "存在性构造"]},
+    {"id": "段9", "content": "Case 1中定义M'和t：t = x - aᵣ, M' = M ∩ (-∞, t], |M'| ≤ n-3", "features": ["定义辅助变量"]},
+    {"id": "段10", "content": "Case 1中对n-2剩余元素（去掉aᵣ和aₙ）应用归纳假设，得排列p'", "features": ["强归纳", "归纳假设应用"]},
+    {"id": "段11", "content": "Case 1中构造完整排列：p'放前，aᵣ次之，aₙ最后（swap使aₙ倒数第二）", "features": ["排列构造", "swap避障"]},
+    {"id": "段12", "content": "Case 1中验证排列正确性：prefix sum ≤ t 避M'，到aᵣ的和避M，最终和s∉M", "features": ["正确性验证"]},
+    {"id": "段13", "content": "Case 2前提设定：x ∉ M 且 ∃ y ∈ M, y > x", "features": ["情况分析"]},
+    {"id": "段14", "content": "Case 2中定义M' = M ∩ (-∞, x]，|M ∩ (-∞, x]| ≤ n-2", "features": ["定义辅助变量"]},
+    {"id": "段15", "content": "Case 2中对a₁,...,a_{n-1}应用归纳假设（sum=x∉M'）", "features": ["强归纳", "归纳假设应用"]},
+    {"id": "段16", "content": "Case 2中构造排列（aₙ放最后）并验证：前n-1个prefix sum ≤ x避M'，最终s∉M", "features": ["排列构造", "正确性验证"]},
+    {"id": "段17", "content": "Case 3前提设定：所有 m ∈ M 满足 m ≤ x", "features": ["情况分析"]},
+    {"id": "段18", "content": "Case 3中定义z = max(M), M' = M\\{z}，对a₁,...,a_{n-1}应用归纳假设得p'", "features": ["定义辅助变量", "强归纳", "归纳假设应用"]},
+    {"id": "段19", "content": "Case 3中swap修复：若p'某prefix sum等于z，swap该位置与末位（aₙ跳过z）", "features": ["排列构造", "swap避障"]},
+    {"id": "段20", "content": "Case 3中验证：若无prefix sum等于z则p'已避M；swap后z被跳过", "features": ["正确性验证"]},
+    {"id": "段21", "content": "一般情况归约：未排序a通过复合排序置换归约到已排序情况", "features": ["WLOG排序", "归约"]}
+  ],
+  "closed_elements": [
+    {
+      "id": "ce_0",
+      "extent": [],
+      "intent": ["WLOG排序","定义辅助变量","强归纳","情况分析","鸽巢论证","注入映射","存在性构造","归纳假设应用","排列构造","swap避障","正确性验证","归约"],
+      "is_closed": true,
+      "closure_verification": "∅' = M（全部属性，空集的公共属性是所有属性），M' = ∩(所有属性extent) = ∅（因为m5'={段8}与m6'={段7}交集为空），∅'' = ∅ = ∅",
+      "trace_judgment": "excluded",
+      "reason": "是闭元素但extent为空集——平凡元素，无语义价值",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_1",
+      "extent": ["段6"],
+      "intent": ["定义辅助变量", "存在性构造"],
+      "is_closed": true,
+      "closure_verification": "A'={定义辅助变量,存在性构造}, A''={定义辅助变量}'∩{存在性构造}'={段2,段6,段9,段14,段18}∩{段6,段7,段8}={段6}=A",
+      "trace_judgment": "included",
+      "trace_description": "定义bad index——通过好/坏分类将存在性问题转化为计数问题",
+      "trace_type": "local",
+      "reason": "单段局部trace，可泛化——任何需要找存在性元素的题都可能用分类+计数策略",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_2",
+      "extent": ["段7"],
+      "intent": ["注入映射", "存在性构造"],
+      "is_closed": true,
+      "closure_verification": "A'={注入映射,存在性构造}, A''={注入映射}'∩{存在性构造}'={段7}∩{段6,段7,段8}={段7}=A",
+      "trace_judgment": "included",
+      "trace_description": "构造注入映射——建立injective mapping将计数问题转化为不等式估计",
+      "trace_type": "local",
+      "reason": "单段局部trace，可泛化——注入映射是组合数学中常见的计数控制手段",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_3",
+      "extent": ["段8"],
+      "intent": ["鸽巢论证", "存在性构造"],
+      "is_closed": true,
+      "closure_verification": "A'={鸽巢论证,存在性构造}, A''={鸽巢论证}'∩{存在性构造}'={段8}∩{段6,段7,段8}={段8}=A",
+      "trace_judgment": "included",
+      "trace_description": "鸽巢论证找存在性元素——n-1个中至多n-2个坏，至少1个好",
+      "trace_type": "local",
+      "reason": "单段局部trace，可泛化——鸽巢论证找存在性是跨题通用的思维模式",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_4",
+      "extent": ["段16"],
+      "intent": ["排列构造", "正确性验证"],
+      "is_closed": true,
+      "closure_verification": "A'={排列构造,正确性验证}, A''={排列构造}'∩{正确性验证}'={段11,段16,段19}∩{段12,段16,段20}={段16}=A",
+      "trace_judgment": "included",
+      "trace_description": "构造排列并验证——直接扩展归纳排列+验证prefix sum避障",
+      "trace_type": "local",
+      "reason": "单段局部trace，可泛化——构造+验证是排列问题的标准模式",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_5",
+      "extent": ["段18"],
+      "intent": ["定义辅助变量", "强归纳", "归纳假设应用"],
+      "is_closed": true,
+      "closure_verification": "A'={定义辅助变量,强归纳,归纳假设应用}, A''={定义辅助变量}'∩{强归纳}'∩{归纳假设应用}'={段2,段6,段9,段14,段18}∩{段3,段10,段15,段18}∩{段10,段15,段18}={段18}=A",
+      "trace_judgment": "included",
+      "trace_description": "定义辅助变量+应用归纳——Case 3中定义z=max(M)和M'后直接应用归纳假设",
+      "trace_type": "local",
+      "reason": "单段局部trace，可泛化——定义辅助变量缩小问题规模后应用归纳是通用模式",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_6",
+      "extent": ["段21"],
+      "intent": ["WLOG排序", "归约"],
+      "is_closed": true,
+      "closure_verification": "A'={WLOG排序,归约}, A''={WLOG排序}'∩{归约}'={段1,段21}∩{段21}={段21}=A",
+      "trace_judgment": "included",
+      "trace_description": "一般情况归约——复合排序置换将一般情况归约到已排序情况",
+      "trace_type": "local",
+      "reason": "单段局部trace，可泛化——WLOG+归约是组合数学中常见的简化策略",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_7",
+      "extent": ["段1", "段21"],
+      "intent": ["WLOG排序"],
+      "is_closed": true,
+      "closure_verification": "A'={WLOG排序}, A''={WLOG排序}'={段1,段21}=A",
+      "trace_judgment": "included",
+      "trace_description": "WLOG排序+一般情况归约——排序简化问题结构，最后通过复合排序置换处理一般情况",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，段1排序简化+段21归约回一般情况，形成首尾呼应的简化-归约模式",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_8",
+      "extent": ["段11", "段19"],
+      "intent": ["排列构造", "swap避障"],
+      "is_closed": true,
+      "closure_verification": "A'={排列构造,swap避障}, A''={排列构造}'∩{swap避障}'={段11,段16,段19}∩{段11,段19}={段11,段19}=A",
+      "trace_judgment": "included",
+      "trace_description": "swap避障技巧跨Case复用——Case 1和Case 3中都用swap修复排列避障",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，段11（Case1）和段19（Case3）不相邻但都用swap技巧跳过M中元素，是核心可泛化技巧",
+      "is_ai_advantage": true
+    },
+    {
+      "id": "ce_9",
+      "extent": ["段6", "段7", "段8"],
+      "intent": ["存在性构造"],
+      "is_closed": true,
+      "closure_verification": "A'={存在性构造}, A''={存在性构造}'={段6,段7,段8}=A",
+      "trace_judgment": "included",
+      "trace_description": "存在性构造三步法——定义bad index + 构造注入映射 + 鸽巢论证，组合完成存在性证明",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，段6+7+8构成Case 1的核心创造性论证，是整个证明最有价值的思维模式",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_10",
+      "extent": ["段10", "段15", "段18"],
+      "intent": ["强归纳", "归纳假设应用"],
+      "is_closed": true,
+      "closure_verification": "A'={强归纳,归纳假设应用}, A''={强归纳}'∩{归纳假设应用}'={段3,段10,段15,段18}∩{段10,段15,段18}={段10,段15,段18}=A",
+      "trace_judgment": "included",
+      "trace_description": "归纳假设跨Case复用——三个Case中都通过缩小问题规模应用归纳假设",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，段10（Case1）+段15（Case2）+段18（Case3）都应用归纳假设，是归纳证明的标准模式",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_11",
+      "extent": ["段11", "段16", "段19"],
+      "intent": ["排列构造"],
+      "is_closed": true,
+      "closure_verification": "A'={排列构造}, A''={排列构造}'={段11,段16,段19}=A",
+      "trace_judgment": "included",
+      "trace_description": "排列构造跨Case复用——三个Case中都通过构造排列完成证明",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，但较为generic——排列构造是本题的必要步骤，泛化性中等",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_12",
+      "extent": ["段12", "段16", "段20"],
+      "intent": ["正确性验证"],
+      "is_closed": true,
+      "closure_verification": "A'={正确性验证}, A''={正确性验证}'={段12,段16,段20}=A",
+      "trace_judgment": "included",
+      "trace_description": "正确性验证跨Case复用——三个Case中都验证prefix sum避障",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，但较为generic——验证prefix sum避M是本题特有的验证模式，泛化性中等",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_13",
+      "extent": ["段3", "段10", "段15", "段18"],
+      "intent": ["强归纳"],
+      "is_closed": true,
+      "closure_verification": "A'={强归纳}, A''={强归纳}'={段3,段10,段15,段18}=A",
+      "trace_judgment": "included",
+      "trace_description": "强归纳作为统一框架——决定用强归纳+三个Case中应用归纳假设，强归纳贯穿整个证明",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，段3决定强归纳+段10/15/18应用归纳，强归纳是整个证明的结构骨架",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_14",
+      "extent": ["段4", "段5", "段13", "段17"],
+      "intent": ["情况分析"],
+      "is_closed": true,
+      "closure_verification": "A'={情况分析}, A''={情况分析}'={段4,段5,段13,段17}=A",
+      "trace_judgment": "included",
+      "trace_description": "情况分析框架——按M中元素相对x的位置分三种情况，每个Case的前提设定",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，段4分类决策+段5/13/17各Case前提，情况分析是处理复杂约束的通用策略",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_15",
+      "extent": ["段2", "段6", "段9", "段14", "段18"],
+      "intent": ["定义辅助变量"],
+      "is_closed": true,
+      "closure_verification": "A'={定义辅助变量}, A''={定义辅助变量}'={段2,段6,段9,段14,段18}=A",
+      "trace_judgment": "included",
+      "trace_description": "定义辅助变量简化结构——定义x/bad index/M'和t/M'/z和M'等辅助变量简化归纳结构",
+      "trace_type": "nonlocal",
+      "reason": "跨段非局部trace，5个段都通过定义辅助变量简化问题，是归纳证明中常见的结构简化策略",
+      "is_ai_advantage": false
+    },
+    {
+      "id": "ce_16",
+      "extent": ["段1","段2","段3","段4","段5","段6","段7","段8","段9","段10","段11","段12","段13","段14","段15","段16","段17","段18","段19","段20","段21"],
+      "intent": [],
+      "is_closed": true,
+      "closure_verification": "A'=∅（全部21段无共同属性），A''=∅'=G=A",
+      "trace_judgment": "included",
+      "trace_description": "强归纳+情况分析+鸽巢计数的组合策略——整个证明的整体策略",
+      "trace_type": "global",
+      "reason": "全局trace，整个脉络合并后识别出的整体策略模式，可泛化到排列存在性问题",
+      "is_ai_advantage": false
+    }
+  ],
+  "ai_advantage_elements": [
+    {
+      "id": "adv_1",
+      "segments": ["段9", "段10", "段11", "段12", "段14", "段15", "段16", "段18", "段19", "段20"],
+      "description": "四步元模式跨Case复用——定义M'→应用归纳→构造排列→验证，三个Case共享同一四步结构",
+      "reason": "FCA基于属性闭包将这四步分别归入不同闭元素（ce_15定义、ce_10归纳、ce_11构造、ce_12验证），但无法将四步作为一个整体模式识别。AI在思维上识别出三个Case共享同一四步元模式",
+      "trace_judgment": "included",
+      "trace_type": "nonlocal"
+    },
+    {
+      "id": "adv_2",
+      "segments": ["段6", "段7", "段8", "段11", "段19"],
+      "description": "避障技巧的双重策略——Case 1用鸽巢论证预防性避障，Case 1和3用swap修复性避障",
+      "reason": "FCA将鸽巢论证（段6-8）和swap技巧（段11,19）归入不同闭元素（ce_9 vs ce_8），因为属性不同。AI识别出两者都是'避M'的不同策略——预防性（选择好元素）vs修复性（swap跳过）",
+      "trace_judgment": "included",
+      "trace_type": "nonlocal"
+    },
+    {
+      "id": "adv_3",
+      "segments": ["段13", "段14", "段15", "段16", "段17", "段18", "段19", "段20"],
+      "description": "Case 2是Case 3的简化版——Case 2直接扩展排列，Case 3需要swap修复，两者结构平行但Case 3多一步修复",
+      "reason": "FCA基于属性闭包不会将Case 2和Case 3的平行关系识别为一个闭元素——它们的属性不完全相同。AI识别出Case 2是Case 3的简化版本，这种'简单Case→复杂Case'的递进关系是可泛化的策略模式",
+      "trace_judgment": "included",
+      "trace_type": "nonlocal"
+    }
+  ],
+  "traces": [
+    {
+      "id": "trace_1",
+      "type": "local",
+      "level": "Level_0",
+      "segment": "段6",
+      "description": "定义bad index——通过好/坏分类将存在性问题转化为计数问题",
+      "generalizable": true,
+      "closed_element_id": "ce_1"
+    },
+    {
+      "id": "trace_2",
+      "type": "local",
+      "level": "Level_0",
+      "segment": "段7",
+      "description": "构造注入映射——建立injective mapping将计数问题转化为不等式估计",
+      "generalizable": true,
+      "closed_element_id": "ce_2"
+    },
+    {
+      "id": "trace_3",
+      "type": "local",
+      "level": "Level_0",
+      "segment": "段8",
+      "description": "鸽巢论证找存在性元素——n-1个中至多n-2个坏，至少1个好",
+      "generalizable": true,
+      "closed_element_id": "ce_3"
+    },
+    {
+      "id": "trace_4",
+      "type": "local",
+      "level": "Level_0",
+      "segment": "段16",
+      "description": "构造排列并验证——直接扩展归纳排列+验证prefix sum避障",
+      "generalizable": true,
+      "closed_element_id": "ce_4"
+    },
+    {
+      "id": "trace_5",
+      "type": "local",
+      "level": "Level_0",
+      "segment": "段18",
+      "description": "定义辅助变量+应用归纳——Case 3中定义z=max(M)和M'后直接应用归纳假设",
+      "generalizable": true,
+      "closed_element_id": "ce_5"
+    },
+    {
+      "id": "trace_6",
+      "type": "local",
+      "level": "Level_0",
+      "segment": "段21",
+      "description": "一般情况归约——复合排序置换将一般情况归约到已排序情况",
+      "generalizable": true,
+      "closed_element_id": "ce_6"
+    },
+    {
+      "id": "trace_7",
+      "type": "nonlocal",
+      "level": "Level_1",
+      "segments": ["段1", "段21"],
+      "description": "WLOG排序+一般情况归约——排序简化问题结构，最后通过复合排序置换处理一般情况",
+      "generalizable": true,
+      "closed_element_id": "ce_7"
+    },
+    {
+      "id": "trace_8",
+      "type": "nonlocal",
+      "level": "Level_1",
+      "segments": ["段11", "段19"],
+      "description": "swap避障技巧跨Case复用——Case 1和Case 3中都用swap修复排列避障",
+      "generalizable": true,
+      "closed_element_id": "ce_8"
+    },
+    {
+      "id": "trace_9",
+      "type": "nonlocal",
+      "level": "Level_2",
+      "segments": ["段6", "段7", "段8"],
+      "description": "存在性构造三步法——定义bad index + 构造注入映射 + 鸽巢论证，组合完成存在性证明",
+      "generalizable": true,
+      "closed_element_id": "ce_9"
+    },
+    {
+      "id": "trace_10",
+      "type": "nonlocal",
+      "level": "Level_2",
+      "segments": ["段10", "段15", "段18"],
+      "description": "归纳假设跨Case复用——三个Case中都通过缩小问题规模应用归纳假设",
+      "generalizable": true,
+      "closed_element_id": "ce_10"
+    },
+    {
+      "id": "trace_11",
+      "type": "nonlocal",
+      "level": "Level_2",
+      "segments": ["段11", "段16", "段19"],
+      "description": "排列构造跨Case复用——三个Case中都通过构造排列完成证明",
+      "generalizable": true,
+      "closed_element_id": "ce_11"
+    },
+    {
+      "id": "trace_12",
+      "type": "nonlocal",
+      "level": "Level_2",
+      "segments": ["段12", "段16", "段20"],
+      "description": "正确性验证跨Case复用——三个Case中都验证prefix sum避障",
+      "generalizable": true,
+      "closed_element_id": "ce_12"
+    },
+    {
+      "id": "trace_13",
+      "type": "nonlocal",
+      "level": "Level_3",
+      "segments": ["段3", "段10", "段15", "段18"],
+      "description": "强归纳作为统一框架——决定用强归纳+三个Case中应用归纳假设，强归纳贯穿整个证明",
+      "generalizable": true,
+      "closed_element_id": "ce_13"
+    },
+    {
+      "id": "trace_14",
+      "type": "nonlocal",
+      "level": "Level_3",
+      "segments": ["段4", "段5", "段13", "段17"],
+      "description": "情况分析框架——按M中元素相对x的位置分三种情况，每个Case的前提设定",
+      "generalizable": true,
+      "closed_element_id": "ce_14"
+    },
+    {
+      "id": "trace_15",
+      "type": "nonlocal",
+      "level": "Level_4",
+      "segments": ["段2", "段6", "段9", "段14", "段18"],
+      "description": "定义辅助变量简化结构——定义x/bad index/M'和t/M'/z和M'等辅助变量简化归纳结构",
+      "generalizable": true,
+      "closed_element_id": "ce_15"
+    },
+    {
+      "id": "trace_16",
+      "type": "global",
+      "level": "Level_5",
+      "segments": ["段1","段2","段3","段4","段5","段6","段7","段8","段9","段10","段11","段12","段13","段14","段15","段16","段17","段18","段19","段20","段21"],
+      "description": "强归纳+情况分析+鸽巢计数的组合策略——整个证明的整体策略",
+      "generalizable": true,
+      "closed_element_id": "ce_16"
+    },
+    {
+      "id": "trace_17",
+      "type": "nonlocal",
+      "level": "AI_advantage",
+      "segments": ["段9","段10","段11","段12","段14","段15","段16","段18","段19","段20"],
+      "description": "四步元模式跨Case复用——定义M'→应用归纳→构造排列→验证，三个Case共享同一四步结构",
+      "generalizable": true,
+      "closed_element_id": "adv_1"
+    },
+    {
+      "id": "trace_18",
+      "type": "nonlocal",
+      "level": "AI_advantage",
+      "segments": ["段6","段7","段8","段11","段19"],
+      "description": "避障技巧的双重策略——Case 1用鸽巢论证预防性避障，Case 1和3用swap修复性避障",
+      "generalizable": true,
+      "closed_element_id": "adv_2"
+    },
+    {
+      "id": "trace_19",
+      "type": "nonlocal",
+      "level": "AI_advantage",
+      "segments": ["段13","段14","段15","段16","段17","段18","段19","段20"],
+      "description": "Case 2是Case 3的简化版——Case 2直接扩展排列，Case 3需要swap修复，结构平行递进",
+      "generalizable": true,
+      "closed_element_id": "adv_3"
+    }
+  ],
+  "most_valuable_traces": [
+    {
+      "rank": 1,
+      "trace_id": "trace_9",
+      "reason": "存在性构造三步法是整个证明的核心创造性论证——定义bad index+注入映射+鸽巢论证的组合是Case 1能work的关键，也是最难想到的非局部模式。这个trace去特化后可泛化为'分类+注入映射+鸽巢论证找存在性元素'，适用于任何需要在约束下找存在性元素的题"
+    },
+    {
+      "rank": 2,
+      "trace_id": "trace_16",
+      "reason": "强归纳+情况分析+鸽巢计数的组合策略是整个证明的战略骨架——它识别出这道题的解法不是单一技巧而是一套组合拳。去特化后可泛化为'排列存在性问题→强归纳+按关键变量分类+鸽巢论证找安全元素'的整体策略模式"
+    }
+  ]
+}
