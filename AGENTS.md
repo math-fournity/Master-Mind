@@ -590,6 +590,29 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - 338号：全管线非退化审计方案——各V各阶段历史对比（3层审计+7个历史轮次+文件版本追踪）
 - 339号：研发资产管理改进方案——从文件版本追踪的痛苦中提炼（run_manifest.json+4层保证）
 
+### 研发资产管理（339号方案落实）
+
+**运行资产**：
+- 每次运行的工作目录：`palyground/absorb/vein_analysis/{run_id:04d}_{problem_id}/`
+- 每次运行的归档目录：`system/tests/vein_analysis/runs/{run_id:04d}/`（vein_analysis.py自动归档）
+- 每次运行必须生成`run_manifest.json`——记录所有提示词文件、AGENTS模板、step要求文件、代码的md5和git commit
+- 回头审计时从run_manifest.json找文件版本，不需要md5对比git历史
+
+**目录命名**：
+- 正式运行：`{run_id:04d}_{problem_id}`（如`0011_imo2009p6`）
+- 单独测试：`{run_id:04d}_{problem_id}_{test_type}`（test_type只能是`synthtest`/`v8test`等预定义值）
+- 不允许无run_id的目录（早期`imo2009p6`是历史遗留，不再新增）
+
+**数据库记录**：
+- 每次运行必须写`problem_entries`集合，包含`manifest_path`/`archive_path`/`git_commit`字段
+- 中断的运行必须标记为`interrupted`（不是`running`）——TODO，优先级低
+- 单独测试也要写数据库——TODO，优先级低
+
+**审计流程**（改进后）：
+1. 从数据库查run_id → 直接得到`manifest_path`和`archive_path`
+2. 读run_manifest.json → 直接得到所有文件版本、md5、git commit
+3. `git show <commit>:<文件路径>` → 查看当时的文件内容
+
 **第六代系统架构代码**（`six/`目录）——研发过程的"晾衣架"：
 
 > **核心定位**：`six/`不只是实现代码，更是整个第六代系统研发过程的"晾衣架"。代码中每个元素（数据结构、函数、参数）都通过`six/references.py`索引到研发文档。以后的Session AI看到用户提到某个概念，知道去代码的哪个位置看具体内容；看到代码中的某个元素，知道去哪份研发文档追溯它的来源。
@@ -848,6 +871,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | **系统测试规矩** | `.devin/rules/six-test-discipline.md` | **always-on——为系统模块编写测试、POC验证、回归验证时；在`system/tests/`下创建测试资产时；架构改动后需要验证不退化时** | 用户原话（测试不是用完就扔的临时文件，方案先行、按模块组织、内容全留存） |
 | **文件拆分流程控制** | `.devin/rules/six-file-staged-flow.md` | **always-on——设计提示词时，当一个AI session的工作流程有多个阶段且thinking可能过大时** | 用户原话（335号V8改进为例） |
 | **运行数字ID命名规范** | `.devin/rules/six-run-id-naming.md` | **always-on——任何系统运行、测试、实验、审计存档时** | 用户原话（数字ID是可查可审计的保证，应该在任何它应该出现的地方出现） |
+| **研发资产管理** | `.devin/rules/six-asset-management.md` | **always-on——运行vein_analysis_three_phase()时；审计历史运行时；从数据库run_id查找运行资产时** | 339号方案（run_manifest.json+自动归档+目录命名规范+数据库字段，回头审计从5步缩减到3步且确定性） |
 
 **第六代研发的核心方向**（截至2026-08-10）：
 1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围

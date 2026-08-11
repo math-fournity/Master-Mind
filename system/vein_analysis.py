@@ -939,6 +939,159 @@ def _build_solution_block(input: AnalysisInput) -> str:
 # 三阶段架构——格化→程序枚举→综合分析
 # ============================================================================
 
+def _md5_of_file(path: str) -> str:
+    """计算文件的md5（前8位）"""
+    import hashlib
+    h = hashlib.md5()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()[:8]
+
+
+def _git_commit_hash() -> str:
+    """获取当前git commit hash（前7位）"""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short=7", "HEAD"],
+            capture_output=True, text=True, cwd=_load_repo_root()
+        )
+        return result.stdout.strip() if result.returncode == 0 else "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _git_branch() -> str:
+    """获取当前git分支名"""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True, text=True, cwd=_load_repo_root()
+        )
+        return result.stdout.strip() if result.returncode == 0 else "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _write_run_manifest(workdir_base: str, run_id: int, problem_id: str) -> str:
+    """生成run_manifest.json——记录本次运行使用的所有资产版本（339号方案）
+
+    回头审计时直接读run_manifest.json，不需要md5对比git历史。
+    """
+    repo_root = _load_repo_root()
+    system_dir = os.path.join(repo_root, "system")
+
+    def file_info(rel_path: str) -> dict:
+        """返回文件的相对路径+md5"""
+        abs_path = os.path.join(repo_root, rel_path) if not os.path.isabs(rel_path) else rel_path
+        if os.path.exists(abs_path):
+            return {"path": rel_path, "md5": _md5_of_file(abs_path)}
+        return {"path": rel_path, "md5": None, "missing": True}
+
+    manifest = {
+        "run_id": run_id,
+        "problem_id": problem_id,
+        "started_at": datetime.now().isoformat(),
+        "git_commit": _git_commit_hash(),
+        "git_branch": _git_branch(),
+        "phases": {
+            "phase1_grading": {
+                "versions": PROMPT_VERSIONS,
+                "prompt_files": {
+                    v: file_info(GRADING_PROMPT_FILES[v]) for v in PROMPT_VERSIONS
+                },
+                "agents_templates": {
+                    v: file_info(os.path.join("system", AGENTS_TEMPLATES[v])) for v in PROMPT_VERSIONS
+                },
+                "step_files": {},
+            },
+            "phase1_5_enumerate": {
+                "script": VERIFY_SCRIPT,
+                "script_md5": _md5_of_file(os.path.join(repo_root, VERIFY_SCRIPT)) if os.path.exists(os.path.join(repo_root, VERIFY_SCRIPT)) else None,
+            },
+            "phase2_synthesis": {
+                "prompt_file": file_info(SYNTHESIS_PROMPT_FILE),
+                "agents_template": file_info(os.path.join("system", SYNTHESIS_AGENTS_TEMPLATE)),
+                "step_files": {},
+            },
+        },
+        "code_version": {
+            "vein_analysis_py": _md5_of_file(os.path.abspath(__file__)),
+        },
+    }
+
+    # V8的step要求文件
+    for step_num in range(1, 3):
+        step_path = os.path.join(PROMPT_DIR, f"v8_step{step_num}_requirements.md")
+        abs_step = os.path.join(repo_root, step_path)
+        if os.path.exists(abs_step):
+            manifest["phases"]["phase1_grading"]["step_files"][f"v8_step{step_num}"] = file_info(step_path)
+
+    # 综合分析的step要求文件
+    for step_num in range(1, 5):
+        step_path = os.path.join(PROMPT_DIR, f"synthesis_step{step_num}_requirements.md")
+        abs_step = os.path.join(repo_root, step_path)
+        if os.path.exists(abs_step):
+            manifest["phases"]["phase2_synthesis"]["step_files"][f"step{step_num}"] = file_info(step_path)
+
+    manifest_path = os.path.join(workdir_base, "run_manifest.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, ensure_ascii=False, indent=2)
+    print(f"  run_manifest.json已生成: {manifest_path}")
+    return manifest_path
+
+
+def _archive_run(workdir_base: str, run_id: int) -> str:
+    """运行结束后自动归档到system/tests/vein_analysis/runs/{run_id}/（339号方案）
+
+    归档内容：
+    - 各V的segments.json/formal_context.json/closed_elements.json
+    - 综合分析的output.json/output.md/comparison.json/closed_element_traces.json/content_based_traces.json
+    - run_manifest.json
+    """
+    import shutil
+    repo_root = _load_repo_root()
+    archive_dir = os.path.join(repo_root, "system", "tests", "vein_analysis", "runs", f"{run_id:04d}")
+    os.makedirs(archive_dir, exist_ok=True)
+
+    # 归档run_manifest.json
+    manifest = os.path.join(workdir_base, "run_manifest.json")
+    if os.path.exists(manifest):
+        shutil.copy2(manifest, os.path.join(archive_dir, "run_manifest.json"))
+
+    # 归档各V格化结果
+    grading_base = os.path.join(workdir_base, "phase1_grading")
+    for v in PROMPT_VERSIONS:
+        vdir = os.path.join(grading_base, v)
+        if os.path.exists(vdir):
+            for fname in ["segments.json", "formal_context.json", "key_entities.json"]:
+                src = os.path.join(vdir, fname)
+                if os.path.exists(src):
+                    shutil.copy2(src, os.path.join(archive_dir, f"{v}_{fname}"))
+
+    # 归档闭元素
+    enum_dir = os.path.join(workdir_base, "phase1_5_enumerate")
+    if os.path.exists(enum_dir):
+        for v in PROMPT_VERSIONS:
+            src = os.path.join(enum_dir, f"{v}_closed_elements.json")
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(archive_dir, f"{v}_closed_elements.json"))
+
+    # 归档综合分析结果
+    synth_dir = os.path.join(workdir_base, "phase2_synthesis")
+    if os.path.exists(synth_dir):
+        for fname in ["output.json", "output.md", "comparison.json",
+                       "closed_element_traces.json", "content_based_traces.json"]:
+            src = os.path.join(synth_dir, fname)
+            if os.path.exists(src):
+                shutil.copy2(src, os.path.join(archive_dir, fname))
+
+    print(f"  归档完成: {archive_dir}")
+    return archive_dir
+
+
 def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     """三阶段脉络分析——格化与trace识别分离
 
@@ -991,6 +1144,10 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
         session_id=session_key,
     )
 
+    # 生成run_manifest.json——记录本次运行使用的所有资产版本（339号方案）
+    print("\n--- 生成run_manifest.json ---")
+    manifest_path = _write_run_manifest(workdir_base, run_id, problem_id)
+
     # 阶段1：4并发格化
     print("\n--- 阶段1：4并发格化 ---")
     grading_dirs = _phase1_grading(workdir_base, input, run_id)
@@ -1031,6 +1188,15 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
             "output_md": os.path.join(synth_dir, "output.md"),
         },
         trace_count=len(output.traces) if output.traces else 0,
+    )
+
+    # 自动归档到system/tests/vein_analysis/runs/{run_id}/（339号方案）
+    print("\n--- 自动归档 ---")
+    archive_dir = _archive_run(workdir_base, run_id)
+    db.update_problem_entry(
+        entry_key,
+        archive_path=archive_dir,
+        manifest_path=manifest_path,
     )
 
     print("\n✅ 三阶段脉络分析完成")
