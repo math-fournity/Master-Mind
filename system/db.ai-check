@@ -1,0 +1,38 @@
+# db.py AI检查清单
+
+## 文件用途
+数据库操作模块——system运行时和ArangoDB交互的统一接口。其他模块通过db.py读写数据库，不直接操作ArangoDB客户端。
+
+## 检查清单
+
+### 1. 数据库连接
+- [ ] _get_db()是否从环境变量读取连接配置（ARANGO_HOST/ARANGO_DB/ARANGO_USER/ARANGO_PASS）？
+- [ ] 是否使用单例模式避免重复连接？
+- [ ] 默认数据库名是否为xishujuzhen_math_glm52？
+
+### 2. problem_entries——题目录入记录（抓手）
+- [ ] create_problem_entry()是否在vein_analysis启动时被调用？
+- [ ] _key格式是否为{process}_{problem_id}_{timestamp}？
+- [ ] status字段是否有完整生命周期（running→completed/failed）？
+- [ ] find_problem_entries_by_problem_id()是否按时间倒序返回？
+- [ ] 记录中是否包含所有抓手信息（工作目录、会话ID、AI实例ID、产出路径、程序验证报告路径、合并trace路径）？
+
+### 3. sessions——会话记录
+- [ ] create_session()是否在vein_analysis启动时被调用？
+- [ ] session_type是否正确（absorb/solve）？
+- [ ] status字段是否有完整生命周期？
+
+### 4. ai_instances——AI实例记录
+- [ ] create_ai_instance()是否在每个tmux session启动前被调用？
+- [ ] ai_role是否正确（parser/solver/telling/guide）？
+- [ ] version字段是否记录了提示词版本（V5/V7/V8/V9）？
+- [ ] tmux_session字段是否记录了tmux session名？
+- [ ] update_ai_instance()是否在AI完成后更新status和output_summary？
+
+### 5. 集合自动创建
+- [ ] _ensure_collection()是否在集合不存在时自动创建？
+- [ ] 是否避免重复创建已有集合？
+
+### 6. 时间戳
+- [ ] 所有记录是否有started_at/created_at时间戳（ISO 8601格式）？
+- [ ] 完成时是否有completed_at/ended_at时间戳？

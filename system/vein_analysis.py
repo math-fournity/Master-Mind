@@ -40,11 +40,17 @@ Master Agent的职责是开发系统代码和检查系统运行——不是在�
 亲手执行循环。
 
 vein_analysis()被调用时：
-1. 准备阶段（代码自动执行）：创建工作目录、准备提示词文件和输入文件
-2. 启动阶段（代码自动执行）：用subprocess启动4个tmux session
-3. 等待阶段（代码自动执行）：轮询output.json是否出现，等待4个AI完成
-4. 收集阶段（代码自动执行）：读取4个AI的产出JSON、运行程序验证、合并trace
-5. 返回AnalysisOutput
+1. 准备阶段（代码自动执行）：创建工作目录、从assets目录复制AGENTS.md和prompt.md、写入input.md
+2. 数据库记录阶段（代码自动执行）：创建session记录、problem_entry记录（抓手）、4个ai_instance记录
+3. 启动阶段（代码自动执行）：用subprocess启动4个tmux session
+4. 等待阶段（代码自动执行）：轮询output.json是否出现，等待4个AI完成
+5. 收集阶段（代码自动执行）：读取4个AI的产出JSON、运行程序验证、合并trace、更新数据库记录
+6. 返回AnalysisOutput
+
+数据库记录——题目录入信息抓手：
+- problem_entries集合——每道题入题一条记录，是查找该题目所有录入信息的抓手
+- 从这条记录可以找到：工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径
+- 查找方法：db.find_problem_entries_by_problem_id(problem_id)
 
 Master Agent在系统运行时是检查者——检查tmux session状态、检查AI Agent产出、
 按.ai-check checklist审计产出质量。
@@ -211,12 +217,45 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
     meta_path = os.path.join(workdir_base, "meta.json")
     _write_json(meta_path, meta)
 
+    # 创建数据库记录——会话+题目录入（抓手）
+    from system import db
+    session_key = db.create_session(
+        session_type="absorb",
+        problem_id=problem_id,
+        working_directory=workdir_base,
+    )
+    entry_key = db.create_problem_entry(
+        problem_id=problem_id,
+        process="absorb",
+        working_directory=workdir_base,
+        record_id=record.record_id,
+        versions=list(PROMPT_VERSIONS),
+        version_workdirs={v: str(d) for v, d in prepared_dirs.items()},
+        has_orphan_traces=input.orphan_traces is not None and len(input.orphan_traces) > 0,
+        session_id=session_key,
+    )
+    meta["session_key"] = session_key
+    meta["entry_key"] = entry_key
+    _write_json(meta_path, meta)
+
     # 启动4个tmux session
     session_names = {}
+    ai_instance_ids = {}
     for version in PROMPT_VERSIONS:
         vdir = prepared_dirs[version]
         session_name = f"absorb-vein_analysis-{problem_id}-{version}"
         session_names[version] = session_name
+
+        # 创建AI实例记录
+        ai_key = db.create_ai_instance(
+            session_id=session_key,
+            ai_role="parser",
+            working_directory=str(vdir),
+            problem_id=problem_id,
+            tmux_session=session_name,
+            version=version,
+        )
+        ai_instance_ids[version] = ai_key
 
         # 短启动提示词——让AI加载AGENTS.md和prompt.md，从input.md读取解答文本
         launch_prompt = (
@@ -236,12 +275,21 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
         result = subprocess.run(cmd, capture_output=True, text=True)
         if result.returncode != 0:
             print(f"⚠️ {version} tmux启动失败: {result.stderr}")
+            db.update_ai_instance(ai_key, status="failed", end_reason=f"tmux启动失败: {result.stderr}")
         else:
             print(f"✅ {version} tmux启动成功")
+
+    # 更新数据库——记录session_names和ai_instance_ids
+    db.update_problem_entry(
+        entry_key,
+        session_names=session_names,
+        ai_instance_ids=ai_instance_ids,
+    )
 
     # 更新meta状态
     meta["status"] = "running"
     meta["session_names"] = session_names
+    meta["ai_instance_ids"] = ai_instance_ids
     _write_json(meta_path, meta)
 
     print()
@@ -379,7 +427,46 @@ def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
         meta["v9_completeness_score"] = v9_audit_report.get("completeness_score", 0)
     _write_json(meta_path, meta)
 
-    # 6. 返回AnalysisOutput
+    # 6. 更新数据库记录——题目录入记录（抓手）和会话记录
+    entry_key = meta.get("entry_key")
+    session_key = meta.get("session_key")
+    if entry_key:
+        from system import db
+        # 收集各版本产出路径
+        output_paths = {}
+        for version in versions:
+            vdir = version_workdirs[version]
+            output_paths[version] = {
+                "json": os.path.join(vdir, "output.json") if os.path.exists(os.path.join(vdir, "output.json")) else None,
+                "md": os.path.join(vdir, "output.md") if os.path.exists(os.path.join(vdir, "output.md")) else None,
+            }
+        db.update_problem_entry(
+            entry_key,
+            status="completed",
+            output_paths=output_paths,
+            audit_report_path=os.path.join(version_workdirs["V9"], "audit_report.json") if "V9" in version_outputs else None,
+            merged_traces_path=merged_path,
+            trace_count=len(merged_traces),
+        )
+        # 更新各AI实例状态
+        ai_instance_ids = meta.get("ai_instance_ids", {})
+        for version, ai_key in ai_instance_ids.items():
+            trace_count = len(version_outputs.get(version, {}).get("traces", []))
+            db.update_ai_instance(
+                ai_key,
+                status="completed",
+                end_reason="output.json已生成",
+                output_summary=f"{trace_count}个trace",
+            )
+    if session_key:
+        from system import db
+        db.update_session(
+            session_key,
+            status="completed",
+            result_summary=f"脉络分析完成，{len(merged_traces)}个trace",
+        )
+
+    # 7. 返回AnalysisOutput
     return AnalysisOutput(
         traces=merged_traces,
         veins=merged_veins,

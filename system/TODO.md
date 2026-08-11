@@ -98,13 +98,15 @@ V9产出的trace还有以下字段：
 
 ## 数据库相关
 
-### TODO-6: ai_instances表未定义 [中优先级]
+### TODO-6: ai_instances表未定义 [中优先级] ✅已解决
 
 **来源**：db_schema.py的TODO区 + 痕迹保留rule
 
 **问题**：db_schema.py中ai_instances表只有TODO注释，没有实际定义。痕迹保留rule要求"每个AI实例的启动参数和产出路径"必须记录。
 
-**需要定义的字段**：ai_id, session_id, ai_role(solver/parser/telling/guide), prompt_version(V5/V7/V8/V9等), working_directory, started_at, completed_at, input_path, output_path
+**解决**：system/db.py中实现了create_ai_instance和update_ai_instance函数。ArangoDB中已有ai_instances集合（52条记录，来自POC-VMS）。vein_analysis.py在启动4个tmux session时为每个版本创建ai_instance记录。
+
+**字段**：_key, session_id, ai_role(parser/solver/telling/guide), working_directory, problem_id, tmux_session, version, status, started_at, ended_at, end_reason, output_summary
 
 ---
 

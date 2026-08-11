@@ -160,3 +160,29 @@ def scan_asset_files(asset_dirs: list) -> list:
 - 和`six-ai-agent-launch.md`的关系：AI Agent启动规范定义"短启动提示词+提示词文件加载"，本rule定义"什么放直接提示词、什么放文件、什么放AGENTS.md"——两者配合使用。
 - 和`six-trace-preservation.md`的关系：资产文件本身是痕迹保留的一部分——AI使用了哪些文件、文件的版本是什么，都需要记录。
 - 和`six-dual-check-mechanism.md`的关系：文件超长检测是"代码能检查的"部分——脚本自动检测，不需要AI检查。AI检查的是"文件内容质量"。
+
+## 固定资产的积累目录
+
+固定内容（AGENTS.md模板、提示词等）在积累目录中管理，运行时复制到工作目录：
+
+| 资产类型 | 积累目录 | 运行时复制到 |
+|---|---|---|
+| 脉络分析AI的AGENTS.md模板 | `system/assets/vein_analysis/AGENTS_V{5,7,8,9}.md` | 工作目录的`AGENTS.md` |
+| 脉络分析提示词 | `第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/...` | 工作目录的`prompt.md` |
+
+**积累目录的管理原则**：
+- 修改固定内容时，修改积累目录中的文件，不修改运行时工作目录中的副本
+- 积累目录中的文件受300行限制（除提示词外——提示词是完整操作指南，拆分影响连贯性）
+- 新增资产类型时，在`system/assets/`下创建新的子目录
+
+## 数据库记录——运行时信息的抓手
+
+运行时产生的动态信息（工作目录路径、会话ID、AI实例ID、产出路径等）写入数据库，不写入文件：
+
+| 数据库集合 | 内容 | 查找方法 |
+|---|---|---|
+| `problem_entries` | 题目录入记录——每道题入题一条记录 | `db.find_problem_entries_by_problem_id(problem_id)` |
+| `sessions` | 会话记录——每次入题或解题一条记录 | 按problem_id或session_type查找 |
+| `ai_instances` | AI实例记录——每个devin cli实例一条记录 | 按session_id查找 |
+
+**数据库操作统一通过`system/db.py`模块**，不直接操作ArangoDB客户端。其他模块（vein_analysis.py等）通过db.py读写数据库。

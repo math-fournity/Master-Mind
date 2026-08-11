@@ -269,6 +269,8 @@ AI数学系统运行时有两条Pipe：
 2. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`，那是错误的数据库。
 3. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
 
+**题目录入信息抓手**：`problem_entries`集合——每道题入题一条记录，是查找该题目所有录入信息的抓手。从这条记录可以找到工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径。查找方法：`db.find_problem_entries_by_problem_id(problem_id)`。数据库操作统一通过`system/db.py`模块，不直接操作ArangoDB客户端。
+
 ### 硬约束 2 · Git 规则
 
 1. **只在 `glm5.2` 分支上工作**。不要 commit 到本地 `main`。
