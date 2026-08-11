@@ -133,8 +133,10 @@ SYNTHESIS_AGENTS_TEMPLATE = "assets/vein_analysis/AGENTS_synthesis.md"
 # ============================================================================
 
 # True = tmux交互模式（detached session，可attach查看进度）
-# False = 非交互模式（subprocess直接启动，-p/--print，跑完自动退出）
-USE_TMUX = True
+# False = 非交互模式（subprocess直接启动，-p/--print，跑完自动退出，trajectory完整导出）
+# 默认非交互模式——devin cli处理完prompt后自动退出，--export在退出前导出完整trajectory
+# tmux模式有trajectory导出不完整的问题（kill session时devin cli可能还在做导出）
+USE_TMUX = False
 
 
 def _launch_devin(session_name: str, workdir: str, prompt: str) -> bool:
