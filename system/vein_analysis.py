@@ -108,6 +108,24 @@ AGENTS_TEMPLATES = {
 # 程序验证脚本路径（相对repo根目录）
 VERIFY_SCRIPT = "six/verify_lattice_completeness.py"
 
+# ============================================================================
+# 三阶段架构常量
+# ============================================================================
+
+# 格化提示词（阶段1）——只含段划分+形式上下文构造
+GRADING_PROMPT_FILES = {
+    "V5": os.path.join(PROMPT_DIR, "v5_grading.md"),
+    "V7": os.path.join(PROMPT_DIR, "v7_grading.md"),
+    "V8": os.path.join(PROMPT_DIR, "v8_grading.md"),
+    "V10": os.path.join(PROMPT_DIR, "v10_grading.md"),
+}
+
+# 综合分析提示词（阶段2）
+SYNTHESIS_PROMPT_FILE = os.path.join(PROMPT_DIR, "synthesis.md")
+
+# 综合分析AGENTS.md模板
+SYNTHESIS_AGENTS_TEMPLATE = "assets/vein_analysis/AGENTS_synthesis.md"
+
 # repo根目录——vein_analysis.py在system/下，所以根目录是上一级
 # 这个值在_load_repo_root()中动态计算
 _REPO_ROOT: Optional[str] = None
@@ -811,3 +829,365 @@ def _read_json(path: str) -> dict:
     """读JSON文件"""
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _build_solution_block(input: AnalysisInput) -> str:
+    """构造解答文本块——题目+解答文本"""
+    record = input.solution_record
+    solution_text = record.solution_text
+    problem_text = record.problem.problem_text
+
+    solution_block = f"""**题目**：
+
+{problem_text}
+
+**解答**：
+
+{solution_text}"""
+
+    if input.orphan_traces:
+        orphan_block = _format_orphan_traces(input.orphan_traces)
+        solution_block += f"\n\n**孤悬trace启发信号**（来自解题引导，请重点关注这些模式在外部解答中的体现）：\n\n{orphan_block}"
+
+    return solution_block
+
+
+# ============================================================================
+# 三阶段架构——格化→程序枚举→综合分析
+# ============================================================================
+
+def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
+    """三阶段脉络分析——格化与trace识别分离
+
+    阶段1（4并发格化）：V5/V7/V8/V10各做段划分+形式上下文构造
+    阶段1.5（程序枚举闭元素）：verify_lattice_completeness.py枚举所有闭元素
+    阶段2（1个综合分析Agent）：读4个版本格化结果+程序枚举闭元素，做trace识别+审计+元反思
+
+    详见333号文档。
+    """
+    print("=" * 70)
+    print("三阶段脉络分析——格化与trace识别分离")
+    print("=" * 70)
+
+    workdir_base = _create_workdir_base(input.process, input.problem_id)
+    print(f"工作目录: {workdir_base}")
+
+    # 阶段1：4并发格化
+    print("\n--- 阶段1：4并发格化 ---")
+    grading_dirs = _phase1_grading(workdir_base, input)
+
+    # 阶段1.5：程序枚举闭元素
+    print("\n--- 阶段1.5：程序枚举闭元素 ---")
+    closed_elements = _phase1_5_enumerate(workdir_base, grading_dirs)
+
+    # 阶段2：综合分析
+    print("\n--- 阶段2：综合分析 ---")
+    output = _phase2_synthesis(workdir_base, input, grading_dirs, closed_elements)
+
+    print("\n✅ 三阶段脉络分析完成")
+    return output
+
+
+def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
+    """阶段1：4并发格化——V5/V7/V8/V10各做段划分+形式上下文构造
+
+    Returns:
+        {version: workdir_path}——4个版本的格化工作目录
+    """
+    repo_root = _load_repo_root()
+    system_dir = os.path.join(repo_root, "system")
+
+    # 创建格化阶段的工作目录
+    grading_base = os.path.join(workdir_base, "phase1_grading")
+    os.makedirs(grading_base, exist_ok=True)
+
+    prepared_dirs = {}
+    for version in PROMPT_VERSIONS:
+        vdir = os.path.join(grading_base, version)
+        os.makedirs(vdir, exist_ok=True)
+
+        # 复制AGENTS.md模板
+        agents_src = os.path.join(system_dir, AGENTS_TEMPLATES[version])
+        with open(agents_src, "r", encoding="utf-8") as f:
+            agents_content = f.read()
+        with open(os.path.join(vdir, "AGENTS.md"), "w", encoding="utf-8") as f:
+            f.write(agents_content)
+
+        # 复制格化提示词
+        prompt_src = os.path.join(repo_root, GRADING_PROMPT_FILES[version])
+        with open(prompt_src, "r", encoding="utf-8") as f:
+            prompt_content = f.read()
+        with open(os.path.join(vdir, "prompt.md"), "w", encoding="utf-8") as f:
+            f.write(prompt_content)
+
+        # 写input.md——题目+解答文本
+        solution_block = _build_solution_block(input)
+        with open(os.path.join(vdir, "input.md"), "w", encoding="utf-8") as f:
+            f.write(solution_block)
+
+        prepared_dirs[version] = vdir
+        print(f"  准备 {version}: {vdir}")
+
+    # 启动4个tmux session
+    for version, vdir in prepared_dirs.items():
+        session_name = f"grade-{input.problem_id}-{version}"
+        launch_prompt = (
+            f"先加载 {vdir}/AGENTS.md 了解你的角色和约束，"
+            f"然后加载 {vdir}/prompt.md 中的提示词，"
+            f"读取 {vdir}/input.md 中的解答文本作为分析对象，"
+            f"按提示词要求做格化（段划分+形式上下文构造），"
+            f"完成后把产出写入 {vdir}/segments.json"
+            + (f" 和 {vdir}/formal_context.json" if version != "V5" else "")
+            + (f" 和 {vdir}/key_entities.json" if version == "V10" else "")
+            + f"。全部产出写完后，在 {vdir}/ 下创建一个空的 DONE.md 文件作为完成信号。"
+        )
+
+        result = subprocess.run(
+            ["tmux", "new-session", "-d", "-s", session_name,
+             "devin", "--permission-mode", "dangerous",
+             "--respect-workspace-trust", "false",
+             "--", launch_prompt],
+            capture_output=True, text=True, timeout=10,
+            cwd=vdir,
+        )
+        if result.returncode != 0:
+            print(f"  ⚠️ {version} tmux启动失败: {result.stderr}")
+        else:
+            print(f"  ✅ {version} tmux启动成功: {session_name}")
+
+    # 等待4个格化session完成——轮询DONE.md
+    import time
+    timeout = 1800  # 30分钟超时（格化比完整流程快）
+    poll_interval = 20
+    started = time.time()
+
+    while True:
+        elapsed = time.time() - started
+        if elapsed > timeout:
+            print(f"  ⚠️ 格化超时({timeout}秒)，停止等待")
+            break
+
+        all_done = True
+        status = []
+        for version, vdir in prepared_dirs.items():
+            done = os.path.exists(os.path.join(vdir, "DONE.md"))
+            status.append(f"{version}: {'✅' if done else '⏳'}")
+            if not done:
+                all_done = False
+
+        print(f"  [{int(elapsed)}s] {' '.join(status)}")
+        if all_done:
+            print("  ✅ 4个格化session全部完成")
+            break
+        time.sleep(poll_interval)
+
+    # 清理tmux session
+    _cleanup_tmux_sessions_named(prepared_dirs, f"grade-{input.problem_id}")
+
+    return prepared_dirs
+
+
+def _phase1_5_enumerate(workdir_base: str, grading_dirs: dict) -> dict:
+    """阶段1.5：程序枚举闭元素——对每个版本的形式上下文运行Next Closure算法
+
+    Returns:
+        {version: closed_elements_list}——每个版本的闭元素列表
+    """
+    # 创建闭元素输出目录
+    enum_dir = os.path.join(workdir_base, "phase1_5_enumerate")
+    os.makedirs(enum_dir, exist_ok=True)
+
+    closed_elements = {}
+
+    for version, vdir in grading_dirs.items():
+        fc_path = os.path.join(vdir, "formal_context.json")
+        if not os.path.exists(fc_path):
+            print(f"  ⚠️ {version} 无formal_context.json（V5不要求形式上下文），跳过")
+            continue
+
+        fc_data = _read_json(fc_path)
+        G = fc_data.get("G", [])
+        M = fc_data.get("M", [])
+        I = fc_data.get("I", [])
+
+        if not G or not M or not I:
+            print(f"  ⚠️ {version} 形式上下文不完整，跳过")
+            continue
+
+        # 用verify_lattice_completeness.py的FormalContext枚举闭元素
+        sys.path.insert(0, os.path.join(_load_repo_root(), "six"))
+        from verify_lattice_completeness import FormalContext
+
+        fc = FormalContext(G, M, I)
+        all_closed = fc.enumerate_all_closed_elements()
+
+        # 转成可序列化的格式
+        closed_list = []
+        for i, (extent, intent) in enumerate(all_closed):
+            closed_list.append({
+                "id": f"ce_{version}_{i}",
+                "extent": sorted(list(extent)),
+                "intent": sorted(list(intent)),
+                "source_version": version,
+            })
+
+        closed_elements[version] = closed_list
+
+        # 写入文件
+        output_path = os.path.join(enum_dir, f"{version}_closed_elements.json")
+        _write_json(output_path, {
+            "version": version,
+            "phase": "enumerate",
+            "formal_context": {"G": G, "M": M, "I_count": len(I)},
+            "closed_elements": closed_list,
+        })
+
+        print(f"  ✅ {version}: {len(closed_list)}个闭元素 → {output_path}")
+
+    return closed_elements
+
+
+def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
+                       grading_dirs: dict, closed_elements: dict) -> AnalysisOutput:
+    """阶段2：综合分析——1个devin cli实例读4个版本格化结果+程序枚举闭元素"""
+    repo_root = _load_repo_root()
+    system_dir = os.path.join(repo_root, "system")
+
+    # 创建综合分析工作目录
+    synth_dir = os.path.join(workdir_base, "phase2_synthesis")
+    os.makedirs(synth_dir, exist_ok=True)
+
+    # 复制AGENTS.md模板
+    agents_src = os.path.join(system_dir, SYNTHESIS_AGENTS_TEMPLATE)
+    with open(agents_src, "r", encoding="utf-8") as f:
+        agents_content = f.read()
+    with open(os.path.join(synth_dir, "AGENTS.md"), "w", encoding="utf-8") as f:
+        f.write(agents_content)
+
+    # 复制综合分析提示词
+    prompt_src = os.path.join(repo_root, SYNTHESIS_PROMPT_FILE)
+    with open(prompt_src, "r", encoding="utf-8") as f:
+        prompt_content = f.read()
+    with open(os.path.join(synth_dir, "prompt.md"), "w", encoding="utf-8") as f:
+        f.write(prompt_content)
+
+    # 写input.md——题目+解答文本
+    solution_block = _build_solution_block(input)
+    with open(os.path.join(synth_dir, "input.md"), "w", encoding="utf-8") as f:
+        f.write(solution_block)
+
+    # 创建grading/目录——复制4个版本的格化产出
+    grading_copy_dir = os.path.join(synth_dir, "grading")
+    os.makedirs(grading_copy_dir, exist_ok=True)
+    for version, vdir in grading_dirs.items():
+        for fname in ["segments.json", "formal_context.json", "key_entities.json"]:
+            src = os.path.join(vdir, fname)
+            if os.path.exists(src):
+                import shutil
+                shutil.copy2(src, os.path.join(grading_copy_dir, f"{version}_{fname}"))
+
+    # 创建closed_elements/目录——复制程序枚举的闭元素
+    ce_copy_dir = os.path.join(synth_dir, "closed_elements")
+    os.makedirs(ce_copy_dir, exist_ok=True)
+    enum_dir = os.path.join(workdir_base, "phase1_5_enumerate")
+    for version in PROMPT_VERSIONS:
+        src = os.path.join(enum_dir, f"{version}_closed_elements.json")
+        if os.path.exists(src):
+            import shutil
+            shutil.copy2(src, os.path.join(ce_copy_dir, f"{version}_closed_elements.json"))
+
+    # 启动综合分析devin cli
+    session_name = f"synth-{input.problem_id}"
+    launch_prompt = (
+        f"先加载 {synth_dir}/AGENTS.md 了解你的角色和约束，"
+        f"然后加载 {synth_dir}/prompt.md 中的提示词，"
+        f"读取 {synth_dir}/grading/ 目录下4个版本的格化结果，"
+        f"读取 {synth_dir}/closed_elements/ 目录下程序枚举的闭元素，"
+        f"读取 {synth_dir}/input.md 中的解答文本，"
+        f"按提示词要求做综合分析，"
+        f"完成后把产出写入 {synth_dir}/output.json 和 {synth_dir}/output.md。"
+        f"全部产出写完后，在 {synth_dir}/ 下创建一个空的 DONE.md 文件作为完成信号。"
+    )
+
+    result = subprocess.run(
+        ["tmux", "new-session", "-d", "-s", session_name,
+         "devin", "--permission-mode", "dangerous",
+         "--respect-workspace-trust", "false",
+         "--", launch_prompt],
+        capture_output=True, text=True, timeout=10,
+        cwd=synth_dir,
+    )
+    if result.returncode != 0:
+        print(f"  ⚠️ 综合分析tmux启动失败: {result.stderr}")
+    else:
+        print(f"  ✅ 综合分析tmux启动成功: {session_name}")
+
+    # 等待综合分析完成——轮询DONE.md
+    import time
+    timeout = 3600  # 60分钟超时
+    poll_interval = 30
+    started = time.time()
+
+    while True:
+        elapsed = time.time() - started
+        if elapsed > timeout:
+            print(f"  ⚠️ 综合分析超时({timeout}秒)")
+            break
+
+        done = os.path.exists(os.path.join(synth_dir, "DONE.md"))
+        print(f"  [{int(elapsed)}s] synthesis: {'✅' if done else '⏳'}")
+        if done:
+            print("  ✅ 综合分析完成")
+            break
+        time.sleep(poll_interval)
+
+    # 清理tmux session
+    try:
+        subprocess.run(["tmux", "kill-session", "-t", session_name],
+                       capture_output=True, timeout=5)
+        print(f"  🧹 已清理综合分析tmux session")
+    except Exception:
+        pass
+
+    # 读取综合分析产出
+    output_path = os.path.join(synth_dir, "output.json")
+    if not os.path.exists(output_path):
+        print(f"  ⚠️ 综合分析产出不存在: {output_path}")
+        return AnalysisOutput(traces=[], veins=[], level_views=[], process="absorb")
+
+    output_data = _read_json(output_path)
+
+    # 转成AnalysisOutput
+    traces = []
+    for t in output_data.get("traces", []):
+        traces.append(Trace(
+            trace_id=t.get("id", ""),
+            trace_type=t.get("type", "local"),
+            level=t.get("level", "Level 0"),
+            segments=t.get("segments", []),
+            pattern_description=t.get("description", ""),
+            generalizable=t.get("generalizable", False),
+        ))
+
+    veins = []
+    level_views = []
+
+    return AnalysisOutput(traces=traces, veins=veins, level_views=level_views, process="absorb")
+
+
+def _cleanup_tmux_sessions_named(prepared_dirs: dict, prefix: str):
+    """清理指定前缀的tmux session"""
+    for version, vdir in prepared_dirs.items():
+        done_path = os.path.join(vdir, "DONE.md")
+        if not os.path.exists(done_path):
+            continue
+        session_name = f"{prefix}-{version}"
+        try:
+            result = subprocess.run(
+                ["tmux", "kill-session", "-t", session_name],
+                capture_output=True, text=True, timeout=5,
+            )
+            if result.returncode == 0:
+                print(f"  🧹 已清理 {version} 的tmux session: {session_name}")
+        except Exception as e:
+            print(f"  ⚠️ 清理 {version} 的tmux session失败: {e}")
