@@ -1069,10 +1069,10 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
         with open(os.path.join(vdir, "prompt.md"), "w", encoding="utf-8") as f:
             f.write(prompt_content)
 
-        # V8文件拆分流程控制——复制step要求文件（335号方案+文件拆分流程控制规则）
+        # V8文件拆分流程控制——复制step要求文件（335号方案v1修订——2步不退化方案）
         if version == "V8":
             import shutil
-            for step_num in range(1, 5):
+            for step_num in range(1, 3):  # step1=格化, step2=矩阵构造
                 step_src = os.path.join(repo_root, PROMPT_DIR, f"v8_step{step_num}_requirements.md")
                 if os.path.exists(step_src):
                     shutil.copy2(step_src, os.path.join(vdir, f"step{step_num}_requirements.md"))
