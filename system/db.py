@@ -231,6 +231,8 @@ def update_problem_entry(
     phase1_success_versions: Optional[list] = None,
     phase1_failed_versions: Optional[list] = None,
     phase1_results: Optional[dict] = None,
+    # 342号方案——系统时间意识
+    timing: Optional[dict] = None,
 ):
     """更新题目录入记录——vein_analysis各阶段完成时调用
 
@@ -297,6 +299,9 @@ def update_problem_entry(
         doc["phase1_failed_versions"] = phase1_failed_versions
     if phase1_results is not None:
         doc["phase1_results"] = phase1_results
+    # 342号方案——系统时间意识
+    if timing is not None:
+        doc["timing"] = timing
     if status in ("completed", "failed"):
         doc["completed_at"] = _now_iso()
 

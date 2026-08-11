@@ -1170,13 +1170,29 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     print("\n--- 生成run_manifest.json ---")
     manifest_path = _write_run_manifest(workdir_base, run_id, problem_id)
 
+    # 初始化timing字典——342号方案：全管线全子管线运行时间记录
+    from .log import get_logger
+    import time
+    logger = get_logger("vein_analysis")
+    timing = {
+        "total_started_at": datetime.now().isoformat(),
+        "phase1_grading": {"versions": {}},
+        "phase1_5_enumerate": {"versions": {}},
+        "phase2_synthesis": {"steps": {}},
+    }
+    total_start = time.time()
+
     # 阶段1：4并发格化
     print("\n--- 阶段1：4并发格化 ---")
+    phase1_start = time.time()
+    timing["phase1_grading"]["started_at"] = datetime.now().isoformat()
     grading_dirs = _phase1_grading(workdir_base, input, run_id)
+    phase1_duration = int(time.time() - phase1_start)
+    timing["phase1_grading"]["completed_at"] = datetime.now().isoformat()
+    timing["phase1_grading"]["duration_sec"] = phase1_duration
+    logger.info(f"阶段1格化总耗时: {phase1_duration}秒")
 
     # 检查是否所有版本都失败（340号方案）
-    from .log import get_logger
-    logger = get_logger("vein_analysis")
 
     if not grading_dirs:
         logger.error("❌ 所有格化子管线失败，无法进行综合分析")
@@ -1193,6 +1209,15 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
         phase1_meta = _read_json(phase1_meta_path)
     success_versions = list(grading_dirs.keys())
     failed_versions = phase1_meta.get("failed_versions", [])
+
+    # 从phase1_results中提取各版本耗时到timing（342号方案）
+    for version, result in phase1_meta.get("results", {}).items():
+        timing["phase1_grading"]["versions"][version] = {
+            "status": result.get("status"),
+            "duration_sec": result.get("duration_sec"),
+            "segments_count": result.get("segments_count"),
+        }
+
     if failed_versions:
         logger.info(f"综合分析将基于{success_versions}的格化结果，{failed_versions}因超时被舍弃")
         print(f"  ℹ️ 综合分析基于{success_versions}，{failed_versions}被舍弃")
@@ -1214,7 +1239,19 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
 
     # 阶段1.5：程序枚举闭元素
     print("\n--- 阶段1.5：程序枚举闭元素 ---")
+    phase1_5_start = time.time()
+    timing["phase1_5_enumerate"]["started_at"] = datetime.now().isoformat()
     closed_elements = _phase1_5_enumerate(workdir_base, grading_dirs)
+    phase1_5_duration = int(time.time() - phase1_5_start)
+    timing["phase1_5_enumerate"]["completed_at"] = datetime.now().isoformat()
+    timing["phase1_5_enumerate"]["duration_sec"] = phase1_5_duration
+    # 记录各版本枚举耗时和闭元素数
+    for version in grading_dirs:
+        ce_count = len(closed_elements.get(version, []))
+        timing["phase1_5_enumerate"]["versions"][version] = {
+            "closed_elements_count": ce_count,
+        }
+    logger.info(f"阶段1.5枚举总耗时: {phase1_5_duration}秒")
 
     # 更新数据库——阶段1.5产出路径
     phase1_5_output_paths = {}
@@ -1227,10 +1264,40 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
 
     # 阶段2：综合分析
     print("\n--- 阶段2：综合分析 ---")
+    phase2_start = time.time()
+    timing["phase2_synthesis"]["started_at"] = datetime.now().isoformat()
     output = _phase2_synthesis(workdir_base, input, grading_dirs, closed_elements, run_id)
+    phase2_duration = int(time.time() - phase2_start)
+    timing["phase2_synthesis"]["completed_at"] = datetime.now().isoformat()
+    timing["phase2_synthesis"]["duration_sec"] = phase2_duration
+    logger.info(f"阶段2综合分析总耗时: {phase2_duration}秒")
 
-    # 更新数据库——阶段2产出路径+完成
+    # 综合分析4阶段拆分的耗时——通过中间文件的mtime计算（342号方案）
     synth_dir = os.path.join(workdir_base, "phase2_synthesis")
+    step_files = {
+        "step1_comparison": "comparison.json",
+        "step2_closed_element": "closed_element_traces.json",
+        "step3_content_based": "content_based_traces.json",
+        "step4_audit_merge": "output.json",
+    }
+    prev_time = phase2_start
+    for step_name, fname in step_files.items():
+        fpath = os.path.join(synth_dir, fname)
+        if os.path.exists(fpath):
+            mtime = os.path.getmtime(fpath)
+            step_duration = int(mtime - prev_time)
+            timing["phase2_synthesis"]["steps"][step_name] = {
+                "duration_sec": step_duration,
+            }
+            logger.info(f"  综合{step_name}: {step_duration}秒")
+            prev_time = mtime
+
+    # 更新数据库——阶段2产出路径+完成+timing（342号方案）
+    synth_dir = os.path.join(workdir_base, "phase2_synthesis")
+    total_duration = int(time.time() - total_start)
+    timing["total_completed_at"] = datetime.now().isoformat()
+    timing["total_duration_sec"] = total_duration
+
     db.update_problem_entry(
         entry_key,
         status="completed",
@@ -1239,6 +1306,7 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
             "output_md": os.path.join(synth_dir, "output.md"),
         },
         trace_count=len(output.traces) if output.traces else 0,
+        timing=timing,
     )
 
     # 自动归档到system/tests/vein_analysis/runs/{run_id}/（339号方案）
@@ -1249,6 +1317,38 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
         archive_path=archive_dir,
         manifest_path=manifest_path,
     )
+
+    # 打印耗时摘要（342号方案）
+    print("\n" + "=" * 60)
+    print("=== 耗时摘要 ===")
+    p1 = timing.get("phase1_grading", {})
+    print(f"阶段1 格化: {p1.get('duration_sec', '?')}秒")
+    for v, vinfo in p1.get("versions", {}).items():
+        dur = vinfo.get("duration_sec")
+        status = vinfo.get("status", "?")
+        seg = vinfo.get("segments_count", "?")
+        if status == "timeout":
+            print(f"  {v}: 超时 (段数={seg})")
+        elif dur is not None:
+            print(f"  {v}: {dur}秒 (段数={seg})")
+        else:
+            print(f"  {v}: {status} (段数={seg})")
+    p15 = timing.get("phase1_5_enumerate", {})
+    print(f"阶段1.5 枚举: {p15.get('duration_sec', '?')}秒")
+    for v, vinfo in p15.get("versions", {}).items():
+        ce = vinfo.get("closed_elements_count", "?")
+        print(f"  {v}: 闭元素={ce}")
+    p2 = timing.get("phase2_synthesis", {})
+    print(f"阶段2 综合分析: {p2.get('duration_sec', '?')}秒")
+    for step, sinfo in p2.get("steps", {}).items():
+        print(f"  {step}: {sinfo.get('duration_sec', '?')}秒")
+    print(f"总耗时: {timing.get('total_duration_sec', '?')}秒 ({timing.get('total_duration_sec', 0) // 60}分钟)")
+    print("=" * 60)
+
+    logger.info(f"全管线完成——总耗时{timing.get('total_duration_sec', '?')}秒，"
+                f"格化{p1.get('duration_sec', '?')}秒，"
+                f"枚举{p15.get('duration_sec', '?')}秒，"
+                f"综合{p2.get('duration_sec', '?')}秒")
 
     print("\n✅ 三阶段脉络分析完成")
     return output
@@ -1336,6 +1436,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
     started = time.time()
     version_status = {}  # {version: "running"/"completed"/"timeout"}
     version_start_time = {}  # {version: start_timestamp}
+    version_duration = {}  # {version: duration_sec}——342号方案
     for version in prepared_dirs:
         version_status[version] = "running"
         version_start_time[version] = started
@@ -1358,6 +1459,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
             if done:
                 version_status[version] = "completed"
                 duration = int(time.time() - version_start_time[version])
+                version_duration[version] = duration  # 342号方案
                 # 读取段数
                 seg_count = 0
                 seg_path = os.path.join(vdir, "segments.json")
@@ -1370,6 +1472,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
                 # 超时——标记timeout（340号方案）
                 version_status[version] = "timeout"
                 duration = int(time.time() - version_start_time[version])
+                version_duration[version] = duration  # 342号方案
                 logger.warning(f"格化版本{version}超时({duration}秒)，标记timeout")
                 # 创建FAILED.md标记文件
                 with open(os.path.join(vdir, "FAILED.md"), "w") as f:
@@ -1425,7 +1528,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dic
             seg_count = len(seg_data.get("segments", seg_data if isinstance(seg_data, list) else []))
         phase1_results[version] = {
             "status": version_status[version],
-            "duration_sec": int(time.time() - version_start_time[version]) if version_status[version] == "timeout" else None,
+            "duration_sec": version_duration.get(version),  # 342号方案——completed和timeout都记录
             "segments_count": seg_count,
         }
 
