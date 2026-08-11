@@ -74,6 +74,58 @@ def _timestamp() -> str:
     return str(int(time.time() * 1000))
 
 
+def get_next_run_id() -> int:
+    """获取下一个递增的入题序号
+
+    每次入题（无论是新题还是同一道题再次入题）都分配一个唯一的、递增的数字序号。
+    这是可审计性的保障——通过序号可以追溯每一次入题的完整记录。
+
+    用ArangoDB的counters集合实现原子递增：
+    - counters集合中有一个文档{_key: "run_id", value: 当前最大序号}
+    - 每次调用原子递增并返回新值
+
+    Returns:
+        下一个递增的入题序号（从1开始）
+    """
+    db = _get_db()
+    col = _ensure_collection("counters")
+    try:
+        # 尝试原子递增
+        doc = col.get("run_id")
+        if doc is None:
+            # 第一次——初始化为1
+            col.insert({"_key": "run_id", "value": 1})
+            return 1
+        else:
+            next_val = doc["value"] + 1
+            col.update({"_key": "run_id", "value": next_val})
+            return next_val
+    except Exception as e:
+        # 并发冲突——重试一次
+        doc = col.get("run_id")
+        if doc is None:
+            col.insert({"_key": "run_id", "value": 1})
+            return 1
+        next_val = doc["value"] + 1
+        col.update({"_key": "run_id", "value": next_val})
+        return next_val
+
+
+def format_run_id(run_id: int, problem_id: str) -> str:
+    """格式化入题标识——{4位数字序号}_{problem_id}
+
+    例：0001_imo2009p6, 0002_imo2009p6, 0003_imo1985p6
+
+    Args:
+        run_id: 递增的入题序号
+        problem_id: 题目标识（如imo2009p6）
+
+    Returns:
+        格式化的入题标识
+    """
+    return f"{run_id:04d}_{problem_id}"
+
+
 # ============================================================================
 # problem_entries——题目录入记录（抓手）
 # ============================================================================
@@ -82,6 +134,7 @@ def create_problem_entry(
     problem_id: str,
     process: str,
     working_directory: str,
+    run_id: Optional[int] = None,
     record_id: Optional[str] = None,
     versions: Optional[list] = None,
     version_workdirs: Optional[dict] = None,
@@ -92,15 +145,17 @@ def create_problem_entry(
     """创建题目录入记录——vein_analysis启动时调用
 
     这是每道题入题的抓手记录。从这条记录可以找到：
+    - 入题序号（run_id）——唯一的、递增的数字序号，可审计性保障
     - 工作目录（所有产出文件的根路径）
     - 会话ID
     - 4个AI实例的工作目录和tmux session名
     - 程序验证报告路径、合并trace路径（完成后更新）
 
     Args:
-        problem_id: 题目ID
+        problem_id: 题目ID（如imo2009p6）
         process: "absorb"或"solve"
         working_directory: 工作目录绝对路径
+        run_id: 入题序号——如果未提供，自动从数据库获取下一个递增序号
         record_id: 关联的解答记录ID（absorb模式有）
         versions: 4并发版本列表（如["V5","V7","V8","V9"]）
         version_workdirs: 各版本工作目录路径
@@ -109,13 +164,18 @@ def create_problem_entry(
         session_id: 关联的会话ID
 
     Returns:
-        录入记录ID（_key）
+        录入记录ID（_key）——格式为{4位数字序号}_{problem_id}
     """
-    collection = _ensure_collection("problem_entries")
-    entry_key = f"{process}_{problem_id}_{_timestamp()}"
+    # 如果未提供run_id，自动获取下一个递增序号
+    if run_id is None:
+        run_id = get_next_run_id()
 
+    entry_key = format_run_id(run_id, problem_id)
+
+    collection = _ensure_collection("problem_entries")
     doc = {
         "_key": entry_key,
+        "run_id": run_id,
         "problem_id": problem_id,
         "process": process,
         "session_id": session_id,

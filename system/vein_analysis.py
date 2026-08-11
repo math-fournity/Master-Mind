@@ -270,8 +270,8 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
         orphan_block = _format_orphan_traces(input.orphan_traces)
         solution_block += f"\n\n**孤悬trace启发信号**（来自解题引导，请重点关注这些模式在外部解答中的体现）：\n\n{orphan_block}"
 
-    # 创建工作目录
-    workdir_base = _create_workdir_base("absorb", problem_id)
+    # 创建工作目录——每次入题分配唯一递增序号
+    workdir_base, run_id = _create_workdir_base("absorb", problem_id)
 
     # 准备4个版本的工作目录
     prepared_dirs = {}
@@ -306,6 +306,7 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
         problem_id=problem_id,
         process="absorb",
         working_directory=workdir_base,
+        run_id=run_id,
         record_id=record.record_id,
         versions=list(PROMPT_VERSIONS),
         version_workdirs={v: str(d) for v, d in prepared_dirs.items()},
@@ -321,7 +322,7 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
     ai_instance_ids = {}
     for version in PROMPT_VERSIONS:
         vdir = prepared_dirs[version]
-        session_name = f"absorb-vein_analysis-{problem_id}-{version}"
+        session_name = f"absorb-{run_id:04d}-{version}"
         session_names[version] = session_name
 
         # 创建AI实例记录
@@ -393,8 +394,10 @@ def _cleanup_tmux_sessions(prepared_dirs: dict):
             continue
         if USE_TMUX:
             # tmux模式——kill session
-            problem_id = os.path.basename(os.path.dirname(vdir))
-            session_name = f"absorb-vein_analysis-{problem_id}-{version}"
+            # 目录名格式：{4位数字}_{problem_id}，提取数字部分构造session名
+            dir_name = os.path.basename(os.path.dirname(vdir))
+            run_id_str = dir_name.split("_")[0]
+            session_name = f"absorb-{run_id_str}-{version}"
             try:
                 result = subprocess.run(
                     ["tmux", "kill-session", "-t", session_name],
@@ -618,15 +621,30 @@ def _vein_analysis_solve(input: AnalysisInput) -> AnalysisOutput:
 # 工作目录准备
 # ============================================================================
 
-def _create_workdir_base(process: str, problem_id: str) -> str:
-    """创建工作目录基路径
+def _create_workdir_base(process: str, problem_id: str, run_id: Optional[int] = None) -> tuple:
+    """创建工作目录基路径——每次入题用唯一递增序号
 
-    结构：palyground/{process}/vein_analysis/{problem_id}/
+    结构：palyground/{process}/vein_analysis/{4位数字序号}_{problem_id}/
+
+    每次入题（无论是新题还是同一道题再次入题）都分配一个唯一的、递增的数字序号。
+    这是可审计性的保障——通过序号可以追溯每一次入题的完整记录，且不会覆盖之前的产出。
+
+    Args:
+        process: "absorb"或"solve"
+        problem_id: 题目标识（如imo2009p6）
+        run_id: 入题序号——如果未提供，自动从数据库获取下一个递增序号
+
+    Returns:
+        (workdir_base, run_id) ——工作目录绝对路径和入题序号
     """
+    from .db import get_next_run_id, format_run_id
+    if run_id is None:
+        run_id = get_next_run_id()
+    dir_name = format_run_id(run_id, problem_id)
     repo_root = _load_repo_root()
-    workdir_base = os.path.join(repo_root, "palyground", process, "vein_analysis", problem_id)
+    workdir_base = os.path.join(repo_root, "palyground", process, "vein_analysis", dir_name)
     os.makedirs(workdir_base, exist_ok=True)
-    return workdir_base
+    return workdir_base, run_id
 
 
 def _prepare_version_workdir(workdir_base: str, version: str,
@@ -933,12 +951,13 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     print("=" * 70)
 
     problem_id = input.solution_record.problem.problem_id
-    workdir_base = _create_workdir_base(input.process, problem_id)
+    workdir_base, run_id = _create_workdir_base(input.process, problem_id)
     print(f"工作目录: {workdir_base}")
+    print(f"入题序号: {run_id:04d}")
 
     # 阶段1：4并发格化
     print("\n--- 阶段1：4并发格化 ---")
-    grading_dirs = _phase1_grading(workdir_base, input)
+    grading_dirs = _phase1_grading(workdir_base, input, run_id)
 
     # 阶段1.5：程序枚举闭元素
     print("\n--- 阶段1.5：程序枚举闭元素 ---")
@@ -946,13 +965,13 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
 
     # 阶段2：综合分析
     print("\n--- 阶段2：综合分析 ---")
-    output = _phase2_synthesis(workdir_base, input, grading_dirs, closed_elements)
+    output = _phase2_synthesis(workdir_base, input, grading_dirs, closed_elements, run_id)
 
     print("\n✅ 三阶段脉络分析完成")
     return output
 
 
-def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
+def _phase1_grading(workdir_base: str, input: AnalysisInput, run_id: int) -> dict:
     """阶段1：4并发格化——V5/V7/V8/V10各做段划分+形式上下文构造
 
     Returns:
@@ -994,7 +1013,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
 
     # 启动4个tmux session
     for version, vdir in prepared_dirs.items():
-        session_name = f"grade-{input.solution_record.problem.problem_id}-{version}"
+        session_name = f"grade-{run_id:04d}-{version}"
         launch_prompt = (
             f"先加载 {vdir}/AGENTS.md 了解你的角色和约束，"
             f"然后加载 {vdir}/prompt.md 中的提示词，"
@@ -1039,7 +1058,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
         time.sleep(poll_interval)
 
     # 清理tmux session
-    _cleanup_tmux_sessions_named(prepared_dirs, f"grade-{input.solution_record.problem.problem_id}")
+    _cleanup_tmux_sessions_named(prepared_dirs, f"grade-{run_id:04d}")
 
     return prepared_dirs
 
@@ -1105,7 +1124,7 @@ def _phase1_5_enumerate(workdir_base: str, grading_dirs: dict) -> dict:
 
 
 def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
-                       grading_dirs: dict, closed_elements: dict) -> AnalysisOutput:
+                       grading_dirs: dict, closed_elements: dict, run_id: int) -> AnalysisOutput:
     """阶段2：综合分析——1个devin cli实例读4个版本格化结果+程序枚举闭元素"""
     repo_root = _load_repo_root()
     system_dir = os.path.join(repo_root, "system")
@@ -1154,7 +1173,7 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
             shutil.copy2(src, os.path.join(ce_copy_dir, f"{version}_closed_elements.json"))
 
     # 启动综合分析devin cli
-    session_name = f"synth-{input.solution_record.problem.problem_id}"
+    session_name = f"synth-{run_id:04d}"
     launch_prompt = (
         f"先加载 {synth_dir}/AGENTS.md 了解你的角色和约束，"
         f"然后加载 {synth_dir}/prompt.md 中的提示词，"
