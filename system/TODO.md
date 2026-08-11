@@ -71,7 +71,9 @@ V9产出的trace还有以下字段：
 
 **问题**：vein_analysis()需要启动4个AI Agent（V5/V7/V8/V9）。按AI Agent启动规范rule，AI Agent通过tmux启动，启动前要准备AGENTS.md/prompt.md/input.md。这些"准备文件+启动tmux+等待+收集产出"的动作，是写在Python代码里自动执行，还是由Master Agent手动执行？
 
-**解决**：选a——编排描述+产出解析。vein_analysis()函数执行步骤1（准备工作目录和文件）和步骤3（收集产出、运行验证、合并trace），步骤2（启动4个tmux session）由Master Agent按函数打印的执行计划手动执行。collect_vein_analysis_output()函数在4个AI完成后被调用执行步骤3。这和AGENTS.md核心认知"系统就是你，不是脚本"一致。
+**解决**：选b——可执行代码。vein_analysis()函数自动执行全部流程：准备工作目录→subprocess启动4个tmux session→轮询等待4个AI完成→收集产出→合并trace→返回AnalysisOutput。这和2026-08-11认知转变"系统就是脚本，你是检查者和开发者"一致。
+
+**认知转变**：2026-08-11，从"系统就是你，不是脚本"（选a）变为"系统就是脚本"（选b）。理由：第六代系统把判断力编码进了提示词和程序验证，脚本可以执行；4并发手动执行效率太低；Master Agent的时间应该花在开发代码和审计运行上。
 
 **实现**：system/vein_analysis.py已实现，2026-08-11。
 

@@ -29,18 +29,25 @@ solve模式（从推理AI的thinking分析，可能有分叉）的提示词尚�
 当前留NotImplementedError。
 
 ═══════════════════════════════════════════════════════════════════════
-执行方式——编排描述 + 产出解析
+执行方式——脚本自动执行
 ═══════════════════════════════════════════════════════════════════════
 
-本模块的vein_analysis()函数定义编排逻辑和产出解析逻辑。
-实际的AI Agent启动（tmux启动devin cli实例）由Master Agent按编排执行——
-这和AGENTS.md核心认知"系统就是你，不是脚本"一致。
+本模块的vein_analysis()函数自动执行全部流程——准备工作目录、启动4个tmux
+session、等待AI完成、收集产出、合并trace。
 
-函数被调用时：
+系统就是脚本（2026-08-11认知转变）。系统的运行逻辑由代码自动执行，
+Master Agent的职责是开发系统代码和检查系统运行——不是在系统运行时
+亲手执行循环。
+
+vein_analysis()被调用时：
 1. 准备阶段（代码自动执行）：创建工作目录、准备提示词文件和输入文件
-2. 启动阶段（Master Agent执行）：按AI Agent启动规范rule启动4个tmux session
-3. 收集阶段（代码自动执行）：读取4个AI的产出JSON、运行程序验证、合并trace
-4. 返回AnalysisOutput
+2. 启动阶段（代码自动执行）：用subprocess启动4个tmux session
+3. 等待阶段（代码自动执行）：轮询output.json是否出现，等待4个AI完成
+4. 收集阶段（代码自动执行）：读取4个AI的产出JSON、运行程序验证、合并trace
+5. 返回AnalysisOutput
+
+Master Agent在系统运行时是检查者——检查tmux session状态、检查AI Agent产出、
+按.ai-check checklist审计产出质量。
 
 详细设计见：
 - 技术说明书06-五代继承/02-第六代的独特贡献.md "4并发方案"节
@@ -138,15 +145,15 @@ def vein_analysis(input: AnalysisInput) -> AnalysisOutput:
 def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
     """absorb模式的脉络分析——4并发方案
 
-    流程：
+    流程（全部由代码自动执行）：
     1. 准备阶段——创建4个工作目录，准备提示词文件和输入文件
-    2. 启动阶段——Master Agent按编排启动4个tmux session（见返回的执行计划）
-    3. 收集阶段——读取4个AI的产出JSON、运行程序验证、合并trace
-    4. 返回AnalysisOutput
+    2. 启动阶段——用subprocess启动4个tmux session（devin cli实例）
+    3. 等待阶段——轮询4个output.json是否出现，等待4个AI完成
+    4. 收集阶段——读取4个AI的产出JSON、运行程序验证、合并trace
+    5. 返回AnalysisOutput
 
-    本函数执行步骤1和3。步骤2由Master Agent执行——函数在步骤1完成后
-    返回一个执行计划（VeinAnalysisExecutionPlan），Master Agent按计划启动
-    4个tmux session后，再次调用本函数（通过collect参数）执行步骤3。
+    系统就是脚本——启动、等待、收集全部由代码自动执行。
+    Master Agent在系统运行时是检查者，不参与循环执行。
     """
     # 验证输入
     if input.solution_record is None:
@@ -196,44 +203,87 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
     meta_path = os.path.join(workdir_base, "meta.json")
     _write_json(meta_path, meta)
 
-    # 打印执行计划——Master Agent按此计划启动4个tmux session
-    print("=" * 70)
-    print("脉络分析4并发——执行计划")
-    print("=" * 70)
-    print(f"工作目录: {workdir_base}")
-    print(f"已准备 {len(prepared_dirs)} 个版本的工作目录")
-    print()
-    print("请按以下命令启动4个tmux session（AI Agent启动规范rule）：")
-    print()
+    # 启动4个tmux session
+    session_names = {}
     for version in PROMPT_VERSIONS:
         vdir = prepared_dirs[version]
         session_name = f"absorb-vein_analysis-{problem_id}-{version}"
-        print(f"  # {version}")
-        print(f"  tmux new-session -d -s {session_name} \\")
-        print(f'    "cd {vdir} && devin \'加载 {vdir}/prompt.md 中的提示词，')
-        print(f'    读取 {vdir}/input.md 中的输入数据，按提示词要求工作，')
-        print(f'    完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md\'"')
-        print()
-    print("启动后用以下命令检查状态：")
-    print(f"  tmux list-sessions | grep absorb-vein_analysis-{problem_id}")
-    print()
-    print("4个AI都完成后，调用 collect_vein_analysis_output() 收集产出：")
-    print(f"  from system.vein_analysis import collect_vein_analysis_output")
-    print(f"  output = collect_vein_analysis_output('{workdir_base}')")
-    print("=" * 70)
+        session_names[version] = session_name
+
+        # 短启动提示词——让AI加载prompt.md，不塞完整提示词
+        launch_prompt = (
+            f"加载 {vdir}/prompt.md 中的提示词，"
+            f"读取 {vdir}/input.md 中的输入数据，按提示词要求工作，"
+            f"完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md"
+        )
+
+        # 用subprocess启动tmux session
+        import subprocess
+        cmd = [
+            "tmux", "new-session", "-d", "-s", session_name,
+            f"cd {vdir} && devin '{launch_prompt}'"
+        ]
+        print(f"启动 {version}: tmux session={session_name}")
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"⚠️ {version} tmux启动失败: {result.stderr}")
+        else:
+            print(f"✅ {version} tmux启动成功")
 
     # 更新meta状态
     meta["status"] = "running"
+    meta["session_names"] = session_names
     _write_json(meta_path, meta)
 
-    # 返回一个临时的AnalysisOutput——实际产出需要等AI完成后调用collect
-    # 这里返回空的AnalysisOutput，调用方应该等待AI完成后调用collect_vein_analysis_output
-    return AnalysisOutput(
-        traces=[],
-        veins=[],
-        level_views=[],
-        process="absorb",
-    )
+    print()
+    print(f"4个AI Agent已启动，等待完成...")
+    print(f"工作目录: {workdir_base}")
+    print(f"检查状态: tmux list-sessions | grep absorb-vein_analysis-{problem_id}")
+    print()
+
+    # 等待4个AI完成——轮询output.json是否出现
+    output = _wait_and_collect(workdir_base, prepared_dirs, meta, meta_path)
+    return output
+
+
+def _wait_and_collect(workdir_base: str, prepared_dirs: dict,
+                       meta: dict, meta_path: str) -> AnalysisOutput:
+    """等待4个AI完成并收集产出
+
+    轮询4个版本的output.json是否出现。全部出现后调用collect_vein_analysis_output。
+    设置超时——如果超过timeout秒还没全部完成，返回已完成的版本的产出。
+    """
+    import time
+
+    timeout = 3600  # 60分钟超时
+    poll_interval = 30  # 每30秒检查一次
+    started = time.time()
+
+    while True:
+        elapsed = time.time() - started
+        if elapsed > timeout:
+            print(f"⚠️ 超时({timeout}秒)，停止等待，收集已完成的版本")
+            break
+
+        all_done = True
+        status = []
+        for version, vdir in prepared_dirs.items():
+            output_path = os.path.join(vdir, "output.json")
+            done = os.path.exists(output_path)
+            status.append(f"{version}: {'✅' if done else '⏳'}")
+            if not done:
+                all_done = False
+
+        print(f"[{int(elapsed)}s] {' '.join(status)}")
+
+        if all_done:
+            print("✅ 4个AI全部完成")
+            break
+
+        time.sleep(poll_interval)
+
+    # 收集产出
+    return collect_vein_analysis_output(workdir_base)
 
 
 def collect_vein_analysis_output(workdir_base: str) -> AnalysisOutput:
