@@ -1,0 +1,59 @@
+{
+  "problem": "IMO 2009 P6 - Grasshopper",
+  "input_type": "linear",
+  "analyzer": "V5",
+  "segments": [
+    {"id": "s1", "content": "WLOG 排序 a₁ < a₂ < ... < aₙ", "feature": "WLOG 排序"},
+    {"id": "s2", "content": "定义 x = a₁ + ... + a_{n-1}", "feature": "定义辅助变量"},
+    {"id": "s3", "content": "对 n 做强归纳", "feature": "选择强归纳"},
+    {"id": "s4", "content": "按 M 中元素相对 x 的位置分三种情况", "feature": "情况分析"},
+    {"id": "s5", "content": "Case 1: 定义坏指标 i (x-aᵢ∈M 或 s-aᵢ∈M)", "feature": "定义坏指标"},
+    {"id": "s6", "content": "Case 1: 注入映射+鸽巢证存在好指标 r", "feature": "鸽巢论证"},
+    {"id": "s7", "content": "Case 1: 缩减 M' + 归纳构造 + 拼接 + 验证", "feature": "递归构造+拼接验证"},
+    {"id": "s8", "content": "Case 2: 直接归纳延拓，aₙ 放最后", "feature": "直接归纳延拓"},
+    {"id": "s9", "content": "Case 3: 归纳后交换修复跳过 z", "feature": "交换技巧"},
+    {"id": "s10", "content": "一般情形复合排序置换归约到有序情形", "feature": "归约还原"}
+  ],
+  "level_views": [
+    {"id": "L0", "description": "最细，10段独立", "merge": "无合并", "segments": ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"]},
+    {"id": "L1", "description": "Case 1 存在性子论证合并", "merge": "s5+s6", "segments": ["s1","s2","s3","s4","s5+s6","s7","s8","s9","s10"]},
+    {"id": "L2", "description": "准备阶段合并 + Case 1 完整合并", "merge": "s1+s2+s3; s5+s6+s7", "segments": ["s1+s2+s3","s4","s5+s6+s7","s8","s9","s10"]},
+    {"id": "L3", "description": "完整归纳步合并", "merge": "s4+s5+s6+s7+s8+s9", "segments": ["s1+s2+s3","s4+s5+s6+s7+s8+s9","s10"]},
+    {"id": "L4", "description": "最粗，全部合并", "merge": "全部合并", "segments": ["s1+s2+s3+s4+s5+s6+s7+s8+s9+s10"]}
+  ],
+  "traces": [
+    {"id": "T0-1", "type": "局部", "level": "L0", "segments": ["s1"], "description": "通过 WLOG 排序简化问题结构——把一般排列问题归约到有序情形，利用对称性消除排列自由度", "generalizable": true},
+    {"id": "T0-2", "type": "局部", "level": "L0", "segments": ["s2"], "description": "定义关键辅助变量 x=去掉最大元素后的和——抓住归纳结构中的枢纽量，x 既是分类判据又是递归连接点", "generalizable": true},
+    {"id": "T0-3", "type": "局部", "level": "L0", "segments": ["s3"], "description": "选择强归纳——对 n 做强归纳，利用所有更小规模的结论，为去掉任意一个元素后归约提供灵活性", "generalizable": true},
+    {"id": "T0-4", "type": "局部", "level": "L0", "segments": ["s4"], "description": "按关键变量与约束集的关系分类——用两个二元判据(x∈M? 和 ∃y>x?)划分情况，覆盖所有可能", "generalizable": true},
+    {"id": "T0-5", "type": "局部", "level": "L0", "segments": ["s5"], "description": "定义坏指标刻画约束——把'前缀和避开 M'的约束翻译成'指标好坏'的语言，使计数成为可能", "generalizable": true},
+    {"id": "T0-6", "type": "局部", "level": "L0", "segments": ["s6"], "description": "用注入映射+基数比较(鸽巢)证存在性——构造坏指标→M\\{x} 的注入，由|M\\{x}|<指标总数得出好指标存在", "generalizable": true},
+    {"id": "T0-7", "type": "局部", "level": "L0", "segments": ["s7"], "description": "递归构造+拼接+验证——用归纳假设构造子排列，拼接好指标和最大元素，逐一验证所有前缀和避开 M", "generalizable": true},
+    {"id": "T0-8", "type": "局部", "level": "L0", "segments": ["s8"], "description": "直接归纳延拓——当关键变量不在 M 中时，对前 n-1 个元素直接用归纳，最大元素放最后", "generalizable": true},
+    {"id": "T0-9", "type": "局部", "level": "L0", "segments": ["s9"], "description": "交换技巧跳过最大障碍——归纳构造后用最大元素置换命中位置跳过障碍点 z", "generalizable": true},
+    {"id": "T0-10", "type": "局部", "level": "L0", "segments": ["s10"], "description": "归约还原——一般情形通过复合排序置换归约到有序情形，闭合 WLOG 的承诺", "generalizable": true},
+    {"id": "T1-1", "type": "非局部", "level": "L1", "segments": ["s5","s6"], "description": "鸽巢论证找安全元素——构造注入映射把坏指标映到 M\\{x}，由|M\\{x}|=n-2 < n-1 个指标得出至少一个好指标存在。这是'在坏元素中找好元素'的标准存在性策略：定义坏→注入→计数→好元素必存在", "generalizable": true},
+    {"id": "T1-2", "type": "非局部", "level": "L1", "segments": ["s5","s6"], "description": "约束翻译为计数问题——把'排列的前缀和避开 M'这个组合约束，翻译成'指标 i 满足 x-aᵢ∉M 且 s-aᵢ∉M'的计数语言，使鸽巢论证可用", "generalizable": true},
+    {"id": "T2-1", "type": "非局部", "level": "L2", "segments": ["s1","s2","s3"], "description": "构建可归纳的问题结构——通过 WLOG 排序+定义关键变量 x+选择强归纳，把一般排列存在问题转化为以 x 为枢纽的强归纳结构。三者缺一不可：排序使'最大元素'有意义，x 是归纳的递归连接点，强归纳允许去掉任意一个元素", "generalizable": true},
+    {"id": "T2-2", "type": "非局部", "level": "L2", "segments": ["s5","s6","s7"], "description": "鸽巢找好指标+递归构造+拼接验证——Case 1 的完整策略：先证存在好指标 r，再对剩余元素归纳，拼接 r 和 aₙ，验证全程避开 M。这是'存在性证明+构造性拼接'的组合模式", "generalizable": true},
+    {"id": "T2-3", "type": "非局部", "level": "L2", "segments": ["s5","s6","s7"], "description": "构造-分析-排除模式——构造候选指标集(所有 n-1 个小指标)，分析坏指标(注入计数)，排除坏指标后剩下好指标。这是'构造候选→分析性质→排除不可能→剩下的是可能的'的经典模式", "generalizable": true},
+    {"id": "T2-4", "type": "非局部", "level": "L2", "segments": ["s5","s6","s7"], "description": "约束集缩减配合归纳——找到好指标 r 后，把 M 缩减为 M'=M∩(-∞,t](|M'|≤n-3)，使剩余 n-2 个元素的归纳条件满足。这是'缩减约束集以匹配归纳的规模缩减'的桥接技巧", "generalizable": true},
+    {"id": "T3-1", "type": "非局部", "level": "L3", "segments": ["s4","s5","s6","s7","s8","s9"], "description": "情况分析驱动的归纳步——按 x 与 M 的关系分三种情况，每种情况用不同方式归约到更小规模。分类判据来自准备阶段定义的关键变量 x，使分类与归纳枢纽一致", "generalizable": true},
+    {"id": "T3-2", "type": "非局部", "level": "L3", "segments": ["s5","s6","s7","s8","s9"], "description": "归纳步的三种归约策略对比——Case 1 用鸽巢找好指标再归纳(最重)，Case 2 直接归纳延拓(最轻)，Case 3 归纳后用交换修复(中等)。三种策略的轻重差异源于 x 与 M 的关系差异", "generalizable": true},
+    {"id": "T3-3", "type": "非局部", "level": "L3", "segments": ["s4","s8","s9"], "description": "轻情况的两种直接归约——Case 2(x∉M)和 Case 3(所有 m≤x)都不需要鸽巢论证，分别用'直接延拓'和'交换修复'完成归约。当约束较松时，归纳步可以更直接", "generalizable": true},
+    {"id": "T4-1", "type": "全局", "level": "L4", "segments": ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"], "description": "强归纳+情况分析+鸽巢计数的组合策略——排列存在性问题的核心方法论：强归纳提供框架，情况分析提供分支，鸽巢计数在最难的情况中找到归约路径", "generalizable": true},
+    {"id": "T4-2", "type": "全局", "level": "L4", "segments": ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"], "description": "归约-归纳-还原的三段式战略——先 WLOG 归约到有序情形(准备)，对有序情形做强归纳(归纳步)，最后还原到一般情形(收尾)。这是'归约→解决→还原'的经典战略结构", "generalizable": true},
+    {"id": "T4-3", "type": "全局", "level": "L4", "segments": ["s1","s2","s3","s4","s5","s6","s7","s8","s9","s10"], "description": "以'去掉最大元素后的和 x'为枢纽组织整个归纳——x 同时担任分类判据(x∈M? ∃y>x?)、递归连接点(子问题的和就是 x 或 x-aᵣ)、验证关键量(前缀和与 x 的比较)三重角色。一个变量贯穿全证明的三个角色", "generalizable": true},
+    {"id": "T4-4", "type": "全局", "level": "L4", "segments": ["s5","s6","s7","s8","s9"], "description": "归纳步的难度自适应设计——三种情况难度递减：Case 1 最难(鸽巢找好指标+缩减约束集+拼接)，Case 2 最易(直接延拓)，Case 3 中等(交换修复)。分类判据恰好把难情形隔离出来用重武器，易情形用轻武器", "generalizable": true}
+  ],
+  "most_valuable_trace": {"id": "T4-3", "reason": "揭示了证明能 work 的最深层原因——x 不是随便定义的变量，而是被精心设计为同时担任分类判据、递归连接点、验证关键量三重角色的枢纽。这个 trace 是全局的，只有在最粗 Level 上才能看到，因为 x 的三重角色分散在整个证明中。能引导 AI 在其他归纳问题中主动寻找枢纽变量设计。"},
+  "second_most_valuable_trace": {"id": "T1-1", "reason": "Case 1(最难情况)能走通的关键策略——'在坏元素中找好元素'的标准存在性策略。非局部 trace，在 L0 上看不到，只有合并段5+6 才看到'鸽巢找安全元素'这个策略模式。泛化性强，能匹配 tell 库中常见的鸽巢论证类型。"},
+  "audit": {
+    "segment_count": 10,
+    "level_view_count": 5,
+    "trace_count": 23,
+    "trace_distribution": {"L0": 10, "L1": 2, "L2": 4, "L3": 3, "L4": 4},
+    "complex_situations_found": ["嵌套的结构", "构造-分析-排除", "段之间有依赖关系"],
+    "new_tell_types": ["T4-3: 枢纽变量多角色设计", "T4-4: 归纳步难度自适应", "T2-4: 约束集缩减配合归纳"]
+  }
+}
