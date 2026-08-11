@@ -59,29 +59,29 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
     """
     Pipe 1: Parser AI —— 提取格化全Level Trace
 
-    核心能力：提取格化全Level Trace——在过程A和过程B中都用。
+    核心能力：提取格化全Level Trace——在解题引导和解答吸收中都用。
 
-    步骤1-3在过程A和过程B中相似但不完全相同：
+    步骤1-3在解题引导和解答吸收中相似但不完全相同：
 
     ┌─────────────────────────────────────────────────────────────────────┐
     │ 步骤1：分析脉络                                                      │
-    │   过程A：从Thinking中分析 → 可能是有分叉的树/DAG                      │
-    │   过程B：从SolutionRecord中分析 → 通常是线性脉络                      │
+    │   解题引导：从Thinking中分析 → 可能是有分叉的树/DAG                      │
+    │   解答吸收：从SolutionRecord中分析 → 通常是线性脉络                      │
     │                                                                     │
     │ 步骤2：格化脉络 → 所有Level视图                                       │
-    │   过程A：在有分叉的脉络上格化 → 多个分支分别格化                       │
-    │   过程B：在线性脉络上格化                                             │
+    │   解题引导：在有分叉的脉络上格化 → 多个分支分别格化                       │
+    │   解答吸收：在线性脉络上格化                                             │
     │                                                                     │
     │ 步骤3：识别trace（全Level）                                           │
-    │   过程A：分叉位置本身可能就是trace（AI选了A没选B）                     │
+    │   解题引导：分叉位置本身可能就是trace（AI选了A没选B）                     │
     │         → is_branch_position=True                                   │
-    │   过程B：不需要考虑分叉位置                                           │
+    │   解答吸收：不需要考虑分叉位置                                           │
     │         → is_branch_position=False                                  │
     └─────────────────────────────────────────────────────────────────────┘
 
     并行关系：
       - 和Solver AI并行——Solver AI在thinking的同时Parser AI就增量提取trace
-      - 过程A和过程B可以并行——系统运行过程A的同时间歇运行过程B
+      - 解题引导和解答吸收可以并行——系统运行解题引导的同时间歇运行解答吸收
 
     依赖：
       - 步骤2的格化方法由VMS-28/29/30的POC验证结果决定
@@ -154,6 +154,31 @@ def pipe_1_parser(input: ParserInput) -> ParserOutput:
         step_2_grid_vein()的提示词应该用V9。
         详见332号§8.12。
 
+        **4并发方案**（2026-08-10决定，基于VMS-28c/28d/28e POC验证）：
+        Pipe 1 step_2 grid_vein在运行时采用4并发——V5/V7/V8/V9四个提示词
+        版本并发跑同一道题，取trace并集。
+
+        为什么4并发而不是选一个最好的版本：
+        4个版本各有所长，不是简单的子集关系——
+        V5独有"归纳递降三种方式"（自由直觉发现），
+        V7独有"预防性vs修复性避障"+"Case间递进"（结构化约束让注意力分布不同），
+        V8独有"x贯穿"+"aₙ作为工具"（跨闭元素元模式引导），
+        V9独有"WLOG闭环"+"r的生命周期"（元反思步骤）。
+        每个版本的结构化约束既是引导也是盲区，4并发取并集覆盖所有优势区。
+
+        运行时架构：
+        输入 → 4个subagent并发（V5/V7/V8/V9各一个）→ 4份JSON
+        → trace并集（按语义去重）→ 对V9的JSON运行程序验证
+        → 合并trace集合 → 进入Pipe 2
+
+        去重规则：段集合Jaccard≥0.8且描述思维模式相同→去重，保留更完整的描述。
+        程序验证：对V9的JSON运行verify_lattice_completeness.py
+        （闭元素完备性+贯穿性验证+伪元模式过滤）。
+        成本：4倍单版本成本，trace完备性显著提升。
+        降级选项：成本瓶颈时可降为2并发（V5+V9），覆盖大部分独有发现。
+
+        详见技术说明书06-五代继承/02-第六代的独特贡献.md "4并发方案"节。
+
         **运行时闭环反馈机制**（系统创新的设计延伸）：
         verify_lattice_completeness.py不只是研发工具，也是运行时组件。
         Pipe 1每次产出JSON后，程序验证完备性：
@@ -179,7 +204,7 @@ def pipe_2_telling(input: TellingInput) -> TellingOutput:
     步骤4：在每个对应分类目录中启动Devin CLI实例
           加载该目录AGENTS.md，遍历tell做匹配
 
-    过程A和过程B完全相同——Telling AI不关心trace来自哪里。
+    解题引导和解答吸收完全相同——Telling AI不关心trace来自哪里。
 
     并发实现：
       - 每个Telling AI是一个Devin CLI实例
@@ -189,10 +214,10 @@ def pipe_2_telling(input: TellingInput) -> TellingOutput:
       - 各Telling AI独立返回结果，不需要汇总
 
     输出处理：
-      - 匹配到tell的trace → 取hint（过程A）或确认匹配（过程B）
+      - 匹配到tell的trace → 取hint（解题引导）或确认匹配（解答吸收）
       - 没匹配到tell的trace → 孤悬trace
-        - 过程A：存档→启发过程B的Parser AI
-        - 过程B：去特化→建立新(tell,hint)→存入AGENTS.md
+        - 解题引导：存档→启发解答吸收的Parser AI
+        - 解答吸收：去特化→建立新(tell,hint)→存入AGENTS.md
 
     POC验证状态：
       - VMS-15：并发Telling AI
@@ -207,10 +232,10 @@ def pipe_2_telling(input: TellingInput) -> TellingOutput:
 
 def step_5_branch(input: Step5Input) -> Step5Output:
     """
-    步骤5分叉——过程A和过程B不同
+    步骤5分叉——解题引导和解答吸收不同
 
     ┌──────────────────────────────┬──────────────────────────────┐
-    │ 过程A（推理AI上下文）          │ 过程B（外部解答记录）          │
+    │ 解题引导（推理AI上下文）       │ 解答吸收（外部解答记录）       │
     │                              │                              │
     │ 匹配到tell:                   │ 匹配到tell:                   │
     │   取hint → 送入Pipe 3         │   确认匹配（不需要新建）        │
@@ -218,18 +243,18 @@ def step_5_branch(input: Step5Input) -> Step5Output:
     │ 没匹配到tell:                 │ 没匹配到tell:                 │
     │   [Parser AI]存档孤悬trace    │   [Parser AI]去特化trace       │
     │   （按tell分类学分类）         │   建立新(tell,hint)            │
-    │   → 启发过程B的Pipe 1         │   存入对应目录AGENTS.md         │
+    │   → 启发解答吸收的Pipe 1       │   存入对应目录AGENTS.md         │
     │                              │   → tell库增长                 │
     └──────────────────────────────┴──────────────────────────────┘
 
-    为什么过程B的trace可以直接成为tell：
+    为什么解答吸收的trace可以直接成为tell：
       外部解答记录是完整正确解答，trace被验证过。
-      过程A的trace是探索中的，可能走对了也可能走错了，
+      解题引导的trace是探索中的，可能走对了也可能走错了，
       不能直接升级为tell，只能存档待Parser AI验证。
 
     POC验证状态：
-      - VMS-16：Parser AI（过程B的建立新tell）
-      - VMS-19：tell库持续增长闭环（过程A→过程B→过程A）
+      - VMS-16：Parser AI（解答吸收的建立新tell）
+      - VMS-19：tell库持续增长闭环（解题引导→解答吸收→解题引导）
     """
     raise NotImplementedError("步骤5分叉 待实现")
 
