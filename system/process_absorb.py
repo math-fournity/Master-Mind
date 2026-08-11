@@ -27,7 +27,7 @@ from .schema import (
     MatchInput, MatchOutput,
     KnowledgeDepositOutput,
 )
-from .vein_analysis import vein_analysis
+from .vein_analysis import vein_analysis_three_phase
 
 
 def absorb(solution_records: list[SolutionRecord],
@@ -53,8 +53,8 @@ def absorb(solution_records: list[SolutionRecord],
         # 获取解题引导产出的孤悬trace（启发信号）
         orphan_traces = get_archived_orphan_traces()
 
-        # 脉络分析：分析解答记录，格化脉络，识别trace
-        analysis_output = vein_analysis(AnalysisInput(
+        # 脉络分析：分析解答记录，格化脉络，识别trace（三阶段架构）
+        analysis_output = vein_analysis_three_phase(AnalysisInput(
             process="absorb",
             solution_record=record,
             orphan_traces=orphan_traces

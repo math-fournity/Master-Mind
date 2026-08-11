@@ -27,7 +27,7 @@ from .schema import (
     DirectionExtractionOutput,
     GuideExpansionInput, GuideExpansionOutput,
 )
-from .vein_analysis import vein_analysis
+from .vein_analysis import vein_analysis_three_phase
 
 
 def solve(problem: Problem, tell_library_path: str,
@@ -73,8 +73,8 @@ def solve(problem: Problem, tell_library_path: str,
 
     # 解题引导循环
     while tree_state.status == "growing":
-        # 脉络分析：分析thinking，格化脉络，识别trace
-        analysis_output = vein_analysis(AnalysisInput(
+        # 脉络分析：分析thinking，格化脉络，识别trace（三阶段架构）
+        analysis_output = vein_analysis_three_phase(AnalysisInput(
             process="solve",
             thinking=solver_output.thinking
         ))

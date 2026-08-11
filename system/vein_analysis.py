@@ -944,28 +944,92 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     阶段1.5（程序枚举闭元素）：verify_lattice_completeness.py枚举所有闭元素
     阶段2（1个综合分析Agent）：读4个版本格化结果+程序枚举闭元素，做trace识别+审计+元反思
 
+    支持两种模式：
+    - absorb（解答吸收）：从SolutionRecord分析，线性脉络，接收孤悬trace启发信号
+    - solve（解题引导）：从Thinking分析，可能有分叉——TODO: solve模式提示词未设计
+
     详见333号文档。
     """
     print("=" * 70)
     print("三阶段脉络分析——格化与trace识别分离")
     print("=" * 70)
 
-    problem_id = input.solution_record.problem.problem_id
+    if input.process == "absorb":
+        if input.solution_record is None:
+            raise ValueError("absorb模式需要input.solution_record")
+        problem_id = input.solution_record.problem.problem_id
+    elif input.process == "solve":
+        if input.thinking is None:
+            raise ValueError("solve模式需要input.thinking")
+        # solve模式从thinking中提取problem_id
+        problem_id = input.thinking.problem_id
+        raise NotImplementedError(
+            "solve模式的三阶段架构尚未实现——solve模式提示词未设计（TODO-1）。"
+            "当前只有absorb模式的三阶段架构可用。"
+        )
+    else:
+        raise ValueError(f"未知的process类型: {input.process}，必须是 'solve' 或 'absorb'")
+
     workdir_base, run_id = _create_workdir_base(input.process, problem_id)
     print(f"工作目录: {workdir_base}")
     print(f"入题序号: {run_id:04d}")
+
+    # 创建数据库记录——入题抓手
+    from . import db
+    session_key = db.create_session(
+        session_type=input.process,
+        problem_id=problem_id,
+        working_directory=workdir_base,
+    )
+    entry_key = db.create_problem_entry(
+        problem_id=problem_id,
+        process=input.process,
+        working_directory=workdir_base,
+        run_id=run_id,
+        session_id=session_key,
+    )
 
     # 阶段1：4并发格化
     print("\n--- 阶段1：4并发格化 ---")
     grading_dirs = _phase1_grading(workdir_base, input, run_id)
 
+    # 更新数据库——阶段1产出路径
+    phase1_output_paths = {}
+    for version, vdir in grading_dirs.items():
+        phase1_output_paths[version] = {
+            "segments": os.path.join(vdir, "segments.json"),
+            "formal_context": os.path.join(vdir, "formal_context.json") if os.path.exists(os.path.join(vdir, "formal_context.json")) else None,
+        }
+    db.update_problem_entry(entry_key, phase1_output_paths=phase1_output_paths)
+
     # 阶段1.5：程序枚举闭元素
     print("\n--- 阶段1.5：程序枚举闭元素 ---")
     closed_elements = _phase1_5_enumerate(workdir_base, grading_dirs)
 
+    # 更新数据库——阶段1.5产出路径
+    phase1_5_output_paths = {}
+    enum_dir = os.path.join(workdir_base, "phase1_5_enumerate")
+    for version in grading_dirs:
+        ce_path = os.path.join(enum_dir, f"{version}_closed_elements.json")
+        if os.path.exists(ce_path):
+            phase1_5_output_paths[version] = ce_path
+    db.update_problem_entry(entry_key, phase1_5_output_paths=phase1_5_output_paths)
+
     # 阶段2：综合分析
     print("\n--- 阶段2：综合分析 ---")
     output = _phase2_synthesis(workdir_base, input, grading_dirs, closed_elements, run_id)
+
+    # 更新数据库——阶段2产出路径+完成
+    synth_dir = os.path.join(workdir_base, "phase2_synthesis")
+    db.update_problem_entry(
+        entry_key,
+        status="completed",
+        phase2_output_paths={
+            "output_json": os.path.join(synth_dir, "output.json"),
+            "output_md": os.path.join(synth_dir, "output.md"),
+        },
+        trace_count=len(output.traces) if output.traces else 0,
+    )
 
     print("\n✅ 三阶段脉络分析完成")
     return output

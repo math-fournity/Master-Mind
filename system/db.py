@@ -194,6 +194,12 @@ def create_problem_entry(
         "started_at": _now_iso(),
         "completed_at": None,
         "error_detail": None,
+        # 三阶段架构字段（§4.3）
+        "phase1_session_ids": {},        # {version: session_id}——4个格化session
+        "phase1_output_paths": {},       # {version: {segments, formal_context}}——格化产出路径
+        "phase1_5_output_paths": {},     # {version: closed_elements_path}——程序枚举产出路径
+        "phase2_session_id": None,       # 综合分析session的ID
+        "phase2_output_paths": {},       # {output_json, output_md}——综合分析产出路径
     }
 
     result = collection.insert(doc)
@@ -211,6 +217,12 @@ def update_problem_entry(
     merged_traces_path: Optional[str] = None,
     trace_count: Optional[int] = None,
     error_detail: Optional[str] = None,
+    # 三阶段架构字段（§4.3）
+    phase1_session_ids: Optional[dict] = None,
+    phase1_output_paths: Optional[dict] = None,
+    phase1_5_output_paths: Optional[dict] = None,
+    phase2_session_id: Optional[str] = None,
+    phase2_output_paths: Optional[dict] = None,
 ):
     """更新题目录入记录——vein_analysis各阶段完成时调用
 
@@ -224,6 +236,11 @@ def update_problem_entry(
         merged_traces_path: 合并trace文件路径
         trace_count: 合并后的trace总数
         error_detail: 失败原因
+        phase1_session_ids: {version: session_id}——4个格化session的ID
+        phase1_output_paths: {version: {segments, formal_context}}——格化产出路径
+        phase1_5_output_paths: {version: closed_elements_path}——程序枚举产出路径
+        phase2_session_id: 综合分析session的ID
+        phase2_output_paths: {output_json, output_md}——综合分析产出路径
     """
     collection = _ensure_collection("problem_entries")
     doc = collection.get(entry_key)
@@ -247,6 +264,17 @@ def update_problem_entry(
         doc["trace_count"] = trace_count
     if error_detail is not None:
         doc["error_detail"] = error_detail
+    # 三阶段架构字段
+    if phase1_session_ids is not None:
+        doc["phase1_session_ids"] = phase1_session_ids
+    if phase1_output_paths is not None:
+        doc["phase1_output_paths"] = phase1_output_paths
+    if phase1_5_output_paths is not None:
+        doc["phase1_5_output_paths"] = phase1_5_output_paths
+    if phase2_session_id is not None:
+        doc["phase2_session_id"] = phase2_session_id
+    if phase2_output_paths is not None:
+        doc["phase2_output_paths"] = phase2_output_paths
     if status in ("completed", "failed"):
         doc["completed_at"] = _now_iso()
 
