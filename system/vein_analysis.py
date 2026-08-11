@@ -89,6 +89,14 @@ PROMPT_FILES = {
 # 提示词中解答文本的占位符——替换为实际解答文本
 SOLUTION_PLACEHOLDER = "[解答文本插入位置]"
 
+# AGENTS.md模板文件路径（相对system/目录）
+AGENTS_TEMPLATES = {
+    "V5": "assets/vein_analysis/AGENTS_V5.md",
+    "V7": "assets/vein_analysis/AGENTS_V7.md",
+    "V8": "assets/vein_analysis/AGENTS_V8.md",
+    "V9": "assets/vein_analysis/AGENTS_V9.md",
+}
+
 # 程序验证脚本路径（相对repo根目录）
 VERIFY_SCRIPT = "six/verify_lattice_completeness.py"
 
@@ -210,11 +218,12 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
         session_name = f"absorb-vein_analysis-{problem_id}-{version}"
         session_names[version] = session_name
 
-        # 短启动提示词——让AI加载prompt.md，不塞完整提示词
+        # 短启动提示词——让AI加载AGENTS.md和prompt.md，从input.md读取解答文本
         launch_prompt = (
-            f"加载 {vdir}/prompt.md 中的提示词，"
-            f"读取 {vdir}/input.md 中的输入数据，按提示词要求工作，"
-            f"完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md"
+            f"先加载 {vdir}/AGENTS.md 了解你的角色和约束，"
+            f"然后加载 {vdir}/prompt.md 中的提示词，"
+            f"读取 {vdir}/input.md 中的解答文本作为分析对象，"
+            f"按提示词要求工作，完成后把产出写入 {vdir}/output.json 和 {vdir}/output.md"
         )
 
         # 用subprocess启动tmux session
@@ -417,9 +426,12 @@ def _prepare_version_workdir(workdir_base: str, version: str,
     """准备单个版本的工作目录
 
     在workdir_base/{version}/下创建：
-    - AGENTS.md——AI的指令和约束
-    - prompt.md——完整提示词（从提示词积累目录复制+填入解答文本）
-    - input.md——输入数据（解答文本）
+    - AGENTS.md——AI的指令和约束（从assets目录复制固定模板）
+    - prompt.md——完整提示词（从提示词积累目录复制，不替换占位符）
+    - input.md——输入数据（解答文本块）
+
+    固定内容（AGENTS.md、提示词）从积累目录复制，不动态生成。
+    动态内容（解答文本）写入input.md，AI启动后从input.md读取。
 
     Args:
         workdir_base: 工作目录基路径
@@ -433,32 +445,29 @@ def _prepare_version_workdir(workdir_base: str, version: str,
     version_dir = os.path.join(workdir_base, version)
     os.makedirs(version_dir, exist_ok=True)
 
-    # 1. 复制提示词文件并填入解答文本
+    # 1. 复制AGENTS.md——从assets目录复制固定模板
+    system_dir = os.path.dirname(os.path.abspath(__file__))
+    agents_src = os.path.join(system_dir, AGENTS_TEMPLATES[version])
+    if not os.path.exists(agents_src):
+        raise FileNotFoundError(f"AGENTS.md模板不存在: {agents_src}")
+    agents_path = os.path.join(version_dir, "AGENTS.md")
+    shutil.copy(agents_src, agents_path)
+
+    # 2. 复制prompt.md——从提示词积累目录复制，不替换占位符
+    #    提示词中的[解答文本插入位置]占位符保留，AI启动后从input.md读取解答文本
+    #    prompt.md中会说"读取input.md中的解答文本，分析以下解答：[解答文本插入位置]"
+    #    AI看到占位符后知道要从input.md读取
     repo_root = _load_repo_root()
     prompt_src = os.path.join(repo_root, PROMPT_FILES[version])
     if not os.path.exists(prompt_src):
         raise FileNotFoundError(f"提示词文件不存在: {prompt_src}")
-
-    with open(prompt_src, "r", encoding="utf-8") as f:
-        prompt_content = f.read()
-
-    # 替换解答文本占位符
-    prompt_content = prompt_content.replace(SOLUTION_PLACEHOLDER, solution_block)
-
     prompt_path = os.path.join(version_dir, "prompt.md")
-    with open(prompt_path, "w", encoding="utf-8") as f:
-        f.write(prompt_content)
+    shutil.copy(prompt_src, prompt_path)
 
-    # 2. 写input.md——解答文本（和prompt.md中的解答文本相同，独立一份方便审计）
+    # 3. 写input.md——解答文本块（动态内容）
     input_path = os.path.join(version_dir, "input.md")
     with open(input_path, "w", encoding="utf-8") as f:
         f.write(solution_block)
-
-    # 3. 写AGENTS.md——AI的指令和约束
-    agents_content = _generate_agents_md(version, problem_id)
-    agents_path = os.path.join(version_dir, "AGENTS.md")
-    with open(agents_path, "w", encoding="utf-8") as f:
-        f.write(agents_content)
 
     return version_dir
 
@@ -466,59 +475,18 @@ def _prepare_version_workdir(workdir_base: str, version: str,
 def _generate_agents_md(version: str, problem_id: str) -> str:
     """生成为脉络分析AI定制的AGENTS.md
 
-    每个版本的AGENTS.md基本相同，但标注了版本号和题目ID。
+    已废弃——AGENTS.md现在从assets目录复制固定模板，不再动态生成。
+    保留此函数仅为向后兼容。
     """
-    return f"""# 脉络分析AI——{version}版本
-
-你是AI数学系统的脉络分析AI（Parser AI），你的职责是分析一道数学题的解答，
-做"格化"和"全Level Trace识别"。
-
-## 你的身份
-
-- **版本**: {version}
-- **题目ID**: {problem_id}
-- **角色**: 脉络分析AI（Parser AI）
-- **过程**: 解答吸收（absorb）——分析外部解答文本，线性脉络
-
-## 工作方式
-
-1. 加载当前工作目录下的 prompt.md 中的完整提示词
-2. 按提示词要求分析解答文本
-3. 产出写入当前工作目录下的 output.json（结构化JSON）和 output.md（人类可读报告）
-
-## 产出要求
-
-- **output.json**: 按提示词中定义的JSON schema输出结构化JSON
-- **output.md**: 人类可读的完整分析报告
-
-{version}-specific注意事项：
-{version_specific_notes(version)}
-
-## 痕迹保留
-
-你的所有产出（prompt.md/input.md/output.json/output.md）都会保留在工作目录中，
-用于未来的审计和调试。请确保产出完整、可追溯。
-"""
+    raise DeprecationWarning(
+        "_generate_agents_md已废弃——AGENTS.md现在从system/assets/vein_analysis/复制固定模板。"
+        "如需修改AGENTS.md内容，修改assets目录下的模板文件。"
+    )
 
 
 # ============================================================================
 # 产出收集和合并
 # ============================================================================
-
-def version_specific_notes(version: str) -> str:
-    """返回版本特定的注意事项文本"""
-    if version == "V5":
-        return ("- V5是自由直觉提示词，没有结构化JSON要求。"
-                "但请在output.md末尾附上一个JSON块，"
-                "列出所有识别到的trace（id/type/level/segments/description/generalizable），"
-                "方便程序解析。")
-    notes = [f"- {version}有结构化JSON输出要求，请严格按提示词中的JSON schema输出。"]
-    if version in ("V7", "V8", "V9"):
-        notes.append(f"- {version}有程序验证——你的JSON会被verify_lattice_completeness.py验证闭元素完备性。请尽可能完备地枚举闭元素。")
-    if version == "V9":
-        notes.append("- V9有关键实体贯穿性验证和元反思步骤（审计项10）。请认真列举key_entities并做元反思。")
-    return "\n".join(notes)
-
 
 def _run_lattice_completeness_verify(v9_output_path: str,
                                       audit_report_path: str) -> Optional[dict]:
