@@ -65,20 +65,15 @@ V9产出的trace还有以下字段：
 
 ---
 
-### TODO-4: vein_analysis()的执行方式——编排描述还是可执行代码 [高优先级]
+### TODO-4: vein_analysis()的执行方式——编排描述还是可执行代码 [高优先级] ✅已解决
 
 **来源**：vein_analysis实现方案讨论（2026-08-10）
 
 **问题**：vein_analysis()需要启动4个AI Agent（V5/V7/V8/V9）。按AI Agent启动规范rule，AI Agent通过tmux启动，启动前要准备AGENTS.md/prompt.md/input.md。这些"准备文件+启动tmux+等待+收集产出"的动作，是写在Python代码里自动执行，还是由Master Agent手动执行？
 
-**和AGENTS.md核心认知的关系**：AGENTS.md说"系统就是你，不是脚本"——辅助Pipe的采集、整理、检索、启动是Master Agent亲手做的动作，不是脚本替你做的。如果vein_analysis()写成自动执行的Python代码（subprocess启动tmux），就违反了这个原则。
+**解决**：选a——编排描述+产出解析。vein_analysis()函数执行步骤1（准备工作目录和文件）和步骤3（收集产出、运行验证、合并trace），步骤2（启动4个tmux session）由Master Agent按函数打印的执行计划手动执行。collect_vein_analysis_output()函数在4个AI完成后被调用执行步骤3。这和AGENTS.md核心认知"系统就是你，不是脚本"一致。
 
-**选项**：
-- a) vein_analysis()是"编排描述+产出解析"——函数定义清楚要准备什么文件、启动几个tmux、怎么合并产出，但实际启动动作由Master Agent执行。函数被调用时返回一个"执行计划"，Master Agent按计划执行后把产出喂回函数做解析
-- b) vein_analysis()是可执行代码——用subprocess自动启动tmux、自动等待、自动收集产出。违反"系统就是你"原则但效率高
-- c) vein_analysis()是混合模式——文件准备和产出解析在代码中，tmux启动由Master Agent手动执行
-
-**建议**：选a——和AGENTS.md核心认知一致。vein_analysis()定义编排逻辑和产出解析逻辑，Master Agent按编排执行启动动作。这也和痕迹保留rule一致——每一步都有人检查，不是脚本黑箱。
+**实现**：system/vein_analysis.py已实现，2026-08-11。
 
 ---
 
