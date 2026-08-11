@@ -1,0 +1,107 @@
+{
+  "phase": "synthesis",
+  "problem_id": "IMO2009-P6-grasshopper",
+  "base_grading": "V10（以V10为基础，补充V8的角色特征）",
+  "grading_comparison": "V5(26段)自由直觉格化，特征描述性强但无角色标注；V7(21段)结构化约束，15个粗粒度特征，段合并较多；V8(22段)跨闭元素元模式引导，40个特征引入角色标注(x的定义角色/aₙ的最大性等)，闭元素最丰富(49个)；V10(35段)最细粒度，26个特征显式编码元模式(关键变量x:分类标准/最大元素aₙ:跳过障碍/swap技巧:跨Case复用/M':递归核心)，并附key_entities。V10的显式元模式特征使其闭元素直接对应跨Case思维模式，但'验证'特征过粗(未区分前缀和验证与终点验证)，且段10的's:最终和验证'标注有误。",
+  "formal_context_review": {
+    "is_complete": false,
+    "corrections": [
+      {
+        "version": "V10",
+        "reason": "段10内容为's-aᵢ>x映射到M∩(x,∞)'，这是s在单射论证中的代数角色，不是最终和验证。's:最终和验证'标注语义错误，导致ce_V10_20和ce_V10_21的内涵含有错误特征。",
+        "change": "段10的's:最终和验证'应改为's的代数角色'(或新增's:单射论证角色')。修正后ce_V10_20内涵变为{单射论证细节, s的代数角色}，ce_V10_21{段10,段19,段27}不再成立(段10不再与段19/段27共享's:最终和验证')。"
+      },
+      {
+        "version": "V10",
+        "reason": "V10的'验证'特征过粗，未区分'前缀和验证'(验证前缀和≤x/t且避开M')与'终点验证'(验证最终和s∉M)。V8有此区分('前缀和验证'特征)。V10的ce_V10_5{段17,段18,段19,段26,段27,段34}把所有验证段混在一起，掩盖了两种验证的语义差异。",
+        "change": "应将'验证'拆分为'前缀和验证'(段17,段18,段26,段34)和'终点验证'(段19,段27)。拆分后能产生更精确的闭元素：{段17,段26}前缀和验证、{段19,段27}终点验证。"
+      },
+      {
+        "version": "V10",
+        "reason": "V10缺少x的'上界角色'特征。在Case 2/3的验证中，x作为前缀和的上界(前n-1跳的和≤x)，这个角色与x的分类标准角色、M'缩减边界角色不同。V8有'x的上界角色'特征。",
+        "change": "应新增'关键变量x:前缀和上界'特征，标注段17(前缀和≤t=x-aᵣ)和段26(前缀和≤x)。这会使{段17,段26}构成更精确的闭元素。"
+      }
+    ]
+  },
+  "closed_elements": [
+    {"id": "ce_V10_0", "extent": [], "intent": ["(全部26特征)"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "空外延，平凡闭元素"},
+    {"id": "ce_V10_1", "extent": ["段35"], "intent": ["归约"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_14(首尾呼应WLOG归约)覆盖"},
+    {"id": "ce_V10_2", "extent": ["段24"], "intent": ["边界情况"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，平凡"},
+    {"id": "ce_V10_3", "extent": ["段19", "段27"], "intent": ["s:最终和验证", "验证"], "source_version": "V10", "judgment": "included", "trace_description": "终点验证s∉M：Case 1(段19)和Case 2(段27)都以验证最终和s∉M收尾，利用题目条件s∉M作为终点安全保证", "reason": "跨Case验证模式，揭示题目条件s∉M的统一验证角色"},
+    {"id": "ce_V10_4", "extent": ["段17", "段26"], "intent": ["关键变量x:M'缩减边界", "验证"], "source_version": "V10", "judgment": "included", "trace_description": "x作为M'缩减边界的前缀和验证：Case 1(段17,前缀和≤t=x-aᵣ)和Case 2(段26,前缀和≤x)都验证前缀和不超过M'边界且避开M'", "reason": "跨Case验证模式，揭示x/t作为边界的双重功能(构造M' + 验证上界)"},
+    {"id": "ce_V10_5", "extent": ["段17", "段18", "段19", "段26", "段27", "段34"], "intent": ["验证"], "source_version": "V10", "judgment": "included", "trace_description": "前缀和验证避开M：所有Case的验证段统一验证前缀和避开M'且终点s∉M", "reason": "跨Case验证统一模式。但特征过粗(应拆分前缀和验证与终点验证，见formal_context_review)"},
+    {"id": "ce_V10_6", "extent": ["段16"], "intent": ["swap技巧:跨Case复用", "最大元素aₙ:跳过障碍", "构造解"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_3(aₙ跳过障碍)和trace_4(swap跨Case复用)覆盖"},
+    {"id": "ce_V10_7", "extent": ["段16", "段33"], "intent": ["swap技巧:跨Case复用", "最大元素aₙ:跳过障碍"], "source_version": "V10", "judgment": "included", "trace_description": "aₙ跳过障碍+swap技巧：Case 1(段16,swap把aₙ放倒数第二位)和Case 3(段33,swap把aₙ放到命中z的位置)都利用aₙ最大性跳过障碍", "reason": "跨Case核心策略，被trace_3覆盖"},
+    {"id": "ce_V10_8", "extent": ["段16", "段32", "段33"], "intent": ["swap技巧:跨Case复用"], "source_version": "V10", "judgment": "included", "trace_description": "swap技巧跨Case复用：Case 1(段16)和Case 3(段32,段33)都使用swap调整aₙ位置", "reason": "跨Case技巧复用模式"},
+    {"id": "ce_V10_9", "extent": ["段16", "段25"], "intent": ["最大元素aₙ:跳过障碍", "构造解"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "被trace_3(aₙ跳过障碍)覆盖，且段25(Case 2放aₙ最后)的'跳过障碍'语义较弱(只是放在最后保证前缀和≤x)"},
+    {"id": "ce_V10_10", "extent": ["段16", "段25", "段33"], "intent": ["最大元素aₙ:跳过障碍"], "source_version": "V10", "judgment": "included", "trace_description": "aₙ作为跳过障碍的工具：Case 1(段16,swap放倒数第二位跳过M中障碍)、Case 2(段25,放最后保证前缀和≤x)、Case 3(段33,swap放到命中z的位置跳过z)。三个Case中aₙ的放置策略都利用其最大性规避M中的障碍点", "reason": "POC-VMS-28d核心发现——aₙ的统一'跳过障碍'角色贯穿三个Case，是本证明最有价值的跨闭元素元模式"},
+    {"id": "ce_V10_11", "extent": ["段16", "段25", "段31"], "intent": ["构造解"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "'构造解'特征过粗，被trace_3和trace_5覆盖"},
+    {"id": "ce_V10_12", "extent": ["段15", "段23", "段30"], "intent": ["M':递归核心", "强归纳:统一框架", "递归调用"], "source_version": "V10", "judgment": "included", "trace_description": "递归调用归纳假设到缩减子问题：Case 1(段15,对n-2元素+M')、Case 2(段23,对n-1元素+M')、Case 3(段30,对n-1元素+M')都递归调用归纳假设", "reason": "跨Case核心结构——强归纳的统一应用模式"},
+    {"id": "ce_V10_13", "extent": ["段14"], "intent": ["M':递归核心", "计数论证"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_8(计数论证)覆盖"},
+    {"id": "ce_V10_14", "extent": ["段13", "段22"], "intent": ["M':递归核心", "关键变量x:M'缩减边界", "定义缩减问题"], "source_version": "V10", "judgment": "included", "trace_description": "x截断构造M'：Case 1(段13,M'=M∩(-∞,t],t=x-aᵣ)和Case 2(段22,M'=M∩(-∞,x])都用x相关量截断M构造缩减集", "reason": "跨Case M'构造策略——截断式"},
+    {"id": "ce_V10_15", "extent": ["段13", "段22", "段29"], "intent": ["M':递归核心", "定义缩减问题"], "source_version": "V10", "judgment": "included", "trace_description": "M'构造的三种方式：Case 1截断(段13,M∩(-∞,t])、Case 2截断(段22,M∩(-∞,x])、Case 3移除最大(段29,M\\{z})", "reason": "跨Case M'构造统一模式，揭示三种缩减策略"},
+    {"id": "ce_V10_16", "extent": ["段13", "段17", "段22", "段26"], "intent": ["关键变量x:M'缩减边界"], "source_version": "V10", "judgment": "included", "trace_description": "x作为M'缩减边界贯穿构造与验证：Case 1(段13构造,段17验证)和Case 2(段22构造,段26验证)中x/t既是M'边界又是验证上界", "reason": "x的边界角色跨构造-验证两阶段"},
+    {"id": "ce_V10_17", "extent": ["段13", "段14", "段15", "段22", "段23", "段29", "段30"], "intent": ["M':递归核心"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "仅'M':递归核心'单特征，太宽泛，被trace_5和trace_7覆盖"},
+    {"id": "ce_V10_18", "extent": ["段12"], "intent": ["bad index:Case1工具", "存在性论证"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_9(bad index概念链)覆盖"},
+    {"id": "ce_V10_19", "extent": ["段11", "段14", "段21"], "intent": ["计数论证"], "source_version": "V10", "judgment": "included", "trace_description": "计数论证估计规模：Case 1(段11,bad index≤n-2;段14,|M'|≤n-3)和Case 2(段21,|M∩(-∞,x]|≤n-2)都用计数论证估计规模", "reason": "跨Case计数论证模式，揭示规模估计是归纳应用的前提"},
+    {"id": "ce_V10_20", "extent": ["段10"], "intent": ["s:最终和验证", "单射论证细节"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，且's:最终和验证'标注有误(段10是s在单射论证中的代数角色，见formal_context_review)"},
+    {"id": "ce_V10_21", "extent": ["段10", "段19", "段27"], "intent": ["s:最终和验证"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "段10的's:最终和验证'标注有误，此闭元素基于错误特征。修正后段10不再属于此闭元素。s的双重角色由meta_reflection_traces的mrt_1捕获"},
+    {"id": "ce_V10_22", "extent": ["段9"], "intent": ["关键变量x:bad index基准", "单射论证细节"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_9和trace_13覆盖"},
+    {"id": "ce_V10_23", "extent": ["段10", "段9"], "intent": ["单射论证细节"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "太具体(Case 1内部)，被trace_13(bad index存在性论证链)覆盖"},
+    {"id": "ce_V10_24", "extent": ["段8"], "intent": ["bad index:Case1工具", "单射论证"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_13覆盖"},
+    {"id": "ce_V10_25", "extent": ["段7"], "intent": ["bad index:Case1工具", "关键变量x:bad index基准", "定义概念"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_9和trace_13覆盖"},
+    {"id": "ce_V10_26", "extent": ["段7", "段9"], "intent": ["关键变量x:bad index基准"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "太具体(Case 1内部)，被trace_13覆盖"},
+    {"id": "ce_V10_27", "extent": ["段12", "段7", "段8"], "intent": ["bad index:Case1工具"], "source_version": "V10", "judgment": "included", "trace_description": "bad index概念链：定义bad index(段7)→单射论证(段8)→存在性论证(段12)，构成Case 1的核心工具链", "reason": "Case 1核心工具的概念链，揭示bad index从定义到存在性的完整论证"},
+    {"id": "ce_V10_28", "extent": ["段6"], "intent": ["推导约束"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，平凡"},
+    {"id": "ce_V10_29", "extent": ["段20", "段28", "段5"], "intent": ["关键变量x:分类标准", "情况条件"], "source_version": "V10", "judgment": "included", "trace_description": "x作为分类标准的三Case条件：Case 1(段5,x∈M)、Case 2(段20,x∉M)、Case 3(段28,所有m≤x)的条件都以x为分类标准", "reason": "跨Case分类框架，揭示x是整个情况划分的枢纽"},
+    {"id": "ce_V10_30", "extent": ["段4"], "intent": ["关键变量x:分类标准", "情况分析"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_10覆盖"},
+    {"id": "ce_V10_31", "extent": ["段3"], "intent": ["强归纳:统一框架", "归纳框架"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_11覆盖"},
+    {"id": "ce_V10_32", "extent": ["段2"], "intent": ["关键变量x:分类标准", "定义变量"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_10覆盖"},
+    {"id": "ce_V10_33", "extent": ["段2", "段20", "段28", "段4", "段5"], "intent": ["关键变量x:分类标准"], "source_version": "V10", "judgment": "included", "trace_description": "x作为分类标准贯穿证明：x的定义(段2)→情况分析框架(段4)→三Case条件(段5,段20,段28)，x是整个证明的分类枢纽", "reason": "x的分类角色贯穿定义到分析到条件，揭示x是证明的结构骨架"},
+    {"id": "ce_V10_34", "extent": ["段1"], "intent": ["强归纳:统一框架", "排序假设"], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "单段闭元素，被trace_11和trace_14覆盖"},
+    {"id": "ce_V10_35", "extent": ["段1", "段15", "段23", "段3", "段30"], "intent": ["强归纳:统一框架"], "source_version": "V10", "judgment": "included", "trace_description": "强归纳统一框架：框架声明(段1排序,段3归纳声明)+三Case递归调用(段15,段23,段30)，强归纳是连接整个证明的统一骨架", "reason": "强归纳框架从声明到三Case递归调用的完整贯穿"},
+    {"id": "ce_V10_36", "extent": ["(全部35段)"], "intent": [], "source_version": "V10", "judgment": "excluded", "trace_description": "", "reason": "全外延空内涵，平凡闭元素"}
+  ],
+  "traces": [
+    {"id": "trace_1", "type": "local", "level": "Level 2", "segments": ["段19", "段27"], "description": "终点验证s∉M：Case 1(段19)和Case 2(段27)都以验证最终和s∉M收尾，利用题目条件s∉M作为终点安全保证", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_2", "type": "local", "level": "Level 2", "segments": ["段17", "段26"], "description": "x作为M'缩减边界的前缀和验证：Case 1(段17,前缀和≤t=x-aᵣ)和Case 2(段26,前缀和≤x)都验证前缀和不超过M'边界且避开M'", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_3", "type": "cross_element_meta_pattern", "level": "Level 3", "segments": ["段16", "段25", "段33"], "description": "aₙ作为跳过障碍的工具：Case 1(swap放倒数第二位跳过M中障碍)、Case 2(放最后保证前缀和≤x)、Case 3(swap放到命中z的位置跳过z)。三个Case中aₙ的放置策略都利用其最大性规避M中的障碍点", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_4", "type": "local", "level": "Level 2", "segments": ["段16", "段32", "段33"], "description": "swap技巧跨Case复用：Case 1(段16)和Case 3(段32,段33)都使用swap调整aₙ位置以跳过障碍", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_5", "type": "cross_case_merge", "level": "Level 2", "segments": ["段15", "段23", "段30"], "description": "递归调用归纳假设到缩减子问题：三Case都先构造更小的M'再对缩减后的问题应用归纳假设", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_6", "type": "local", "level": "Level 2", "segments": ["段13", "段22"], "description": "x截断构造M'：Case 1(M∩(-∞,t],t=x-aᵣ)和Case 2(M∩(-∞,x])都用x相关量截断M构造缩减集", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_7", "type": "cross_case_merge", "level": "Level 2", "segments": ["段13", "段22", "段29"], "description": "M'构造的三种方式：Case 1截断by good index(段13)、Case 2截断by x(段22)、Case 3移除最大障碍(段29)", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_8", "type": "cross_case_merge", "level": "Level 2", "segments": ["段11", "段14", "段21"], "description": "计数论证估计规模：Case 1(bad index≤n-2,|M'|≤n-3)和Case 2(|M∩(-∞,x]|≤n-2)都用计数论证证明缩减后规模满足归纳条件", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_9", "type": "local", "level": "Level 2", "segments": ["段7", "段8", "段12"], "description": "bad index概念链：定义bad index(段7)→单射论证(段8)→存在性论证(段12)，构成Case 1的核心工具链", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_10", "type": "local", "level": "Level 2", "segments": ["段2", "段4", "段5", "段20", "段28"], "description": "x作为分类标准贯穿证明：x的定义(段2)→情况分析框架(段4)→三Case条件(段5,段20,段28)，x是整个证明的分类枢纽", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_11", "type": "local", "level": "Level 2", "segments": ["段1", "段3", "段15", "段23", "段30"], "description": "强归纳统一框架：框架声明(段1排序,段3归纳声明)+三Case递归调用(段15,段23,段30)，强归纳是连接整个证明的统一骨架", "generalizable": true, "is_ai_advantage": false},
+    {"id": "trace_12", "type": "cross_case_merge", "level": "Level 2", "segments": ["段17", "段18", "段19", "段26", "段27", "段34"], "description": "前缀和验证避开M：所有Case的验证段统一验证前缀和避开M'且终点s∉M", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_13", "type": "nonlocal", "level": "Level 3", "segments": ["段7", "段8", "段9", "段10", "段11", "段12"], "description": "bad index存在性论证链：定义bad index(段7)→单射映射(段8)→x-aᵢ映射细节(段9)→s-aᵢ映射细节(段10)→计数得bad≤n-2(段11)→存在good r(段12)。6段构成Case 1的完整存在性论证，但各自有不同特征不构成单一闭元素", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_14", "type": "nonlocal", "level": "Level 2", "segments": ["段1", "段35"], "description": "首尾呼应WLOG排序归约：段1开头把一般情形归约到排序情形，段35结尾通过复合排序置换把排序情形结果推广回一般情形，构成闭环", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_15", "type": "nonlocal", "level": "Level 3", "segments": ["段5", "段20", "段28"], "description": "三Case难度递减结构：Case 1(x∈M,x本身是障碍,需bad index工具,最复杂)→Case 2(x∉M,x是干净边界,直接截断,中等)→Case 3(所有m≤x,障碍在别处,移除最大即可,最简单)。Case按x的'问题性'递减排列，策略复杂度随之递减", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_16", "type": "nonlocal", "level": "Level 3", "segments": ["段13", "段15", "段16", "段22", "段23", "段25", "段29", "段30", "段32", "段33"], "description": "预防性避障vs修复性避障：Case 1&2是预防性(先精心构造M'避开障碍再归纳,段13/15/22/23)→Case 3是修复性(先归纳再诊断是否命中z再swap修复,段29/30/32/33)。两种避障策略的对比揭示证明的核心设计思想", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_17", "type": "cross_element_meta_pattern", "level": "Level 3", "segments": ["段2", "段4", "段7", "段9", "段13", "段17", "段22", "段26"], "description": "x的多功能角色：x是分类标准(段2,段4)、bad index基准(段7,段9)、M'缩减边界(段13,段22)、验证上界(段17,段26)。x的四种角色分散在不同闭元素中，没有任何单一闭元素能捕获x的完整功能谱", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_18", "type": "cross_element_meta_pattern", "level": "Level 3", "segments": ["段13", "段22", "段29"], "description": "M'构造的三种策略对比：截断by good index(段13,Case 1)vs截断by x(段22,Case 2)vs移除max(段29,Case 3)。三种策略的差异反映了M的结构对构造方式的影响——当x∈M时需要bad index找到安全截断点，当x∉M时x本身就是安全截断点，当所有m≤x时只需移除最远的障碍", "generalizable": true, "is_ai_advantage": true},
+    {"id": "trace_19", "type": "nonlocal", "level": "Level 3", "segments": ["段10", "段19", "段27"], "description": "s的双重角色：s在bad index定义中作为后缀障碍判据(s-aᵢ∈M覆盖后缀障碍,段10)，又作为终点验证的保证(s∉M是终点安全条件,段19,段27)。s同时定义了'要避免什么'和'终点为什么安全'", "generalizable": true, "is_ai_advantage": true}
+  ],
+  "ai_advantage_elements": [
+    {"id": "adv_1", "advantage_type": "cross_element_meta_pattern", "description": "aₙ作为跳过障碍的工具——aₙ在三个Case中扮演不同放置角色(倒数第二/最后/命中位置)，但统一功能是利用最大性跳过M中障碍", "segments": ["段16", "段25", "段33"], "reason": "FCA能枚举出ce_V10_10{段16,段25,段33}共享'最大元素aₙ:跳过障碍'特征，但程序看不到'aₙ的放置策略因Case而异但功能统一'这个语义层面元模式——Case 2中aₙ放最后看似只是'扩展排列'，AI才能识别其本质也是'跳过障碍'(保证前缀和≤x避开M')"},
+    {"id": "adv_2", "advantage_type": "cross_element_meta_pattern", "description": "x的多功能角色——x同时是分类标准、bad index基准、M'缩减边界、验证上界，四种角色分散在不同闭元素中", "segments": ["段2", "段4", "段7", "段13", "段17", "段22", "段26"], "reason": "V10的形式上下文把x的角色拆成三个特征(分类标准/bad index基准/M'缩减边界)，但'验证上界'角色缺失，且四种角色的统一性(都是x作为'枢纽量'的不同面)是语义判断，程序只能看到特征共现"},
+    {"id": "adv_3", "advantage_type": "cross_case_merge", "description": "预防性避障vs修复性避障——Case 1&2先构造M'再归纳(预防)，Case 3先归纳再swap修复(修复)", "segments": ["段13", "段15", "段22", "段23", "段29", "段30", "段32", "段33"], "reason": "这两种策略的差异不是任何特征的共现——段13/22(预防性M'构造)和段29(修复性M'构造)都标为'定义缩减问题'，但语义上一个是'避开障碍的构造'一个是'移除障碍的构造'。FCA无法区分'预防'和'修复'，AI能识别策略对比"},
+    {"id": "adv_4", "advantage_type": "cross_case_merge", "description": "三Case难度递减结构——Case按x的问题性递减排列，策略复杂度随之递减", "segments": ["段5", "段20", "段28"], "reason": "三个Case条件段(段5,段20,段28)共享'情况条件'特征构成闭元素ce_V10_29，但'难度递减'这个元模式不是特征共现——它需要理解x∈M比x∉M更'问题'、所有m≤x最'简单'，这是语义判断"},
+    {"id": "adv_5", "advantage_type": "cross_element_meta_pattern", "description": "M'构造的三种策略对比——截断vs截断vs移除，策略差异反映M的结构影响", "segments": ["段13", "段22", "段29"], "reason": "ce_V10_15{段13,段22,段29}共享'定义缩减问题'特征，但三种构造方式的策略差异(截断by good index/截断by x/移除max)不是特征能区分的——程序看到的是'都在定义缩减问题'，AI看到的是'三种不同的缩减策略，选择取决于M与x的关系'"}
+  ],
+  "key_entities": [
+    {"name": "x = a₁+...+a_{n-1}", "type": "变量", "segments": ["段2", "段4", "段5", "段7", "段9", "段13", "段17", "段20", "段22", "段26", "段28"], "is_meta_pattern": true, "meta_pattern_description": "x的多功能角色：分类标准(段4,段5,段20,段28)、bad index基准(段7,段9)、M'缩减边界(段13,段22)、验证上界(段17,段26)。x是整个证明的结构骨架——定义x(段2)后，证明围绕x展开：以x分类、以x定义障碍、以x截断M、以x验证上界"},
+    {"name": "aₙ（最大元素）", "type": "变量", "segments": ["段16", "段25", "段33"], "is_meta_pattern": true, "meta_pattern_description": "aₙ的跳过障碍统一功能：Case 1(swap放倒数第二位)、Case 2(放最后)、Case 3(swap放命中位置)。三种放置策略功能统一——利用aₙ>a_i的最大性跳过M中的障碍点。这是POC-VMS-28d的核心发现"},
+    {"name": "强归纳", "type": "策略", "segments": ["段1", "段3", "段15", "段23", "段30"], "is_meta_pattern": true, "meta_pattern_description": "强归纳统一框架：声明(段3)→三Case递归调用(段15,段23,段30)→排序假设(段1)为归纳提供有序结构。强归纳是连接三个Case的统一骨架"},
+    {"name": "swap技巧", "type": "技巧", "segments": ["段16", "段32", "段33"], "is_meta_pattern": true, "meta_pattern_description": "swap技巧跨Case复用：Case 1(段16,swap把aₙ放倒数第二位)和Case 3(段32,段33,swap把aₙ放到命中z的位置)。两次swap核心思想相同：利用aₙ最大性调整位置跳过障碍"},
+    {"name": "M'（缩减集）", "type": "概念", "segments": ["段13", "段14", "段15", "段22", "段23", "段29", "段30"], "is_meta_pattern": true, "meta_pattern_description": "M'构造的三种策略：截断by good index(段13,Case 1)、截断by x(段22,Case 2)、移除max(段29,Case 3)。M'是递归核心——每个Case通过构造更小的M'使归纳假设可应用"},
+    {"name": "bad index", "type": "概念", "segments": ["段7", "段8", "段9", "段10", "段11", "段12"], "is_meta_pattern": true, "meta_pattern_description": "bad index存在性论证链：定义(段7)→单射论证(段8,段9,段10)→计数(段11)→存在good r(段12)。bad index的巧妙在于用两个条件(x-aᵢ∈M或s-aᵢ∈M)同时覆盖前缀和后缀障碍，是Case 1独有的核心工具"},
+    {"name": "s = a₁+...+aₙ（总和）", "type": "变量", "segments": ["段10", "段19", "段27"], "is_meta_pattern": true, "meta_pattern_description": "s的双重角色：bad index定义中的后缀障碍判据(s-aᵢ∈M,段10)和终点验证的安全保证(s∉M,段19,段27)。s同时定义'要避免什么'和'终点为什么安全'"},
+    {"name": "t = x - aᵣ", "type": "变量", "segments": ["段13", "段17"], "is_meta_pattern": false, "meta_pattern_description": "t是bad index论证与M'构造之间的代数桥梁——t=x-aᵣ由good index r决定，又作为M'=M∩(-∞,t]的截断边界。t连接了Case 1的两个核心步骤(找r和构造M')，但仅限Case 1内部，不构成跨Case元模式"}
+  ],
+  "meta_reflection_traces": [
+    {"id": "mrt_1", "description": "s的双重角色——s在bad index定义中作为后缀障碍判据(s-aᵢ∈M)，又作为终点验证的安全保证(s∉M)。s同时定义了'要避免什么'(后缀障碍)和'终点为什么安全'(s∉M)。这种双重角色使得bad index论证的s-aᵢ条件与终点验证的s∉M条件形成呼应——题目条件s∉M既服务于bad index定义(使s-aᵢ∉M的指标为good)又服务于终点验证", "pattern_type": "闭环", "reason": "前面的系统化步骤没有覆盖到，因为：(1)ce_V10_21{段10,段19,段27}本应捕获此模式，但段10的's:最终和验证'标注有误(实际是s的代数角色)，导致此闭元素的内涵基于错误特征；(2)V10的key_entities虽然列举了s，但只描述了'最终和验证'角色，没有识别s在bad index定义中的后缀障碍判据角色；(3)s的双重角色跨越了Case 1的bad index定义和所有Case的终点验证，这种跨功能角色不是特征共现能捕获的——需要理解s-aᵢ∈M和s∉M之间的语义呼应"}
+  ],
+  "most_valuable_traces": ["trace_3", "trace_13", "trace_16", "trace_7", "trace_17"]
+}
