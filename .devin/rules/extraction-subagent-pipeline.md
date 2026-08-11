@@ -17,6 +17,14 @@
 
 4. **优先处理最难的题目**——"持续翻找剩余的最难的题目"：不是按顺序处理，而是优先派发难度最高的题目给 subagent。难题优先，因为难题的 (tell, hint) 对价值最高——bare AI 更可能在难题上走错路，走错路的分叉信号更有价值。
 
+5. **subagent 三次失败后跳过，Master Agent 不得亲自分析**——如果同一道题的 subagent 连续 3 次失败（空通知、未入库、未写 profile.json 等），则：
+   - 将该题记录到 `subagents-dirs/skipped-problems.md`，注明题目ID、失败次数、失败模式
+   - 在 ArangoDB 的 `problem_extraction_progress` 中将该题标记为 `skipped`（不是 `completed`，也不是 `pending`）
+   - **绝对不要由 Master Agent 亲自分析该题**——Master Agent 亲自做分析可能导致上下文过长、输出过载，进而导致 Master Agent 崩溃
+   - 继续处理下一道题，不要在失败题目上纠缠
+   - ❌ 错误做法：subagent 失败后 Master Agent 自己上手分析（fate_000283 就是先例，风险极高）
+   - ✅ 正确做法：记录、跳过、继续流水线
+
 ## 为什么
 
 - 题海规模是海量（AoPS-Instruct 60 万题），批处理并发会浪费大量等待时间

@@ -91,7 +91,7 @@ PROMPTS = [
         verification_poc="VMS-28",
         verification_status="verified",
         source_doc="324号——POC-VMS-28提示词V4",
-        notes="格化+trace识别提示词V4。在V3基础上采用方案C：基础部分共用（FCA/Hasse图/trace定义/反模式/为什么/影响例子），新增第四点五部分'输入性质——树状vs线性'。附加章节A处理树状输入（过程A——分析推理AI上下文）：5步——识别树结构/拆成N条脉络/每条脉络独立格化/识别分叉位置trace/识别折返后语义关联trace。附加章节B处理线性输入（过程B——分析已有题目和解答）：直接格化，没有分叉位置trace和折返后语义关联trace。AI根据输入性质选读对应附加章节。"
+        notes="格化+trace识别提示词V4。在V3基础上采用方案C：基础部分共用（FCA/Hasse图/trace定义/反模式/为什么/影响例子），新增第四点五部分'输入性质——树状vs线性'。附加章节A处理树状输入（解题引导——分析推理AI上下文）：5步——识别树结构/拆成N条脉络/每条脉络独立格化/识别分叉位置trace/识别折返后语义关联trace。附加章节B处理线性输入（解答吸收——分析已有题目和解答）：直接格化，没有分叉位置trace和折返后语义关联trace。AI根据输入性质选读对应附加章节。"
              + "【VMS-28验证结果2026-08-10】成功——7个Level（6个中间Level）、23个非局部trace、识别出'强归纳+情况分析+鸽巢计数'组合策略。4个成功条件全部满足。但发现V4的§4'反思'是软的——subagent可以说'我觉得没漏'就结束。V5把反思升级为自我审计报告（9项硬要求）。详见329号§8.3审计报告。",
     ),
     Prompt(
@@ -235,7 +235,7 @@ PROMPTS = [
         verification_poc="VMS-14",
         verification_status="pending",
         source_doc="315号——完整工作流",
-        notes="分析脉络提示词。过程A和过程B可能需要不同版本。",
+        notes="分析脉络提示词。解题引导和解答吸收可能需要不同版本。",
     ),
     Prompt(
         prompt_id="prompt_telling_001",
@@ -249,7 +249,7 @@ PROMPTS = [
     ),
     Prompt(
         prompt_id="prompt_step5a_archive_001",
-        pipe="step_5_branch/过程A",
+        pipe="step_5_branch/解题引导",
         version="待设计",
         content_ref="待设计",
         verification_poc="VMS-19",
@@ -259,7 +259,7 @@ PROMPTS = [
     ),
     Prompt(
         prompt_id="prompt_step5b_new_tell_001",
-        pipe="step_5_branch/过程B",
+        pipe="step_5_branch/解答吸收",
         version="待设计",
         content_ref="待设计",
         verification_poc="VMS-16",
@@ -291,7 +291,7 @@ PROMPT_DESIGN_PRINCIPLE = {
         "每个Pipe都需要提示词——Solver/Parser/Telling/Guide四个Pipe的AI都需要提示词",
         "每个子pipe也需要提示词——解放思想原则下Pipe会拆分为子pipe",
         "反射会产生新提示词——反射原则下系统改进提示词产生新版本",
-        "不同过程需要不同提示词——过程A和过程B的Parser AI用不同提示词",
+        "不同过程需要不同提示词——解题引导和解答吸收的Parser AI用不同提示词",
         "不同Level需要不同提示词——局部trace和非局部trace识别可能需要不同提示词",
     ],
     "和算法的关系": {

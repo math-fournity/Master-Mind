@@ -54,8 +54,8 @@ class Trace:
     trace——从脉络的某个Level视图上识别出的思维模式
 
     trace是Parser AI的产出，Telling AI的输入。
-    trace描述"推理AI在这里可以分叉但没分叉"（过程A）
-    或"解答者在这里做了某个操作"（过程B）。
+    trace描述"推理AI在这里可以分叉但没分叉"（解题引导）
+    或"解答者在这里做了某个操作"（解答吸收）。
 
     【自我审计要求——V5提示词§4，2026-08-10】
     Parser AI产出trace时，必须同时产出自我审计报告（9项）：
@@ -85,8 +85,8 @@ class Trace:
     trace_type: Literal["local", "non_local", "global"]
     pattern_description: str            # 模式描述
     source_segment_ids: list[str]       # 涉及的段ID（局部trace=1个段，非局部trace=多个段）
-    # 过程A特有
-    is_branch_position: bool = False    # 是否是分叉位置本身的trace（仅过程A）
+    # 解题引导特有
+    is_branch_position: bool = False    # 是否是分叉位置本身的trace（仅解题引导）
     # 自我审计（V5提示词§4要求，2026-08-10）
     # self_audit_report: Optional[str] = None  # 自我审计报告文本（9项）
     # 注：self_audit_report是Parser AI产出的一部分，但不是每个trace一个——
@@ -117,7 +117,7 @@ class TreeEdge:
 
 @dataclass
 class Thinking:
-    """推理AI的thinking/trajectory——Pipe 0的输出，Pipe 1过程A的输入"""
+    """推理AI的thinking/trajectory——Pipe 0的输出，Pipe 1解题引导的输入"""
     solver_ai_id: str
     problem_id: str
     trajectory: str                     # 完整的thinking文本
@@ -129,7 +129,7 @@ class Thinking:
 @dataclass
 class SolutionRecord:
     """
-    外部解答记录——Pipe 1过程B的输入
+    外部解答记录——Pipe 1解答吸收的输入
 
     和Thinking的区别：解答记录是已完成的、正确的、通常线性的脉络；
     Thinking是未完成的、可能有错误的、可能有分叉的脉络。
@@ -149,8 +149,8 @@ class Vein:
     """
     脉络——从推理内容中分析出的思维脉络
 
-    过程A：从Thinking中分析 → 可能是有分叉的树/DAG
-    过程B：从SolutionRecord中分析 → 通常是线性脉络
+    解题引导：从Thinking中分析 → 可能是有分叉的树/DAG
+    解答吸收：从SolutionRecord中分析 → 通常是线性脉络
 
     【FCA对应】（双轨术语——330号/双轨术语rule）
     脉络对应FCA的**形式上下文** (G, M, I)：
@@ -164,7 +164,7 @@ class Vein:
     source_type: Literal["thinking", "solution_record"]
     structure: Literal["linear", "tree", "dag"]  # 脉络结构
     segments: list["Segment"]           # 脉络的段序列
-    branches: Optional[list["Branch"]] = None     # 分叉（仅过程A的tree/dag结构）
+    branches: Optional[list["Branch"]] = None     # 分叉（仅解题引导的tree/dag结构）
 
 
 @dataclass
@@ -185,7 +185,7 @@ class Segment:
 
 @dataclass
 class Branch:
-    """分叉——脉络中AI选了A没选B的位置（仅过程A）"""
+    """分叉——脉络中AI选了A没选B的位置（仅解题引导）"""
     branch_id: str
     vein_id: str
     at_segment_id: str                  # 在哪个段分叉
@@ -245,13 +245,13 @@ class SolverOutput:
 
 @dataclass
 class ParserInput:
-    """Pipe 1的输入——可能是过程A的Thinking或过程B的SolutionRecord"""
-    # 过程A和过程B的输入不同
-    process: Literal["A", "B"]
-    thinking: Optional[Thinking] = None         # 过程A的输入
-    solution_record: Optional[SolutionRecord] = None  # 过程B的输入
-    # 过程B特有：过程A产出的孤悬trace，用于启发"从什么Level观察外部解答记录"
-    orphan_traces: Optional[list[Trace]] = None  # 仅过程B
+    """Pipe 1的输入——可能是解题引导的Thinking或解答吸收的SolutionRecord"""
+    # 解题引导和解答吸收的输入不同
+    process: Literal["solve", "absorb"]   # solve=解题引导, absorb=解答吸收
+    thinking: Optional[Thinking] = None         # 解题引导的输入
+    solution_record: Optional[SolutionRecord] = None  # 解答吸收的输入
+    # 解答吸收特有：解题引导产出的孤悬trace，用于启发"从什么Level观察外部解答记录"
+    orphan_traces: Optional[list[Trace]] = None  # 仅解答吸收
 
 
 @dataclass
@@ -260,7 +260,7 @@ class ParserOutput:
     traces: list[Trace]                 # 全Level Trace集合
     veins: list[Vein]                   # 分析出的脉络
     level_views: list[LevelView]        # 所有Level视图
-    process: Literal["A", "B"]
+    process: Literal["solve", "absorb"]   # solve=解题引导, absorb=解答吸收
     # 自我审计报告（V5提示词§4要求，2026-08-10）
     # 来源：329号§8.3审计报告——VMS-28审计发现V4的反思太软
     # self_audit_report: Optional[str] = None
@@ -314,17 +314,17 @@ class TellingOutput:
 class Step5Input:
     """步骤5的输入——Pipe 2的输出"""
     telling_output: TellingOutput
-    process: Literal["A", "B"]
+    process: Literal["solve", "absorb"]   # solve=解题引导, absorb=解答吸收
 
 
 @dataclass
 class Step5Output:
     """步骤5的输出"""
-    process: Literal["A", "B"]
-    # 过程A的输出
+    process: Literal["solve", "absorb"]   # solve=解题引导, absorb=解答吸收
+    # 解题引导的输出
     hints: Optional[list[Hint]] = None          # 匹配到tell后取的hint → 送入Pipe 3
-    orphan_traces: Optional[list[Trace]] = None # 没匹配到tell的trace → 存档→启发过程B
-    # 过程B的输出
+    orphan_traces: Optional[list[Trace]] = None # 没匹配到tell的trace → 存档→启发解答吸收
+    # 解答吸收的输出
     new_tells: Optional[list[Tell]] = None      # 新建立的tell → 存入AGENTS.md
     new_hints: Optional[list[Hint]] = None      # 新建立的hint → 关联新tell
 
@@ -346,7 +346,7 @@ class TreeState:
 @dataclass
 class GuideInput:
     """Pipe 3的输入"""
-    hints: list[Hint]                   # 步骤5过程A输出的hint
+    hints: list[Hint]                   # 步骤5解题引导输出的hint
     problem_id: str
     tree_state: TreeState               # 当前引导树状态
 

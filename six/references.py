@@ -82,7 +82,7 @@ TYPE_REFS = {
         "定义来源": "309号——trace-tell-hint命名，trace=辅助AI识别产物",
         "level": "314号问题2——格化脉络找出所有Level视图，trace来自某个Level视图",
         "trace_type": "313号§4.1——local/non_local/global",
-        "is_branch_position": "315号§6.2.2——过程A中分叉位置本身可能就是trace（AI选了A没选B）",
+        "is_branch_position": "315号§6.2.2——解题引导中分叉位置本身可能就是trace（AI选了A没选B）",
         "全Level Trace": "317号VMS-27——已有产物二次分析提取格化的全Level Trace",
     },
     "MathSituation": {
@@ -107,15 +107,15 @@ TYPE_REFS = {
 
     "Vein": {
         "定义来源": "312号——Trace识别的两个核心问题之一是脉络分析",
-        "structure": "318号§4——过程A可能有分叉（tree/dag），过程B通常线性",
-        "branches": "318号§4——分叉仅过程A的tree/dag结构",
+        "structure": "318号§4——解题引导可能有分叉（tree/dag），解答吸收通常线性",
+        "branches": "318号§4——分叉仅解题引导的tree/dag结构",
     },
     "Segment": {
         "定义来源": "304号§8.9——格中元素=某个看法下的段=那个看法下的点",
         "segment_features": "304号§8——段特征用于FCA形式上下文的属性",
     },
     "Branch": {
-        "定义来源": "315号§6.2.2/318号§4——过程A中分叉位置本身可能就是trace",
+        "定义来源": "315号§6.2.2/318号§4——解题引导中分叉位置本身可能就是trace",
         "chosen_path": "000号——AI选择的路径",
         "unchosen_paths": "000号——AI没选的路径（可以分叉但没分叉）",
     },
@@ -146,8 +146,8 @@ TYPE_REFS = {
 
     "ParserInput": {
         "定义来源": "319号§1——Pipe 1的输入",
-        "process": "315号§6.2.2——过程A和过程B的输入不同",
-        "orphan_traces": "315号§6.2.1——过程B特有，过程A产出的孤悬trace用于启发观察Level",
+        "process": "315号§6.2.2——解题引导和解答吸收的输入不同",
+        "orphan_traces": "315号§6.2.1——解答吸收特有，解题引导产出的孤悬trace用于启发观察Level",
     },
     "ParserOutput": {
         "定义来源": "319号§1——Pipe 1的输出",
@@ -155,7 +155,7 @@ TYPE_REFS = {
     },
     "pipe_1_parser": {
         "定义来源": "318号§3.1——Parser AI，提取格化全Level Trace",
-        "核心能力": "318号§3.1——提取格化全Level Trace，在过程A和过程B中都用",
+        "核心能力": "318号§3.1——提取格化全Level Trace，在解题引导和解答吸收中都用",
         "步骤1-3差异": "318号§4/319号§4——步骤1-3相似但不完全相同，步骤4完全相同",
         "Parser AI统一": "318号§3.4——统一了316号的'分析AI'和315号的'Parser AI'",
         "POC验证": [
@@ -192,23 +192,23 @@ TYPE_REFS = {
 
     "Step5Input": {
         "定义来源": "319号§1——步骤5的输入",
-        "process": "315号§6.2.2——过程A和过程B在步骤5分叉",
+        "process": "315号§6.2.2——解题引导和解答吸收在步骤5分叉",
     },
     "Step5Output": {
         "定义来源": "319号§1——步骤5的输出",
-        "hints": "315号§6.4——过程A匹配到tell后取hint，一个tell对应多个hint全选",
-        "orphan_traces": "315号§6.2——过程A没匹配到tell的trace存档启发Parser AI",
-        "new_tells": "315号§6.2.1——过程B没匹配到tell的trace直接成为新tell",
-        "new_hints": "315号§6.2.1——过程B建立新的(tell,hint)对",
+        "hints": "315号§6.4——解题引导匹配到tell后取hint，一个tell对应多个hint全选",
+        "orphan_traces": "315号§6.2——解题引导没匹配到tell的trace存档启发Parser AI",
+        "new_tells": "315号§6.2.1——解答吸收没匹配到tell的trace直接成为新tell",
+        "new_hints": "315号§6.2.1——解答吸收建立新的(tell,hint)对",
     },
     "step_5_branch": {
         "定义来源": "319号§1——步骤5分叉",
-        "过程A": "315号§6.2.2——取hint填引导树/存档孤悬trace启发过程B",
-        "过程B": "315号§6.2.1——确认匹配/建立新(tell,hint)存入AGENTS.md",
-        "为什么过程B可直接成为tell": "315号§6.2.1——外部解答记录是完整正确解答，trace被验证过",
+        "解题引导": "315号§6.2.2——取hint填引导树/存档孤悬trace启发解答吸收",
+        "解答吸收": "315号§6.2.1——确认匹配/建立新(tell,hint)存入AGENTS.md",
+        "为什么解答吸收可直接成为tell": "315号§6.2.1——外部解答记录是完整正确解答，trace被验证过",
         "POC验证": [
-            "VMS-16：Parser AI（过程B的建立新tell）",
-            "VMS-19：tell库持续增长闭环（过程A→过程B→过程A）",
+            "VMS-16：Parser AI（解答吸收的建立新tell）",
+            "VMS-19：tell库持续增长闭环（解题引导→解答吸收→解题引导）",
         ],
     },
 
@@ -240,17 +240,17 @@ TYPE_REFS = {
     # --- 流程函数 (loops.py) ---
 
     "grove_core_loop": {
-        "定义来源": "319号§1——Grove核心循环（过程A）",
+        "定义来源": "319号§1——Grove核心循环（解题引导）",
         "循环结构": "第五代系统技术说明书 01-基础概念/03-引导树闭环.md——Grove核心循环",
         "第一个AI裸做题": "315号§6.1——第一个推理AI收到题目本身，无初始hint",
         "停机条件": "315号§6.5——某条脉络到达正确解答时停机",
         "POC验证": "VMS-17：端到端工作流",
     },
     "tell_library_growth_loop": {
-        "定义来源": "319号§1——tell库增长循环（过程B）",
-        "和过程A的区别": "315号§6.2.1——不需要Guide AI，Parser AI参考孤悬trace作为启发",
+        "定义来源": "319号§1——tell库增长循环（解答吸收）",
+        "和解题引导的区别": "315号§6.2.1——不需要Guide AI，Parser AI参考孤悬trace作为启发",
         "POC验证": [
-            "VMS-16：Parser AI验证过程B",
+            "VMS-16：Parser AI验证解答吸收",
             "VMS-19：tell库持续增长闭环",
         ],
     },
@@ -388,8 +388,8 @@ POCS = {
         "依赖": "VMS-17",
     },
     "VMS-19": {
-        "名称": "tell库持续增长闭环——过程A→过程B→过程A",
-        "验证什么": "过程A产出的孤悬trace能否启发Parser AI，过程B验证后的新tell能否用于过程A的未来匹配",
+        "名称": "tell库持续增长闭环——解题引导→解答吸收→解题引导",
+        "验证什么": "解题引导产出的孤悬trace能否启发Parser AI，解答吸收验证后的新tell能否用于解题引导的未来匹配",
         "来源": "315/316号",
         "依赖": "VMS-16+VMS-17",
     },

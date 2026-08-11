@@ -57,7 +57,7 @@ REFLECTION_PRINCIPLE = {
         "时机2：匹配失败时": {
             "描述": "Telling AI匹配trace→tell失败时，系统反思为什么失败",
             "反思什么": "是分类体系有缺口（这个trace确实对应一个新tell，但库中没有）？还是trace识别有误（Parser AI识别出的trace不是有意义的思维模式）？",
-            "反馈到": "如果是分类体系缺口→触发过程B增长tell库；如果是trace识别有误→改进Parser AI的提示词",
+            "反馈到": "如果是分类体系缺口→触发解答吸收增长tell库；如果是trace识别有误→改进Parser AI的提示词",
         },
         "时机3：停机后": {
             "描述": "Grove核心循环停机后（某条脉络到达正确解答），系统反思整个解题过程",
@@ -85,7 +85,7 @@ REFLECTION_PRINCIPLE = {
         "反射": "运行时的开放性——不要固化运行，审视自己的行为，从中学习，改进流程",
         "配套": "解放思想是设计时的反射——在设计时反思'这个函数能不能用不同方式做'；反射是运行时的解放思想——在运行时解放'流程必须这样走'的固化",
     },
-    "和VMS-19的关系": "VMS-19（tell库持续增长闭环）是反射的典型例子——过程A产出的孤悬trace（匹配失败的trace）触发过程B增长tell库，这就是系统从匹配失败中学习、改进自己的分类体系",
+    "和VMS-19的关系": "VMS-19（tell库持续增长闭环）是反射的典型例子——解题引导产出的孤悬trace（匹配失败的trace）触发解答吸收增长tell库，这就是系统从匹配失败中学习、改进自己的分类体系",
     "和FUNDAMENTAL_INSIGHT的关系": "系统的根本认知'让两棵树生长出来'本身就要求系统不固化——树的生长方向不是预设的，而是系统在运行中识别出来的。反射是'让树生长'在系统层面的体现——系统本身也是一棵在生长的树",
 }
 
@@ -134,8 +134,8 @@ class ReflectionPoint:
 #     └── reflect_telling()          → 反射：匹配率如何、分类体系是否有缺口
 #
 #   step_5_branch()
-#     ├── 过程A：取hint/存档孤悬trace
-#     ├── 过程B：建立新tell
+#     ├── 解题引导：取hint/存档孤悬trace
+#     ├── 解答吸收：建立新tell
 #     └── reflect_step5()            → 反射：孤悬trace的比例如何、新tell的质量如何
 #
 #   pipe_3_guide()
@@ -167,11 +167,11 @@ REFLECTION_DISTRIBUTION = {
         "反射函数": "reflect_telling()",
         "反射什么": "匹配率如何、分类体系是否有缺口、哪些分类目录长期无匹配",
         "触发时机": "after_loop + match_failure",
-        "反馈到": "改进分类体系结构、触发过程B增长tell库",
+        "反馈到": "改进分类体系结构、触发解答吸收增长tell库",
     },
     "step_5_branch": {
         "反射函数": "reflect_step5()",
-        "反射什么": "孤悬trace的比例如何、新tell的质量如何、过程A→过程B的闭环是否顺畅",
+        "反射什么": "孤悬trace的比例如何、新tell的质量如何、解题引导→解答吸收的闭环是否顺畅",
         "触发时机": "after_loop + after_stop",
         "反馈到": "改进孤悬trace的存档机制、改进新tell的建立标准",
     },
@@ -189,7 +189,7 @@ REFLECTION_DISTRIBUTION = {
     },
     "tell_library_growth_loop": {
         "反射函数": "reflect_tell_growth()",
-        "反射什么": "tell库的增长速度、新tell的质量、新tell是否被过程A匹配到",
+        "反射什么": "tell库的增长速度、新tell的质量、新tell是否被解题引导匹配到",
         "触发时机": "periodic",
         "反馈到": "改进Parser AI处理外部解答记录的提示词、改进新tell的建立标准",
     },

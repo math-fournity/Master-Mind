@@ -103,12 +103,12 @@ six.CORE_PROBLEMS["问题1（库侧）"]  # → 现有tell库只有局部tell没
 
 | 过程 | 流程函数 | 说明 |
 |---|---|---|
-| 过程A | `grove_core_loop()` | Grove核心循环——分析推理AI上下文 |
-| 过程B | `tell_library_growth_loop()` | tell库增长循环——分析外部解答记录 |
+| 解题引导 | `grove_core_loop()` | Grove核心循环——分析推理AI上下文 |
+| 解答吸收 | `tell_library_growth_loop()` | tell库增长循环——分析外部解答记录 |
 
 ## 步骤差异
 
-| 步骤 | 过程A | 过程B | 是否相同 |
+| 步骤 | 解题引导 | 解答吸收 | 是否相同 |
 |---|---|---|---|
 | 步骤1：分析脉络 | 从Thinking分析，可能有分叉（树/DAG） | 从SolutionRecord分析，通常线性 | 相似但不完全相同 |
 | 步骤2：格化脉络 | 在有分叉的脉络上格化，多分支分别格化 | 在线性脉络上格化 | 相似但不完全相同 |
