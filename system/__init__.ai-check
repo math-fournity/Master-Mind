@@ -1,0 +1,24 @@
+# __init__ AI审计checklist
+
+## 模块职责
+
+system包的初始化文件——导出系统的主要接口。
+
+## 代码能检查的（不需要AI重复检查）
+
+- [代码] __all__是否定义——Python import检查
+- [代码] 导出的名称是否都能正确导入——import时自动检查
+
+## AI需要检查的
+
+- [ ] __init__.py是否导出了所有需要对外暴露的接口——enter/solve/absorb/vein_analysis等
+- [ ] 是否有循环导入问题——system/内部模块之间的导入关系
+- [ ] 包结构是否清晰——入口（enter.py/solve.py）→过程（process_absorb.py/process_solve.py）→阶段（vein_analysis.py等）→数据结构（schema.py）→数据库（db_schema.py）
+
+## 审计流程
+
+1. 加载 __init__.ref → 阅读参考文档
+2. 加载 __init__.py → 检查导出
+3. 加载本 .ai-check 文件 → 明确检查项目
+4. 尝试`from system import *`，检查是否所有导出都能正确导入
+5. 记录结果

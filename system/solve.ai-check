@@ -1,0 +1,28 @@
+# solve AI审计checklist
+
+## 模块职责
+
+解题入口——将需要解答的题目送入系统，系统编排引导树和解题树的展开，直至获得正确解答。调用process_solve.solve()。
+
+## 代码能检查的（不需要AI重复检查）
+
+- [代码] 命令行参数解析是否正确——sys.argv检查
+- [代码] TELL_LIBRARY_PATH环境变量是否读取——os.environ.get检查
+
+## AI需要检查的
+
+- [ ] load_problem()是否已实现（TODO-10）——如果还是NotImplementedError，记录为❌不通过
+- [ ] 题目的JSON格式是否定义——Problem dataclass对应的JSON字段
+- [ ] solve()调用是否传了正确的参数——problem和tell_library_path
+- [ ] 解题过程中所有AI Agent是否按启动规范启动——推理AI/脉络分析AI/trace匹配AI/引导AI
+- [ ] 解题过程中所有产出是否落盘——按痕迹保留rule检查
+- [ ] 引导树是否正确生长——节点和边是否按Grove核心循环的三个推动关系增长
+- [ ] 循环是否完整转——不是只转半圈（有节点没边）
+
+## 审计流程
+
+1. 加载 solve.ref → 阅读参考文档
+2. 加载 solve.py → 检查main()和load_problem()
+3. 加载本 .ai-check 文件 → 明确检查项目
+4. 如果有实际运行，检查引导树状态和工作目录中的产出
+5. 记录结果

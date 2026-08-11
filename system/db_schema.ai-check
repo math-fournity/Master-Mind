@@ -1,0 +1,27 @@
+# db_schema AI审计checklist
+
+## 模块职责
+
+数据库表设计——sessions表已定义，ai_instances/orphan_traces/tell_library_changes表待定义。get_working_directory()函数提供devin cli启动目录路径。
+
+## 代码能检查的（不需要AI重复检查）
+
+- [代码] get_working_directory()返回的路径格式是否正确——字符串拼接检查
+- [代码] stage参数是否在valid_stages中——ValueError检查
+
+## AI需要检查的
+
+- [ ] sessions表的字段是否覆盖了痕迹保留rule的要求——session_id/session_type/problem_id/status/started_at/completed_at/working_directory/result_summary
+- [ ] ai_instances表是否已定义（TODO-6）——如果还是TODO注释，记录为❌不通过
+- [ ] orphan_traces表是否已定义（TODO-7）——如果还是TODO注释，记录为❌不通过
+- [ ] tell_library_changes表是否已定义（TODO-8）——如果还是TODO注释，记录为⚠️部分通过（低优先级）
+- [ ] get_working_directory()的路径结构是否和AI Agent启动规范rule一致——palyground/{process}/{stage}/{problem_id}/格式
+- [ ] 4并发方案的路径是否支持——get_working_directory()目前返回{base_dir}/{session_type}/{stage}/{problem_id}，4并发需要{base_dir}/{session_type}/{stage}/{problem_id}/{version}，是否需要扩展
+
+## 审计流程
+
+1. 加载 db_schema.ref → 阅读参考文档
+2. 加载 db_schema.py → 检查表定义和函数
+3. 加载本 .ai-check 文件 → 明确检查项目
+4. 对照痕迹保留rule和AI Agent启动规范rule，逐项检查
+5. 记录结果

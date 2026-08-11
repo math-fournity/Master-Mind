@@ -1,0 +1,30 @@
+# process_solve AI审计checklist
+
+## 模块职责
+
+解题引导——系统解答题目，在推理过程中引导新方向，引导树展开。5个阶段：推理探索→脉络分析→trace匹配→方向取用→引导展开，循环直到停机。
+
+## 代码能检查的（不需要AI重复检查）
+
+- [代码] solve()函数的循环逻辑是否正确——while tree_state.status == "growing"
+- [代码] max_concurrent参数是否生效——并发数限制检查
+
+## AI需要检查的
+
+- [ ] vein_analysis占位是否已替换为从vein_analysis.py导入——如果还是raise NotImplementedError，记录为❌不通过
+- [ ] inference_explore()是否已实现——推理AI的启动和thinking采集
+- [ ] trace_match()是否已实现——trace匹配tell库
+- [ ] direction_extract()是否已实现——从匹配到的tell取hint
+- [ ] guide_expand()是否已实现——用hint开新边启动新推理AI
+- [ ] archive_orphan_traces()是否已实现——孤悬trace存档
+- [ ] 循环的三个推动关系是否都成立——引导树→推理AI、推理AI→解题树、推理AI→引导树
+- [ ] 停机条件是否正确——solved或exhausted时退出循环
+- [ ] solve模式的脉络分析是否正确处理分叉——thinking可能有分叉（TODO-1，solve模式提示词未设计）
+
+## 审计流程
+
+1. 加载 process_solve.ref → 阅读参考文档
+2. 加载 process_solve.py → 检查solve()和各阶段函数
+3. 加载本 .ai-check 文件 → 明确检查项目
+4. 如果有实际运行，检查引导树状态和各阶段产出
+5. 记录结果

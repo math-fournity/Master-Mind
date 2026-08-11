@@ -1,0 +1,29 @@
+# process_absorb AI审计checklist
+
+## 模块职责
+
+解答吸收——从外部解答中提炼tell/hint，tell库增长。4个阶段：解答录入→脉络分析→trace匹配→知识沉淀。
+
+## 代码能检查的（不需要AI重复检查）
+
+- [代码] absorb()函数的循环逻辑是否正确——for record in solution_records
+- [代码] 新tell是否正确追加到new_tells_all列表
+
+## AI需要检查的
+
+- [ ] vein_analysis占位是否已替换为从vein_analysis.py导入——如果还是raise NotImplementedError，记录为❌不通过
+- [ ] trace_match()是否已实现——和process_solve.py的trace_match是同一个函数
+- [ ] knowledge_deposit()是否已实现——没匹配到tell的trace去特化建立新(tell,hint)
+- [ ] get_archived_orphan_traces()是否已实现——获取解题引导产出的孤悬trace作为启发信号
+- [ ] save_tell_to_library()是否已实现——把新tell存入tell库
+- [ ] 孤悬trace启发信号是否正确传递——orphan_traces通过AnalysisInput传给vein_analysis
+- [ ] absorb模式的脉络分析是否正确——4并发方案是否执行，absorb模式是主要使用场景
+- [ ] 新tell的case_source是否正确——来自外部解答记录的trace设为"mathematics"
+
+## 审计流程
+
+1. 加载 process_absorb.ref → 阅读参考文档
+2. 加载 process_absorb.py → 检查absorb()和各阶段函数
+3. 加载本 .ai-check 文件 → 明确检查项目
+4. 如果有实际运行，检查新tell列表和工作目录中的产出
+5. 记录结果
