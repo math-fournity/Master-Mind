@@ -6,7 +6,7 @@
 
 | 文档 | 模块 | 状态 | 说明 |
 |---|---|---|---|
-| `vein_analysis.md` | 脉络分析 | 待写 | 三阶段架构：格化→程序枚举→综合分析 |
+| `vein_analysis.md` | 脉络分析 | ✅ 已写 | 三阶段架构：格化→程序枚举→综合分析+文件拆分流程控制 |
 | `process_absorb.md` | 解答吸收 | 待写 | 入题侧——从外部解答提炼tell/hint |
 | `process_solve.md` | 解题引导 | 待写 | 解题侧——引导树展开 |
 | `db.md` | 数据库 | 待写 | ArangoDB封装、集合定义、problem_entries抓手 |
