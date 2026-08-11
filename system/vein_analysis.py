@@ -66,6 +66,8 @@ Master Agent在系统运行时是检查者——检查tmux session状态、检�
 import os
 import json
 import shutil
+import subprocess
+import sys
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
@@ -125,6 +127,54 @@ SYNTHESIS_PROMPT_FILE = os.path.join(PROMPT_DIR, "synthesis.md")
 
 # 综合分析AGENTS.md模板
 SYNTHESIS_AGENTS_TEMPLATE = "assets/vein_analysis/AGENTS_synthesis.md"
+
+# ============================================================================
+# 运行模式开关——tmux交互模式 vs 非交互模式
+# ============================================================================
+
+# True = tmux交互模式（detached session，可attach查看进度）
+# False = 非交互模式（subprocess直接启动，-p/--print，跑完自动退出）
+USE_TMUX = True
+
+
+def _launch_devin(session_name: str, workdir: str, prompt: str) -> bool:
+    """启动devin cli实例——根据USE_TMUX开关选择tmux交互模式或非交互模式
+
+    Args:
+        session_name: tmux session名（tmux模式时用）
+        workdir: 工作目录
+        prompt: 启动提示词
+
+    Returns:
+        True=启动成功, False=启动失败
+    """
+    if USE_TMUX:
+        # tmux交互模式——detached session，可attach查看进度
+        cmd = [
+            "tmux", "new-session", "-d", "-s", session_name,
+            f"cd {workdir} && devin --permission-mode dangerous --respect-workspace-trust false -- '{prompt}'"
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        if result.returncode != 0:
+            print(f"  ⚠️ tmux启动失败: {result.stderr}")
+            return False
+        return True
+    else:
+        # 非交互模式——subprocess后台启动，-p/--print，跑完自动退出
+        # 用Popen不等待——后台运行，轮询DONE.md判断完成
+        log_path = os.path.join(workdir, "devin_cli.log")
+        log_f = open(log_path, "w")
+        proc = subprocess.Popen(
+            ["devin", "--permission-mode", "dangerous",
+             "--respect-workspace-trust", "false",
+             "-p", prompt],
+            stdout=log_f, stderr=subprocess.STDOUT,
+            cwd=workdir,
+        )
+        # 记录PID到文件——方便后续检查进程是否还活着
+        with open(os.path.join(workdir, "devin_pid.txt"), "w") as f:
+            f.write(str(proc.pid))
+        return True
 
 # repo根目录——vein_analysis.py在system/下，所以根目录是上一级
 # 这个值在_load_repo_root()中动态计算
@@ -287,19 +337,11 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
             f"DONE.md是空文件，只是表示你确认所有工作已完成。"
         )
 
-        # 用subprocess启动tmux session——交互模式，用--分隔prompt
-        # --permission-mode dangerous: yolo模式，自动批准所有工具操作（detached session无法交互批准）
-        # --respect-workspace-trust false: 跳过workspace trust确认
-        import subprocess
-        cmd = [
-            "tmux", "new-session", "-d", "-s", session_name,
-            f"cd {vdir} && devin --permission-mode dangerous --respect-workspace-trust false -- '{launch_prompt}'"
-        ]
-        print(f"启动 {version}: tmux session={session_name}")
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"⚠️ {version} tmux启动失败: {result.stderr}")
-            db.update_ai_instance(ai_key, status="failed", end_reason=f"tmux启动失败: {result.stderr}")
+        # 用_launch_devin启动devin cli——根据USE_TMUX开关选择tmux或非交互模式
+        print(f"启动 {version}: session={session_name}")
+        success = _launch_devin(session_name, vdir, launch_prompt)
+        if not success:
+            db.update_ai_instance(ai_key, status="failed", end_reason="devin cli启动失败")
         else:
             print(f"✅ {version} tmux启动成功")
 
@@ -328,32 +370,45 @@ def _vein_analysis_absorb(input: AnalysisInput) -> AnalysisOutput:
 
 
 def _cleanup_tmux_sessions(prepared_dirs: dict):
-    """清理已完成的tmux session——自动回收devin cli实例
+    """清理已完成的devin cli实例——自动回收
 
-    在collect_vein_analysis_output完成后调用。检查每个版本的工作目录中
-    是否有DONE.md，有的话kill对应的tmux session。
+    根据USE_TMUX开关选择清理方式：
+    - tmux模式：kill对应的tmux session
+    - 非交互模式：kill对应的进程（从devin_pid.txt读PID）
 
     Args:
         prepared_dirs: {version: workdir_path}
     """
-    import subprocess
     for version, vdir in prepared_dirs.items():
         done_path = os.path.join(vdir, "DONE.md")
         if not os.path.exists(done_path):
             continue
-        # tmux session名和_prepare_version_workdir中一致
-        problem_id = os.path.basename(os.path.dirname(vdir))  # imo2009p6
-        session_name = f"absorb-vein_analysis-{problem_id}-{version}"
-        try:
-            result = subprocess.run(
-                ["tmux", "kill-session", "-t", session_name],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode == 0:
-                print(f"🧹 已清理 {version} 的tmux session: {session_name}")
-            # session不存在也不报错——可能已经被手动kill了
-        except Exception as e:
-            print(f"⚠️ 清理 {version} 的tmux session失败: {e}")
+        if USE_TMUX:
+            # tmux模式——kill session
+            problem_id = os.path.basename(os.path.dirname(vdir))
+            session_name = f"absorb-vein_analysis-{problem_id}-{version}"
+            try:
+                result = subprocess.run(
+                    ["tmux", "kill-session", "-t", session_name],
+                    capture_output=True, text=True, timeout=5,
+                )
+                if result.returncode == 0:
+                    print(f"🧹 已清理 {version} 的tmux session: {session_name}")
+            except Exception as e:
+                print(f"⚠️ 清理 {version} 的tmux session失败: {e}")
+        else:
+            # 非交互模式——kill进程
+            pid_path = os.path.join(vdir, "devin_pid.txt")
+            if os.path.exists(pid_path):
+                try:
+                    with open(pid_path) as f:
+                        pid = int(f.read().strip())
+                    os.kill(pid, 15)  # SIGTERM
+                    print(f"🧹 已清理 {version} 的devin cli进程: PID={pid}")
+                except ProcessLookupError:
+                    pass  # 进程已退出
+                except Exception as e:
+                    print(f"⚠️ 清理 {version} 的devin cli进程失败: {e}")
 
 
 def _wait_and_collect(workdir_base: str, prepared_dirs: dict,
@@ -869,7 +924,8 @@ def vein_analysis_three_phase(input: AnalysisInput) -> AnalysisOutput:
     print("三阶段脉络分析——格化与trace识别分离")
     print("=" * 70)
 
-    workdir_base = _create_workdir_base(input.process, input.problem_id)
+    problem_id = input.solution_record.problem.problem_id
+    workdir_base = _create_workdir_base(input.process, problem_id)
     print(f"工作目录: {workdir_base}")
 
     # 阶段1：4并发格化
@@ -930,7 +986,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
 
     # 启动4个tmux session
     for version, vdir in prepared_dirs.items():
-        session_name = f"grade-{input.problem_id}-{version}"
+        session_name = f"grade-{input.solution_record.problem.problem_id}-{version}"
         launch_prompt = (
             f"先加载 {vdir}/AGENTS.md 了解你的角色和约束，"
             f"然后加载 {vdir}/prompt.md 中的提示词，"
@@ -942,18 +998,11 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
             + f"。全部产出写完后，在 {vdir}/ 下创建一个空的 DONE.md 文件作为完成信号。"
         )
 
-        result = subprocess.run(
-            ["tmux", "new-session", "-d", "-s", session_name,
-             "devin", "--permission-mode", "dangerous",
-             "--respect-workspace-trust", "false",
-             "--", launch_prompt],
-            capture_output=True, text=True, timeout=10,
-            cwd=vdir,
-        )
-        if result.returncode != 0:
-            print(f"  ⚠️ {version} tmux启动失败: {result.stderr}")
+        success = _launch_devin(session_name, vdir, launch_prompt)
+        if success:
+            print(f"  ✅ {version} 启动成功: {session_name}")
         else:
-            print(f"  ✅ {version} tmux启动成功: {session_name}")
+            print(f"  ⚠️ {version} 启动失败")
 
     # 等待4个格化session完成——轮询DONE.md
     import time
@@ -982,7 +1031,7 @@ def _phase1_grading(workdir_base: str, input: AnalysisInput) -> dict:
         time.sleep(poll_interval)
 
     # 清理tmux session
-    _cleanup_tmux_sessions_named(prepared_dirs, f"grade-{input.problem_id}")
+    _cleanup_tmux_sessions_named(prepared_dirs, f"grade-{input.solution_record.problem.problem_id}")
 
     return prepared_dirs
 
@@ -1097,7 +1146,7 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
             shutil.copy2(src, os.path.join(ce_copy_dir, f"{version}_closed_elements.json"))
 
     # 启动综合分析devin cli
-    session_name = f"synth-{input.problem_id}"
+    session_name = f"synth-{input.solution_record.problem.problem_id}"
     launch_prompt = (
         f"先加载 {synth_dir}/AGENTS.md 了解你的角色和约束，"
         f"然后加载 {synth_dir}/prompt.md 中的提示词，"
@@ -1109,18 +1158,11 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
         f"全部产出写完后，在 {synth_dir}/ 下创建一个空的 DONE.md 文件作为完成信号。"
     )
 
-    result = subprocess.run(
-        ["tmux", "new-session", "-d", "-s", session_name,
-         "devin", "--permission-mode", "dangerous",
-         "--respect-workspace-trust", "false",
-         "--", launch_prompt],
-        capture_output=True, text=True, timeout=10,
-        cwd=synth_dir,
-    )
-    if result.returncode != 0:
-        print(f"  ⚠️ 综合分析tmux启动失败: {result.stderr}")
+    success = _launch_devin(session_name, synth_dir, launch_prompt)
+    if success:
+        print(f"  ✅ 综合分析启动成功: {session_name}")
     else:
-        print(f"  ✅ 综合分析tmux启动成功: {session_name}")
+        print(f"  ⚠️ 综合分析启动失败")
 
     # 等待综合分析完成——轮询DONE.md
     import time
@@ -1141,13 +1183,26 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
             break
         time.sleep(poll_interval)
 
-    # 清理tmux session
-    try:
-        subprocess.run(["tmux", "kill-session", "-t", session_name],
-                       capture_output=True, timeout=5)
-        print(f"  🧹 已清理综合分析tmux session")
-    except Exception:
-        pass
+    # 清理综合分析devin cli实例
+    if USE_TMUX:
+        try:
+            subprocess.run(["tmux", "kill-session", "-t", session_name],
+                           capture_output=True, timeout=5)
+            print(f"  🧹 已清理综合分析tmux session")
+        except Exception:
+            pass
+    else:
+        pid_path = os.path.join(synth_dir, "devin_pid.txt")
+        if os.path.exists(pid_path):
+            try:
+                with open(pid_path) as f:
+                    pid = int(f.read().strip())
+                os.kill(pid, 15)
+                print(f"  🧹 已清理综合分析devin cli进程: PID={pid}")
+            except ProcessLookupError:
+                pass
+            except Exception:
+                pass
 
     # 读取综合分析产出
     output_path = os.path.join(synth_dir, "output.json")
@@ -1176,18 +1231,31 @@ def _phase2_synthesis(workdir_base: str, input: AnalysisInput,
 
 
 def _cleanup_tmux_sessions_named(prepared_dirs: dict, prefix: str):
-    """清理指定前缀的tmux session"""
+    """清理指定前缀的devin cli实例——根据USE_TMUX开关选择清理方式"""
     for version, vdir in prepared_dirs.items():
         done_path = os.path.join(vdir, "DONE.md")
         if not os.path.exists(done_path):
             continue
-        session_name = f"{prefix}-{version}"
-        try:
-            result = subprocess.run(
-                ["tmux", "kill-session", "-t", session_name],
-                capture_output=True, text=True, timeout=5,
-            )
-            if result.returncode == 0:
-                print(f"  🧹 已清理 {version} 的tmux session: {session_name}")
-        except Exception as e:
-            print(f"  ⚠️ 清理 {version} 的tmux session失败: {e}")
+        if USE_TMUX:
+            session_name = f"{prefix}-{version}"
+            try:
+                result = subprocess.run(
+                    ["tmux", "kill-session", "-t", session_name],
+                    capture_output=True, text=True, timeout=5,
+                )
+                if result.returncode == 0:
+                    print(f"  🧹 已清理 {version} 的tmux session: {session_name}")
+            except Exception as e:
+                print(f"  ⚠️ 清理 {version} 的tmux session失败: {e}")
+        else:
+            pid_path = os.path.join(vdir, "devin_pid.txt")
+            if os.path.exists(pid_path):
+                try:
+                    with open(pid_path) as f:
+                        pid = int(f.read().strip())
+                    os.kill(pid, 15)
+                    print(f"  🧹 已清理 {version} 的devin cli进程: PID={pid}")
+                except ProcessLookupError:
+                    pass
+                except Exception as e:
+                    print(f"  ⚠️ 清理 {version} 的devin cli进程失败: {e}")
