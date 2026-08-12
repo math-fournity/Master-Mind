@@ -80,7 +80,7 @@ V8使用2步文件拆分流程控制，控制thinking大小：
 
 ### 4.1 程序自动完成
 
-用`six/verify_lattice_completeness.py`的Next Closure算法枚举所有满足A''=A的子集A。
+用`system/verify_lattice_completeness.py`的Next Closure算法枚举所有满足A''=A的子集A。
 
 **输入**：各版本的formal_context.json（G,M,I）
 **输出**：各版本的closed_elements.json
@@ -168,7 +168,7 @@ GRADING_PROMPT_FILES = {v: f"{PROMPT_DIR}/v{v.lower()}_grading.md"}
 SYNTHESIS_PROMPT_FILE = f"{PROMPT_DIR}/synthesis.md"
 AGENTS_TEMPLATES = {v: f"assets/vein_analysis/AGENTS_{v}.md"}
 SYNTHESIS_AGENTS_TEMPLATE = "assets/vein_analysis/AGENTS_synthesis.md"
-VERIFY_SCRIPT = "six/verify_lattice_completeness.py"
+VERIFY_SCRIPT = "system/verify_lattice_completeness.py"
 ```
 
 ---
@@ -178,7 +178,7 @@ VERIFY_SCRIPT = "six/verify_lattice_completeness.py"
 **审计脚本**：`system/tests/vein_analysis/run_audit.py`
 **审计维度**：trace数量、trace类型分布、闭元素数量、AI优势数量、元反思数量
 **退化判定**：trace数量<80%或trace类型<70%为退化
-**历史运行**：0004-0010（见`VEIN_ANALYSIS_AUDIT` in `six/references.py`）
+**历史运行**：0004-0013（见`system/docs/references.md` §8 脉络分析审计）
 
 ---
 
@@ -191,4 +191,4 @@ VERIFY_SCRIPT = "six/verify_lattice_completeness.py"
 | 335号 | V8格化thinking过大问题分析——方案D 2步文件拆分（不退化） |
 | 336号 | 综合分析4阶段文件拆分——不会退化且大幅提升（trace 43→88） |
 
-**代码映射**：见`six/references.py`中的`THREE_PHASE_ARCHITECTURE`、`FILE_STAGED_FLOW`、`VEIN_ANALYSIS_AUDIT`
+**代码映射**：见`system/docs/references.md`中的§6三阶段架构、§7文件拆分流程控制、§8脉络分析审计

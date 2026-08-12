@@ -6,19 +6,21 @@
 
 ```
 system/
-├── README.md          ← 本文件——目录规范和使用方法
-├── docs/              ← 系统设计说明书（按模块组织）
-├── schema.py          ← 数据结构定义（Problem/Tell/Trace/TreeState等）
-├── db.py              ← 数据库操作（ArangoDB封装）
-├── db_schema.py       ← 数据库集合定义和阶段配置
-├── vein_analysis.py   ← 脉络分析（格化→程序枚举→综合分析，三阶段架构）
-├── process_absorb.py  ← 解答吸收过程（入题侧）
-├── process_solve.py   ← 解题引导过程（解题侧）
-├── enter.py           ← 入题入口脚本
-├── solve.py           ← 解题入口脚本
-├── assets/            ← 固定资产（AGENTS模板、提示词等）
-├── tests/             ← 测试资产（POC验证脚本、基线数据等）
-└── run_*.py           ← 运行脚本（特定题目的测试运行）
+├── README.md                      ← 本文件——目录规范和使用方法
+├── docs/                          ← 系统设计说明书（按模块组织）
+├── schema.py                      ← 数据结构定义（Problem/Tell/Trace/TreeState等）
+├── db.py                          ← 数据库操作（ArangoDB封装）
+├── db_schema.py                   ← 数据库集合定义和阶段配置
+├── log.py                         ← 日志模块（341号——滚动日志1MB×500）
+├── vein_analysis.py               ← 脉络分析（格化→程序枚举→综合分析，三阶段架构）
+├── verify_lattice_completeness.py ← 闭元素枚举+三层验证（阶段1.5程序枚举）
+├── process_absorb.py              ← 解答吸收过程（入题侧）
+├── process_solve.py                ← 解题引导过程（解题侧）
+├── enter.py                       ← 入题入口脚本
+├── solve.py                       ← 解题入口脚本
+├── assets/                        ← 运行时资产（AGENTS模板——运行时复制到工作目录）
+├── tests/                         ← 测试资产（POC验证脚本、基线数据、历史运行归档）
+└── run_*.py                       ← 运行脚本（特定题目的测试运行）
 ```
 
 ## docs/ —— 系统设计说明书

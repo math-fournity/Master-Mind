@@ -108,7 +108,7 @@ AGENTS_TEMPLATES = {
 }
 
 # 程序验证脚本路径（相对repo根目录）
-VERIFY_SCRIPT = "six/verify_lattice_completeness.py"
+VERIFY_SCRIPT = "system/verify_lattice_completeness.py"
 
 # ============================================================================
 # 三阶段架构常量

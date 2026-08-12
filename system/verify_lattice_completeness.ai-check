@@ -1,0 +1,28 @@
+# verify_lattice_completeness AI审计checklist
+
+## 模块职责
+
+闭元素枚举+三层验证——给定形式上下文(G,M,I)，用Next Closure算法枚举所有闭元素，验证AI声称的闭元素完备性，验证关键实体贯穿性，过滤伪元模式。
+
+## 代码能检查的（不需要AI重复检查）
+
+- [代码] Next Closure算法实现是否正确——对已知形式上下文运行，对比闭元素集合
+- [代码] 闭包算子A''=A验证——数学性质，程序自动检查
+- [代码] JSON输入输出格式是否一致——运行时自动检查
+
+## AI需要检查的
+
+- [ ] 闭元素枚举是否完备——Next Closure算法是数学保证的完备枚举，但要检查输入的形式上下文是否正确
+- [ ] 关键实体贯穿性验证逻辑是否正确——程序验证每个贯穿≥2闭元素的实体是否被AI考虑
+- [ ] 伪元模式过滤逻辑是否正确——对AI声称的cross_element_meta_pattern检查段集合是否本身是闭元素
+- [ ] 和vein_analysis.py的接口是否一致——VERIFY_SCRIPT路径、输入JSON格式、输出JSON格式
+- [ ] 三层验证体系是否完整——第一层闭元素完备性、第二层关键实体贯穿性、第三层元反思
+
+## 审计流程
+
+1. 加载 verify_lattice_completeness.ref → 阅读参考文档
+2. 加载 verify_lattice_completeness.py → 检查实现
+3. 加载本 .ai-check 文件 → 明确检查项目
+4. 运行已知形式上下文的测试，对比闭元素集合
+5. 检查和vein_analysis.py的接口一致性
+6. 记录结果

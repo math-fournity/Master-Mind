@@ -650,113 +650,77 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 2. 读run_manifest.json → 直接得到所有文件版本、md5、git commit
 3. `git show <commit>:<文件路径>` → 查看当时的文件内容
 
-**第六代系统架构代码**（`six/`目录）——研发过程的"晾衣架"：
+**第六代系统架构文档**（`system/docs/`）——system是自包含的第六代系统：
 
-> **核心定位**：`six/`不只是实现代码，更是整个第六代系统研发过程的"晾衣架"。代码中每个元素（数据结构、函数、参数）都通过`six/references.py`索引到研发文档。以后的Session AI看到用户提到某个概念，知道去代码的哪个位置看具体内容；看到代码中的某个元素，知道去哪份研发文档追溯它的来源。
+> **核心定位**：`system/`是自包含的第六代系统——从代码到文档，到运行时。`six/`目录已合并到`system/`（343号方案），不再维护。理解第六代系统只需要看`system/`。
+>
+> **三层结构**：
+> - **代码层**：`*.py` + `.ref` + `.ai-check`——真正运行的代码
+> - **文档层**：`docs/`——模块设计说明书 + 系统架构文档
+> - **运行时层**：`assets/`——AGENTS模板等运行时资产
 
-**文件结构**：
-- `six/__init__.py`：包初始化，导出48个公共接口
-- `six/types.py`：所有数据结构（16个dataclass）——系统的形式化Schema
-- `six/pipes.py`：四个Pipe函数 + 步骤5分叉函数（签名+docstring，实现待POC验证后填充）
-- `six/loops.py`：两个完整流程函数（`grove_core_loop()` + `tell_library_growth_loop()`）+ 辅助函数
-- `six/references.py`：研发文档索引（晾衣架）——代码元素到研发文档的映射
-- `six/principles.py`：设计原则——解放思想（多种方式/多个AI/多个子pipe）
-- `six/reflection.py`：设计原则——反射（系统在运行中审视自己、成长发展）
-- `six/prompts.py`：提示词索引——提示词是核心资产，和代码同等重要
-- `six/README.md`：说明文档
-- 来源：319号文档中的形式化定义代码提取
-- 当前状态：所有函数只有签名和docstring，实现待POC验证后填充
+**系统架构文档**（`system/docs/architecture.md`）——四个Pipe+两个过程+设计原则+验证历史：
 
-**设计原则——解放思想**（`six/principles.py`）：
+> 包含：四个Pipe（Solver/Parser/Telling/Guide）+两个过程（解题引导/解答吸收）+设计原则（解放思想/反射）+提示词设计认知+VMS-28到28e验证历史+4并发方案+根本认知。
+
+**研发文档索引**（`system/docs/references.md`）——研发过程的"晾衣架"：
+
+> 研发过程文档清单（303-343号）+代码元素到研发文档的映射+POC验证清单（VMS-11到VMS-30）+三个核心问题+系统根本认知+三阶段架构+文件拆分流程控制+脉络分析审计+超时降级+全流程日志+系统时间意识。
+
+**数据结构设计说明书**（`system/docs/schema.md`）——25个dataclass+FCA术语映射：
+
+> 25个dataclass分类+FCA术语映射（双轨术语330号）+核心数据结构详解（Trace/Tell/Segment/LevelView的FCA对应说明）。
+
+**设计原则——解放思想**：
 
 > **核心原则**：不要觉得每个函数只能一个AI、一种方式去做。时时考虑三个维度：
 > 1. **多种方式**——同一个函数可以用多种方式实现，用POC验证决定哪种方式可行（如VMS-28/29/30验证三种格化方式）
 > 2. **多个AI**——同一个函数可以由多个AI实例并发执行（如311号的并发Telling AI）
-> 3. **多个子pipe**——一个函数可以进一步迭代，拆分为多个子函数，每个子pipe独立验证、独立实现（如`pipe_1_parser()`可拆为`step_1_analyze_vein()` + `step_2_grid_vein()` + `step_3_identify_traces()`三个子pipe）
+> 3. **多个子pipe**——一个函数可以进一步迭代，拆分为多个子函数，每个子pipe独立验证、独立实现
 
-**代码迭代方向**：先有签名和docstring → POC验证后填充实现 → 实现过程中可能拆出子pipe → 子pipe又可能有自己的POC验证。不设AI数量上限、不设方式数量上限、不设子pipe层级上限——只受工程可行性和POC验证结果约束。
-
-**设计原则——反射**（`six/reflection.py`）：
+**设计原则——反射**：
 
 > **核心原则**：系统的各处不应该是完全固化的，而是随着系统运行、使用经验丰富而成长发展。流程中必须在合适的地方进行反射——系统停下来审视自己的行为，从中学习，改进自己。
 >
-> **反射的三层对象**：
-> 1. **反射自己的产出**——trace是否准确、tell是否合理、hint是否有效
-> 2. **反射自己的流程**——Pipe之间的衔接是否顺畅、步骤是否有冗余或缺失
-> 3. **反射自己的认知**——对数学思维的理解、对trace/tell/hint的定义、对格化的方法
->
+> **反射的三层对象**：反射自己的产出 / 反射自己的流程 / 反射自己的认知
 > **反射的触发时机**：每次循环结束后 / 匹配失败时 / 停机后 / 周期性反思 / 人工触发
->
-> **每个Pipe都可以有反射点**：`reflect_solver()` / `reflect_parser()` / `reflect_telling()` / `reflect_step5()` / `reflect_guide()` / `reflect_loop()` / `reflect_tell_growth()`
->
-> **和解放思想的关系**：解放思想是设计时的开放性（不要固化设计），反射是运行时的开放性（不要固化运行）。两者配套——解放思想是设计时的反射，反射是运行时的解放思想。
+> **和解放思想的关系**：解放思想是设计时的开放性（不要固化设计），反射是运行时的开放性（不要固化运行）。两者配套。
 
-**设计认知——提示词是核心资产**（`six/prompts.py`，321号）：
+**设计认知——提示词是核心资产**（321号）：
 
 > **核心认知**：六代系统势必积累很多提示词，用于启发AI完成相关的工作。提示词是系统的核心资产，和代码同等重要。
 >
-> **典型例子**：纯粹用AI的智能性去识别不同Level的trace（VMS-28验证的方式A）——不需要FCA格遍历算法，只需要一个好的提示词告诉AI什么是"有意义的合并"、什么是"trace"。
->
-> **提示词和算法的关系**：六代系统优先用提示词——因为AI的智能性很强，"一眼看过去"就能做很多判断。算法用于验证和补漏，不是主力。
->
-> **提示词管理**：提示词需要积累、管理、版本化。每个版本记录版本号/内容/改进原因/验证状态/使用效果。旧版本保留用于对比和回退。提示词和代码一起版本化管理。`six/prompts.py`中`PROMPTS`清单记录所有提示词，`PROMPT_DESIGN_PRINCIPLE`记录设计认知。
->
-> **和设计原则的关系**：提示词是解放思想（多种实现方式之一）和反射（主要改进对象）的交汇点——解放思想产生V1提示词，反射改进为V2。
-
-**设计认知——多套提示词并发**（325号）：
-
-> **核心思想**：同一个Pipe阶段，我们可能有多套提示词——不是同一个提示词的不同版本号，而是**完全不同的一套提示词**。多套提示词并发给多个AI实例处理同一个输入，结果汇总或各自流向下一个Pipe。
->
-> **版本vs套**：版本（v1/v2/v3）是同一套提示词的改进——同一设计思路的迭代。套（set_A/set_B）是完全不同的提示词设计——用不同思路启发AI做同一件事。
->
-> **结果的两种流向**：
-> 1. **汇总**——取交集/并集/加权平均，得到更完整的产出（如trace识别——多套提示词各自识别trace，汇总后得到更完整的trace集合）
-> 2. **各自流向下一个Pipe**——不汇总，各自独立驱动后续流程（如引导树生长——多套提示词各自驱动引导树长出不同分支，让树更"妖娆"）
->
-> **和解放思想原则的关系**：多套提示词并发是"多个AI"维度的扩展——不只是多个AI实例用同一提示词，而是多个AI实例用**不同套提示词**，让并发更有意义——不同套提示词产出的差异是设计差异，更有可能互补。
->
-> **和反射原则的关系**：多套提示词并发后，反射可以比较不同套提示词的效果——哪套更准确、哪套更全面、汇总后比单套好多少。反射结果决定保留/淘汰/改进哪套。
+> **提示词管理**：提示词需要积累、管理、版本化。每个版本记录版本号/内容/改进原因/验证状态/使用效果。旧版本保留用于对比和回退。提示词和代码一起版本化管理。
 
 **提示词积累目录**（`第六代系统提示词积累目录/`）：
 
-> 提示词不只在`six/prompts.py`中索引，还在`第六代系统提示词积累目录/`中按目录结构积累完整的提示词文本。
->
-> **目录结构**：`Pipe阶段/子pipe/set_<编号>_<简短描述>/v<版本号>.md` + `README.md`
-> - 第一层：Pipe阶段名（如`pipe_1_parser`）
-> - 第二层：子pipe名（如`step_2_grid_vein`）——如果没有子pipe，省略
-> - 第三层：提示词套名（如`set_A_fca_hassee`）——格式为`set_<编号>_<简短描述>`
-> - 第四层：版本文件（`v1.md`/`v2.md`/...）+ `README.md`（这套提示词的设计思路、和其他套的区别、版本演进、验证状态、并发使用说明）
+> 提示词完整文本在`第六代系统提示词积累目录/`中按目录结构积累：`Pipe阶段/子pipe/set_<编号>_<简短描述>/v<版本号>.md` + `README.md`
 >
 > **当前积累**：
-> - `pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/`：套A（用FCA/Hasse图启发），V1-V4四个版本
-> - `pipe_1_parser/step_2_grid_vein/set_B_pure_intuition/`：套B（纯直觉），待设计
-> - `pipe_1_parser/step_2_grid_vein/set_C_example_guided/`：套C（例子引导），待设计
-> - `pipe_1_parser/step_2_grid_vein/set_D_anti_pattern/`：套D（反模式引导），待设计
+> - `pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/`：套A（用FCA/Hasse图启发），V5/V7/V8/V10四个版本+综合分析提示词+4阶段step要求
 > - 其他Pipe阶段的目录已建，待积累
 >
 > **三处对齐同步（326号，硬约束）**：提示词在三个地方有记录，必须对齐同步——
 > - **A：提示词积累目录**（`第六代系统提示词积累目录/`）——提示词的完整文本
-> - **B：代码清单**（`six/prompts.py`的`PROMPTS`清单）——提示词的索引
+> - **B：运行时资产**（`system/assets/`）——AGENTS模板（运行时复制到工作目录）
 > - **C：POC验证文档**（`第六代系统研发过程文档/3xx号`）——提示词的验证结果
 >
-> 新增提示词时三处同步创建；改进提示词时三处同步更新版本；POC验证完成后三处同步更新验证状态。三处的prompt_id/pipe/版本/内容位置/验证POC必须一致。
+> 新增提示词时三处同步创建；改进提示词时三处同步更新版本；POC验证完成后三处同步更新验证状态。
 
 **Schema——晾衣架的完整地形图**：
 
 | 代码位置 | 内容 | 对应的研发文档 | 什么时候看 |
 |---|---|---|---|
-| `six/types.py` → `Problem` | 题目数据结构 | 第五代01-基础概念/04-两棵树.md | 讨论题目时 |
-| `six/types.py` → `Hint` | 提示Q数据结构 | 000号+315号§5阶段6 | 讨论hint时 |
-| `six/types.py` → `Tell` | tell数据结构（含分类学四层位置） | 000号+313号§4.1+287号+315号§4.1 | 讨论tell时 |
-| `six/types.py` → `Trace` | trace数据结构（含is_branch_position） | 309号+314号问题2+313号§4.1+315号§6.2.2 | 讨论trace时 |
-| `six/types.py` → `Vein/Segment/Branch/LevelView` | 脉络相关数据结构 | 312号+304号§8.9+318号§4+314号问题2 | 讨论脉络格化时 |
-| `six/types.py` → `Thinking/SolutionRecord` | Pipe 0输出/过程B输入 | 第五代03-引导树闭环.md+315号§6.2.1 | 讨论过程A/B输入时 |
-| `six/types.py` → `SolverInput/SolverOutput` | Pipe 0输入输出 | 319号§1+315号§6.8 | 讨论Solver AI时 |
-| `six/types.py` → `ParserInput/ParserOutput` | Pipe 1输入输出 | 319号§1+315号§6.2.2 | 讨论Parser AI时 |
-| `six/types.py` → `TellingInput/TellingOutput` | Pipe 2输入输出 | 319号§1+315号§6.3 | 讨论Telling AI时 |
-| `six/types.py` → `Step5Input/Step5Output` | 步骤5输入输出 | 319号§1+315号§6.2.1/6.4 | 讨论步骤5分叉时 |
-| `six/types.py` → `GuideInput/GuideOutput/TreeState` | Pipe 3输入输出+树状态 | 319号§1+315号§6.5/6.6 | 讨论Guide AI时 |
-| `six/pipes.py` → `pipe_0_solver()` | Solver AI函数 | 318号§2.1+第五代03-引导树闭环.md | 讨论推理AI时 |
+| `system/schema.py` → `Problem` | 题目数据结构 | 第五代01-基础概念/04-两棵树.md | 讨论题目时 |
+| `system/schema.py` → `Hint` | 提示Q数据结构 | 000号+315号§5阶段6 | 讨论hint时 |
+| `system/schema.py` → `Tell` | tell数据结构（含分类学四层位置） | 000号+313号§4.1+287号+315号§4.1 | 讨论tell时 |
+| `system/schema.py` → `Trace` | trace数据结构（含is_branch_position） | 309号+314号问题2+313号§4.1+315号§6.2.2 | 讨论trace时 |
+| `system/schema.py` → `Vein/Segment/Branch/LevelView` | 脉络相关数据结构 | 312号+304号§8.9+318号§4+314号问题2 | 讨论脉络格化时 |
+| `system/schema.py` → `Thinking/SolutionRecord` | Pipe 0输出/过程B输入 | 第五代03-引导树闭环.md+315号§6.2.1 | 讨论过程A/B输入时 |
+| `system/schema.py` → `SolverInput/SolverOutput` | Pipe 0输入输出 | 319号§1+315号§6.8 | 讨论Solver AI时 |
+| `system/schema.py` → `AnalysisInput/AnalysisOutput` | Pipe 1输入输出 | 333号+335号+336号 | 讨论Parser AI时 |
+| `system/vein_analysis.py` → `vein_analysis_three_phase()` | 三阶段脉络分析 | 333号+336号 | 讨论脉络分析时 |
+| `system/verify_lattice_completeness.py` | 闭元素枚举+三层验证 | 332号 | 讨论程序验证时 |
 
 **第六代系统词汇表**（术语定义 + 代码Schema结合）：
 
@@ -815,76 +779,44 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | 术语 | 定义 | 来源 | 代码Schema |
 |---|---|---|---|
 | **tell分类学** | tell的四层分类位置——第一层domain(数论/代数/...)、第二层trace_type(local/non_local/global)、第三层segment_pattern(段结构模式)、第四层specific_concept(具体概念)。 | 313号§4.1 | `Tell`的四个字段：domain, trace_type, segment_pattern, specific_concept |
-| **三个核心问题** | 314号定义的三个必须着力解决的问题——①非局部tell库缺失②推理脉络格化③Tell分类学。 | 314号 | `references.py`→`CORE_PROBLEMS` |
-| **方式A/B/C** | 317号定义的三种格化方式——A：AI做全部格化+trace识别，FCA是理论指导；B：脚本运行FCA格遍历算法；C：AI做+FCA验证。 | 317号§VMS-28/29/30 | `pipes.py`→`step_2_grid_vein()`的docstring标注POC验证状态 |
-| **多套提示词并发** | 同一Pipe阶段可以有多套不同的提示词（不是不同版本号，是完全不同的设计），并发给多个AI实例处理同一输入。 | 325号§1 | `prompts.py`→`PROMPTS`中的set_A/set_B/... |
-| **三处对齐同步** | 提示词在三个地方有记录——A目录(完整文本)、B代码清单(prompts.py)、C POC验证文档——三处必须对齐同步。 | 326号§1 | `prompts.py`→`PROMPTS`的prompt_id/pipe/版本/内容位置/验证POC |
-| **trace→tell匹配（TraceTellMatch）** | 一个trace匹配到一个tell的结果——有trace_id/tell_id/confidence/matched。 | 319号 | `types.py`→`TraceTellMatch`：trace_id, tell_id, confidence(float), matched(bool) |
-| `six/pipes.py` → `pipe_1_parser()` | Parser AI函数（步骤1-3） | 318号§3.1+315号§6.2.2+319号§4 | 讨论提取格化全Level Trace时 |
-| `six/pipes.py` → `pipe_2_telling()` | Telling AI函数（步骤4） | 318号§2.1+311号+315号§6.3 | 讨论并发trace→tell匹配时 |
-| `six/pipes.py` → `step_5_branch()` | 步骤5分叉函数 | 319号§1+315号§6.2.1/6.4 | 讨论过程A/B分叉时 |
-| `six/pipes.py` → `pipe_3_guide()` | Guide AI函数 | 318号§2.1+315号§6.5/6.6+316号§2.4 | 讨论引导树填充时 |
-| `six/loops.py` → `grove_core_loop()` | Grove核心循环（过程A） | 319号§1+第五代03-引导树闭环.md+315号§6 | 讨论端到端工作流时 |
-| `six/loops.py` → `tell_library_growth_loop()` | tell库增长循环（过程B） | 319号§1+315号§6.2.1 | 讨论Parser AI处理外部解答时 |
-| `six/loops.py` → `archive_orphan_traces()` | 孤悬trace存档 | 315号§6.2 | 讨论孤悬trace时 |
-| `six/loops.py` → `get_archived_orphan_traces()` | 获取孤悬trace（过程B启发信号） | 315号§6.2.1 | 讨论Parser AI两个输入时 |
-| `six/loops.py` → `save_tell_to_agents_md()` | 存tell到AGENTS.md | 315号§4.1 | 讨论tell存储方案时 |
-| `six/references.py` → `DOCS` | 17份研发过程文档清单（303-319号） | 全部 | 需要查文档编号时 |
-| `six/references.py` → `TYPE_REFS` | 33个代码元素到研发文档的映射 | 全部 | 需要追溯代码元素来源时 |
-| `six/references.py` → `POCS` | 20个POC验证清单 | 317号 | 讨论POC验证时 |
-| `six/references.py` → `CORE_PROBLEMS` | 314号三个必须着力解决的问题 | 314号 | 讨论系统核心问题时 |
-| `six/references.py` → `FUNDAMENTAL_INSIGHT` | 系统的根本认知 | 315号§6.8+第五代 | 讨论系统设计理念时 |
+| **三个核心问题** | 314号定义的三个必须着力解决的问题——①非局部tell库缺失②推理脉络格化③Tell分类学。 | 314号 | `system/docs/references.md` §4 |
+| **方式A/B/C** | 317号定义的三种格化方式——A：AI做全部格化+trace识别，FCA是理论指导；B：脚本运行FCA格遍历算法；C：AI做+FCA验证。 | 317号§VMS-28/29/30 | `system/docs/architecture.md` §5验证历史 |
+| **多套提示词并发** | 同一Pipe阶段可以有多套不同的提示词（不是不同版本号，是完全不同的设计），并发给多个AI实例处理同一输入。 | 325号§1 | `第六代系统提示词积累目录/`中的set_A/set_B/... |
+| **三处对齐同步** | 提示词在三个地方有记录——A目录(完整文本)、B运行时资产(system/assets/)、C POC验证文档——三处必须对齐同步。 | 326号§1 | 提示词积累目录+system/assets/+研发过程文档 |
+| **trace→tell匹配（TraceTellMatch）** | 一个trace匹配到一个tell的结果——有trace_id/tell_id/confidence/matched。 | 319号 | `system/schema.py`→`TraceTellMatch`：trace_id, tell_id, confidence(float), matched(bool) |
+| `system/process_solve.py` | 解题引导过程（Grove核心循环） | 319号§1+第五代03-引导树闭环.md+315号§6 | 讨论端到端工作流时 |
+| `system/process_absorb.py` | 解答吸收过程（tell库增长循环） | 319号§1+315号§6.2.1 | 讨论Parser AI处理外部解答时 |
+| `system/docs/references.md` → §1 | 研发过程文档清单（303-343号） | 全部 | 需要查文档编号时 |
+| `system/docs/references.md` → §2 | 代码元素到研发文档的映射 | 全部 | 需要追溯代码元素来源时 |
+| `system/docs/references.md` → §3 | POC验证清单（VMS-11到VMS-30） | 317号 | 讨论POC验证时 |
+| `system/docs/references.md` → §4 | 314号三个必须着力解决的问题 | 314号 | 讨论系统核心问题时 |
+| `system/docs/references.md` → §5 | 系统的根本认知 | 315号§6.8+第五代 | 讨论系统设计理念时 |
 
-**如何使用这套代码**：
+**如何使用system/docs/**：
 
-1. **用户提到某个概念时**→查`six/references.py`的`TYPE_REFS`，找到对应的代码元素和来源文档
-   ```python
-   import six
-   six.TYPE_REFS["Trace"]  # → trace的定义来源、各字段的来源文档
-   ```
+1. **用户提到某个概念时**→查`system/docs/references.md` §2，找到对应的代码元素和来源文档
+2. **需要查POC验证时**→查`system/docs/references.md` §3
+3. **需要查研发文档编号时**→查`system/docs/references.md` §1
+4. **需要看某个数据结构的定义时**→看`system/schema.py`中对应的dataclass + `system/docs/schema.md`中的FCA对应说明
+5. **需要看系统架构时**→看`system/docs/architecture.md`（四个Pipe+设计原则+验证历史）
+6. **需要看脉络分析模块时**→看`system/docs/vein_analysis.md`（三阶段架构+文件拆分）
 
-2. **需要查POC验证时**→查`six/references.py`的`POCS`
-   ```python
-   import six
-   six.POCS["VMS-24"]  # → 第一个要做的POC的详情
-   ```
+**如何维护system/docs/**：
 
-3. **需要查研发文档编号时**→查`six/references.py`的`DOCS`
-   ```python
-   import six
-   six.DOCS[315]  # → "第六代系统的完整工作流..."
-   ```
-
-4. **需要看某个数据结构的定义时**→看`six/types.py`中对应的dataclass
-   ```python
-   # 直接读文件
-   # six/types.py → class Trace
-   ```
-
-5. **需要看某个Pipe的接口时**→看`six/pipes.py`中对应的函数签名和docstring
-   ```python
-   # 直接读文件
-   # six/pipes.py → def pipe_1_parser()
-   ```
-
-6. **需要看完整流程时**→看`six/loops.py`中的`grove_core_loop()`或`tell_library_growth_loop()`
-
-**如何维护这套代码**：
-
-1. **新增研发文档时**→在`six/references.py`的`DOCS`中添加条目
-2. **新增或修改数据结构时**→在`six/types.py`中修改，同时在`six/references.py`的`TYPE_REFS`中添加/更新映射
-3. **新增POC时**→在`six/references.py`的`POCS`中添加条目，同时在对应Pipe函数的docstring中更新POC验证状态
-4. **POC验证完成后**→在`six/references.py`的`POCS`中更新状态，在对应Pipe函数中填充实现
-5. **修改Pipe接口时**→同步修改`six/types.py`（输入输出数据结构）、`six/pipes.py`（函数签名）、`six/loops.py`（调用处）、`six/references.py`（映射）
-6. **新增核心问题或认知时**→在`six/references.py`的`CORE_PROBLEMS`或`FUNDAMENTAL_INSIGHT`中添加
+1. **新增研发文档时**→在`system/docs/references.md` §1中添加条目
+2. **新增或修改数据结构时**→在`system/schema.py`中修改，同时在`system/docs/schema.md`中更新FCA对应说明
+3. **新增POC时**→在`system/docs/references.md` §3中添加条目
+4. **POC验证完成后**→在`system/docs/references.md` §3中更新状态，在`system/docs/architecture.md`中更新验证历史
+5. **修改Pipe接口时**→同步修改`system/schema.py`（输入输出数据结构）+对应模块代码+`system/docs/`中的模块文档
+6. **新增核心问题或认知时**→在`system/docs/references.md` §4或§5中添加
 
 **维护规则**：
-- 代码元素（dataclass/函数/参数）和`references.py`中的映射必须同步——改了一个必须改另一个
-- 每个Pipe函数的docstring中必须标注对应的POC验证编号——POC验证完成后更新docstring
-- `references.py`是只读索引——不包含实现逻辑，只包含映射关系
-- 新增代码元素时必须在`__init__.py`的`__all__`中导出
+- 代码元素（dataclass/函数/参数）和`system/docs/references.md`中的映射必须同步——改了一个必须改另一个
+- 模块代码变更时同步更新对应的`system/docs/`模块文档
+- `system/docs/references.md`是只读索引——不包含实现逻辑，只包含映射关系
+- `.ref`文件引用`system/docs/`中的模块文档路径
 
-**six/设计原则rule绑定**（rule文件在`.devin/rules/`中，AGENTS.md只保留索引）：
+**设计原则rule绑定**（rule文件在`.devin/rules/`中，AGENTS.md只保留索引）：
 
 | rule | 文件 | 触发条件 | 来源 |
 |---|---|---|---|
