@@ -521,7 +521,9 @@ def make_attempt_paths(exp_id: str) -> dict[str, str]:
         "export_path": str(tdir / "exports" / "conversation.json"),
         "db_trajectory_path": str(tdir / "sessions_db" / "trajectory.jsonl"),
         "thinking_readable_path": str(tdir / "mitm" / "thinking_readable.txt"),
-        "mitm_raw_dir": str(tdir / "mitm" / "raw"),
+        "mitm_thinking_live_jsonl": str(tdir / "mitm" / "thinking_live.jsonl"),
+        "mitm_thinking_live_txt": str(tdir / "mitm" / "thinking_live.txt"),
+        "mitm_trajectory_jsonl": str(tdir / "mitm" / "trajectory.jsonl"),
     }
 
 
