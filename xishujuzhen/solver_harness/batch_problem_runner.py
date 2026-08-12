@@ -1014,7 +1014,38 @@ def observe_attempt_files(attempt: dict[str, Any], *, old_observability: dict[st
     }
 
 
+def capture_thinking(attempt: dict[str, Any]) -> str:
+    """Ctrl+O展开thinking后capture-pane抓取完整thinking内容。
+    交互模式下thinking在TUI scrollback中，export只有最终输出，pipe只有UI行。
+    必须发Ctrl+O展开后capture-pane才能抓到thinking文本。"""
+    tmux_session = attempt.get("tmux_session") or ""
+    if not tmux_session:
+        return ""
+    try:
+        # 发Ctrl+O展开thinking
+        subprocess.run(["tmux", "send-keys", "-t", tmux_session, "Ctrl+O"],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=5)
+        time.sleep(2)
+        # capture-pane抓scrollback（-S -5000抓历史5000行）
+        result = subprocess.run(
+            ["tmux", "capture-pane", "-t", tmux_session, "-p", "-S", "-5000"],
+            capture_output=True, text=True, timeout=15
+        )
+        thinking_text = result.stdout
+        # 存到thinking_capture.txt
+        paths = attempt.get("paths", {})
+        capture_path = Path(paths.get("tmux_pipe_path", "")).parent / "thinking_capture.txt"
+        capture_path.parent.mkdir(parents=True, exist_ok=True)
+        capture_path.write_text(thinking_text, encoding="utf-8")
+        return thinking_text
+    except Exception:
+        return ""
+
+
 def stop_attempt(db, attempt: dict[str, Any], batch_dir: Path, *, decode: bool) -> int:
+    # 交互模式：stop之前先抓thinking（Ctrl+O展开+capture-pane）
+    # export只有最终输出，thinking在TUI scrollback中，必须主动抓
+    capture_thinking(attempt)
     stop_log = batch_dir / "logs" / f"stop-{attempt['exp_id']}.log"
     args = ["stop", "--exp-id", attempt["exp_id"]]
     if not decode:

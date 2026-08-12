@@ -789,6 +789,49 @@ sdb.close()
 2. **monitor的proof_in_tui判定逻辑已修复**——检测到PROOF COMPLETE后stop_attempt但不立即kill tmux，等export写完
 3. **如果export仍然=0B**——该题证明内容丢失，只能记录metadata。不要假装数据完整
 
+**SOP 12 · Thinking内容落盘（2026-08-12发现+修复）**
+
+> **export文件只有最终输出，没有thinking内容！** 交互模式下thinking在TUI scrollback中显示（`show_full_thinking`模式），但devin cli的`--export`只记录最终agent消息（ATIF格式的steps），不记录thinking文本。pipe也只记录UI行（`Thinking · 0s`），不记录thinking内容。
+
+**数据完整性表（修正版）**：
+
+| 层 | 文件 | 有什么 | 没有什么 |
+|---|---|---|---|
+| **export** | `<exp_id>/exports/conversation.json` | 最终证明输出（ATIF steps）、system/user消息、metrics（token数） | **thinking内容**、tool_calls中间过程 |
+| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | TUI渲染流（ANSI+braille spinner）、UI行（`Thinking · Xm Ys`） | **thinking文本内容**（只有UI行没有展开内容） |
+| **thinking_capture** | `<exp_id>/tmux/thinking_capture.txt` | **完整thinking文本**（Ctrl+O展开后capture-pane抓取） | 无ANSI清理（raw TUI文本） |
+| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 输入消息（system/user） | **assistant输出和thinking**（只有输入） |
+
+**修复方法**：`stop_attempt()`调用前先调`capture_thinking()`——发Ctrl+O展开thinking，capture-pane抓scrollback 5000行，存到`thinking_capture.txt`。
+
+```python
+# batch_problem_runner.py中的capture_thinking函数
+def capture_thinking(attempt):
+    tmux_session = attempt.get("tmux_session", "")
+    # 1. 发Ctrl+O展开thinking
+    subprocess.run(["tmux", "send-keys", "-t", tmux_session, "Ctrl+O"], ...)
+    time.sleep(2)
+    # 2. capture-pane抓scrollback 5000行
+    result = subprocess.run(["tmux", "capture-pane", "-t", tmux_session, "-p", "-S", "-5000"], ...)
+    # 3. 存到thinking_capture.txt
+    capture_path = Path(paths["tmux_pipe_path"]).parent / "thinking_capture.txt"
+    capture_path.write_text(result.stdout)
+```
+
+**手动抓thinking（对已完成的session）**：
+```bash
+# 对还在的tmux session发Ctrl+O后capture
+tmux send-keys -t <session> Ctrl+O
+sleep 2
+tmux capture-pane -t <session> -p -S -5000 > <trajectory_dir>/tmux/thinking_capture.txt
+```
+
+**验证thinking是否落盘**：
+```bash
+# 检查thinking_capture.txt是否存在且有内容
+find /data/math-agent-glm5.2-tmux-agents-trajectory/ -name "thinking_capture.txt" -exec stat -f "%z %N" {} \; | sort -rn | head -10
+```
+
 **SOP 7 · 停止批次**
 
 ```bash
