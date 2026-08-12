@@ -2830,6 +2830,16 @@ db.aql.execute('FOR p IN problem_extraction_progress FILTER p.source_dataset == 
 
 ### 已下载的有答案的题库（提取对象）
 
+**数据存储位置**（2026-08-12起生效）：
+
+> **所有新下载的题库数据统一放到 `/data/math-manify/` 目录。**
+>
+> - D盘有857GB可用空间，足够存放百万题库
+> - 旧的 `knowledge/problem_banks/` 目录保留已有数据，不再新增下载
+> - 新数据集按 `math-manify/<source_dataset>/` 子目录组织
+> - 策略文档：375号（百万难题筛选策略）
+> - 下载后录入 `problem_extraction_progress` 表，用 `enqueue_problem.py` 送入 `problem_queue`
+
 **处理范围约束**：
 1. **只分析有解答的题**——没有答案的题（如ConjectureBench）不在提取范围内
 2. **只分析已经文本化的题**——不理会PDF中的题目。PDF格式的题（吉米多维奇、Demidovich、Engel等）需要先OCR或人工转录为文本后才处理
