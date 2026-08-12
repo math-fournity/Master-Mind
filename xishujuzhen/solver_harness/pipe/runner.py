@@ -50,28 +50,33 @@ def load_problem_text(db, problem_key: str) -> str:
 
 
 def write_problem_file(problem_key: str, problem_text: str, exp_id: str) -> Path:
-    """写题目文件到problems目录"""
+    """写题目文件到problems目录——禁止工具调用版"""
     problem_dir = PROBLEMS_DIR / exp_id
     problem_dir.mkdir(parents=True, exist_ok=True)
     problem_file = problem_dir / "AGENTS.md"
-    # 写入题目+解题指令
     content = f"""# Problem
 
 {problem_text}
 
-## Instructions
+## 解题约束（必须严格遵守）
 
-Solve this problem step by step. When you have completed your proof, output:
+1. **不要使用任何工具**——不要写文件、不要执行命令、不要搜索、不要浏览网页、不要读取文件。
+   你只需要在TUI中用thinking来解题。所有推理过程在你的思维中完成。
 
-```
-### PROOF COMPLETE
-```
+2. **直接在TUI中输出证明**——不要创建任何文件，不要使用任何工具调用。
+   完成证明后，在TUI中直接输出：
 
-If you detect that the problem statement contains the answer or solution (answer leak), output:
+   ### PROOF COMPLETE
 
-```
-### ANSWER LEAK DETECTED
-```
+3. **如果你无法做出这道题**，直接说：
+
+   ### I CANNOT SOLVE THIS
+
+4. **如果你发现题目中包含了答案**（答案泄漏），直接说：
+
+   ### ANSWER LEAK DETECTED
+
+以上是全部约束。现在请解题。
 """
     problem_file.write_text(content, encoding="utf-8")
     return problem_file
