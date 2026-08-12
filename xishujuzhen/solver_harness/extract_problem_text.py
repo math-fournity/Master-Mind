@@ -93,6 +93,9 @@ def read_lean_problem(path: str) -> str:
     """从compfiles .lean文件提取problem语句。"""
     text = Path(path).read_text(encoding="utf-8")
 
+    # 安全截断关键词——防止解答/提示泄漏
+    CUT_KEYWORDS = ["Formalization notes", "## Formalization", "solution sketch", "The proof follows"]
+
     # 方法1：提取/-! ... -/块注释（compfiles标准格式，题面在这里）
     match = re.search(r"/-!\s*(.*?)\s*-/", text, re.DOTALL)
     if match:
@@ -106,7 +109,12 @@ def read_lean_problem(path: str) -> str:
             if stripped:
                 lines.append(stripped)
         if lines:
-            return "\n".join(lines)
+            result = "\n".join(lines)
+            for kw in CUT_KEYWORDS:
+                cut_idx = result.find(kw)
+                if cut_idx > 0:
+                    result = result[:cut_idx].strip()
+            return result
 
     # 方法2：提取/- ... -/块注释（非!变体）
     match = re.search(r"/-\s*(.*?)\s*-/", text, re.DOTALL)
@@ -116,7 +124,12 @@ def read_lean_problem(path: str) -> str:
         if "Copyright" not in block and "license" not in block.lower():
             lines = [l.strip() for l in block.split("\n") if l.strip() and not l.strip().startswith("#")]
             if lines:
-                return "\n".join(lines)
+                result = "\n".join(lines)
+                for kw in CUT_KEYWORDS:
+                    cut_idx = result.find(kw)
+                    if cut_idx > 0:
+                        result = result[:cut_idx].strip()
+                return result
 
     # 方法3：提取problem声明后的内容
     match = re.search(r"problem\s+\w+\s*:\s*(.+?)\s*:=\s*by", text, re.DOTALL)

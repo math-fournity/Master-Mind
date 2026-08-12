@@ -399,13 +399,19 @@ def load_problem_text_from_progress(progress: dict[str, Any]) -> str:
 
     elif suffix == ".lean":
         text = full_path.read_text(encoding="utf-8")
-        # compfiles格式：/-! ... -/块注释
+        # compfiles格式：/-! ... -/块注释（第一个块是题面）
         match = _re.search(r"/-!\s*(.*?)\s*-/", text, _re.DOTALL)
         if match:
             block = match.group(1).strip()
             lines = [l.strip() for l in block.split("\n") if l.strip() and not l.strip().startswith("#")]
             if lines:
-                return "\n".join(lines)
+                result = "\n".join(lines)
+                # 安全截断：去掉"Formalization notes"等解答提示段
+                for cut_keyword in ["Formalization notes", "## Formalization", "solution sketch", "The proof follows"]:
+                    cut_idx = result.find(cut_keyword)
+                    if cut_idx > 0:
+                        result = result[:cut_idx].strip()
+                return result
         # fallback: /- ... -/
         match = _re.search(r"/-\s*(.*?)\s*-/", text, _re.DOTALL)
         if match:
@@ -413,7 +419,12 @@ def load_problem_text_from_progress(progress: dict[str, Any]) -> str:
             if "Copyright" not in block and "license" not in block.lower():
                 lines = [l.strip() for l in block.split("\n") if l.strip() and not l.strip().startswith("#")]
                 if lines:
-                    return "\n".join(lines)
+                    result = "\n".join(lines)
+                    for cut_keyword in ["Formalization notes", "## Formalization", "solution sketch", "The proof follows"]:
+                        cut_idx = result.find(cut_keyword)
+                        if cut_idx > 0:
+                            result = result[:cut_idx].strip()
+                    return result
         # fallback: problem声明
         match = _re.search(r"problem\s+\w+\s*:\s*(.+?)\s*:=\s*by", text, _re.DOTALL)
         if match:
