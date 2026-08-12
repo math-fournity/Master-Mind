@@ -54,6 +54,7 @@ TERMINAL_STATUSES = {
     "failed_connection",
     "launch_error",
     "stopped",
+    "answer_leak",
 }
 
 RUNNING_STATUSES = {"launching", "running", "stalled_warning"}
@@ -896,6 +897,9 @@ def observe_attempt_files(attempt: dict[str, Any], *, old_observability: dict[st
     proof_in_tui = "### PROOF COMPLETE" in pipe_text
     markers["proof_exists"] = proof_exists or proof_in_tui
     markers["proof_in_tui"] = proof_in_tui
+    # 答案泄漏自检：Solver检测到题目中有解答泄漏时输出 ### ANSWER LEAK DETECTED
+    answer_leak = "### ANSWER LEAK DETECTED" in pipe_text
+    markers["answer_leak"] = answer_leak
 
     activity_signature = stable_short_hash(json.dumps(sizes, sort_keys=True))
     last_activity = old_observability.get("last_observed_activity_at")
@@ -1029,6 +1033,17 @@ def write_final_report(db, batch_id: str, batch_dir: Path) -> Path:
 
 def classify_finished(attempt: dict[str, Any], observability: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     markers = observability.get("markers", {})
+    # 答案泄漏：最高优先级——Solver自检发现题目中有解答泄漏
+    if markers.get("answer_leak"):
+        return (
+            "answer_leak",
+            make_verdict(
+                "answer_leak",
+                "Solver detected answer/solution leak in problem text; attempt stopped",
+                confidence="high",
+                needs_human_math_review=False,
+            ),
+        )
     if markers.get("proof_exists"):
         proof_method = "TUI ### PROOF COMPLETE marker" if markers.get("proof_in_tui") else "proof.md file"
         return (
@@ -1105,7 +1120,22 @@ def refresh_attempt(
         "idle_seconds": int(idle),
     }
 
-    if is_running and max_runtime_seconds and elapsed > max_runtime_seconds:
+    # 答案泄漏自检：Solver输出### ANSWER LEAK DETECTED时立即停止
+    if is_running and observability.get("markers", {}).get("answer_leak"):
+        stop_attempt(db, attempt, batch_dir, decode=False)
+        final_status, verdict = classify_finished(attempt, observability)
+        update.update({
+            "status": final_status,
+            "ended_at": utc_now(),
+            "end_reason": "answer_leak_detected_by_solver",
+            "verdict": verdict,
+        })
+        insert_event(
+            db, attempt["batch_id"], "answer_leak_detected",
+            {"exp_id": attempt["exp_id"], "problem_id": attempt.get("problem_id")},
+            attempt_key=attempt["_key"],
+        )
+    elif is_running and max_runtime_seconds and elapsed > max_runtime_seconds:
         stop_attempt(db, attempt, batch_dir, decode=False)
         update.update(
             {
