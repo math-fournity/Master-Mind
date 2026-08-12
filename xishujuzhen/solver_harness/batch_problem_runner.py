@@ -43,6 +43,7 @@ BATCH_BASE = TRAJECTORY_BASE / "_batches"
 BATCH_COLLECTION = "devin_batch_runs"
 ATTEMPT_COLLECTION = "devin_problem_runs"
 EVENT_COLLECTION = "devin_run_events"
+COUNTER_COLLECTION = "devin_counters"
 
 TERMINAL_STATUSES = {
     "candidate_solved",
@@ -219,10 +220,27 @@ def connect_db():
 
 
 def ensure_schema(db) -> None:
-    for name in (BATCH_COLLECTION, ATTEMPT_COLLECTION, EVENT_COLLECTION):
+    for name in (BATCH_COLLECTION, ATTEMPT_COLLECTION, EVENT_COLLECTION, COUNTER_COLLECTION):
         if not db.has_collection(name):
             db.create_collection(name)
+    # 初始化run_id counter
+    if not db.collection(COUNTER_COLLECTION).has("run_id"):
+        db.collection(COUNTER_COLLECTION).insert({"_key": "run_id", "value": 0})
 
+
+def next_run_id(db) -> int:
+    """原子递增全局运行ID，确保每次attempt的exp_id唯一。
+    用ArangoDB事务保证并发安全——多个monitor同时调也不会冲突。"""
+    # 用ArangoDB的原子update+return
+    cursor = db.aql.execute(
+        'FOR c IN devin_counters FILTER c._key == "run_id" '
+        'UPDATE c WITH {value: c.value + 1} IN devin_counters '
+        'RETURN NEW.value'
+    )
+    return next(cursor)
+
+
+def ensure_indexes(db) -> None:
     indexes = {
         BATCH_COLLECTION: [
             ("idx_status", ["status"], False),
@@ -491,9 +509,14 @@ def make_batch_id(label: str | None) -> str:
     return f"dpb-{stamp}-{suffix}"
 
 
-def make_exp_id(batch_id: str, ordinal: int, progress_key: str, global_sequence: Any, problem_id: str) -> str:
-    gseq = int(global_sequence or 0)
+def make_exp_id(batch_id: str, ordinal: int, progress_key: str, global_sequence: Any, problem_id: str, run_id: int = 0) -> str:
     pid = slug(problem_id, 54)
+    # run_id是数据库自增的全局运行ID，确保exp_id唯一
+    # 保留ordinal和progress_key便于人读，但run_id是唯一性保证
+    if run_id:
+        return f"{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{pid}"
+    # fallback：没有run_id时用旧的global_sequence格式（向后兼容）
+    gseq = int(global_sequence or 0)
     return f"{batch_id}-{ordinal:02d}-p{progress_key}-g{gseq:06d}-{pid}"
 
 
@@ -740,7 +763,8 @@ def create_batch(
         profile = item["profile"]
         progress_key = str(progress["_key"])
         problem_id = item.get("problem_id_override") or progress.get("problem_id") or profile["_key"]
-        exp_id = make_exp_id(batch_id, ordinal, progress_key, progress.get("global_sequence"), problem_id)
+        run_id = next_run_id(db)
+        exp_id = make_exp_id(batch_id, ordinal, progress_key, progress.get("global_sequence"), problem_id, run_id=run_id)
         key = attempt_key(batch_id, progress_key, ordinal)
         problem_source_path = problems_dir / f"{exp_id}.txt"
         problem_source_path.write_text(
@@ -753,6 +777,7 @@ def create_batch(
             "_key": key,
             "batch_id": batch_id,
             "ordinal": ordinal,
+            "run_id": run_id,  # 数据库自增运行ID，确保exp_id唯一
             "status": "queued",
             "created_at": now,
             "updated_at": now,
@@ -1926,7 +1951,8 @@ def add_cases_to_batch(
         profile = item["profile"]
         progress_key = str(progress["_key"])
         problem_id = item.get("problem_id_override") or progress.get("problem_id") or profile["_key"]
-        exp_id = make_exp_id(batch_id, i, progress_key, progress.get("global_sequence"), problem_id)
+        run_id = next_run_id(db)
+        exp_id = make_exp_id(batch_id, i, progress_key, progress.get("global_sequence"), problem_id, run_id=run_id)
         key = attempt_key(batch_id, progress_key, i)
         problem_source_path = problems_dir / f"{exp_id}.txt"
         problem_source_path.write_text(
@@ -1939,6 +1965,7 @@ def add_cases_to_batch(
             "_key": key,
             "batch_id": batch_id,
             "ordinal": i,
+            "run_id": run_id,  # 数据库自增运行ID，确保exp_id唯一
             "status": "queued",
             "created_at": now,
             "updated_at": now,

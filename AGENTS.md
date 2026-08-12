@@ -744,6 +744,17 @@ tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
 
 > **所有运行资产必须可追溯**——从DB记录能找到文件路径，从文件路径能找到DB记录。不允许放临时目录。
 
+**运行ID唯一性保证**：
+
+exp_id格式：`{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{problem_id}`
+
+- `run_id`是ArangoDB counter（`devin_counters` collection的`run_id`键）原子自增的全局运行ID
+- 每次`create_batch`/`add_cases`创建attempt时调`next_run_id(db)`获取，确保exp_id全局唯一
+- 同一道题在不同batch中跑→run_id不同→exp_id不同✓
+- 同batch内重跑→run_id不同→exp_id不同✓
+- 两个monitor并发→ArangoDB事务保证原子递增→run_id不冲突✓
+- DB attempt记录中有`run_id`字段，便于从run_id反查attempt
+
 **资产存放位置**：
 
 | 资产 | 位置 | 持久化 | 追溯方式 |
