@@ -2909,3 +2909,245 @@ db.aql.execute('''
 ### 任务追踪
 
 `任务追踪/06-题海梳理与数据基座建设.md`——记录这条工作线的状态、进度、关键决策。
+
+---
+
+## 管道化GLM-5.2能力边界Profile系统（跨Session连续运行手册）
+
+> **本节是自包含的运行手册。任何AI进入本repo做管道化解题运行时，读完本节即可接手——不依赖Session上下文中的其他内容。**
+>
+> **本节被AGENTS.md always-on守护。跨压缩边界后，AI加载AGENTS.md时自动看到本节。**
+>
+> **详细文档**：377号（系统设计）、378号（测试策略）、379号（操作手册）在`Tell分类学研究过程文档/`中。
+
+### 系统目标
+
+在2.4M道竞赛级数学题上构建GLM-5.2的数学能力边界Profile。不是让AI做题，是找能力边界——区分基础设施失败（重试，不计入Profile）和模型能力失败（Profile数据，不重试）。
+
+### 系统架构（4服务+Redis队列）
+
+```
+ArangoDB (2.4M题) → Feeder → Redis pending队列
+                                ↓
+                          Runner (30并发) → 启动devin cli (harness-xxx tmux session)
+                                ↓
+                          Redis running队列
+                                ↓
+                          Collector (眼见为实判定终态)
+                                ↓
+                       Redis completed/failed队列
+                                ↓
+                          Reporter (统计+告警) + Retry (基础设施失败重试)
+```
+
+**代码目录**：`xishujuzhen/solver_harness/pipe/`
+
+**服务清单**：
+
+| 服务 | 脚本 | 职责 |
+|---|---|---|
+| Feeder | `feeder.py` | 从ArangoDB选题入Redis pending队列 |
+| Runner | `runner.py` | 从Redis取题启动devin cli（纯启动，不判定） |
+| Collector | `collector.py` | 扫描running队列，眼见为实判定终态 |
+| Reporter | `reporter.py` | 定时统计报告+告警 |
+| Retry | `retry_infrastructure.py` | 基础设施失败自动重试 |
+
+### 启动流程
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+
+# 前置检查
+docker ps | grep redis          # Redis容器
+curl -s http://localhost:8529/_api/version  # ArangoDB
+df -h /data                # D盘空间
+
+# 一键启动30并发
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py start \
+  --concurrency 30 --tier 1 --batch-size 100 --clear
+
+# 启动重试服务
+tmux new-session -d -s pipe-retry ".venv/bin/python3 xishujuzhen/solver_harness/pipe/retry_infrastructure.py --max-retries 3 --interval 60"
+```
+
+### 停止流程（优雅停止，不kill harness session）
+
+```bash
+# 优雅停止（默认）——发送SIGINT，等待10秒，不kill harness session
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py stop
+
+# 强制停止
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py stop --force
+
+# 停止同时kill所有harness session
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py stop --kill-harness
+```
+
+**解耦保证**：停止任何服务不影响已启动的harness-xxx session。harness session独立运行，Collector重启后从Redis running队列继续处理。
+
+### 断电恢复流程
+
+```bash
+# 检查（不修改）
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/recover_from_crash.py --dry-run
+
+# 执行恢复
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/recover_from_crash.py
+
+# 恢复后自动重启服务
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/recover_from_crash.py --auto-restart
+```
+
+恢复做了3件事：
+1. running队列中session不存在的记录标记`crash_recovered`，移到failed，problem恢复为pending
+2. kill孤儿harness session（tmux有但Redis无记录的）
+3. 修复ArangoDB中status=running但实际已结束的attempt
+
+### 代码热替换流程
+
+```bash
+# 1. 优雅停止要替换的服务（如Collector）
+tmux send-keys -t pipe-collector C-c ""
+sleep 5
+tmux has-session -t pipe-collector 2>/dev/null && tmux kill-session -t pipe-collector
+
+# 2. 替换代码（编辑collector.py）
+
+# 3. 重启服务
+tmux new-session -d -s pipe-collector ".venv/bin/python3 xishujuzhen/solver_harness/pipe/collector.py --poll-interval 10 --timeout 1800"
+
+# 4. Collector从Redis running队列继续处理——harness session一直在运行
+```
+
+### 监控检查命令
+
+```bash
+# 当前状态
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/query_progress.py
+
+# 失败分类统计
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/query_failures.py --summary
+
+# 数据完整性验证
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/verify_completeness.py --all
+
+# 运行完整性验证（无工具调用+真实proof）
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/verify_run_integrity.py --batch
+
+# 双向追溯
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/audit_trace.py --all
+
+# Profile构建
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/build_profile.py --summary
+
+# 精确解题时间提取
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/extract_solve_time.py --batch --update-db
+
+# 日志查看
+tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs/pipe.log
+```
+
+### 眼见为实验证原则（Collector的核心判定逻辑）
+
+Collector判定终态时，不只看标记，要验证真实内容：
+
+1. **真实thinking检测**：clean_ansi后检查数学内容(math_indicator≥2)和thinking标记
+2. **真实proof验证**：PROOF COMPLETE标记 + proof内容≥100字符 + math_indicator≥2
+3. **无工具调用验证**：查sessions.db中是否有tool_call类型节点
+4. **AI放弃检测**：检查"I CANNOT SOLVE"/"无法"等放弃标记
+5. **pane snapshot保存**：判定终态前保存完整pane内容作为物理证据
+
+### 失败分类（基础设施 vs 模型能力）
+
+| 类别 | verdict | 处理 | 计入Profile |
+|---|---|---|---|
+| 基础设施失败 | failed_connection/rate_limited/launch_error/dead_session/crash_recovered | 自动重试 | ❌ |
+| 模型能力失败 | failed_token_limit/ai_gave_up/failed_thinking_spin/failed_no_proof/failed_stall/failed_timeout | 不重试 | ✅ |
+| 成功 | candidate_solved | - | ✅ |
+| 无效 | invalid_tool_use/answer_leak | 不重试 | ❌ |
+
+### 精确解题时间
+
+`solve_time_seconds`从conversation.json提取（ATIF-v1.7格式的steps时间戳），不是粗略的elapsed。
+
+时间分解：`launch_overhead + init_overhead + solve_time + tail_overhead + judge_delay`
+
+DB记录字段：`solve_time_seconds`（核心指标）、`solve_time_source`、`prompt_tokens`、`completion_tokens`、`cached_tokens`、`total_steps`
+
+### 日志系统
+
+- **目录**：`/data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs/`
+- **单文件**：1MB分片
+- **总量**：10GB循环滚动
+- **文件**：runner.log/collector.log/feeder.log/reporter.log/retry.log + 统一pipe.log
+
+### 数据存储位置
+
+| 数据 | 位置 |
+|---|---|
+| ArangoDB | `xishujuzhen_math_glm52@localhost:8529` |
+| Redis | `redis-queue`容器，6379端口，AOF+RDB持久化到`/data/redis/data` |
+| 题目数据 | ArangoDB `math_problems`集合 |
+| 运行记录 | ArangoDB `devin_problem_runs`集合 |
+| Solver工作目录 | `/data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/` |
+| Trajectory数据 | `/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/` |
+| 日志 | `/data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs/` |
+
+### 查询/验证脚本清单
+
+| 脚本 | 用途 |
+|---|---|
+| `query_progress.py` | 运行进度查询 |
+| `query_failures.py` | 失败分类统计 |
+| `audit_trace.py` | 双向追溯验证（DB↔文件，题目↔运行） |
+| `verify_completeness.py` | 数据完备性验证（remainder=0） |
+| `verify_run_integrity.py` | 运行完整性验证（无工具调用+真实proof） |
+| `check_answer_leak.py` | 答案泄漏检查 |
+| `extract_solve_time.py` | 精确解题时间提取 |
+| `build_profile.py` | GLM-5.2能力边界Profile构建 |
+| `recover_from_crash.py` | 断电恢复+僵尸清理 |
+| `pipe_control.py` | 启动/停止/状态管理 |
+
+### AGENTS.md模板（给devin cli的）
+
+Runner为每个题目生成`AGENTS.md`文件，明确禁止任何工具调用：
+
+```markdown
+# 解题任务
+
+你是一个数学解题AI。请直接在TUI中输出证明，不要写任何文件。
+
+## 严格规则
+1. 不要使用任何工具（不写文件、不执行命令、不搜索、不浏览）
+2. 直接在TUI中用thinking解题
+3. 结尾输出 ### PROOF COMPLETE
+4. 如果实在做不出来，输出 ### I CANNOT SOLVE THIS
+
+## 题目
+{problem_text}
+```
+
+### 未覆盖因素（待补充）
+
+1. **export导出完整性验证** — 验证conversation.json是否完整
+2. **tmux pane scrollback完整性** — 超长proof可能被截断（2000行上限）
+3. **proof数学正确性验证** — 需要审稿AI审查（当前只验证有内容）
+4. **跨数据集去重验证** — 近似去重防止重复运行
+5. **并发健康度监控** — 实时连接错误率、吞吐量告警
+
+### 连续运行SOP
+
+**当你要接手连续运行时，按以下步骤行动**：
+
+1. **检查系统状态**：`query_progress.py`看当前pending/running/completed/failed
+2. **检查服务是否在运行**：`tmux list-sessions`看pipe-runner/collector/reporter是否在
+3. **如果服务没在运行但有running记录**：执行`recover_from_crash.py`恢复，然后重启服务
+4. **如果服务在运行**：检查日志`tail -50 .../pipe.log`看是否有异常
+5. **如果需要热替换代码**：按"代码热替换流程"操作
+6. **运行结束后**：执行`build_profile.py --summary`构建Profile，`verify_completeness.py --all`验证数据完整性
+
+### 关键文档索引
+
+- **377号**：`Tell分类学研究过程文档/377-v0-2026-08-12-管道化解题系统设计-4服务分离+Redis队列.md`——完整系统设计（第8节核心验证原则、第9节未覆盖因素、第10节优雅停止+断电恢复）
+- **378号**：`Tell分类学研究过程文档/378-v0-2026-08-12-管道化系统测试策略-数据管理与计算流程完备性.md`——测试策略（DM/CF/E2E/RI/FC/PB/ST/LG/UC测试项）
+- **379号**：`Tell分类学研究过程文档/379-v0-2026-08-12-管道化解题系统操作手册.md`——完整操作手册
