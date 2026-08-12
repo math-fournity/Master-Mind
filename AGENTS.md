@@ -864,6 +864,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 | **系统测试规矩** | `.devin/rules/six-test-discipline.md` | **always-on——为系统模块编写测试、POC验证、回归验证时；在`system/tests/`下创建测试资产时；架构改动后需要验证不退化时** | 用户原话（测试不是用完就扔的临时文件，方案先行、按模块组织、内容全留存） |
 | **文件拆分流程控制** | `.devin/rules/six-file-staged-flow.md` | **always-on——设计提示词时，当一个AI session的工作流程有多个阶段且thinking可能过大时** | 用户原话（335号V8改进为例） |
 | **运行数字ID命名规范** | `.devin/rules/six-run-id-naming.md` | **always-on——任何系统运行、测试、实验、审计存档时** | 用户原话（数字ID是可查可审计的保证，应该在任何它应该出现的地方出现） |
+| **数据库-文件双向可追溯性** | `.devin/rules/db-file-traceability.md` + `~/.config/devin/skills/db-file-traceability/SKILL.md` | **always-on——任何向数据库写入记录且同时产出物理文件时；声称"数据已入库"或"文件已落盘"前** | 用户原话（数据库和数据任何时候都可以被"顺藤摸瓜"，要做成AI的工作意识。362号验证发现3个gap后修复） |
 | **研发资产管理** | `.devin/rules/six-asset-management.md` | **always-on——运行vein_analysis_three_phase()时；审计历史运行时；从数据库run_id查找运行资产时** | 339号方案（run_manifest.json+自动归档+目录命名规范+数据库字段，回头审计从5步缩减到3步且确定性） |
 
 **第六代研发的核心方向**（截至2026-08-10）：
