@@ -7,12 +7,14 @@
   python batch_status.py errors [--batch-id ID]          # 连接错误/token_limit/异常统计
   python batch_status.py solved [--batch-id ID]          # candidate_solved列表
   python batch_status.py feed [--batch-id ID]            # feed事件历史
+  python batch_status.py leak [--batch-id ID]            # 答案泄漏检查（DB marker + tmux_pipe扫描）
   python batch_status.py all [--batch-id ID]             # 上述全部
 
 不指定--batch-id时，自动选最新的running批次。
 """
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -185,9 +187,101 @@ def cmd_feed(db, batch_id):
         print(f"  {e['timestamp']}: {e['event_type']} {e.get('details', {})}")
 
 
+def cmd_leak(db, batch_id):
+    """答案泄漏检查：DB marker + tmux_pipe/export文件扫描。
+
+    检查三个层面：
+    1. DB中answer_leak marker（Solver输出### ANSWER LEAK DETECTED时monitor设的）
+    2. tmux_pipe.log中的### ANSWER LEAK DETECTED（直接扫描，不依赖marker）
+    3. export/conversation.json中的ANSWER LEAK DETECTED（区分指令文本 vs 真报错）
+    """
+    print(f"=== Answer leak check: {batch_id} ===")
+
+    # 1. DB marker
+    cnt = db.aql.execute(
+        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+        'FILTER a.observability.markers.answer_leak == true '
+        'COLLECT WITH COUNT INTO n RETURN n',
+        bind_vars={"bid": batch_id},
+    ).next()
+    print(f"  DB answer_leak marker: {cnt}")
+
+    if cnt > 0:
+        for a in db.aql.execute(
+            'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+            'FILTER a.observability.markers.answer_leak == true '
+            'RETURN {pid:a.problem_id, status:a.status, paths:a.paths}',
+            bind_vars={"bid": batch_id},
+        ):
+            print(f"    {a['pid']}: status={a['status']}")
+
+    # 2. 扫描tmux_pipe.log中的真实报错（排除AGENTS.md指令文本）
+    print(f"\n  --- tmux_pipe.log scan (real reports only) ---")
+    real_leaks = 0
+    instruction_matches = 0
+    for a in db.aql.execute(
+        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+        'RETURN {pid:a.problem_id, paths:a.paths}',
+        bind_vars={"bid": batch_id},
+    ):
+        pipe_path = Path(a["paths"]["tmux_pipe_path"])
+        if not pipe_path.exists():
+            continue
+        content = pipe_path.read_text()
+        if "ANSWER LEAK DETECTED" not in content:
+            continue
+        # 区分：指令文本中是"### ANSWER LEAK DETECTED: <brief description>"
+        # 真报错是"### ANSWER LEAK DETECTED: <具体描述>"（没有<brief>占位符）
+        for line in content.split("\n"):
+            if "ANSWER LEAK DETECTED" in line:
+                if "<brief description>" in line or "Instead output exactly" in line:
+                    instruction_matches += 1
+                else:
+                    real_leaks += 1
+                    print(f"    REAL LEAK: {a['pid']} -> {line.strip()[:100]}")
+
+    print(f"    instruction_text_matches: {instruction_matches} (AGENTS.md指令被记录，正常)")
+    print(f"    real_leak_reports: {real_leaks}")
+
+    # 3. 全局grep export文件（跨批次，检查是否有遗漏）
+    print(f"\n  --- global export scan (all batches) ---")
+    result = subprocess.run(
+        ["grep", "-r", "-l", "ANSWER LEAK DETECTED",
+         "/data/math-agent-glm5.2-tmux-agents-trajectory/"],
+        capture_output=True, text=True, timeout=60,
+    )
+    export_files = [f for f in result.stdout.strip().split("\n") if f]
+    print(f"    files containing 'ANSWER LEAK DETECTED': {len(export_files)}")
+    for f in export_files[:5]:
+        # 检查是指令文本还是真报错
+        try:
+            import json as _json
+            d = _json.load(open(f))
+            found_real = False
+            def _scan(obj):
+                nonlocal found_real
+                if isinstance(obj, str) and "ANSWER LEAK DETECTED" in obj:
+                    if "<brief description>" not in obj and "Instead output exactly" not in obj:
+                        found_real = True
+                elif isinstance(obj, dict):
+                    for v in obj.values():
+                        _scan(v)
+                elif isinstance(obj, list):
+                    for v in obj:
+                        _scan(v)
+            _scan(d)
+            tag = "REAL" if found_real else "instruction_only"
+        except Exception:
+            tag = "?"
+        print(f"    [{tag}] {Path(f).parent.name}")
+
+    if real_leaks == 0 and cnt == 0:
+        print(f"\n  RESULT: No answer leaks detected.")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Batch status query tool")
-    parser.add_argument("cmd", choices=["status", "active", "errors", "solved", "feed", "all"])
+    parser.add_argument("cmd", choices=["status", "active", "errors", "solved", "feed", "leak", "all"])
     parser.add_argument("--batch-id", help="batch id (default: latest running)")
     args = parser.parse_args()
 
@@ -213,6 +307,9 @@ def main():
         print()
     if args.cmd in ("feed", "all"):
         cmd_feed(db, batch_id)
+        print()
+    if args.cmd in ("leak", "all"):
+        cmd_leak(db, batch_id)
         print()
 
 

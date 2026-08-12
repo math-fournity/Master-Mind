@@ -457,6 +457,9 @@ set -a; source .env; set +a
 # feed事件历史
 .venv/bin/python xishujuzhen/solver_harness/batch_status.py feed
 
+# 答案泄漏检查（DB marker + tmux_pipe扫描 + export全局扫描，区分指令文本vs真报错）
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py leak
+
 # 上述全部
 .venv/bin/python xishujuzhen/solver_harness/batch_status.py all
 
