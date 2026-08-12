@@ -406,12 +406,24 @@ AI数学系统运行时有两条Pipe：
 - **feed源耗尽判定**：当指定tier的所有题都有devin_problem_runs记录时，批次完成
 - **不会枯竭**：tier 1共452道，当前已跑约111道，剩余约341道
 
-#### 限流感知
+#### 限流感知与并发上限
 
 - monitor每轮poll检查running中attempt是否有`rate_limited` marker
 - 检测到限流时暂停feed和launch（`rate_limit_pause`）
 - 限流缓解后自动恢复
 - `set-concurrency`可随时降并发应对限流
+
+**并发上限经验（实测）**：
+- **30并发**：稳定，0个API连接错误
+- **40并发**：稳定，0个API连接错误
+- **60并发**：打爆API，57题中29个（51%）因`cognition.ai/errorKind: unavailable`连接错误终止
+- **推荐并发**：30-40，不要超过40
+
+**连接错误 vs 真做不出来**：
+- `failed_no_proof`不一定是真做不出来——可能是API连接错误
+- 需要检查tmux_pipe.log中是否有`Connection error`/`cognition.ai/errorKind`/`unavailable`
+- `CONNECTION_PATTERNS`已覆盖这些模式，会自动判定为`failed_connection`而非`failed_no_proof`
+- 真做不出来的题：有thinking产出但没输出`### PROOF COMPLETE`
 
 #### DB schema关键表
 
