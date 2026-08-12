@@ -94,19 +94,22 @@ def cmd_active(db, batch_id):
         'sizes:a.observability.file_sizes, markers:a.observability.markers}',
         bind_vars={"bid": batch_id},
     ):
-        s = a["sizes"]
-        think_kb = s.get("thinking_readable_path", 0) // 1024
-        pipe_kb = s.get("tmux_pipe_path", 0) // 1024
-        export_kb = s.get("export_path", 0) // 1024
-        markers = [k for k, v in a["markers"].items() if v]
+        s = a.get("sizes") or {}
+        think_kb = (s.get("thinking_readable_path", 0) or 0) // 1024
+        pipe_kb = (s.get("tmux_pipe_path", 0) or 0) // 1024
+        export_kb = (s.get("export_path", 0) or 0) // 1024
+        markers_dict = a.get("markers") or {}
+        markers = [k for k, v in markers_dict.items() if v]
         m_str = ",".join(markers) if markers else "-"
-        status = "ACTIVE" if (a["idle"] or 0) < 120 else "STALLED"
+        rt = a.get("rt") or 0
+        idle = a.get("idle") or 0
+        status = "ACTIVE" if idle < 120 else "STALLED"
         if status == "ACTIVE":
             active += 1
         else:
             stalled += 1
         print(
-            f"  {a['pid']:30s} rt={a['rt']:5d}s idle={a['idle']:4d}s "
+            f"  {a['pid']:30s} rt={rt:5d}s idle={idle:4d}s "
             f"think={think_kb:5d}KB pipe={pipe_kb:3d}KB exp={export_kb:4d}KB "
             f"[{status}] {m_str}"
         )

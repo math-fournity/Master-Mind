@@ -55,6 +55,7 @@ TERMINAL_STATUSES = {
     "launch_error",
     "stopped",
     "answer_leak",
+    "dead_session",
 }
 
 RUNNING_STATUSES = {"launching", "running", "stalled_warning"}
@@ -406,8 +407,7 @@ def load_problem_text_from_progress(progress: dict[str, Any]) -> str:
         raise IndexError(f"jsonl row {idx} not found in {full_path}")
 
     elif suffix == ".json":
-        # FATE格式：JSON数组，每个item有informal_statement
-        # original_index是problem_id编号（不是数组索引），用original_id_in_source匹配json的id字段
+        # JSON数组格式：支持FATE和MathArena两种schema
         with open(full_path, encoding="utf-8") as f:
             data = json.load(f)
         if isinstance(data, list):
@@ -423,15 +423,24 @@ def load_problem_text_from_progress(progress: dict[str, Any]) -> str:
                 item = data[idx]
             if item is None:
                 raise IndexError(f"json item not found (src_id={src_id}, idx={idx}, len={len(data)})")
+
+            # FATE格式：item有informal_statement字段
             for col in ("informal_statement", "problem", "question", "prompt", "problem_text", "statement"):
                 if col in item and item[col]:
                     text = str(item[col]).strip()
-                    # 安全截断：去掉formal_statement泄漏
                     for cut_kw in ["Formalization notes", "## Formalization", "solution sketch", "The proof follows"]:
                         cut_idx = text.find(cut_kw)
                         if cut_idx > 0:
                             text = text[:cut_idx].strip()
                     return text
+
+            # MathArena格式：item有columns字段（dict），columns里有problem字段
+            if "columns" in item and isinstance(item["columns"], dict):
+                cols = item["columns"]
+                for col in ("problem", "problem_markdown", "question", "prompt", "problem_text"):
+                    if col in cols and cols[col]:
+                        return str(cols[col]).strip()
+
             raise KeyError(f"no problem field in {full_path}: keys={list(item.keys())}")
         raise ValueError(f"expected JSON array in {full_path}, got {type(data)}")
 
@@ -639,6 +648,29 @@ def tmux_running(session_name: str) -> bool:
     return result.returncode == 0
 
 
+def tmux_pane_content(session_name: str) -> str:
+    """捕获tmux pane当前可见内容。Devin CLI退出后pane变空白。"""
+    result = subprocess.run(
+        ["tmux", "capture-pane", "-t", session_name, "-p"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        check=False,
+        timeout=10,
+    )
+    return result.stdout.decode("utf-8", errors="ignore")
+
+
+def tmux_pane_is_empty(session_name: str) -> bool:
+    """判断tmux pane是否为空白（Devin CLI已退出但session还在）。
+
+    空白判定：去掉空行和纯空白字符后内容长度<5。
+    Devin CLI运行时pane总有内容（TUI界面、thinking输出等）。
+    """
+    content = tmux_pane_content(session_name)
+    stripped = "\n".join(line.strip() for line in content.split("\n") if line.strip())
+    return len(stripped) < 5
+
+
 def run_harness(args: list[str], log_path: Path) -> int:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     cmd = [sys.executable, str(HARNESS), *args]
@@ -834,6 +866,8 @@ def launch_attempt(db, attempt: dict[str, Any], batch_dir: Path) -> dict[str, An
     now = utc_now()
     attempt_key_value = attempt["_key"]
     launch_log = batch_dir / "logs" / f"launch-{attempt['exp_id']}.log"
+    print(f"  [launch] START {attempt['problem_id']} (exp={attempt['exp_id'][:60]}...)", flush=True)
+    t0 = time.time()
     db.collection(ATTEMPT_COLLECTION).update(
         {
             "_key": attempt_key_value,
@@ -859,9 +893,13 @@ def launch_attempt(db, attempt: dict[str, Any], batch_dir: Path) -> dict[str, An
             attempt["problem_source_path"],
             "--model",
             attempt["model"],
+            "--no-mitm",
+            "--interactive",
         ],
         launch_log,
     )
+    t1 = time.time()
+    print(f"  [launch] DONE {attempt['problem_id']} exit={code} took={t1-t0:.1f}s", flush=True)
     # 361号§6: launch_log.jsonl 记录每次 launch 事件。
     append_jsonl(
         batch_dir / "launch_log.jsonl",
@@ -929,19 +967,42 @@ def observe_attempt_files(attempt: dict[str, Any], *, old_observability: dict[st
     }
     proof_path = Path(paths["proof_path"])
     proof_exists = proof_path.exists() and proof_path.stat().st_size > 0
-    # TUI模式：扫描tmux_pipe.log中的 ### PROOF COMPLETE 标记
-    pipe_text = tail_text(Path(paths["tmux_pipe_path"]), max_bytes=100_000)
-    proof_in_tui = "### PROOF COMPLETE" in pipe_text
+    # TUI模式：用tmux capture-pane直接抓pane内容检测PROOF COMPLETE
+    # 比扫pipe更可靠——pane是当前显示内容，不受ANSI过滤/UTF-8截断影响
+    tmux_session = attempt.get("tmux_session") or ""
+    pane_text = ""
+    if tmux_session:
+        try:
+            result = subprocess.run(
+                ["tmux", "capture-pane", "-t", tmux_session, "-p", "-S", "-500"],
+                capture_output=True, text=True, timeout=10
+            )
+            pane_text = result.stdout
+        except Exception:
+            pass
+    proof_in_tui = "PROOF COMPLETE" in pane_text
     markers["proof_exists"] = proof_exists or proof_in_tui
     markers["proof_in_tui"] = proof_in_tui
-    # 答案泄漏自检：Solver检测到题目中有解答泄漏时输出 ### ANSWER LEAK DETECTED
-    answer_leak = "### ANSWER LEAK DETECTED" in pipe_text
+    # 答案泄漏自检
+    answer_leak = "ANSWER LEAK DETECTED" in pane_text
     markers["answer_leak"] = answer_leak
 
-    activity_signature = stable_short_hash(json.dumps(sizes, sort_keys=True))
+    # activity_signature只基于有意义的文件（排除tmux_log_path——tmux自己会写它）
+    # 僵尸session检测：tmux session还在但Devin CLI已退出，pane变空白
+    meaningful_sizes = {
+        k: v for k, v in sizes.items()
+        if k not in ("tmux_log_path", "session_info_path")
+    }
+    activity_signature = stable_short_hash(json.dumps(meaningful_sizes, sort_keys=True))
     last_activity = old_observability.get("last_observed_activity_at")
     if activity_signature != old_observability.get("activity_signature"):
         last_activity = utc_now()
+
+    # 僵尸session检测：tmux pane空白 = Devin CLI已退出
+    pane_empty = False
+    tmux_session = attempt.get("tmux_session")
+    if tmux_session and tmux_running(tmux_session):
+        pane_empty = tmux_pane_is_empty(tmux_session)
 
     return {
         "activity_signature": activity_signature,
@@ -949,6 +1010,7 @@ def observe_attempt_files(attempt: dict[str, Any], *, old_observability: dict[st
         "last_observed_at": utc_now(),
         "markers": markers,
         "file_sizes": sizes,
+        "pane_empty": pane_empty,
     }
 
 
@@ -1172,6 +1234,35 @@ def refresh_attempt(
             {"exp_id": attempt["exp_id"], "problem_id": attempt.get("problem_id")},
             attempt_key=attempt["_key"],
         )
+    # 僵尸session检测：tmux session还在但Devin CLI已退出（pane空白）
+    # 这种情况下tmux_running=True但实际Solver已死，必须主动kill并判定终态
+    elif is_running and observability.get("pane_empty"):
+        stop_attempt(db, attempt, batch_dir, decode=False)
+        # 先kill tmux session（stop_attempt可能只停harness不kill tmux）
+        subprocess.run(["tmux", "kill-session", "-t", attempt["tmux_session"]],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        final_status, verdict = classify_finished(attempt, observability)
+        # 如果classify没识别出具体错误，覆盖为dead_session
+        if final_status == "failed_no_proof":
+            final_status = "dead_session"
+            verdict = make_verdict(
+                "dead_session",
+                "tmux session alive but pane empty — Devin CLI exited (likely API connection error)",
+                confidence="high",
+                needs_human_math_review=False,
+            )
+        update.update({
+            "status": final_status,
+            "ended_at": utc_now(),
+            "end_reason": "dead_session_pane_empty",
+            "verdict": verdict,
+        })
+        insert_event(
+            db, attempt["batch_id"], "dead_session_detected",
+            {"exp_id": attempt["exp_id"], "problem_id": attempt.get("problem_id"),
+             "runtime_seconds": int(elapsed)},
+            attempt_key=attempt["_key"],
+        )
     elif is_running and max_runtime_seconds and elapsed > max_runtime_seconds:
         stop_attempt(db, attempt, batch_dir, decode=False)
         update.update(
@@ -1344,7 +1435,9 @@ def monitor_batch(
             slots_available = concurrency - running_count - queued_count
             if slots_available > 0:
                 feed_count = min(slots_available, feed_batch_size)
+                print(f"  [feed] slots_available={slots_available} running={running_count} queued={queued_count} concurrency={concurrency} → trying feed_count={feed_count}", flush=True)
                 new_items = select_by_progress_for_feed(db, tier=feed_tier, limit=feed_count, batch_id=batch_id)
+                print(f"  [feed] select_by_progress returned {len(new_items)} items", flush=True)
                 if new_items:
                     # 提取题面
                     fed = []
@@ -1370,12 +1463,16 @@ def monitor_batch(
                         queued_count = sum(1 for item in attempts if item.get("status") == "queued")
 
         if launch_queued and not (rate_limit_pause and rate_limited_active):
+            queued_to_launch = [a for a in attempts if a.get("status") == "queued"]
+            print(f"  [launch] queued={len(queued_to_launch)} running={running_count} concurrency={concurrency}", flush=True)
             for attempt in attempts:
                 if running_count >= concurrency:
+                    print(f"  [launch] running_count={running_count} >= concurrency={concurrency}, stop", flush=True)
                     break
                 if attempt.get("status") == "queued":
                     attempt = launch_attempt(db, attempt, batch_dir)
                     running_count += 1 if attempt.get("status") in RUNNING_STATUSES else 0
+                    print(f"  [launch] after launch: running_count={running_count}, status={attempt.get('status')}", flush=True)
                     # 361号§7: 每次成功 launch 后间隔，避免瞬间打满。
                     if attempt.get("status") in RUNNING_STATUSES and launch_interval_seconds > 0:
                         time.sleep(launch_interval_seconds)

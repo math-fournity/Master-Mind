@@ -96,7 +96,7 @@ def write_session_info(exp_id, problem_file, model, prompt, extra=None):
         "trajectory_dir": str(trajectory_dir(exp_id)),
         "tmux_session": tmux_session_name(exp_id),
         "mitm_port": MITM_PORT,
-        "mitm_enabled": True,
+        "mitm_enabled": False,
         "devin_session_id": None,
         "start_timestamp": datetime.now(timezone.utc).isoformat(),
         "status": "launching",
@@ -623,7 +623,8 @@ Watch for:
         capture_output=True
     )
 
-    # 7. 启动pipe-pane兜底
+    # 7. 启动pipe-pane（raw流，简单cat >>，不过滤）
+    # PROOF COMPLETE检测改用tmux capture-pane（见batch_problem_runner observe_attempt_files）
     time.sleep(1)
     subprocess.run(
         ["tmux", "pipe-pane", "-t", tname, f"cat >> {tmux_pipe_path}"],

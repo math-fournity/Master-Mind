@@ -344,7 +344,9 @@ AI数学系统运行时有两条Pipe：
 
 **适用所有场景**（无一例外）：裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验、MathArena测试、FATE测试、A/B对照实验。
 
-**为什么是硬约束**：solver-harness通过mitmproxy代理捕获token级thinking+tool_calls，自动完成tmux启动+mitmproxy代理+pipe-pane兜底+sessions.db轮询+事后批量解码，并修复了`--no-http2`多轮交互Connection failed问题和`NODE_EXTRA_CA_CERTS` SSL验证问题。
+**为什么是硬约束**：solver-harness自动完成tmux启动+pipe-pane记录+sessions.db轮询+export保存，并修复了`--no-http2`多轮交互Connection failed问题和`NODE_EXTRA_CA_CERTS` SSL验证问题。
+
+**mitmproxy已禁用**（2026-08-12）：mitmproxy代理曾用于捕获token级thinking+tool_calls，但实测发现mitmproxy进程虽活着但代理不通（curl返回000），所有solver API调用走坏代理导致秒退。已设`mitm_enabled: False`默认值，launch时加`--no-mitm`。devin cli自身的`thinking_readable_path`和`--export`已提供完整thinking数据，不需要mitmproxy。
 
 **例外**：`realtime/devin_cli_parser.py`中的`DevinCliParserProvider`用`devin -p`做LLM parser（不是Solver，不采集trajectory），可以保留直接调用。
 
@@ -371,11 +373,14 @@ AI数学系统运行时有两条Pipe：
 
 **持续喂入模式启动**：
 ```bash
+set -a; source .env; set +a
 .venv/bin/python xishujuzhen/solver_harness/batch_problem_runner.py run-continuous \
-  --feed-tier 1 --concurrency 30 --poll-seconds 60 \
+  --feed-tier 1 --concurrency 10 --poll-seconds 60 \
   --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
-  --launch-interval-seconds 5 --label continuous-tier1-30c
+  --launch-interval-seconds 5 --label continuous-tier1-10c
 ```
+
+> **并发上限**：实测10并发稳定。30-40并发曾经稳定但那是mitmproxy启用时代；mitmproxy禁用后未测高并发。不要超过30。
 
 **动态调并发**（运行中随时执行）：
 ```bash
@@ -389,8 +394,17 @@ AI数学系统运行时有两条Pipe：
 - AGENTS.md中指令：`Output your complete proof directly in your response. Do NOT write any files.`
 - 结束标记：`### PROOF COMPLETE`
 - 题目直接嵌入AGENTS.md（Solver不需要读problem.txt，省一次read工具调用）
-- monitor扫描tmux_pipe.log中的`### PROOF COMPLETE`标记判定candidate_solved
-- trajectory/export仍由mitmproxy + `--export`自动保存，不受影响
+- **PROOF COMPLETE检测**：monitor用`tmux capture-pane -t <session> -p -S -500`抓pane内容，匹配`PROOF COMPLETE`（不带`### `前缀——TUI渲染会把`### `打碎）。比扫pipe更可靠——pane是当前显示内容，不受ANSI/UTF-8截断影响
+- **pipe-pane**：raw `cat >>`不过滤（曾试perl过滤但`-CSD`UTF-8模式会丢数据，`-C0`字节模式braille匹配不全，最终回退raw）。pipe数据用于activity_signature和事后审计，不用于PROOF COMPLETE判定
+- trajectory/export仍由`--export`自动保存，不受mitmproxy影响（mitmproxy已禁用）
+
+#### 交互模式（必须用`--interactive`，禁用`-p`单轮模式）
+
+**`-p`单轮模式秒退问题**（2026-08-12发现）：`devin -p 'prompt'`模式下API响应慢时devin cli会超时退出（5-18秒，0字节输出）。交互模式`devin -- 'prompt'`不会——devin cli持续运行，API响应慢只是等待不会退出。
+
+**batch_problem_runner已硬编码`--interactive`**：launch_attempt调用run_harness时传`--interactive`参数，solver_harness用`devin --model ... -- 'prompt'`启动（不带`-p`）。
+
+**禁止用`-p`模式启动Solver**。如果需要单轮快速测试，用交互模式启动后手动`tmux send-keys`发`/exit`。
 
 #### 答案泄漏防护（三层）
 
@@ -408,7 +422,7 @@ AI数学系统运行时有两条Pipe：
 #### 选题与feed机制
 
 - **持续喂入**：`select_by_progress_for_feed()`从`problem_extraction_progress`表选未跑过的tier题，不要求有profile
-- **题面提取**：`load_problem_text_from_progress()`从源文件提取题面，支持parquet/jsonl/.lean三种格式
+- **题面提取**：`load_problem_text_from_progress()`从源文件提取题面，支持parquet/jsonl/.json/.lean四种格式。.json支持FATE格式（`informal_statement`字段）和MathArena格式（`columns.problem`字段）
 - **feed触发条件**：每轮poll检查`running + queued < concurrency`时，自动选题、提取题面、追加到批次
 - **feed源耗尽判定**：当指定tier的所有题都有devin_problem_runs记录时，批次完成
 - **不会枯竭**：tier 1共452道，当前已跑约111道，剩余约341道
@@ -421,10 +435,11 @@ AI数学系统运行时有两条Pipe：
 - `set-concurrency`可随时降并发应对限流
 
 **并发上限经验（实测）**：
-- **30并发**：稳定，0个API连接错误
-- **40并发**：稳定，0个API连接错误
+- **10并发**：稳定（mitmproxy禁用后，交互模式，2026-08-12验证）
+- **30并发**：曾稳定（mitmproxy启用时代，2026-08-09验证）
+- **40并发**：曾稳定（mitmproxy启用时代）
 - **60并发**：打爆API，57题中29个（51%）因`cognition.ai/errorKind: unavailable`连接错误终止
-- **推荐并发**：30-40，不要超过40
+- **推荐并发**：10-30，不要超过30。mitmproxy禁用后未测高并发，保守用10。
 
 **连接错误 vs 真做不出来**：
 - `failed_no_proof`不一定是真做不出来——可能是API连接错误
@@ -475,6 +490,165 @@ set -a; source .env; set +a
 ```
 
 **新增查询需求时**：更新本脚本，不要另写新脚本。在脚本中加新的cmd函数 + argparse choice。
+
+#### Solver批次操作SOP（2026-08-12调试经验固化）
+
+> **以下SOP来自2026-08-12的调试实战。未来AI操作批次系统时按此SOP执行，不要重新踩坑。**
+
+**SOP 1 · 启动批次**
+
+```bash
+# 1. 确认环境变量
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+
+# 2. 确认没有旧批次在跑
+tmux list-sessions | grep math-continuous  # 应该没有
+tmux list-sessions | grep harness-dpb      # 应该没有
+
+# 3. 如果有旧批次，先停掉
+tmux kill-session -t math-continuous 2>/dev/null
+pkill -f "batch_problem_runner.py run-continuous" 2>/dev/null
+tmux list-sessions 2>&1 | grep "harness-dpb" | cut -d: -f1 | while read s; do tmux kill-session -t "$s"; done
+
+# 4. 启动新批次（10并发，交互模式，mitmproxy已禁用）
+tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
+  .venv/bin/python -u xishujuzhen/solver_harness/batch_problem_runner.py run-continuous \
+  --feed-tier 1 --concurrency 10 --poll-seconds 60 \
+  --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
+  --launch-interval-seconds 5 --label <你的label> \
+  2>&1 | tee /tmp/batch-<你的label>.log"
+```
+
+**SOP 2 · 检查批次健康（启动后90秒）**
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+
+# 1. 看monitor日志——10个launch是否全部exit=0
+grep -E "\[launch\]" /tmp/batch-<label>.log | head -30
+
+# 2. 看状态
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py status
+
+# 3. 看活跃度
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py active
+
+# 4. 看dead
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py dead
+```
+
+**判定标准**：
+- `running=10, dead=0` → 健康
+- `dead>0` → 有问题，看SOP 4
+- `active=10, stalled=0` → 全活跃
+- `stalled>0` → 不一定是真stall，看SOP 3
+
+**SOP 3 · 验证STALLED是否真stall（batch_status.py的idle可能不准）**
+
+batch_status.py显示STALLED不代表真stall——activity_signature基于文件大小hash，pipe-pane可能因缓冲不写数据导致idle虚高。**必须用tmux capture-pane验证**：
+
+```bash
+# 抽样3个STALLED的session看pane
+for s in $(tmux list-sessions 2>&1 | grep "harness-dpb" | cut -d: -f1 | head -3); do
+  echo "=== $s ==="
+  tmux capture-pane -t "$s" -p 2>&1 | grep -v '^$' | grep -E "PROOF COMPLETE|Thinking|Context|CANNOT" | tail -3
+  echo
+done
+```
+
+**判定标准**：
+- pane显示`Thinking · Xm Ys` → 还在thinking，不是真stall
+- pane显示`PROOF COMPLETE` → 已完成，monitor漏判（看SOP 5）
+- pane显示`Ask Devin to build features` + 无Thinking → session已结束，可能完成了
+- pane空白 → zombie session，看SOP 4
+
+**SOP 4 · 处理dead session / zombie session**
+
+```bash
+# 1. 自动清理僵尸session
+set -a; source .env; set +a
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py dead --cleanup
+
+# 2. 如果dead持续出现，检查根因：
+#    a. 看launch日志
+grep "\[launch\]" /tmp/batch-<label>.log | grep "exit=" | grep -v "exit=0"
+#    b. 看dead session的tmux log
+cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/tmux/tmux.log | tail -30
+#    c. 看dead session的launch日志
+cat /data/math-agent-glm5.2-tmux-agents-dir/<batch_dir>/logs/launch-<exp_id>.log
+```
+
+**已知根因清单**（按排查优先级）：
+1. **mitmproxy代理坏了** → 已禁用，launch加`--no-mitm`（已硬编码）
+2. **`-p`单轮模式秒退** → 已改`--interactive`（已硬编码）
+3. **matharena格式不支持** → 已加`columns.problem`解析
+4. **API限流** → 降并发，`set-concurrency --concurrency 5`
+5. **tmux session被手动kill** → 不要手动kill harness-dpb开头的session
+
+**SOP 5 · 手动标记PROOF COMPLETE（monitor漏判时）**
+
+monitor用`tmux capture-pane`检测PROOF COMPLETE，但可能因poll间隔（60秒）延迟判定。如果pane已显示PROOF COMPLETE但DB还是running，手动标记：
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+.venv/bin/python -c "
+from arango import ArangoClient
+import os
+from datetime import datetime, timezone
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+now = datetime.now(timezone.utc).isoformat()
+# 填入batch_id和problem_id
+batch_id = '<你的batch_id>'
+for pid in ['<problem_id_1>', '<problem_id_2>']:
+    for key in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid FILTER a.problem_id == @pid RETURN a._key', bind_vars={'bid': batch_id, 'pid': pid}):
+        db.collection('devin_problem_runs').update({'_key': key, 'status': 'candidate_solved', 'ended_at': now, 'end_reason': 'manual_pane_proof_complete'})
+        print(f'marked {pid} as candidate_solved')
+"
+```
+
+**SOP 6 · 看Solver的thinking内容**
+
+```bash
+# 方法1：tmux attach（实时看，Ctrl+B D退出）
+tmux attach -t <tmux_session_name>
+
+# 方法2：capture-pane（抓当前屏幕，-S -500抓历史500行）
+tmux capture-pane -t <tmux_session_name> -p -S -500
+
+# 方法3：看export文件（完整对话记录，JSON格式）
+cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/exports/conversation.json | python3 -m json.tool | head -100
+
+# 方法4：看pipe文件（raw TUI流，含ANSI控制序列，需要去噪）
+cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/tmux/tmux_pipe.log | \
+  perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g' | tail -100
+```
+
+**SOP 7 · 停止批次**
+
+```bash
+# 1. 停monitor
+tmux kill-session -t math-continuous
+
+# 2. 停所有solver session
+tmux list-sessions 2>&1 | grep "harness-dpb" | cut -d: -f1 | while read s; do tmux kill-session -t "$s"; done
+
+# 3. 确认全部停止
+tmux list-sessions | grep -E "math-continuous|harness-dpb"  # 应该没有
+```
+
+**SOP 8 · 编译验证（改代码后必须做）**
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_problem_runner.py && \
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/solver_harness.py && \
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_status.py && \
+echo "compile OK"
+```
 
 ---
 
