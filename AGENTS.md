@@ -606,6 +606,124 @@ tail -30 /data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log
 
 ---
 
+### 通用SOP（适用于新旧系统）
+
+> **以下SOP是通用规范，无论使用auto_runner（新系统）还是batch_problem_runner（旧系统）都适用。**
+
+**SOP G1 · 编译验证（改代码后必须做）**
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_problem_runner.py && \
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/solver_harness.py && \
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_status.py && \
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/enqueue_problem.py && \
+.venv/bin/python -m py_compile xishujuzhen/solver_harness/auto_runner.py && \
+echo "compile OK"
+```
+
+**SOP G2 · 资产追溯规范（2026-08-12）**
+
+> **所有运行资产必须可追溯**——从DB记录能找到文件路径，从文件路径能找到DB记录。不允许放临时目录。
+
+**运行ID唯一性保证**：
+
+exp_id格式：`{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{problem_id}`
+
+- `run_id`是ArangoDB counter（`devin_counters` collection的`run_id`键）原子自增的全局运行ID
+- 每次`create_batch`/`add_cases`/`create_attempt_from_queue`创建attempt时调`next_run_id(db)`获取，确保exp_id全局唯一
+- 同一道题在不同batch中跑→run_id不同→exp_id不同✓
+- 同batch内重跑→run_id不同→exp_id不同✓
+- 两个runner并发→ArangoDB事务保证原子递增→run_id不冲突✓
+- DB attempt记录中有`run_id`字段，便于从run_id反查attempt
+- **目录名以exp_id开头，exp_id含run_id，所以目录永远唯一，不会错乱**
+
+**资产存放位置**：
+
+| 资产 | 位置 | 持久化 | 追溯方式 |
+|---|---|---|---|
+| **trajectory文件**（export/pipe/thinking_capture/tmux.log） | `/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/` | 是 | DB attempt.paths指向 |
+| **solver工作目录**（problem.txt/proof.md/AGENTS.md） | `/data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/` | 是 | DB attempt.paths指向 |
+| **monitor日志** | `/data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log` | 是 | tmux session名对应 |
+| **auto_runner日志** | `/data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log` | 是 | 固定路径 |
+| **DB记录**（attempt/event/batch/queue） | ArangoDB | 是 | batch_id → attempt → paths |
+| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 是 | devin_session_id关联 |
+
+**从DB查运行时目录和文件位置**：
+```bash
+# 从problem_id查所有attempt及其文件路径
+.venv/bin/python -c "
+from arango import ArangoClient; import os
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.problem_id == @pid RETURN a', bind_vars={'pid': '<PID>'}):
+    print(f'run_id={a.get(\"run_id\",0)} status={a[\"status\"]} batch={a[\"batch_id\"]}')
+    print(f'  exp_id={a[\"exp_id\"]}')
+    print(f'  export: {a[\"paths\"][\"export_path\"]}')
+    print(f'  thinking_capture: {a[\"paths\"][\"tmux_pipe_path\"].replace(\"tmux_pipe.log\",\"thinking_capture.txt\")}')
+    print(f'  solver_dir: {a[\"paths\"][\"solver_dir\"]}')
+"
+```
+
+**禁止**：
+- **禁止放`/tmp/`**——重启丢失，无法追溯
+- **禁止只存DB不存文件**——DB只有paths指针，文件丢了paths指向空
+- **禁止只存文件不存DB**——没有DB记录无法从batch_id查到attempt
+
+**SOP G3 · AI失败题分类与Response truncated处理（2026-08-12）**
+
+> **AI做不出来的题分4类**，全部记录到DB的`devin_problem_runs`中，`status`+`end_reason`字段标识失败类型。完整追溯文档见374号文档。
+
+**AI自身问题导致的失败**：
+
+| status | 含义 | end_reason | 是AI的问题？ |
+|---|---|---|---|
+| `failed_no_proof` | session结束但没输出`### PROOF COMPLETE`标记 | `tmux_session_ended` | 是——AI做了题但没按格式输出标记 |
+| `failed_token_limit` | token用完没做出来 | `tmux_session_ended` / `idle_token_limited` / `response_truncated_max_token_limit` | 是——AI能力不足/效率不够 |
+| `failed_tool_stall` | 工具调用卡住超时 | `stall_seconds` | 是——AI行为异常 |
+| `answer_leak` | AI检测到答案泄漏主动拒绝 | `answer_leak_detected_by_solver` | 是——AI主动拒绝 |
+
+**基础设施问题导致的失败（不算AI做不出来）**：
+
+| status | 含义 | 归因 |
+|---|---|---|
+| `dead_session` | mitmproxy时代僵尸session | 基础设施 |
+| `failed_connection` | 网络连接断开 | 网络 |
+| `failed_network_stuck` | 网络不稳定卡死 | 网络 |
+| `launch_error` | 启动失败 | 系统 |
+| `stopped` | 手动停止 | 操作 |
+
+**Response truncated的处理**：
+
+> **Response truncated不是网络问题**——是模型输出达到max token limit被截断。TUI显示`⚠︎ Response truncated`，session空闲等待用户发消息继续。这属于AI做不出来的情况——AI的输出长度不够完成证明。
+
+**处理流程**：
+1. `scan-thinking`扫描发现IDLE的session
+2. 看pane内容——`Response truncated`是token limit，`Connection error`是网络断开
+3. **Response truncated**：可以发"继续"让AI继续输出，但如果反复truncated说明题对AI来说太长→最终标记`failed_token_limit`
+4. **Connection error**：网络问题，发"继续"重试，反复失败则标记`failed_connection`
+
+**手动落盘PROOF COMPLETE的session**（auto_runner的refresh循环会自动做，但如果需要手动做）：
+- 先`capture_thinking(attempt)`保留thinking数据
+- 再`stop_attempt(db, attempt, batch_dir, decode=False)`让devin cli写export
+- 等3秒后kill tmux session
+- 更新DB：`status=candidate_solved`, `end_reason=manual_pane_proof_complete`
+- 记录event：`event_type=attempt_solved`
+
+**查询所有AI失败的题**：
+```bash
+.venv/bin/python -c "
+from arango import ArangoClient; import os
+from collections import Counter
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.status IN [\"failed_no_proof\",\"failed_token_limit\",\"failed_tool_stall\",\"answer_leak\"] RETURN a')).items()):
+    print(f'  {s}: {n}')
+"
+```
+
+---
+
 ### 旧模式SOP（batch_problem_runner直接操作 · 仍有实例在运行）
 
 > **以下SOP来自2026-08-12的调试实战，适用于batch_problem_runner.py直接操作模式。新批次应使用上方"硬约束6·自动化运营系统"。但当前仍有旧模式实例在运行，这些SOP保留供管理旧实例时参考。**
@@ -794,16 +912,6 @@ tmux list-sessions 2>&1 | grep "harness-dpb" | cut -d: -f1 | while read s; do tm
 tmux list-sessions | grep -E "math-continuous|harness-dpb"  # 应该没有
 ```
 
-**SOP 8 · 编译验证（改代码后必须做）**
-
-```bash
-cd ~/master-mind-glm5.2-worktree
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_problem_runner.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/solver_harness.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_status.py && \
-echo "compile OK"
-```
-
 **SOP 13 · 手动feed题+resume已有batch（2026-08-12实战方法）**
 
 > **场景**：需要重跑某些题（如dead_session的130道tier 1题），但monitor的`run-continuous`启动时会先`select_by_progress_for_feed`选初始题——如果tier题已全部processed，返回空直接退出，不launch已有的queued题。
@@ -856,116 +964,6 @@ tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
 ```
 
 > **monitor已修复**：`--batch-id`模式下如果已有queued题，跳过初始feed直接进monitor循环launch queued题。
-
-**SOP 14 · 资产追溯规范（2026-08-12）**
-
-> **所有运行资产必须可追溯**——从DB记录能找到文件路径，从文件路径能找到DB记录。不允许放临时目录。
-
-**运行ID唯一性保证**：
-
-exp_id格式：`{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{problem_id}`
-
-- `run_id`是ArangoDB counter（`devin_counters` collection的`run_id`键）原子自增的全局运行ID
-- 每次`create_batch`/`add_cases`创建attempt时调`next_run_id(db)`获取，确保exp_id全局唯一
-- 同一道题在不同batch中跑→run_id不同→exp_id不同✓
-- 同batch内重跑→run_id不同→exp_id不同✓
-- 两个monitor并发→ArangoDB事务保证原子递增→run_id不冲突✓
-- DB attempt记录中有`run_id`字段，便于从run_id反查attempt
-
-**资产存放位置**：
-
-| 资产 | 位置 | 持久化 | 追溯方式 |
-|---|---|---|---|
-| **trajectory文件**（export/pipe/thinking_capture/tmux.log） | `/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/` | 是 | DB attempt.paths指向 |
-| **solver工作目录**（problem.txt/proof.md/AGENTS.md） | `/data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/` | 是 | DB attempt.paths指向 |
-| **monitor日志** | `/data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log` | 是 | tmux session名对应 |
-| **DB记录**（attempt/event/batch） | ArangoDB | 是 | batch_id → attempt → paths |
-| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 是 | devin_session_id关联 |
-
-**禁止**：
-- **禁止放`/tmp/`**——重启丢失，无法追溯
-- **禁止只存DB不存文件**——DB只有paths指针，文件丢了paths指向空
-- **禁止只存文件不存DB**——没有DB记录无法从batch_id查到attempt
-
-**验证资产完整性**：
-```bash
-# 检查batch的所有attempt的export文件是否存在
-.venv/bin/python -c "
-from arango import ArangoClient; import os; from pathlib import Path
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-batch_id = '<你的batch_id>'
-missing = 0
-for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid RETURN a', bind_vars={'bid': batch_id}):
-    export = Path(a['paths'].get('export_path',''))
-    if not export.exists() or export.stat().st_size == 0:
-        print(f'MISSING: {a[\"problem_id\"]} export={export}')
-        missing += 1
-print(f'missing export: {missing}')
-"
-```
-
-**SOP 15 · AI失败题分类与Response truncated处理（2026-08-12）**
-
-> **AI做不出来的题分4类**，全部记录到DB的`devin_problem_runs`中，`status`+`end_reason`字段标识失败类型。完整追溯文档见374号文档。
-
-**AI自身问题导致的失败（158道）**：
-
-| status | 含义 | end_reason | 是AI的问题？ |
-|---|---|---|---|
-| `failed_no_proof` | session结束但没输出`### PROOF COMPLETE`标记 | `tmux_session_ended` | 是——AI做了题但没按格式输出标记 |
-| `failed_token_limit` | token用完没做出来 | `tmux_session_ended` / `idle_token_limited` | 是——AI能力不足/效率不够 |
-| `failed_tool_stall` | 工具调用卡住超时 | `stall_seconds` | 是——AI行为异常 |
-| `answer_leak` | AI检测到答案泄漏主动拒绝 | `answer_leak_detected_by_solver` | 是——AI主动拒绝 |
-
-**基础设施问题导致的失败（不算AI做不出来）**：
-
-| status | 含义 | 归因 |
-|---|---|---|
-| `dead_session` | mitmproxy时代僵尸session | 基础设施 |
-| `failed_connection` | 网络连接断开 | 网络 |
-| `failed_network_stuck` | 网络不稳定卡死 | 网络 |
-| `launch_error` | 启动失败 | 系统 |
-| `stopped` | 手动停止 | 操作 |
-
-**Response truncated的处理**：
-
-> **Response truncated不是网络问题**——是模型输出达到max token limit被截断。TUI显示`⚠︎ Response truncated`，session空闲等待用户发消息继续。这属于AI做不出来的情况——AI的输出长度不够完成证明。
-
-**处理流程**：
-1. `scan-thinking`扫描发现IDLE的session
-2. 看pane内容——`Response truncated`是token limit，`Connection error`是网络断开
-3. **Response truncated**：可以发"继续"让AI继续输出，但如果反复truncated说明题对AI来说太长→最终标记`failed_token_limit`
-4. **Connection error**：网络问题，发"继续"重试，反复失败则标记`failed_network_stuck`重跑
-
-**批量发"继续"**：
-```bash
-cd ~/master-mind-glm5.2-worktree
-set -a; source .env; set +a
-.venv/bin/python -c "
-import subprocess, re, time
-sessions = subprocess.run(['tmux', 'list-sessions'], capture_output=True, text=True).stdout
-for s in [l.split(':')[0] for l in sessions.strip().split('\n') if l.startswith('harness-dpb')]:
-    try:
-        r = subprocess.run(['tmux', 'capture-pane', '-t', s, '-p', '-S', '-50'], capture_output=True, text=True, timeout=5)
-        if 'Response truncated' in r.stdout or 'Connection error' in r.stdout:
-            subprocess.run(['tmux', 'send-keys', '-t', s, '继续', 'Enter'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=5)
-            time.sleep(0.3)
-    except: pass
-"
-```
-
-**查询所有AI失败的题**：
-```bash
-.venv/bin/python -c "
-from arango import ArangoClient; import os
-from collections import Counter
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.status IN [\"failed_no_proof\",\"failed_token_limit\",\"failed_tool_stall\",\"answer_leak\"] RETURN a')).items()):
-    print(f'  {s}: {n}')
-"
-```
 
 ---
 
