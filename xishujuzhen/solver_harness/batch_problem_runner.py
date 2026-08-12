@@ -321,6 +321,112 @@ def select_candidates(
     return list(cursor)
 
 
+def select_by_progress_for_feed(
+    db: Any,
+    *,
+    tier: int,
+    limit: int,
+    batch_id: str,
+) -> list[dict[str, Any]]:
+    """持续喂入模式选题：从problem_extraction_progress选未跑过的tier题，不要求有profile。
+    排除已经在当前batch中的题（避免重复加入）。"""
+    query = """
+    FOR p IN problem_extraction_progress
+      FILTER p.difficulty_tier == @tier
+      FILTER p.external_ref != null
+      FILTER p.external_ref.local_path != null
+      FILTER p.external_ref.local_path != ""
+      FILTER LENGTH(
+        FOR r IN devin_problem_runs
+          FILTER r.progress_key == p._key
+          LIMIT 1
+          RETURN 1
+      ) == 0
+      SORT p.global_sequence ASC, p._key ASC
+      LIMIT @limit
+      RETURN p
+    """
+    cursor = db.aql.execute(query, bind_vars={"tier": tier, "limit": limit})
+    return list(cursor)
+
+
+def load_problem_text_from_progress(progress: dict[str, Any]) -> str:
+    """从progress的external_ref读源文件提取题面。复用extract_problem_text的逻辑。"""
+    import pyarrow.parquet as pq
+    import re as _re
+
+    ext = progress.get("external_ref") or {}
+    path = ext.get("local_path", "")
+    idx = ext.get("original_index", 0)
+
+    if not path:
+        raise ValueError(f"no local_path in progress {progress.get('_key')}")
+
+    if not os.path.isabs(path):
+        repo_root = Path(__file__).resolve().parents[2]
+        full_path = repo_root / path
+    else:
+        full_path = Path(path)
+
+    if not full_path.exists():
+        raise FileNotFoundError(f"source file not found: {full_path}")
+
+    suffix = full_path.suffix.lower()
+
+    if suffix == ".parquet":
+        table = pq.read_table(str(full_path))
+        if idx >= len(table):
+            raise IndexError(f"parquet row {idx} out of range")
+        row = table.slice(idx, 1).to_pydict()
+        for col in ("problem_markdown", "problem", "question", "prompt"):
+            if col in row and row[col]:
+                val = row[col]
+                if isinstance(val, list):
+                    val = val[0] if val else ""
+                return str(val).strip()
+        raise KeyError(f"no problem column in {full_path}")
+
+    elif suffix == ".jsonl":
+        with open(full_path, encoding="utf-8") as f:
+            for i, line in enumerate(f):
+                if i == idx:
+                    d = json.loads(line)
+                    for col in ("problem", "question", "prompt", "problem_text"):
+                        if col in d and d[col]:
+                            return str(d[col]).strip()
+                    raise KeyError(f"no problem field in {full_path} row {idx}")
+        raise IndexError(f"jsonl row {idx} not found in {full_path}")
+
+    elif suffix == ".lean":
+        text = full_path.read_text(encoding="utf-8")
+        # compfiles格式：/-! ... -/块注释
+        match = _re.search(r"/-!\s*(.*?)\s*-/", text, _re.DOTALL)
+        if match:
+            block = match.group(1).strip()
+            lines = [l.strip() for l in block.split("\n") if l.strip() and not l.strip().startswith("#")]
+            if lines:
+                return "\n".join(lines)
+        # fallback: /- ... -/
+        match = _re.search(r"/-\s*(.*?)\s*-/", text, _re.DOTALL)
+        if match:
+            block = match.group(1).strip()
+            if "Copyright" not in block and "license" not in block.lower():
+                lines = [l.strip() for l in block.split("\n") if l.strip() and not l.strip().startswith("#")]
+                if lines:
+                    return "\n".join(lines)
+        # fallback: problem声明
+        match = _re.search(r"problem\s+\w+\s*:\s*(.+?)\s*:=\s*by", text, _re.DOTALL)
+        if match:
+            return match.group(1).strip()
+        cutoff = text.find(":= by")
+        if cutoff > 0:
+            return text[:cutoff].strip()
+        return text[:500].strip()
+
+    else:
+        raise ValueError(f"unsupported source format: {suffix}")
+
+
 def make_batch_id(label: str | None) -> str:
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     suffix = slug(label, 24) if label else "bare"
@@ -1110,11 +1216,14 @@ def monitor_batch(
     once: bool,
     launch_interval_seconds: int = 8,
     rate_limit_pause: bool = True,
+    continuous: bool = False,
+    feed_tier: int = 1,
+    feed_batch_size: int = 10,
 ) -> None:
     batch = load_batch(db, batch_id)
     batch_dir = Path(batch["paths"]["batch_dir"])
     update_batch_status(db, batch_id, "running")
-    insert_event(db, batch_id, "monitor_started", {"poll_seconds": poll_seconds})
+    insert_event(db, batch_id, "monitor_started", {"poll_seconds": poll_seconds, "continuous": continuous, "feed_tier": feed_tier})
     rate_limit_warned = False
     last_concurrency = int(batch["concurrency"])
 
@@ -1129,6 +1238,7 @@ def monitor_batch(
 
         attempts = load_attempts(db, batch_id)
         running_count = sum(1 for item in attempts if item.get("status") in RUNNING_STATUSES)
+        queued_count = sum(1 for item in attempts if item.get("status") == "queued")
         # 361号§7: 限流感知——任一运行中 attempt 出现 rate_limited marker 时暂停补新题。
         rate_limited_active = any(
             (item.get("observability") or {}).get("markers", {}).get("rate_limited")
@@ -1150,6 +1260,36 @@ def monitor_batch(
             update_batch_status(db, batch_id, "running")
             insert_event(db, batch_id, "rate_limited_resumed", {})
             rate_limit_warned = False
+
+        # 持续喂入模式：running+queued < concurrency时，自动从DB选题追加
+        if continuous and not (rate_limit_pause and rate_limited_active):
+            slots_available = concurrency - running_count - queued_count
+            if slots_available > 0:
+                feed_count = min(slots_available, feed_batch_size)
+                new_items = select_by_progress_for_feed(db, tier=feed_tier, limit=feed_count, batch_id=batch_id)
+                if new_items:
+                    # 提取题面
+                    fed = []
+                    for prog in new_items:
+                        try:
+                            text = load_problem_text_from_progress(prog)
+                            if text and len(text.strip()) >= 10:
+                                fed.append({
+                                    "progress": prog,
+                                    "profile": {"_key": prog.get("problem_id", f"p{prog['_key']}")},
+                                    "problem_file_text": text.strip() + "\n",
+                                    "problem_id_override": prog.get("problem_id"),
+                                    "source_mode": "continuous_feed",
+                                    "case_metadata": {"feed_tier": feed_tier},
+                                })
+                        except Exception as e:
+                            print(f"  [feed] SKIP p{prog['_key']}: {e}")
+                    if fed:
+                        add_cases_to_batch(db, batch_id, fed, batch.get("model", "glm-5-2"))
+                        print(f"  [feed] added {len(fed)} new problems (slots={slots_available}, tier={feed_tier})")
+                        # 重新加载attempts
+                        attempts = load_attempts(db, batch_id)
+                        queued_count = sum(1 for item in attempts if item.get("status") == "queued")
 
         if launch_queued and not (rate_limit_pause and rate_limited_active):
             for attempt in attempts:
@@ -1199,7 +1339,22 @@ def monitor_batch(
         )
         terminal_count = sum(1 for item in refreshed if item.get("status") in TERMINAL_STATUSES)
         queued_count = sum(1 for item in refreshed if item.get("status") == "queued")
-        if terminal_count == len(refreshed) and queued_count == 0:
+        # continuous模式：所有题终结且feed源耗尽时才完成
+        if continuous:
+            feed_exhausted = len(select_by_progress_for_feed(db, tier=feed_tier, limit=1, batch_id=batch_id)) == 0
+            if terminal_count == len(refreshed) and queued_count == 0 and feed_exhausted:
+                if decode:
+                    decode_all(db, batch_id, batch_dir)
+                status_counts = {
+                    status: sum(1 for item in refreshed if item.get("status") == status)
+                    for status in sorted({item.get("status") for item in refreshed})
+                }
+                update_batch_status(db, batch_id, "completed", {"completed_at": utc_now(), "terminal_count": terminal_count, "status_counts": status_counts})
+                write_final_report(db, batch_id, batch_dir)
+                insert_event(db, batch_id, "batch_completed", {"terminal_count": terminal_count, "feed_exhausted": True})
+                print(f"\n  [continuous] FEED EXHAUSTED — all tier {feed_tier} problems have been processed.")
+                return
+        elif terminal_count == len(refreshed) and queued_count == 0:
             if decode:
                 decode_all(db, batch_id, batch_dir)
             status_counts = {
@@ -1328,6 +1483,70 @@ def cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_run_continuous(args: argparse.Namespace) -> int:
+    """持续喂入模式：保持N并发，自动从DB选题喂入，直到tier题全部跑完。"""
+    db = connect_db()
+    ensure_schema(db)
+
+    batch_id = args.batch_id or make_batch_id(args.label or f"continuous-tier{args.feed_tier}")
+
+    # 先选一批初始题目（concurrency数量）作为种子
+    initial = select_by_progress_for_feed(db, tier=args.feed_tier, limit=args.concurrency, batch_id=batch_id)
+    if not initial:
+        print(f"No unprocessed tier {args.feed_tier} problems found.", file=sys.stderr)
+        return 1
+
+    selected = []
+    for prog in initial:
+        try:
+            text = load_problem_text_from_progress(prog)
+            if text and len(text.strip()) >= 10:
+                selected.append({
+                    "progress": prog,
+                    "profile": {"_key": prog.get("problem_id", f"p{prog['_key']}")},
+                    "problem_file_text": text.strip() + "\n",
+                    "problem_id_override": prog.get("problem_id"),
+                    "source_mode": "continuous_feed",
+                    "case_metadata": {"feed_tier": args.feed_tier},
+                })
+        except Exception as e:
+            print(f"  SKIP p{prog['_key']}: {e}", file=sys.stderr)
+
+    if not selected:
+        print("Failed to extract any problem text.", file=sys.stderr)
+        return 1
+
+    selection = {"mode": "continuous_feed", "feed_tier": args.feed_tier, "initial_count": len(selected)}
+    create_batch(
+        db,
+        batch_id=batch_id,
+        selected=selected,
+        model=args.model,
+        concurrency=args.concurrency,
+        selection=selection,
+        max_runtime_seconds=args.max_runtime_seconds,
+        stall_seconds=args.stall_seconds,
+    )
+    print(f"created continuous batch: {batch_id} (initial {len(selected)}, target concurrency={args.concurrency})")
+    monitor_batch(
+        db,
+        batch_id,
+        poll_seconds=args.poll_seconds,
+        max_runtime_seconds=args.max_runtime_seconds,
+        stall_seconds=args.stall_seconds,
+        stop_on_stall=args.stop_on_stall,
+        launch_queued=True,
+        decode=not args.no_decode,
+        once=False,
+        launch_interval_seconds=args.launch_interval_seconds,
+        rate_limit_pause=not args.no_rate_limit_pause,
+        continuous=True,
+        feed_tier=args.feed_tier,
+        feed_batch_size=args.feed_batch_size,
+    )
+    return 0
+
+
 def cmd_run_files(args: argparse.Namespace) -> int:
     db = connect_db()
     ensure_schema(db)
@@ -1444,6 +1663,106 @@ def cmd_set_concurrency(args: argparse.Namespace) -> int:
     return 0
 
 
+def add_cases_to_batch(
+    db: Any,
+    batch_id: str,
+    selected: list[dict[str, Any]],
+    model: str,
+) -> list[dict[str, Any]]:
+    """往运行中批次追加题目。新题目status=queued，monitor下一轮poll自动launch。"""
+    batch = load_batch(db, batch_id)
+    batch_dir = Path(batch["paths"]["batch_dir"])
+    problems_dir = batch_dir / "problems"
+
+    # 找当前最大ordinal
+    existing_attempts = load_attempts(db, batch_id)
+    max_ordinal = max((a.get("ordinal", 0) for a in existing_attempts), default=0)
+
+    new_attempts: list[dict[str, Any]] = []
+    for i, item in enumerate(selected, start=max_ordinal + 1):
+        progress = item["progress"]
+        profile = item["profile"]
+        progress_key = str(progress["_key"])
+        problem_id = item.get("problem_id_override") or progress.get("problem_id") or profile["_key"]
+        exp_id = make_exp_id(batch_id, i, progress_key, progress.get("global_sequence"), problem_id)
+        key = attempt_key(batch_id, progress_key, i)
+        problem_source_path = problems_dir / f"{exp_id}.txt"
+        problem_source_path.write_text(
+            item.get("problem_file_text") or build_problem_file_text(progress, profile),
+            encoding="utf-8",
+        )
+        paths = make_attempt_paths(exp_id)
+        now = utc_now()
+        doc = {
+            "_key": key,
+            "batch_id": batch_id,
+            "ordinal": i,
+            "status": "queued",
+            "created_at": now,
+            "updated_at": now,
+            "model": model,
+            "concurrency": int(batch.get("concurrency", 10)),
+            "progress_key": progress_key,
+            "global_sequence": progress.get("global_sequence"),
+            "problem_id": problem_id,
+            "profile_doc_id": progress.get("profile_doc_id") or profile.get("_id"),
+            "source_dataset": progress.get("source_dataset") or profile.get("source_dataset"),
+            "source_mode": item.get("source_mode", "manual_file"),
+            "case_metadata": item.get("case_metadata") or {},
+            "difficulty_tier": progress.get("difficulty_tier"),
+            "priority": progress.get("priority"),
+            "exp_id": exp_id,
+            "tmux_session": f"harness-{exp_id}",
+            "problem_source_path": str(problem_source_path),
+            "paths": paths,
+            "observability": {
+                "activity_signature": "",
+                "last_observed_activity_at": None,
+                "last_observed_at": None,
+                "markers": {},
+                "file_sizes": {},
+            },
+            "verdict": make_verdict("queued", "added via add-cases command", needs_human_math_review=False),
+        }
+        db.collection(ATTEMPT_COLLECTION).insert(doc)
+        new_attempts.append(doc)
+
+    # 更新batch的attempt_keys和selected_count
+    all_keys = [a["_key"] for a in existing_attempts] + [a["_key"] for a in new_attempts]
+    db.collection(BATCH_COLLECTION).update(
+        {
+            "_key": batch_id,
+            "attempt_keys": all_keys,
+            "selected_count": len(all_keys),
+            "updated_at": utc_now(),
+        }
+    )
+    insert_event(
+        db,
+        batch_id,
+        "cases_added",
+        {"count": len(new_attempts), "new_keys": [a["_key"] for a in new_attempts]},
+    )
+    return new_attempts
+
+
+def cmd_add_cases(args: argparse.Namespace) -> int:
+    """往运行中批次追加题目。"""
+    db = connect_db()
+    ensure_schema(db)
+    selected = load_file_cases(db, args.case)
+    if not selected:
+        print("No cases supplied.", file=sys.stderr)
+        return 1
+    batch = load_batch(db, args.batch_id)
+    new_attempts = add_cases_to_batch(db, args.batch_id, selected, batch.get("model", "glm-5-2"))
+    print(f"Added {len(new_attempts)} cases to batch {args.batch_id}")
+    for a in new_attempts:
+        print(f"  #{a['ordinal']:02d} p{a['progress_key']} {a['problem_id']} → queued")
+    print(f"  (monitor will launch them on its next poll cycle, respecting concurrency limit)")
+    return 0
+
+
 def cmd_stop(args: argparse.Namespace) -> int:
     db = connect_db()
     batch = load_batch(db, args.batch_id)
@@ -1556,6 +1875,32 @@ def build_parser() -> argparse.ArgumentParser:
     p_setc.add_argument("--batch-id", required=True)
     p_setc.add_argument("--concurrency", type=int, required=True, help="new concurrency limit")
     p_setc.set_defaults(func=cmd_set_concurrency)
+
+    p_addc = sub.add_parser("add-cases", help="add problems to a running batch (monitor auto-launches them)")
+    p_addc.add_argument("--batch-id", required=True)
+    p_addc.add_argument(
+        "--case",
+        action="append",
+        required=True,
+        help="progress_key:path[:problem_id]; repeatable. New problems are queued and auto-launched.",
+    )
+    p_addc.set_defaults(func=cmd_add_cases)
+
+    p_cont = sub.add_parser("run-continuous", help="continuous worker pool: keep N concurrent, auto-feed from DB until tier exhausted")
+    p_cont.add_argument("--feed-tier", type=int, default=1, help="difficulty tier to feed from (1=hardest)")
+    p_cont.add_argument("--concurrency", type=int, default=30, help="target concurrency (always-on slots)")
+    p_cont.add_argument("--feed-batch-size", type=int, default=10, help="max problems to add per feed cycle")
+    p_cont.add_argument("--batch-id", help="explicit batch id")
+    p_cont.add_argument("--label", help="short label for generated batch id")
+    p_cont.add_argument("--model", default="glm-5-2")
+    p_cont.add_argument("--poll-seconds", type=int, default=60)
+    p_cont.add_argument("--max-runtime-seconds", type=int, default=7200)
+    p_cont.add_argument("--stall-seconds", type=int, default=900)
+    p_cont.add_argument("--stop-on-stall", action="store_true")
+    p_cont.add_argument("--launch-interval-seconds", type=int, default=5)
+    p_cont.add_argument("--no-rate-limit-pause", action="store_true")
+    p_cont.add_argument("--no-decode", action="store_true")
+    p_cont.set_defaults(func=cmd_run_continuous)
 
     return parser
 
