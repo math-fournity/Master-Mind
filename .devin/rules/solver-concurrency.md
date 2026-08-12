@@ -1,27 +1,23 @@
 # Solver AI 并发约束
 
-**硬约束**：同时运行的 Solver AI（devin cli 实例）最多 **2 个**。
+**硬约束**：批量测试时同时运行的 Solver AI（devin cli 实例）**10-30个**，不超过30。树生长引擎实验时最多2个。
 
 ## 规则
 
-1. **任何时刻最多 2 个并发 AI**——通过 `solver-harness launch` 启动的 devin cli 实例，同时运行数不得超过 2。
-2. **有 N 个任务时用 2 个 AI 编排完成**——如果有 30 个 AI 任务要做，不能同时启动 30 个，而是用 2 个并发额度，串行批次完成：
-   - 批次1：启动 AI-1 + AI-2
-   - 等 AI-1 完成 → 启动 AI-3（保持 2 个并发）
-   - 等 AI-2 完成 → 启动 AI-4
-   - ...直到所有任务完成
-3. **检查并发数**——启动新 AI 前必须检查当前运行的 AI 数：
-   ```bash
-   tmux list-sessions | grep "harness-vms" | grep -v dbmon | wc -l
-   ```
-   如果结果 >= 2，等待其中一个完成后再启动新的。
-4. **树生长引擎必须遵守此约束**——`tree_engine.py` 中的并发 AI 管理必须用 `MAX_CONCURRENT = 2`，不能用 30。
+1. **批量测试并发上限30**——通过 `batch_problem_runner.py` 启动的批量测试，concurrency参数设10-30。
+2. **树生长引擎并发上限2**——`tree_engine.py` 中的并发AI管理用 `MAX_CONCURRENT = 2`。
+3. **检查并发数**——`tmux list-sessions | grep "harness-" | grep -v dbmon | wc -l`
+4. **并发调整**——`batch_problem_runner.py set-concurrency --batch-id <id> --concurrency <N>`
 
-## 为什么
+## 并发上限经验（2026-08-12实测）
 
-- 每个 devin cli 实例消耗大量 API token 和系统资源
-- 30 个并发会导致 API 限速、连接失败、系统资源耗尽
-- 2 个并发是经过验证的稳定配置
+| 并发 | 连接错误率 | 性质 | 结论 |
+|---|---|---|---|
+| 10 | ~0% | 稳定 | 最安全 |
+| 30 | ~6.7% | 偶发瞬时断连，Solver可恢复 | 可接受 |
+| 60 | 51% | 致命雪崩，session直接死 | 禁止 |
+
+详见 `.devin/rules/solver-batch-health-check.md`。
 
 ## 循环驱动下的动态分配（树生长引擎）
 
