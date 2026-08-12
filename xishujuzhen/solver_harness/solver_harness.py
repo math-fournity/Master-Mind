@@ -522,7 +522,7 @@ def cmd_launch(args):
     exp_id = args.exp_id
     problem_file = args.problem_file
     model = args.model
-    prompt = args.prompt or "请读取当前目录下的problem.txt文件，解答其中的数学题。"
+    prompt = args.prompt or "请读取当前目录下的problem.txt文件，按其中的指令解答数学题。直接在TUI中输出证明，不要写任何文件。"
     no_mitm = args.no_mitm
     interactive = args.interactive
 

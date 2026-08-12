@@ -355,7 +355,10 @@ def build_problem_file_text(progress: dict[str, Any], profile: dict[str, Any]) -
             "You are a mathematical problem solver. Solve the problem completely.",
             "Do not search for this exact problem, its official answer, or its solution.",
             "You may use computation for exploration or verification.",
-            "When you have a complete solution, write it to `proof.md` in this directory.",
+            "Output your complete proof directly in your response (in this TUI).",
+            "Do NOT write any files — do not use write/edit tools.",
+            "End your proof with a line containing exactly: ### PROOF COMPLETE",
+            "Your full reasoning and output are automatically captured by the system.",
             "",
             "## Metadata",
             "",
@@ -771,7 +774,11 @@ def observe_attempt_files(attempt: dict[str, Any], *, old_observability: dict[st
     }
     proof_path = Path(paths["proof_path"])
     proof_exists = proof_path.exists() and proof_path.stat().st_size > 0
-    markers["proof_exists"] = proof_exists
+    # TUI模式：扫描tmux_pipe.log中的 ### PROOF COMPLETE 标记
+    pipe_text = tail_text(Path(paths["tmux_pipe_path"]), max_bytes=100_000)
+    proof_in_tui = "### PROOF COMPLETE" in pipe_text
+    markers["proof_exists"] = proof_exists or proof_in_tui
+    markers["proof_in_tui"] = proof_in_tui
 
     activity_signature = stable_short_hash(json.dumps(sizes, sort_keys=True))
     last_activity = old_observability.get("last_observed_activity_at")
@@ -906,11 +913,12 @@ def write_final_report(db, batch_id: str, batch_dir: Path) -> Path:
 def classify_finished(attempt: dict[str, Any], observability: dict[str, Any]) -> tuple[str, dict[str, Any]]:
     markers = observability.get("markers", {})
     if markers.get("proof_exists"):
+        proof_method = "TUI ### PROOF COMPLETE marker" if markers.get("proof_in_tui") else "proof.md file"
         return (
             "candidate_solved",
             make_verdict(
                 "candidate_solved",
-                "proof.md exists; mathematical correctness not reviewed by this runner",
+                f"{proof_method} detected; mathematical correctness not reviewed by this runner",
                 confidence="medium",
             ),
         )
@@ -1082,7 +1090,7 @@ def print_status(attempts: list[dict[str, Any]]) -> None:
         print(
             f"{attempt['ordinal']:02d} {attempt['status']:<18} "
             f"p{attempt['progress_key']} g{attempt.get('global_sequence')} "
-            f"{attempt['problem_id']} proof={markers.get('proof_exists')} "
+            f"{attempt['problem_id']} proof={'TUI' if markers.get('proof_in_tui') else ('file' if markers.get('proof_exists') else False)} "
             f"think={thinking_bytes}B idle={attempt.get('idle_seconds')}s "
             f"tmux={attempt.get('tmux_session')} "
             f"last={last_activity} markers={marker_str}"
