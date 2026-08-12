@@ -522,7 +522,7 @@ def cmd_launch(args):
     exp_id = args.exp_id
     problem_file = args.problem_file
     model = args.model
-    prompt = args.prompt or "请读取当前目录下的problem.txt文件，按其中的指令解答数学题。直接在TUI中输出证明，不要写任何文件。"
+    prompt = args.prompt or "请按AGENTS.md中的题目直接解答。直接在TUI中输出证明，不要写任何文件，结尾输出 ### PROOF COMPLETE"
     no_mitm = args.no_mitm
     interactive = args.interactive
 
@@ -533,19 +533,28 @@ def cmd_launch(args):
     print(f"Solver dir:     {sdir}")
     print(f"Trajectory dir: {tdir}")
 
-    # 2. 复制AGENTS.md模板
+    # 2. 把题目直接写入AGENTS.md（Solver不需要读problem.txt，省一次read工具调用）
     agents_md = sdir / "AGENTS.md"
-    if not agents_md.exists():
-        if SOLVER_AGENTS_TEMPLATE.exists():
-            shutil.copy(SOLVER_AGENTS_TEMPLATE, agents_md)
-            print(f"Copied AGENTS.md template")
-        else:
-            print(f"WARN: template not found at {SOLVER_AGENTS_TEMPLATE}")
-
-    # 3. 复制题目文件
     if problem_file and os.path.exists(problem_file):
-        shutil.copy(problem_file, sdir / "problem.txt")
-        print(f"Copied problem.txt from {problem_file}")
+        problem_text = open(problem_file, encoding="utf-8").read().strip()
+        # AGENTS.md = 解题指令 + 题目内容，Solver启动即见
+        agents_content = f"""# Solver Task
+
+You are a mathematical problem solver. Solve the problem completely.
+Do not search for this exact problem, its official answer, or its solution.
+You may use computation for exploration or verification.
+
+Output your complete proof directly in your response (in this TUI).
+Do NOT write any files — do not use write/edit tools.
+End your proof with a line containing exactly: ### PROOF COMPLETE
+Your full reasoning and output are automatically captured by the system.
+
+## Problem
+
+{problem_text}
+"""
+        agents_md.write_text(agents_content, encoding="utf-8")
+        print(f"Wrote AGENTS.md with problem ({len(problem_text)} chars)")
     elif problem_file:
         print(f"ERROR: problem file not found: {problem_file}")
         return 1
