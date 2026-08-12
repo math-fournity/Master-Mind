@@ -147,9 +147,52 @@ def build_profile(db) -> dict:
     # 能力边界分析
     capability_boundary = analyze_capability_boundary(by_dataset, by_tier, by_type)
 
-    # 运行时间统计
-    runtimes = [a.get("runtime_seconds", 0) or 0 for a in attempts]
+    # 运行时间统计——优先用solve_time_seconds（精确），fallback到runtime_seconds（粗略）
+    runtimes = []
+    for a in attempts:
+        st = a.get("solve_time_seconds")
+        if st is None:
+            st = a.get("runtime_seconds")
+        if st:
+            runtimes.append(float(st))
     avg_runtime = sum(runtimes) / len(runtimes) if runtimes else 0
+
+    # 解题时间分布（P50/P90/P99）
+    time_distribution = {}
+    if runtimes:
+        sorted_rt = sorted(runtimes)
+        n = len(sorted_rt)
+        time_distribution = {
+            "min": round(sorted_rt[0], 1),
+            "p50": round(sorted_rt[n // 2], 1),
+            "p90": round(sorted_rt[int(n * 0.9)], 1),
+            "p99": round(sorted_rt[int(n * 0.99)], 1),
+            "max": round(sorted_rt[-1], 1),
+            "avg": round(avg_runtime, 1),
+            "count": n,
+        }
+
+    # 成功vs失败的解题时间对比
+    success_times = []
+    failure_times = []
+    for a in attempts:
+        st = a.get("solve_time_seconds")
+        if st is None:
+            st = a.get("runtime_seconds")
+        if not st:
+            continue
+        if a["verdict"] in SUCCESS_VERDICTS:
+            success_times.append(float(st))
+        else:
+            failure_times.append(float(st))
+
+    time_by_outcome = {}
+    if success_times:
+        time_by_outcome["success_avg"] = round(sum(success_times) / len(success_times), 1)
+        time_by_outcome["success_count"] = len(success_times)
+    if failure_times:
+        time_by_outcome["failure_avg"] = round(sum(failure_times) / len(failure_times), 1)
+        time_by_outcome["failure_count"] = len(failure_times)
 
     return {
         "model": "glm-5.2-high",
@@ -161,6 +204,8 @@ def build_profile(db) -> dict:
         "by_tier": dict(by_tier),
         "by_type": dict(by_type),
         "avg_runtime_seconds": int(avg_runtime),
+        "time_distribution": time_distribution,
+        "time_by_outcome": time_by_outcome,
         "capability_boundary": capability_boundary,
     }
 
@@ -231,7 +276,25 @@ def main():
         print(f"总有效运行: {profile['total_valid_runs']}")
         print(f"成功数: {profile['success_count']}")
         print(f"成功率: {profile['success_rate']}")
-        print(f"平均运行时间: {profile['avg_runtime_seconds']}s")
+        print(f"\n=== 解题时间分布 ===")
+        td = profile.get("time_distribution", {})
+        if td:
+            print(f"  样本数:  {td.get('count', 0)}")
+            print(f"  min:     {td.get('min', 'N/A')}s")
+            print(f"  P50:     {td.get('p50', 'N/A')}s")
+            print(f"  P90:     {td.get('p90', 'N/A')}s")
+            print(f"  P99:     {td.get('p99', 'N/A')}s")
+            print(f"  max:     {td.get('max', 'N/A')}s")
+            print(f"  avg:     {td.get('avg', 'N/A')}s")
+        else:
+            print(f"  (无时间数据)")
+        to = profile.get("time_by_outcome", {})
+        if to:
+            print(f"\n=== 成功vs失败解题时间 ===")
+            if to.get("success_count"):
+                print(f"  成功: avg={to['success_avg']}s (n={to['success_count']})")
+            if to.get("failure_count"):
+                print(f"  失败: avg={to['failure_avg']}s (n={to['failure_count']})")
         print(f"\n按verdict:")
         for v, c in sorted(profile["by_verdict"].items(), key=lambda x: -x[1]):
             print(f"  {v:25s} {c:>8}")

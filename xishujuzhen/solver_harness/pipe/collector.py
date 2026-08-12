@@ -382,6 +382,20 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
+            # 提取精确解题时间（优先从conversation.json，其次trajectory.jsonl，最后pane mtime）
+            try:
+                from extract_solve_time import extract_solve_time
+                time_info = extract_solve_time(exp_id)
+                if time_info.get("solve_time"):
+                    result["solve_time_seconds"] = round(time_info["solve_time"]["solve_time_seconds"], 1)
+                    result["solve_time_source"] = time_info["solve_time"]["source"]
+                if time_info.get("time_breakdown"):
+                    tb = time_info["time_breakdown"]
+                    if tb.get("init_overhead_seconds") is not None:
+                        result["init_overhead_seconds"] = round(tb["init_overhead_seconds"], 1)
+            except Exception:
+                pass
+
             if status == "candidate_solved":
                 add_completed(r, result)
                 completed_this_round += 1
@@ -398,6 +412,26 @@ def main():
                 add_failed(r, result)
                 failed_this_round += 1
                 print(f"[collector] ❌ MODEL {status} {meta.get('problem_key', '')} ({elapsed:.0f}s) → Profile数据", flush=True)
+
+            # 停tmux前等待devin cli export完成（最多等10秒）
+            if is_running and tmux_session:
+                export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
+                if not export_path.exists():
+                    print(f"[collector] 等待export完成...", flush=True)
+                    for _ in range(10):
+                        time.sleep(1)
+                        if export_path.exists():
+                            break
+                    # export完成后重新提取精确时间
+                    if export_path.exists():
+                        try:
+                            from extract_solve_time import extract_solve_time
+                            time_info = extract_solve_time(exp_id)
+                            if time_info.get("solve_time"):
+                                result["solve_time_seconds"] = round(time_info["solve_time"]["solve_time_seconds"], 1)
+                                result["solve_time_source"] = time_info["solve_time"]["source"]
+                        except Exception:
+                            pass
 
             # 停tmux
             if tmux_session:
