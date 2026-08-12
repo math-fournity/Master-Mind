@@ -343,6 +343,85 @@ AI数学系统运行时有两条Pipe：
 
 **具体启动规范见** `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
 
+### 硬约束 5 · Solver批次系统架构认知（batch_problem_runner.py）
+
+> **未来AI操作批量Solver测试时，必须先理解本节。不要重新查代码推导这些逻辑。**
+
+**核心脚本**：`xishujuzhen/solver_harness/batch_problem_runner.py`
+**配套脚本**：`xishujuzhen/solver_harness/extract_problem_text.py`（预处理选题）、`xishujuzhen/solver_harness/solver_harness.py`（单Solver启动）
+
+#### 运行模式
+
+| 命令 | 用途 | 说明 |
+|---|---|---|
+| `run-continuous` | **持续喂入模式（默认推荐）** | 保持N并发槽位满载，完成一个补一个，直到指定tier的题全部跑完 |
+| `run-files` | 指定题目跑 | 用`--case`指定具体题目文件 |
+| `run` | 按profile选题跑 | 从problem_profiles表选题（要求有profile） |
+| `set-concurrency` | **动态调并发** | 运行中随时改并发量，monitor下一轮poll生效 |
+| `add-cases` | 运行中追加题目 | 新题queued，monitor自动launch |
+| `stop` | 停止批次 | 所有非终态attempt停止 |
+| `status` | 查看状态 | |
+
+**持续喂入模式启动**：
+```bash
+.venv/bin/python xishujuzhen/solver_harness/batch_problem_runner.py run-continuous \
+  --feed-tier 1 --concurrency 30 --poll-seconds 60 \
+  --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
+  --launch-interval-seconds 5 --label continuous-tier1-30c
+```
+
+**动态调并发**（运行中随时执行）：
+```bash
+.venv/bin/python xishujuzhen/solver_harness/batch_problem_runner.py set-concurrency \
+  --batch-id <batch_id> --concurrency 40
+```
+
+#### TUI直出模式（减少工具调用，提高并发）
+
+**Solver不写proof.md，直接在TUI输出证明**：
+- AGENTS.md中指令：`Output your complete proof directly in your response. Do NOT write any files.`
+- 结束标记：`### PROOF COMPLETE`
+- 题目直接嵌入AGENTS.md（Solver不需要读problem.txt，省一次read工具调用）
+- monitor扫描tmux_pipe.log中的`### PROOF COMPLETE`标记判定candidate_solved
+- trajectory/export仍由mitmproxy + `--export`自动保存，不受影响
+
+#### 答案泄漏防护（三层）
+
+| 层 | 谁做 | 机制 | 确定性 |
+|---|---|---|---|
+| **第一层a** | 脚本（提取时截断） | `load_problem_text_from_progress()`截断关键词：`Formalization notes`/`## Formalization`/`solution sketch`/`The proof follows` | 确定性 |
+| **第一层b** | 脚本（提取边界） | 只取.lean文件`/-!-/`块注释内内容；`determine`/`theorem`等Lean代码在块外，不会混入 | 确定性 |
+| **第二层** | Solver AI（运行时自检） | AGENTS.md中`Answer Leak Self-Check`段要求Solver检查题目是否有泄漏，发现则输出`### ANSWER LEAK DETECTED: <描述>`并停下 | 非确定性（依赖AI自觉） |
+| **第三层** | monitor（检测后停机） | 扫描`### ANSWER LEAK DETECTED`标记 → `stop_attempt` → status=`answer_leak`（终态）→ 释放槽位 → feed补新题 | 确定性 |
+
+**已验证**：157道compfiles tier 1题，提取层0泄漏（解答/Lean代码/solution sketch均不会混入）。
+
+**如果泄漏发生**：Solver输出`### ANSWER LEAK DETECTED` → monitor扫描到 → 立即停tmux → 标记`answer_leak`终态 → DB记录`answer_leak_detected`事件 → 释放并发槽位 → feed自动补下一题。该run不计入solved/failed统计。
+
+#### 选题与feed机制
+
+- **持续喂入**：`select_by_progress_for_feed()`从`problem_extraction_progress`表选未跑过的tier题，不要求有profile
+- **题面提取**：`load_problem_text_from_progress()`从源文件提取题面，支持parquet/jsonl/.lean三种格式
+- **feed触发条件**：每轮poll检查`running + queued < concurrency`时，自动选题、提取题面、追加到批次
+- **feed源耗尽判定**：当指定tier的所有题都有devin_problem_runs记录时，批次完成
+- **不会枯竭**：tier 1共452道，当前已跑约111道，剩余约341道
+
+#### 限流感知
+
+- monitor每轮poll检查running中attempt是否有`rate_limited` marker
+- 检测到限流时暂停feed和launch（`rate_limit_pause`）
+- 限流缓解后自动恢复
+- `set-concurrency`可随时降并发应对限流
+
+#### DB schema关键表
+
+| 表 | 用途 |
+|---|---|
+| `devin_batch_runs` | 批次记录（batch_id, concurrency, status, attempt_keys） |
+| `devin_problem_runs` | 单题run记录（status, verdict, observability, paths） |
+| `devin_run_events` | 事件流（concurrency_changed, cases_added, answer_leak_detected等） |
+| `problem_extraction_progress` | 题库（_key, difficulty_tier, source_dataset, external_ref.local_path） |
+
 ---
 
 ## 任务追踪（跨Session工作意识维持）
