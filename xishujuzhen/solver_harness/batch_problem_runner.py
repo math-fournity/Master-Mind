@@ -405,6 +405,36 @@ def load_problem_text_from_progress(progress: dict[str, Any]) -> str:
                     raise KeyError(f"no problem field in {full_path} row {idx}")
         raise IndexError(f"jsonl row {idx} not found in {full_path}")
 
+    elif suffix == ".json":
+        # FATE格式：JSON数组，每个item有informal_statement
+        # original_index是problem_id编号（不是数组索引），用original_id_in_source匹配json的id字段
+        with open(full_path, encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, list):
+            # 用original_id_in_source匹配id字段，fallback到数组索引
+            src_id = ext.get("original_id_in_source")
+            item = None
+            if src_id is not None:
+                for d in data:
+                    if str(d.get("id", "")) == str(src_id):
+                        item = d
+                        break
+            if item is None and idx < len(data):
+                item = data[idx]
+            if item is None:
+                raise IndexError(f"json item not found (src_id={src_id}, idx={idx}, len={len(data)})")
+            for col in ("informal_statement", "problem", "question", "prompt", "problem_text", "statement"):
+                if col in item and item[col]:
+                    text = str(item[col]).strip()
+                    # 安全截断：去掉formal_statement泄漏
+                    for cut_kw in ["Formalization notes", "## Formalization", "solution sketch", "The proof follows"]:
+                        cut_idx = text.find(cut_kw)
+                        if cut_idx > 0:
+                            text = text[:cut_idx].strip()
+                    return text
+            raise KeyError(f"no problem field in {full_path}: keys={list(item.keys())}")
+        raise ValueError(f"expected JSON array in {full_path}, got {type(data)}")
+
     elif suffix == ".lean":
         text = full_path.read_text(encoding="utf-8")
         # compfiles格式：/-! ... -/块注释（第一个块是题面）
