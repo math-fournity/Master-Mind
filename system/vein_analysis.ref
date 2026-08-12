@@ -1,117 +1,100 @@
 # vein_analysis.py 的参考文档——理解脉络分析阶段需要阅读这些文档
 
-# ── 核心实现依据：4并发方案（2026-08-10决定） ──
-# 脉络分析在运行时采用4并发——V5/V7/V8/V9四个提示词版本并发跑同一道题，取trace并集。
-# 4个版本各有所长不是子集关系，每个版本的结构化约束既是引导也是盲区。
-# 4并发并集~42个trace（去重后），覆盖全部8个独有发现。
+# ── 三阶段架构（333号——核心架构定义） ──
+# 格化与trace识别分离：阶段1格化→阶段1.5程序枚举→阶段2综合分析
+# vein_analysis_three_phase()是入口函数
+第六代系统研发过程文档/333-v0-2026-08-10-脉络分析Pipe内细化方案-格化与trace识别分离.md
 
-# 4并发方案完整记录——运行时架构、实现细节、去重规则、程序验证作用、trace覆盖对比、
-# 理论依据、和Grove核心循环的关系、未来演进、降级选项
+# ── 4并发格化方案（V5/V7/V8/V10） ──
+# 4个提示词版本并发格化，各有所长不是子集关系
+# V5=自由直觉, V7=机械化+JSON, V8=AI优势元素+2步文件拆分(335号), V10=三层验证+key_entities
 第六代系统技术说明书/06-五代继承/02-第六代的独特贡献.md
 
-# 4并发方案决定记录——332号§8.13
-第六代系统研发过程文档/332-v0-2026-08-10-POC-VMS-28c执行方案-机械化过程描述与程序验证完全格.md
+# ── V8格化2步文件拆分（335号方案D） ──
+# step1=完整格化→segments.json, step2=矩阵构造→formal_context.json
+# 不退化（闭元素48=48），4步方案曾导致退化（闭元素21 vs 32）
+第六代系统研发过程文档/335-v1-2026-08-11-V8格化session的thinking过大问题分析.md
 
-# ── 4个提示词版本（4并发的4个分支） ──
+# ── 综合分析4阶段文件拆分（336号） ──
+# step1=对比+回溯→comparison.json, step2=闭元素trace→closed_element_traces.json
+# step3=内容trace→content_based_traces.json, step4=审计合并→output.json
+# 验证大幅提升：trace 43→88
+第六代系统研发过程文档/336-v0-2026-08-11-综合分析阶段文件拆分流程控制方案.md
 
-# V5——自由直觉提示词（无结构化约束，9项自我审计报告）
-# 独有发现：归纳递降三种方式（n→n-2 vs n→n-1的递降幅度差异）
-# 注意：V5没有结构化JSON输出要求，产出是自由文本，需要单独解析
-第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v5.md
+# ── 全管线非退化审计（338号） ──
+# 3层审计：格化各V历史对比+闭元素密度+综合分析历史对比
+# 审计脚本：system/tests/vein_analysis/run_full_pipeline_audit.py
+第六代系统研发过程文档/338-v1-2026-08-11-全管线非退化审计方案.md
+
+# ── 研发资产管理（339号） ──
+# run_manifest.json自动生成+自动归档到system/tests/vein_analysis/runs/{run_id}/
+第六代系统研发过程文档/339-v1-2026-08-11-研发资产管理改进方案.md
+
+# ── 子管线超时降级（340号） ──
+# _calc_grading_timeout()按文本长度计算超时，每个版本独立超时，至少1个通过即可
+# 超时版本自动kill进程+FAILED.md+数据库记录phase1_success/failed_versions
+第六代系统研发过程文档/340-v0-2026-08-11-子管线超时降级方案-不卡住整个系统.md
+
+# ── 全流程日志（341号） ──
+# system/log.py——RotatingFileHandler 1MB×500=500MB
+第六代系统研发过程文档/341-v0-2026-08-11-全流程日志方案-滚动日志到system-logs.md
+system/log.py
+
+# ── 系统时间意识（342号） ──
+# 3层时间记录：日志时间戳+数据库timing字段+耗时摘要表
+第六代系统研发过程文档/342-v0-2026-08-11-系统时间意识方案-全管线全子管线运行时间记录.md
+
+# ── 4个格化提示词版本 ──
+
+# V5——自由直觉提示词（无结构化约束）
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v5_grading.md
 
 # V7——机械化过程描述+规范化审计+JSON输出
-# 独有发现：预防性vs修复性避障的对比、Case间递进关系
-# 加入FCA Next Closure算法步骤、完全格元素清单审计、结构化JSON
-第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v7.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v7_grading.md
 
-# V8——AI优势元素扩展（跨闭元素元模式）
-# 独有发现：x贯穿整个证明、aₙ作为跳过障碍工具
-# 在V7基础上新增cross_element_meta_pattern类型
-第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v8.md
+# V8——AI优势元素扩展+2步文件拆分（335号方案D）
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v8_grading.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v8_step1_requirements.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v8_step2_requirements.md
 
-# V9——三层验证体系（关键实体贯穿性+伪元模式过滤+元反思）——最新验证通过版本
-# 独有发现：WLOG排序闭环、好index r的生命周期
-# 在V8基础上新增key_entities字段、审计项10元反思、meta_reflection_traces字段
-# JSON schema最完整——包含key_entities和meta_reflection_traces
-第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v9.md
+# V10——三层验证体系（关键实体贯穿性+伪元模式过滤+元反思）
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v10_grading.md
 
-# set_A README——4并发方案在"并发使用"节 + 各版本验证状态
-第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/README.md
+# 综合分析提示词+4阶段step要求
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/synthesis.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/synthesis_step1_requirements.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/synthesis_step2_requirements.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/synthesis_step3_requirements.md
+第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/synthesis_step4_requirements.md
 
-# ── 程序验证脚本（运行时闭环反馈组件） ──
+# ── AGENTS模板 ──
+system/assets/vein_analysis/AGENTS_V5.md
+system/assets/vein_analysis/AGENTS_V7.md
+system/assets/vein_analysis/AGENTS_V8.md
+system/assets/vein_analysis/AGENTS_V10.md
+system/assets/vein_analysis/AGENTS_synthesis.md
 
-# verify_lattice_completeness.py——三层验证的实现
-# 第一层：闭元素完备性（Next Closure算法数学保证）
-# 第二层：关键实体贯穿性验证（V9新增，程序验证每个贯穿≥2闭元素的实体是否被考虑）
-# 第三层：元反思trace检查（V9新增，输出meta_reflection_traces的数量和内容）
-# 伪元模式过滤——对AI声称的cross_element_meta_pattern检查段集合是否本身是闭元素
-# 运行时闭环反馈：完备性得分低于阈值时反馈给AI重做
+# ── 程序验证脚本（阶段1.5闭元素枚举） ──
 six/verify_lattice_completeness.py
 
-# ── 机械化过程描述+规范化审计+程序验证 元组（提示词设计技术） ──
+# ── 数据结构定义 ──
+system/schema.py
+system/db.py
 
-# rule——触发条件和核心原则 + 三层验证体系（V9改进） + AI优势元素两种类型
-.devin/rules/six-mechanization-reference.md
-
-# skill——经验积累（V7→V8→V9的改进经验，每步的问题-修复-验证-经验）
-.devin/skills/mechanization-reference/SKILL.md
-
-# ── POC验证完整记录（VMS-28c/28d/28e） ──
-
-# 332号文档——从V7到V9的完整POC验证记录
-# §8.1-8.9: V7验证（闭元素完备性100%，trace完备性有缺陷）
-# §8.10: V5 vs V7 trace对比（发现V7漏掉3个跨闭元素元模式trace）
-# §8.11: V8改进与VMS-28d验证（扩展AI优势元素定义，成功补回trace）
-# §8.12: V9改进与VMS-28e验证（三层验证体系，元反思发现5个新trace）
-# §8.13: 4并发方案决定
-第六代系统研发过程文档/332-v0-2026-08-10-POC-VMS-28c执行方案-机械化过程描述与程序验证完全格.md
-
-# V5 vs V8 trace对比文档
-第六代系统研发过程文档/vms28d_v5_v8_trace_comparison.md
-
-# V5 vs V8 vs V9 trace对比文档（含4并发并集分析）
-第六代系统研发过程文档/vms28e_v5_v8_v9_trace_comparison.md
+# ── 运行脚本 ──
+system/run_imo2009p6_three_phase.py
 
 # ── 架构描述代码（参考依据，不是实现） ──
-
-# pipes.py——Pipe 1 step_2 grid_vein的架构描述
-# 含V7/V8/V9验证结果 + 4并发方案 + 运行时闭环反馈机制
 six/pipes.py
-
-# prompts.py——提示词版本登记（V5/V7/V8/V9的元数据）
 six/prompts.py
-
-# types.py——数据结构定义参考
 six/types.py
+six/references.py
 
-# ── 系统架构（vein_analysis在系统中的位置） ──
+# ── 研发资产管理规则 ──
+.devin/rules/six-asset-management.md
 
-# 系统架构总图——完整数据流
-第六代系统技术说明书/07-工程规格/01-系统架构总图.md
-
-# trace-tell-hint三步链路——基础概念
-第六代系统技术说明书/01-基础概念/02-trace-tell-hint三步链路.md
-
-# 系统物理实现方向——两个入口的定义 + §8.7 会话与启动目录ID化（palyground目录结构）
-第六代系统技术说明书/README.md
-
-# ── 分类学本体（trace匹配阶段需要，但脉络分析产出要为匹配做准备） ──
-
-# 先验Tell分类学——分类学本体（domain×段结构模式×具体概念，观察Level参数）
-FCA学习笔记/08-先验Tell分类学.md
-
-# ── 数据结构定义 ──
-
-# schema.py——AnalysisInput/AnalysisOutput/Trace/Vein/LevelView/Segment等数据结构定义
-system/schema.py
-
-# db_schema.py——get_working_directory()函数，devin cli启动目录路径约定
-system/db_schema.py
+# ── 文件拆分流程控制规则 ──
+.devin/rules/six-file-staged-flow.md
 
 # ── AI Agent启动规范 ──
-
-# AI Agent启动规范rule——tmux启动+工作目录准备+短启动提示词+提示词文件加载
 .devin/rules/six-ai-agent-launch.md
-
-# 系统架构总图§7 AI Agent启动规范——标准5步启动流程、tmux session命名规范、4并发启动实例
-第六代系统技术说明书/07-工程规格/01-系统架构总图.md
