@@ -8,16 +8,19 @@
 
 用法：
   # 按tier选N道无profile题，提取题面到outdir
-  python extract_problem_text.py --tier 1 --limit 10 --outdir /tmp/batch_t1
-  python extract_problem_text.py --tier 2 --limit 10 --outdir /tmp/batch_t2
-  python extract_problem_text.py --tier 3 --limit 10 --outdir /tmp/batch_t3
+  python extract_problem_text.py --tier 1 --limit 10 --outdir runs/batch_problem_files/batch_t1
+  python extract_problem_text.py --tier 2 --limit 10 --outdir runs/batch_problem_files/batch_t2
+  python extract_problem_text.py --tier 3 --limit 10 --outdir runs/batch_problem_files/batch_t3
 
   # 按progress_key指定
-  python extract_problem_text.py --progress-key 382056,382075 --outdir /tmp/batch_custom
+  python extract_problem_text.py --progress-key 382056,382075 --outdir runs/batch_problem_files/batch_custom
 
   # 输出：
   #   outdir/p<key>_<problem_id>.txt  — 每题一个文件（可直接用作--case的path）
   #   outdir/manifest.jsonl           — 每行一个JSON：{progress_key, problem_id, path, tier, source_dataset}
+  #
+  # 注意：outdir必须放在持久化目录（如runs/下），不要用/tmp——
+  # /tmp重启后清空，会导致manifest丢失（虽然题面文件会被run-files复制到batch_dir持久化）
 """
 
 from __future__ import annotations
