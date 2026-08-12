@@ -82,8 +82,12 @@ TOKEN_LIMIT_PATTERNS = (
 CONNECTION_PATTERNS = (
     "connection failed",
     "connection reset",
+    "connection error",
     "network error",
     "api error",
+    "cognition.ai/errorKind",
+    "unavailable",
+    "retryable",
 )
 
 # 361号§5 verdict 两级判定映射。auto_status 是 runner 内部状态机值；
