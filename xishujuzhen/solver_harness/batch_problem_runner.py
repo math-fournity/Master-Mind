@@ -1720,44 +1720,56 @@ def cmd_run_continuous(args: argparse.Namespace) -> int:
 
     batch_id = args.batch_id or make_batch_id(args.label or f"continuous-tier{args.feed_tier}")
 
-    # 先选一批初始题目（concurrency数量）作为种子
-    initial = select_by_progress_for_feed(db, tier=args.feed_tier, limit=args.concurrency, batch_id=batch_id)
-    if not initial:
-        print(f"No unprocessed tier {args.feed_tier} problems found.", file=sys.stderr)
-        return 1
+    # --batch-id模式下：如果已有queued题，跳过初始feed直接进monitor循环
+    existing_attempts = load_attempts(db, batch_id) if args.batch_id else []
+    existing_queued = [a for a in existing_attempts if a.get("status") == "queued"]
+    if existing_queued:
+        print(f"  [resume] batch {batch_id} has {len(existing_queued)} queued attempts, skipping initial feed", flush=True)
+        selected = []
+    else:
+        # 先选一批初始题目（concurrency数量）作为种子
+        initial = select_by_progress_for_feed(db, tier=args.feed_tier, limit=args.concurrency, batch_id=batch_id)
+        if not initial:
+            print(f"No unprocessed tier {args.feed_tier} problems found.", file=sys.stderr)
+            return 1
 
-    selected = []
-    for prog in initial:
-        try:
-            text = load_problem_text_from_progress(prog)
-            if text and len(text.strip()) >= 10:
-                selected.append({
-                    "progress": prog,
-                    "profile": {"_key": prog.get("problem_id", f"p{prog['_key']}")},
-                    "problem_file_text": text.strip() + "\n",
-                    "problem_id_override": prog.get("problem_id"),
-                    "source_mode": "continuous_feed",
-                    "case_metadata": {"feed_tier": args.feed_tier},
-                })
-        except Exception as e:
-            print(f"  SKIP p{prog['_key']}: {e}", file=sys.stderr)
+        selected = []
+        for prog in initial:
+            try:
+                text = load_problem_text_from_progress(prog)
+                if text and len(text.strip()) >= 10:
+                    selected.append({
+                        "progress": prog,
+                        "profile": {"_key": prog.get("problem_id", f"p{prog['_key']}")},
+                        "problem_file_text": text.strip() + "\n",
+                        "problem_id_override": prog.get("problem_id"),
+                        "source_mode": "continuous_feed",
+                        "case_metadata": {"feed_tier": args.feed_tier},
+                    })
+            except Exception as e:
+                print(f"  SKIP p{prog['_key']}: {e}", file=sys.stderr)
 
-    if not selected:
+    if not selected and not existing_queued:
         print("Failed to extract any problem text.", file=sys.stderr)
         return 1
 
     selection = {"mode": "continuous_feed", "feed_tier": args.feed_tier, "initial_count": len(selected)}
-    create_batch(
-        db,
-        batch_id=batch_id,
-        selected=selected,
-        model=args.model,
-        concurrency=args.concurrency,
-        selection=selection,
-        max_runtime_seconds=args.max_runtime_seconds,
-        stall_seconds=args.stall_seconds,
-    )
-    print(f"created continuous batch: {batch_id} (initial {len(selected)}, target concurrency={args.concurrency})")
+    if selected:
+        create_batch(
+            db,
+            batch_id=batch_id,
+            selected=selected,
+            model=args.model,
+            concurrency=args.concurrency,
+            selection=selection,
+            max_runtime_seconds=args.max_runtime_seconds,
+            stall_seconds=args.stall_seconds,
+        )
+        print(f"created continuous batch: {batch_id} (initial {len(selected)}, target concurrency={args.concurrency})")
+    else:
+        # resume模式：更新concurrency但不创建新batch
+        db.collection("devin_batch_runs").update({"_key": batch_id, "concurrency": args.concurrency})
+        print(f"resuming batch: {batch_id} ({len(existing_queued)} queued, target concurrency={args.concurrency})")
     monitor_batch(
         db,
         batch_id,

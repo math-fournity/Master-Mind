@@ -518,7 +518,7 @@ tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
   --feed-tier 1 --concurrency 30 --poll-seconds 60 \
   --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
   --launch-interval-seconds 1 --label <你的label> \
-  2>&1 | tee /tmp/batch-<你的label>.log"
+  2>&1 | tee /data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<你的label>.log"
 
 # 继续已有batch：用--batch-id指定（不会创建新batch，只继续feed+launch queued的题）
 tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
@@ -526,7 +526,7 @@ tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
   --batch-id <已有batch_id> --feed-tier 1 --concurrency 30 --poll-seconds 60 \
   --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
   --launch-interval-seconds 1 --label <你的label> \
-  2>&1 | tee /tmp/batch-<你的label>.log"
+  2>&1 | tee /data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<你的label>.log"
 ```
 
 **SOP 2 · 检查批次健康（启动后90秒）**
@@ -536,7 +536,7 @@ cd ~/master-mind-glm5.2-worktree
 set -a; source .env; set +a
 
 # 1. 看monitor日志——10个launch是否全部exit=0
-grep -E "\[launch\]" /tmp/batch-<label>.log | head -30
+grep -E "\[launch\]" /data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log | head -30
 
 # 2. 看状态
 .venv/bin/python xishujuzhen/solver_harness/batch_status.py status
@@ -582,7 +582,7 @@ set -a; source .env; set +a
 
 # 2. 如果dead持续出现，检查根因：
 #    a. 看launch日志
-grep "\[launch\]" /tmp/batch-<label>.log | grep "exit=" | grep -v "exit=0"
+grep "\[launch\]" /data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log | grep "exit=" | grep -v "exit=0"
 #    b. 看dead session的tmux log
 cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/tmux/tmux.log | tail -30
 #    c. 看dead session的launch日志
@@ -685,6 +685,96 @@ cd ~/master-mind-glm5.2-worktree
 .venv/bin/python -m py_compile xishujuzhen/solver_harness/solver_harness.py && \
 .venv/bin/python -m py_compile xishujuzhen/solver_harness/batch_status.py && \
 echo "compile OK"
+```
+
+**SOP 13 · 手动feed题+resume已有batch（2026-08-12实战方法）**
+
+> **场景**：需要重跑某些题（如dead_session的130道tier 1题），但monitor的`run-continuous`启动时会先`select_by_progress_for_feed`选初始题——如果tier题已全部processed，返回空直接退出，不launch已有的queued题。
+
+**方法：先手动create_batch feed题，再用`--batch-id` resume**
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+
+# 1. 手动feed题到新batch（用Python调create_batch）
+.venv/bin/python -c "
+import sys; sys.path.insert(0, 'xishujuzhen/solver_harness')
+from batch_problem_runner import load_problem_text_from_progress, create_batch
+from arango import ArangoClient
+import os
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+# 找需要重跑的题（按status过滤）
+need = list(db.aql.execute('''
+  FOR r IN devin_problem_runs
+    FILTER r.progress_key != null
+    FOR p IN problem_extraction_progress
+      FILTER p._key == r.progress_key
+      FILTER p.difficulty_tier == 1
+      FILTER r.status IN [\"dead_session\", \"launch_error\", \"failed_connection\"]
+      RETURN DISTINCT {pid: r.problem_id, progress_key: r.progress_key}
+'''))
+selected = []
+for r in need:
+    prog = db.collection('problem_extraction_progress').get(r['progress_key'])
+    if not prog: continue
+    text = load_problem_text_from_progress(prog)
+    if text and len(text.strip()) >= 10:
+        selected.append({'progress': prog, 'profile': {'_key': r['pid']},
+            'problem_file_text': text.strip() + '\n', 'problem_id_override': r['pid'],
+            'source_mode': 'continuous_feed', 'case_metadata': {'rerun': True}})
+print(f'fed {len(selected)} problems')
+create_batch(db, batch_id='dpb-<你的batch_id>', selected=selected, model='glm-5-2',
+    concurrency=60, selection={'rerun': True}, max_runtime_seconds=14400, stall_seconds=900)
+"
+
+# 2. 用--batch-id resume（monitor会自动launch queued题）
+tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
+  .venv/bin/python -u xishujuzhen/solver_harness/batch_problem_runner.py run-continuous \
+  --batch-id dpb-<你的batch_id> --feed-tier 1 --concurrency 60 --poll-seconds 60 \
+  --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
+  --launch-interval-seconds 1 --label <label> \
+  2>&1 | tee /data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log"
+```
+
+> **monitor已修复**：`--batch-id`模式下如果已有queued题，跳过初始feed直接进monitor循环launch queued题。
+
+**SOP 14 · 资产追溯规范（2026-08-12）**
+
+> **所有运行资产必须可追溯**——从DB记录能找到文件路径，从文件路径能找到DB记录。不允许放临时目录。
+
+**资产存放位置**：
+
+| 资产 | 位置 | 持久化 | 追溯方式 |
+|---|---|---|---|
+| **trajectory文件**（export/pipe/thinking_capture/tmux.log） | `/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/` | 是 | DB attempt.paths指向 |
+| **solver工作目录**（problem.txt/proof.md/AGENTS.md） | `/data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/` | 是 | DB attempt.paths指向 |
+| **monitor日志** | `/data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log` | 是 | tmux session名对应 |
+| **DB记录**（attempt/event/batch） | ArangoDB | 是 | batch_id → attempt → paths |
+| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 是 | devin_session_id关联 |
+
+**禁止**：
+- **禁止放`/tmp/`**——重启丢失，无法追溯
+- **禁止只存DB不存文件**——DB只有paths指针，文件丢了paths指向空
+- **禁止只存文件不存DB**——没有DB记录无法从batch_id查到attempt
+
+**验证资产完整性**：
+```bash
+# 检查batch的所有attempt的export文件是否存在
+.venv/bin/python -c "
+from arango import ArangoClient; import os; from pathlib import Path
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+batch_id = '<你的batch_id>'
+missing = 0
+for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid RETURN a', bind_vars={'bid': batch_id}):
+    export = Path(a['paths'].get('export_path',''))
+    if not export.exists() or export.stat().st_size == 0:
+        print(f'MISSING: {a[\"problem_id\"]} export={export}')
+        missing += 1
+print(f'missing export: {missing}')
+"
 ```
 
 ---
