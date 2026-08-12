@@ -1105,12 +1105,20 @@ def monitor_batch(
 ) -> None:
     batch = load_batch(db, batch_id)
     batch_dir = Path(batch["paths"]["batch_dir"])
-    concurrency = int(batch["concurrency"])
     update_batch_status(db, batch_id, "running")
     insert_event(db, batch_id, "monitor_started", {"poll_seconds": poll_seconds})
     rate_limit_warned = False
+    last_concurrency = int(batch["concurrency"])
 
     while True:
+        # 动态并发：每轮从DB读取batch.concurrency，支持运行中通过set-concurrency命令调整
+        batch = load_batch(db, batch_id)
+        concurrency = int(batch.get("concurrency", last_concurrency))
+        if concurrency != last_concurrency:
+            insert_event(db, batch_id, "concurrency_changed", {"old": last_concurrency, "new": concurrency})
+            print(f"  [dynamic] concurrency {last_concurrency} → {concurrency}")
+            last_concurrency = concurrency
+
         attempts = load_attempts(db, batch_id)
         running_count = sum(1 for item in attempts if item.get("status") in RUNNING_STATUSES)
         # 361号§7: 限流感知——任一运行中 attempt 出现 rate_limited marker 时暂停补新题。
@@ -1409,6 +1417,25 @@ def cmd_status(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_set_concurrency(args: argparse.Namespace) -> int:
+    """动态修改运行中批次的并发量。monitor循环每轮从DB读取batch.concurrency。"""
+    db = connect_db()
+    batch = load_batch(db, args.batch_id)
+    old = int(batch.get("concurrency", 0))
+    db.collection(BATCH_COLLECTION).update(
+        {"_key": args.batch_id, "concurrency": args.concurrency, "updated_at": utc_now()}
+    )
+    insert_event(
+        db,
+        args.batch_id,
+        "concurrency_changed",
+        {"old": old, "new": args.concurrency, "source": "set_concurrency_command"},
+    )
+    print(f"batch {args.batch_id}: concurrency {old} → {args.concurrency}")
+    print(f"  (monitor will pick up the new value on its next poll cycle)")
+    return 0
+
+
 def cmd_stop(args: argparse.Namespace) -> int:
     db = connect_db()
     batch = load_batch(db, args.batch_id)
@@ -1516,6 +1543,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_stop.add_argument("--batch-id", required=True)
     p_stop.add_argument("--no-decode", action="store_true")
     p_stop.set_defaults(func=cmd_stop)
+
+    p_setc = sub.add_parser("set-concurrency", help="dynamically change concurrency of a running batch")
+    p_setc.add_argument("--batch-id", required=True)
+    p_setc.add_argument("--concurrency", type=int, required=True, help="new concurrency limit")
+    p_setc.set_defaults(func=cmd_set_concurrency)
 
     return parser
 
