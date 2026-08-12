@@ -62,10 +62,13 @@ RUNNING_STATUSES = {"launching", "running", "stalled_warning"}
 RATE_LIMIT_PATTERNS = (
     "rate limit",
     "ratelimit",
-    "429",
     "too many requests",
-    "quota",
+    "quota exceeded",
+    "api rate",
     "限流",
+    "http 429",
+    "status 429",
+    "error 429",
 )
 
 TOKEN_LIMIT_PATTERNS = (
