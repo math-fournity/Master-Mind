@@ -99,7 +99,7 @@ def cmd_active(db, batch_id):
         export_kb = s.get("export_path", 0) // 1024
         markers = [k for k, v in a["markers"].items() if v]
         m_str = ",".join(markers) if markers else "-"
-        status = "ACTIVE" if a["idle"] < 120 else "STALLED"
+        status = "ACTIVE" if (a["idle"] or 0) < 120 else "STALLED"
         if status == "ACTIVE":
             active += 1
         else:
