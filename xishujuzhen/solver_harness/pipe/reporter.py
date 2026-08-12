@@ -18,6 +18,9 @@ from redis_queue import (
     get_redis, pending_count, running_count, completed_count, failed_count,
     update_stats, get_stats, ping,
 )
+from shared_logger import get_logger
+
+logger = get_logger("reporter")
 
 LOG_DIR = "/data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs"
 
@@ -28,15 +31,16 @@ def main():
     args = parser.parse_args()
 
     if not ping():
-        print("[reporter] ❌ Redis连接失败", flush=True)
+        logger.error("Redis连接失败")
         sys.exit(1)
-    print(f"[reporter] ✅ Redis连接成功, interval={args.interval}s", flush=True)
+    logger.info(f"Redis连接成功, interval={args.interval}s")
 
     os.makedirs(LOG_DIR, exist_ok=True)
     log_file = os.path.join(LOG_DIR, "reporter.log")
 
     r = get_redis()
     start_time = time.time()
+    prev_stats = {"pending": None, "running": None, "completed": None, "failed": None}
 
     while True:
         update_stats(r)
@@ -62,7 +66,20 @@ def main():
             else:
                 eta_str = "N/A"
         else:
+            rate = 0
             eta_str = "N/A"
+
+        # 数值变化检测（DEBUG级）
+        changes = []
+        for name, val in [("pending", pending), ("running", running), ("completed", completed), ("failed", failed)]:
+            prev = prev_stats[name]
+            if prev is not None and val != prev:
+                changes.append(f"{name}: {prev}->{val} (delta={val-prev:+d})")
+            prev_stats[name] = val
+        if changes:
+            logger.debug(f"数值变化: {'; '.join(changes)}")
+
+        logger.debug(f"吞吐量计算: done={done} elapsed={elapsed:.1f}s rate={rate:.4f}题/秒 pending={pending} eta={eta_str}")
 
         report = (
             f"{'='*60}\n"
@@ -78,7 +95,7 @@ def main():
             f"{'='*60}"
         )
 
-        print(report, flush=True)
+        logger.info(f"统计报告: pending={pending} running={running} completed={completed} failed={failed} total={total} success率={success_rate:.1f}% 速率={rate:.2f}题/秒 ETA={eta_str} 运行={elapsed/3600:.1f}h")
 
         # 写日志
         with open(log_file, "a") as f:
@@ -86,9 +103,9 @@ def main():
 
         # 告警检测
         if running == 0 and pending > 0:
-            print(f"[reporter] ⚠️ 告警: running=0 但pending={pending}，Runner可能挂了!", flush=True)
+            logger.warning(f"告警触发: running=0 但pending={pending}, Runner可能挂了 (条件: running==0 and pending>0)")
         if failed > 0 and success_rate < 50 and done > 10:
-            print(f"[reporter] ⚠️ 告警: 失败率>{100-success_rate:.0f}%，检查连接", flush=True)
+            logger.warning(f"告警触发: 失败率>{100-success_rate:.0f}% (failed={failed} success_rate={success_rate:.1f}% done={done}>10), 检查连接 (条件: failed>0 and success_rate<50 and done>10)")
 
         time.sleep(args.interval)
 

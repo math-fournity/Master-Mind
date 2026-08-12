@@ -31,6 +31,9 @@ from redis_queue import (
     update_stats, ping,
 )
 from arango import ArangoClient
+from shared_logger import get_logger
+
+logger = get_logger("collector")
 
 DB_HOST = "http://localhost:8529"
 DB_NAME = "xishujuzhen_math_glm52"
@@ -84,8 +87,11 @@ def tmux_running(session_name: str) -> bool:
             ["tmux", "has-session", "-t", session_name],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=5
         )
-        return result.returncode == 0
-    except Exception:
+        running = result.returncode == 0
+        logger.debug(f"tmux_running: session={session_name} running={running}")
+        return running
+    except Exception as e:
+        logger.warning(f"tmux_running异常: session={session_name} error={e}")
         return False
 
 
@@ -95,15 +101,23 @@ def capture_pane(session_name: str, lines: int = 500) -> str:
             ["tmux", "capture-pane", "-t", session_name, "-p", "-S", f"-{lines}"],
             capture_output=True, text=True, timeout=10
         )
-        return result.stdout
-    except Exception:
+        text = result.stdout
+        logger.debug(f"capture_pane: session={session_name} lines={lines} captured_len={len(text)}")
+        return text
+    except Exception as e:
+        logger.warning(f"capture_pane失败: session={session_name} lines={lines} error={e}")
         return ""
 
 
 def pane_is_empty(session_name: str) -> bool:
     text = capture_pane(session_name, 50)
     stripped = "\n".join(l for l in text.split("\n") if l.strip())
-    return len(stripped) < 20
+    is_empty = len(stripped) < 20
+    if is_empty:
+        logger.warning(f"pane_is_empty: session={session_name} stripped_len={len(stripped)} 判定为空白")
+    else:
+        logger.debug(f"pane_is_empty: session={session_name} stripped_len={len(stripped)} 非空白")
+    return is_empty
 
 
 def is_thinking(pane_text: str) -> bool:
@@ -112,13 +126,16 @@ def is_thinking(pane_text: str) -> bool:
     # 检查devin cli的thinking状态标记
     for pattern in THINKING_PATTERNS:
         if pattern in cleaned:
+            logger.debug(f"is_thinking=True: 匹配到thinking标记 '{pattern}' pane_len={len(cleaned)}")
             return True
     # 检查是否有数学内容（LaTeX符号、推理步骤）
     math_indicators = ["\\frac", "\\sum", "\\int", "\\Rightarrow", "therefore", "hence", "thus", "since",
                        "minimize", "maximize", "constraint", "feasible", "denote", "define", "lemma"]
     math_count = sum(1 for ind in math_indicators if ind in cleaned.lower())
     if math_count >= 2:
+        logger.debug(f"is_thinking=True: 数学内容匹配 count={math_count} pane_len={len(cleaned)}")
         return True
+    logger.debug(f"is_thinking=False: 无thinking标记也无足够数学内容 math_count={math_count} pane_len={len(cleaned)}")
     return False
 
 
@@ -126,9 +143,11 @@ def has_real_proof(pane_text: str) -> bool:
     """验证是否有真实的proof内容——眼见为实"""
     cleaned = clean_ansi(pane_text)
     if PROOF_COMPLETE_MARKER not in cleaned:
+        logger.debug(f"has_real_proof=False: 未检测到 '{PROOF_COMPLETE_MARKER}' marker")
         return False
     # 找到PROOF COMPLETE标记的位置
     idx = cleaned.index(PROOF_COMPLETE_MARKER)
+    logger.debug(f"has_real_proof: 检测到 '{PROOF_COMPLETE_MARKER}' marker位置={idx}")
     # 检查标记之前的内容（proof主体）
     proof_body = cleaned[:idx]
     # 去掉空白和题目部分
@@ -138,20 +157,27 @@ def has_real_proof(pane_text: str) -> bool:
     # proof内容至少100字符
     proof_content = "\n".join(content_lines)
     if len(proof_content) < 100:
+        logger.debug(f"has_real_proof=False: proof内容过短 content_len={len(proof_content)} < 100")
         return False
     # 检查是否有数学推理内容
     math_indicators = ["\\frac", "\\sum", "\\int", "\\Rightarrow", "therefore", "hence", "thus",
                        "prove", "proof", "since", "let", "assume", "suppose", "consider", "we have",
                        "minimize", "maximize", "constraint", "feasible", "denote", "define", "lemma"]
     math_count = sum(1 for ind in math_indicators if ind in proof_content.lower())
-    return math_count >= 2
+    if math_count >= 2:
+        logger.debug(f"has_real_proof=True: proof内容有效 content_len={len(proof_content)} math_count={math_count}")
+        return True
+    logger.debug(f"has_real_proof=False: proof内容无足够数学推理 math_count={math_count} content_len={len(proof_content)}")
+    return False
 
 
 def check_ai_gave_up(pane_text: str) -> bool:
     """检测AI是否主动放弃"""
     for pattern in AI_GAVE_UP_PATTERNS:
         if pattern in pane_text:
+            logger.debug(f"check_ai_gave_up=True: 匹配到放弃标记 '{pattern}'")
             return True
+    logger.debug(f"check_ai_gave_up=False: 未匹配到任何放弃标记")
     return False
 
 
@@ -160,13 +186,16 @@ def check_tool_use(exp_id: str) -> bool:
     # trajectory目录
     traj_dir = TRAJECTORY_BASE / exp_id / "sessions_db"
     if not traj_dir.exists():
+        logger.debug(f"check_tool_use: traj_dir不存在 {traj_dir} 假设无工具调用")
         return False  # 没有sessions.db，无法检查，假设无工具调用
 
     # 查找sessions.db文件
     db_files = list(traj_dir.glob("*.db"))
     if not db_files:
+        logger.debug(f"check_tool_use: traj_dir存在但无.db文件 {traj_dir}")
         return False
 
+    logger.debug(f"check_tool_use: exp_id={exp_id} 找到{len(db_files)}个db文件")
     for db_file in db_files:
         try:
             conn = sqlite3.connect(str(db_file))
@@ -177,12 +206,18 @@ def check_tool_use(exp_id: str) -> bool:
             if "message_nodes" in tables:
                 cursor.execute("SELECT COUNT(*) FROM message_nodes WHERE type LIKE '%tool%' OR role LIKE '%tool%'")
                 count = cursor.fetchone()[0]
+                logger.debug(f"check_tool_use: db_file={db_file.name} message_nodes表存在 tool_count={count}")
                 if count > 0:
                     conn.close()
+                    logger.warning(f"check_tool_use: 检测到工具调用! exp_id={exp_id} db_file={db_file.name} tool_count={count}")
                     return True
+            else:
+                logger.debug(f"check_tool_use: db_file={db_file.name} 无message_nodes表 tables={tables}")
             conn.close()
-        except Exception:
+        except Exception as e:
+            logger.debug(f"check_tool_use: db_file={db_file.name} 查询异常 {e}")
             continue
+    logger.debug(f"check_tool_use=False: exp_id={exp_id} 未检测到工具调用")
     return False
 
 
@@ -193,54 +228,89 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
     exp_id = attempt_meta.get("exp_id", "")
     tmux_session = attempt_meta.get("tmux_session", "")
 
+    pane_len = len(pane_text)
+    thinking = is_thinking(pane_text) if pane_text else False
+    logger.debug(f"classify开始: problem_key={problem_key} exp_id={exp_id} elapsed={elapsed:.0f}s "
+                 f"is_running={is_running} pane_len={pane_len} thinking={thinking} "
+                 f"timeout={timeout} stall_time={stall_time}")
+
     # 1. 答案泄漏（最高优先级）
     if ANSWER_LEAK_MARKER in pane_text:
+        logger.warning(f"classify判定=answer_leak: problem_key={problem_key} exp_id={exp_id} "
+                       f"检测到 '{ANSWER_LEAK_MARKER}' 标记 pane_len={pane_len} elapsed={elapsed:.0f}s")
         return "answer_leak", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "answer_leak", "elapsed": elapsed}
 
     # 2. AI主动放弃——模型能力边界
     if check_ai_gave_up(pane_text):
+        logger.warning(f"classify判定=ai_gave_up: problem_key={problem_key} exp_id={exp_id} "
+                       f"检测到AI放弃标记 pane_len={pane_len} elapsed={elapsed:.0f}s")
         return "ai_gave_up", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "ai_gave_up", "elapsed": elapsed}
 
     # 3. 真实PROOF COMPLETE——验证有真实proof内容
     if has_real_proof(pane_text):
+        logger.info(f"classify: 检测到真实proof problem_key={problem_key} exp_id={exp_id} pane_len={pane_len}")
         # 检查是否有工具调用
         if check_tool_use(exp_id):
+            logger.warning(f"classify判定=invalid_tool_use: problem_key={problem_key} exp_id={exp_id} "
+                           f"有proof但检测到工具调用 elapsed={elapsed:.0f}s")
             return "invalid_tool_use", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "invalid_tool_use", "elapsed": elapsed}
+        logger.info(f"classify判定=candidate_solved: problem_key={problem_key} exp_id={exp_id} "
+                    f"真实proof+无工具调用 elapsed={elapsed:.0f}s")
         return "candidate_solved", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "candidate_solved", "elapsed": elapsed}
 
     # 4. 超时——区分thinking spin和真超时
     if elapsed > timeout:
         if is_thinking(pane_text):
-            # AI还在thinking但超时了——thinking spin
+            logger.warning(f"classify判定=failed_thinking_spin: problem_key={problem_key} exp_id={exp_id} "
+                           f"超时且仍在thinking elapsed={elapsed:.0f}s > timeout={timeout}s pane_len={pane_len}")
             return "failed_thinking_spin", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_thinking_spin", "elapsed": elapsed}
+        logger.info(f"classify判定=failed_timeout: problem_key={problem_key} exp_id={exp_id} "
+                    f"超时 elapsed={elapsed:.0f}s > timeout={timeout}s pane_len={pane_len}")
         return "failed_timeout", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_timeout", "elapsed": elapsed}
 
     # 5. tmux session已结束——区分基础设施失败和模型能力失败
     if not is_running:
+        logger.debug(f"classify: tmux session已结束 problem_key={problem_key} exp_id={exp_id} 检查错误标记")
         # 检查基础设施错误
         for p in RATE_LIMIT_PATTERNS:
             if p.lower() in pane_text.lower():
+                logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
+                               f"检测到rate limit标记 '{p}' elapsed={elapsed:.0f}s")
                 return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
         for p in TOKEN_LIMIT_PATTERNS:
             if p.lower() in pane_text.lower():
+                logger.warning(f"classify判定=failed_token_limit: problem_key={problem_key} exp_id={exp_id} "
+                               f"检测到token limit标记 '{p}' elapsed={elapsed:.0f}s")
                 return "failed_token_limit", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_token_limit", "elapsed": elapsed}
         for p in CONNECTION_PATTERNS:
             if p.lower() in pane_text.lower():
+                logger.error(f"classify判定=failed_connection: problem_key={problem_key} exp_id={exp_id} "
+                             f"检测到连接错误标记 '{p}' elapsed={elapsed:.0f}s")
                 return "failed_connection", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_connection", "elapsed": elapsed}
         # 没有错误标记——AI没做完就结束了
+        logger.warning(f"classify判定=failed_no_proof: problem_key={problem_key} exp_id={exp_id} "
+                       f"session结束但无错误标记也无proof elapsed={elapsed:.0f}s pane_len={pane_len}")
         return "failed_no_proof", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_no_proof", "elapsed": elapsed}
 
     # 6. 僵尸session（tmux在但pane空白）——基础设施失败
     if tmux_session and tmux_running(tmux_session) and pane_is_empty(tmux_session):
+        logger.warning(f"classify判定=dead_session: problem_key={problem_key} exp_id={exp_id} "
+                       f"tmux在但pane空白 elapsed={elapsed:.0f}s")
         return "dead_session", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "dead_session", "elapsed": elapsed}
 
     # 7. stall——区分thinking spin和真stall
     if time.time() - last_activity > stall_time:
+        stall_elapsed = time.time() - last_activity
         if is_thinking(pane_text):
+            logger.warning(f"classify判定=failed_thinking_spin: problem_key={problem_key} exp_id={exp_id} "
+                           f"stall且仍在thinking stall_elapsed={stall_elapsed:.0f}s > stall_time={stall_time}s")
             return "failed_thinking_spin", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_thinking_spin", "elapsed": elapsed}
+        logger.warning(f"classify判定=failed_stall: problem_key={problem_key} exp_id={exp_id} "
+                       f"stall stall_elapsed={stall_elapsed:.0f}s > stall_time={stall_time}s")
         return "failed_stall", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_stall", "elapsed": elapsed}
 
     # 未结束
+    logger.debug(f"classify: 未结束 problem_key={problem_key} exp_id={exp_id} elapsed={elapsed:.0f}s 继续等待")
     return None, None
 
 
@@ -252,9 +322,11 @@ def stop_tmux(session_name: str):
 def save_pane_snapshot(exp_id: str, session_name: str) -> Path | None:
     """在判定终态前，保存完整的tmux pane内容到文件——眼见为实的物理证据"""
     if not session_name:
+        logger.debug(f"save_pane_snapshot: 无session_name exp_id={exp_id} 跳过")
         return None
     pane_text = capture_pane(session_name, 2000)  # 抓2000行
     if not pane_text.strip():
+        logger.warning(f"save_pane_snapshot: pane内容为空 exp_id={exp_id} session={session_name} 无法保存")
         return None
     snapshot_dir = TRAJECTORY_BASE / exp_id / "collector"
     snapshot_dir.mkdir(parents=True, exist_ok=True)
@@ -264,11 +336,18 @@ def save_pane_snapshot(exp_id: str, session_name: str) -> Path | None:
     cleaned = clean_ansi(pane_text)
     clean_file = snapshot_dir / "pane_snapshot_clean.txt"
     clean_file.write_text(cleaned, encoding="utf-8")
+    raw_size = snapshot_file.stat().st_size
+    clean_size = clean_file.stat().st_size
+    line_count = pane_text.count("\n") + 1
+    logger.info(f"save_pane_snapshot: exp_id={exp_id} session={session_name} "
+                f"lines={line_count} raw_size={raw_size}B clean_size={clean_size}B "
+                f"saved={snapshot_file}")
     return snapshot_file
 
 
 def update_db_status(db, attempt_key: str, status: str, verdict: str, result: dict):
     """更新ArangoDB中attempt和problem的状态"""
+    logger.debug(f"update_db_status: attempt_key={attempt_key} status={status} verdict={verdict}")
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     elapsed = result.get("elapsed", 0)
     try:
@@ -280,8 +359,9 @@ def update_db_status(db, attempt_key: str, status: str, verdict: str, result: di
             "runtime_seconds": int(elapsed),
             "end_reason": f"collector判定: {verdict}",
         })
-    except Exception:
-        pass
+        logger.debug(f"update_db_status: attempt更新成功 attempt_key={attempt_key} status={status}")
+    except Exception as e:
+        logger.error(f"update_db_status: attempt更新失败 attempt_key={attempt_key} error={e}")
 
     # 更新problem状态
     problem_key = result.get("problem_key")
@@ -290,27 +370,31 @@ def update_db_status(db, attempt_key: str, status: str, verdict: str, result: di
             attempt = db.collection(ATTEMPT_COLLECTION).get(attempt_key)
             if attempt:
                 problem_key = attempt.get("problem_id")
-        except Exception:
-            pass
+                logger.debug(f"update_db_status: 从attempt获取problem_key={problem_key}")
+        except Exception as e:
+            logger.error(f"update_db_status: 获取attempt失败 attempt_key={attempt_key} error={e}")
 
     if problem_key:
         if status == "candidate_solved":
             try:
                 db.collection(COLLECTION).update({"_key": problem_key, "extraction_status": "completed"})
-            except Exception:
-                pass
+                logger.debug(f"update_db_status: problem标记completed problem_key={problem_key}")
+            except Exception as e:
+                logger.error(f"update_db_status: problem更新completed失败 problem_key={problem_key} error={e}")
         elif verdict in INFRA_FAILURES:
             # 基础设施失败——回到pending，可以重试
             try:
                 db.collection(COLLECTION).update({"_key": problem_key, "extraction_status": "pending"})
-            except Exception:
-                pass
+                logger.debug(f"update_db_status: problem回退pending(基础设施失败) problem_key={problem_key} verdict={verdict}")
+            except Exception as e:
+                logger.error(f"update_db_status: problem回退pending失败 problem_key={problem_key} error={e}")
         elif verdict in MODEL_FAILURES:
             # 模型能力失败——标记为failed，不重试
             try:
                 db.collection(COLLECTION).update({"_key": problem_key, "extraction_status": "failed"})
-            except Exception:
-                pass
+                logger.debug(f"update_db_status: problem标记failed(模型能力失败) problem_key={problem_key} verdict={verdict}")
+            except Exception as e:
+                logger.error(f"update_db_status: problem标记failed失败 problem_key={problem_key} error={e}")
 
 
 def main():
@@ -322,25 +406,32 @@ def main():
     args = parser.parse_args()
 
     if not ping():
-        print("[collector] ❌ Redis连接失败", flush=True)
+        logger.error("Redis连接失败, 退出")
         sys.exit(1)
-    print(f"[collector] ✅ Redis连接成功, poll={args.poll_interval}s, timeout={args.timeout}s", flush=True)
-    print(f"[collector] 眼见为实模式: 真实thinking检测+真实proof验证+无工具调用验证", flush=True)
+    logger.info(f"Redis连接成功, poll={args.poll_interval}s, timeout={args.timeout}s, stall={args.stall_time}s")
+    logger.info("眼见为实模式: 真实thinking检测+真实proof验证+无工具调用验证")
 
     client = ArangoClient(hosts=DB_HOST, request_timeout=300)
     db = client.db(DB_NAME, username=DB_USER, password=DB_PASS)
-    print(f"[collector] ✅ ArangoDB连接成功", flush=True)
+    logger.info("ArangoDB连接成功")
 
     r = get_redis()
 
+    # 累计统计
+    total_completed = 0
+    total_failed = 0
+    total_infra = 0
+    round_num = 0
+
     while True:
+        round_num += 1
         running = get_all_running(r)
         if not running:
-            print(f"[collector] 无running attempt, 等待...", flush=True)
+            logger.debug(f"无running attempt, 等待{args.poll_interval}s...")
             time.sleep(args.poll_interval)
             continue
 
-        print(f"[collector] 扫描 {len(running)} 个running attempt", flush=True)
+        logger.info(f"第{round_num}轮扫描: {len(running)}个running attempt")
         completed_this_round = 0
         failed_this_round = 0
         infra_failures_this_round = 0
@@ -351,6 +442,7 @@ def main():
                 add_completed(r, result)
                 remove_running(r, exp_id)
                 completed_this_round += 1
+                logger.debug(f"dry_run: exp_id={exp_id} 标记完成")
                 continue
 
             tmux_session = meta.get("tmux_session", "")
@@ -370,11 +462,13 @@ def main():
                 # 还在运行中——更新last_activity
                 meta["last_activity"] = time.time()
                 r.hset("math:running", exp_id, json.dumps(meta))
+                logger.debug(f"仍在运行 exp_id={exp_id} elapsed={elapsed:.0f}s 更新last_activity")
                 continue
 
             # 终态确定
             result["attempt_key"] = meta.get("attempt_key", "")
             result["tmux_session"] = tmux_session
+            logger.info(f"终态确定: exp_id={exp_id} status={status} problem_key={meta.get('problem_key', '')} elapsed={elapsed:.0f}s")
 
             # 眼见为实：保存完整pane内容作为物理证据
             if is_running and tmux_session:
@@ -389,53 +483,64 @@ def main():
                 if time_info.get("solve_time"):
                     result["solve_time_seconds"] = round(time_info["solve_time"]["solve_time_seconds"], 1)
                     result["solve_time_source"] = time_info["solve_time"]["source"]
+                    logger.info(f"extract_solve_time: exp_id={exp_id} source={time_info['solve_time']['source']} "
+                                f"solve_time={result['solve_time_seconds']}s")
                 if time_info.get("time_breakdown"):
                     tb = time_info["time_breakdown"]
                     if tb.get("init_overhead_seconds") is not None:
                         result["init_overhead_seconds"] = round(tb["init_overhead_seconds"], 1)
-            except Exception:
-                pass
+                        logger.debug(f"extract_solve_time: exp_id={exp_id} init_overhead={result['init_overhead_seconds']}s")
+            except Exception as e:
+                logger.debug(f"extract_solve_time失败(首次): exp_id={exp_id} error={e}")
 
             if status == "candidate_solved":
                 add_completed(r, result)
                 completed_this_round += 1
-                print(f"[collector] ✅ SOLVED {meta.get('problem_key', '')} ({elapsed:.0f}s)", flush=True)
+                logger.info(f"SOLVED {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s)")
             elif status == "answer_leak":
                 add_completed(r, result)
                 completed_this_round += 1
-                print(f"[collector] ⚠️ ANSWER LEAK {meta.get('problem_key', '')}", flush=True)
+                logger.warning(f"ANSWER LEAK {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s)")
             elif status in INFRA_FAILURES:
                 add_failed(r, result)
                 infra_failures_this_round += 1
-                print(f"[collector] 🔧 INFRA {status} {meta.get('problem_key', '')} ({elapsed:.0f}s) → 可重试", flush=True)
+                logger.warning(f"INFRA {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → 可重试")
             else:
                 add_failed(r, result)
                 failed_this_round += 1
-                print(f"[collector] ❌ MODEL {status} {meta.get('problem_key', '')} ({elapsed:.0f}s) → Profile数据", flush=True)
+                logger.warning(f"MODEL {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → Profile数据")
 
             # 停tmux前等待devin cli export完成（最多等10秒）
             if is_running and tmux_session:
                 export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                 if not export_path.exists():
-                    print(f"[collector] 等待export完成...", flush=True)
+                    logger.info(f"等待export完成: exp_id={exp_id} export_path={export_path}")
+                    wait_start = time.time()
                     for _ in range(10):
                         time.sleep(1)
                         if export_path.exists():
                             break
-                    # export完成后重新提取精确时间
+                    wait_elapsed = time.time() - wait_start
                     if export_path.exists():
+                        logger.info(f"export完成: exp_id={exp_id} 等待{wait_elapsed:.0f}s 成功")
+                        # export完成后重新提取精确时间
                         try:
                             from extract_solve_time import extract_solve_time
                             time_info = extract_solve_time(exp_id)
                             if time_info.get("solve_time"):
                                 result["solve_time_seconds"] = round(time_info["solve_time"]["solve_time_seconds"], 1)
                                 result["solve_time_source"] = time_info["solve_time"]["source"]
-                        except Exception:
-                            pass
+                                logger.info(f"extract_solve_time(export后): exp_id={exp_id} source={time_info['solve_time']['source']} "
+                                            f"solve_time={result['solve_time_seconds']}s")
+                        except Exception as e:
+                            logger.debug(f"extract_solve_time失败(export后): exp_id={exp_id} error={e}")
+                    else:
+                        logger.warning(f"export超时: exp_id={exp_id} 等待{wait_elapsed:.0f}s 仍未完成")
 
             # 停tmux
             if tmux_session:
                 stop_tmux(tmux_session)
+                logger.debug(f"stop_tmux: session={tmux_session}")
 
             remove_running(r, exp_id)
 
@@ -445,7 +550,11 @@ def main():
                 update_db_status(db, attempt_key, status, result.get("verdict", ""), result)
 
         update_stats(r)
-        print(f"[collector] 本轮: solved={completed_this_round}, infra={infra_failures_this_round}, model_fail={failed_this_round}", flush=True)
+        total_completed += completed_this_round
+        total_failed += failed_this_round
+        total_infra += infra_failures_this_round
+        logger.info(f"第{round_num}轮扫描结束: 本轮 completed={completed_this_round} failed={failed_this_round} infra={infra_failures_this_round} | "
+                    f"累计 completed={total_completed} failed={total_failed} infra={total_infra}")
 
         time.sleep(args.poll_interval)
 

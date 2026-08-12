@@ -24,6 +24,9 @@ from redis_queue import (
     get_redis, dequeue_pending, add_running, get_all_running, running_count, update_stats, ping,
 )
 from arango import ArangoClient
+from shared_logger import get_logger
+
+logger = get_logger("runner")
 
 DB_HOST = "http://localhost:8529"
 DB_NAME = "xishujuzhen_math_glm52"
@@ -99,9 +102,25 @@ def launch_devin_cli(exp_id: str, problem_file: Path, model: str = "glm-5.2-high
     log_file = PROBLEMS_DIR / exp_id / "launch.log"
     log_file.parent.mkdir(parents=True, exist_ok=True)
 
+    logger.info(f"launch_devin_cli: exp_id={exp_id}, model={model}, problem_file={problem_file}")
+    logger.debug(f"launch_devin_cli: cmd={' '.join(cmd)}")
+
     # 直接运行solver_harness.py launch（它是同步的，会创建harness-xxx tmux session）
+    launch_start = time.time()
     with open(log_file, "w") as f:
         result = subprocess.run(cmd, stdout=f, stderr=subprocess.STDOUT, timeout=60)
+
+    launch_duration = time.time() - launch_start
+    if result.returncode != 0:
+        logger.error(f"launch_devin_cli FAILED: exp_id={exp_id}, returncode={result.returncode}, duration={launch_duration:.1f}s")
+        # 读取launch.log的最后几行作为错误信息
+        try:
+            error_tail = log_file.read_text(encoding="utf-8", errors="ignore")[-500:]
+            logger.error(f"launch_devin_cli error tail: {error_tail}")
+        except Exception:
+            pass
+    else:
+        logger.info(f"launch_devin_cli OK: exp_id={exp_id}, duration={launch_duration:.1f}s")
 
     # solver_harness创建的session名是 harness-{exp_id}
     tmux_session = f"harness-{exp_id}"
@@ -124,8 +143,10 @@ def create_attempt_record(db, problem_key: str, exp_id: str, tmux_session: str) 
     }
     try:
         db.collection(ATTEMPT_COLLECTION).insert(doc)
+        logger.debug(f"create_attempt_record: inserted {attempt_key} for {problem_key}")
     except Exception as e:
         # 已存在则更新
+        logger.warning(f"create_attempt_record: {attempt_key} already exists, updating. Error: {e}")
         db.collection(ATTEMPT_COLLECTION).update({"_key": attempt_key, "status": "running", "started_at": now})
     return attempt_key
 
@@ -139,33 +160,37 @@ def main():
     args = parser.parse_args()
 
     if not ping():
-        print("[runner] ❌ Redis连接失败", flush=True)
+        logger.error("Redis连接失败, 退出")
         sys.exit(1)
-    print(f"[runner] ✅ Redis连接成功, concurrency={args.concurrency}", flush=True)
+    logger.info(f"Redis连接成功, concurrency={args.concurrency}, poll_interval={args.poll_interval}s, model={args.model}, dry_run={args.dry_run}")
 
     client = ArangoClient(hosts=DB_HOST, request_timeout=300)
     db = client.db(DB_NAME, username=DB_USER, password=DB_PASS)
-    print(f"[runner] ✅ ArangoDB连接成功", flush=True)
+    logger.info(f"ArangoDB连接成功: {DB_NAME}@{DB_HOST}")
 
     r = get_redis()
     total_launched = 0
+    poll_count = 0
 
     while True:
+        poll_count += 1
         # 统计当前running数
         current_running = running_count(r)
         slots = args.concurrency - current_running
 
         if slots <= 0:
-            print(f"[runner] running={current_running}, 满载, 等待...", flush=True)
+            logger.debug(f"poll#{poll_count}: running={current_running}, 满载, 等待{args.poll_interval}s")
             time.sleep(args.poll_interval)
             continue
 
         # 从Redis取题
         items = dequeue_pending(r, slots)
         if not items:
-            print(f"[runner] pending空, 等待feeder补充...", flush=True)
+            logger.debug(f"poll#{poll_count}: pending空, 等待feeder补充, slots={slots}")
             time.sleep(args.poll_interval)
             continue
+
+        logger.info(f"poll#{poll_count}: 取到{len(items)}题, slots={slots}, running={current_running}")
 
         for problem_key, priority in items:
             exp_id = f"p{uuid.uuid4().hex[:20]}"
@@ -182,16 +207,18 @@ def main():
                 }
                 add_running(r, exp_id, metadata)
                 total_launched += 1
-                print(f"[runner] DRY-RUN 启动 {problem_key} (exp={exp_id[:20]})", flush=True)
+                logger.info(f"DRY-RUN 启动 {problem_key} (exp={exp_id[:20]}), total={total_launched}")
                 continue
 
             # 真实模式：读取题目文本
             problem_text = load_problem_text(db, problem_key)
             if not problem_text.strip():
-                print(f"[runner] ⚠️ 题目文本为空: {problem_key}, 跳过", flush=True)
+                logger.warning(f"题目文本为空: {problem_key}, 跳过")
                 from redis_queue import add_failed
                 add_failed(r, {"problem_key": problem_key, "error": "empty_problem_text", "exp_id": exp_id, "verdict": "empty_problem_text"})
                 continue
+
+            logger.debug(f"题目加载: {problem_key}, text_len={len(problem_text)}, priority={priority}")
 
             # 答案泄漏检查：检查题目文本是否因清洗疏忽包含了答案
             doc = db.collection(COLLECTION).get(problem_key)
@@ -203,12 +230,12 @@ def main():
                 text_clean = problem_text.lower().replace(" ", "").replace("\\", "").replace("$", "")
                 if ans_clean in text_clean:
                     leak_found = True
-                    print(f"[runner] ⚠️ 答案泄漏: {problem_key} 题目文本包含answer字段值", flush=True)
+                    logger.warning(f"答案泄漏: {problem_key} 题目文本包含answer字段值='{str(answer)[:30]}'")
             if not leak_found and solution and len(solution.strip()) > 20:
                 sol_prefix = solution.strip()[:100].lower()
                 if sol_prefix in problem_text.lower():
                     leak_found = True
-                    print(f"[runner] ⚠️ 答案泄漏: {problem_key} 题目文本包含solution片段", flush=True)
+                    logger.warning(f"答案泄漏: {problem_key} 题目文本包含solution片段")
             if leak_found:
                 from redis_queue import add_failed
                 add_failed(r, {
@@ -233,14 +260,15 @@ def main():
 
             # 写题目文件
             problem_file = write_problem_file(problem_key, problem_text, exp_id)
+            logger.debug(f"题目文件写入: {problem_file}")
 
             # 启动devin cli
             try:
                 tmux_session = launch_devin_cli(exp_id, problem_file, args.model)
             except Exception as e:
-                print(f"[runner] ❌ 启动失败 {problem_key}: {e}", flush=True)
+                logger.error(f"启动失败 {problem_key}: {e}", exc_info=True)
                 from redis_queue import add_failed
-                add_failed(r, {"problem_key": problem_key, "error": str(e), "exp_id": exp_id})
+                add_failed(r, {"problem_key": problem_key, "error": str(e), "exp_id": exp_id, "verdict": "launch_error"})
                 continue
 
             # 创建attempt记录
@@ -257,7 +285,7 @@ def main():
             }
             add_running(r, exp_id, metadata)
             total_launched += 1
-            print(f"[runner] 启动 {problem_key} → tmux={tmux_session} (total={total_launched})", flush=True)
+            logger.info(f"启动 {problem_key} → tmux={tmux_session} (total={total_launched})")
 
             # 启动间隔
             time.sleep(1)
