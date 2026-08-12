@@ -365,68 +365,138 @@ def cmd_dead(db, batch_id):
         print(f"\n  RESULT: No zombie sessions.")
 
 
-def cmd_dead_cleanup(db, batch_id):
-    """僵尸session自动清理：kill tmux + 更新DB状态。"""
+def cmd_dead_cleanup(db, batch_id, *, all_batches=False):
+    """僵尸session自动清理：检查运行时文件判定终态 + 更新DB状态。
+
+    改进版（2026-08-12）：
+    - 检查export文件（比pipe更准确——export是devin cli正式输出）
+    - 检查pipe文件尾部（PROOF COMPLETE / Response truncated / Connection error）
+    - 区分failed_no_proof / failed_token_limit / failed_connection / dead_session
+    - all_batches=True时清理所有batch的僵尸（不限于指定batch）
+    """
     from datetime import datetime, timezone
-    print(f"=== Dead session cleanup: {batch_id} ===")
     now = datetime.now(timezone.utc).isoformat()
+
+    if all_batches:
+        print("=== Dead session cleanup: ALL BATCHES ===")
+        cursor = db.aql.execute(
+            'FOR a IN devin_problem_runs '
+            'FILTER a.status IN ["running", "stalled_warning", "launching"] '
+            'RETURN a'
+        )
+    else:
+        print(f"=== Dead session cleanup: {batch_id} ===")
+        cursor = db.aql.execute(
+            'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+            'FILTER a.status IN ["running", "stalled_warning", "launching"] '
+            'RETURN a',
+            bind_vars={"bid": batch_id},
+        )
+
     cleaned = 0
+    results = {"candidate_solved": 0, "failed_no_proof": 0, "failed_token_limit": 0,
+               "failed_connection": 0, "dead_session": 0}
 
-    for a in db.aql.execute(
-        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
-        'FILTER a.status IN ["running", "stalled_warning"] '
-        'RETURN {key:a._key, pid:a.problem_id, tmux:a.tmux_session, paths:a.paths}',
-        bind_vars={"bid": batch_id},
-    ):
-        tmux = a["tmux"]
-        r = subprocess.run(
-            ["tmux", "has-session", "-t", tmux],
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
-        )
-        if r.returncode != 0:
-            # tmux已消失
-            pipe = Path(a["paths"]["tmux_pipe_path"])
-            pipe_text = pipe.read_text() if pipe.exists() else ""
-            if "### PROOF COMPLETE" in pipe_text:
-                status = "candidate_solved"
-            elif "Connection error" in pipe_text or "unavailable" in pipe_text:
-                status = "failed_connection"
-            else:
-                status = "dead_session"
-            db.collection("devin_problem_runs").update({
-                "_key": a["key"], "status": status,
-                "ended_at": now, "end_reason": "auto_cleanup_zombie",
-            })
-            print(f"  [{status}] {a['pid']}")
-            cleaned += 1
-            continue
+    for a in cursor:
+        tmux = a.get("tmux_session", "")
+        pid = a.get("problem_id", "?")
+        run_id = a.get("run_id", 0)
+        paths = a.get("paths", {})
+        export_path = Path(paths.get("export_path", ""))
+        pipe_path = Path(paths.get("tmux_pipe_path", ""))
 
-        r = subprocess.run(
-            ["tmux", "capture-pane", "-t", tmux, "-p"],
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False, timeout=10,
-        )
-        content = r.stdout.decode("utf-8", errors="ignore")
-        stripped = "\n".join(line.strip() for line in content.split("\n") if line.strip())
+        # tmux是否还活着
+        tmux_alive = False
+        if tmux:
+            r = subprocess.run(["tmux", "has-session", "-t", tmux],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            tmux_alive = (r.returncode == 0)
 
-        if len(stripped) < 5:
+        # 如果tmux还活着，先capture pane看状态
+        if tmux_alive:
+            try:
+                r = subprocess.run(["tmux", "capture-pane", "-t", tmux, "-p", "-S", "-50"],
+                                   capture_output=True, text=True, timeout=5)
+                pane = r.stdout
+            except Exception:
+                pane = ""
+            # 如果pane有内容且在thinking，跳过——不是僵尸
+            if "Thinking" in pane and "Ask Devin" not in pane:
+                continue
+            # pane空或IDLE——是僵尸，kill掉
             subprocess.run(["tmux", "kill-session", "-t", tmux],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-            pipe = Path(a["paths"]["tmux_pipe_path"])
-            pipe_text = pipe.read_text() if pipe.exists() else ""
-            if "### PROOF COMPLETE" in pipe_text:
-                status = "candidate_solved"
-            elif "Connection error" in pipe_text or "unavailable" in pipe_text:
-                status = "failed_connection"
-            else:
-                status = "dead_session"
-            db.collection("devin_problem_runs").update({
-                "_key": a["key"], "status": status,
-                "ended_at": now, "end_reason": "auto_cleanup_zombie",
-            })
-            print(f"  [{status}] {a['pid']}")
-            cleaned += 1
+
+        # 检查运行时文件判定终态
+        export_size = export_path.stat().st_size if export_path.exists() else 0
+        pipe_size = pipe_path.stat().st_size if pipe_path.exists() else 0
+
+        has_proof = False
+        if export_size > 0:
+            try:
+                content = export_path.read_text(encoding="utf-8", errors="ignore")
+                if "PROOF COMPLETE" in content:
+                    has_proof = True
+            except: pass
+
+        pipe_proof = False
+        pipe_truncated = False
+        pipe_conn_err = False
+        if pipe_size > 0:
+            try:
+                with pipe_path.open("rb") as f:
+                    f.seek(max(0, pipe_size - 10240))
+                    tail = f.read().decode("utf-8", errors="ignore")
+                if "PROOF COMPLETE" in tail: pipe_proof = True
+                if "Response truncated" in tail: pipe_truncated = True
+                if "Connection error" in tail or "unavailable" in tail: pipe_conn_err = True
+            except: pass
+
+        # 判定
+        if has_proof or pipe_proof:
+            status = "candidate_solved"
+            reason = "zombie_cleanup_proof_found"
+        elif pipe_truncated:
+            status = "failed_token_limit"
+            reason = "zombie_cleanup_response_truncated"
+        elif pipe_conn_err:
+            status = "failed_connection"
+            reason = "zombie_cleanup_connection_error"
+        elif export_size == 0 and pipe_size == 0:
+            status = "dead_session"
+            reason = "zombie_cleanup_no_data"
+        elif export_size > 0:
+            status = "failed_no_proof"
+            reason = "zombie_cleanup_no_proof_marker"
+        else:
+            status = "failed_no_proof"
+            reason = "zombie_cleanup_pipe_only_no_proof"
+
+        db.collection("devin_problem_runs").update({
+            "_key": a["_key"], "status": status,
+            "ended_at": now, "end_reason": reason, "updated_at": now,
+        })
+        db.collection("devin_run_events").insert({
+            "batch_id": a.get("batch_id", ""),
+            "attempt_key": a["_key"],
+            "event_type": "zombie_cleanup",
+            "event_data": {"problem_id": pid, "run_id": run_id, "final_status": status,
+                           "export_size": export_size, "pipe_size": pipe_size,
+                           "tmux_was_alive": tmux_alive},
+            "observed_at": now,
+        })
+
+        results[status] = results.get(status, 0) + 1
+        tag = {"candidate_solved": "SOLVED", "failed_no_proof": "NOPROOF",
+               "failed_token_limit": "TRUNC", "failed_connection": "CONN",
+               "dead_session": "DEAD"}.get(status, status)
+        print(f"  {tag} {pid} (run_id={run_id}) export={export_size}B pipe={pipe_size}B → {status}")
+        cleaned += 1
 
     print(f"\n  cleaned: {cleaned}")
+    for s, n in results.items():
+        if n > 0:
+            print(f"    {s}: {n}")
 
 
 def cmd_scan_thinking(db, batch_id):
@@ -469,18 +539,46 @@ def cmd_scan_thinking(db, batch_id):
     print(f"\n  summary: {counts}")
 
 
-def cmd_landfall(db, batch_id):
-    """SOP 10: 批量落盘PROOF COMPLETE + 清理IDLE session。"""
+def cmd_landfall(db, batch_id, *, all_batches=False):
+    """SOP 10: 批量落盘PROOF COMPLETE + 清理IDLE/truncated session。
+
+    改进版（2026-08-12）：
+    - 落盘前先capture_thinking保留thinking数据
+    - stop_attempt让devin cli写export
+    - 处理Response truncated（标记failed_token_limit）
+    - 处理Connection error（标记failed_connection）
+    - all_batches=True时处理所有batch
+    """
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from batch_problem_runner import capture_thinking, stop_attempt, SOLVER_BASE
     from datetime import datetime, timezone
-    now = datetime.now(timezone.utc).isoformat()
+    import time as _time
+    now_ts = datetime.now(timezone.utc).isoformat()
+
+    if all_batches:
+        print("=== Landfall: ALL BATCHES ===")
+        cursor = db.aql.execute(
+            'FOR a IN devin_problem_runs '
+            'FILTER a.status IN ["running", "stalled_warning", "launching"] '
+            'RETURN a'
+        )
+    else:
+        print(f"=== Landfall: {batch_id} ===")
+        cursor = db.aql.execute(
+            'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+            'FILTER a.status IN ["running", "stalled_warning", "launching"] RETURN a',
+            bind_vars={"bid": batch_id}
+        )
+
     solved = 0
+    truncated = 0
+    conn_err = 0
     cleaned = 0
-    for a in db.aql.execute(
-        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
-        'FILTER a.status IN ["running", "stalled_warning"] RETURN a',
-        bind_vars={"bid": batch_id}
-    ):
+
+    for a in cursor:
         tmux = a.get("tmux_session", "")
+        pid = a.get("problem_id", "?")
         if not tmux:
             continue
         try:
@@ -488,25 +586,99 @@ def cmd_landfall(db, batch_id):
                                capture_output=True, text=True, timeout=5)
         except Exception:
             continue
-        if "PROOF COMPLETE" in r.stdout:
+        pane = r.stdout
+
+        # 如果还在thinking，跳过
+        if "Thinking" in pane and "Ask Devin" not in pane and "PROOF COMPLETE" not in pane:
+            continue
+
+        if "PROOF COMPLETE" in pane:
+            # 1. capture thinking
+            try: capture_thinking(a)
+            except: pass
+            # 2. stop_attempt
+            batch_dir = Path(a["paths"].get("solver_dir", "")).parent
+            try: stop_attempt(db, a, batch_dir, decode=False)
+            except: pass
+            _time.sleep(3)
+            # 3. kill tmux
             subprocess.run(["tmux", "kill-session", "-t", tmux],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            # 4. 更新DB
             db.collection("devin_problem_runs").update({
                 "_key": a["_key"], "status": "candidate_solved",
-                "ended_at": now, "end_reason": "manual_pane_proof_complete",
+                "ended_at": now_ts, "end_reason": "manual_pane_proof_complete",
+                "updated_at": now_ts,
             })
-            print(f"  SOLVED: {a['problem_id']}")
+            db.collection("devin_run_events").insert({
+                "batch_id": a.get("batch_id", ""),
+                "attempt_key": a["_key"],
+                "event_type": "attempt_solved",
+                "event_data": {"problem_id": pid, "method": "landfall"},
+                "observed_at": now_ts,
+            })
+            print(f"  SOLVED: {pid}")
             solved += 1
-        elif "Ask Devin to build" in r.stdout and "Thinking" not in r.stdout:
+        elif "Response truncated" in pane:
+            try: capture_thinking(a)
+            except: pass
+            batch_dir = Path(a["paths"].get("solver_dir", "")).parent
+            try: stop_attempt(db, a, batch_dir, decode=False)
+            except: pass
+            _time.sleep(3)
             subprocess.run(["tmux", "kill-session", "-t", tmux],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
             db.collection("devin_problem_runs").update({
                 "_key": a["_key"], "status": "failed_token_limit",
-                "ended_at": now, "end_reason": "idle_token_limited",
+                "ended_at": now_ts, "end_reason": "response_truncated_max_token_limit",
+                "updated_at": now_ts,
             })
-            print(f"  CLEANED: {a['problem_id']}")
+            db.collection("devin_run_events").insert({
+                "batch_id": a.get("batch_id", ""),
+                "attempt_key": a["_key"],
+                "event_type": "attempt_terminal",
+                "event_data": {"problem_id": pid, "status": "failed_token_limit"},
+                "observed_at": now_ts,
+            })
+            print(f"  TRUNCATED: {pid}")
+            truncated += 1
+        elif "Connection error" in pane:
+            try: capture_thinking(a)
+            except: pass
+            batch_dir = Path(a["paths"].get("solver_dir", "")).parent
+            try: stop_attempt(db, a, batch_dir, decode=False)
+            except: pass
+            _time.sleep(3)
+            subprocess.run(["tmux", "kill-session", "-t", tmux],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            db.collection("devin_problem_runs").update({
+                "_key": a["_key"], "status": "failed_connection",
+                "ended_at": now_ts, "end_reason": "connection_error_network",
+                "updated_at": now_ts,
+            })
+            db.collection("devin_run_events").insert({
+                "batch_id": a.get("batch_id", ""),
+                "attempt_key": a["_key"],
+                "event_type": "attempt_terminal",
+                "event_data": {"problem_id": pid, "status": "failed_connection"},
+                "observed_at": now_ts,
+            })
+            print(f"  CONN_ERR: {pid}")
+            conn_err += 1
+        elif "Ask Devin to build" in pane and "Thinking" not in pane:
+            # IDLE但不是truncated——可能是其他原因的idle
+            subprocess.run(["tmux", "kill-session", "-t", tmux],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            db.collection("devin_problem_runs").update({
+                "_key": a["_key"], "status": "failed_token_limit",
+                "ended_at": now_ts, "end_reason": "idle_token_limited",
+                "updated_at": now_ts,
+            })
+            print(f"  CLEANED: {pid}")
             cleaned += 1
-    print(f"\n  solved: {solved}, cleaned: {cleaned}, freed: {solved + cleaned}")
+
+    print(f"\n  solved: {solved}, truncated: {truncated}, conn_err: {conn_err}, cleaned: {cleaned}")
+    print(f"  total freed: {solved + truncated + conn_err + cleaned}")
 
 
 def cmd_recover_export(db, batch_id):
@@ -560,15 +732,19 @@ def main():
                                         "scan-thinking", "landfall", "recover-export"])
     parser.add_argument("--batch-id", help="batch id (default: latest running)")
     parser.add_argument("--cleanup", action="store_true", help="auto-fix zombie sessions (for dead command)")
+    parser.add_argument("--all-batches", action="store_true",
+                        help="process all batches (for dead-cleanup and landfall)")
     args = parser.parse_args()
 
     db = connect_db()
     batch_id = args.batch_id or latest_batch_id(db)
-    if not batch_id:
-        print("No batch found", file=sys.stderr)
-        sys.exit(1)
-    if not args.batch_id:
-        print(f"(auto-selected batch: {batch_id})\n")
+    # --all-batches模式下不需要batch_id
+    if not args.all_batches:
+        if not batch_id:
+            print("No batch found", file=sys.stderr)
+            sys.exit(1)
+        if not args.batch_id:
+            print(f"(auto-selected batch: {batch_id})\n")
 
     if args.cmd in ("status", "all"):
         cmd_status(db, batch_id)
@@ -590,7 +766,7 @@ def main():
         print()
     if args.cmd == "dead":
         if args.cleanup:
-            cmd_dead_cleanup(db, batch_id)
+            cmd_dead_cleanup(db, batch_id, all_batches=args.all_batches)
         else:
             cmd_dead(db, batch_id)
         print()
@@ -598,7 +774,7 @@ def main():
         cmd_scan_thinking(db, batch_id)
         print()
     if args.cmd == "landfall":
-        cmd_landfall(db, batch_id)
+        cmd_landfall(db, batch_id, all_batches=args.all_batches)
         print()
     if args.cmd == "recover-export":
         cmd_recover_export(db, batch_id)
