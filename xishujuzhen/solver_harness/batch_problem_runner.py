@@ -1318,6 +1318,30 @@ def refresh_attempt(
                     ),
                 }
             )
+    elif is_running and observability.get("markers", {}).get("proof_in_tui"):
+        # PROOF COMPLETE detected in pane but session still running (interactive mode)
+        # 主动stop并判定candidate_solved
+        # 先stop_attempt（让devin cli写export），等10秒再kill tmux（确保export落盘）
+        stop_attempt(db, attempt, batch_dir, decode=False)
+        time.sleep(10)  # 等devin cli写完export文件
+        subprocess.run(["tmux", "kill-session", "-t", attempt["tmux_session"]],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        update.update({
+            "status": "candidate_solved",
+            "ended_at": utc_now(),
+            "end_reason": "proof_in_tui_detected",
+            "verdict": make_verdict(
+                "candidate_solved",
+                "TUI PROOF COMPLETE marker detected; mathematical correctness not reviewed",
+                confidence="medium",
+            ),
+        })
+        insert_event(
+            db, attempt["batch_id"], "attempt_solved",
+            {"exp_id": attempt["exp_id"], "problem_id": attempt.get("problem_id"),
+             "method": "tui_pane_capture"},
+            attempt_key=attempt["_key"],
+        )
     elif is_running:
         update.update(
             {

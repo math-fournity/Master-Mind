@@ -681,6 +681,114 @@ done
 3. **capture-pane的`-S -500`**——抓历史500行，默认只抓当前屏幕（约30行），thinking内容可能在scrollback中
 4. **Context token数是进度指标**——`47k/200k`说明加载了上下文在处理，`0k`说明还没开始
 
+**SOP 10 · 已完成题的正确落盘（2026-08-12实战方法）**
+
+> **交互模式下PROOF COMPLETE后session不会自己退出**——pane显示"Ask Devin to build features"空闲状态，但DB status还是running。必须主动落盘：kill tmux + 更新DB + 确认export文件。
+
+**落盘三层数据**：
+
+| 层 | 文件 | 来源 | 完整性 |
+|---|---|---|---|
+| **export** | `<exp_id>/exports/conversation.json` | devin cli的`--export`自动写 | 完整ATIF格式对话记录（含thinking+tool_calls），**但部分session可能export=0B** |
+| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | tmux pipe-pane的raw TUI流 | 含ANSI控制序列，需要去噪，**可能没记录到PROOF COMPLETE**（TUI渲染打碎） |
+| **sessions.db** | `~/.local/share/devin/cli/sessions.db` message_nodes表 | devin cli自动写 | **只有输入（system/user消息），没有assistant输出**——thinking/证明内容不在其中 |
+
+**落盘流程**：
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+
+# 1. 扫描所有running session，找pane有PROOF COMPLETE的
+.venv/bin/python -c "
+from arango import ArangoClient
+import os, subprocess
+from datetime import datetime, timezone
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+now = datetime.now(timezone.utc).isoformat()
+batch_id = '<你的batch_id>'
+
+for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid FILTER a.status == \"running\" RETURN a', bind_vars={'bid': batch_id}):
+    tmux = a.get('tmux_session','')
+    if not tmux: continue
+    r = subprocess.run(['tmux','capture-pane','-t',tmux,'-p','-S','-500'], capture_output=True, text=True, timeout=10)
+    if 'PROOF COMPLETE' in r.stdout:
+        pid = a['problem_id']
+        # 1. kill tmux
+        subprocess.run(['tmux','kill-session','-t',tmux], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        # 2. 更新DB
+        db.collection('devin_problem_runs').update({
+            '_key': a['_key'],
+            'status': 'candidate_solved',
+            'ended_at': now,
+            'end_reason': 'manual_pane_proof_complete',
+        })
+        # 3. 记录event
+        db.collection('devin_run_events').insert({
+            'batch_id': batch_id, 'attempt_key': a['_key'],
+            'event_type': 'attempt_solved',
+            'event_data': {'problem_id': pid, 'method': 'manual_pane_capture'},
+            'created_at': now
+        })
+        print(f'SOLVED: {pid}')
+"
+```
+
+**SOP 11 · 恢复export=0B的题（从sessions.db提取）**
+
+> **部分session的export文件=0B**——devin cli的`--export`没写文件（可能session被kill太快或devin cli bug）。这些题的证明内容**无法从sessions.db恢复**——message_nodes只有输入（system/user），没有assistant输出。pipe也没记录到PROOF COMPLETE（TUI渲染打碎）。
+>
+> **这是已知数据丢失**——pane显示过PROOF COMPLETE但没落盘。只能记录metadata（problem_id, devin_session_id, message_count）证明题做过。
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+.venv/bin/python -c "
+from arango import ArangoClient
+import os, sqlite3, json
+from pathlib import Path
+from datetime import datetime, timezone
+
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+batch_id = '<你的batch_id>'
+sdb = sqlite3.connect(os.path.expanduser('~/.local/share/devin/cli/sessions.db'))
+
+for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid FILTER a.status == \"candidate_solved\" RETURN a', bind_vars={'bid': batch_id}):
+    export_path = Path(a['paths'].get('export_path',''))
+    if export_path.exists() and export_path.stat().st_size > 1000:
+        continue  # 已有完整export
+    sid = a.get('devin_session_id','')
+    if not sid: continue
+    # 从sessions.db提取metadata
+    rows = sdb.execute('SELECT node_id, chat_message FROM message_nodes WHERE session_id=? ORDER BY node_id', (sid,)).fetchall()
+    messages = []
+    for nid, msg_json in rows:
+        try:
+            msg = json.loads(msg_json)
+            messages.append({'node_id': nid, 'role': msg.get('role',''), 'content_preview': str(msg.get('content',''))[:200]})
+        except: pass
+    # 写export（metadata only，无证明内容）
+    export_data = {
+        'problem_id': a['problem_id'], 'devin_session_id': sid,
+        'source': 'sessions_db_metadata_only',
+        'warning': 'export was 0B, proof content not recoverable from sessions.db (only inputs, no assistant outputs)',
+        'message_count': len(messages), 'messages': messages,
+        'extracted_at': datetime.now(timezone.utc).isoformat()
+    }
+    export_path.parent.mkdir(parents=True, exist_ok=True)
+    export_path.write_text(json.dumps(export_data, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(f'{a[\"problem_id\"]}: {len(messages)} msgs (metadata only, proof lost)')
+sdb.close()
+"
+```
+
+**预防export=0B的方法**：
+1. **不要在PROOF COMPLETE后立即kill tmux**——等devin cli自己写完export再kill。可以sleep 10秒
+2. **monitor的proof_in_tui判定逻辑已修复**——检测到PROOF COMPLETE后stop_attempt但不立即kill tmux，等export写完
+3. **如果export仍然=0B**——该题证明内容丢失，只能记录metadata。不要假装数据完整
+
 **SOP 7 · 停止批次**
 
 ```bash
