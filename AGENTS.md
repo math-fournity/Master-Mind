@@ -491,9 +491,126 @@ set -a; source .env; set +a
 
 **新增查询需求时**：更新本脚本，不要另写新脚本。在脚本中加新的cmd函数 + argparse choice。
 
-#### Solver批次操作SOP（2026-08-12调试经验固化）
+---
 
-> **以下SOP来自2026-08-12的调试实战。未来AI操作批次系统时按此SOP执行，不要重新踩坑。**
+### 硬约束 6 · 自动化运营系统（推荐模式 · 2026-08-12）
+
+> **未来AI运行批量解题时，优先使用自动化运营系统（auto_runner.py + enqueue_problem.py），而不是直接操作batch_problem_runner.py。**
+>
+> **旧模式（batch_problem_runner.py run-continuous）仍可用**——当前有旧模式实例在运行，SOP 1-16保留在下方"旧模式SOP"节中。但新启动的批次应使用自动化运营系统。
+
+**架构**：
+
+```
+[AI清洗题] → enqueue_problem.py → queue_in/{pid}.txt + problem_queue表
+                                        ↓
+[auto_runner.py] ← 取queued题 ← problem_queue
+       ↓
+创建devin_problem_runs attempt → 写problem.txt → launch devin cli
+       ↓
+refresh循环 → 判定PROOF COMPLETE / timeout / stall / dead
+       ↓
+更新problem_queue的queue_status → solved / failed
+       ↓
+队列空 → auto_runner自动退出 → AI送新题 → 重启
+```
+
+**三个组件**：
+
+| 组件 | 文件 | 职责 |
+|---|---|---|
+| 送题工具 | `xishujuzhen/solver_harness/enqueue_problem.py` | AI清洗题后送入queue |
+| 自动运营 | `xishujuzhen/solver_harness/auto_runner.py` | 从queue取题、launch、判定、落盘、报告 |
+| 题队列 | `problem_queue` DB collection | queued/running/solved/failed状态管理 |
+
+**送题（AI的职责）**：
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+
+# 单题送入
+.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py \
+  --problem-id <pid> --text-file <path> --tier <n> --source <name> --answer <text> --priority 1
+
+# 从DB批量送入某tier（跳过已solved）
+.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py \
+  --from-progress --tier 2 --limit 1000 --skip-solved
+
+# 从目录扫描新题文件
+.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py \
+  --scan-dir <dir> --tier <n> --source <name>
+
+# 查看队列状态
+.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py --status
+```
+
+**启动runtime**：
+
+```bash
+# 启动auto_runner（concurrency可配置，默认100）
+tmux new-session -d -s auto-runner "set -a; source .env; set +a; \
+  .venv/bin/python -u xishujuzhen/solver_harness/auto_runner.py \
+  --concurrency 100 --poll-seconds 30 --report-seconds 300 \
+  --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
+  --launch-interval 1 2>&1 | tee /data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log"
+
+# 查看日志
+tail -20 /data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log
+
+# 停止
+tmux kill-session -t auto-runner
+```
+
+**监控（AI的职责）**：
+
+```bash
+# 队列状态
+.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py --status
+
+# auto_runner日志
+tail -30 /data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log
+
+# batch状态
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py status --batch-id dpb-auto-runner
+
+# scan-thinking
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py scan-thinking --batch-id dpb-auto-runner
+```
+
+**auto_runner的batch_id**：`dpb-auto-runner`（固定）
+
+**problem_queue DB collection关键字段**：
+- `queue_status`: queued / running / solved / failed / cancelled
+- `problem_text`: 题目原文
+- `difficulty_tier`: 难度层级
+- `priority`: 优先级（1最高10最低，auto_runner按priority升序取题）
+- `attempt_keys`: 关联的`devin_problem_runs`的_key列表
+- `run_count`: 被运行过几次
+
+**固定目录**：
+- `queue_in/`：`/data/math-agent-glm5.2-tmux-agents-trajectory/_queue_in/` — 送入的题目文本文件
+- `queue/`：`/data/math-agent-glm5.2-tmux-agents-trajectory/_queue/` — 队列元数据
+
+**AI的工作循环**：
+1. 清洗新题 → `enqueue_problem.py`送入queue
+2. 启动auto_runner（如未运行）
+3. 监控auto_runner运行状态（日志、队列状态、scan-thinking）
+4. 处理卡死的session（发"继续"或标记failed重跑）
+5. auto_runner退出后（队列空），送入新题重启
+
+**与旧模式的区别**：
+- 旧模式：AI手动启动batch、手动feed、手动管理concurrency
+- 新模式：AI只负责送题和监控，auto_runner自动管理取题/launch/判定/落盘
+- 旧模式的SOP 1-16仍适用于已在运行的旧batch实例
+
+---
+
+### 旧模式SOP（batch_problem_runner直接操作 · 仍有实例在运行）
+
+> **以下SOP来自2026-08-12的调试实战，适用于batch_problem_runner.py直接操作模式。新批次应使用上方"硬约束6·自动化运营系统"。但当前仍有旧模式实例在运行，这些SOP保留供管理旧实例时参考。**
+
+#### Solver批次操作SOP（2026-08-12调试经验固化）
 
 **SOP 1 · 启动批次**
 
@@ -849,63 +966,6 @@ for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_p
     print(f'  {s}: {n}')
 "
 ```
-
-**SOP 16 · 自动化运营系统（2026-08-12）**
-
-> **架构**：`[我清洗题] → queue_in/ + problem_queue表 → [auto_runner.py] → AGENTS.md → devin cli → 判定落盘`
->
-> **核心设计**：runtime系统从DB维护的queue中不断拿题做题。queue的另一端是AI不断清洗送入新题。题目录入固定目录，runtime取题后写入运行目录的AGENTS.md，启动devin cli做题。
-
-**三个组件**：
-
-1. **`enqueue_problem.py`** — 送题工具（AI用）
-   - 单题送入：`--problem-id <pid> --text-file <path> --tier <n> --source <name>`
-   - 从DB批量送入：`--from-progress --tier <n> --limit <n> --skip-solved`
-   - 从目录扫描：`--scan-dir <dir> --tier <n>`
-   - 查看队列：`--status`
-
-2. **`auto_runner.py`** — 自动化运营脚本（runtime）
-   - 从`problem_queue`取`queued`题 → 创建`devin_problem_runs` attempt → launch devin cli
-   - refresh循环判定PROOF COMPLETE / timeout / stall / dead_session
-   - 自动更新`problem_queue`的`queue_status`（solved/failed）
-   - 定时输出状态报告
-   - 队列空时自动退出
-   - 启动：`tmux new-session -d -s auto-runner "set -a; source .env; set +a; .venv/bin/python -u xishujuzhen/solver_harness/auto_runner.py --concurrency 100 --poll-seconds 30 --report-seconds 300"`
-
-3. **`problem_queue` DB collection** — 题队列
-   - `queue_status`: queued / running / solved / failed / cancelled
-   - `problem_text`: 题目原文
-   - `difficulty_tier`: 难度层级
-   - `priority`: 优先级（1最高10最低）
-   - `attempt_keys`: 关联的`devin_problem_runs`的_key列表
-   - `run_count`: 被运行过几次
-
-**固定目录**：
-- `queue_in/`：`/data/math-agent-glm5.2-tmux-agents-trajectory/_queue_in/` — 送入的题目文本文件
-- `queue/`：`/data/math-agent-glm5.2-tmux-agents-trajectory/_queue/` — 队列元数据
-
-**auto_runner的batch_id**：`dpb-auto-runner`（固定，所有auto_runner的attempt都在这个batch下）
-
-**监控命令**：
-```bash
-# 队列状态
-.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py --status
-
-# auto_runner日志
-tail -20 /data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log
-
-# batch状态
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py status --batch-id dpb-auto-runner
-
-# scan-thinking
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py scan-thinking --batch-id dpb-auto-runner
-```
-
-**AI的职责**：
-- 不断清洗新题，用`enqueue_problem.py`送入queue
-- 监控auto_runner运行状态（日志、队列状态、scan-thinking）
-- 处理卡死的session（发"继续"或标记failed重跑）
-- auto_runner退出后（队列空），送入新题重启
 
 ---
 
