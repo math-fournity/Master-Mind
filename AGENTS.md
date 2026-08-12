@@ -788,6 +788,68 @@ print(f'missing export: {missing}')
 "
 ```
 
+**SOP 15 · AI失败题分类与Response truncated处理（2026-08-12）**
+
+> **AI做不出来的题分4类**，全部记录到DB的`devin_problem_runs`中，`status`+`end_reason`字段标识失败类型。完整追溯文档见374号文档。
+
+**AI自身问题导致的失败（158道）**：
+
+| status | 含义 | end_reason | 是AI的问题？ |
+|---|---|---|---|
+| `failed_no_proof` | session结束但没输出`### PROOF COMPLETE`标记 | `tmux_session_ended` | 是——AI做了题但没按格式输出标记 |
+| `failed_token_limit` | token用完没做出来 | `tmux_session_ended` / `idle_token_limited` | 是——AI能力不足/效率不够 |
+| `failed_tool_stall` | 工具调用卡住超时 | `stall_seconds` | 是——AI行为异常 |
+| `answer_leak` | AI检测到答案泄漏主动拒绝 | `answer_leak_detected_by_solver` | 是——AI主动拒绝 |
+
+**基础设施问题导致的失败（不算AI做不出来）**：
+
+| status | 含义 | 归因 |
+|---|---|---|
+| `dead_session` | mitmproxy时代僵尸session | 基础设施 |
+| `failed_connection` | 网络连接断开 | 网络 |
+| `failed_network_stuck` | 网络不稳定卡死 | 网络 |
+| `launch_error` | 启动失败 | 系统 |
+| `stopped` | 手动停止 | 操作 |
+
+**Response truncated的处理**：
+
+> **Response truncated不是网络问题**——是模型输出达到max token limit被截断。TUI显示`⚠︎ Response truncated`，session空闲等待用户发消息继续。这属于AI做不出来的情况——AI的输出长度不够完成证明。
+
+**处理流程**：
+1. `scan-thinking`扫描发现IDLE的session
+2. 看pane内容——`Response truncated`是token limit，`Connection error`是网络断开
+3. **Response truncated**：可以发"继续"让AI继续输出，但如果反复truncated说明题对AI来说太长→最终标记`failed_token_limit`
+4. **Connection error**：网络问题，发"继续"重试，反复失败则标记`failed_network_stuck`重跑
+
+**批量发"继续"**：
+```bash
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+.venv/bin/python -c "
+import subprocess, re, time
+sessions = subprocess.run(['tmux', 'list-sessions'], capture_output=True, text=True).stdout
+for s in [l.split(':')[0] for l in sessions.strip().split('\n') if l.startswith('harness-dpb')]:
+    try:
+        r = subprocess.run(['tmux', 'capture-pane', '-t', s, '-p', '-S', '-50'], capture_output=True, text=True, timeout=5)
+        if 'Response truncated' in r.stdout or 'Connection error' in r.stdout:
+            subprocess.run(['tmux', 'send-keys', '-t', s, '继续', 'Enter'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False, timeout=5)
+            time.sleep(0.3)
+    except: pass
+"
+```
+
+**查询所有AI失败的题**：
+```bash
+.venv/bin/python -c "
+from arango import ArangoClient; import os
+from collections import Counter
+c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
+db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
+for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.status IN [\"failed_no_proof\",\"failed_token_limit\",\"failed_tool_stall\",\"answer_leak\"] RETURN a')).items()):
+    print(f'  {s}: {n}')
+"
+```
+
 ---
 
 ## 任务追踪（跨Session工作意识维持）
