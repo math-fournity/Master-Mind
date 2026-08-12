@@ -16,7 +16,9 @@ set -a; source .env; set +a
 .venv/bin/python xishujuzhen/solver_harness/batch_status.py solved   # 已解决
 .venv/bin/python xishujuzhen/solver_harness/batch_status.py feed     # feed事件
 .venv/bin/python xishujuzhen/solver_harness/batch_status.py leak     # 泄漏检查
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py all      # 全部
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py dead     # 僵尸session检测
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py dead --cleanup  # 自动清理僵尸session
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py all      # 全部（不含dead）
 ```
 
 新增查询需求时更新batch_status.py，不另写脚本。

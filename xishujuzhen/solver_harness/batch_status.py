@@ -8,6 +8,7 @@
   python batch_status.py solved [--batch-id ID]          # candidate_solved列表
   python batch_status.py feed [--batch-id ID]            # feed事件历史
   python batch_status.py leak [--batch-id ID]            # 答案泄漏检查（DB marker + tmux_pipe扫描）
+  python batch_status.py dead [--batch-id ID]            # 僵尸session检测（tmux pane空白+Devin CLI已退出）
   python batch_status.py all [--batch-id ID]             # 上述全部
 
 不指定--batch-id时，自动选最新的running批次。
@@ -279,10 +280,157 @@ def cmd_leak(db, batch_id):
         print(f"\n  RESULT: No answer leaks detected.")
 
 
+def cmd_dead(db, batch_id):
+    """僵尸session检测：tmux session还在但Devin CLI已退出（pane空白）。
+
+    检测逻辑：
+    1. 找所有running/stalled_warning的attempt
+    2. 检查tmux pane内容——空白=Devin CLI已退出
+    3. 检查tmux_pipe.log——有没有PROOF COMPLETE（已完成但monitor没判定）
+    4. 检查thinking_readable_path——有没有实际产出
+
+    输出分类：
+    - DEAD: pane空白，无PROOF COMPLETE，无thinking → 僵尸session
+    - PROOF_MISSED: pane空白但有PROOF COMPLETE → 已完成但monitor没判定
+    - CONN_DEAD: pane空白，pipe有Connection error → 连接错误导致退出
+    - ALIVE: pane有内容 → 正常运行
+    """
+    print(f"=== Dead session check: {batch_id} ===")
+
+    dead = 0
+    proof_missed = 0
+    conn_dead = 0
+    alive = 0
+
+    for a in db.aql.execute(
+        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+        'FILTER a.status IN ["running", "stalled_warning"] '
+        'RETURN {key:a._key, pid:a.problem_id, tmux:a.tmux_session, '
+        'paths:a.paths, rt:a.runtime_seconds}',
+        bind_vars={"bid": batch_id},
+    ):
+        tmux = a["tmux"]
+        # 检查tmux session是否存在
+        r = subprocess.run(
+            ["tmux", "has-session", "-t", tmux],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+        )
+        if r.returncode != 0:
+            # tmux session已消失但DB还显示running——也是僵尸
+            pipe = Path(a["paths"]["tmux_pipe_path"])
+            pipe_text = pipe.read_text() if pipe.exists() else ""
+            if "### PROOF COMPLETE" in pipe_text:
+                proof_missed += 1
+                print(f"  [PROOF_MISSED] {a['pid']:25s} rt={a['rt']}s (tmux gone, proof in pipe)")
+            else:
+                dead += 1
+                print(f"  [DEAD] {a['pid']:25s} rt={a['rt']}s (tmux session gone)")
+            continue
+
+        # 捕获pane内容
+        r = subprocess.run(
+            ["tmux", "capture-pane", "-t", tmux, "-p"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False, timeout=10,
+        )
+        content = r.stdout.decode("utf-8", errors="ignore")
+        stripped = "\n".join(line.strip() for line in content.split("\n") if line.strip())
+
+        if len(stripped) < 5:
+            # pane空白——Devin CLI已退出
+            pipe = Path(a["paths"]["tmux_pipe_path"])
+            pipe_text = pipe.read_text() if pipe.exists() else ""
+            think_size = Path(a["paths"]["thinking_readable_path"]).stat().st_size if Path(a["paths"]["thinking_readable_path"]).exists() else 0
+
+            if "### PROOF COMPLETE" in pipe_text:
+                proof_missed += 1
+                print(f"  [PROOF_MISSED] {a['pid']:25s} rt={a['rt']}s think={think_size//1024}KB (pane empty, proof in pipe)")
+            elif "Connection error" in pipe_text or "unavailable" in pipe_text or "cognition.ai" in pipe_text:
+                conn_dead += 1
+                print(f"  [CONN_DEAD] {a['pid']:25s} rt={a['rt']}s think={think_size//1024}KB (pane empty, connection error)")
+            else:
+                dead += 1
+                print(f"  [DEAD] {a['pid']:25s} rt={a['rt']}s think={think_size//1024}KB (pane empty, no output)")
+        else:
+            alive += 1
+
+    print(f"\n  DEAD={dead}  PROOF_MISSED={proof_missed}  CONN_DEAD={conn_dead}  ALIVE={alive}")
+
+    if dead + proof_missed + conn_dead > 0:
+        print(f"\n  ACTION NEEDED: {dead + proof_missed + conn_dead} zombie sessions need cleanup.")
+        print(f"  Run with --cleanup to auto-fix (kill tmux + update DB status).")
+    else:
+        print(f"\n  RESULT: No zombie sessions.")
+
+
+def cmd_dead_cleanup(db, batch_id):
+    """僵尸session自动清理：kill tmux + 更新DB状态。"""
+    from datetime import datetime, timezone
+    print(f"=== Dead session cleanup: {batch_id} ===")
+    now = datetime.now(timezone.utc).isoformat()
+    cleaned = 0
+
+    for a in db.aql.execute(
+        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+        'FILTER a.status IN ["running", "stalled_warning"] '
+        'RETURN {key:a._key, pid:a.problem_id, tmux:a.tmux_session, paths:a.paths}',
+        bind_vars={"bid": batch_id},
+    ):
+        tmux = a["tmux"]
+        r = subprocess.run(
+            ["tmux", "has-session", "-t", tmux],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+        )
+        if r.returncode != 0:
+            # tmux已消失
+            pipe = Path(a["paths"]["tmux_pipe_path"])
+            pipe_text = pipe.read_text() if pipe.exists() else ""
+            if "### PROOF COMPLETE" in pipe_text:
+                status = "candidate_solved"
+            elif "Connection error" in pipe_text or "unavailable" in pipe_text:
+                status = "failed_connection"
+            else:
+                status = "dead_session"
+            db.collection("devin_problem_runs").update({
+                "_key": a["key"], "status": status,
+                "ended_at": now, "end_reason": "auto_cleanup_zombie",
+            })
+            print(f"  [{status}] {a['pid']}")
+            cleaned += 1
+            continue
+
+        r = subprocess.run(
+            ["tmux", "capture-pane", "-t", tmux, "-p"],
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False, timeout=10,
+        )
+        content = r.stdout.decode("utf-8", errors="ignore")
+        stripped = "\n".join(line.strip() for line in content.split("\n") if line.strip())
+
+        if len(stripped) < 5:
+            subprocess.run(["tmux", "kill-session", "-t", tmux],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            pipe = Path(a["paths"]["tmux_pipe_path"])
+            pipe_text = pipe.read_text() if pipe.exists() else ""
+            if "### PROOF COMPLETE" in pipe_text:
+                status = "candidate_solved"
+            elif "Connection error" in pipe_text or "unavailable" in pipe_text:
+                status = "failed_connection"
+            else:
+                status = "dead_session"
+            db.collection("devin_problem_runs").update({
+                "_key": a["key"], "status": status,
+                "ended_at": now, "end_reason": "auto_cleanup_zombie",
+            })
+            print(f"  [{status}] {a['pid']}")
+            cleaned += 1
+
+    print(f"\n  cleaned: {cleaned}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Batch status query tool")
-    parser.add_argument("cmd", choices=["status", "active", "errors", "solved", "feed", "leak", "all"])
+    parser.add_argument("cmd", choices=["status", "active", "errors", "solved", "feed", "leak", "dead", "all"])
     parser.add_argument("--batch-id", help="batch id (default: latest running)")
+    parser.add_argument("--cleanup", action="store_true", help="auto-fix zombie sessions (for dead command)")
     args = parser.parse_args()
 
     db = connect_db()
@@ -310,6 +458,12 @@ def main():
         print()
     if args.cmd in ("leak", "all"):
         cmd_leak(db, batch_id)
+        print()
+    if args.cmd == "dead":
+        if args.cleanup:
+            cmd_dead_cleanup(db, batch_id)
+        else:
+            cmd_dead(db, batch_id)
         print()
 
 
