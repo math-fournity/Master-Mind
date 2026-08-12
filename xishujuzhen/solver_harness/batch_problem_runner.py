@@ -1755,14 +1755,15 @@ def cmd_run_continuous(args: argparse.Namespace) -> int:
 
     batch_id = args.batch_id or make_batch_id(args.label or f"continuous-tier{args.feed_tier}")
 
-    # --batch-id模式下：如果已有queued题，跳过初始feed直接进monitor循环
-    existing_attempts = load_attempts(db, batch_id) if args.batch_id else []
-    existing_queued = [a for a in existing_attempts if a.get("status") == "queued"]
-    if existing_queued:
-        print(f"  [resume] batch {batch_id} has {len(existing_queued)} queued attempts, skipping initial feed", flush=True)
+    # --batch-id模式下：跳过初始feed直接进monitor循环（batch已存在，不调create_batch）
+    existing_queued = []
+    if args.batch_id:
+        existing_attempts = load_attempts(db, batch_id)
+        existing_queued = [a for a in existing_attempts if a.get("status") == "queued"]
+        print(f"  [resume] batch {batch_id}: {len(existing_queued)} queued, skipping initial feed", flush=True)
         selected = []
     else:
-        # 先选一批初始题目（concurrency数量）作为种子
+        # 新batch：先选一批初始题目（concurrency数量）作为种子
         initial = select_by_progress_for_feed(db, tier=args.feed_tier, limit=args.concurrency, batch_id=batch_id)
         if not initial:
             print(f"No unprocessed tier {args.feed_tier} problems found.", file=sys.stderr)
