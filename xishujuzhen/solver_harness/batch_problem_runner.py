@@ -355,17 +355,27 @@ def select_by_progress_for_feed(
     limit: int,
     batch_id: str,
 ) -> list[dict[str, Any]]:
-    """持续喂入模式选题：从problem_extraction_progress选未跑过的tier题，不要求有profile。
-    排除已经在当前batch中的题（避免重复加入）。"""
+    """持续喂入模式选题：从problem_extraction_progress选未跑过或需要重跑的tier题。
+    排除已solved的题和当前batch中已有的题。曾经失败（dead_session/failed_connection等）的题可以重跑。"""
     query = """
     FOR p IN problem_extraction_progress
       FILTER p.difficulty_tier == @tier
       FILTER p.external_ref != null
       FILTER p.external_ref.local_path != null
       FILTER p.external_ref.local_path != ""
+      // 排除已solved的题（不需要重跑）
       FILTER LENGTH(
         FOR r IN devin_problem_runs
           FILTER r.progress_key == p._key
+          FILTER r.status == "candidate_solved"
+          LIMIT 1
+          RETURN 1
+      ) == 0
+      // 排除当前batch中已有的题（避免重复加入）
+      FILTER LENGTH(
+        FOR r IN devin_problem_runs
+          FILTER r.progress_key == p._key
+          FILTER r.batch_id == @batch_id
           LIMIT 1
           RETURN 1
       ) == 0
@@ -373,7 +383,7 @@ def select_by_progress_for_feed(
       LIMIT @limit
       RETURN p
     """
-    cursor = db.aql.execute(query, bind_vars={"tier": tier, "limit": limit})
+    cursor = db.aql.execute(query, bind_vars={"tier": tier, "limit": limit, "batch_id": batch_id})
     return list(cursor)
 
 
