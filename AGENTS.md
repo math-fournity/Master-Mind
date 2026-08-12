@@ -434,6 +434,38 @@ AI数学系统运行时有两条Pipe：
 | `devin_run_events` | 事件流（concurrency_changed, cases_added, answer_leak_detected等） |
 | `problem_extraction_progress` | 题库（_key, difficulty_tier, source_dataset, external_ref.local_path） |
 
+#### 批次状态查询脚本（不要现写查询脚本）
+
+**脚本位置**：`xishujuzhen/solver_harness/batch_status.py`
+
+**用法**（不指定`--batch-id`时自动选最新running批次）：
+```bash
+set -a; source .env; set +a
+
+# 批次总状态（attempt计数 + 并发 + feed剩余）
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py status
+
+# running attempt活跃度详情（runtime/idle/thinking大小/markers/ACTIVE|STALLED判定）
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py active
+
+# 错误分析（connection_error/token_limited marker统计 + failed_no_proof拆分）
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py errors
+
+# candidate_solved列表
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py solved
+
+# feed事件历史
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py feed
+
+# 上述全部
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py all
+
+# 指定批次
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py status --batch-id dpb-xxxx
+```
+
+**新增查询需求时**：更新本脚本，不要另写新脚本。在脚本中加新的cmd函数 + argparse choice。
+
 ---
 
 ## 任务追踪（跨Session工作意识维持）
