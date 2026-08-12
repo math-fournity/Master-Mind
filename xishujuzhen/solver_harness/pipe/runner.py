@@ -185,7 +185,45 @@ def main():
             if not problem_text.strip():
                 print(f"[runner] ⚠️ 题目文本为空: {problem_key}, 跳过", flush=True)
                 from redis_queue import add_failed
-                add_failed(r, {"problem_key": problem_key, "error": "empty_problem_text", "exp_id": exp_id})
+                add_failed(r, {"problem_key": problem_key, "error": "empty_problem_text", "exp_id": exp_id, "verdict": "empty_problem_text"})
+                continue
+
+            # 答案泄漏检查：检查题目文本是否因清洗疏忽包含了答案
+            doc = db.collection(COLLECTION).get(problem_key)
+            answer = doc.get("answer", "") if doc else ""
+            solution = doc.get("solution_text", "") if doc else ""
+            leak_found = False
+            if answer and len(str(answer).strip()) > 3:
+                ans_clean = str(answer).strip().replace(" ", "").replace("\\", "").replace("$", "").lower()
+                text_clean = problem_text.lower().replace(" ", "").replace("\\", "").replace("$", "")
+                if ans_clean in text_clean:
+                    leak_found = True
+                    print(f"[runner] ⚠️ 答案泄漏: {problem_key} 题目文本包含answer字段值", flush=True)
+            if not leak_found and solution and len(solution.strip()) > 20:
+                sol_prefix = solution.strip()[:100].lower()
+                if sol_prefix in problem_text.lower():
+                    leak_found = True
+                    print(f"[runner] ⚠️ 答案泄漏: {problem_key} 题目文本包含solution片段", flush=True)
+            if leak_found:
+                from redis_queue import add_failed
+                add_failed(r, {
+                    "problem_key": problem_key, "exp_id": exp_id,
+                    "verdict": "answer_leak_in_input",
+                    "error": "题目文本包含答案/solution，不入running",
+                })
+                # 更新DB
+                attempt_key = f"pipe_{exp_id[:40]}"
+                now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                try:
+                    db.collection(ATTEMPT_COLLECTION).insert({
+                        "_key": attempt_key, "batch_id": "pipe-runner",
+                        "problem_id": problem_key, "exp_id": exp_id,
+                        "status": "answer_leak_in_input", "verdict": "answer_leak_in_input",
+                        "started_at": now, "ended_at": now,
+                        "end_reason": "题目文本包含答案/solution",
+                    })
+                except Exception:
+                    pass
                 continue
 
             # 写题目文件
