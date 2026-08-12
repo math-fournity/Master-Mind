@@ -19,6 +19,7 @@ from redis_queue import (
     update_stats, get_stats, ping,
 )
 from shared_logger import get_logger
+from graceful_shutdown import register_shutdown, should_stop
 
 logger = get_logger("reporter")
 
@@ -42,7 +43,15 @@ def main():
     start_time = time.time()
     prev_stats = {"pending": None, "running": None, "completed": None, "failed": None}
 
+    # 注册优雅退出
+    register_shutdown("reporter")
+
     while True:
+        # 检查优雅退出
+        if should_stop():
+            logger.info("Reporter优雅退出")
+            break
+
         update_stats(r)
         pending = pending_count(r)
         running = running_count(r)

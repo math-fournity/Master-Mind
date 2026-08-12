@@ -70,15 +70,41 @@ def start_service(name: str, script: str, extra_args: list[str], dry_run: bool =
     print(f"  [{name}] 启动 → tmux:{session_name}")
 
 
-def stop_service(name: str):
-    """停止一个服务"""
+def stop_service(name: str, graceful: bool = True, timeout: int = 10):
+    """停止一个服务
+
+    graceful=True: 发送SIGTERM让服务优雅退出（不kill harness session）
+    graceful=False: 直接kill-session（强制停止）
+    """
     session_name = f"pipe-{name}"
-    if tmux_running(session_name):
+    if not tmux_running(session_name):
+        print(f"  [{name}] 未运行")
+        return
+
+    if graceful:
+        # 优雅退出：通过tmux发送SIGTERM给session中的进程
+        # tmux send-keys C-c 会发送Ctrl-C（SIGINT），但更可靠的方式是用kill-pane
+        # 实际上tmux session中的主进程是python，用send-keys发送C-c最可靠
+        subprocess.run(["tmux", "send-keys", "-t", session_name, "C-c", ""],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        print(f"  [{name}] 发送SIGINT, 等待优雅退出...")
+
+        # 等待服务退出
+        for i in range(timeout):
+            time.sleep(1)
+            if not tmux_running(session_name):
+                print(f"  [{name}] 已优雅退出 (等待{i+1}s)")
+                return
+
+        # 超时后强制kill
+        print(f"  [{name}] 优雅退出超时({timeout}s), 强制停止")
         subprocess.run(["tmux", "kill-session", "-t", session_name],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-        print(f"  [{name}] 已停止")
+        print(f"  [{name}] 已强制停止")
     else:
-        print(f"  [{name}] 未运行")
+        subprocess.run(["tmux", "kill-session", "-t", session_name],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        print(f"  [{name}] 已强制停止")
 
 
 def cmd_start(args):
@@ -113,8 +139,44 @@ def cmd_start(args):
 def cmd_stop(args):
     print("停止管道化系统:")
     for name in ["feeder", "runner", "collector", "reporter"]:
-        stop_service(name)
-    print("所有服务已停止。")
+        stop_service(name, graceful=not args.force, timeout=args.timeout)
+
+    if not args.keep_harness:
+        # 默认不kill harness session——它们独立运行，Collector重启后会继续处理
+        # 只有明确指定--kill-harness时才kill
+        pass
+
+    if args.kill_harness:
+        # kill所有harness-xxx session
+        result = subprocess.run(["tmux", "list-sessions", "-F", "#{session_name}"],
+                                capture_output=True, text=True, check=False)
+        harness_sessions = [s.strip() for s in result.stdout.strip().split("\n")
+                           if s.strip().startswith("harness-")]
+        if harness_sessions:
+            print(f"\n  发现{len(harness_sessions)}个harness session:")
+            for s in harness_sessions:
+                subprocess.run(["tmux", "kill-session", "-t", s],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+                print(f"    killed: {s}")
+        else:
+            print(f"\n  无harness session")
+
+    print("\n所有服务已停止。")
+    if not args.kill_harness:
+        print("  注意: harness-xxx session仍在独立运行（这是正常的——解耦设计）。")
+        print("  Collector重启后会继续处理running队列中的attempt。")
+        print("  如需停止所有harness session: python pipe_control.py stop --kill-harness")
+
+
+def cmd_recover(args):
+    """断电恢复"""
+    # 直接调用recover_from_crash.py
+    cmd = [sys.executable, os.path.join(os.path.dirname(__file__), "recover_from_crash.py")]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.auto_restart:
+        cmd.append("--auto-restart")
+    subprocess.run(cmd)
 
 
 def cmd_status(args):
@@ -187,7 +249,16 @@ def main():
     p_start.set_defaults(func=cmd_start)
 
     p_stop = sub.add_parser("stop", help="停止所有服务")
+    p_stop.add_argument("--force", action="store_true", help="强制停止（不等待优雅退出）")
+    p_stop.add_argument("--timeout", type=int, default=10, help="优雅退出等待超时秒数")
+    p_stop.add_argument("--kill-harness", action="store_true", help="同时kill所有harness-xxx session（默认不kill）")
+    p_stop.add_argument("--keep-harness", action="store_true", help="保留harness session（默认行为，这里仅为显式声明）")
     p_stop.set_defaults(func=cmd_stop)
+
+    p_recover = sub.add_parser("recover", help="断电恢复+僵尸清理")
+    p_recover.add_argument("--dry-run", action="store_true", help="只检查不修改")
+    p_recover.add_argument("--auto-restart", action="store_true", help="恢复后自动重启服务")
+    p_recover.set_defaults(func=cmd_recover)
 
     p_status = sub.add_parser("status", help="查看状态")
     p_status.add_argument("-v", "--verbose", action="store_true")

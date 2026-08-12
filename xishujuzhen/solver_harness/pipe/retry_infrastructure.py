@@ -22,6 +22,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from redis_queue import get_redis, ping
 from arango import ArangoClient
 from shared_logger import get_logger
+from graceful_shutdown import register_shutdown, should_stop
 
 logger = get_logger("retry")
 
@@ -173,7 +174,11 @@ def main():
         return
 
     # 循环模式
+    register_shutdown("retry")
     while True:
+        if should_stop():
+            logger.info("Retry优雅退出")
+            break
         run_once()
         logger.info(f"等待 {args.interval}s 后再次扫描...")
         time.sleep(args.interval)

@@ -32,6 +32,7 @@ from redis_queue import (
 )
 from arango import ArangoClient
 from shared_logger import get_logger
+from graceful_shutdown import register_shutdown, should_stop
 
 logger = get_logger("collector")
 
@@ -423,7 +424,17 @@ def main():
     total_infra = 0
     round_num = 0
 
+    # 注册优雅退出
+    register_shutdown("collector")
+
     while True:
+        # 检查优雅退出
+        if should_stop():
+            logger.info(f"Collector优雅退出: round={round_num} total_completed={total_completed} total_failed={total_failed}")
+            logger.info(f"running队列中的attempt不受影响，harness session继续独立运行")
+            logger.info(f"重启Collector后可以继续处理这些running attempt")
+            break
+
         round_num += 1
         running = get_all_running(r)
         if not running:

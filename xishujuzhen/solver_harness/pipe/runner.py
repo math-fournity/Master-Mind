@@ -25,6 +25,7 @@ from redis_queue import (
 )
 from arango import ArangoClient
 from shared_logger import get_logger
+from graceful_shutdown import register_shutdown, should_stop
 
 logger = get_logger("runner")
 
@@ -172,7 +173,16 @@ def main():
     total_launched = 0
     poll_count = 0
 
+    # 注册优雅退出
+    register_shutdown("runner")
+
     while True:
+        # 检查优雅退出
+        if should_stop():
+            logger.info(f"Runner优雅退出: total_launched={total_launched}, 当前running={running_count(r)}")
+            logger.info(f"已启动的harness session不受影响，继续独立运行（Collector会处理它们）")
+            break
+
         poll_count += 1
         # 统计当前running数
         current_running = running_count(r)

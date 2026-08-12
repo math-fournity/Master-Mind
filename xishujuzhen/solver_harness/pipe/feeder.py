@@ -22,6 +22,7 @@ from redis_queue import (
 )
 from arango import ArangoClient
 from shared_logger import get_logger
+from graceful_shutdown import register_shutdown, should_stop
 
 logger = get_logger("feeder")
 
@@ -101,7 +102,15 @@ def main():
     r = get_redis()
     total_enqueued = 0
 
+    # 注册优雅退出
+    register_shutdown("feeder")
+
     while True:
+        # 检查优雅退出
+        if should_stop():
+            logger.info(f"Feeder优雅退出: total_enqueued={total_enqueued}")
+            break
+
         # 检查是否达到limit
         if args.limit > 0 and total_enqueued >= args.limit:
             logger.info(f"达到limit, total_enqueued={total_enqueued} >= limit={args.limit}, 停止")
