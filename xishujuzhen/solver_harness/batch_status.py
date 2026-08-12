@@ -429,9 +429,135 @@ def cmd_dead_cleanup(db, batch_id):
     print(f"\n  cleaned: {cleaned}")
 
 
+def cmd_scan_thinking(db, batch_id):
+    """SOP 9: 扫描所有running session的thinking状态（tmux capture-pane）。"""
+    import re
+    sessions = subprocess.run(["tmux", "list-sessions"], capture_output=True, text=True).stdout
+    harness_sessions = [line.split(":")[0] for line in sessions.strip().split("\n") if line.startswith("harness-dpb")]
+    print(f"  tmux sessions: {len(harness_sessions)}\n")
+    counts = {"PROOF": 0, "THINK": 0, "IDLE": 0, "OTHER": 0, "EMPTY": 0}
+    for s in harness_sessions:
+        pid = s.rstrip().rsplit("-", 1)[-1] if "-" in s else s
+        try:
+            r = subprocess.run(["tmux", "capture-pane", "-t", s, "-p", "-S", "-100"],
+                               capture_output=True, text=True, timeout=5)
+            pane = r.stdout
+        except Exception:
+            counts["EMPTY"] += 1
+            continue
+        ctx = ""
+        m = re.search(r"Context: (\d+k / 200k)", pane)
+        if m:
+            ctx = m.group(1)
+        if "PROOF COMPLETE" in pane:
+            print(f"  {pid}: PROOF_COMPLETE  ctx={ctx}")
+            counts["PROOF"] += 1
+        elif re.search(r"Thinking · \d+m \d+s|\d+s", pane):
+            t = re.findall(r"Thinking · \d+m \d+s|\d+s", pane)
+            print(f"  {pid}: THINK({t[-1] if t else '?'})  ctx={ctx}")
+            counts["THINK"] += 1
+        elif "Ask Devin to build" in pane:
+            print(f"  {pid}: IDLE  ctx={ctx}")
+            counts["IDLE"] += 1
+        elif len([l for l in pane.split("\n") if l.strip()]) < 3:
+            print(f"  {pid}: EMPTY")
+            counts["EMPTY"] += 1
+        else:
+            last = [l for l in pane.split("\n") if l.strip()][-1][:50]
+            print(f"  {pid}: OTHER  ctx={ctx}  [{last}]")
+            counts["OTHER"] += 1
+    print(f"\n  summary: {counts}")
+
+
+def cmd_landfall(db, batch_id):
+    """SOP 10: 批量落盘PROOF COMPLETE + 清理IDLE session。"""
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+    solved = 0
+    cleaned = 0
+    for a in db.aql.execute(
+        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+        'FILTER a.status IN ["running", "stalled_warning"] RETURN a',
+        bind_vars={"bid": batch_id}
+    ):
+        tmux = a.get("tmux_session", "")
+        if not tmux:
+            continue
+        try:
+            r = subprocess.run(["tmux", "capture-pane", "-t", tmux, "-p", "-S", "-500"],
+                               capture_output=True, text=True, timeout=5)
+        except Exception:
+            continue
+        if "PROOF COMPLETE" in r.stdout:
+            subprocess.run(["tmux", "kill-session", "-t", tmux],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            db.collection("devin_problem_runs").update({
+                "_key": a["_key"], "status": "candidate_solved",
+                "ended_at": now, "end_reason": "manual_pane_proof_complete",
+            })
+            print(f"  SOLVED: {a['problem_id']}")
+            solved += 1
+        elif "Ask Devin to build" in r.stdout and "Thinking" not in r.stdout:
+            subprocess.run(["tmux", "kill-session", "-t", tmux],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+            db.collection("devin_problem_runs").update({
+                "_key": a["_key"], "status": "failed_token_limit",
+                "ended_at": now, "end_reason": "idle_token_limited",
+            })
+            print(f"  CLEANED: {a['problem_id']}")
+            cleaned += 1
+    print(f"\n  solved: {solved}, cleaned: {cleaned}, freed: {solved + cleaned}")
+
+
+def cmd_recover_export(db, batch_id):
+    """SOP 11: 从sessions.db恢复export=0B的题（metadata only）。"""
+    import sqlite3
+    import json
+    from datetime import datetime, timezone
+    sdb = sqlite3.connect(os.path.expanduser("~/.local/share/devin/cli/sessions.db"))
+    recovered = 0
+    for a in db.aql.execute(
+        'FOR a IN devin_problem_runs FILTER a.batch_id == @bid '
+        'FILTER a.status == "candidate_solved" RETURN a',
+        bind_vars={"bid": batch_id}
+    ):
+        export_path = Path(a["paths"].get("export_path", ""))
+        if export_path.exists() and export_path.stat().st_size > 1000:
+            continue
+        sid = a.get("devin_session_id", "")
+        if not sid:
+            continue
+        rows = sdb.execute(
+            "SELECT node_id, chat_message FROM message_nodes WHERE session_id=? ORDER BY node_id",
+            (sid,)
+        ).fetchall()
+        messages = []
+        for nid, msg_json in rows:
+            try:
+                msg = json.loads(msg_json)
+                messages.append({"node_id": nid, "role": msg.get("role", ""),
+                                 "content_preview": str(msg.get("content", ""))[:200]})
+            except Exception:
+                pass
+        export_data = {
+            "problem_id": a["problem_id"], "devin_session_id": sid,
+            "source": "sessions_db_metadata_only",
+            "warning": "export was 0B, proof content not recoverable",
+            "message_count": len(messages), "messages": messages,
+            "extracted_at": datetime.now(timezone.utc).isoformat(),
+        }
+        export_path.parent.mkdir(parents=True, exist_ok=True)
+        export_path.write_text(json.dumps(export_data, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"  {a['problem_id']}: {len(messages)} msgs (metadata only)")
+        recovered += 1
+    sdb.close()
+    print(f"\n  recovered: {recovered}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Batch status query tool")
-    parser.add_argument("cmd", choices=["status", "active", "errors", "solved", "feed", "leak", "dead", "all"])
+    parser.add_argument("cmd", choices=["status", "active", "errors", "solved", "feed", "leak", "dead", "all",
+                                        "scan-thinking", "landfall", "recover-export"])
     parser.add_argument("--batch-id", help="batch id (default: latest running)")
     parser.add_argument("--cleanup", action="store_true", help="auto-fix zombie sessions (for dead command)")
     args = parser.parse_args()
@@ -467,6 +593,15 @@ def main():
             cmd_dead_cleanup(db, batch_id)
         else:
             cmd_dead(db, batch_id)
+        print()
+    if args.cmd == "scan-thinking":
+        cmd_scan_thinking(db, batch_id)
+        print()
+    if args.cmd == "landfall":
+        cmd_landfall(db, batch_id)
+        print()
+    if args.cmd == "recover-export":
+        cmd_recover_export(db, batch_id)
         print()
 
 

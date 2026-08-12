@@ -511,12 +511,21 @@ tmux kill-session -t math-continuous 2>/dev/null
 pkill -f "batch_problem_runner.py run-continuous" 2>/dev/null
 tmux list-sessions 2>&1 | grep "harness-dpb" | cut -d: -f1 | while read s; do tmux kill-session -t "$s"; done
 
-# 4. 启动新批次（10并发，交互模式，mitmproxy已禁用）
+# 4. 启动新批次（交互模式，mitmproxy已禁用，proof_in_tui自动判定+thinking自动落盘）
+# 新批次：用--label自动生成batch_id
 tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
   .venv/bin/python -u xishujuzhen/solver_harness/batch_problem_runner.py run-continuous \
-  --feed-tier 1 --concurrency 10 --poll-seconds 60 \
+  --feed-tier 1 --concurrency 30 --poll-seconds 60 \
   --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
-  --launch-interval-seconds 5 --label <你的label> \
+  --launch-interval-seconds 1 --label <你的label> \
+  2>&1 | tee /tmp/batch-<你的label>.log"
+
+# 继续已有batch：用--batch-id指定（不会创建新batch，只继续feed+launch queued的题）
+tmux new-session -d -s math-continuous "set -a; source .env; set +a; \
+  .venv/bin/python -u xishujuzhen/solver_harness/batch_problem_runner.py run-continuous \
+  --batch-id <已有batch_id> --feed-tier 1 --concurrency 30 --poll-seconds 60 \
+  --max-runtime-seconds 14400 --stall-seconds 900 --stop-on-stall \
+  --launch-interval-seconds 1 --label <你的label> \
   2>&1 | tee /tmp/batch-<你的label>.log"
 ```
 
@@ -587,28 +596,17 @@ cat /data/math-agent-glm5.2-tmux-agents-dir/<batch_dir>/logs/launch-<exp_id>.log
 4. **API限流** → 降并发，`set-concurrency --concurrency 5`
 5. **tmux session被手动kill** → 不要手动kill harness-dpb开头的session
 
-**SOP 5 · 手动标记PROOF COMPLETE（monitor漏判时）**
+**SOP 5 · 批量落盘PROOF COMPLETE + 清理IDLE**
 
-monitor用`tmux capture-pane`检测PROOF COMPLETE，但可能因poll间隔（60秒）延迟判定。如果pane已显示PROOF COMPLETE但DB还是running，手动标记：
+monitor自动判定proof_in_tui，但可能因poll间隔延迟。手动落盘：
 
 ```bash
 cd ~/master-mind-glm5.2-worktree
 set -a; source .env; set +a
-.venv/bin/python -c "
-from arango import ArangoClient
-import os
-from datetime import datetime, timezone
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-now = datetime.now(timezone.utc).isoformat()
-# 填入batch_id和problem_id
-batch_id = '<你的batch_id>'
-for pid in ['<problem_id_1>', '<problem_id_2>']:
-    for key in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid FILTER a.problem_id == @pid RETURN a._key', bind_vars={'bid': batch_id, 'pid': pid}):
-        db.collection('devin_problem_runs').update({'_key': key, 'status': 'candidate_solved', 'ended_at': now, 'end_reason': 'manual_pane_proof_complete'})
-        print(f'marked {pid} as candidate_solved')
-"
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py landfall [--batch-id <batch_id>]
 ```
+
+扫描所有running session的pane，PROOF COMPLETE的kill+标记candidate_solved，IDLE的kill+标记failed_token_limit。
 
 **SOP 6 · 看Solver的thinking内容**
 
@@ -619,218 +617,52 @@ tmux attach -t <tmux_session_name>
 # 方法2：capture-pane（抓当前屏幕，-S -500抓历史500行）
 tmux capture-pane -t <tmux_session_name> -p -S -500
 
-# 方法3：看export文件（完整对话记录，JSON格式）
-cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/exports/conversation.json | python3 -m json.tool | head -100
+# 方法3：看export文件（最终证明输出，ATIF JSON格式）
+cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/exports/conversation.json | python3 -m json.tool | head -100
 
-# 方法4：看pipe文件（raw TUI流，含ANSI控制序列，需要去噪）
-cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/tmux/tmux_pipe.log | \
-  perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g' | tail -100
+# 方法4：看thinking_capture文件（Ctrl+O展开后的完整thinking文本）
+cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/tmux/thinking_capture.txt | tail -100
 ```
 
-**SOP 9 · 批量调查所有session的thinking状态（2026-08-12实战方法）**
-
-> **batch_status.py的active命令不够**——它只显示idle/pipe大小/marker，不显示pane实际内容。要确认每个solver在干什么，必须用tmux capture-pane逐个看。
-
-**方法1：一键扫描所有session的状态摘要**
-
-```bash
-cd ~/master-mind-glm5.2-worktree
-for s in $(tmux list-sessions 2>&1 | grep "^harness-dpb" | cut -d: -f1); do
-  pid=$(echo $s | rev | cut -d- -f1 | rev)
-  # 注意：Thinking行前面有braille spinner字符（⠙⠀等），grep时不要加^锚定
-  thinking=$(tmux capture-pane -t "$s" -p 2>&1 | grep -oE "Thinking · [0-9]+m [0-9]+s" | tail -1)
-  proof=$(tmux capture-pane -t "$s" -p 2>&1 | grep -c "PROOF COMPLETE")
-  ctx=$(tmux capture-pane -t "$s" -p 2>&1 | grep -oE "Context: [0-9]+k / 200k" | tail -1)
-  echo "$pid: ${thinking:-NONE} proof=$proof ${ctx:-no-ctx}"
-done
-```
-
-**输出示例**：
-```
-omni_math_004105: Thinking · 9m 30s proof=0 Context: 42k / 200k
-omni_math_004108: NONE proof=1 Context: 37k / 200k          ← 已完成
-omni_math_004138: NONE proof=0 Context: 28k / 200k          ← 需进一步看
-```
-
-**方法2：对"NONE proof=0"的session看pane尾部详细内容**
-
-方法1中显示`NONE proof=0`的session不一定是死的——可能在等API响应、在Yapping阶段、或thinking文本在scrollback中。看pane尾部6行：
-
-```bash
-for pid in <problem_id_1> <problem_id_2>; do
-  s=$(tmux list-sessions 2>&1 | grep "^harness-dpb.*$pid" | cut -d: -f1)
-  if [ -n "$s" ]; then
-    echo "=== $pid ==="
-    tmux capture-pane -t "$s" -p 2>&1 | grep -v '^$' | tail -6
-    echo
-  fi
-done
-```
-
-**判定标准**：
-- pane尾部有`Thinking · Xm Ys` → 在thinking（方法1的grep可能因braille前缀漏匹配）
-- pane尾部有`PROOF COMPLETE` → 已完成
-- pane尾部有`Ask Devin to build features` → session空闲，可能已完成
-- pane尾部有数学内容+Thinking行 → 在深度thinking
-- pane尾部有数学内容但无Thinking行 → 在Yapping（输出文本阶段）
-- pane空白 → zombie session
-
-**注意事项**：
-1. **grep Thinking时不要加`^`锚定**——Thinking行前面有braille spinner字符（`⠙⠀Thinking`），`^Thinking`匹配不到
-2. **用`^harness-dpb`过滤session名**——不要用`harness-dpb`，因为还有`harness-dbmon-`开头的DB monitor session会混入
-3. **capture-pane的`-S -500`**——抓历史500行，默认只抓当前屏幕（约30行），thinking内容可能在scrollback中
-4. **Context token数是进度指标**——`47k/200k`说明加载了上下文在处理，`0k`说明还没开始
-
-**SOP 10 · 已完成题的正确落盘（2026-08-12实战方法）**
-
-> **交互模式下PROOF COMPLETE后session不会自己退出**——pane显示"Ask Devin to build features"空闲状态，但DB status还是running。必须主动落盘：kill tmux + 更新DB + 确认export文件。
-
-**落盘三层数据**：
-
-| 层 | 文件 | 来源 | 完整性 |
-|---|---|---|---|
-| **export** | `<exp_id>/exports/conversation.json` | devin cli的`--export`自动写 | 完整ATIF格式对话记录（含thinking+tool_calls），**但部分session可能export=0B** |
-| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | tmux pipe-pane的raw TUI流 | 含ANSI控制序列，需要去噪，**可能没记录到PROOF COMPLETE**（TUI渲染打碎） |
-| **sessions.db** | `~/.local/share/devin/cli/sessions.db` message_nodes表 | devin cli自动写 | **只有输入（system/user消息），没有assistant输出**——thinking/证明内容不在其中 |
-
-**落盘流程**：
-
-```bash
-cd ~/master-mind-glm5.2-worktree
-set -a; source .env; set +a
-
-# 1. 扫描所有running session，找pane有PROOF COMPLETE的
-.venv/bin/python -c "
-from arango import ArangoClient
-import os, subprocess
-from datetime import datetime, timezone
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-now = datetime.now(timezone.utc).isoformat()
-batch_id = '<你的batch_id>'
-
-for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid FILTER a.status == \"running\" RETURN a', bind_vars={'bid': batch_id}):
-    tmux = a.get('tmux_session','')
-    if not tmux: continue
-    r = subprocess.run(['tmux','capture-pane','-t',tmux,'-p','-S','-500'], capture_output=True, text=True, timeout=10)
-    if 'PROOF COMPLETE' in r.stdout:
-        pid = a['problem_id']
-        # 1. kill tmux
-        subprocess.run(['tmux','kill-session','-t',tmux], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-        # 2. 更新DB
-        db.collection('devin_problem_runs').update({
-            '_key': a['_key'],
-            'status': 'candidate_solved',
-            'ended_at': now,
-            'end_reason': 'manual_pane_proof_complete',
-        })
-        # 3. 记录event
-        db.collection('devin_run_events').insert({
-            'batch_id': batch_id, 'attempt_key': a['_key'],
-            'event_type': 'attempt_solved',
-            'event_data': {'problem_id': pid, 'method': 'manual_pane_capture'},
-            'created_at': now
-        })
-        print(f'SOLVED: {pid}')
-"
-```
-
-**SOP 11 · 恢复export=0B的题（从sessions.db提取）**
-
-> **部分session的export文件=0B**——devin cli的`--export`没写文件（可能session被kill太快或devin cli bug）。这些题的证明内容**无法从sessions.db恢复**——message_nodes只有输入（system/user），没有assistant输出。pipe也没记录到PROOF COMPLETE（TUI渲染打碎）。
->
-> **这是已知数据丢失**——pane显示过PROOF COMPLETE但没落盘。只能记录metadata（problem_id, devin_session_id, message_count）证明题做过。
-
-```bash
-cd ~/master-mind-glm5.2-worktree
-set -a; source .env; set +a
-.venv/bin/python -c "
-from arango import ArangoClient
-import os, sqlite3, json
-from pathlib import Path
-from datetime import datetime, timezone
-
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-batch_id = '<你的batch_id>'
-sdb = sqlite3.connect(os.path.expanduser('~/.local/share/devin/cli/sessions.db'))
-
-for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.batch_id == @bid FILTER a.status == \"candidate_solved\" RETURN a', bind_vars={'bid': batch_id}):
-    export_path = Path(a['paths'].get('export_path',''))
-    if export_path.exists() and export_path.stat().st_size > 1000:
-        continue  # 已有完整export
-    sid = a.get('devin_session_id','')
-    if not sid: continue
-    # 从sessions.db提取metadata
-    rows = sdb.execute('SELECT node_id, chat_message FROM message_nodes WHERE session_id=? ORDER BY node_id', (sid,)).fetchall()
-    messages = []
-    for nid, msg_json in rows:
-        try:
-            msg = json.loads(msg_json)
-            messages.append({'node_id': nid, 'role': msg.get('role',''), 'content_preview': str(msg.get('content',''))[:200]})
-        except: pass
-    # 写export（metadata only，无证明内容）
-    export_data = {
-        'problem_id': a['problem_id'], 'devin_session_id': sid,
-        'source': 'sessions_db_metadata_only',
-        'warning': 'export was 0B, proof content not recoverable from sessions.db (only inputs, no assistant outputs)',
-        'message_count': len(messages), 'messages': messages,
-        'extracted_at': datetime.now(timezone.utc).isoformat()
-    }
-    export_path.parent.mkdir(parents=True, exist_ok=True)
-    export_path.write_text(json.dumps(export_data, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(f'{a[\"problem_id\"]}: {len(messages)} msgs (metadata only, proof lost)')
-sdb.close()
-"
-```
-
-**预防export=0B的方法**：
-1. **不要在PROOF COMPLETE后立即kill tmux**——等devin cli自己写完export再kill。可以sleep 10秒
-2. **monitor的proof_in_tui判定逻辑已修复**——检测到PROOF COMPLETE后stop_attempt但不立即kill tmux，等export写完
-3. **如果export仍然=0B**——该题证明内容丢失，只能记录metadata。不要假装数据完整
-
-**SOP 12 · Thinking内容落盘（2026-08-12发现+修复）**
-
-> **export文件只有最终输出，没有thinking内容！** 交互模式下thinking在TUI scrollback中显示（`show_full_thinking`模式），但devin cli的`--export`只记录最终agent消息（ATIF格式的steps），不记录thinking文本。pipe也只记录UI行（`Thinking · 0s`），不记录thinking内容。
-
-**数据完整性表（修正版）**：
+**数据完整性表**：
 
 | 层 | 文件 | 有什么 | 没有什么 |
 |---|---|---|---|
-| **export** | `<exp_id>/exports/conversation.json` | 最终证明输出（ATIF steps）、system/user消息、metrics（token数） | **thinking内容**、tool_calls中间过程 |
-| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | TUI渲染流（ANSI+braille spinner）、UI行（`Thinking · Xm Ys`） | **thinking文本内容**（只有UI行没有展开内容） |
+| **export** | `<exp_id>/exports/conversation.json` | 最终证明输出（ATIF steps）、system/user消息、metrics（token数） | **thinking内容** |
+| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | TUI渲染流（ANSI+braille spinner）、UI行（`Thinking · Xm Ys`） | **thinking文本内容** |
 | **thinking_capture** | `<exp_id>/tmux/thinking_capture.txt` | **完整thinking文本**（Ctrl+O展开后capture-pane抓取） | 无ANSI清理（raw TUI文本） |
-| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 输入消息（system/user） | **assistant输出和thinking**（只有输入） |
+| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 输入消息（system/user） | **assistant输出和thinking** |
 
-**修复方法**：`stop_attempt()`调用前先调`capture_thinking()`——发Ctrl+O展开thinking，capture-pane抓scrollback 5000行，存到`thinking_capture.txt`。
+> **thinking落盘机制**：`stop_attempt()`调用前自动调`capture_thinking()`——发Ctrl+O展开thinking，capture-pane抓scrollback 5000行，存到`thinking_capture.txt`。已集成到monitor的proof_in_tui判定流程中。
 
-```python
-# batch_problem_runner.py中的capture_thinking函数
-def capture_thinking(attempt):
-    tmux_session = attempt.get("tmux_session", "")
-    # 1. 发Ctrl+O展开thinking
-    subprocess.run(["tmux", "send-keys", "-t", tmux_session, "Ctrl+O"], ...)
-    time.sleep(2)
-    # 2. capture-pane抓scrollback 5000行
-    result = subprocess.run(["tmux", "capture-pane", "-t", tmux_session, "-p", "-S", "-5000"], ...)
-    # 3. 存到thinking_capture.txt
-    capture_path = Path(paths["tmux_pipe_path"]).parent / "thinking_capture.txt"
-    capture_path.write_text(result.stdout)
-```
+**SOP 9 · 批量扫描所有session的thinking状态**
 
-**手动抓thinking（对已完成的session）**：
 ```bash
-# 对还在的tmux session发Ctrl+O后capture
-tmux send-keys -t <session> Ctrl+O
-sleep 2
-tmux capture-pane -t <session> -p -S -5000 > <trajectory_dir>/tmux/thinking_capture.txt
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py scan-thinking [--batch-id <batch_id>]
 ```
 
-**验证thinking是否落盘**：
+输出每个session的PROOF/THINK/IDLE/OTHER/EMPTY状态 + Context token数 + summary计数。
+
+**判定标准**：
+- `PROOF_COMPLETE` → 已完成，用`landfall`落盘
+- `THINK(Xm Ys)` → 在thinking
+- `IDLE` → token_limited空闲，用`landfall`清理
+- `OTHER` → 等API响应或在Yapping阶段
+- `EMPTY` → zombie session
+
+**SOP 10 · 恢复export=0B的题**
+
 ```bash
-# 检查thinking_capture.txt是否存在且有内容
-find /data/math-agent-glm5.2-tmux-agents-trajectory/ -name "thinking_capture.txt" -exec stat -f "%z %N" {} \; | sort -rn | head -10
+cd ~/master-mind-glm5.2-worktree
+set -a; source .env; set +a
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py recover-export [--batch-id <batch_id>]
 ```
+
+从sessions.db提取metadata写入export文件。**注意：证明内容无法恢复**——sessions.db只有输入没有assistant输出。只能记录metadata证明题做过。
+
+**预防export=0B**：monitor的proof_in_tui判定会先`capture_thinking()`再`stop_attempt()`，不立即kill tmux。如果export仍然=0B，证明内容丢失。
 
 **SOP 7 · 停止批次**
 
