@@ -850,6 +850,63 @@ for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_p
 "
 ```
 
+**SOP 16 · 自动化运营系统（2026-08-12）**
+
+> **架构**：`[我清洗题] → queue_in/ + problem_queue表 → [auto_runner.py] → AGENTS.md → devin cli → 判定落盘`
+>
+> **核心设计**：runtime系统从DB维护的queue中不断拿题做题。queue的另一端是AI不断清洗送入新题。题目录入固定目录，runtime取题后写入运行目录的AGENTS.md，启动devin cli做题。
+
+**三个组件**：
+
+1. **`enqueue_problem.py`** — 送题工具（AI用）
+   - 单题送入：`--problem-id <pid> --text-file <path> --tier <n> --source <name>`
+   - 从DB批量送入：`--from-progress --tier <n> --limit <n> --skip-solved`
+   - 从目录扫描：`--scan-dir <dir> --tier <n>`
+   - 查看队列：`--status`
+
+2. **`auto_runner.py`** — 自动化运营脚本（runtime）
+   - 从`problem_queue`取`queued`题 → 创建`devin_problem_runs` attempt → launch devin cli
+   - refresh循环判定PROOF COMPLETE / timeout / stall / dead_session
+   - 自动更新`problem_queue`的`queue_status`（solved/failed）
+   - 定时输出状态报告
+   - 队列空时自动退出
+   - 启动：`tmux new-session -d -s auto-runner "set -a; source .env; set +a; .venv/bin/python -u xishujuzhen/solver_harness/auto_runner.py --concurrency 100 --poll-seconds 30 --report-seconds 300"`
+
+3. **`problem_queue` DB collection** — 题队列
+   - `queue_status`: queued / running / solved / failed / cancelled
+   - `problem_text`: 题目原文
+   - `difficulty_tier`: 难度层级
+   - `priority`: 优先级（1最高10最低）
+   - `attempt_keys`: 关联的`devin_problem_runs`的_key列表
+   - `run_count`: 被运行过几次
+
+**固定目录**：
+- `queue_in/`：`/data/math-agent-glm5.2-tmux-agents-trajectory/_queue_in/` — 送入的题目文本文件
+- `queue/`：`/data/math-agent-glm5.2-tmux-agents-trajectory/_queue/` — 队列元数据
+
+**auto_runner的batch_id**：`dpb-auto-runner`（固定，所有auto_runner的attempt都在这个batch下）
+
+**监控命令**：
+```bash
+# 队列状态
+.venv/bin/python xishujuzhen/solver_harness/enqueue_problem.py --status
+
+# auto_runner日志
+tail -20 /data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log
+
+# batch状态
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py status --batch-id dpb-auto-runner
+
+# scan-thinking
+.venv/bin/python xishujuzhen/solver_harness/batch_status.py scan-thinking --batch-id dpb-auto-runner
+```
+
+**AI的职责**：
+- 不断清洗新题，用`enqueue_problem.py`送入queue
+- 监控auto_runner运行状态（日志、队列状态、scan-thinking）
+- 处理卡死的session（发"继续"或标记failed重跑）
+- auto_runner退出后（队列空），送入新题重启
+
 ---
 
 ## 任务追踪（跨Session工作意识维持）
