@@ -627,6 +627,60 @@ cat /data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/tmux/tmux_pipe.log | \
   perl -pe 's/\x1b\[[0-9;]*[a-zA-Z]//g; s/[\x00-\x08\x0b\x0c\x0e-\x1f]//g' | tail -100
 ```
 
+**SOP 9 · 批量调查所有session的thinking状态（2026-08-12实战方法）**
+
+> **batch_status.py的active命令不够**——它只显示idle/pipe大小/marker，不显示pane实际内容。要确认每个solver在干什么，必须用tmux capture-pane逐个看。
+
+**方法1：一键扫描所有session的状态摘要**
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+for s in $(tmux list-sessions 2>&1 | grep "^harness-dpb" | cut -d: -f1); do
+  pid=$(echo $s | rev | cut -d- -f1 | rev)
+  # 注意：Thinking行前面有braille spinner字符（⠙⠀等），grep时不要加^锚定
+  thinking=$(tmux capture-pane -t "$s" -p 2>&1 | grep -oE "Thinking · [0-9]+m [0-9]+s" | tail -1)
+  proof=$(tmux capture-pane -t "$s" -p 2>&1 | grep -c "PROOF COMPLETE")
+  ctx=$(tmux capture-pane -t "$s" -p 2>&1 | grep -oE "Context: [0-9]+k / 200k" | tail -1)
+  echo "$pid: ${thinking:-NONE} proof=$proof ${ctx:-no-ctx}"
+done
+```
+
+**输出示例**：
+```
+omni_math_004105: Thinking · 9m 30s proof=0 Context: 42k / 200k
+omni_math_004108: NONE proof=1 Context: 37k / 200k          ← 已完成
+omni_math_004138: NONE proof=0 Context: 28k / 200k          ← 需进一步看
+```
+
+**方法2：对"NONE proof=0"的session看pane尾部详细内容**
+
+方法1中显示`NONE proof=0`的session不一定是死的——可能在等API响应、在Yapping阶段、或thinking文本在scrollback中。看pane尾部6行：
+
+```bash
+for pid in <problem_id_1> <problem_id_2>; do
+  s=$(tmux list-sessions 2>&1 | grep "^harness-dpb.*$pid" | cut -d: -f1)
+  if [ -n "$s" ]; then
+    echo "=== $pid ==="
+    tmux capture-pane -t "$s" -p 2>&1 | grep -v '^$' | tail -6
+    echo
+  fi
+done
+```
+
+**判定标准**：
+- pane尾部有`Thinking · Xm Ys` → 在thinking（方法1的grep可能因braille前缀漏匹配）
+- pane尾部有`PROOF COMPLETE` → 已完成
+- pane尾部有`Ask Devin to build features` → session空闲，可能已完成
+- pane尾部有数学内容+Thinking行 → 在深度thinking
+- pane尾部有数学内容但无Thinking行 → 在Yapping（输出文本阶段）
+- pane空白 → zombie session
+
+**注意事项**：
+1. **grep Thinking时不要加`^`锚定**——Thinking行前面有braille spinner字符（`⠙⠀Thinking`），`^Thinking`匹配不到
+2. **用`^harness-dpb`过滤session名**——不要用`harness-dpb`，因为还有`harness-dbmon-`开头的DB monitor session会混入
+3. **capture-pane的`-S -500`**——抓历史500行，默认只抓当前屏幕（约30行），thinking内容可能在scrollback中
+4. **Context token数是进度指标**——`47k/200k`说明加载了上下文在处理，`0k`说明还没开始
+
 **SOP 7 · 停止批次**
 
 ```bash
