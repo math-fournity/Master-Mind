@@ -3251,7 +3251,18 @@ for s, c in sources.most_common():
 - answer_leak_in_input但answer是短字符串（<10字符）→误判，需要重新入队
 - solve_time远小于elapsed→solve_time提取有误，用extract_solve_time --batch --update-db修复
 - failed_thinking_spin但pane_snapshot中有PROOF COMPLETE→Collector误判，用reclassify_failed.py修复
+- candidate_solved但export中无AI输出的PROOF COMPLETE→提示词误匹配bug，用fix_false_positive_solved.py修复
 - 修复后记录到本节"历史误判修复"中
+
+**检查5b：export内容质量验证**（每批次结束时抽查）
+- 脚本：`scripts/check_export_vs_db.py`——全量检查export内容质量+与数据库交叉验证
+- 检查项：
+  1. export文件大小分布（0B/<10KB/正常）——0B或<10KB说明export写入不完整
+  2. agent step的reasoning_content长度——0B说明AI没输出任何思考
+  3. PROOF COMPLETE真伪——用`find_ai_proof_marker`区分AI输出 vs 提示词中的文本
+  4. 交叉验证：DB说candidate_solved的，export中是否有真实PROOF COMPLETE
+- 误判率 = DB说solved但export无真实证明的数量 / DB说solved的总数
+- 正常误判率应<1%；>5%说明collector匹配逻辑有bug
 
 **历史误判修复记录**：
 - 2026-08-12 answer_leak短答案误判：阈值>3改为>10，4道题重新入队
@@ -3260,6 +3271,7 @@ for s, c in sources.most_common():
 - 2026-08-12 `-p`模式"秒退"误判：早期发现`-p`模式API响应慢时秒退，禁用`-p`改用交互模式。晚期重新测试发现秒退问题已不存在，`-p`模式输出完成后自动退出+写export（138KB）。切换回`-p`模式，export落盘率从70%提升到100%
 - 2026-08-12 `-p`模式tmux session消失：`-p`模式devin cli退出后tmux session自动销毁，collector判定为dead_session。修复：命令后加`; echo DEVIN_CLI_EXITED code=$?; sleep 999999`保持session存活
 - 2026-08-12 macOS sleep infinity不支持：`sleep infinity`在macOS上报错（usage: sleep number[unit]），改用`sleep 999999`
+- 2026-08-12 提示词PROOF COMPLETE误匹配（重大）：collector的has_real_proof在pane中搜索"PROOF COMPLETE"时，匹配到了提示词"结尾输出 ### PROOF COMPLETE"中的文本，而非AI实际输出的标记。导致272个实际未完成的题被误判为candidate_solved（误判率27.4%）。修复：新增`find_ai_proof_marker`函数检查上下文排除提示词匹配（检查"结尾输出"/"请按AGENTS"/"Pro ·"等提示词特征）。272条DB记录重新分类（252 dead_session + 17 token_limit + 3 stall），272道题重新入队。脚本：`scripts/fix_false_positive_solved.py`，验证脚本：`scripts/check_export_vs_db.py`
 
 **检查6：harness session健康**（每30分钟检查一次）
 ```bash
