@@ -4,24 +4,28 @@
 
 **核心约束**：检查批量集群时必须到最前线——不能只看DB status数字，必须看tmux pane内容、文件实际大小、进程实际状态。
 
-## 三条铁律
+## 管道化系统检查铁律（当前生效）
 
-### 铁律1：用batch_status.py，不现写脚本
+### 铁律0：检查不用长sleep等待——简单查询立即执行
 
-```bash
-set -a; source .env; set +a
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py status   # 总状态
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py active   # 活跃度
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py errors   # 错误分析
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py solved   # 已解决
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py feed     # feed事件
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py leak     # 泄漏检查
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py dead     # 僵尸session检测
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py dead --cleanup  # 自动清理僵尸session
-.venv/bin/python xishujuzhen/solver_harness/batch_status.py all      # 全部（不含dead）
-```
+**这是最重要的检查纪律。** 检查系统状态时：
 
-新增查询需求时更新batch_status.py，不另写脚本。
+- **简单查询立即执行**——`pipe_control.py status`、`tmux list-sessions`、看日志tail等，都是秒级返回的命令，不需要任何sleep前置
+- **禁止用sleep 60/120/300等长等待**——检查命令本身是即时返回的，加sleep只是浪费时间
+- **要看趋势变化时用短间隔多次检查**——需要对比前后状态时，做两次即时检查（中间可以做别的事），不要用一次长sleep
+- **等待新完成出现时用get_output轮询**——如果确实需要等后台命令完成，用get_output with timeout，不要用sleep阻塞
+- **反模式**：`sleep 300 && pipe_control.py status`——为什么要等5分钟才查状态？状态查询是即时的
+
+### 铁律1：用pipe_control.py，不现写脚本
+
+管道化系统用`pipe_control.py`检查，不另写脚本：
+
+- `pipe_control.py status`——总状态（服务存活+队列+实时配置）
+- `pipe_control.py status -v`——含running attempt详情
+- `pipe_control.py concurrency 50`——实时调并发
+- `pipe_control.py recover --dry-run`——断电恢复检查
+
+新增查询需求时更新pipe_control.py，不另写脚本。
 
 ### 铁律2：DB status数字会骗人，必须到最前线
 
@@ -31,11 +35,16 @@ DB显示`running`不代表Solver在工作。必须验证三个层面：
 2. **文件实际大小**——thinking_readable_path和tmux_pipe_path的大小，0KB=没产出
 3. **idle时间真实性**——activity_signature可能因tmux_log_path变化永远在变，导致idle永远=0
 
-### 铁律3：发现问题先修batch_status.py再修batch_problem_runner.py
+### 铁律3：发现问题先修检查工具再修服务代码
 
-检查脚本和监控代码是两层。batch_status.py是检查工具，batch_problem_runner.py是监控逻辑。发现问题后：
-1. 先在batch_status.py中加检测命令（让下次能一键发现）
-2. 再在batch_problem_runner.py中修监控逻辑（让monitor能自动处理）
+检查脚本和监控代码是两层。pipe_control.py是检查工具，runner/collector是服务代码。发现问题后：
+1. 先在pipe_control.py中加检测命令（让下次能一键发现）
+2. 再在runner/collector中修服务逻辑（让服务能自动处理）
+
+## 旧batch系统检查（已废弃，仅参考）
+
+旧batch系统用batch_status.py，管道化系统已替代它。旧命令保留供参考：
+- `batch_status.py status/active/errors/solved/feed/leak/dead`——旧batch系统检查
 
 ## 并发上限经验（实测）
 

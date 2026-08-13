@@ -2,11 +2,31 @@
 
 **触发条件**：检查批量Solver集群运行状态时；用户说"看看进度"/"检查有没有问题"时；新session接手批量系统时。
 **配套Rule**：`.devin/rules/solver-batch-health-check.md`（铁律+并发经验+已知问题清单）
-**检查工具**：`xishujuzhen/solver_harness/batch_status.py`（7个命令，不现写脚本）
+**检查工具**：管道化系统用`pipe_control.py`，旧batch系统用`batch_status.py`
 
 ---
 
-## 一键检查流程
+## 管道化系统检查流程（当前生效）
+
+**铁律0：检查不用长sleep等待——简单查询立即执行**
+
+检查命令都是秒级返回的，不需要任何sleep前置。禁止`sleep 300 && pipe_control.py status`这种写法。
+
+**一键检查**（即时返回，不加sleep）：
+
+- `pipe_control.py status`——总状态（服务存活+队列+实时配置）
+- `pipe_control.py status -v`——含running attempt详情
+- `tmux list-sessions | grep pipe-`——4个服务session必须都在
+- `tail -10 .../logs/collector.log`——看collector最近处理了什么
+- `tail -5 .../logs/reporter.log`——看reporter最近统计
+
+**看完全部输出后，按AGENTS.md中"系统运行监控SOP"节的6项检查清单逐项判定。**
+
+---
+
+## 旧batch系统检查流程（已废弃，仅参考）
+
+**一键检查流程**：
 
 ```bash
 set -a; source .env; set +a
