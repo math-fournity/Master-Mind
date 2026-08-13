@@ -50,8 +50,12 @@ def tmux_running(name: str) -> bool:
         return False
 
 
-def start_service(name: str, script: str, extra_args: list[str], dry_run: bool = False):
-    """启动一个服务到tmux session"""
+def start_service(name: str, script: str, extra_args: list[str], dry_run: bool = False, auto_restart: bool = False):
+    """启动一个服务到tmux session
+
+    auto_restart=True: 用bash while循环包裹，服务退出后自动重启（等5秒）。
+    用于collector等需要长期运行的服务——退出后自动恢复，不依赖人工重启。
+    """
     session_name = f"pipe-{name}"
     if tmux_running(session_name):
         print(f"  [{name}] 已在运行, 跳过")
@@ -64,12 +68,22 @@ def start_service(name: str, script: str, extra_args: list[str], dry_run: bool =
     if dry_run:
         cmd.append("--dry-run")
 
-    full_cmd = " ".join(cmd) + f" 2>&1 | tee -a {log_file}"
+    cmd_str = " ".join(cmd)
+    if auto_restart:
+        # bash while循环：退出后等5秒自动重启，日志追加写入
+        full_cmd = (
+            f'while true; do {cmd_str} 2>&1 | tee -a {log_file}; '
+            f'echo "[auto-restart] {name}退出, 5秒后重启..." >> {log_file}; '
+            f'sleep 5; done'
+        )
+    else:
+        full_cmd = cmd_str + f" 2>&1 | tee -a {log_file}"
+
     subprocess.run(
         ["tmux", "new-session", "-d", "-s", session_name, full_cmd],
         check=False, timeout=10
     )
-    print(f"  [{name}] 启动 → tmux:{session_name}")
+    print(f"  [{name}] 启动 → tmux:{session_name}" + (" (auto-restart)" if auto_restart else ""))
 
 
 def stop_service(name: str, graceful: bool = True, timeout: int = 10):
@@ -131,7 +145,7 @@ def cmd_start(args):
     time.sleep(2)
     start_service("runner", "runner.py", runner_args, dry_run=args.dry_run)
     time.sleep(1)
-    start_service("collector", "collector.py", collector_args, dry_run=args.dry_run)
+    start_service("collector", "collector.py", collector_args, dry_run=args.dry_run, auto_restart=True)
     time.sleep(1)
     start_service("reporter", "reporter.py", reporter_args, dry_run=args.dry_run)
 

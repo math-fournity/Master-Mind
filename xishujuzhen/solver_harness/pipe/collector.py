@@ -545,7 +545,13 @@ def main():
             break
 
         round_num += 1
-        running = get_all_running(r)
+        try:
+            running = get_all_running(r)
+        except Exception as e:
+            logger.error(f"get_all_running失败(轮{round_num}): {e}", exc_info=True)
+            time.sleep(args.poll_interval)
+            continue
+
         if not running:
             logger.debug(f"无running attempt, 等待{args.poll_interval}s...")
             time.sleep(args.poll_interval)
@@ -557,204 +563,212 @@ def main():
         infra_failures_this_round = 0
 
         for exp_id, meta in running.items():
-            if args.dry_run:
-                result = {"problem_key": meta.get("problem_key", ""), "exp_id": exp_id, "verdict": "dry_run_complete", "elapsed": 0}
-                add_completed(r, result)
-                remove_running(r, exp_id)
-                completed_this_round += 1
-                logger.debug(f"dry_run: exp_id={exp_id} 标记完成")
-                continue
+            try:
+                if args.dry_run:
+                    result = {"problem_key": meta.get("problem_key", ""), "exp_id": exp_id, "verdict": "dry_run_complete", "elapsed": 0}
+                    add_completed(r, result)
+                    remove_running(r, exp_id)
+                    completed_this_round += 1
+                    logger.debug(f"dry_run: exp_id={exp_id} 标记完成")
+                    continue
 
-            tmux_session = meta.get("tmux_session", "")
-            start_time = meta.get("start_time", time.time())
-            last_activity = meta.get("last_activity", start_time)
-            elapsed = time.time() - start_time
+                tmux_session = meta.get("tmux_session", "")
+                start_time = meta.get("start_time", time.time())
+                last_activity = meta.get("last_activity", start_time)
+                elapsed = time.time() - start_time
 
-            is_running = tmux_running(tmux_session) if tmux_session else False
-            pane_text = capture_pane(tmux_session) if is_running else ""
+                is_running = tmux_running(tmux_session) if tmux_session else False
+                pane_text = capture_pane(tmux_session) if is_running else ""
 
-            status, result = classify(
-                meta, pane_text, is_running, elapsed,
-                args.timeout, args.stall_time, last_activity
-            )
+                status, result = classify(
+                    meta, pane_text, is_running, elapsed,
+                    args.timeout, args.stall_time, last_activity
+                )
 
-            if status is None:
-                # 还在运行中——更新last_activity
-                meta["last_activity"] = time.time()
-                r.hset("math:running", exp_id, json.dumps(meta))
-                logger.debug(f"仍在运行 exp_id={exp_id} elapsed={elapsed:.0f}s 更新last_activity")
-                continue
+                if status is None:
+                    # 还在运行中——更新last_activity
+                    meta["last_activity"] = time.time()
+                    r.hset("math:running", exp_id, json.dumps(meta))
+                    logger.debug(f"仍在运行 exp_id={exp_id} elapsed={elapsed:.0f}s 更新last_activity")
+                    continue
 
-            # 终态确定
-            result["attempt_key"] = meta.get("attempt_key", "")
-            result["tmux_session"] = tmux_session
-            logger.info(f"终态确定: exp_id={exp_id} status={status} problem_key={meta.get('problem_key', '')} elapsed={elapsed:.0f}s")
+                # 终态确定
+                result["attempt_key"] = meta.get("attempt_key", "")
+                result["tmux_session"] = tmux_session
+                logger.info(f"终态确定: exp_id={exp_id} status={status} problem_key={meta.get('problem_key', '')} elapsed={elapsed:.0f}s")
 
-            # 眼见为实：保存完整pane内容作为物理证据
-            if is_running and tmux_session:
-                snapshot = save_pane_snapshot(exp_id, tmux_session)
-                if snapshot:
-                    result["pane_snapshot"] = str(snapshot)
+                # 眼见为实：保存完整pane内容作为物理证据
+                if is_running and tmux_session:
+                    snapshot = save_pane_snapshot(exp_id, tmux_session)
+                    if snapshot:
+                        result["pane_snapshot"] = str(snapshot)
 
-            # === export落盘保证 ===
-            # -p模式（print_mode=True）：devin cli输出完成后自动退出，退出时写export
-            #   只需等tmux session结束（最多120秒），然后检查export是否存在
-            # 交互模式（print_mode=False）：devin cli完成后不退出，进入"Ask Devin to build"
-            #   用三阶段保证：等Ask Devin → Ctrl-C → 等export
-            if is_running and tmux_session:
-                export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
-                if export_path.exists():
-                    logger.info(f"export已存在: exp_id={exp_id} size={export_path.stat().st_size}B (无需等待)")
-                elif args.print_mode:
-                    # -p模式：等devin cli退出（检测"DEVIN_CLI_EXITED"标记或tmux session结束）
-                    # devin cli退出时会写export文件
-                    logger.info(f"export等待(-p模式): exp_id={exp_id} 等devin cli自动退出+写export")
-                    wait_start = time.time()
-                    devin_exited = False
-                    for _ in range(120):  # 最多等120秒
-                        time.sleep(1)
-                        if export_path.exists():
-                            break
-                        # 检测"DEVIN_CLI_EXITED"标记——solver_harness在devin cli退出后会echo这个标记
-                        pane_check = capture_pane(tmux_session)
-                        if "DEVIN_CLI_EXITED" in pane_check:
-                            devin_exited = True
-                            # devin cli已退出，再等2秒让export写完
-                            time.sleep(2)
-                            break
-                    wait_elapsed = time.time() - wait_start
+                # === export落盘保证 ===
+                # -p模式（print_mode=True）：devin cli输出完成后自动退出，退出时写export
+                #   只需等tmux session结束（最多120秒），然后检查export是否存在
+                # 交互模式（print_mode=False）：devin cli完成后不退出，进入"Ask Devin to build"
+                #   用三阶段保证：等Ask Devin → Ctrl-C → 等export
+                if is_running and tmux_session:
+                    export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                     if export_path.exists():
-                        logger.info(f"export写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s size={export_path.stat().st_size}B (devin cli已退出={devin_exited})")
-                    else:
-                        logger.error(f"export未写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s devin_exited={devin_exited} tmux_running={tmux_running(tmux_session)} 标记export_missing")
-                        result["export_missing"] = True
-                        result["verdict"] = "export_missing"
-                else:
-                    # 交互模式：三阶段保证（原有逻辑保留）
-                    # 阶段1：等"Ask Devin to build"出现（最多120秒）
-                    wait_start = time.time()
-                    ask_devin_appeared = False
-                    for _ in range(120):
-                        time.sleep(1)
-                        pane_check = capture_pane(tmux_session)
-                        if "Ask Devin to build" in pane_check:
-                            ask_devin_appeared = True
-                            break
-                        if export_path.exists():
-                            break
-                    wait1_elapsed = time.time() - wait_start
-
-                    if export_path.exists():
-                        logger.info(f"export写完: exp_id={exp_id} 等待{wait1_elapsed:.0f}s (Ask Devin出现)")
-                    elif ask_devin_appeared:
-                        for _ in range(5):
+                        logger.info(f"export已存在: exp_id={exp_id} size={export_path.stat().st_size}B (无需等待)")
+                    elif args.print_mode:
+                        # -p模式：等devin cli退出（检测"DEVIN_CLI_EXITED"标记或tmux session结束）
+                        # devin cli退出时会写export文件
+                        logger.info(f"export等待(-p模式): exp_id={exp_id} 等devin cli自动退出+写export")
+                        wait_start = time.time()
+                        devin_exited = False
+                        for _ in range(120):  # 最多等120秒
                             time.sleep(1)
                             if export_path.exists():
                                 break
-                        if export_path.exists():
-                            logger.info(f"export写完: exp_id={exp_id} Ask Devin后等{time.time()-wait_start:.0f}s")
-                        else:
-                            logger.error(f"Ask Devin出现但export未写: exp_id={exp_id} 标记export_missing")
-                            result["export_missing"] = True
-                    else:
-                        # 阶段2：120秒超时，发Ctrl-C让devin cli停止生成
-                        logger.warning(f"120秒未出现Ask Devin: exp_id={exp_id} 发Ctrl-C停止生成")
-                        subprocess.run(["tmux", "send-keys", "-t", tmux_session, "C-c"], capture_output=True)
-                        # 阶段3：等export文件出现（最多30秒）
-                        for _ in range(30):
-                            time.sleep(1)
+                            # 检测"DEVIN_CLI_EXITED"标记——solver_harness在devin cli退出后会echo这个标记
                             pane_check = capture_pane(tmux_session)
-                            if "Ask Devin to build" in pane_check or export_path.exists():
+                            if "DEVIN_CLI_EXITED" in pane_check:
+                                devin_exited = True
+                                # devin cli已退出，再等2秒让export写完
+                                time.sleep(2)
                                 break
-                        wait_total = time.time() - wait_start
+                        wait_elapsed = time.time() - wait_start
                         if export_path.exists():
-                            logger.info(f"export写完(Ctrl-C后): exp_id={exp_id} 总等待{wait_total:.0f}s")
+                            logger.info(f"export写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s size={export_path.stat().st_size}B (devin cli已退出={devin_exited})")
                         else:
-                            logger.error(f"Ctrl-C后export仍不存在: exp_id={exp_id} 标记export_missing (不重新入队，避免循环)")
+                            logger.error(f"export未写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s devin_exited={devin_exited} tmux_running={tmux_running(tmux_session)} 标记export_missing")
                             result["export_missing"] = True
                             result["verdict"] = "export_missing"
+                    else:
+                        # 交互模式：三阶段保证（原有逻辑保留）
+                        # 阶段1：等"Ask Devin to build"出现（最多120秒）
+                        wait_start = time.time()
+                        ask_devin_appeared = False
+                        for _ in range(120):
+                            time.sleep(1)
+                            pane_check = capture_pane(tmux_session)
+                            if "Ask Devin to build" in pane_check:
+                                ask_devin_appeared = True
+                                break
+                            if export_path.exists():
+                                break
+                        wait1_elapsed = time.time() - wait_start
 
-            # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
-            # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
-            # 但tmux_pipe.log的birthtime比runner.start_time晚（pipe-pane在tmux session创建0.5秒后启动），
-            # 导致solve_time可能比runtime大——需要cap到runtime
-            try:
-                from extract_solve_time import extract_solve_time
-                time_info = extract_solve_time(exp_id)
-                if time_info.get("solve_time"):
-                    raw_solve_time = time_info["solve_time"]["solve_time_seconds"]
-                    # cap到runtime——solve_time不应超过runtime
-                    if raw_solve_time > elapsed:
-                        logger.warning(f"solve_time > runtime: exp_id={exp_id} solve_time={raw_solve_time:.1f}s > runtime={elapsed:.0f}s, cap到runtime")
-                        raw_solve_time = elapsed
-                    result["solve_time_seconds"] = round(raw_solve_time, 1)
-                    result["solve_time_source"] = time_info["solve_time"]["source"]
-                    logger.info(f"extract_solve_time: exp_id={exp_id} source={time_info['solve_time']['source']} "
-                                f"solve_time={result['solve_time_seconds']}s")
-                if time_info.get("time_breakdown"):
-                    tb = time_info["time_breakdown"]
-                    if tb.get("init_overhead_seconds") is not None:
-                        result["init_overhead_seconds"] = round(tb["init_overhead_seconds"], 1)
-                        logger.debug(f"extract_solve_time: exp_id={exp_id} init_overhead={result['init_overhead_seconds']}s")
+                        if export_path.exists():
+                            logger.info(f"export写完: exp_id={exp_id} 等待{wait1_elapsed:.0f}s (Ask Devin出现)")
+                        elif ask_devin_appeared:
+                            for _ in range(5):
+                                time.sleep(1)
+                                if export_path.exists():
+                                    break
+                            if export_path.exists():
+                                logger.info(f"export写完: exp_id={exp_id} Ask Devin后等{time.time()-wait_start:.0f}s")
+                            else:
+                                logger.error(f"Ask Devin出现但export未写: exp_id={exp_id} 标记export_missing")
+                                result["export_missing"] = True
+                        else:
+                            # 阶段2：120秒超时，发Ctrl-C让devin cli停止生成
+                            logger.warning(f"120秒未出现Ask Devin: exp_id={exp_id} 发Ctrl-C停止生成")
+                            subprocess.run(["tmux", "send-keys", "-t", tmux_session, "C-c"], capture_output=True)
+                            # 阶段3：等export文件出现（最多30秒）
+                            for _ in range(30):
+                                time.sleep(1)
+                                pane_check = capture_pane(tmux_session)
+                                if "Ask Devin to build" in pane_check or export_path.exists():
+                                    break
+                            wait_total = time.time() - wait_start
+                            if export_path.exists():
+                                logger.info(f"export写完(Ctrl-C后): exp_id={exp_id} 总等待{wait_total:.0f}s")
+                            else:
+                                logger.error(f"Ctrl-C后export仍不存在: exp_id={exp_id} 标记export_missing (不重新入队，避免循环)")
+                                result["export_missing"] = True
+                                result["verdict"] = "export_missing"
+
+                # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
+                # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
+                # 但tmux_pipe.log的birthtime比runner.start_time晚（pipe-pane在tmux session创建0.5秒后启动），
+                # 导致solve_time可能比runtime大——需要cap到runtime
+                try:
+                    from extract_solve_time import extract_solve_time
+                    time_info = extract_solve_time(exp_id)
+                    if time_info.get("solve_time"):
+                        raw_solve_time = time_info["solve_time"]["solve_time_seconds"]
+                        # cap到runtime——solve_time不应超过runtime
+                        if raw_solve_time > elapsed:
+                            logger.warning(f"solve_time > runtime: exp_id={exp_id} solve_time={raw_solve_time:.1f}s > runtime={elapsed:.0f}s, cap到runtime")
+                            raw_solve_time = elapsed
+                        result["solve_time_seconds"] = round(raw_solve_time, 1)
+                        result["solve_time_source"] = time_info["solve_time"]["source"]
+                        logger.info(f"extract_solve_time: exp_id={exp_id} source={time_info['solve_time']['source']} "
+                                    f"solve_time={result['solve_time_seconds']}s")
+                    if time_info.get("time_breakdown"):
+                        tb = time_info["time_breakdown"]
+                        if tb.get("init_overhead_seconds") is not None:
+                            result["init_overhead_seconds"] = round(tb["init_overhead_seconds"], 1)
+                            logger.debug(f"extract_solve_time: exp_id={exp_id} init_overhead={result['init_overhead_seconds']}s")
+                except Exception as e:
+                    logger.debug(f"extract_solve_time失败(首次): exp_id={exp_id} error={e}")
+
+                # failed_token_limit特殊标注：solve_time是AI实际推理时间，
+                # runtime_seconds包含卡在"Send a message to continue"的等待时间
+                # 需要记录truncated_stall_seconds让事后审计能区分推理时间vs卡住时间
+                if status == "failed_token_limit" and result.get("solve_time_seconds") is not None:
+                    truncated_stall = elapsed - result["solve_time_seconds"]
+                    result["truncated_stall_seconds"] = round(truncated_stall, 1)
+                    # 标注solve_time_source为truncated场景下的估算
+                    result["solve_time_source"] = result.get("solve_time_source", "") + " (truncated: 推理时间，不含卡住等待)"
+                    logger.info(f"failed_token_limit时间标注: exp_id={exp_id} "
+                                f"solve_time={result['solve_time_seconds']}s (推理) "
+                                f"truncated_stall={truncated_stall:.0f}s (卡住等待) "
+                                f"runtime={elapsed:.0f}s (总)")
+
+                if status == "candidate_solved":
+                    add_completed(r, result)
+                    completed_this_round += 1
+                    logger.info(f"SOLVED {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s)")
+                elif status == "answer_leak":
+                    add_completed(r, result)
+                    completed_this_round += 1
+                    logger.warning(f"ANSWER LEAK {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s)")
+                elif status in INFRA_FAILURES:
+                    add_failed(r, result)
+                    infra_failures_this_round += 1
+                    logger.warning(f"INFRA {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → 可重试")
+                else:
+                    add_failed(r, result)
+                    failed_this_round += 1
+                    logger.warning(f"MODEL {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → Profile数据")
+
+                # export已在前面等待过——这里直接stop_tmux
+                # -p模式下devin cli已自动退出，stop_tmux只是清理残留session
+                # 交互模式下devin cli不会自然退出，stop_tmux会kill活进程
+
+                # 停tmux——记录终态原因用于审计
+                if tmux_session:
+                    stop_tmux(tmux_session, reason=f"终态={status}/{result.get('verdict','')}", exp_id=exp_id)
+                    logger.debug(f"stop_tmux: session={tmux_session}")
+
+                # 先更新DB再移除Redis——确保DB更新失败时记录还在Redis running中，
+                # 下一轮collector会重试更新（避免出现Redis已移除但DB没更新的孤儿记录）
+                attempt_key = meta.get("attempt_key", "")
+                if attempt_key:
+                    update_db_status(db, attempt_key, status, result.get("verdict", ""), result)
+                else:
+                    logger.warning(f"attempt_key为空, 跳过DB更新: exp_id={exp_id} status={status}")
+
+                # DB更新成功后再从Redis running移除
+                remove_running(r, exp_id)
+
             except Exception as e:
-                logger.debug(f"extract_solve_time失败(首次): exp_id={exp_id} error={e}")
+                logger.error(f"处理attempt失败(轮{round_num}): exp_id={exp_id} error={e}", exc_info=True)
+                # 不break——继续处理下一个attempt，单个失败不影响整轮
 
-            # failed_token_limit特殊标注：solve_time是AI实际推理时间，
-            # runtime_seconds包含卡在"Send a message to continue"的等待时间
-            # 需要记录truncated_stall_seconds让事后审计能区分推理时间vs卡住时间
-            if status == "failed_token_limit" and result.get("solve_time_seconds") is not None:
-                truncated_stall = elapsed - result["solve_time_seconds"]
-                result["truncated_stall_seconds"] = round(truncated_stall, 1)
-                # 标注solve_time_source为truncated场景下的估算
-                result["solve_time_source"] = result.get("solve_time_source", "") + " (truncated: 推理时间，不含卡住等待)"
-                logger.info(f"failed_token_limit时间标注: exp_id={exp_id} "
-                            f"solve_time={result['solve_time_seconds']}s (推理) "
-                            f"truncated_stall={truncated_stall:.0f}s (卡住等待) "
-                            f"runtime={elapsed:.0f}s (总)")
-
-            if status == "candidate_solved":
-                add_completed(r, result)
-                completed_this_round += 1
-                logger.info(f"SOLVED {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s)")
-            elif status == "answer_leak":
-                add_completed(r, result)
-                completed_this_round += 1
-                logger.warning(f"ANSWER LEAK {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s)")
-            elif status in INFRA_FAILURES:
-                add_failed(r, result)
-                infra_failures_this_round += 1
-                logger.warning(f"INFRA {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → 可重试")
-            else:
-                add_failed(r, result)
-                failed_this_round += 1
-                logger.warning(f"MODEL {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → Profile数据")
-
-            # export已在前面等待过——这里直接stop_tmux
-            # -p模式下devin cli已自动退出，stop_tmux只是清理残留session
-            # 交互模式下devin cli不会自然退出，stop_tmux会kill活进程
-
-            # 停tmux——记录终态原因用于审计
-            if tmux_session:
-                stop_tmux(tmux_session, reason=f"终态={status}/{result.get('verdict','')}", exp_id=exp_id)
-                logger.debug(f"stop_tmux: session={tmux_session}")
-
-            # 先更新DB再移除Redis——确保DB更新失败时记录还在Redis running中，
-            # 下一轮collector会重试更新（避免出现Redis已移除但DB没更新的孤儿记录）
-            attempt_key = meta.get("attempt_key", "")
-            if attempt_key:
-                update_db_status(db, attempt_key, status, result.get("verdict", ""), result)
-            else:
-                logger.warning(f"attempt_key为空, 跳过DB更新: exp_id={exp_id} status={status}")
-
-            # DB更新成功后再从Redis running移除
-            remove_running(r, exp_id)
-
-        update_stats(r)
-        total_completed += completed_this_round
-        total_failed += failed_this_round
-        total_infra += infra_failures_this_round
-        logger.info(f"第{round_num}轮扫描结束: 本轮 completed={completed_this_round} failed={failed_this_round} infra={infra_failures_this_round} | "
-                    f"累计 completed={total_completed} failed={total_failed} infra={total_infra}")
+        try:
+            update_stats(r)
+            total_completed += completed_this_round
+            total_failed += failed_this_round
+            total_infra += infra_failures_this_round
+            logger.info(f"第{round_num}轮扫描结束: 本轮 completed={completed_this_round} failed={failed_this_round} infra={infra_failures_this_round} | "
+                        f"累计 completed={total_completed} failed={total_failed} infra={total_infra}")
+        except Exception as e:
+            logger.error(f"update_stats失败(轮{round_num}): {e}", exc_info=True)
 
         time.sleep(args.poll_interval)
 
