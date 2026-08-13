@@ -398,13 +398,44 @@ set -a; source .env; set +a
 - **pipe-pane**：raw `cat >>`不过滤（曾试perl过滤但`-CSD`UTF-8模式会丢数据，`-C0`字节模式braille匹配不全，最终回退raw）。pipe数据用于activity_signature和事后审计，不用于PROOF COMPLETE判定
 - trajectory/export仍由`--export`自动保存，不受mitmproxy影响（mitmproxy已禁用）
 
-#### 交互模式（必须用`--interactive`，禁用`-p`单轮模式）
+#### Devin CLI启动模式（`-p`模式 vs 交互模式）
 
-**`-p`单轮模式秒退问题**（2026-08-12发现）：`devin -p 'prompt'`模式下API响应慢时devin cli会超时退出（5-18秒，0字节输出）。交互模式`devin -- 'prompt'`不会——devin cli持续运行，API响应慢只是等待不会退出。
+**两种模式对比**（2026-08-12完整验证）：
 
-**batch_problem_runner已硬编码`--interactive`**：launch_attempt调用run_harness时传`--interactive`参数，solver_harness用`devin --model ... -- 'prompt'`启动（不带`-p`）。
+| 维度 | `-p`模式（print） | 交互模式（`--interactive`） |
+|---|---|---|
+| 启动命令 | `devin -p 'prompt' --model ... --export ...` | `devin --model ... -- 'prompt'` |
+| 输出完成后 | **自动退出**（exit 0）+ 写export | 不退出，进入"Ask Devin to build"等待输入 |
+| export写入 | 退出时自动写入（可靠） | 需要等"Ask Devin to build"出现后才写（不可靠） |
+| tmux session | devin cli退出后session自动销毁 | devin cli不退出，session持续存活 |
+| 运行时输入 | 不支持 | 支持（tmux send-keys注入提示） |
 
-**禁止用`-p`模式启动Solver**。如果需要单轮快速测试，用交互模式启动后手动`tmux send-keys`发`/exit`。
+**历史演变**：
+- 最初用交互模式——为了支持HintInjector（运行时通过send-keys注入提示）
+- 2026-08-12早期发现`-p`模式"秒退"——API响应慢时devin cli超时退出（0字节输出），于是禁用`-p`模式
+- 2026-08-12晚期重新测试`-p`模式——发现秒退问题已不存在，`-p`模式输出完成后自动退出+写export（138KB），exit code 0
+- **当前管道化系统使用`-p`模式**（runner.py和collector.py默认`--print-mode`）
+
+**`-p`模式的关键技巧——sleep 999999保持tmux session**：
+
+`-p`模式下devin cli退出后tmux session自动销毁，collector无法通过tmux pane检测PROOF COMPLETE。解决方案：在devin cli命令后加`; echo DEVIN_CLI_EXITED code=$?; sleep 999999`：
+- devin cli退出后echo `DEVIN_CLI_EXITED`标记（collector可检测）
+- `sleep 999999`保持tmux session存活（macOS不支持`sleep infinity`）
+- collector检测到`DEVIN_CLI_EXITED`后等2秒让export写完
+
+**`-p`模式export落盘保证**（collector中实现）：
+1. 检测到PROOF COMPLETE → 等pane中出现`DEVIN_CLI_EXITED`标记（最多120秒）
+2. 出现后再等2秒让export写完
+3. export仍不存在 → 标记`export_missing`（不重新入队，避免循环）
+
+**交互模式export落盘三阶段保证**（历史逻辑，`--no-print-mode`时使用）：
+1. 等"Ask Devin to build"出现（最多120秒）
+2. 120秒超时则发Ctrl-C让devin cli停止生成
+3. 等export文件出现（最多30秒），仍不存在则标记`export_missing`
+
+**开关形式**：runner.py和collector.py都有`--print-mode`（默认）/`--no-print-mode`开关。原有交互模式代码完整保留。
+
+**batch_problem_runner仍硬编码`--interactive`**：batch_problem_runner是旧的批量系统，未切换到`-p`模式。管道化系统（pipe/runner.py）默认用`-p`模式。
 
 #### 答案泄漏防护（三层）
 
@@ -436,10 +467,10 @@ set -a; source .env; set +a
 
 **并发上限经验（实测）**：
 - **10并发**：稳定（mitmproxy禁用后，交互模式，2026-08-12验证）
-- **30并发**：曾稳定（mitmproxy启用时代，2026-08-09验证）
-- **40并发**：曾稳定（mitmproxy启用时代）
+- **30并发**：稳定（`-p`模式，2026-08-12验证，export落盘率100%）
+- **40并发**：当前运行中（`-p`模式，2026-08-12验证中）
 - **60并发**：打爆API，57题中29个（51%）因`cognition.ai/errorKind: unavailable`连接错误终止
-- **推荐并发**：10-30，不要超过30。mitmproxy禁用后未测高并发，保守用10。
+- **推荐并发**：30-40（`-p`模式）。60并发打爆API，不要超过40。
 
 **连接错误 vs 真做不出来**：
 - `failed_no_proof`不一定是真做不出来——可能是API连接错误
@@ -3042,7 +3073,7 @@ tmux has-session -t pipe-collector 2>/dev/null && tmux kill-session -t pipe-coll
 # 2. 替换代码（编辑collector.py）
 
 # 3. 重启服务
-tmux new-session -d -s pipe-collector ".venv/bin/python3 xishujuzhen/solver_harness/pipe/collector.py --poll-interval 10 --timeout 1800"
+tmux new-session -d -s pipe-collector ".venv/bin/python3 xishujuzhen/solver_harness/pipe/collector.py --poll-interval 10 --timeout 1800 --print-mode"
 
 # 4. Collector从Redis running队列继续处理——harness session一直在运行
 ```
@@ -3084,6 +3115,34 @@ Collector判定终态时，不只看标记，要验证真实内容：
 3. **无工具调用验证**：查sessions.db中是否有tool_call类型节点
 4. **AI放弃检测**：检查"I CANNOT SOLVE"/"无法"等放弃标记
 5. **pane snapshot保存**：判定终态前保存完整pane内容作为物理证据
+
+### export落盘保证（`-p`模式 vs 交互模式）
+
+**`-p`模式（当前默认）**：devin cli输出完成后自动退出，退出时写export。collector检测到PROOF COMPLETE后等pane中出现`DEVIN_CLI_EXITED`标记（最多120秒），出现后再等2秒让export写完。export落盘率100%（2026-08-12验证，20/20）。
+
+**交互模式（`--no-print-mode`）**：devin cli完成后不退出，进入"Ask Devin to build"等待输入。collector用三阶段保证：等Ask Devin出现（120秒）→ 发Ctrl-C → 等export（30秒）。历史落盘率约70-100%，存在export丢失问题。
+
+**`-p`模式的关键技巧**：solver_harness.py在devin cli命令后加`; echo DEVIN_CLI_EXITED code=$?; sleep 999999`——devin cli退出后echo标记+sleep保持tmux session存活（macOS不支持`sleep infinity`）。
+
+### stop_tmux审计日志
+
+collector中`stop_tmux(session, reason, exp_id)`记录审计日志：
+- **KILL活进程** vs **清理已退出session**——区分两种情况
+- 记录终态原因（`终态=candidate_solved/failed_timeout/...`）
+- 日志级别：`logger.info`（不是debug），确保生产中可见
+
+### 答案泄漏检测（管道化系统两层）
+
+| 层 | 谁做 | 机制 | 检测点 |
+|---|---|---|---|
+| **第一层** | Runner（启动前） | 检查题目文本是否包含answer字段值（>10字符）或solution片段 | 启动devin cli前，不启动直接标记`answer_leak_in_input` |
+| **第二层** | Solver AI（运行时） | AGENTS.md中Answer Leak Self-Check段要求AI自检 | AI输出`### ANSWER LEAK DETECTED: <描述>` |
+| **第三层** | Collector（检测后） | 扫描`ANSWER LEAK DETECTED`标记 | 标记`answer_leak`终态，不重新入队 |
+
+**实测数据**（2026-08-12，676题完成）：
+- answer_leak_in_input: 15条（Runner层检测，未启动devin cli）
+- answer_leak: 2条（Solver AI自检+Collector检测）
+- 答案泄漏的题不重新入队，从pending队列移除
 
 ### 失败分类（基础设施 vs 模型能力）
 
@@ -3198,6 +3257,9 @@ for s, c in sources.most_common():
 - 2026-08-12 answer_leak短答案误判：阈值>3改为>10，4道题重新入队
 - 2026-08-12 solve_time提取误判：conversation.json优先改为tmux_pipe.log mtime优先，46条DB记录更新
 - 2026-08-12 failed_thinking_spin误判：has_real_proof只检查PROOF COMPLETE之前内容，但证明在标记之后。改为同时检查前后+过滤TUI UI元素。11条记录从failed→completed
+- 2026-08-12 `-p`模式"秒退"误判：早期发现`-p`模式API响应慢时秒退，禁用`-p`改用交互模式。晚期重新测试发现秒退问题已不存在，`-p`模式输出完成后自动退出+写export（138KB）。切换回`-p`模式，export落盘率从70%提升到100%
+- 2026-08-12 `-p`模式tmux session消失：`-p`模式devin cli退出后tmux session自动销毁，collector判定为dead_session。修复：命令后加`; echo DEVIN_CLI_EXITED code=$?; sleep 999999`保持session存活
+- 2026-08-12 macOS sleep infinity不支持：`sleep infinity`在macOS上报错（usage: sleep number[unit]），改用`sleep 999999`
 
 **检查6：harness session健康**（每30分钟检查一次）
 ```bash
@@ -3254,11 +3316,27 @@ Runner为每个题目生成`AGENTS.md`文件，明确禁止任何工具调用：
 
 ### 未覆盖因素（待补充）
 
-1. **export导出完整性验证** — 验证conversation.json是否完整
+1. ~~**export导出完整性验证**~~ — ✅已解决（`-p`模式export落盘率100%，2026-08-12验证）
 2. **tmux pane scrollback完整性** — 超长proof可能被截断（2000行上限）
 3. **proof数学正确性验证** — 需要审稿AI审查（当前只验证有内容）
 4. **跨数据集去重验证** — 近似去重防止重复运行
 5. **并发健康度监控** — 实时连接错误率、吞吐量告警
+
+### 运行实测数据（2026-08-12，`-p`模式+40并发）
+
+| 指标 | 数值 |
+|---|---|
+| 已完成 | 676题 |
+| 失败 | 65题 |
+| 成功率 | 91.2% |
+| avg runtime | 255秒（约4分钟） |
+| median runtime | 251秒 |
+| 理论吞吐量 | ~424题/小时（30并发）/ ~565题/小时（40并发） |
+| export落盘率 | 100%（20/20） |
+| 数据库字段完整度 | 14/14字段全部100% |
+| solve_time可信度 | 95%（19/20，1条旧记录异常） |
+| agent消息长度 | avg=2696字符，max=4630字符 |
+| completion tokens | avg=6101，max=25000 |
 
 ### 连续运行SOP
 
