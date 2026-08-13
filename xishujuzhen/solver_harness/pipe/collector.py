@@ -614,16 +614,11 @@ def main():
                         if export_path.exists():
                             logger.info(f"export写完(Ctrl-C后): exp_id={exp_id} 总等待{wait_total:.0f}s")
                         else:
-                            # Ctrl-C后export仍不存在——标记export_missing，重新入队
-                            logger.error(f"Ctrl-C后export仍不存在: exp_id={exp_id} 标记export_missing 重新入队")
+                            # Ctrl-C后export仍不存在——标记export_missing，不重新入队（避免循环）
+                            # 这是极少数极端情况，后续可手动批量重跑
+                            logger.error(f"Ctrl-C后export仍不存在: exp_id={exp_id} 标记export_missing (不重新入队，避免循环)")
                             result["export_missing"] = True
                             result["verdict"] = "export_missing"
-                            # 重新入队pending
-                            try:
-                                from redis_queue import enqueue_pending
-                                enqueue_pending(r, meta.get("problem_key", ""), priority=1)
-                            except Exception as e:
-                                logger.error(f"重新入队失败: {e}")
 
             # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
             # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
