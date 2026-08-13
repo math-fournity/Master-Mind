@@ -66,7 +66,7 @@
 | 382 | `382-v0-2026-08-12-TellV3首套POC-CasePack-v0-候选题包.md` | TellV3首套POC的CasePack v0冻结稿；目标Tell家族"局部表示切换"（隐藏结构显化/表示切换在数论中的具体化）；3个候选TellCore（模算术/p-adic/统一版），推荐候选C（局部-全局表示切换）；22道题CaseCard（4 source trace + 4正迁移 + 4变形 + 5假朋友 + 3边界 + 2组合）；4道强证据题（1631/1843/1709/1962）有完整bare失败+Tell成功对照；exclusion log、leakage review、选题评分表、暂不运行Solver的条件与执行顺序 |
 | 383 | `383-v0-2026-08-12-TellV3-POC1-因果取商-TellCore字段消融与最小充分字段集.md` | POC-1因果取商分析稿；对TellCore v0候选C的12字段逐项消融；最小充分字段集7个（invariant_claim/trigger_boundary/negative_boundary/parameter_slots/internal_policy step2-5/progress_model/termination），重要补充5个（binding_rules/step1+step6/critic/composition_contract/target_structure），元数据2个；7项通过标准全部PASS（3项有条件）；关键发现：1962的失败指向internal_policy的必要性（方向vs操作路径），2/5假朋友需要critic协同拒绝，TellCore不泄漏具体lemma；EvidenceRecord和后续POC要求 |
 | 385 | `dev-docs/385-v0-2026-08-12-TellV3六门审计POC-工作交接文档.md` | 自包含工作交接文档；POC-0和POC-1已完成，TellCore v0候选C采纳，最小充分字段集7个字段；下一步selector规则设计或HintRenderer模板设计；含完整阅读顺序、已完成成果摘要、TellCore v0最小充分字段集全文、执行顺序建议和工作规范 |
-| 386 | `386-v0-2026-08-13-正交出题文档索引-从已有bare失败题派生正交新题.md` | 正交出题文档索引；汇总项目历史中与"正交出题"（新题与原题题面正交但共享深层命题机制）相关的13份文档，按吻合度分5个梯队；提炼正交出题方法论骨架（设障脚本→Level 3-4机制→同构之桥→降Level落题→加锁→bare预注册）；明确正交程度谱系（Level 0-5，推荐Level 3-4）和与TellV3六门审计的衔接 |
+| 386 | `386-v0-2026-08-13-正交出题文档索引-从已有bare失败题派生正交新题.md` | 正交出题文档索引；汇总项目历史中与"正交出题"（新题与原题题面正交但共享深层命题机制）相关的17份文档，按吻合度分6个梯队；**第零梯队（2026-08-13补充）**：277→278→280→283号完整文档链——277号是用户"99%"原话出处（概念起源），278号是操作化设计（五项判据+三道题+C组同hint），280号是实际执行（静态hint失败，highlevel 12%<knowledge 25%），283号是改进后成功（脉络继承+方向注入，bare 0%→tree 67%，AI真的做出来了）；提炼正交出题方法论骨架（设障脚本→Level 3-4机制→同构之桥→降Level落题→加锁→bare预注册）；明确正交程度谱系（Level 0-5，推荐Level 3-4）和与TellV3六门审计的衔接 |
 
 ### 思想链条
 
@@ -107,7 +107,7 @@
   ↓
 385: 工作交接文档（自包含）——POC-0和POC-1完成，下一步selector设计或HintRenderer设计
   ↓
-386: 正交出题文档索引——汇总13份"正交出题"相关文档，提炼方法论骨架，衔接TellV3六门审计
+386: 正交出题文档索引——汇总17份"正交出题"相关文档（含277→278→280→283号完整文档链：用户"99%"原话→操作化设计→静态hint失败→脉络继承+方向注入成功），提炼方法论骨架，衔接TellV3六门审计
 ```
 
 ---
