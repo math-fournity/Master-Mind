@@ -55,7 +55,8 @@ AI_GAVE_UP_PATTERNS = [
     "### I CANNOT SOLVE THIS",
 ]
 RATE_LIMIT_PATTERNS = ["rate limit", "rate_limit", "429", "Too Many Requests"]
-TOKEN_LIMIT_PATTERNS = ["token limit", "context limit", "context_length", "maximum context"]
+TOKEN_LIMIT_PATTERNS = ["token limit", "context limit", "context_length", "maximum context",
+                        "Response truncated", "max output token", "Send a message to continue"]
 CONNECTION_PATTERNS = ["connection error", "ECONNREFUSED", "ETIMEDOUT", "socket hang up", "fetch failed"]
 THINKING_PATTERNS = ["Thinking ·", "Thinking...", "thinking", "⠐", "⠒"]  # devin cli的thinking状态标记
 
@@ -291,6 +292,14 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
         logger.info(f"classify判定=candidate_solved: problem_key={problem_key} exp_id={exp_id} "
                     f"真实proof+无工具调用 elapsed={elapsed:.0f}s")
         return "candidate_solved", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "candidate_solved", "elapsed": elapsed}
+
+    # 3.5 Response truncated——AI输出达到max token limit，卡在"Send a message to continue"
+    # 即使session还在运行（is_running=True），也要检测——否则会卡住直到timeout
+    for p in TOKEN_LIMIT_PATTERNS:
+        if p.lower() in pane_text.lower():
+            logger.warning(f"classify判定=failed_token_limit: problem_key={problem_key} exp_id={exp_id} "
+                           f"检测到token/output limit标记 '{p}' elapsed={elapsed:.0f}s is_running={is_running}")
+            return "failed_token_limit", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_token_limit", "elapsed": elapsed}
 
     # 4. 超时——区分thinking spin和真超时
     if elapsed > timeout:
