@@ -70,14 +70,16 @@ def start_service(name: str, script: str, extra_args: list[str], dry_run: bool =
 
     cmd_str = " ".join(cmd)
     if auto_restart:
-        # bash while循环：退出后等5秒自动重启，日志追加写入
+        # bash while循环：退出后等5秒自动重启
+        # 不用tee -a——RotatingFileHandler已经写日志文件，tee会导致每行写两遍
         full_cmd = (
-            f'while true; do {cmd_str} 2>&1 | tee -a {log_file}; '
-            f'echo "[auto-restart] {name}退出, 5秒后重启..." >> {log_file}; '
+            f'while true; do {cmd_str} 2>&1; '
+            f'echo "[auto-restart] {name}退出, 5秒后重启..."; '
             f'sleep 5; done'
         )
     else:
-        full_cmd = cmd_str + f" 2>&1 | tee -a {log_file}"
+        # 不用tee -a——RotatingFileHandler已经写日志文件
+        full_cmd = cmd_str + " 2>&1"
 
     subprocess.run(
         ["tmux", "new-session", "-d", "-s", session_name, full_cmd],
