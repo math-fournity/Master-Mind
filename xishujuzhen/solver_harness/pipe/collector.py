@@ -285,34 +285,44 @@ def check_tool_use(exp_id: str) -> bool:
     return False
 
 
-def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: float,
+def classify(attempt_meta: dict, pane_text: str, pipe_text: str, is_running: bool, elapsed: float,
              timeout: int, stall_time: int, last_activity: float) -> tuple[str, dict]:
-    """眼见为实的终态判定"""
+    """眼见为实的终态判定
+
+    -p模式下所有输出都写入tmux_pipe.log，pane只有500行scrollback。
+    用 pane_text + pipe_text 合并检测，pipe.log是主要检测源（完整输出），
+    pane用于补充检测thinking状态（spinner等动态内容pipe.log可能不完整）。
+    """
     problem_key = attempt_meta.get("problem_key", "")
     exp_id = attempt_meta.get("exp_id", "")
     tmux_session = attempt_meta.get("tmux_session", "")
 
+    # 合并检测文本——pipe.log是主要源，pane补充
+    detect_text = pipe_text + "\n" + pane_text
+    detect_lower = detect_text.lower()
+
     pane_len = len(pane_text)
+    pipe_len = len(pipe_text)
     thinking = is_thinking(pane_text) if pane_text else False
     logger.debug(f"classify开始: problem_key={problem_key} exp_id={exp_id} elapsed={elapsed:.0f}s "
-                 f"is_running={is_running} pane_len={pane_len} thinking={thinking} "
+                 f"is_running={is_running} pane_len={pane_len} pipe_len={pipe_len} thinking={thinking} "
                  f"timeout={timeout} stall_time={stall_time}")
 
     # 1. 答案泄漏（最高优先级）
-    if ANSWER_LEAK_MARKER in pane_text:
+    if ANSWER_LEAK_MARKER in detect_text:
         logger.warning(f"classify判定=answer_leak: problem_key={problem_key} exp_id={exp_id} "
-                       f"检测到 '{ANSWER_LEAK_MARKER}' 标记 pane_len={pane_len} elapsed={elapsed:.0f}s")
+                       f"检测到 '{ANSWER_LEAK_MARKER}' 标记 pane_len={pane_len} pipe_len={pipe_len} elapsed={elapsed:.0f}s")
         return "answer_leak", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "answer_leak", "elapsed": elapsed}
 
     # 2. AI主动放弃——模型能力边界
-    if check_ai_gave_up(pane_text):
+    if check_ai_gave_up(detect_text):
         logger.warning(f"classify判定=ai_gave_up: problem_key={problem_key} exp_id={exp_id} "
-                       f"检测到AI放弃标记 pane_len={pane_len} elapsed={elapsed:.0f}s")
+                       f"检测到AI放弃标记 pane_len={pane_len} pipe_len={pipe_len} elapsed={elapsed:.0f}s")
         return "ai_gave_up", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "ai_gave_up", "elapsed": elapsed}
 
     # 3. 真实PROOF COMPLETE——验证有真实proof内容
-    if has_real_proof(pane_text):
-        logger.info(f"classify: 检测到真实proof problem_key={problem_key} exp_id={exp_id} pane_len={pane_len}")
+    if has_real_proof(detect_text):
+        logger.info(f"classify: 检测到真实proof problem_key={problem_key} exp_id={exp_id} pane_len={pane_len} pipe_len={pipe_len}")
         # 检查是否有工具调用
         if check_tool_use(exp_id):
             logger.warning(f"classify判定=invalid_tool_use: problem_key={problem_key} exp_id={exp_id} "
@@ -325,30 +335,19 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
     # 3.5 Response truncated——AI输出达到max token limit，卡在"Send a message to continue"
     # 即使session还在运行（is_running=True），也要检测——否则会卡住直到timeout
     for p in TOKEN_LIMIT_PATTERNS:
-        if p.lower() in pane_text.lower():
+        if p.lower() in detect_lower:
             logger.warning(f"classify判定=failed_token_limit: problem_key={problem_key} exp_id={exp_id} "
                            f"检测到token/output limit标记 '{p}' elapsed={elapsed:.0f}s is_running={is_running}")
             return "failed_token_limit", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_token_limit", "elapsed": elapsed}
 
     # 3.6 Rate limit——API限流，即使session还在运行也要检测
     # 否则rate_limited的session要等到timeout(1800s)才会被处理，浪费并发槽位
-    # 同时检查tmux_pipe.log——rate limit消息可能只在pipe.log中，pane可见区域已滚走
+    # 用detect_text（pane+pipe.log合并）检测——pipe.log有完整输出，pane可能滚走
     for p in RATE_LIMIT_PATTERNS:
-        if p.lower() in pane_text.lower():
+        if p.lower() in detect_lower:
             logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
-                           f"检测到rate limit标记 '{p}' (pane) elapsed={elapsed:.0f}s is_running={is_running}")
+                           f"检测到rate limit标记 '{p}' elapsed={elapsed:.0f}s is_running={is_running}")
             return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
-    # 检查tmux_pipe.log（pane可能不显示rate limit消息）
-    pipe_log = TRAJECTORY_BASE / exp_id / "tmux" / "tmux_pipe.log"
-    if pipe_log.exists():
-        try:
-            pipe_content = pipe_log.read_text(errors="ignore")[-5000:].lower()
-            if "message rate limit" in pipe_content:
-                logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
-                               f"检测到rate limit标记 (pipe.log) elapsed={elapsed:.0f}s is_running={is_running}")
-                return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
-        except Exception as e:
-            logger.debug(f"pipe.log读取失败: exp_id={exp_id} error={e}")
 
     # 4. 超时——区分thinking spin和真超时
     if elapsed > timeout:
@@ -363,19 +362,19 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
     # 5. tmux session已结束——区分基础设施失败和模型能力失败
     if not is_running:
         logger.debug(f"classify: tmux session已结束 problem_key={problem_key} exp_id={exp_id} 检查错误标记")
-        # 检查基础设施错误
+        # 检查基础设施错误（用detect_text=pane+pipe.log合并检测）
         for p in RATE_LIMIT_PATTERNS:
-            if p.lower() in pane_text.lower():
+            if p.lower() in detect_lower:
                 logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
                                f"检测到rate limit标记 '{p}' elapsed={elapsed:.0f}s")
                 return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
         for p in TOKEN_LIMIT_PATTERNS:
-            if p.lower() in pane_text.lower():
+            if p.lower() in detect_lower:
                 logger.warning(f"classify判定=failed_token_limit: problem_key={problem_key} exp_id={exp_id} "
                                f"检测到token limit标记 '{p}' elapsed={elapsed:.0f}s")
                 return "failed_token_limit", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_token_limit", "elapsed": elapsed}
         for p in CONNECTION_PATTERNS:
-            if p.lower() in pane_text.lower():
+            if p.lower() in detect_lower:
                 logger.error(f"classify判定=failed_connection: problem_key={problem_key} exp_id={exp_id} "
                              f"检测到连接错误标记 '{p}' elapsed={elapsed:.0f}s")
                 return "failed_connection", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_connection", "elapsed": elapsed}
@@ -600,8 +599,18 @@ def main():
                 is_running = tmux_running(tmux_session) if tmux_session else False
                 pane_text = capture_pane(tmux_session) if is_running else ""
 
+                # 读tmux_pipe.log——-p模式下所有输出都写入此文件，比pane更可靠
+                # pane只有500行scrollback，pipe.log有完整输出
+                pipe_log_path = TRAJECTORY_BASE / exp_id / "tmux" / "tmux_pipe.log"
+                pipe_text = ""
+                if pipe_log_path.exists():
+                    try:
+                        pipe_text = pipe_log_path.read_text(encoding="utf-8", errors="ignore")
+                    except Exception as e:
+                        logger.debug(f"pipe.log读取失败: exp_id={exp_id} error={e}")
+
                 status, result = classify(
-                    meta, pane_text, is_running, elapsed,
+                    meta, pane_text, pipe_text, is_running, elapsed,
                     args.timeout, args.stall_time, last_activity
                 )
 
