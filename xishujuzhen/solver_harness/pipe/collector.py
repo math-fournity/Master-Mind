@@ -349,8 +349,21 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
 
 
 def stop_tmux(session_name: str):
+    """停止tmux session——同时清理Devin CLI session和db monitor session
+
+    每个题创建两个tmux session：
+    - harness-{exp_id} —— Devin CLI
+    - harness-dbmon-{exp_id} —— db monitor
+    只kill一个会导致db monitor session泄漏。
+    """
     subprocess.run(["tmux", "kill-session", "-t", session_name],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+    # 同时清理对应的db monitor session
+    if session_name.startswith("harness-") and not session_name.startswith("harness-dbmon-"):
+        dbmon_name = f"harness-dbmon-{session_name.removeprefix('harness-')}"
+        subprocess.run(["tmux", "kill-session", "-t", dbmon_name],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        logger.debug(f"stop_tmux: 同时清理dbmon session={dbmon_name}")
 
 
 def save_pane_snapshot(exp_id: str, session_name: str) -> Path | None:
