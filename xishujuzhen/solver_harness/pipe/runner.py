@@ -86,9 +86,14 @@ def write_problem_file(problem_key: str, problem_text: str, exp_id: str) -> Path
     return problem_file
 
 
-def launch_devin_cli(exp_id: str, problem_file: Path, model: str = "glm-5.2-high") -> str:
+def launch_devin_cli(exp_id: str, problem_file: Path, model: str = "glm-5.2-high",
+                     print_mode: bool = True) -> str:
     """启动devin cli——直接调用solver_harness.py launch（它自己创建harness-xxx tmux session）
     返回solver_harness创建的tmux session名（harness-{exp_id}）
+
+    print_mode=True（默认）：用-p模式，devin cli输出完成后自动退出+写export
+    print_mode=False：用交互模式（--interactive），devin cli完成后进入等待输入状态
+      ——历史遗留，为HintInjector设计，当前管道化系统未使用
     """
     cmd = [
         str(VENV_PYTHON), str(HARNESS_SCRIPT),
@@ -97,8 +102,9 @@ def launch_devin_cli(exp_id: str, problem_file: Path, model: str = "glm-5.2-high
         "--problem-file", str(problem_file),
         "--model", model,
         "--no-mitm",
-        "--interactive",
     ]
+    if not print_mode:
+        cmd.append("--interactive")
 
     log_file = PROBLEMS_DIR / exp_id / "launch.log"
     log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -158,6 +164,8 @@ def main():
     parser.add_argument("--poll-interval", type=int, default=5, help="检查间隔秒数")
     parser.add_argument("--model", type=str, default="glm-5.2-high", help="模型名")
     parser.add_argument("--dry-run", action="store_true", help="dry-run：不启动devin cli")
+    parser.add_argument("--print-mode", action="store_true", default=True, help="用-p模式（默认）：devin cli输出完成后自动退出+写export")
+    parser.add_argument("--no-print-mode", dest="print_mode", action="store_false", help="用交互模式（--interactive）：历史遗留，为HintInjector设计")
     args = parser.parse_args()
 
     if not ping():
@@ -299,7 +307,7 @@ def main():
         # 60并发并行启动导致58/60个session遇到rate limit
         for exp_id, problem_key, problem_file, priority in launch_tasks:
             try:
-                tmux_session = launch_devin_cli(exp_id, problem_file, args.model)
+                tmux_session = launch_devin_cli(exp_id, problem_file, args.model, print_mode=args.print_mode)
             except Exception as e:
                 logger.error(f"启动失败 {problem_key}: {e}", exc_info=True)
                 from redis_queue import add_failed

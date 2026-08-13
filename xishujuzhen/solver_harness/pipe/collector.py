@@ -364,14 +364,24 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
     return None, None
 
 
-def stop_tmux(session_name: str):
+def stop_tmux(session_name: str, reason: str = "", exp_id: str = ""):
     """停止tmux session——同时清理Devin CLI session和db monitor session
 
     每个题创建两个tmux session：
     - harness-{exp_id} —— Devin CLI
     - harness-dbmon-{exp_id} —— db monitor
     只kill一个会导致db monitor session泄漏。
+
+    reason: 停止原因（用于审计日志）
+    exp_id: 实验ID（用于审计日志）
     """
+    # 记录stop原因——这是审计关键位置
+    was_running = tmux_running(session_name) if session_name else False
+    if was_running:
+        logger.info(f"stop_tmux: KILL活进程 session={session_name} exp_id={exp_id} reason={reason}")
+    else:
+        logger.info(f"stop_tmux: 清理已退出session session={session_name} exp_id={exp_id} reason={reason}")
+
     subprocess.run(["tmux", "kill-session", "-t", session_name],
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
     # 同时清理对应的db monitor session
@@ -379,7 +389,7 @@ def stop_tmux(session_name: str):
         dbmon_name = f"harness-dbmon-{session_name.removeprefix('harness-')}"
         subprocess.run(["tmux", "kill-session", "-t", dbmon_name],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
-        logger.debug(f"stop_tmux: 同时清理dbmon session={dbmon_name}")
+        logger.info(f"stop_tmux: 同时清理dbmon session={dbmon_name} exp_id={exp_id}")
 
 
 def save_pane_snapshot(exp_id: str, session_name: str) -> Path | None:
@@ -479,6 +489,8 @@ def main():
     parser.add_argument("--timeout", type=int, default=1800, help="超时秒数（默认30分钟）")
     parser.add_argument("--stall-time", type=int, default=300, help="stall判定秒数（默认5分钟）")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--print-mode", action="store_true", default=True, help="-p模式（默认）：devin cli输出完成后自动退出+写export")
+    parser.add_argument("--no-print-mode", dest="print_mode", action="store_false", help="交互模式：用三阶段export保证逻辑")
     args = parser.parse_args()
 
     if not ping():
@@ -562,20 +574,41 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
-            # === export落盘三阶段保证 ===
-            # 阶段1：等"Ask Devin to build"出现（最多120秒）
-            #   PROOF COMPLETE出现在scrollback中，但devin cli可能还在生成thinking内容
-            #   "Ask Devin to build"是devin cli完成响应的可靠信号，出现时export已写好
-            # 阶段2：120秒超时则发Ctrl-C让devin cli停止生成
-            #   devin cli收到Ctrl-C后会停止生成，进入等待输入状态，写export
-            # 阶段3：等export文件出现（最多30秒），仍不存在则标记export_missing重新入队
+            # === export落盘保证 ===
+            # -p模式（print_mode=True）：devin cli输出完成后自动退出，退出时写export
+            #   只需等tmux session结束（最多120秒），然后检查export是否存在
+            # 交互模式（print_mode=False）：devin cli完成后不退出，进入"Ask Devin to build"
+            #   用三阶段保证：等Ask Devin → Ctrl-C → 等export
             if is_running and tmux_session:
                 export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
-                if not export_path.exists():
-                    # 阶段1：等"Ask Devin to build"
+                if export_path.exists():
+                    logger.info(f"export已存在: exp_id={exp_id} size={export_path.stat().st_size}B (无需等待)")
+                elif args.print_mode:
+                    # -p模式：等tmux session结束（devin cli自动退出时写export）
+                    logger.info(f"export等待(-p模式): exp_id={exp_id} 等devin cli自动退出+写export")
+                    wait_start = time.time()
+                    for _ in range(120):  # 最多等120秒
+                        time.sleep(1)
+                        if not tmux_running(tmux_session):
+                            break
+                        if export_path.exists():
+                            break
+                    wait_elapsed = time.time() - wait_start
+                    # session结束后再等2秒让export写完
+                    if not export_path.exists():
+                        time.sleep(2)
+                    if export_path.exists():
+                        logger.info(f"export写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s size={export_path.stat().st_size}B (devin cli已退出)")
+                    else:
+                        logger.error(f"export未写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s tmux_running={tmux_running(tmux_session)} 标记export_missing")
+                        result["export_missing"] = True
+                        result["verdict"] = "export_missing"
+                else:
+                    # 交互模式：三阶段保证（原有逻辑保留）
+                    # 阶段1：等"Ask Devin to build"出现（最多120秒）
                     wait_start = time.time()
                     ask_devin_appeared = False
-                    for _ in range(120):  # 最多等120秒
+                    for _ in range(120):
                         time.sleep(1)
                         pane_check = capture_pane(tmux_session)
                         if "Ask Devin to build" in pane_check:
@@ -588,7 +621,6 @@ def main():
                     if export_path.exists():
                         logger.info(f"export写完: exp_id={exp_id} 等待{wait1_elapsed:.0f}s (Ask Devin出现)")
                     elif ask_devin_appeared:
-                        # "Ask Devin"出现了但export还没写——再等5秒
                         for _ in range(5):
                             time.sleep(1)
                             if export_path.exists():
@@ -602,7 +634,6 @@ def main():
                         # 阶段2：120秒超时，发Ctrl-C让devin cli停止生成
                         logger.warning(f"120秒未出现Ask Devin: exp_id={exp_id} 发Ctrl-C停止生成")
                         subprocess.run(["tmux", "send-keys", "-t", tmux_session, "C-c"], capture_output=True)
-
                         # 阶段3：等export文件出现（最多30秒）
                         for _ in range(30):
                             time.sleep(1)
@@ -610,12 +641,9 @@ def main():
                             if "Ask Devin to build" in pane_check or export_path.exists():
                                 break
                         wait_total = time.time() - wait_start
-
                         if export_path.exists():
                             logger.info(f"export写完(Ctrl-C后): exp_id={exp_id} 总等待{wait_total:.0f}s")
                         else:
-                            # Ctrl-C后export仍不存在——标记export_missing，不重新入队（避免循环）
-                            # 这是极少数极端情况，后续可手动批量重跑
                             logger.error(f"Ctrl-C后export仍不存在: exp_id={exp_id} 标记export_missing (不重新入队，避免循环)")
                             result["export_missing"] = True
                             result["verdict"] = "export_missing"
@@ -676,11 +704,12 @@ def main():
                 logger.warning(f"MODEL {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → Profile数据")
 
             # export已在前面等待过——这里直接stop_tmux
-            # 交互模式下devin cli不会自然退出，必须由collector stop_tmux
+            # -p模式下devin cli已自动退出，stop_tmux只是清理残留session
+            # 交互模式下devin cli不会自然退出，stop_tmux会kill活进程
 
-            # 停tmux
+            # 停tmux——记录终态原因用于审计
             if tmux_session:
-                stop_tmux(tmux_session)
+                stop_tmux(tmux_session, reason=f"终态={status}/{result.get('verdict','')}", exp_id=exp_id)
                 logger.debug(f"stop_tmux: session={tmux_session}")
 
             remove_running(r, exp_id)
