@@ -11,9 +11,13 @@
     → collector判定时间                                    = judge_delay
 
 数据源优先级：
-  1. exports/conversation.json的steps时间戳（ATIF-v1.7，毫秒级ISO格式）
-  2. sessions_db/trajectory.jsonl的created_at（Unix timestamp）
-  3. tmux_pipe.log的文件创建/修改时间（粗略）
+  1. tmux/tmux_pipe.log的文件创建/修改时间（最可靠——覆盖完整解题过程）
+  2. exports/conversation.json的steps时间戳（ATIF-v1.7，毫秒级ISO格式）
+  3. sessions_db/trajectory.jsonl的created_at（Unix timestamp）
+
+注意：conversation.json的steps时间戳可能不覆盖完整解题过程
+（devin cli的export可能在session结束时一次性写入，steps时间戳只覆盖部分）。
+tmux_pipe.log从tmux session创建到结束持续写入，文件时间最可靠。
 
 用法:
   python extract_solve_time.py --exp-id <id>
@@ -190,7 +194,8 @@ def extract_solve_time(exp_id: str) -> dict:
         result["session_info"] = si
 
     # 解题时间——按优先级尝试
-    for extractor in [extract_from_conversation, extract_from_trajectory, extract_from_file_mtime]:
+    # tmux_pipe.log最可靠（覆盖完整解题过程），conversation.json可能不完整
+    for extractor in [extract_from_file_mtime, extract_from_conversation, extract_from_trajectory]:
         solve_info = extractor(exp_dir)
         if solve_info:
             result["solve_time"] = solve_info

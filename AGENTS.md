@@ -3093,11 +3093,33 @@ Collector判定终态时，不只看标记，要验证真实内容：
 
 ### 精确解题时间
 
-`solve_time_seconds`从conversation.json提取（ATIF-v1.7格式的steps时间戳），不是粗略的elapsed。
+`solve_time_seconds`从tmux_pipe.log的文件创建/修改时间提取（最可靠——覆盖完整解题过程）。
+
+**数据源优先级**（2026-08-12修正）：
+1. **tmux/tmux_pipe.log mtime**（首选）——从tmux session创建到结束持续写入，文件时间覆盖完整解题过程
+2. exports/conversation.json的steps时间戳（备选）——注意：devin cli的export可能在session结束时一次性写入，steps时间戳只覆盖部分过程（如8个steps在3秒内完成，但实际解题126秒）
+3. sessions_db/trajectory.jsonl的created_at（备选）
+
+**历史误判修复**：2026-08-12发现conversation.json的steps时间戳不覆盖完整解题过程，导致solve_time被低估为2-8秒（实际45-574秒）。已修正优先级为tmux_pipe.log mtime首选，并批量更新了DB中46条历史记录。
 
 时间分解：`launch_overhead + init_overhead + solve_time + tail_overhead + judge_delay`
 
 DB记录字段：`solve_time_seconds`（核心指标）、`solve_time_source`、`prompt_tokens`、`completion_tokens`、`cached_tokens`、`total_steps`
+
+**批量修复历史记录**：
+```bash
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/extract_solve_time.py --batch --limit 100 --update-db
+```
+
+### 答案泄漏检测（answer_leak_in_input）
+
+Runner在入队前检查题目文本是否包含answer/solution字段值，防止AI看到答案。
+
+**检测逻辑**（2026-08-12修正）：
+- **answer字段**：只对长度>10字符的答案做检测——短答案如`True`/`False`/`2875`等容易在题目文本中自然出现，导致误判
+- **solution_text字段**：检查solution前100字符是否出现在题目文本中
+
+**历史误判修复**：2026-08-12发现answer="False"/"True"/"2875"/"\tau_2"等短答案被误判为answer_leak，因为题目文本中自然包含这些词。已将阈值从>3字符提高到>10字符，4道误判的题已重新入队。
 
 ### 日志系统
 
@@ -3105,6 +3127,75 @@ DB记录字段：`solve_time_seconds`（核心指标）、`solve_time_source`、
 - **单文件**：1MB分片
 - **总量**：10GB循环滚动
 - **文件**：runner.log/collector.log/feeder.log/reporter.log/retry.log + 统一pipe.log
+
+### 系统运行监控SOP（AI检查者角色）
+
+**当系统在运行时，AI是检查者，不是旁观者。** 按以下SOP检查系统健康状态：
+
+**检查1：服务存活**（每次检查必做）
+```bash
+tmux list-sessions | grep pipe-    # 4个服务session必须都在
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py status
+```
+- feeder/runner/collector/reporter必须✅运行中
+- 如果有❌：检查对应日志，可能是崩溃或优雅退出
+
+**检查2：队列流动**（每次检查必做）
+- pending应该在减少，running应该接近并发数，completed+failed应该在增长
+- 如果running=0但pending>0：Runner可能挂了，或并发配置被改成0
+- 如果completed和failed都不增长超过10分钟：Collector可能挂了，或所有running都在长时间解题
+
+**检查3：失败分类**（每100个失败检查一次）
+```bash
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 -c "
+from redis_queue import get_redis
+import json
+from collections import Counter
+r = get_redis()
+failed = r.lrange('math:failed', 0, -1)
+verdicts = Counter()
+for item in failed:
+    data = json.loads(item)
+    verdicts[data.get('verdict', '?')] += 1
+for v, c in verdicts.most_common():
+    print(f'  {v}: {c}')
+"
+```
+- 基础设施失败（failed_connection/dead_session/launch_error）占比高→检查API连接
+- answer_leak_in_input占比高→检查是否有新的误判模式
+- failed_tool_stall占比高→AI在工具调用中卡住，可能需要调整timeout
+
+**检查4：solve_time准确性**（每50个完成检查一次）
+```bash
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 -c "
+from redis_queue import get_redis
+import json
+from collections import Counter
+r = get_redis()
+completed = r.lrange('math:completed', 0, -1)
+sources = Counter()
+for item in completed:
+    data = json.loads(item)
+    sources[data.get('solve_time_source', '?')] += 1
+for s, c in sources.most_common():
+    print(f'  {s}: {c}')
+"
+```
+- tmux_pipe.log mtime应该是主要source——这是最可靠的
+- 如果conversation.json占比高：说明tmux_pipe.log可能不存在，检查trajectory目录结构
+- solve_time < 10秒的可疑——可能是conversation.json的steps时间戳不完整
+
+**检查5：误判修复**（发现异常verdict时）
+- answer_leak_in_input但answer是短字符串（<10字符）→误判，需要重新入队
+- solve_time远小于elapsed→solve_time提取有误，用extract_solve_time --batch --update-db修复
+- 修复后记录到本节"历史误判修复"中
+
+**检查6：harness session健康**（每30分钟检查一次）
+```bash
+tmux list-sessions | grep -c harness-p    # 应该接近并发数
+```
+- harness session数远大于并发数→有僵尸session，运行recover
+- harness session数=0但running>0→Redis running队列和tmux不同步，运行recover
 
 ### 数据存储位置
 

@@ -256,11 +256,12 @@ def main():
             logger.debug(f"题目加载: {problem_key}, text_len={len(problem_text)}, priority={priority}")
 
             # 答案泄漏检查：检查题目文本是否因清洗疏忽包含了答案
+            # 只对长答案（>10字符）做检测——短答案如True/False/0/1等容易误判
             doc = db.collection(COLLECTION).get(problem_key)
             answer = doc.get("answer", "") if doc else ""
             solution = doc.get("solution_text", "") if doc else ""
             leak_found = False
-            if answer and len(str(answer).strip()) > 3:
+            if answer and len(str(answer).strip()) > 10:
                 ans_clean = str(answer).strip().replace(" ", "").replace("\\", "").replace("$", "").lower()
                 text_clean = problem_text.lower().replace(" ", "").replace("\\", "").replace("$", "")
                 if ans_clean in text_clean:
