@@ -602,7 +602,10 @@ Watch for:
         devin_cmd = f"devin --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path} -- '{prompt}'"
     else:
         # 单轮模式（-p）——完成后自动退出，不支持运行时输入
-        devin_cmd = f"devin -p '{prompt}' --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path}"
+        # 注意：-p模式下devin cli退出后tmux session会自动销毁
+        # 需要在命令后加'; sleep infinity'保持tmux session存活
+        # 这样collector可以通过tmux pane检测PROOF COMPLETE，通过tmux session结束检测devin cli已退出
+        devin_cmd = f"devin -p '{prompt}' --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path}; echo DEVIN_CLI_EXITED code=$?; sleep 999999"
 
     if mitm_enabled:
         # 走mitmproxy代理

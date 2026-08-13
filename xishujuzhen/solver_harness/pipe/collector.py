@@ -584,23 +584,27 @@ def main():
                 if export_path.exists():
                     logger.info(f"export已存在: exp_id={exp_id} size={export_path.stat().st_size}B (无需等待)")
                 elif args.print_mode:
-                    # -p模式：等tmux session结束（devin cli自动退出时写export）
+                    # -p模式：等devin cli退出（检测"DEVIN_CLI_EXITED"标记或tmux session结束）
+                    # devin cli退出时会写export文件
                     logger.info(f"export等待(-p模式): exp_id={exp_id} 等devin cli自动退出+写export")
                     wait_start = time.time()
+                    devin_exited = False
                     for _ in range(120):  # 最多等120秒
                         time.sleep(1)
-                        if not tmux_running(tmux_session):
-                            break
                         if export_path.exists():
                             break
+                        # 检测"DEVIN_CLI_EXITED"标记——solver_harness在devin cli退出后会echo这个标记
+                        pane_check = capture_pane(tmux_session)
+                        if "DEVIN_CLI_EXITED" in pane_check:
+                            devin_exited = True
+                            # devin cli已退出，再等2秒让export写完
+                            time.sleep(2)
+                            break
                     wait_elapsed = time.time() - wait_start
-                    # session结束后再等2秒让export写完
-                    if not export_path.exists():
-                        time.sleep(2)
                     if export_path.exists():
-                        logger.info(f"export写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s size={export_path.stat().st_size}B (devin cli已退出)")
+                        logger.info(f"export写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s size={export_path.stat().st_size}B (devin cli已退出={devin_exited})")
                     else:
-                        logger.error(f"export未写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s tmux_running={tmux_running(tmux_session)} 标记export_missing")
+                        logger.error(f"export未写完(-p模式): exp_id={exp_id} 等待{wait_elapsed:.0f}s devin_exited={devin_exited} tmux_running={tmux_running(tmux_session)} 标记export_missing")
                         result["export_missing"] = True
                         result["verdict"] = "export_missing"
                 else:
