@@ -179,7 +179,10 @@ def main():
         if should_stop():
             logger.info("Retry优雅退出")
             break
-        run_once()
+        try:
+            run_once()
+        except Exception as e:
+            logger.error(f"Retry轮次失败: {e}", exc_info=True)
         logger.info(f"等待 {args.interval}s 后再次扫描...")
         time.sleep(args.interval)
 

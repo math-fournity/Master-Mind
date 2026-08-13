@@ -111,49 +111,53 @@ def main():
             logger.info(f"Feeder优雅退出: total_enqueued={total_enqueued}")
             break
 
-        # 检查是否达到limit
-        if args.limit > 0 and total_enqueued >= args.limit:
-            logger.info(f"达到limit, total_enqueued={total_enqueued} >= limit={args.limit}, 停止")
-            break
+        try:
+            # 检查是否达到limit
+            if args.limit > 0 and total_enqueued >= args.limit:
+                logger.info(f"达到limit, total_enqueued={total_enqueued} >= limit={args.limit}, 停止")
+                break
 
-        # 检查pending水位
-        pending = pending_count(r)
-        logger.debug(f"水位检查: pending={pending} low_water_mark={args.low_water_mark}")
-        if pending >= args.low_water_mark:
-            logger.info(f"pending={pending} >= low_water_mark={args.low_water_mark}, 等待{args.poll_interval}s")
-            time.sleep(args.poll_interval)
-            continue
+            # 检查pending水位
+            pending = pending_count(r)
+            logger.debug(f"水位检查: pending={pending} low_water_mark={args.low_water_mark}")
+            if pending >= args.low_water_mark:
+                logger.info(f"pending={pending} >= low_water_mark={args.low_water_mark}, 等待{args.poll_interval}s")
+                time.sleep(args.poll_interval)
+                continue
 
-        # 计算这批取多少
-        need = args.low_water_mark - pending
-        if args.limit > 0:
-            need = min(need, args.limit - total_enqueued)
-        batch = min(need, args.batch_size)
-        logger.debug(f"计算批量: pending={pending} need={need} batch={batch} total_enqueued={total_enqueued} limit={args.limit}")
+            # 计算这批取多少
+            need = args.low_water_mark - pending
+            if args.limit > 0:
+                need = min(need, args.limit - total_enqueued)
+            batch = min(need, args.batch_size)
+            logger.debug(f"计算批量: pending={pending} need={need} batch={batch} total_enqueued={total_enqueued} limit={args.limit}")
 
-        if args.dry_run:
-            # dry-run：只查DB数量，不入队
-            tier_filter = ", ".join(str(t) for t in tiers)
-            aql = (
-                f"FOR d IN {COLLECTION} "
-                f"FILTER d.extraction_status == 'pending' "
-                f"FILTER d.difficulty_tier IN [{tier_filter}] "
-                f"COLLECT WITH COUNT INTO c RETURN c"
-            )
-            count = db.aql.execute(aql, ttl=300).next()
-            logger.info(f"DRY-RUN: 待入库题数={count} (tier={tiers})")
-            break
+            if args.dry_run:
+                # dry-run：只查DB数量，不入队
+                tier_filter = ", ".join(str(t) for t in tiers)
+                aql = (
+                    f"FOR d IN {COLLECTION} "
+                    f"FILTER d.extraction_status == 'pending' "
+                    f"FILTER d.difficulty_tier IN [{tier_filter}] "
+                    f"COLLECT WITH COUNT INTO c RETURN c"
+                )
+                count = db.aql.execute(aql, ttl=300).next()
+                logger.info(f"DRY-RUN: 待入库题数={count} (tier={tiers})")
+                break
 
-        # 取题入队
-        count = feed_batch(db, r, tiers, batch)
-        total_enqueued += count
-        update_stats(r)
-        logger.info(f"入队 {count}题 (总计 {total_enqueued}, pending={pending_count(r)})")
+            # 取题入队
+            count = feed_batch(db, r, tiers, batch)
+            total_enqueued += count
+            update_stats(r)
+            logger.info(f"入队 {count}题 (总计 {total_enqueued}, pending={pending_count(r)})")
 
-        if count == 0:
-            # 没有更多题了
-            logger.info("没有更多pending题, 停止")
-            break
+            if count == 0:
+                # 没有更多题了
+                logger.info("没有更多pending题, 停止")
+                break
+
+        except Exception as e:
+            logger.error(f"Feeder轮次失败: {e}", exc_info=True)
 
         time.sleep(args.poll_interval)
 

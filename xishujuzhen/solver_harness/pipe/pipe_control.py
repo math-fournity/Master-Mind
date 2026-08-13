@@ -141,20 +141,23 @@ def cmd_start(args):
         clear_all(r)
         print("  已清空Redis队列")
 
-    start_service("feeder", "feeder.py", feeder_args, dry_run=args.dry_run)
+    start_service("feeder", "feeder.py", feeder_args, dry_run=args.dry_run, auto_restart=True)
     time.sleep(2)
-    start_service("runner", "runner.py", runner_args, dry_run=args.dry_run)
+    start_service("runner", "runner.py", runner_args, dry_run=args.dry_run, auto_restart=True)
     time.sleep(1)
     start_service("collector", "collector.py", collector_args, dry_run=args.dry_run, auto_restart=True)
     time.sleep(1)
-    start_service("reporter", "reporter.py", reporter_args, dry_run=args.dry_run)
+    start_service("reporter", "reporter.py", reporter_args, dry_run=args.dry_run, auto_restart=True)
+    time.sleep(1)
+    retry_args = ["--max-retries", "3", "--interval", "120"]
+    start_service("retry", "retry_infrastructure.py", retry_args, dry_run=args.dry_run, auto_restart=True)
 
     print("\n所有服务已启动。用 'python pipe_control.py status' 查看状态。")
 
 
 def cmd_stop(args):
     print("停止管道化系统:")
-    for name in ["feeder", "runner", "collector", "reporter"]:
+    for name in ["feeder", "runner", "collector", "reporter", "retry"]:
         stop_service(name, graceful=not args.force, timeout=args.timeout)
 
     if not args.keep_harness:
@@ -224,7 +227,7 @@ def cmd_status(args):
     print()
 
     # tmux session状态
-    for name in ["feeder", "runner", "collector", "reporter"]:
+    for name in ["feeder", "runner", "collector", "reporter", "retry"]:
         session_name = f"pipe-{name}"
         running = tmux_running(session_name)
         status = "✅ 运行中" if running else "❌ 未运行"
