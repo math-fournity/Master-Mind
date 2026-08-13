@@ -3196,10 +3196,10 @@ Runner在入队前检查题目文本是否包含answer/solution字段值，防�
 
 **检查1：服务存活**（每次检查必做）
 ```bash
-tmux list-sessions | grep pipe-    # 4个服务session必须都在
+tmux list-sessions | grep pipe-    # 5个服务session必须都在
 .venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py status
 ```
-- feeder/runner/collector/reporter必须✅运行中
+- feeder/runner/collector/reporter/retry必须✅运行中
 - 如果有❌：检查对应日志，可能是崩溃或优雅退出
 
 **检查2：队列流动**（每次检查必做）
@@ -3306,6 +3306,9 @@ tmux list-sessions | grep -c harness-p    # 应该接近并发数
 | `build_profile.py` | GLM-5.2能力边界Profile构建 |
 | `recover_from_crash.py` | 断电恢复+僵尸清理 |
 | `pipe_control.py` | 启动/停止/状态管理/健康检查（status/health/concurrency） |
+| `check_export_quality.py` | export文件大小+结构抽样检查 |
+| `check_export_vs_db.py` | export内容质量+与数据库交叉验证（PROOF COMPLETE真伪、误判率） |
+| `fix_false_positive_solved.py` | 修复collector误判的candidate_solved记录+重新入队 |
 
 ### AGENTS.md模板（给devin cli的）
 
@@ -3338,28 +3341,30 @@ Runner为每个题目生成`AGENTS.md`文件，明确禁止任何工具调用：
 
 | 指标 | 数值 |
 |---|---|
-| 已完成 | 676题 |
-| 失败 | 65题 |
-| 成功率 | 91.2% |
-| avg runtime | 255秒（约4分钟） |
-| median runtime | 251秒 |
-| 理论吞吐量 | ~424题/小时（30并发）/ ~565题/小时（40并发） |
+| 已完成 | 744题（修复误判后真实值） |
+| 失败 | 414题（含272道误判修复后重新分类的题） |
+| 真实成功率 | 64.2%（修复272条误判前显示91.2%是虚高的） |
+| 吞吐量 | ~324题/小时（40并发）/ ~270题/小时（30并发） |
 | export落盘率 | 100%（20/20） |
 | 数据库字段完整度 | 14/14字段全部100% |
-| solve_time可信度 | 95%（19/20，1条旧记录异常） |
-| agent消息长度 | avg=2696字符，max=4630字符 |
-| completion tokens | avg=6101，max=25000 |
+| solve_time可信度 | 100%（20/20） |
+| dead_session率 | ~15%（`-p`模式devin cli偶发0字节退出，不随并发量变化） |
+| 误判修复历史 | 272条candidate_solved误判（提示词PROOF COMPLETE误匹配），已修复 |
+
+> **注意**：修复前的"91.2%成功率"是虚高的——272个实际未完成的题被误判为已解决。修复后真实成功率64.2%。dead_session（`-p`模式偶发0字节退出）是主要失败原因，占失败的60%+。
 
 ### 连续运行SOP
 
 **当你要接手连续运行时，按以下步骤行动**：
 
-1. **检查系统状态**：`query_progress.py`看当前pending/running/completed/failed
-2. **检查服务是否在运行**：`tmux list-sessions`看pipe-runner/collector/reporter是否在
-3. **如果服务没在运行但有running记录**：执行`recover_from_crash.py`恢复，然后重启服务
-4. **如果服务在运行**：检查日志`tail -50 .../pipe.log`看是否有异常
-5. **如果需要热替换代码**：按"代码热替换流程"操作
-6. **运行结束后**：执行`build_profile.py --summary`构建Profile，`verify_completeness.py --all`验证数据完整性
+1. **检查系统状态**：`pipe_control.py status`看当前pending/running/completed/failed
+2. **全面健康检查**：`pipe_control.py health`（7项检查：并发/队列/TUI状态/export落盘/DB字段/solve_time/failed分类）
+3. **检查服务是否在运行**：`tmux list-sessions`看pipe-feeder/runner/collector/reporter/retry是否在
+4. **如果服务没在运行但有running记录**：执行`recover_from_crash.py`恢复，然后重启服务
+5. **如果服务在运行**：检查日志`tail -50 .../pipe.log`看是否有异常
+6. **export内容质量验证**：`scripts/check_export_vs_db.py`检查PROOF COMPLETE真伪+误判率（正常<1%）
+7. **如果需要热替换代码**：按"代码热替换流程"操作
+8. **运行结束后**：执行`build_profile.py --summary`构建Profile，`verify_completeness.py --all`验证数据完整性，`scripts/check_export_vs_db.py`做最终export质量审计
 
 ### 关键文档索引
 
