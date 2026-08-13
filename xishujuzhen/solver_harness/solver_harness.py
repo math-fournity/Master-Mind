@@ -625,7 +625,7 @@ Watch for:
 
     # 7. 启动pipe-pane（raw流，简单cat >>，不过滤）
     # PROOF COMPLETE检测改用tmux capture-pane（见batch_problem_runner observe_attempt_files）
-    time.sleep(1)
+    time.sleep(0.5)  # 缩短：0.5秒足够tmux session创建
     subprocess.run(
         ["tmux", "pipe-pane", "-t", tname, f"cat >> {tmux_pipe_path}"],
         capture_output=True
@@ -633,11 +633,17 @@ Watch for:
 
     update_session_info(exp_id, {"status": "running"})
 
-    # 8. 回填devin_session_id（等session出现在sessions.db中）
-    print(f"\nBackfilling devin_session_id...")
-    backfill_devin_session_id(exp_id, max_wait=30)
+    # 8. 回填devin_session_id——管道化模式下跳过等待（非阻塞）
+    # 原来同步等30秒太慢，管道化系统中collector后续会处理session数据
+    if interactive:
+        # 交互模式仍需session_id用于send-keys
+        print(f"\nBackfilling devin_session_id...")
+        backfill_devin_session_id(exp_id, max_wait=30)
+    else:
+        # 单轮模式（管道化）——不等，直接继续
+        print(f"\nSkipping devin_session_id backfill (non-interactive mode)")
 
-    # 9. 启动sessions.db轮询（必须在backfill之后——否则找不到session就退出）
+    # 9. 启动sessions.db轮询
     start_db_monitor(exp_id)
     print(f"DB monitor started (step-level trajectory)")
 

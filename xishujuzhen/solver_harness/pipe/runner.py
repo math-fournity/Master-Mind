@@ -227,11 +227,12 @@ def main():
 
         logger.info(f"poll#{poll_count}: 取到{len(items)}题, slots={slots}, running={current_running}")
 
+        # 阶段1：预处理（串行，快）——读题目、检查泄漏、写文件
+        launch_tasks = []  # (exp_id, problem_key, problem_file, priority)
         for problem_key, priority in items:
             exp_id = f"p{uuid.uuid4().hex[:20]}"
 
             if args.dry_run:
-                # dry-run：不启动devin cli，直接模拟running
                 metadata = {
                     "problem_key": problem_key,
                     "exp_id": exp_id,
@@ -245,7 +246,7 @@ def main():
                 logger.info(f"DRY-RUN 启动 {problem_key} (exp={exp_id[:20]}), total={total_launched}")
                 continue
 
-            # 真实模式：读取题目文本
+            # 读取题目文本
             problem_text = load_problem_text(db, problem_key)
             if not problem_text.strip():
                 logger.warning(f"题目文本为空: {problem_key}, 跳过")
@@ -253,10 +254,7 @@ def main():
                 add_failed(r, {"problem_key": problem_key, "error": "empty_problem_text", "exp_id": exp_id, "verdict": "empty_problem_text"})
                 continue
 
-            logger.debug(f"题目加载: {problem_key}, text_len={len(problem_text)}, priority={priority}")
-
-            # 答案泄漏检查：检查题目文本是否因清洗疏忽包含了答案
-            # 只对长答案（>10字符）做检测——短答案如True/False/0/1等容易误判
+            # 答案泄漏检查
             doc = db.collection(COLLECTION).get(problem_key)
             answer = doc.get("answer", "") if doc else ""
             solution = doc.get("solution_text", "") if doc else ""
@@ -279,7 +277,6 @@ def main():
                     "verdict": "answer_leak_in_input",
                     "error": "题目文本包含答案/solution，不入running",
                 })
-                # 更新DB
                 attempt_key = f"pipe_{exp_id[:40]}"
                 now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
                 try:
@@ -296,35 +293,44 @@ def main():
 
             # 写题目文件
             problem_file = write_problem_file(problem_key, problem_text, exp_id)
-            logger.debug(f"题目文件写入: {problem_file}")
+            launch_tasks.append((exp_id, problem_key, problem_file, priority))
 
-            # 启动devin cli
-            try:
+        # 阶段2：并行启动devin cli——用线程池同时启动多个
+        if launch_tasks:
+            from concurrent.futures import ThreadPoolExecutor, as_completed
+
+            def launch_one(task):
+                exp_id, problem_key, problem_file, priority = task
                 tmux_session = launch_devin_cli(exp_id, problem_file, args.model)
-            except Exception as e:
-                logger.error(f"启动失败 {problem_key}: {e}", exc_info=True)
-                from redis_queue import add_failed
-                add_failed(r, {"problem_key": problem_key, "error": str(e), "exp_id": exp_id, "verdict": "launch_error"})
-                continue
+                return exp_id, problem_key, tmux_session, priority
 
-            # 创建attempt记录
-            attempt_key = create_attempt_record(db, problem_key, exp_id, tmux_session)
-
-            # 写入Redis running队列
-            metadata = {
-                "problem_key": problem_key,
-                "exp_id": exp_id,
-                "attempt_key": attempt_key,
-                "tmux_session": tmux_session,
-                "start_time": time.time(),
-                "priority": priority,
-            }
-            add_running(r, exp_id, metadata)
-            total_launched += 1
-            logger.info(f"启动 {problem_key} → tmux={tmux_session} (total={total_launched})")
-
-            # 启动间隔
-            time.sleep(1)
+            # 并行度：min(任务数, 10)——同时启动10个devin cli
+            max_workers = min(len(launch_tasks), 10)
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(launch_one, t): t for t in launch_tasks}
+                for future in as_completed(futures):
+                    task = futures[future]
+                    exp_id, problem_key, problem_file, priority = task
+                    try:
+                        eid, pk, tmux_session, prio = future.result()
+                        # 创建attempt记录
+                        attempt_key = create_attempt_record(db, pk, eid, tmux_session)
+                        # 写入Redis running队列
+                        metadata = {
+                            "problem_key": pk,
+                            "exp_id": eid,
+                            "attempt_key": attempt_key,
+                            "tmux_session": tmux_session,
+                            "start_time": time.time(),
+                            "priority": prio,
+                        }
+                        add_running(r, eid, metadata)
+                        total_launched += 1
+                        logger.info(f"启动 {pk} → tmux={tmux_session} (total={total_launched})")
+                    except Exception as e:
+                        logger.error(f"启动失败 {problem_key}: {e}", exc_info=True)
+                        from redis_queue import add_failed
+                        add_failed(r, {"problem_key": problem_key, "error": str(e), "exp_id": exp_id, "verdict": "launch_error"})
 
         update_stats(r)
 
