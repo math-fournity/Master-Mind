@@ -8,6 +8,7 @@
   python pipe_control.py start --concurrency 3 --dry-run  # dry-run模式
   python pipe_control.py stop
   python pipe_control.py status
+  python pipe_control.py health  # 并发+网络+tmux泄漏检查
   python pipe_control.py clear  # 清空Redis队列
 """
 import sys
@@ -256,6 +257,135 @@ def cmd_status(args):
             print(f"    ... 还有 {len(all_running) - 10} 个")
 
 
+def cmd_health(args):
+    """检查并发量、网络连接稳定性、tmux session泄漏——一键健康检查"""
+    import json
+
+    print("系统健康检查:")
+    print()
+
+    if not ping():
+        print("  ❌ Redis连接失败")
+        return
+    r = get_redis()
+
+    # 1. 并发量
+    conc_raw = r.get("math:config:concurrency")
+    conc = int(conc_raw.decode() if isinstance(conc_raw, bytes) else conc_raw) if conc_raw else 0
+    running = r.hgetall("math:running")
+    running_count = len(running)
+
+    # tmux session统计
+    result = subprocess.run(["tmux", "list-sessions"], capture_output=True, text=True)
+    harness_p = 0
+    harness_dbmon = 0
+    tmux_dbmon_exp_ids = set()
+    for line in result.stdout.split("\n"):
+        if "harness-dbmon-p" in line:
+            harness_dbmon += 1
+            tmux_dbmon_exp_ids.add(line.split("harness-dbmon-")[1].split(":")[0])
+        elif "harness-p" in line:
+            harness_p += 1
+
+    running_exp_ids = set()
+    for k, v in running.items():
+        data = json.loads(v)
+        running_exp_ids.add(data.get("exp_id", ""))
+
+    leaked_dbmon = tmux_dbmon_exp_ids - running_exp_ids
+
+    print(f"  并发量:")
+    print(f"    设定:          {conc}")
+    print(f"    Redis running: {running_count}")
+    print(f"    harness-p:     {harness_p}")
+    print(f"    harness-dbmon: {harness_dbmon}")
+    if leaked_dbmon:
+        print(f"    ⚠️  dbmon泄漏:  {len(leaked_dbmon)}个")
+    else:
+        print(f"    dbmon泄漏:     0 ✅")
+    print()
+
+    # 2. 网络连接——检查所有running session的pane
+    network_errors = []
+    truncated = 0
+    thinking = 0
+    other = 0
+    error_patterns = [
+        "connection error", "econnrefused", "econnreset", "socket hang up",
+        "fetch failed", "network error", "network request failed",
+        "429", "rate limit", "too many requests", "etimedout",
+    ]
+
+    for k, v in running.items():
+        data = json.loads(v)
+        eid = data.get("exp_id", "")
+        tmux_sess = f"harness-{eid}"
+        res = subprocess.run(["tmux", "capture-pane", "-t", tmux_sess, "-p", "-S", "-200"],
+                             capture_output=True, text=True)
+        pane = res.stdout
+        pane_lower = pane.lower()
+        found_err = False
+        for p in error_patterns:
+            if p in pane_lower:
+                network_errors.append((data.get("problem_key", ""), eid, p))
+                found_err = True
+                break
+        if found_err:
+            continue
+        if "Response truncated" in pane or "Send a message to continue" in pane:
+            truncated += 1
+        elif "Thinking" in pane:
+            thinking += 1
+        else:
+            other += 1
+
+    print(f"  网络连接:")
+    print(f"    网络错误:      {len(network_errors)}/{running_count}", "❌" if network_errors else "✅")
+    print(f"    Response truncated: {truncated}")
+    print(f"    Thinking中:   {thinking}")
+    print(f"    其他状态:     {other}")
+    if network_errors:
+        print(f"    错误详情:")
+        for pk, eid, p in network_errors:
+            print(f"      {pk} {eid}: \"{p}\"")
+    print()
+
+    # 3. failed队列网络相关
+    failed = r.lrange("math:failed", 0, -1)
+    from collections import Counter
+    verdicts = Counter()
+    conn_failures = 0
+    for item in failed:
+        data = json.loads(item)
+        v = data.get("verdict", "?")
+        verdicts[v] += 1
+        if v in ("failed_connection", "rate_limited"):
+            conn_failures += 1
+
+    print(f"  failed队列:")
+    print(f"    总计:         {len(failed)}")
+    print(f"    网络相关:     {conn_failures}", "❌" if conn_failures else "✅")
+    for v, c in verdicts.most_common():
+        print(f"    {v}: {c}")
+    print()
+
+    # 4. 整体判定
+    issues = []
+    if leaked_dbmon:
+        issues.append(f"dbmon泄漏{len(leaked_dbmon)}个")
+    if network_errors:
+        issues.append(f"网络错误{len(network_errors)}个")
+    if conn_failures:
+        issues.append(f"failed队列网络相关{conn_failures}个")
+    if truncated:
+        issues.append(f"Response truncated {truncated}个")
+
+    if issues:
+        print(f"  判定: ⚠️ 有问题需要关注: {', '.join(issues)}")
+    else:
+        print(f"  判定: ✅ 健康")
+
+
 def cmd_clear(args):
     print("清空Redis队列:")
     if not ping():
@@ -297,6 +427,9 @@ def main():
     p_status = sub.add_parser("status", help="查看状态")
     p_status.add_argument("-v", "--verbose", action="store_true")
     p_status.set_defaults(func=cmd_status)
+
+    p_health = sub.add_parser("health", help="并发+网络+tmux泄漏一键检查")
+    p_health.set_defaults(func=cmd_health)
 
     p_clear = sub.add_parser("clear", help="清空Redis队列")
     p_clear.set_defaults(func=cmd_clear)

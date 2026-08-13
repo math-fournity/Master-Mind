@@ -2999,6 +2999,9 @@ Runner每次poll时从Redis读取并发配置，可以实时调整，不需要�
 # 查看当前配置（status命令也显示实时配置）
 .venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py status
 
+# 一键健康检查（并发量+网络连接+tmux泄漏+failed分类）
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py health
+
 # 或直接用redis-cli
 docker exec redis-queue redis-cli SET math:config:concurrency 50
 ```
@@ -3228,7 +3231,7 @@ tmux list-sessions | grep -c harness-p    # 应该接近并发数
 | `extract_solve_time.py` | 精确解题时间提取 |
 | `build_profile.py` | GLM-5.2能力边界Profile构建 |
 | `recover_from_crash.py` | 断电恢复+僵尸清理 |
-| `pipe_control.py` | 启动/停止/状态管理 |
+| `pipe_control.py` | 启动/停止/状态管理/健康检查（status/health/concurrency） |
 
 ### AGENTS.md模板（给devin cli的）
 
