@@ -603,13 +603,13 @@ def main():
                 failed_this_round += 1
                 logger.warning(f"MODEL {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → Profile数据")
 
-            # 停tmux前等待devin cli export完成（最多等10秒）
+            # 停tmux前等待devin cli export完成（最多等3秒，不阻塞collector）
+            # 高并发时56个题×10秒=560秒太慢，缩短到3秒
             if is_running and tmux_session:
                 export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                 if not export_path.exists():
-                    logger.info(f"等待export完成: exp_id={exp_id} export_path={export_path}")
                     wait_start = time.time()
-                    for _ in range(10):
+                    for _ in range(3):
                         time.sleep(1)
                         if export_path.exists():
                             break
@@ -628,7 +628,7 @@ def main():
                         except Exception as e:
                             logger.debug(f"extract_solve_time失败(export后): exp_id={exp_id} error={e}")
                     else:
-                        logger.warning(f"export超时: exp_id={exp_id} 等待{wait_elapsed:.0f}s 仍未完成")
+                        logger.warning(f"export超时: exp_id={exp_id} 等待{wait_elapsed:.0f}s 仍未完成（不阻塞，继续处理）")
 
             # 停tmux
             if tmux_session:
