@@ -3188,7 +3188,13 @@ for s, c in sources.most_common():
 **检查5：误判修复**（发现异常verdict时）
 - answer_leak_in_input但answer是短字符串（<10字符）→误判，需要重新入队
 - solve_time远小于elapsed→solve_time提取有误，用extract_solve_time --batch --update-db修复
+- failed_thinking_spin但pane_snapshot中有PROOF COMPLETE→Collector误判，用reclassify_failed.py修复
 - 修复后记录到本节"历史误判修复"中
+
+**历史误判修复记录**：
+- 2026-08-12 answer_leak短答案误判：阈值>3改为>10，4道题重新入队
+- 2026-08-12 solve_time提取误判：conversation.json优先改为tmux_pipe.log mtime优先，46条DB记录更新
+- 2026-08-12 failed_thinking_spin误判：has_real_proof只检查PROOF COMPLETE之前内容，但证明在标记之后。改为同时检查前后+过滤TUI UI元素。11条记录从failed→completed
 
 **检查6：harness session健康**（每30分钟检查一次）
 ```bash
