@@ -48,6 +48,34 @@ TRAJECTORY_BASE = Path("/data/math-agent-glm5.2-tmux-agents-trajectory")
 # === 标记模式 ===
 PROOF_COMPLETE_MARKER = "PROOF COMPLETE"
 PROOF_COMPLETE_MARKERS = ["PROOF COMPLETE", "证明完成"]  # 英文+中文
+
+# 提示词中包含"结尾输出 ### PROOF COMPLETE"——必须排除这些上下文
+_PROMPT_CONTEXT_PATTERNS = ["结尾输出", "请按AGENTS", "Pro ·", "直接在TUI中输出证明"]
+
+
+def find_ai_proof_marker(text: str) -> tuple[int, str] | tuple[None, None]:
+    """在pane文本中找到AI真正输出的PROOF COMPLETE标记（排除提示词中的）。
+
+    提示词模式: "❭ 请按AGENTS.md中的题目直接解答...结尾输出 ### PROOF COMPLETE"
+    AI输出模式: 在reasoning/proof末尾，通常以"### PROOF COMPLETE"单独成行
+
+    返回 (位置索引, 匹配的marker) 或 (None, None)。
+    """
+    for marker in PROOF_COMPLETE_MARKERS:
+        start = 0
+        while True:
+            idx = text.find(marker, start)
+            if idx == -1:
+                break
+            # 检查上下文——如果附近有提示词特征，跳过
+            ctx_before = text[max(0, idx - 80):idx]
+            ctx_after = text[idx + len(marker):idx + len(marker) + 40]
+            is_prompt = any(p in ctx_before for p in _PROMPT_CONTEXT_PATTERNS) or \
+                        any(p in ctx_after for p in _PROMPT_CONTEXT_PATTERNS)
+            if not is_prompt:
+                return idx, marker
+            start = idx + len(marker)
+    return None, None
 ANSWER_LEAK_MARKER = "ANSWER LEAK DETECTED"
 AI_GAVE_UP_PATTERNS = [
     "I CANNOT SOLVE", "I cannot solve", "i cannot solve",
@@ -145,18 +173,12 @@ def is_thinking(pane_text: str) -> bool:
 def has_real_proof(pane_text: str) -> bool:
     """验证是否有真实的proof内容——眼见为实"""
     cleaned = clean_ansi(pane_text)
-    # 检查所有PROOF COMPLETE标记（英文+中文）
-    found_marker = None
-    idx = -1
-    for marker in PROOF_COMPLETE_MARKERS:
-        if marker in cleaned:
-            found_marker = marker
-            idx = cleaned.index(marker)
-            break
+    # 使用find_ai_proof_marker排除提示词中的PROOF COMPLETE
+    idx, found_marker = find_ai_proof_marker(cleaned)
     if found_marker is None:
-        logger.debug(f"has_real_proof=False: 未检测到任何PROOF COMPLETE marker")
+        logger.debug(f"has_real_proof=False: 未检测到AI输出的PROOF COMPLETE marker（已排除提示词）")
         return False
-    logger.debug(f"has_real_proof: 检测到 '{found_marker}' marker位置={idx}")
+    logger.debug(f"has_real_proof: 检测到AI输出 '{found_marker}' marker位置={idx}")
 
     # TUI scrollback中，PROOF COMPLETE可能出现在输出区域中间
     # 真正的proof内容可能在marker之前或之后——两边都检查

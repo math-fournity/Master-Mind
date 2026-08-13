@@ -20,6 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 
+from collector import find_ai_proof_marker
 from redis_queue import (
     get_redis, pending_count, running_count, completed_count, failed_count,
     get_all_running, clear_all, ping, update_stats,
@@ -379,9 +380,9 @@ def cmd_health(args):
             categories["network_error"].append((pk, eid))
         elif "Response truncated" in pane or "Send a message to continue" in pane:
             categories["truncated"].append((pk, eid))
-        elif "证明完成" in pane and "PROOF COMPLETE" not in pane:
+        elif "证明完成" in pane and find_ai_proof_marker(pane)[0] is None:
             categories["chinese_proof"].append((pk, eid))
-        elif "PROOF COMPLETE" in pane:
+        elif find_ai_proof_marker(pane)[0] is not None:
             export_path = TRAJ / eid / "exports" / "conversation.json"
             if export_path.exists():
                 categories["proof_complete_export"].append((pk, eid))
