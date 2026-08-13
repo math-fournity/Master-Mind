@@ -168,6 +168,30 @@ def cmd_stop(args):
         print("  如需停止所有harness session: python pipe_control.py stop --kill-harness")
 
 
+def cmd_concurrency(args):
+    """实时调整并发数——Runner下次poll时生效（通常2-5秒内）"""
+    r = get_redis()
+    old = r.get("math:config:concurrency")
+    old_val = int(old) if old else "?"
+    r.set("math:config:concurrency", args.value)
+    print(f"并发数: {old_val} → {args.value}")
+    print(f"Runner会在下次poll时自动读取新值（通常2-5秒内生效）")
+    print(f"当前running不会受影响——只影响后续新启动的题")
+    # 如果runner没在运行，提示
+    if not tmux_running("pipe-runner"):
+        print(f"⚠️ Runner未运行，新值会在Runner启动时生效")
+
+
+def cmd_poll_interval(args):
+    """实时调整poll间隔"""
+    r = get_redis()
+    old = r.get("math:config:poll_interval")
+    old_val = int(old) if old else "?"
+    r.set("math:config:poll_interval", args.value)
+    print(f"poll间隔: {old_val}s → {args.value}s")
+    print(f"Runner会在下次poll时自动读取新值")
+
+
 def cmd_recover(args):
     """断电恢复"""
     # 直接调用recover_from_crash.py
@@ -211,6 +235,16 @@ def cmd_status(args):
     print(f"    completed: {completed:>8}")
     print(f"    failed:    {failed:>8}")
     print(f"    total:     {total:>8}")
+
+    # 实时配置
+    conc = r.get("math:config:concurrency")
+    poll = r.get("math:config:poll_interval")
+    conc_str = conc.decode() if isinstance(conc, bytes) else (conc if conc else "?")
+    poll_str = poll.decode() if isinstance(poll, bytes) else (poll if poll else "?")
+    print(f"\n  实时配置:")
+    print(f"    concurrency:   {conc_str}")
+    print(f"    poll_interval: {poll_str}s")
+    print(f"    (修改: python pipe_control.py concurrency 50)")
 
     if running > 0 and args.verbose:
         print(f"\n  Running attempts:")
@@ -266,6 +300,14 @@ def main():
 
     p_clear = sub.add_parser("clear", help="清空Redis队列")
     p_clear.set_defaults(func=cmd_clear)
+
+    p_conc = sub.add_parser("concurrency", help="实时调整并发数")
+    p_conc.add_argument("value", type=int, help="新的并发数（如50）")
+    p_conc.set_defaults(func=cmd_concurrency)
+
+    p_poll = sub.add_parser("poll-interval", help="实时调整poll间隔")
+    p_poll.add_argument("value", type=int, help="新的poll间隔秒数")
+    p_poll.set_defaults(func=cmd_poll_interval)
 
     args = parser.parse_args()
     if not args.command:

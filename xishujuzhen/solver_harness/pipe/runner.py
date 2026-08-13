@@ -176,6 +176,16 @@ def main():
     # 注册优雅退出
     register_shutdown("runner")
 
+    # 初始化Redis中的并发配置（如果没设置过）
+    # 用redis-cli SET math:config:concurrency 50 可以实时修改
+    if r.get("math:config:concurrency") is None:
+        r.set("math:config:concurrency", args.concurrency)
+    if r.get("math:config:poll_interval") is None:
+        r.set("math:config:poll_interval", args.poll_interval)
+
+    last_concurrency = args.concurrency
+    last_poll_interval = args.poll_interval
+
     while True:
         # 检查优雅退出
         if should_stop():
@@ -183,21 +193,36 @@ def main():
             logger.info(f"已启动的harness session不受影响，继续独立运行（Collector会处理它们）")
             break
 
+        # 实时读取并发配置
+        try:
+            redis_conc = int(r.get("math:config:concurrency") or args.concurrency)
+            redis_poll = int(r.get("math:config:poll_interval") or args.poll_interval)
+        except (ValueError, TypeError):
+            redis_conc = args.concurrency
+            redis_poll = args.poll_interval
+
+        if redis_conc != last_concurrency:
+            logger.info(f"并发数实时变更: {last_concurrency} → {redis_conc}")
+            last_concurrency = redis_conc
+        if redis_poll != last_poll_interval:
+            logger.info(f"poll间隔实时变更: {last_poll_interval}s → {redis_poll}s")
+            last_poll_interval = redis_poll
+
         poll_count += 1
         # 统计当前running数
         current_running = running_count(r)
-        slots = args.concurrency - current_running
+        slots = redis_conc - current_running
 
         if slots <= 0:
-            logger.debug(f"poll#{poll_count}: running={current_running}, 满载, 等待{args.poll_interval}s")
-            time.sleep(args.poll_interval)
+            logger.debug(f"poll#{poll_count}: running={current_running}, 满载(concurrency={redis_conc}), 等待{redis_poll}s")
+            time.sleep(redis_poll)
             continue
 
         # 从Redis取题
         items = dequeue_pending(r, slots)
         if not items:
             logger.debug(f"poll#{poll_count}: pending空, 等待feeder补充, slots={slots}")
-            time.sleep(args.poll_interval)
+            time.sleep(redis_poll)
             continue
 
         logger.info(f"poll#{poll_count}: 取到{len(items)}题, slots={slots}, running={current_running}")
