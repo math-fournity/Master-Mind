@@ -13,6 +13,8 @@ pipe_control.py health检查运行时健康，本脚本检查并发安全性。
   F. collector处理速率 vs runner启动速率——速率比，running是否堆积
   G. auto-restart验证——服务退出后是否真的5秒内重启
   H. 日志重复写入——tee -a + RotatingFileHandler导致每行写两遍
+  I. 网络连接健康度——API可达性、HTTP错误率、rate limit
+  J. devin异常退出率——dead_session占比、solved率、趋势
 
 用法:
   cd ~/master-mind-glm5.2-worktree
@@ -264,6 +266,205 @@ def check_h_log_duplication():
         return 0
 
 
+def check_i_network_health(r):
+    """I. 网络连接健康度——API可达性、TCP连接数、HTTP错误率、rate limit
+
+    检查方法：
+    1. 从running的devin进程提取实际连接的远端IP，测试连通性
+    2. 统计所有devin进程的ESTABLISHED TCP连接数，对比并发数
+    3. 从collector日志统计最近网络错误数
+    4. 从failed队列统计网络相关失败占比
+    """
+    print("【I. 网络连接健康度】")
+
+    issues = 0
+
+    # 1. 从running的devin进程提取实际连接的远端IP
+    ps_result = subprocess.run(["ps", "aux"], capture_output=True, text=True)
+    devin_pids = [line.split()[1] for line in ps_result.stdout.split("\n")
+                  if "devin" in line and "grep" not in line and "concurrency_safety" not in line
+                  and line.strip()]
+
+    # 收集所有devin进程的TCP连接
+    established_conns = 0
+    remote_ips = set()
+    for pid in devin_pids:
+        lsof = subprocess.run(
+            ["lsof", "-i", "-a", "-p", pid],
+            capture_output=True, text=True, timeout=5
+        )
+        for line in lsof.stdout.split("\n"):
+            if "ESTABLISHED" in line:
+                established_conns += 1
+                # 提取远端地址
+                parts = line.split("->")
+                if len(parts) > 1:
+                    remote = parts[1].split(":")[0].strip()
+                    remote_ips.add(remote)
+
+    conc_raw = r.get("math:config:concurrency")
+    conc = int(conc_raw) if conc_raw else 0
+    # 每个并发约1-2个TCP连接（API + WebSocket）
+    expected_conns = conc * 2
+    print(f"  devin进程TCP连接数: {established_conns} (共{len(devin_pids)}个进程)")
+    print(f"  预期连接数: ~{expected_conns} (并发{conc}×2)")
+    if established_conns < conc * 0.5:
+        print(f"  ❌ TCP连接数远低于并发数，网络可能断连")
+        issues += 1
+    elif established_conns < conc:
+        print(f"  ⚠️ TCP连接数低于并发数")
+    else:
+        print(f"  ✅ TCP连接数正常")
+
+    # 2. 测试所有远端IP的连通性（只要有一个可达就算正常）
+    if remote_ips:
+        reachable_ips = []
+        unreachable_ips = []
+        for ip in remote_ips:
+            curl = subprocess.run(
+                ["curl", "-s", "-o", "/dev/null", "-w", "%{http_code} %{time_total}",
+                 "--max-time", "10", "-k", f"https://{ip}"],
+                capture_output=True, text=True, timeout=15
+            )
+            parts = curl.stdout.strip().split()
+            http_code = parts[0] if parts else "000"
+            latency = float(parts[1]) if len(parts) > 1 else 0
+            # HTTP 404/401/403都说明TCP+TLS可达（只是没有对应路由）
+            reachable = http_code in ("200", "404", "401", "403", "405")
+            if reachable:
+                reachable_ips.append((ip, http_code, latency))
+            else:
+                unreachable_ips.append((ip, http_code, latency))
+
+        for ip, code, lat in reachable_ips:
+            print(f"  ✅ {ip} (HTTP {code}, {lat:.2f}s)")
+        for ip, code, lat in unreachable_ips:
+            print(f"  ❌ {ip} (HTTP {code}, {lat:.2f}s)")
+
+        if reachable_ips:
+            print(f"  API endpoint连通性: ✅ {len(reachable_ips)}/{len(remote_ips)}个IP可达")
+        else:
+            print(f"  API endpoint连通性: ❌ 所有{len(remote_ips)}个IP不可达")
+            issues += 1
+    else:
+        print(f"  ⚠️ 未检测到devin进程的TCP连接")
+
+    # 3. 从collector日志统计最近网络错误
+    collector_log = LOG_DIR / "collector.log"
+    network_errors = 0
+    rate_limits = 0
+    if collector_log.exists():
+        log_text = collector_log.read_text(errors="ignore")
+        recent_lines = log_text.split("\n")[-500:]
+        network_patterns = [
+            "connection error", "econnrefused", "econnreset", "socket hang up",
+            "fetch failed", "network error", "network request failed", "etimedout",
+            "unavailable", "errorkind",
+        ]
+        rate_limit_patterns = ["message rate limit", "http 429", "status 429", "error 429", "too many requests"]
+        for line in recent_lines:
+            line_lower = line.lower()
+            if any(p in line_lower for p in network_patterns):
+                network_errors += 1
+            if any(p in line_lower for p in rate_limit_patterns):
+                rate_limits += 1
+
+    print(f"  collector最近500行中网络错误: {network_errors}", "❌" if network_errors > 5 else ("⚠️" if network_errors > 0 else "✅"))
+    print(f"  collector最近500行中rate limit: {rate_limits}", "❌" if rate_limits > 5 else ("⚠️" if rate_limits > 0 else "✅"))
+    if network_errors > 5:
+        issues += 1
+
+    # 4. 从failed队列统计网络相关失败
+    failed = r.lrange("math:failed", 0, -1)
+    network_verdicts = ["rate_limited", "failed_connection", "dead_session"]
+    network_failed = 0
+    for item in failed:
+        data = json.loads(item)
+        if data.get("verdict", "") in network_verdicts:
+            network_failed += 1
+
+    network_rate = network_failed / len(failed) * 100 if failed else 0
+    print(f"  failed队列中网络相关: {network_failed}/{len(failed)} ({network_rate:.1f}%)")
+    if network_rate > 20:
+        print(f"  ❌ 网络相关失败率>{network_rate:.0f}%，API不稳定")
+        issues += 1
+    elif network_rate > 5:
+        print(f"  ⚠️ 网络相关失败率{network_rate:.0f}%，需关注")
+    else:
+        print(f"  ✅ 网络相关失败率低")
+
+    return issues
+
+
+def check_j_devin_exit_health(db, r):
+    """J. devin异常退出率——dead_session占比、趋势
+
+    检查方法：
+    1. 从DB统计最近30分钟的终态分布，计算dead_session率
+    2. dead_session率>20%说明devin cli频繁异常退出（API问题或启动失败）
+    3. 对比candidate_solved率，判断系统整体健康度
+    """
+    print("【J. devin异常退出率】")
+    from datetime import datetime, timedelta, timezone
+
+    now = datetime.now(timezone.utc)
+    thirty_min_ago = (now - timedelta(minutes=30)).strftime("%Y-%m-%dT%H:%M")
+    now_str = now.strftime("%Y-%m-%dT%H:%M")
+
+    # 最近30分钟终态分布（排除fix_orphan修复的记录）
+    recent = list(db.aql.execute('''
+        FOR r IN devin_problem_runs
+            FILTER r.exp_id LIKE "p%"
+            FILTER r.ended_at != null
+            FILTER r.ended_at >= @start
+            FILTER r.ended_at <= @end
+            FILTER r.fixed_by == null
+            COLLECT status = r.status WITH COUNT INTO c
+            SORT c DESC
+            RETURN {status, count: c}
+    ''', bind_vars={"start": thirty_min_ago, "end": now_str}))
+
+    total = sum(s["count"] for s in recent)
+    if total == 0:
+        print(f"  最近30分钟无终态产出（collector可能还在处理中）")
+        return 0
+
+    status_map = {s["status"]: s["count"] for s in recent}
+    solved = status_map.get("candidate_solved", 0)
+    dead = status_map.get("dead_session", 0)
+    token_limit = status_map.get("failed_token_limit", 0)
+    export_missing = status_map.get("export_missing", 0)
+
+    dead_rate = dead / total * 100
+    solved_rate = solved / total * 100
+
+    print(f"  最近30分钟总产出: {total}题")
+    print(f"  candidate_solved: {solved} ({solved_rate:.1f}%)")
+    print(f"  dead_session:     {dead} ({dead_rate:.1f}%)")
+    print(f"  failed_token_limit: {token_limit} ({token_limit/total*100:.1f}%)")
+    print(f"  export_missing:   {export_missing} ({export_missing/total*100:.1f}%)")
+
+    # 判定标准
+    issues = 0
+    if dead_rate > 20:
+        print(f"  ❌ dead_session率{dead_rate:.0f}%>20%，devin cli频繁异常退出")
+        issues += 1
+    elif dead_rate > 10:
+        print(f"  ⚠️ dead_session率{dead_rate:.0f}%，需关注")
+    else:
+        print(f"  ✅ dead_session率{dead_rate:.0f}%正常")
+
+    if solved_rate < 30:
+        print(f"  ❌ solved率{solved_rate:.0f}%<30%，系统产出质量低")
+        issues += 1
+    elif solved_rate < 50:
+        print(f"  ⚠️ solved率{solved_rate:.0f}%，偏低")
+    else:
+        print(f"  ✅ solved率{solved_rate:.0f}%健康")
+
+    return issues
+
+
 def main():
     print("=" * 70)
     print("管道化系统并发安全性专项检查")
@@ -294,11 +495,10 @@ def main():
     issues.append(("D", issues_d))
     print()
     devin_count = check_e_devin_process_count()
-    # devin进程数和并发数对比需要外部传入并发数
     conc_raw = r.get("math:config:concurrency")
     conc = int(conc_raw) if conc_raw else 0
-    expected_devin = conc * 2  # 每个并发1个devin cli + 1个node子进程
-    zombie_devin = max(0, devin_count - expected_devin - 10)  # 允许10个余量
+    expected_devin = conc * 2
+    zombie_devin = max(0, devin_count - expected_devin - 10)
     if zombie_devin > 0:
         print(f"  僵尸devin进程: ~{zombie_devin}个 (进程{devin_count} - 预期{expected_devin}) ❌")
         issues.append(("E", zombie_devin))
@@ -313,17 +513,23 @@ def main():
     print()
     issues_h = check_h_log_duplication()
     issues.append(("H", issues_h))
+    print()
+    issues_i = check_i_network_health(r)
+    issues.append(("I", issues_i))
+    print()
+    issues_j = check_j_devin_exit_health(db, r)
+    issues.append(("J", issues_j))
 
     # 总结
     print()
     print("=" * 70)
     real_issues = [(k, v) for k, v in issues if v and v != 0]
     if real_issues:
-        print(f"判定: ⚠️ 有 {len(real_issues)} 个并发安全问题:")
+        print(f"判定: ⚠️ 有 {len(real_issues)} 个问题需要关注:")
         for k, v in real_issues:
             print(f"  - [{k}] {v}")
     else:
-        print("判定: ✅ 并发安全性全部通过")
+        print("判定: ✅ 全部通过")
     print("=" * 70)
 
 
