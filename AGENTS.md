@@ -863,8 +863,8 @@ cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/tmux/thinking_captur
 
 | 层 | 文件 | 有什么 | 没有什么 |
 |---|---|---|---|
-| **export** | `<exp_id>/exports/conversation.json` | 最终证明输出（ATIF steps）、system/user消息、metrics（token数） | **thinking内容** |
-| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | TUI渲染流（ANSI+braille spinner）、UI行（`Thinking · Xm Ys`） | **thinking文本内容** |
+| **export** | `<exp_id>/exports/conversation.json` | 最终证明输出（ATIF steps）、system/user消息、metrics（token数） | **thinking内容**；**steps时间戳不覆盖完整解题过程**（export可能一次性写入，用tmux_pipe.log mtime提取solve_time更可靠） |
+| **pipe** | `<exp_id>/tmux/tmux_pipe.log` | TUI渲染流（ANSI+braille spinner）、UI行（`Thinking · Xm Ys`）；**文件创建/修改时间=solve_time最可靠来源** | **thinking文本内容** |
 | **thinking_capture** | `<exp_id>/tmux/thinking_capture.txt` | **完整thinking文本**（Ctrl+O展开后capture-pane抓取） | 无ANSI清理（raw TUI文本） |
 | **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 输入消息（system/user） | **assistant输出和thinking** |
 

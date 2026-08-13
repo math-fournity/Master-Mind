@@ -30,7 +30,8 @@ def check_leak(problem_text: str, answer: str, solution: str) -> dict:
     text_lower = problem_text.lower().strip()
 
     # 检查1: answer字段的值是否出现在problem_text中
-    if answer and len(str(answer).strip()) > 3:
+    # 只对长答案（>10字符）做检测——短答案如True/False/2875等容易在题目文本中自然出现，导致误判
+    if answer and len(str(answer).strip()) > 10:
         ans = str(answer).strip()
         # 精确匹配（去除空格和LaTeX标记后）
         ans_clean = ans.replace(" ", "").replace("\\", "").replace("$", "").lower()

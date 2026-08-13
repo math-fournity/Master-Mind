@@ -487,7 +487,8 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
-            # 提取精确解题时间（优先从conversation.json，其次trajectory.jsonl，最后pane mtime）
+            # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
+            # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
             try:
                 from extract_solve_time import extract_solve_time
                 time_info = extract_solve_time(exp_id)
