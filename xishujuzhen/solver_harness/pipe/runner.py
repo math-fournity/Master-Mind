@@ -68,11 +68,11 @@ def write_problem_file(problem_key: str, problem_text: str, exp_id: str) -> Path
    你只需要在TUI中用thinking来解题。所有推理过程在你的思维中完成。
 
 2. **直接在TUI中输出证明**——不要创建任何文件，不要使用任何工具调用。
-   完成证明后，在TUI中直接输出：
+   完成证明后，在TUI中直接输出（必须用英文原文，不要翻译成中文）：
 
    ### PROOF COMPLETE
 
-3. **如果你无法做出这道题**，直接说：
+3. **如果你无法做出这道题**，直接说（必须用英文原文）：
 
    ### I CANNOT SOLVE THIS
 

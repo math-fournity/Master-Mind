@@ -47,6 +47,7 @@ TRAJECTORY_BASE = Path("/data/math-agent-glm5.2-tmux-agents-trajectory")
 
 # === 标记模式 ===
 PROOF_COMPLETE_MARKER = "PROOF COMPLETE"
+PROOF_COMPLETE_MARKERS = ["PROOF COMPLETE", "证明完成"]  # 英文+中文
 ANSWER_LEAK_MARKER = "ANSWER LEAK DETECTED"
 AI_GAVE_UP_PATTERNS = [
     "I CANNOT SOLVE", "I cannot solve", "i cannot solve",
@@ -144,12 +145,18 @@ def is_thinking(pane_text: str) -> bool:
 def has_real_proof(pane_text: str) -> bool:
     """验证是否有真实的proof内容——眼见为实"""
     cleaned = clean_ansi(pane_text)
-    if PROOF_COMPLETE_MARKER not in cleaned:
-        logger.debug(f"has_real_proof=False: 未检测到 '{PROOF_COMPLETE_MARKER}' marker")
+    # 检查所有PROOF COMPLETE标记（英文+中文）
+    found_marker = None
+    idx = -1
+    for marker in PROOF_COMPLETE_MARKERS:
+        if marker in cleaned:
+            found_marker = marker
+            idx = cleaned.index(marker)
+            break
+    if found_marker is None:
+        logger.debug(f"has_real_proof=False: 未检测到任何PROOF COMPLETE marker")
         return False
-    # 找到PROOF COMPLETE标记的位置
-    idx = cleaned.index(PROOF_COMPLETE_MARKER)
-    logger.debug(f"has_real_proof: 检测到 '{PROOF_COMPLETE_MARKER}' marker位置={idx}")
+    logger.debug(f"has_real_proof: 检测到 '{found_marker}' marker位置={idx}")
 
     # TUI scrollback中，PROOF COMPLETE可能出现在输出区域中间
     # 真正的proof内容可能在marker之前或之后——两边都检查
@@ -181,7 +188,7 @@ def has_real_proof(pane_text: str) -> bool:
 
     # 检查marker之前和之后的内容
     before_content = extract_proof_content(cleaned[:idx])
-    after_content = extract_proof_content(cleaned[idx + len(PROOF_COMPLETE_MARKER):])
+    after_content = extract_proof_content(cleaned[idx + len(found_marker):])
     # 合并——优先用内容更长的一侧，但也检查另一侧
     proof_content = before_content if len(before_content) >= len(after_content) else after_content
     # 如果单侧不够，合并两侧
