@@ -738,12 +738,16 @@ def main():
                 stop_tmux(tmux_session, reason=f"终态={status}/{result.get('verdict','')}", exp_id=exp_id)
                 logger.debug(f"stop_tmux: session={tmux_session}")
 
-            remove_running(r, exp_id)
-
-            # 更新DB
+            # 先更新DB再移除Redis——确保DB更新失败时记录还在Redis running中，
+            # 下一轮collector会重试更新（避免出现Redis已移除但DB没更新的孤儿记录）
             attempt_key = meta.get("attempt_key", "")
             if attempt_key:
                 update_db_status(db, attempt_key, status, result.get("verdict", ""), result)
+            else:
+                logger.warning(f"attempt_key为空, 跳过DB更新: exp_id={exp_id} status={status}")
+
+            # DB更新成功后再从Redis running移除
+            remove_running(r, exp_id)
 
         update_stats(r)
         total_completed += completed_this_round
