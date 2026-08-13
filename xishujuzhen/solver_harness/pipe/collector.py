@@ -383,10 +383,14 @@ def classify(attempt_meta: dict, pane_text: str, pipe_text: str, is_running: boo
                        f"session结束但无错误标记也无proof elapsed={elapsed:.0f}s pane_len={pane_len}")
         return "failed_no_proof", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_no_proof", "elapsed": elapsed}
 
-    # 6. 僵尸session（tmux在但pane空白）——基础设施失败
-    if tmux_session and tmux_running(tmux_session) and pane_is_empty(tmux_session):
+    # 6. dead_session——-p模式下devin cli已退出但无proof
+    # -p模式是非交互的：devin cli输出到stdout，跑完echo DEVIN_CLI_EXITED后退出
+    # 判断死活的正确方法：pipe.log中有DEVIN_CLI_EXITED → devin cli已退出
+    # 如果已退出但前面没检测到proof/rate_limit/token_limit → dead_session
+    # 不用pane_is_empty——pane空只代表还没输出，不代表死了
+    if "DEVIN_CLI_EXITED" in pipe_text:
         logger.warning(f"classify判定=dead_session: problem_key={problem_key} exp_id={exp_id} "
-                       f"tmux在但pane空白 elapsed={elapsed:.0f}s")
+                       f"devin cli已退出(DEVIN_CLI_EXITED)但无proof elapsed={elapsed:.0f}s")
         return "dead_session", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "dead_session", "elapsed": elapsed}
 
     # 7. stall——区分thinking spin和真stall
