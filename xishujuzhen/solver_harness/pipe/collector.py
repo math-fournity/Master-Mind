@@ -562,25 +562,68 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
-            # 等devin cli完成响应并写完export
-            # 可靠信号：TUI出现"Ask Devin to build features"——说明devin cli完成响应，export已写好
-            # PROOF COMPLETE出现在thinking输出中，但devin cli可能还在处理流式响应
-            # 只有当TUI变为等待输入状态时，export才确定已写完
+            # === export落盘三阶段保证 ===
+            # 阶段1：等"Ask Devin to build"出现（最多120秒）
+            #   PROOF COMPLETE出现在scrollback中，但devin cli可能还在生成thinking内容
+            #   "Ask Devin to build"是devin cli完成响应的可靠信号，出现时export已写好
+            # 阶段2：120秒超时则发Ctrl-C让devin cli停止生成
+            #   devin cli收到Ctrl-C后会停止生成，进入等待输入状态，写export
+            # 阶段3：等export文件出现（最多30秒），仍不存在则标记export_missing重新入队
             if is_running and tmux_session:
                 export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                 if not export_path.exists():
+                    # 阶段1：等"Ask Devin to build"
                     wait_start = time.time()
-                    for _ in range(30):  # 最多等30秒
+                    ask_devin_appeared = False
+                    for _ in range(120):  # 最多等120秒
                         time.sleep(1)
-                        # 检查TUI是否变为等待输入状态
                         pane_check = capture_pane(tmux_session)
                         if "Ask Devin to build" in pane_check:
+                            ask_devin_appeared = True
                             break
-                    wait_elapsed = time.time() - wait_start
+                        if export_path.exists():
+                            break
+                    wait1_elapsed = time.time() - wait_start
+
                     if export_path.exists():
-                        logger.info(f"export写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s (TUI已变为等待输入)")
+                        logger.info(f"export写完: exp_id={exp_id} 等待{wait1_elapsed:.0f}s (Ask Devin出现)")
+                    elif ask_devin_appeared:
+                        # "Ask Devin"出现了但export还没写——再等5秒
+                        for _ in range(5):
+                            time.sleep(1)
+                            if export_path.exists():
+                                break
+                        if export_path.exists():
+                            logger.info(f"export写完: exp_id={exp_id} Ask Devin后等{time.time()-wait_start:.0f}s")
+                        else:
+                            logger.error(f"Ask Devin出现但export未写: exp_id={exp_id} 标记export_missing")
+                            result["export_missing"] = True
                     else:
-                        logger.warning(f"export未写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s 继续stop_tmux")
+                        # 阶段2：120秒超时，发Ctrl-C让devin cli停止生成
+                        logger.warning(f"120秒未出现Ask Devin: exp_id={exp_id} 发Ctrl-C停止生成")
+                        subprocess.run(["tmux", "send-keys", "-t", tmux_session, "C-c"], capture_output=True)
+
+                        # 阶段3：等export文件出现（最多30秒）
+                        for _ in range(30):
+                            time.sleep(1)
+                            pane_check = capture_pane(tmux_session)
+                            if "Ask Devin to build" in pane_check or export_path.exists():
+                                break
+                        wait_total = time.time() - wait_start
+
+                        if export_path.exists():
+                            logger.info(f"export写完(Ctrl-C后): exp_id={exp_id} 总等待{wait_total:.0f}s")
+                        else:
+                            # Ctrl-C后export仍不存在——标记export_missing，重新入队
+                            logger.error(f"Ctrl-C后export仍不存在: exp_id={exp_id} 标记export_missing 重新入队")
+                            result["export_missing"] = True
+                            result["verdict"] = "export_missing"
+                            # 重新入队pending
+                            try:
+                                from redis_queue import enqueue_pending
+                                enqueue_pending(r, meta.get("problem_key", ""), priority=1)
+                            except Exception as e:
+                                logger.error(f"重新入队失败: {e}")
 
             # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
             # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
