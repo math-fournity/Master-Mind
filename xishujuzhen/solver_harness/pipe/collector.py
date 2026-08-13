@@ -555,6 +555,23 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
+            # 等devin cli写完export——交互模式下devin cli完成响应后export已写好
+            # 但有时collector检测到PROOF COMPLETE时devin cli还在写export，需要等一下
+            # 交互模式下devin cli不会自然退出（进入等待输入状态），所以只等export文件出现
+            if is_running and tmux_session:
+                export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
+                if not export_path.exists():
+                    wait_start = time.time()
+                    for _ in range(5):  # 最多等5秒让export写完
+                        time.sleep(1)
+                        if export_path.exists():
+                            break
+                    wait_elapsed = time.time() - wait_start
+                    if export_path.exists():
+                        logger.info(f"export写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s")
+                    else:
+                        logger.warning(f"export未写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s 继续stop_tmux")
+
             # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
             # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
             try:
@@ -603,32 +620,8 @@ def main():
                 failed_this_round += 1
                 logger.warning(f"MODEL {status} {meta.get('problem_key', '')} exp_id={exp_id} ({elapsed:.0f}s) → Profile数据")
 
-            # 停tmux前等待devin cli export完成（最多等3秒，不阻塞collector）
-            # 高并发时56个题×10秒=560秒太慢，缩短到3秒
-            if is_running and tmux_session:
-                export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
-                if not export_path.exists():
-                    wait_start = time.time()
-                    for _ in range(3):
-                        time.sleep(1)
-                        if export_path.exists():
-                            break
-                    wait_elapsed = time.time() - wait_start
-                    if export_path.exists():
-                        logger.info(f"export完成: exp_id={exp_id} 等待{wait_elapsed:.0f}s 成功")
-                        # export完成后重新提取精确时间
-                        try:
-                            from extract_solve_time import extract_solve_time
-                            time_info = extract_solve_time(exp_id)
-                            if time_info.get("solve_time"):
-                                result["solve_time_seconds"] = round(time_info["solve_time"]["solve_time_seconds"], 1)
-                                result["solve_time_source"] = time_info["solve_time"]["source"]
-                                logger.info(f"extract_solve_time(export后): exp_id={exp_id} source={time_info['solve_time']['source']} "
-                                            f"solve_time={result['solve_time_seconds']}s")
-                        except Exception as e:
-                            logger.debug(f"extract_solve_time失败(export后): exp_id={exp_id} error={e}")
-                    else:
-                        logger.warning(f"export超时: exp_id={exp_id} 等待{wait_elapsed:.0f}s 仍未完成（不阻塞，继续处理）")
+            # export已在前面等待过——这里直接stop_tmux
+            # 交互模式下devin cli不会自然退出，必须由collector stop_tmux
 
             # 停tmux
             if tmux_session:

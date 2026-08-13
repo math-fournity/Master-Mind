@@ -295,42 +295,35 @@ def main():
             problem_file = write_problem_file(problem_key, problem_text, exp_id)
             launch_tasks.append((exp_id, problem_key, problem_file, priority))
 
-        # 阶段2：并行启动devin cli——用线程池同时启动多个
-        if launch_tasks:
-            from concurrent.futures import ThreadPoolExecutor, as_completed
-
-            def launch_one(task):
-                exp_id, problem_key, problem_file, priority = task
+        # 阶段2：串行启动devin cli——每3秒一个，避免rate limit
+        # 60并发并行启动导致58/60个session遇到rate limit
+        for exp_id, problem_key, problem_file, priority in launch_tasks:
+            try:
                 tmux_session = launch_devin_cli(exp_id, problem_file, args.model)
-                return exp_id, problem_key, tmux_session, priority
+            except Exception as e:
+                logger.error(f"启动失败 {problem_key}: {e}", exc_info=True)
+                from redis_queue import add_failed
+                add_failed(r, {"problem_key": problem_key, "error": str(e), "exp_id": exp_id, "verdict": "launch_error"})
+                continue
 
-            # 并行度：min(任务数, 10)——同时启动10个devin cli
-            max_workers = min(len(launch_tasks), 10)
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                futures = {executor.submit(launch_one, t): t for t in launch_tasks}
-                for future in as_completed(futures):
-                    task = futures[future]
-                    exp_id, problem_key, problem_file, priority = task
-                    try:
-                        eid, pk, tmux_session, prio = future.result()
-                        # 创建attempt记录
-                        attempt_key = create_attempt_record(db, pk, eid, tmux_session)
-                        # 写入Redis running队列
-                        metadata = {
-                            "problem_key": pk,
-                            "exp_id": eid,
-                            "attempt_key": attempt_key,
-                            "tmux_session": tmux_session,
-                            "start_time": time.time(),
-                            "priority": prio,
-                        }
-                        add_running(r, eid, metadata)
-                        total_launched += 1
-                        logger.info(f"启动 {pk} → tmux={tmux_session} (total={total_launched})")
-                    except Exception as e:
-                        logger.error(f"启动失败 {problem_key}: {e}", exc_info=True)
-                        from redis_queue import add_failed
-                        add_failed(r, {"problem_key": problem_key, "error": str(e), "exp_id": exp_id, "verdict": "launch_error"})
+            # 创建attempt记录
+            attempt_key = create_attempt_record(db, problem_key, exp_id, tmux_session)
+
+            # 写入Redis running队列
+            metadata = {
+                "problem_key": problem_key,
+                "exp_id": exp_id,
+                "attempt_key": attempt_key,
+                "tmux_session": tmux_session,
+                "start_time": time.time(),
+                "priority": priority,
+            }
+            add_running(r, exp_id, metadata)
+            total_launched += 1
+            logger.info(f"启动 {problem_key} → tmux={tmux_session} (total={total_launched})")
+
+            # 3秒间隔——避免rate limit
+            time.sleep(3)
 
         update_stats(r)
 
