@@ -2985,6 +2985,31 @@ tmux new-session -d -s pipe-retry ".venv/bin/python3 xishujuzhen/solver_harness/
 
 **解耦保证**：停止任何服务不影响已启动的harness-xxx session。harness session独立运行，Collector重启后从Redis running队列继续处理。
 
+### 并发量实时控制（无需重启Runner）
+
+Runner每次poll时从Redis读取并发配置，可以实时调整，不需要重启：
+
+```bash
+# 调整并发数
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py concurrency 50
+
+# 调整poll间隔
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py poll-interval 3
+
+# 查看当前配置（status命令也显示实时配置）
+.venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py status
+
+# 或直接用redis-cli
+docker exec redis-queue redis-cli SET math:config:concurrency 50
+```
+
+**生效机制**：
+- Runner在下次poll时（通常2-5秒内）自动读取Redis中的新值
+- **当前running的题不受影响**——只影响后续新启动的题
+- 降低并发数：Runner不再启动新题，等running自然结束到低于新并发数后才开始新题
+- 升高并发数：Runner立即开始启动更多题填补空槽
+- Redis键：`math:config:concurrency`（并发数）、`math:config:poll_interval`（poll间隔秒数）
+
 ### 断电恢复流程
 
 ```bash
