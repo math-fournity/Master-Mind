@@ -332,8 +332,9 @@ AI数学系统运行时有两条Pipe：
 **元组：solver-batch-health-check**（批量集群健康检查）
 
 > **触发条件**：用户说"检查进度"/"看看有没有问题"/"检查链接问题"时；批量Solver集群运行时；新session接手批量系统时。
-> **Rule**：`.devin/rules/solver-batch-health-check.md`——三条铁律（用batch_status.py不现写脚本/DB数字会骗人必须到最前线/发现问题先修检查工具再修监控逻辑）+ 并发上限经验（管道化系统实测：60并发最优，100并发触发限流）+ 已知问题清单（7个已修复问题）。
+> **Rule**：`.devin/rules/solver-batch-health-check.md`——三条铁律（用batch_status.py不现写脚本/DB数字会骗人必须到最前线/发现问题先修检查工具再修监控逻辑）+ 并发上限经验（管道化系统实测：60并发最优，100并发触发限流）+ 已知问题清单（10个已修复问题，含2026-08-13的collector误杀/中文proof/rate_limited检测3个修复）。
 > **Skill**：`.devin/skills/solver-batch-health-check/SKILL.md`——7项检查清单（批次活着/running数合理/活跃度/僵尸session/错误分类/feed/泄漏）+ 手动清理僵尸session脚本 + 并发调整命令。
+> **并发约束Rule**：`.devin/rules/solver-concurrency.md`——3秒启动间隔铁律（runner.py第333行不可改）+ 并发经验表（40/50/60/80/100实测数据）+ Redis实时调整命令。
 > **检查工具**：`xishujuzhen/solver_harness/batch_status.py`（8个命令：status/active/errors/solved/feed/leak/dead/all，dead支持--cleanup自动清理僵尸session）。
 
 ### 硬约束 4 · Solver启动必须通过solver-harness（最重要）
@@ -458,7 +459,7 @@ for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.problem_id == @pid
 
 | status | 含义 | 归因 |
 |---|---|---|
-| `dead_session` | mitmproxy时代僵尸session | 基础设施 |
+| `dead_session` | devin cli已退出(DEVIN_CLI_EXITED)但无proof | 基础设施 |
 | `failed_connection` | 网络连接断开 | 网络 |
 | `failed_network_stuck` | 网络不稳定卡死 | 网络 |
 | `launch_error` | 启动失败 | 系统 |
@@ -2598,18 +2599,55 @@ tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs/pipe.log
 Collector判定终态时，不只看标记，要验证真实内容：
 
 1. **真实thinking检测**：clean_ansi后检查数学内容(math_indicator≥2)和thinking标记
-2. **真实proof验证**：PROOF COMPLETE标记 + proof内容≥100字符 + math_indicator≥2
+2. **真实proof验证**：PROOF COMPLETE标记 + proof内容≥100字符 + math_indicator≥2（中英文都覆盖）
 3. **无工具调用验证**：查sessions.db中是否有tool_call类型节点
 4. **AI放弃检测**：检查"I CANNOT SOLVE"/"无法"等放弃标记
 5. **pane snapshot保存**：判定终态前保存完整pane内容作为物理证据
 
-### export落盘保证（`-p`模式 vs 交互模式）
+### `-p`模式核心认知（2026-08-13修正）
 
-**`-p`模式（当前默认）**：devin cli输出完成后自动退出，退出时写export。collector检测到PROOF COMPLETE后等pane中出现`DEVIN_CLI_EXITED`标记（最多120秒），出现后再等2秒让export写完。export落盘率100%（2026-08-12验证，20/20）。
+> **`-p`模式是非交互的——devin cli是普通进程，不是TUI应用。** 这个认知是2026-08-13调试并发无法维持问题的核心。
 
-**交互模式（`--no-print-mode`）**：devin cli完成后不退出，进入"Ask Devin to build"等待输入。collector用三阶段保证：等Ask Devin出现（120秒）→ 发Ctrl-C → 等export（30秒）。历史落盘率约70-100%，存在export丢失问题。
+**`-p`模式的输出流向**：
+- solver_harness用`tmux pipe-pane`把tmux session的所有stdout写入`tmux_pipe.log`
+- pane只是tmux的显示区域（500行scrollback），pipe.log有完整输出
+- **pane空≠dead**——devin cli连接API、初始化期间无stdout输出，pane和pipe.log都是0字节，但进程活着
+- **判断devin cli死活的正确方法**：pipe.log中有`DEVIN_CLI_EXITED`标记 → 已退出；没有 → 还在运行
 
 **`-p`模式的关键技巧**：solver_harness.py在devin cli命令后加`; echo DEVIN_CLI_EXITED code=$?; sleep 999999`——devin cli退出后echo标记+sleep保持tmux session存活（macOS不支持`sleep infinity`）。
+
+**Collector检测源（2026-08-13修正）**：
+- **用pipe.log + pane合并检测**（`detect_text = pipe_text + pane_text`），pipe.log是主要源
+- pane只有500行scrollback，rate limit等标记可能滚走；pipe.log有完整输出
+- thinking检测仍用pane（spinner是动态内容，pipe.log可能不完整）
+- **dead_session用`DEVIN_CLI_EXITED`判断**，不用`pane_is_empty`
+
+**2026-08-13修复的3个collector bug**：
+
+| bug | 根因 | 修复 |
+|---|---|---|
+| 并发无法维持（running掉到3） | `pane_is_empty`判dead_session，初始化中的session被误杀 | 改用`DEVIN_CLI_EXITED`判断 |
+| rate_limited要等30分钟timeout | 只在session结束后检测，但devin cli遇到rate limit时session还活着 | 提前到session运行中检测（3.6步） |
+| 基础设施失败阻塞主循环120秒 | rate_limited等失败session也等export，但不会写export | `status not in INFRA_FAILURES`跳过export等待 |
+
+**中文proof检测（2026-08-13修正）**：
+- `math_indicators`原全是英文（therefore/hence/let/assume等），中文proof只命中`\frac`一个LaTeX标记，被判定为"无足够数学推理"
+- 增加中文标记：因此/故/由/设/令/假设/考虑/可得/方程/边界条件/初始条件/解/满足/代入/控制方程/建立模型/边值问题
+
+### 3秒启动间隔铁律（2026-08-13）
+
+> **runner.py第333行的`time.sleep(3)`是铁律，不可修改。** 详见`.devin/rules/solver-concurrency.md`。
+
+- 每个devin cli启动后固定等3秒再启动下一个
+- 这是防止API rate limit的关键——并行启动60个session会导致58/60个遇到rate limit
+- 3秒间隔意味着：填满60并发需要180秒（3分钟），填满80并发需要240秒（4分钟）
+- **恢复慢是正常的**——collector清理完积压session后，runner按3秒间隔逐步填充，不是bug
+
+### export落盘保证（`-p`模式 vs 交互模式）
+
+**`-p`模式（当前默认）**：devin cli输出完成后自动退出，退出时写export。collector检测到PROOF COMPLETE后等pane中出现`DEVIN_CLI_EXITED`标记（最多120秒），出现后再等2秒让export写完。export落盘率100%（2026-08-12验证，20/20）。**基础设施失败（rate_limited/failed_connection/dead_session）跳过export等待**——devin cli异常退出不会写export，等120秒纯属浪费时间且阻塞主循环。
+
+**交互模式（`--no-print-mode`）**：devin cli完成后不退出，进入"Ask Devin to build"等待输入。collector用三阶段保证：等Ask Devin出现（120秒）→ 发Ctrl-C → 等export（30秒）。历史落盘率约70-100%，存在export丢失问题。
 
 ### stop_tmux审计日志
 
