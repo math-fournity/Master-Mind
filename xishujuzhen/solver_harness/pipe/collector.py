@@ -562,14 +562,13 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
-            # 等devin cli写完export——交互模式下devin cli完成响应后export已写好
-            # 但有时collector检测到PROOF COMPLETE时devin cli还在写export，需要等一下
-            # 交互模式下devin cli不会自然退出（进入等待输入状态），所以只等export文件出现
+            # 等devin cli写完export——交互模式下devin cli完成响应后export才写
+            # export写入有延迟，需要等足够时间（最多15秒）
             if is_running and tmux_session:
                 export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                 if not export_path.exists():
                     wait_start = time.time()
-                    for _ in range(5):  # 最多等5秒让export写完
+                    for _ in range(15):  # 最多等15秒让export写完
                         time.sleep(1)
                         if export_path.exists():
                             break
@@ -581,11 +580,18 @@ def main():
 
             # 提取精确解题时间（优先从tmux_pipe.log mtime，其次conversation.json，最后trajectory.jsonl）
             # 注意：conversation.json的steps时间戳不覆盖完整解题过程，tmux_pipe.log最可靠
+            # 但tmux_pipe.log的birthtime比runner.start_time晚（pipe-pane在tmux session创建0.5秒后启动），
+            # 导致solve_time可能比runtime大——需要cap到runtime
             try:
                 from extract_solve_time import extract_solve_time
                 time_info = extract_solve_time(exp_id)
                 if time_info.get("solve_time"):
-                    result["solve_time_seconds"] = round(time_info["solve_time"]["solve_time_seconds"], 1)
+                    raw_solve_time = time_info["solve_time"]["solve_time_seconds"]
+                    # cap到runtime——solve_time不应超过runtime
+                    if raw_solve_time > elapsed:
+                        logger.warning(f"solve_time > runtime: exp_id={exp_id} solve_time={raw_solve_time:.1f}s > runtime={elapsed:.0f}s, cap到runtime")
+                        raw_solve_time = elapsed
+                    result["solve_time_seconds"] = round(raw_solve_time, 1)
                     result["solve_time_source"] = time_info["solve_time"]["source"]
                     logger.info(f"extract_solve_time: exp_id={exp_id} source={time_info['solve_time']['source']} "
                                 f"solve_time={result['solve_time_seconds']}s")
