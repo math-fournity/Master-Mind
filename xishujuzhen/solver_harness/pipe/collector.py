@@ -330,6 +330,14 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
                            f"检测到token/output limit标记 '{p}' elapsed={elapsed:.0f}s is_running={is_running}")
             return "failed_token_limit", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_token_limit", "elapsed": elapsed}
 
+    # 3.6 Rate limit——API限流，即使session还在运行也要检测
+    # 否则rate_limited的session要等到timeout(1800s)才会被处理，浪费并发槽位
+    for p in RATE_LIMIT_PATTERNS:
+        if p.lower() in pane_text.lower():
+            logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
+                           f"检测到rate limit标记 '{p}' elapsed={elapsed:.0f}s is_running={is_running}")
+            return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
+
     # 4. 超时——区分thinking spin和真超时
     if elapsed > timeout:
         if is_thinking(pane_text):
