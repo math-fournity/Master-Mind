@@ -423,6 +423,8 @@ def update_db_status(db, attempt_key: str, status: str, verdict: str, result: di
         update_doc["pane_snapshot"] = result["pane_snapshot"]
     if result.get("init_overhead_seconds") is not None:
         update_doc["init_overhead_seconds"] = result["init_overhead_seconds"]
+    if result.get("truncated_stall_seconds") is not None:
+        update_doc["truncated_stall_seconds"] = result["truncated_stall_seconds"]
     try:
         db.collection(ATTEMPT_COLLECTION).update(update_doc)
         logger.debug(f"update_db_status: attempt更新成功 attempt_key={attempt_key} status={status} "
@@ -570,6 +572,19 @@ def main():
                         logger.debug(f"extract_solve_time: exp_id={exp_id} init_overhead={result['init_overhead_seconds']}s")
             except Exception as e:
                 logger.debug(f"extract_solve_time失败(首次): exp_id={exp_id} error={e}")
+
+            # failed_token_limit特殊标注：solve_time是AI实际推理时间，
+            # runtime_seconds包含卡在"Send a message to continue"的等待时间
+            # 需要记录truncated_stall_seconds让事后审计能区分推理时间vs卡住时间
+            if status == "failed_token_limit" and result.get("solve_time_seconds") is not None:
+                truncated_stall = elapsed - result["solve_time_seconds"]
+                result["truncated_stall_seconds"] = round(truncated_stall, 1)
+                # 标注solve_time_source为truncated场景下的估算
+                result["solve_time_source"] = result.get("solve_time_source", "") + " (truncated: 推理时间，不含卡住等待)"
+                logger.info(f"failed_token_limit时间标注: exp_id={exp_id} "
+                            f"solve_time={result['solve_time_seconds']}s (推理) "
+                            f"truncated_stall={truncated_stall:.0f}s (卡住等待) "
+                            f"runtime={elapsed:.0f}s (总)")
 
             if status == "candidate_solved":
                 add_completed(r, result)
