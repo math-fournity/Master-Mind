@@ -402,20 +402,31 @@ def save_pane_snapshot(exp_id: str, session_name: str) -> Path | None:
 
 
 def update_db_status(db, attempt_key: str, status: str, verdict: str, result: dict):
-    """更新ArangoDB中attempt和problem的状态"""
+    """更新ArangoDB中attempt和problem的状态——含完整审计字段"""
     logger.debug(f"update_db_status: attempt_key={attempt_key} status={status} verdict={verdict}")
     now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     elapsed = result.get("elapsed", 0)
+    update_doc = {
+        "_key": attempt_key,
+        "status": status,
+        "verdict": verdict,
+        "ended_at": now,
+        "runtime_seconds": int(elapsed),
+        "end_reason": f"collector判定: {verdict}",
+    }
+    # 审计字段——让事后审计能找到物理证据
+    if result.get("solve_time_seconds") is not None:
+        update_doc["solve_time_seconds"] = result["solve_time_seconds"]
+    if result.get("solve_time_source"):
+        update_doc["solve_time_source"] = result["solve_time_source"]
+    if result.get("pane_snapshot"):
+        update_doc["pane_snapshot"] = result["pane_snapshot"]
+    if result.get("init_overhead_seconds") is not None:
+        update_doc["init_overhead_seconds"] = result["init_overhead_seconds"]
     try:
-        db.collection(ATTEMPT_COLLECTION).update({
-            "_key": attempt_key,
-            "status": status,
-            "verdict": verdict,
-            "ended_at": now,
-            "runtime_seconds": int(elapsed),
-            "end_reason": f"collector判定: {verdict}",
-        })
-        logger.debug(f"update_db_status: attempt更新成功 attempt_key={attempt_key} status={status}")
+        db.collection(ATTEMPT_COLLECTION).update(update_doc)
+        logger.debug(f"update_db_status: attempt更新成功 attempt_key={attempt_key} status={status} "
+                     f"fields={list(update_doc.keys())}")
     except Exception as e:
         logger.error(f"update_db_status: attempt更新失败 attempt_key={attempt_key} error={e}")
 
