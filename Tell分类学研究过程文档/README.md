@@ -62,6 +62,11 @@
 | 373 | `373-v0-2026-08-12-TellV3六门审计POC套装设计方案.md` | 将372号六门审计落成可执行POC套装；提出POC-0题包冻结、POC-1因果取商、POC-2可选择、POC-3可执行、POC-4可终止、POC-5可组合、POC-6可归责、POC-7可持续学习、POC-8端到端闭环；规定CasePack、TellStrategy、EvidenceRecord、干预矩阵、通过标准与三阶段执行路线；系统扩写“名副其实”的POC选题理念与标准：题目是测量仪器不是装饰样本，需按诊断性、对照性、可观察性、可变形性、非泄漏性、可核验性建`CaseCard`、评分、冻结和淘汰 |
 | 374 | `374-v0-2026-08-12-AI做不出来的题-数据库追溯文档.md` | 158道AI自身问题导致做不出来的题（failed_no_proof 72 + failed_token_limit 75 + failed_tool_stall 9 + answer_leak 2）的完整追溯文档；记录从DB到原始题目到运行记录的完整追溯链、数据完整性状态、查询命令、文件系统目录结构 |
 | 375 | `375-v0-2026-08-12-百万难题筛选策略-从六百万竞赛题中选最难的一百万.md` | 从600万电子化竞赛题中筛选最难的100万的策略方案；v1补充完整网络搜索发现的30个新数据集（DeepMath-103K/Nemotron-Math-v2/NuminaMath-LEAN/PutnamBench/Formal Conjectures/IMO-Bench/FrontierMath/BlueMO等）；四层漏斗修正为L1~9K+L2~135K+L3~100K+L4~860K≈110万；10个搜索方向覆盖 |
+| 381 | `381-v0-2026-08-12-本轮对话完整交接说明-351任务到TellV3-POC套装.md` | 本轮完整自包含交接；汇总351号三个任务、352/353/371/372/373的产物和核心认知，明确非特化=因果充分取商+认知Option、旧POC统一降级为`EvidenceRecord`、六门审计与POC套装的关系；给下一位AI提供推荐阅读顺序、下一步CasePack v0起手式、运行/数据库/Git硬约束和禁止事项 |
+| 382 | `382-v0-2026-08-12-TellV3首套POC-CasePack-v0-候选题包.md` | TellV3首套POC的CasePack v0冻结稿；目标Tell家族"局部表示切换"（隐藏结构显化/表示切换在数论中的具体化）；3个候选TellCore（模算术/p-adic/统一版），推荐候选C（局部-全局表示切换）；22道题CaseCard（4 source trace + 4正迁移 + 4变形 + 5假朋友 + 3边界 + 2组合）；4道强证据题（1631/1843/1709/1962）有完整bare失败+Tell成功对照；exclusion log、leakage review、选题评分表、暂不运行Solver的条件与执行顺序 |
+| 383 | `383-v0-2026-08-12-TellV3-POC1-因果取商-TellCore字段消融与最小充分字段集.md` | POC-1因果取商分析稿；对TellCore v0候选C的12字段逐项消融；最小充分字段集7个（invariant_claim/trigger_boundary/negative_boundary/parameter_slots/internal_policy step2-5/progress_model/termination），重要补充5个（binding_rules/step1+step6/critic/composition_contract/target_structure），元数据2个；7项通过标准全部PASS（3项有条件）；关键发现：1962的失败指向internal_policy的必要性（方向vs操作路径），2/5假朋友需要critic协同拒绝，TellCore不泄漏具体lemma；EvidenceRecord和后续POC要求 |
+| 385 | `dev-docs/385-v0-2026-08-12-TellV3六门审计POC-工作交接文档.md` | 自包含工作交接文档；POC-0和POC-1已完成，TellCore v0候选C采纳，最小充分字段集7个字段；下一步selector规则设计或HintRenderer模板设计；含完整阅读顺序、已完成成果摘要、TellCore v0最小充分字段集全文、执行顺序建议和工作规范 |
+| 386 | `386-v0-2026-08-13-正交出题文档索引-从已有bare失败题派生正交新题.md` | 正交出题文档索引；汇总项目历史中与"正交出题"（新题与原题题面正交但共享深层命题机制）相关的13份文档，按吻合度分5个梯队；提炼正交出题方法论骨架（设障脚本→Level 3-4机制→同构之桥→降Level落题→加锁→bare预注册）；明确正交程度谱系（Level 0-5，推荐Level 3-4）和与TellV3六门审计的衔接 |
 
 ### 思想链条
 
@@ -93,6 +98,16 @@
 372: 非特化进一步定义为“因果充分的取商+认知Option”，补齐多轴假设格与过程因果验证
   ↓
 373: 将六门审计落实为POC套装，从题包冻结到端到端闭环逐门验证TellStrategy
+  ↓
+381: 本轮完整交接，给下一位AI提供从351到TellV3 POC套装的最新入口和下一步起手式
+  ↓
+382: TellV3首套POC CasePack v0冻结——目标Tell家族"局部表示切换"，22道题CaseCard，TellCore v0候选C采纳
+  ↓
+383: POC-1因果取商——TellCore v0字段消融，最小充分字段集7个，PASS（有条件）
+  ↓
+385: 工作交接文档（自包含）——POC-0和POC-1完成，下一步selector设计或HintRenderer设计
+  ↓
+386: 正交出题文档索引——汇总13份"正交出题"相关文档，提炼方法论骨架，衔接TellV3六门审计
 ```
 
 ---
