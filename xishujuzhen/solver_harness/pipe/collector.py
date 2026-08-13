@@ -221,11 +221,15 @@ def has_real_proof(pane_text: str) -> bool:
         logger.debug(f"has_real_proof=False: proof内容过短 content_len={len(proof_content)} < 100 "
                      f"before={len(before_content)} after={len(after_content)}")
         return False
-    # 检查是否有数学推理内容
+    # 检查是否有数学推理内容（中英文都覆盖）
     math_indicators = ["\\frac", "\\sum", "\\int", "\\Rightarrow", "therefore", "hence", "thus",
                        "prove", "proof", "since", "let", "assume", "suppose", "consider", "we have",
                        "minimize", "maximize", "constraint", "feasible", "denote", "define", "lemma",
-                       "$\\blacksquare", "\\blacksquare", "QED", "q.e.d"]
+                       "$\\blacksquare", "\\blacksquare", "QED", "q.e.d",
+                       # 中文数学推理标记
+                       "因此", "故", "由", "设", "令", "假设", "考虑", "可得",
+                       "方程", "边界条件", "初始条件", "解", "满足", "代入",
+                       "控制方程", "建立模型", "边值问题"]
     math_count = sum(1 for ind in math_indicators if ind in proof_content.lower())
     if math_count >= 2:
         logger.debug(f"has_real_proof=True: proof内容有效 content_len={len(proof_content)} math_count={math_count}")
