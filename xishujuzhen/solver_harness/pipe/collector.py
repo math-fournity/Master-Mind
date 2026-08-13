@@ -149,26 +149,59 @@ def has_real_proof(pane_text: str) -> bool:
     # 找到PROOF COMPLETE标记的位置
     idx = cleaned.index(PROOF_COMPLETE_MARKER)
     logger.debug(f"has_real_proof: 检测到 '{PROOF_COMPLETE_MARKER}' marker位置={idx}")
-    # 检查标记之前的内容（proof主体）
-    proof_body = cleaned[:idx]
-    # 去掉空白和题目部分
-    lines = [l.strip() for l in proof_body.split("\n") if l.strip()]
-    # 过滤掉纯标记行
-    content_lines = [l for l in lines if not l.startswith("#") and not l.startswith("###")]
-    # proof内容至少100字符
-    proof_content = "\n".join(content_lines)
+
+    # TUI scrollback中，PROOF COMPLETE可能出现在输出区域中间
+    # 真正的proof内容可能在marker之前或之后——两边都检查
+    # 过滤TUI UI元素（非proof内容）
+    ui_patterns = [
+        "Thinking ·", "esc twice to interrupt", "Guide Devin while it works",
+        "GLM-5.2 High", "Press opt+t to cycle thinking levels",
+        "Context:", "tokens (", "bypass permissions on",
+        "Ask Devin to build features", "Devin CLI", "v3000.",
+        "Yapping ·", "Pro ·", "lines truncated",
+    ]
+
+    def extract_proof_content(text: str) -> str:
+        """从文本中提取proof内容，过滤TUI UI元素"""
+        lines = [l.strip() for l in text.split("\n") if l.strip()]
+        # 过滤掉纯标记行和TUI UI行
+        content_lines = []
+        for l in lines:
+            if l.startswith("#") and not l.startswith("### "):
+                continue
+            # 跳过TUI UI元素行
+            if any(p in l for p in ui_patterns):
+                continue
+            # 跳过纯分隔线
+            if set(l) <= set("─━│┃┄┅┆┇┈┉┊┋┌┍┎┏┐┑┒┓└┕┖┗┘┙┚┛├┝┞┟┠┡┢┣┤┥┦┧┨┩┪┫┬┭┮┯┰┱┲┳┴┵┶┷┸┹┺┻┼┽┾┿ "):
+                continue
+            content_lines.append(l)
+        return "\n".join(content_lines)
+
+    # 检查marker之前和之后的内容
+    before_content = extract_proof_content(cleaned[:idx])
+    after_content = extract_proof_content(cleaned[idx + len(PROOF_COMPLETE_MARKER):])
+    # 合并——优先用内容更长的一侧，但也检查另一侧
+    proof_content = before_content if len(before_content) >= len(after_content) else after_content
+    # 如果单侧不够，合并两侧
     if len(proof_content) < 100:
-        logger.debug(f"has_real_proof=False: proof内容过短 content_len={len(proof_content)} < 100")
+        proof_content = before_content + "\n" + after_content
+
+    if len(proof_content) < 100:
+        logger.debug(f"has_real_proof=False: proof内容过短 content_len={len(proof_content)} < 100 "
+                     f"before={len(before_content)} after={len(after_content)}")
         return False
     # 检查是否有数学推理内容
     math_indicators = ["\\frac", "\\sum", "\\int", "\\Rightarrow", "therefore", "hence", "thus",
                        "prove", "proof", "since", "let", "assume", "suppose", "consider", "we have",
-                       "minimize", "maximize", "constraint", "feasible", "denote", "define", "lemma"]
+                       "minimize", "maximize", "constraint", "feasible", "denote", "define", "lemma",
+                       "$\\blacksquare", "\\blacksquare", "QED", "q.e.d"]
     math_count = sum(1 for ind in math_indicators if ind in proof_content.lower())
     if math_count >= 2:
         logger.debug(f"has_real_proof=True: proof内容有效 content_len={len(proof_content)} math_count={math_count}")
         return True
-    logger.debug(f"has_real_proof=False: proof内容无足够数学推理 math_count={math_count} content_len={len(proof_content)}")
+    logger.debug(f"has_real_proof=False: proof内容无足够数学推理 math_count={math_count} "
+                 f"content_len={len(proof_content)} before={len(before_content)} after={len(after_content)}")
     return False
 
 
