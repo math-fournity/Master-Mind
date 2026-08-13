@@ -332,11 +332,23 @@ def classify(attempt_meta: dict, pane_text: str, is_running: bool, elapsed: floa
 
     # 3.6 Rate limit——API限流，即使session还在运行也要检测
     # 否则rate_limited的session要等到timeout(1800s)才会被处理，浪费并发槽位
+    # 同时检查tmux_pipe.log——rate limit消息可能只在pipe.log中，pane可见区域已滚走
     for p in RATE_LIMIT_PATTERNS:
         if p.lower() in pane_text.lower():
             logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
-                           f"检测到rate limit标记 '{p}' elapsed={elapsed:.0f}s is_running={is_running}")
+                           f"检测到rate limit标记 '{p}' (pane) elapsed={elapsed:.0f}s is_running={is_running}")
             return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
+    # 检查tmux_pipe.log（pane可能不显示rate limit消息）
+    pipe_log = TRAJECTORY_BASE / exp_id / "tmux" / "tmux_pipe.log"
+    if pipe_log.exists():
+        try:
+            pipe_content = pipe_log.read_text(errors="ignore")[-5000:].lower()
+            if "message rate limit" in pipe_content:
+                logger.warning(f"classify判定=rate_limited: problem_key={problem_key} exp_id={exp_id} "
+                               f"检测到rate limit标记 (pipe.log) elapsed={elapsed:.0f}s is_running={is_running}")
+                return "rate_limited", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "rate_limited", "elapsed": elapsed}
+        except Exception as e:
+            logger.debug(f"pipe.log读取失败: exp_id={exp_id} error={e}")
 
     # 4. 超时——区分thinking spin和真超时
     if elapsed > timeout:
