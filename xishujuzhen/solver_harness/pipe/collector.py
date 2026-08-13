@@ -562,19 +562,23 @@ def main():
                 if snapshot:
                     result["pane_snapshot"] = str(snapshot)
 
-            # 等devin cli写完export——交互模式下devin cli完成响应后export才写
-            # export写入有延迟，需要等足够时间（最多15秒）
+            # 等devin cli完成响应并写完export
+            # 可靠信号：TUI出现"Ask Devin to build features"——说明devin cli完成响应，export已写好
+            # PROOF COMPLETE出现在thinking输出中，但devin cli可能还在处理流式响应
+            # 只有当TUI变为等待输入状态时，export才确定已写完
             if is_running and tmux_session:
                 export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                 if not export_path.exists():
                     wait_start = time.time()
-                    for _ in range(15):  # 最多等15秒让export写完
+                    for _ in range(30):  # 最多等30秒
                         time.sleep(1)
-                        if export_path.exists():
+                        # 检查TUI是否变为等待输入状态
+                        pane_check = capture_pane(tmux_session)
+                        if "Ask Devin to build" in pane_check:
                             break
                     wait_elapsed = time.time() - wait_start
                     if export_path.exists():
-                        logger.info(f"export写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s")
+                        logger.info(f"export写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s (TUI已变为等待输入)")
                     else:
                         logger.warning(f"export未写完: exp_id={exp_id} 等待{wait_elapsed:.0f}s 继续stop_tmux")
 
