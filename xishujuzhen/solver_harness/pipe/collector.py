@@ -628,7 +628,9 @@ def main():
                 #   只需等tmux session结束（最多120秒），然后检查export是否存在
                 # 交互模式（print_mode=False）：devin cli完成后不退出，进入"Ask Devin to build"
                 #   用三阶段保证：等Ask Devin → Ctrl-C → 等export
-                if is_running and tmux_session:
+                # 基础设施失败（rate_limited/failed_connection/dead_session）跳过export等待——
+                # devin cli异常退出不会写export，等120秒纯属浪费时间且阻塞主循环
+                if is_running and tmux_session and status not in INFRA_FAILURES:
                     export_path = TRAJECTORY_BASE / exp_id / "exports" / "conversation.json"
                     if export_path.exists():
                         logger.info(f"export已存在: exp_id={exp_id} size={export_path.stat().st_size}B (无需等待)")
