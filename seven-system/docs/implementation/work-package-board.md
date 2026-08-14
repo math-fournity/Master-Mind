@@ -32,7 +32,7 @@
 | WP-RV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | 代码+测试完成（113 RV1测试 PASS，commit f438396），ProvenanceSnapshot/FailureLocalization/NoChangeDecision/RevisionProposal/HoldoutConsumption/CandidateRelease/ProspectiveEvaluation/RevisionPolicy/EvidenceImmutability；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-VR1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-RV1 | WP-RV1 | 代码+测试完成（122 VR1测试 PASS，commit 6ec6f49），VerdictBuilder/MachineVerdict(分轴)/SixGateVerdict/EvidenceIndex/VerdictCheckpoint/EvidenceReplay/CompletionContractRemainder/FullChainRemainder/VerdictRuleRegistry/CostAndCoverageDelta；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-GA1 | `NOT_STARTED` | WP-VR1 | WP-VR1 | owner=`AUDITOR`；等待repo外AuditAssignment，实施者不得推进 |
-| WP-OP1 | `NOT_STARTED` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | 候选代码可在VR1后开发；真实规模化须GA1审计通过 |
+| WP-OP1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | 代码+测试完成（94 OP1测试 PASS），MultiWorkerScheduler/RedisProjectionManager/EpochManager/ActiveLearningScheduler/SoakTestRunner/CrossEpochBudgetLedger/ActiveReleasePointer/CrossEpochDuplicateAssessor/LongitudinalLearningVerdict；真实规模化BLOCKED（须GA1 AUDITED_PASS） |
 
 ## 当前唯一允许的实施动作
 
