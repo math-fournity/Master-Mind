@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/seven-system/capability-report.schema.json",
+  "title": "Seven System Capability Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "capability", "verdict", "generated_at", "subject_hash", "checks", "claims"],
+  "properties": {
+    "schema_version": {"const": "capability-report/v1"},
+    "capability": {"enum": ["database", "safe_launch", "no_tool", "answer_isolation"]},
+    "verdict": {"enum": ["PASS", "FAIL", "BLOCKED", "INCONCLUSIVE"]},
+    "generated_at": {"type": "string"},
+    "subject_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["check_id", "verdict"],
+        "properties": {
+          "check_id": {"type": "string", "minLength": 1},
+          "verdict": {"const": "PASS"}
+        }
+      }
+    },
+    "claims": {"type": "object", "additionalProperties": {"type": "boolean"}}
+  }
+}

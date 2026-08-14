@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/seven-system/epoch-integrity-index.schema.json",
+  "title": "Seven System Epoch Integrity Index v1",
+  "type": "object",
+  "required": ["schema_version", "index_kind", "epoch_id", "manifest_hash", "previous_index_hash", "entries", "index_hash"],
+  "properties": {
+    "schema_version": {"const": "epoch-integrity-index/v1"},
+    "index_kind": {"enum": ["INITIAL_SCAFFOLD", "P1_DRY_RUN"]},
+    "epoch_id": {"type": "string"},
+    "manifest_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "previous_index_hash": {"type": ["string", "null"]},
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "size"],
+        "properties": {
+          "path": {"type": "string"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "size": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "index_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -274,6 +274,34 @@ AI数学系统运行时有两条Pipe：
 - 框架已建：README.md + 编写方案.md + 目录结构.md（9章53文件）
 - 编写中：按编写方案的顺序逐章编写，只有经过确认的内容才写入
 
+### Seven System · 非特化证据工厂运行入口（2026-08-13起）
+
+**系统目录**：`seven-system/`
+
+**唯一详细操作手册**：`seven-system/docs/operations.md`。启动、preflight、dry-run、状态、故障处理和当前未实现边界都以该文件为准；不要把具体命令复制到AGENTS.md形成第二份易漂移手册。
+
+**系统定位**：Seven System是独立的非特化证据工厂，不是正在运行的题海Profile系统，也不是第六代`system/`的第三个入口：
+
+- 题海系统只读提供冻结bare失败候选与物证；Seven不得写生产`math:*`队列或题目状态；
+- 第六代`system/`未来只通过版本化、带哈希的冻结bundle接入；Seven禁止直接import其内部可变状态；
+- Seven的目标职责是有限Epoch、资源公平、盲化三审、contrast EvidenceRecord和人工Gate；当前实现尚未进入三审或科学实验阶段。
+
+**资产与数据边界**：
+
+- scripts、运行资产、Schema、docs和tests全部在`seven-system/`；
+- 大对象、日志、Epoch和未来Vault进入经批准的D盘数据根；数据库只存元数据、事件和artifact引用；
+- `/data`缺失、卷README缺失、数据根未批准或空间不足时fail-closed，不得fallback到repo/Home/`/tmp`。
+
+**硬约束**：
+
+1. Devin Solver仍只能经`xishujuzhen/solver_harness/solver_harness.py launch`；
+2. Solver必须无工具；Prompt写“不要用工具”不等于能力PASS，缺独立NoTool能力报告时live运行必须BLOCK；
+3. DB访问仍须先确认`ARANGO_DB=xishujuzhen_math_glm52`，禁止默认库和直接raw client；
+4. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据或retry until solved；
+5. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
+
+**当前真实实现上限**：`seven-system` v0.1.0只实现P0只读preflight与P1 scaffold dry-run（不是387号完整P1）；不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+
 ---
 
 ## 角色说明 · 你当前是什么 AI

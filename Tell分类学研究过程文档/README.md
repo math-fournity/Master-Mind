@@ -72,8 +72,9 @@
 | 383 | `383-v0-2026-08-12-TellV3-POC1-因果取商-TellCore字段消融与最小充分字段集.md` | TellCore v0候选C的文档级字段必要性分析；提出7个最小字段及重要补充，形成后续真实消融假设。它没有运行Solver字段消融，且依赖含数学错误的382题包，故状态为STRUCTURE_REVIEW而非经验POC PASS |
 | 385 | `dev-docs/385-v0-2026-08-12-TellV3六门审计POC-工作交接文档.md` | 自包含历史交接；保存候选TellCore字段集、阅读顺序与后续执行建议。其“POC-0/1已完成/PASS”口径已被388号降级为DESIGN_FREEZE/STRUCTURE_REVIEW，不能当作经验有效性证据 |
 | 386 | `386-v0-2026-08-13-正交出题文档索引-从已有bare失败题派生正交新题.md` | 正交出题历史引用图与方法论索引；277→278→280→283链应按387/388校准：280否定同一静态抽象Hint强命题，283只给整体lineage+题目化方向+近解答提示包的污染性阳性，且两道成功题使用不同T01/T03；索引可用于追溯，不代表强命题已检验通过 |
-| 387 | `387-v0-2026-08-13-非特化证据工厂-持续POC与高维正交验证系统设计.md` | 全部设计段已逐节批准且整稿自审PASS，等待用户终审；将海量真实bare失败、TellV3六门审计和高维正交出题合为独立“非特化证据工厂”；冻结episode→RunAudit→randomized contrast EvidenceRecord的证据层级、四轴Case坐标、三审答案ACL、分阶段因果矩阵、组件级Tell版本学习与合法NO_CHANGE；长期运行采用有限Epoch、append-only WorkEvent、lease fencing、幂等提交、Artifact/DB两阶段落盘、Phase Gates、两次人工Revision Gate、背压/告警/恢复与多维Verdict；明确首条single-Tell golden slice的组合门和纵向持续学习门均不能PASS，现有DB/Harness/答案Vault等P0 prerequisite尚未实现；未授权实现 |
+| 387 | `387-v0-2026-08-13-非特化证据工厂-持续POC与高维正交验证系统设计.md` | 全部设计段已逐节批准且整稿自审PASS；将海量真实bare失败、TellV3六门审计和高维正交出题合为独立“非特化证据工厂”；冻结episode→RunAudit→randomized contrast EvidenceRecord的证据层级、四轴Case坐标、三审答案ACL、分阶段因果矩阵、组件级Tell版本学习与合法NO_CHANGE；长期运行采用有限Epoch、append-only WorkEvent、lease fencing、幂等提交、Artifact/DB两阶段落盘、Phase Gates、两次人工Revision Gate、背压/告警/恢复与多维Verdict；首批P0/P1工程化已由389号落入`seven-system/`，其余能力仍按prerequisite逐包实现 |
 | 388 | `388-v0-2026-08-13-Tell分类学全量研究对非特化体系的吸收审计.md` | 全量审计完成；冻结历史语料54/54、外部核心资产回源、remainder=0。结论是旧分类学应以ObservationView/TellManifestation/TellRecognitionRecord/TaxonomySnapshot/TellHintRelation等桥接对象接入387号，而不是把v3五类原样当已验证TellCore；给出逐节吸收矩阵、五组新增正交实验、证据重新定级、内部漂移、CC-013数学错误与P0-P3修订优先级；未直接修改387号或系统实现 |
+| 389 | `389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` | 将387/388号、正在运行的高并发题海系统和第六代`system/`真实实现边界合流为独立`seven-system/`；冻结“三系统分权”、repo代码与D盘大对象分离、生产pipe只读、system冻结bundle接入、live无工具能力必须fail-closed等决策；首版落地P0与P1 scaffold CLI、源码/卷指纹、两级完整性seal、Epoch外local receipt、append-only Gate/checkpoint/verdict、Schema、运行资产、操作手册和24项测试；387号完整P1故障恢复矩阵仍未实现。因`/data/README.md`与Seven数据根尚不存在，真实站点preflight按设计BLOCK，未写DB/Redis/D盘、未启动Solver |
 
 ### 思想链条
 
@@ -117,6 +118,10 @@
 386: 正交出题文档索引——保存277→283等引用图与方法骨架；280为负证据，283为污染性整体包阳性
   ↓
 387: 非特化证据工厂——把真实bare失败池、TellV3、正交题包、因果实验、EvidenceRecord与反例修订连接为长期闭环；首条golden slice采用局部—全局表示切换
+  ↓
+388: Tell分类学吸收审计——把旧分类学校准为证据工厂的版本化观察/识别层，不把先验五类直接当已验证Core
+  ↓
+389: Seven System工程化首版——分离题海生产、第六代producer与非特化证据工厂；落地P0与P1 scaffold控制面和fail-closed运行入口
 ```
 
 ---

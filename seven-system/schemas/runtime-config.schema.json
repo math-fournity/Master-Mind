@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/seven-system/runtime-config.schema.json",
+  "title": "Seven System Runtime Config v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "system_id", "mode", "repository_root", "storage", "database", "control", "solver", "answers"],
+  "properties": {
+    "schema_version": {"const": "seven-config/v1"},
+    "system_id": {"const": "seven-system"},
+    "mode": {"enum": ["dry_run", "golden_slice", "continuous", "fault_injection"]},
+    "repository_root": {"type": "string", "minLength": 1},
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["volume_root", "data_root", "minimum_free_bytes", "require_volume_readme"],
+      "properties": {
+        "volume_root": {"type": "string"},
+        "data_root": {"type": "string"},
+        "minimum_free_bytes": {"type": "integer", "minimum": 0},
+        "require_volume_readme": {"const": true}
+      }
+    },
+    "database": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expected_database", "adapter_contract", "allow_writes", "capability_report"],
+      "properties": {
+        "expected_database": {"type": "string"},
+        "adapter_contract": {"type": "string"},
+        "allow_writes": {"type": "boolean"},
+        "capability_report": {"type": ["string", "null"]}
+      }
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["redis_namespace"],
+      "properties": {"redis_namespace": {"type": "string", "pattern": "^evidence:seven:"}}
+    },
+    "solver": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["harness_path", "work_root", "trajectory_root", "tool_policy", "launch_interval_seconds", "max_concurrency", "allow_live_dispatch", "safe_launch_capability_report", "no_tool_capability_report"],
+      "properties": {
+        "harness_path": {"type": "string"},
+        "work_root": {"type": "string"},
+        "trajectory_root": {"type": "string"},
+        "tool_policy": {"const": "forbid_all"},
+        "launch_interval_seconds": {"type": "number", "minimum": 3},
+        "max_concurrency": {"type": "integer", "minimum": 1},
+        "allow_live_dispatch": {"type": "boolean"},
+        "safe_launch_capability_report": {"type": ["string", "null"]},
+        "no_tool_capability_report": {"type": ["string", "null"]}
+      }
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["vault_root", "capability_report"],
+      "properties": {
+        "vault_root": {"type": "string"},
+        "capability_report": {"type": ["string", "null"]}
+      }
+    }
+  }
+}
