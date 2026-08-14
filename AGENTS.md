@@ -290,6 +290,7 @@ AI数学系统运行时有两条Pipe：
 
 - scripts、运行资产、Schema、docs和tests全部在`seven-system/`；
 - 大对象、日志、Epoch和未来Vault进入经批准的D盘数据根；数据库只存元数据、事件和artifact引用；
+- Seven复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，未来只创建隔离的`seven_*_v1`集合/索引；物理engine是否已迁到D盘是独立运维状态，不是逻辑数据库复用的前置Gate；
 - `/data`缺失、卷README缺失、数据根未批准或空间不足时fail-closed，不得fallback到repo/Home/`/tmp`。
 
 **硬约束**：
@@ -300,7 +301,9 @@ AI数学系统运行时有两条Pipe：
 4. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据或retry until solved；
 5. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
 
-**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有apply/DDL primitive；Arango物理数据目录未验证落在D盘，因此Database Site Capability与migration保持BLOCKED/NOT_REACHED。不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_v1`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango物理数据目录未落D盘的事实保留为`DEFERRED_WARNING`，不再阻塞复用原逻辑数据库。不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+
+**最新数据库决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14。它替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论，但不改写当时的只读观测事实。
 
 ---
 
@@ -336,7 +339,7 @@ AI数学系统运行时有两条Pipe：
 
 **题目录入信息抓手**：`problem_entries`集合——每道题入题一条记录，是查找该题目所有录入信息的抓手。从这条记录可以找到工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径。查找方法：`db.find_problem_entries_by_problem_id(problem_id)`。`system/`及本repo原有业务代码的数据库操作统一通过`system/db.py`模块，不直接操作ArangoDB客户端。
 
-**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。这个例外只解决自包含与接口所有权，不构成写授权：真实migration仍须通过显式计划哈希、人工确认和站点数据库能力Gate，当前Arango实际data dir未落在D盘时必须保持BLOCKED。
+**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。Seven复用同一Arango服务与逻辑数据库`xishujuzhen_math_glm52`，但不得复用现有业务集合；未来仅允许隔离的`seven_*_v1`命名空间。这个架构许可不构成当前写授权：真实Schema初始化仍须通过精确数据库身份、只读catalog核验、显式计划哈希、人工确认、受控DDL入口和执行收据。Arango实际data dir未落D盘只形成独立运维警告，不得再把它写成逻辑接入的硬阻塞。
 
 ### 硬约束 2 · Git 规则
 
@@ -2672,6 +2675,46 @@ Collector判定终态时，不只看标记，要验证真实内容：
 - 这是防止API rate limit的关键——并行启动60个session会导致58/60个遇到rate limit
 - 3秒间隔意味着：填满60并发需要180秒（3分钟），填满80并发需要240秒（4分钟）
 - **恢复慢是正常的**——collector清理完积压session后，runner按3秒间隔逐步填充，不是bug
+
+### 网络切换/断电健壮性（2026-08-14）
+
+> **系统在网络切换/断电后自动恢复，无需人工干预。** 两层保障：collector自动检测zombie + launchd watchdog守护服务。
+
+**问题根因**：网络切换导致tmux server死亡 → 所有harness-* session和pipe-*服务全部消失。旧collector无法自动恢复zombie——session不存在但pipe.log中无`DEVIN_CLI_EXITED`（devin cli没正常退出），走到"未结束"分支永远不会被清理。
+
+**修复A：collector自动检测zombie（collector.py 6.5步）**：
+
+classify函数新增6.5步`crash_recovered`检测：
+- 条件：`not is_running` + pipe.log中无`DEVIN_CLI_EXITED` + `elapsed > 60秒`
+- 60秒grace period给网络恢复时间（tmux可能重建）
+- `crash_recovered`在`INFRA_FAILURES`集合中，retry服务自动重试
+- 不再需要手动跑`recover_from_crash.py`
+
+**修复B：launchd watchdog（pipe_watchdog.sh + com.aurolafly.pipe-watchdog.plist）**：
+
+- **脚本**：`xishujuzhen/solver_harness/pipe/pipe_watchdog.sh`
+- **plist**：`~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist`
+- 每30秒检查5个pipe-*服务（feeder/runner/collector/reporter/retry），死了就重启
+- 每5分钟跑`recover_from_crash.py`清理zombie（双重保险）
+- `KeepAlive=true`，watchdog自身死了也自动重启
+- 开机自启，不依赖终端session
+- 日志在`/tmp/pipe-watchdog.log`（launchd进程无D盘写权限，用/tmp）
+
+**验证方法**：
+```bash
+# 检查watchdog是否运行
+launchctl list | grep pipe-watchdog
+ps aux | grep pipe_watchdog | grep -v grep
+cat /tmp/pipe-watchdog.log | tail -10
+
+# 手动测试：杀掉所有pipe-*服务，30秒内watchdog自动重启
+tmux kill-session -t pipe-runner; tmux kill-session -t pipe-collector
+sleep 35; tmux list-sessions | grep pipe  # 应该全部恢复
+```
+
+**feeder全自动选题（2026-08-14）**：
+
+feeder配置`--tier 1,2,3`，三个tier在同一个AQL查询里。tier=1跑完后自动取tier=2，tier=2跑完后自动取tier=3。auto-restart模式保证feeder退出后5秒重启。**246万题全部自动跑完，不需要人工干预。**
 
 ### export落盘保证（`-p`模式 vs 交互模式）
 
