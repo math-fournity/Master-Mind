@@ -299,6 +299,181 @@ class VerificationErrorCode(str, Enum):
     RUNTIME_SCHEMA_STATE_REPORT_REISSUED = "RUNTIME_SCHEMA_STATE_REPORT_REISSUED"
     RUNTIME_INPUT_HASH_DRIFT = "RUNTIME_INPUT_HASH_DRIFT"
 
+    # WP-QA0 Controlled Dual-Carrier Authoring — P3A chain / Bakeoff-A / bootstrap
+    QA_BOOTSTRAP_INPUT_UNSIGNED = "QA_BOOTSTRAP_INPUT_UNSIGNED"
+    QA_FILE_ONLY_LIVE_BYPASS = "QA_FILE_ONLY_LIVE_BYPASS"
+    QA_CANONICAL_REPORT_MISSING = "QA_CANONICAL_REPORT_MISSING"
+    QA_QUESTION_MODIFIED_DOWNSTREAM_NOT_INVALIDATED = "QA_QUESTION_MODIFIED_DOWNSTREAM_NOT_INVALIDATED"
+    QA_AUTHOR_IDENTITY_LEAKED = "QA_AUTHOR_IDENTITY_LEAKED"
+    QA_BARE_METRIC_SNEAKED = "QA_BARE_METRIC_SNEAKED"
+    QA_RETRY_UNTIL_DESIRED = "QA_RETRY_UNTIL_DESIRED"
+    QA_UNQUALIFIED_ROLE_ROUTED = "QA_UNQUALIFIED_ROLE_ROUTED"
+    QA_DRAFT_NOT_APPEND_ONLY = "QA_DRAFT_NOT_APPEND_ONLY"
+    QA_RELEASE_NOT_IMMUTABLE = "QA_RELEASE_NOT_IMMUTABLE"
+    QA_GATE_NOT_SIGNED = "QA_GATE_NOT_SIGNED"
+    QA_BRIEF_HASH_MISMATCH = "QA_BRIEF_HASH_MISMATCH"
+    QA_MECHANISM_CONTRACT_CHANGED = "QA_MECHANISM_CONTRACT_CHANGED"
+    QA_COVERAGE_CELL_CHANGED = "QA_COVERAGE_CELL_CHANGED"
+    QA_BAKEOFF_A_USING_BARE = "QA_BAKEOFF_A_USING_BARE"
+    QA_NO_SOLVER_ALLOWED = "QA_NO_SOLVER_ALLOWED"
+    QA_NO_REDIS_ALLOWED = "QA_NO_REDIS_ALLOWED"
+    QA_BAKEOFF_A_METRIC_NOT_ALLOWED = "QA_BAKEOFF_A_METRIC_NOT_ALLOWED"
+    QA_INVALIDATION_TARGET_UNKNOWN = "QA_INVALIDATION_TARGET_UNKNOWN"
+    QA_STATE_TRANSITION_ILLEGAL = "QA_STATE_TRANSITION_ILLEGAL"
+    QA_ROLE_ROUTING_NOT_FROZEN = "QA_ROLE_ROUTING_NOT_FROZEN"
+    QA_EVALUATION_PACK_NOT_FROZEN = "QA_EVALUATION_PACK_NOT_FROZEN"
+    QA_BOOTSTRAP_DEPENDS_ON_CASEPACK = "QA_BOOTSTRAP_DEPENDS_ON_CASEPACK"
+    QA_REVIEW_KIND_UNKNOWN = "QA_REVIEW_KIND_UNKNOWN"
+    QA_DRAFT_HASH_MISMATCH = "QA_DRAFT_HASH_MISMATCH"
+    QA_REVIEW_HASH_MISMATCH = "QA_REVIEW_HASH_MISMATCH"
+    QA_VERIFICATION_DOSSIER_HASH_MISMATCH = "QA_VERIFICATION_DOSSIER_HASH_MISMATCH"
+    QA_RELEASE_HASH_MISMATCH = "QA_RELEASE_HASH_MISMATCH"
+    QA_RELEASE_WITHOUT_BOTH_REVIEWS = "QA_RELEASE_WITHOUT_BOTH_REVIEWS"
+    QA_OUTPUT_KIND_FORBIDDEN = "QA_OUTPUT_KIND_FORBIDDEN"
+
+    # WP-SV1 TargetSolver/Harness — bypass / trajectory / answer / policy / fence
+    SV_DIRECT_DEVIN_BYPASS = "SV_DIRECT_DEVIN_BYPASS"
+    SV_TOOL_EVENT_DETECTED = "SV_TOOL_EVENT_DETECTED"
+    SV_TRAJECTORY_MISSING = "SV_TRAJECTORY_MISSING"
+    SV_REPO_WORKSPACE_NOT_ISOLATED = "SV_REPO_WORKSPACE_NOT_ISOLATED"
+    SV_ANSWER_NOT_ISOLATED = "SV_ANSWER_NOT_ISOLATED"
+    SV_NOTOOL_VIOLATION = "SV_NOTOOL_VIOLATION"
+    SV_LAUNCH_RECEIPT_INCOMPLETE = "SV_LAUNCH_RECEIPT_INCOMPLETE"
+    SV_HARNESS_PROFILE_HASH_MISMATCH = "SV_HARNESS_PROFILE_HASH_MISMATCH"
+    SV_FENCE_TOKEN_INVALID = "SV_FENCE_TOKEN_INVALID"
+    SV_PREPARED_JOB_HASH_DRIFT = "SV_PREPARED_JOB_HASH_DRIFT"
+    SV_CANCEL_AFTER_TERMINAL = "SV_CANCEL_AFTER_TERMINAL"
+    SV_RECONCILE_FENCE_MISMATCH = "SV_RECONCILE_FENCE_MISMATCH"
+    SV_BUDGET_EXCEEDED = "SV_BUDGET_EXCEEDED"
+    SV_TERMINAL_REASON_INVALID = "SV_TERMINAL_REASON_INVALID"
+    SV_LAUNCH_STATE_INVALID = "SV_LAUNCH_STATE_INVALID"
+    SV_IDEMPOTENCY_KEY_CONFLICT = "SV_IDEMPOTENCY_KEY_CONFLICT"
+    SV_PROBLEM_REF_HASH_MISMATCH = "SV_PROBLEM_REF_HASH_MISMATCH"
+    SV_VIEW_REF_HASH_MISMATCH = "SV_VIEW_REF_HASH_MISMATCH"
+    SV_BUDGET_CONTRACT_INVALID = "SV_BUDGET_CONTRACT_INVALID"
+    SV_TOOL_POLICY_KIND_INVALID = "SV_TOOL_POLICY_KIND_INVALID"
+    SV_TRAJECTORY_KIND_INVALID = "SV_TRAJECTORY_KIND_INVALID"
+    SV_ANSWER_KIND_INVALID = "SV_ANSWER_KIND_INVALID"
+    SV_OUTPUT_KIND_FORBIDDEN = "SV_OUTPUT_KIND_FORBIDDEN"
+    SV_CAPABILITY_KIND_INVALID = "SV_CAPABILITY_KIND_INVALID"
+    SV_SAFE_LAUNCH_VERDICT_FAIL = "SV_SAFE_LAUNCH_VERDICT_FAIL"
+    SV_ANSWER_ISOLATION_VERDICT_FAIL = "SV_ANSWER_ISOLATION_VERDICT_FAIL"
+    SV_NOTOOL_REPORT_VERDICT_FAIL = "SV_NOTOOL_REPORT_VERDICT_FAIL"
+    SV_HARNESS_REPORT_VERDICT_FAIL = "SV_HARNESS_REPORT_VERDICT_FAIL"
+    SV_OBSERVE_TICKET_UNKNOWN = "SV_OBSERVE_TICKET_UNKNOWN"
+    SV_COLLECT_TICKET_UNKNOWN = "SV_COLLECT_TICKET_UNKNOWN"
+    SV_PREPARE_JOB_INVALID = "SV_PREPARE_JOB_INVALID"
+    SV_PREPARED_JOB_INVALID = "SV_PREPARED_JOB_INVALID"
+    SV_LAUNCH_TICKET_INVALID = "SV_LAUNCH_TICKET_INVALID"
+    SV_RECONCILE_UNKNOWN_ATTEMPT = "SV_RECONCILE_UNKNOWN_ATTEMPT"
+
+    # WP-TX1 Taxonomy/Tell Registry — taxonomy snapshot / attribute dict / FCA
+    TX_TAXONOMY_HASH_MISMATCH = "TX_TAXONOMY_HASH_MISMATCH"
+    TX_TAXONOMY_VERSION_NOT_FROZEN = "TX_TAXONOMY_VERSION_NOT_FROZEN"
+    TX_TAXONOMY_APPEND_ONLY_VIOLATED = "TX_TAXONOMY_APPEND_ONLY_VIOLATED"
+    TX_TAXONOMY_SUPERSEDES_REF_BROKEN = "TX_TAXONOMY_SUPERSEDES_REF_BROKEN"
+    TX_ATTRIBUTE_DICT_HASH_MISMATCH = "TX_ATTRIBUTE_DICT_HASH_MISMATCH"
+    TX_ATTRIBUTE_DICT_VERSION_NOT_FROZEN = "TX_ATTRIBUTE_DICT_VERSION_NOT_FROZEN"
+    TX_FCA_CONTEXT_MARKED_AS_TRUTH = "TX_FCA_CONTEXT_MARKED_AS_TRUTH"
+    TX_FCA_CONTEXT_NOT_CALIBRATION_AID = "TX_FCA_CONTEXT_NOT_CALIBRATION_AID"
+
+    # WP-TX1 — Tell manifestation / recognition / core / family
+    TX_MANIFESTATION_EQUALS_CORE = "TX_MANIFESTATION_EQUALS_CORE"
+    TX_MANIFESTATION_KIND_INVALID = "TX_MANIFESTATION_KIND_INVALID"
+    TX_OBSERVATION_VIEW_KIND_INVALID = "TX_OBSERVATION_VIEW_KIND_INVALID"
+    TX_TELL_RECOGNITION_TAXONOMY_REF_MISSING = "TX_TELL_RECOGNITION_TAXONOMY_REF_MISSING"
+    TX_TELL_RECOGNITION_HASH_MISMATCH = "TX_TELL_RECOGNITION_HASH_MISMATCH"
+    TX_TELL_CORE_INVARIANT_VIOLATED = "TX_TELL_CORE_INVARIANT_VIOLATED"
+    TX_TELL_CORE_ACTION_INVALID = "TX_TELL_CORE_ACTION_INVALID"
+    TX_TELL_CORE_NOT_FROZEN = "TX_TELL_CORE_NOT_FROZEN"
+    TX_TELL_FAMILY_LINEAGE_BROKEN = "TX_TELL_FAMILY_LINEAGE_BROKEN"
+    TX_TELL_FAMILY_LINEAGE_REF_MISSING = "TX_TELL_FAMILY_LINEAGE_REF_MISSING"
+
+    # WP-TX1 — ApplicabilityBoundary
+    TX_BOUNDARY_NEGATIVE_GUARD_VIOLATED = "TX_BOUNDARY_NEGATIVE_GUARD_VIOLATED"
+    TX_BOUNDARY_GUARD_KIND_INVALID = "TX_BOUNDARY_GUARD_KIND_INVALID"
+    TX_BOUNDARY_TRIGGER_MISSING = "TX_BOUNDARY_TRIGGER_MISSING"
+    TX_BOUNDARY_BINDING_ROLE_INVALID = "TX_BOUNDARY_BINDING_ROLE_INVALID"
+
+    # WP-TX1 — TellHintRelation (M:N)
+    TX_HINT_RELATION_NOT_MN = "TX_HINT_RELATION_NOT_MN"
+    TX_HINT_RELATION_KIND_INVALID = "TX_HINT_RELATION_KIND_INVALID"
+    TX_HINT_RELATION_APPLICABILITY_MISSING = "TX_HINT_RELATION_APPLICABILITY_MISSING"
+
+    # WP-TX1 — HintRenderer / HintInstance
+    TX_HINT_RENDERER_HASH_MISMATCH = "TX_HINT_RENDERER_HASH_MISMATCH"
+    TX_HINT_RENDERER_NOT_FROZEN = "TX_HINT_RENDERER_NOT_FROZEN"
+    TX_HINT_INSTANCE_PAYLOAD_HASH_MISMATCH = "TX_HINT_INSTANCE_PAYLOAD_HASH_MISMATCH"
+    TX_HINT_INSTANCE_RENDERER_REF_MISSING = "TX_HINT_INSTANCE_RENDERER_REF_MISSING"
+
+    # WP-TX1 — SelectorDecision / InjectionPolicy
+    TX_SELECTOR_DECISION_KIND_INVALID = "TX_SELECTOR_DECISION_KIND_INVALID"
+    TX_SELECTOR_ABSTAIN_VIOLATED = "TX_SELECTOR_ABSTAIN_VIOLATED"
+    TX_SELECTOR_RANKING_EMPTY = "TX_SELECTOR_RANKING_EMPTY"
+    TX_INJECTION_POSITION_INVALID = "TX_INJECTION_POSITION_INVALID"
+    TX_INJECTION_POLICY_VERSION_DRIFT = "TX_INJECTION_POLICY_VERSION_DRIFT"
+    TX_INJECTION_POLICY_HASH_MISMATCH = "TX_INJECTION_POLICY_HASH_MISMATCH"
+
+    # WP-TX1 — Progress / Termination / Critic / CompositionContract
+    TX_CONTRACT_KIND_INVALID = "TX_CONTRACT_KIND_INVALID"
+    TX_CONTRACT_HASH_MISMATCH = "TX_CONTRACT_HASH_MISMATCH"
+    TX_COMPOSITION_CONTRACT_CYCLE = "TX_COMPOSITION_CONTRACT_CYCLE"
+    TX_CRITIC_VERDICT_INVALID = "TX_CRITIC_VERDICT_INVALID"
+
+    # WP-TX1 — TellStrategyRelease / lineage / pointer
+    TX_RELEASE_HASH_MISMATCH = "TX_RELEASE_HASH_MISMATCH"
+    TX_RELEASE_NOT_IMMUTABLE = "TX_RELEASE_NOT_IMMUTABLE"
+    TX_RELEASE_LINEAGE_BROKEN = "TX_RELEASE_LINEAGE_BROKEN"
+    TX_RELEASE_SUPERSEDES_REF_MISSING = "TX_RELEASE_SUPERSEDES_REF_MISSING"
+    TX_RELEASE_STATE_INVALID = "TX_RELEASE_STATE_INVALID"
+    TX_RELEASE_POINTER_CHANGED_BY_GATE = "TX_RELEASE_POINTER_CHANGED_BY_GATE"
+    TX_RELEASE_COMPONENT_HASH_MISMATCH = "TX_RELEASE_COMPONENT_HASH_MISMATCH"
+    TX_RELEASE_COMPONENT_MISSING = "TX_RELEASE_COMPONENT_MISSING"
+
+    # WP-TX1 — MathValidity / SystemEfficacy
+    TX_VALIDITY_STATUS_INVALID = "TX_VALIDITY_STATUS_INVALID"
+    TX_VALIDITY_HASH_MISMATCH = "TX_VALIDITY_HASH_MISMATCH"
+    TX_EFFICACY_STATUS_INVALID = "TX_EFFICACY_STATUS_INVALID"
+    TX_EFFICACY_SOLVER_CONTEXT_MISSING = "TX_EFFICACY_SOLVER_CONTEXT_MISSING"
+    TX_EFFICACY_HASH_MISMATCH = "TX_EFFICACY_HASH_MISMATCH"
+    TX_EFFICACY_RENDERER_VERSION_DRIFT = "TX_EFFICACY_RENDERER_VERSION_DRIFT"
+    TX_EFFICACY_SELECTOR_VERSION_DRIFT = "TX_EFFICACY_SELECTOR_VERSION_DRIFT"
+    TX_EFFICACY_TARGET_SOLVER_VERSION_DRIFT = "TX_EFFICACY_TARGET_SOLVER_VERSION_DRIFT"
+
+    # WP-TX1 — Evidence foreign key migration / invalidation
+    TX_OLD_EVIDENCE_FOREIGN_KEY_NOT_MIGRATED = "TX_OLD_EVIDENCE_FOREIGN_KEY_NOT_MIGRATED"
+    TX_INVALIDATION_TARGET_UNKNOWN = "TX_INVALIDATION_TARGET_UNKNOWN"
+    TX_INVALIDATION_READJUDICATION_MISSING = "TX_INVALIDATION_READJUDICATION_MISSING"
+    TX_INVALIDATION_EFFICACY_RETEST_MISSING = "TX_INVALIDATION_EFFICACY_RETEST_MISSING"
+
+    # WP-CW1 Production Cognitive Workers — matrix / router / independence / lease
+    CW_UNQUALIFIED_CELL_ROUTED = "CW_UNQUALIFIED_CELL_ROUTED"
+    CW_SAME_SESSION_AUTHOR_REVIEWER = "CW_SAME_SESSION_AUTHOR_REVIEWER"
+    CW_JUDGE_READ_UNAUTHORIZED_VIEW = "CW_JUDGE_READ_UNAUTHORIZED_VIEW"
+    CW_FAKE_INDEPENDENCE_SAME_MODEL = "CW_FAKE_INDEPENDENCE_SAME_MODEL"
+    CW_NO_FALLBACK_CARRIER = "CW_NO_FALLBACK_CARRIER"
+    CW_CELL_CONCLUSION_MISSING = "CW_CELL_CONCLUSION_MISSING"
+    CW_MATRIX_WILDCARD_REJECTED = "CW_MATRIX_WILDCARD_REJECTED"
+    CW_MATRIX_HASH_MISMATCH = "CW_MATRIX_HASH_MISMATCH"
+    CW_LEASE_ACQUIRE_FAILED = "CW_LEASE_ACQUIRE_FAILED"
+    CW_RECONCILE_FENCE_MISMATCH = "CW_RECONCILE_FENCE_MISMATCH"
+    CW_WORKER_NOT_INDEPENDENT = "CW_WORKER_NOT_INDEPENDENT"
+    CW_CELL_COMPLETENESS_REMAINDER_NONZERO = "CW_CELL_COMPLETENESS_REMAINDER_NONZERO"
+    CW_PROFILE_HASH_MISMATCH = "CW_PROFILE_HASH_MISMATCH"
+    CW_ROLE_TYPE_UNKNOWN = "CW_ROLE_TYPE_UNKNOWN"
+    CW_CELL_KEY_MISMATCH = "CW_CELL_KEY_MISMATCH"
+    CW_CELL_VERDICT_INVALID = "CW_CELL_VERDICT_INVALID"
+    CW_QUALIFICATION_SCOPE_INVALID = "CW_QUALIFICATION_SCOPE_INVALID"
+    CW_CELL_EXPIRED = "CW_CELL_EXPIRED"
+    CW_CELL_INVALIDATED = "CW_CELL_INVALIDATED"
+    CW_BLINDING_VIOLATED = "CW_BLINDING_VIOLATED"
+    CW_VIEW_POLICY_MISMATCH = "CW_VIEW_POLICY_MISMATCH"
+    CW_OUTPUT_KIND_FORBIDDEN = "CW_OUTPUT_KIND_FORBIDDEN"
+    CW_WORKER_SESSION_REUSE = "CW_WORKER_SESSION_REUSE"
+    CW_MATRIX_SUPERSEDES_REF_INVALID = "CW_MATRIX_SUPERSEDES_REF_INVALID"
+    CW_COMPLETENESS_SETS_NOT_DISJOINT = "CW_COMPLETENESS_SETS_NOT_DISJOINT"
+    CW_COMPLETENESS_VERDICT_INVALID = "CW_COMPLETENESS_VERDICT_INVALID"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -772,4 +947,515 @@ RUNTIME_CHECKPOINT_STATES: frozenset[str] = frozenset(
 # Redis projection 状态
 REDIS_PROJECTION_STATES: frozenset[str] = frozenset(
     {"FRESH", "STALE", "LOST", "REBUILT"}
+)
+
+# ─── WP-SV1 TargetSolver/Harness 常量 ──────────────────────────────────
+
+# Solver 终止原因枚举（trajectory/attempt 的合法 terminal reason）
+SV_TERMINAL_REASONS: frozenset[str] = frozenset(
+    {
+        "COMPLETED",
+        "CANCELLED",
+        "TIMED_OUT",
+        "BUDGET_EXCEEDED",
+        "TERMINATED",
+        "FAILED_PERMANENT",
+        "QUARANTINED",
+    }
+)
+
+# Solver tool policy 枚举（v1 只允许 NO_TOOL）
+SV_TOOL_POLICY_KINDS: frozenset[str] = frozenset(
+    {"NO_TOOL", "READ_ONLY_TOOLS", "SANDBOXED_TOOLS"}
+)
+
+# Solver 能力报告 kind 枚举（来自 CapabilityKindRegistry）
+SV_CAPABILITY_KINDS: frozenset[str] = frozenset(
+    {
+        "TARGET_SOLVER_HARNESS",
+        "TARGET_SOLVER_NO_TOOL",
+        "TARGET_SOLVER_SAFE_LAUNCH",
+        "TARGET_SOLVER_ANSWER_ISOLATION",
+    }
+)
+
+# Solver launch 状态枚举（launch lifecycle）
+SV_LAUNCH_STATES: frozenset[str] = frozenset(
+    {
+        "PREPARED",
+        "LAUNCHED",
+        "OBSERVED",
+        "COLLECTED",
+        "CANCELLED",
+        "FAILED",
+        "QUARANTINED",
+    }
+)
+
+# Solver trajectory kind 枚举
+SV_TRAJECTORY_KINDS: frozenset[str] = frozenset(
+    {"FULL_TRAJECTORY", "PARTIAL_TRAJECTORY", "EMPTY_TRAJECTORY"}
+)
+
+# Solver answer kind 枚举
+SV_ANSWER_KINDS: frozenset[str] = frozenset(
+    {"FINAL_ANSWER", "PARTIAL_ANSWER", "NO_ANSWER"}
+)
+
+# SV1 完成输出严格限定为这些对象
+SV_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "SolverHarnessCapabilityReport",
+        "SolverNoToolCapabilityReport",
+        "SolverSafeLaunchReport",
+        "SolverAnswerIsolationReport",
+        "SolverLaunchReceipt",
+    }
+)
+
+# SV1 明确禁止输出的报告类型（属于其他工作包）
+SV_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+    }
+)
+
+# ─── WP-QA0 Controlled Dual-Carrier Authoring 常量 ──────────────────────
+
+# P3A 出题链状态机（有序：brief→architect→draft→adversarial_editor→math_verifier→gate→release）
+QA_P3A_STATES: tuple[str, ...] = (
+    "BRIEF_FROZEN",
+    "ARCHITECT_ROUTED",
+    "DRAFT_PRODUCED",
+    "ADVERSARIAL_REVIEW_DONE",
+    "MATH_VERIFICATION_DONE",
+    "GATE_RELEASE_SIGNED",
+    "QUESTION_RELEASED",
+)
+
+# P3A 合法状态转换
+QA_P3A_TRANSITIONS: dict[str, frozenset[str]] = {
+    "BRIEF_FROZEN": frozenset({"ARCHITECT_ROUTED"}),
+    "ARCHITECT_ROUTED": frozenset({"DRAFT_PRODUCED"}),
+    "DRAFT_PRODUCED": frozenset({"ADVERSARIAL_REVIEW_DONE"}),
+    "ADVERSARIAL_REVIEW_DONE": frozenset({"MATH_VERIFICATION_DONE"}),
+    "MATH_VERIFICATION_DONE": frozenset({"GATE_RELEASE_SIGNED"}),
+    "GATE_RELEASE_SIGNED": frozenset({"QUESTION_RELEASED"}),
+    "QUESTION_RELEASED": frozenset(),  # 终态
+}
+
+# P3A 终态
+QA_P3A_TERMINAL_STATES: frozenset[str] = frozenset({"QUESTION_RELEASED"})
+
+# 出题链机器角色（与 RoleRegistry 中 question_architect/adversarial_editor/math_verifier 对齐）
+QA_AUTHORING_ROLES: frozenset[str] = frozenset(
+    {"question_architect", "adversarial_editor", "math_verifier"}
+)
+
+# 审查种类（AdversarialReview / VerificationDossier 独立）
+QA_REVIEW_KINDS: frozenset[str] = frozenset(
+    {"ADVERSARIAL_REVIEW", "MATH_VERIFICATION"}
+)
+
+# Bakeoff-A 评估指标全集（作者身份隐去；不含 bare 指标）
+QA_BAKEOFF_A_METRICS: frozenset[str] = frozenset(
+    {
+        "math_correct",
+        "mechanism_faithful",
+        "orthogonal_distance",
+        "shortcut_leakage",
+        "diversity",
+        "human_revision_amount",
+        "cost",
+    }
+)
+
+# Bakeoff-A 明确禁止的指标（bare 维度属于 Bakeoff-B，不得偷入 A）
+QA_BAKEOFF_A_FORBIDDEN_METRICS: frozenset[str] = frozenset(
+    {
+        "bare_correct",
+        "bare_pass",
+        "bare_baseline",
+        "bare_qualification",
+        "target_solver_result",
+    }
+)
+
+# 失效传播目标（题面变化 → 这些下游全部失效）
+QA_INVALIDATION_TARGETS: frozenset[str] = frozenset(
+    {
+        "AdversarialReview",
+        "VerificationDossier",
+        "QuestionRelease",
+        "BareBaseline",
+        "BareQualificationResult",
+        "CaseRoleAssignment",
+        "AuthoringEvaluationPack",
+    }
+)
+
+# QA0 允许的输出对象种类
+QA_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "MechanismContract",
+        "CoverageCell",
+        "AuthoringBrief",
+        "QuestionDraftVersion",
+        "AdversarialReview",
+        "VerificationDossier",
+        "QuestionRelease",
+        "AuthoringEvaluationPack",
+        "AuthoringBootstrapInputPack",
+        "AuthoringCapabilityReport",
+        "BakeoffAScoringReport",
+    }
+)
+
+# QA0 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+QA_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "TargetSolverRunArtifact",
+        "BareBaseline",
+        "BareQualificationResult",
+        "RedisProjection",
+        "SolverDispatchReceipt",
+        "CasePackVersion",
+        "EvidenceRecord",
+    }
+)
+
+# AuthoringBootstrapInputPack 状态
+QA_BOOTSTRAP_STATES: frozenset[str] = frozenset(
+    {"UNSIGNED", "SIGNED", "CONSUMED", "REVOKED"}
+)
+
+# AuthoringBakeoff-A 候选 carrier profile 标签（用于盲评 blinding）
+QA_BAKEOFF_A_CARRIER_LABELS: frozenset[str] = frozenset(
+    {"devin_glm_5_2_high", "codex_candidate", "other_profile"}
+)
+
+# QA0 能力报告 side-effect 键（必须全为 0）
+QA_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# QA0 gate 类型（G-Q-RELEASE）
+QA_GATE_TYPE_Q_RELEASE: str = "G-Q-RELEASE"
+
+# ─── WP-TX1 Taxonomy/Tell Registry 常量 ──────────────────────────────────
+
+# TellManifestation kind 枚举——manifestation 是同一 latent Tell 在不同
+# 观察粒度/trace 位置的显现，必须 NOT 等于 Core
+TX_TELL_MANIFESTATION_KINDS: frozenset[str] = frozenset(
+    {
+        "TRACE_POSITION_MANIFESTATION",
+        "OBSERVATION_GRANULARITY_MANIFESTATION",
+        "SPAN_MANIFESTATION",
+        "VIEW_MANIFESTATION",
+    }
+)
+
+# TellCore cognitive action 枚举——Core 的不变认知动作
+TX_TELL_CORE_ACTIONS: frozenset[str] = frozenset(
+    {
+        "BRANCH_OPEN",
+        "BRANCH_CLOSE",
+        "REDIRECT",
+        "REINFORCE",
+        "ABSTAIN",
+    }
+)
+
+# ApplicabilityBoundary guard kind 枚举
+TX_BOUNDARY_GUARD_KINDS: frozenset[str] = frozenset(
+    {
+        "NEGATIVE_GUARD",
+        "POSITIVE_TRIGGER",
+        "BINDING_ROLE_GUARD",
+    }
+)
+
+# TellHintRelation kind 枚举——显式 M:N 边
+TX_HINT_RELATION_KINDS: frozenset[str] = frozenset(
+    {
+        "TELL_TO_HINT",
+        "HINT_TO_TELL",
+        "BIDIRECTIONAL",
+    }
+)
+
+# SelectorDecision kind 枚举
+TX_SELECTOR_DECISION_KINDS: frozenset[str] = frozenset(
+    {
+        "SELECT",
+        "RANK",
+        "ABSTAIN",
+        "FALLBACK",
+    }
+)
+
+# Injection position 枚举
+TX_INJECTION_POSITIONS: frozenset[str] = frozenset(
+    {
+        "PRE_TRACE",
+        "AT_BRANCH_POINT",
+        "MID_TRACE",
+        "POST_TRACE",
+    }
+)
+
+# Contract kind 枚举（Progress / Termination / Critic / Composition）
+TX_CONTRACT_KINDS: frozenset[str] = frozenset(
+    {
+        "PROGRESS_CONTRACT",
+        "TERMINATION_CONTRACT",
+        "CRITIC_CONTRACT",
+        "COMPOSITION_CONTRACT",
+    }
+)
+
+# TellStrategyRelease 状态枚举
+TX_RELEASE_STATES: frozenset[str] = frozenset(
+    {"DRAFT", "RELEASED", "SUPERSEDED", "REVOKED"}
+)
+
+# MathValidityRecord 状态枚举
+TX_VALIDITY_STATUSES: frozenset[str] = frozenset(
+    {"VALID", "INVALID", "UNDETERMINED", "SUPERSEDED"}
+)
+
+# SystemEfficacyRecord 状态枚举
+TX_EFFICACY_STATUSES: frozenset[str] = frozenset(
+    {"EFFICACIOUS", "INEFFICACIOUS", "INCONCLUSIVE", "SUPERSEDED"}
+)
+
+# TaxonomySnapshot 状态枚举
+TX_TAXONOMY_SNAPSHOT_STATES: frozenset[str] = frozenset(
+    {"FROZEN", "SUPERSEDED", "DEPRECATED"}
+)
+
+# TX1 完成输出严格限定为这些对象
+TX1_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "TaxonomySnapshot",
+        "AttributeDictionaryVersion",
+        "FCAContextSnapshot",
+        "ObservationView",
+        "TellManifestation",
+        "TellRecognitionRecord",
+        "TellFamily",
+        "TellCore",
+        "ApplicabilityBoundary",
+        "TellHintRelation",
+        "HintRenderer",
+        "HintInstance",
+        "SelectorDecision",
+        "InjectionPolicy",
+        "ProgressContract",
+        "TerminationContract",
+        "CriticContract",
+        "CompositionContract",
+        "TellStrategyRelease",
+        "MathValidityRecord",
+        "SystemEfficacyRecord",
+    }
+)
+
+# TX1 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+TX1_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+        "SolverLaunchReceipt",
+        "QuestionRelease",
+        "EvidenceRecord",
+        "RunAudit",
+    }
+)
+
+# TX1 能力报告 side-effect 键（必须全为 0）
+TX1_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# Evidence foreign key 继承 scope 枚举
+TX_EVIDENCE_INHERITANCE_SCOPES: frozenset[str] = frozenset(
+    {"EXACT", "SUBSCOPE", "PROVENANCE_ONLY", "NONE"}
+)
+
+# Invalidation target 枚举——MechanismContract core/boundary 变化触发
+TX_INVALIDATION_TARGETS: frozenset[str] = frozenset(
+    {
+        "CoverageApplicability",
+        "CaseApplicability",
+        "SystemEfficacyRecord",
+        "CostEvidence",
+        "MathValidityRecord",
+    }
+)
+
+# TX1 gate 类型（G-TX-RELEASE）
+TX_GATE_TYPE_TX_RELEASE: str = "G-TX-RELEASE"
+
+# ─── WP-CW1 Production Cognitive Workers 常量 ──────────────────────────
+
+# P3N 自然题审查角色（Trace/Solution/Adjudicator）
+CW_P3N_ROLES: frozenset[str] = frozenset(
+    {"trace_analyst", "solution_analyst", "adjudicator"}
+)
+
+# P6 独立三审角色（Process Auditor / Proof Judge / Leakage Auditor）
+CW_P6_ROLES: frozenset[str] = frozenset(
+    {"process_auditor", "proof_judge", "leakage_auditor"}
+)
+
+# Cell verdict 枚举（来自 role-qualification-matrix.v1.schema.json）
+CW_CELL_STATUSES: frozenset[str] = frozenset(
+    {"NOT_TESTED", "PASS", "PARTIAL", "FAIL", "BLOCKED", "EXPIRED"}
+)
+
+# Cell 结论集合（PASS / NOT_TESTED / FAILED — 缺失任一为 blocker）
+CW_CELL_CONCLUSIONS: frozenset[str] = frozenset(
+    {"PASS", "NOT_TESTED", "FAILED"}
+)
+
+# 完备性集合种类（completeness tracks required/pass/not-tested/failed/extra/missing/remainder）
+CW_COMPLETENESS_KINDS: frozenset[str] = frozenset(
+    {
+        "required_cell_keys",
+        "pass_cell_keys",
+        "not_tested_cell_keys",
+        "failed_cell_keys",
+        "extra_cell_keys",
+        "missing_cell_keys",
+        "remainder_cell_keys",
+    }
+)
+
+# 独立性种类
+CW_INDEPENDENCE_KINDS: frozenset[str] = frozenset(
+    {
+        "DIFFERENT_SESSION",
+        "DIFFERENT_MODEL",
+        "DIFFERENT_CARRIER",
+        "BLINDED_VIEW",
+        "SAME_MODEL_FRESH_SESSION",
+    }
+)
+
+# CW1 允许的输出对象种类
+CW_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "MechanismContract",
+        "RelationMapping",
+        "MathVerificationRecord",
+        "AdversarialShortcutReview",
+        "NaturalCaseReviewBundle",
+        "RunAudit",
+        "ProcessAuditRecord",
+        "ProofJudgmentRecord",
+        "LeakageAuditRecord",
+        "CognitiveWorkerCapabilityReport",
+    }
+)
+
+# CW1 明确禁止输出的对象种类（属于其他工作包）
+CW_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+        "TargetSolverRunArtifact",
+        "SolverDispatchReceipt",
+        "RedisProjection",
+        "RuntimeCheckpoint",
+    }
+)
+
+# Router 决策枚举
+CW_ROUTER_DECISIONS: frozenset[str] = frozenset(
+    {"DISPATCH", "BLOCK", "BLOCK_UNQUALIFIED", "BLOCK_NO_PASS_CELL", "BLOCK_EXPIRED"}
+)
+
+# 资格 scope 枚举
+CW_QUALIFICATION_SCOPES: frozenset[str] = frozenset(
+    {"CANARY", "PRODUCTION"}
+)
+
+# 被拒绝的通配符哨兵
+CW_WILDCARD_SENTINELS: frozenset[str] = frozenset(
+    {"*", "?", "ANY", "ALL", "DEFAULT", "any", "all", "default"}
+)
+
+# CW1 能力报告 side-effect 键（必须全为 0）
+CW_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# CW1 能力报告 check IDs
+CW_CHECK_IDS: tuple[str, ...] = (
+    "cw1.matrix.role_qualification_matrix_build",
+    "cw1.matrix.cell_key_canonical",
+    "cw1.matrix.wildcard_rejected",
+    "cw1.matrix.completeness_remainder_zero",
+    "cw1.router.production_pass_cell_required",
+    "cw1.router.no_fallback_carrier",
+    "cw1.router.unqualified_cell_blocked",
+    "cw1.p3n.independent_sessions",
+    "cw1.p6.blinding_enforced",
+    "cw1.p6.judge_unauthorized_view_blocked",
+    "cw1.independence.same_session_blocked",
+    "cw1.independence.fake_independence_same_model_blocked",
+    "cw1.lease.db_lease_acquire",
+    "cw1.lease.reconcile_fence_match",
+    "cw1.boundary_no_solver_or_schema_report",
+)
+
+# CW1 claims
+CW_CLAIMS: tuple[str, ...] = (
+    "role_qualification_matrix_build_verified",
+    "cell_key_canonical_sha256",
+    "wildcard_sentinels_rejected",
+    "completeness_remainder_zero_when_pass",
+    "production_dispatch_requires_pass_cell",
+    "no_fallback_to_another_carrier",
+    "unqualified_cell_routed_blocked",
+    "p3n_independent_sessions_enforced",
+    "p6_blinding_enforced",
+    "judge_unauthorized_view_blocked",
+    "same_session_author_reviewer_blocked",
+    "fake_independence_same_model_blocked",
+    "db_lease_acquire_via_rt1",
+    "reconcile_fence_match_via_rt1",
+    "does_not_produce_solver_or_schema_report",
+)
+
+# CW1 explicit nonclaims
+CW_NONCLAIMS: tuple[str, ...] = (
+    "does_not_prove_live_model_capability",
+    "does_not_prove_solver_dispatch_capability",
+    "does_not_connect_to_arangodb_in_test_suite",
+    "does_not_authorize_live_canary_or_solver_dispatch",
+    "does_not_prove_db_write_capability",
 )
