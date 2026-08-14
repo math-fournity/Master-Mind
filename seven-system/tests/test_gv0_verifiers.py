@@ -56,33 +56,163 @@ def _dag_sha256() -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def _self_hash(obj: dict, hash_field: str) -> str:
+    """Compute canonical self-hash of an object (field=null then sha256)."""
+    import hashlib as _h
+    tmp = dict(obj)
+    tmp[hash_field] = None
+    canonical = json.dumps(tmp, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    return _h.sha256(canonical).hexdigest()
+
+
 def _make_doc_bootstrap_record() -> dict:
-    return {
+    rec = {
         "schema_id": "seven/docs/doc-bootstrap-completion-record",
         "schema_version": 1,
         "record_id": "test-doc0-001",
         "wp_id": "WP-DOC0",
+        "implementation_subject": {"commit": "a" * 40, "tree": "b" * 40},
+        "work_package_plan_ref_and_hash": {"ref": "plan.json", "sha256": "0" * 64},
+        "normative_index_ref_and_hash": {"ref": "index.json", "sha256": "0" * 64},
+        "test_receipts": [{"ref": "test.json", "sha256": "0" * 64}],
+        "side_effect_counts": {
+            "db_connections": 0,
+            "db_writes": 0,
+            "redis_connections": 0,
+            "remote_model_calls": 0,
+            "target_solver_launches": 0,
+            "d_volume_writes": 0,
+        },
+        "storage_assurance": "LOCAL_GIT_APPEND_ONLY_NOT_CAS",
+        "claims": ["DOC0 bootstrap complete"],
+        "nonclaims": ["Does not constitute AUDITED_PASS"],
+        "created_at": "2026-08-14T12:00:00Z",
+        "creator": "test-creator",
+        "record_hash_algorithm": "sha256(canonical-json-with-record_hash-null)",
+        "record_hash": None,
     }
+    rec["record_hash"] = _self_hash(rec, "record_hash")
+    return rec
 
 
 def _make_implementation_bundle(wp_id: str = "WP-GV0") -> dict:
-    return {
+    bundle = {
         "schema_id": "seven/implementation-completion-bundle",
         "schema_version": 1,
         "bundle_id": f"test-bundle-{wp_id}-001",
         "wp_id": wp_id,
         "implementation_attempt_id": "attempt-001",
         "status": "READY_FOR_AUDIT",
+        "baseline": {"commit": "a" * 40, "tree": "b" * 40},
+        "implementation_subject": {"commit": "a" * 40, "tree": "b" * 40},
+        "spec_refs_and_hashes": [{"ref": "README.md", "sha256": "0" * 64}],
+        "requirement_coverage": [{
+            "requirement_id": "AUTH-001",
+            "normative_clause_ids": ["NORM-test-01"],
+            "code_refs": ["src/test.py"],
+            "schema_refs": ["schema.json"],
+            "test_receipts": [{"ref": "test.json", "sha256": "0" * 64}],
+            "runtime_evidence_refs": [{"ref": "evidence.json", "sha256": "0" * 64}],
+            "status": "COVERED",
+        }],
+        "modified_files": ["src/test.py"],
+        "schema_ids_and_hashes": [{"ref": "schema.json", "sha256": "0" * 64}],
+        "code_entrypoints": ["test.entrypoint"],
+        "state_transitions_implemented": ["NOT_STARTED→IN_PROGRESS"],
+        "test_receipts": [{"ref": "test.json", "sha256": "0" * 64}],
+        "fault_injection_receipts": [],
+        "capability_reports": [{"ref": "cap.json", "sha256": "0" * 64}],
+        "live_run_receipts": [],
+        "artifact_refs": [],
+        "external_side_effect_counts": {
+            "database_connections": 0,
+            "database_reads": 0,
+            "database_writes": 0,
+            "redis_connections": 0,
+            "redis_reads": 0,
+            "redis_writes": 0,
+            "d_volume_writes": 0,
+            "model_invocations_by_profile": {},
+            "solver_launches": 0,
+            "human_gate_decisions": 0,
+        },
+        "claims": ["Implementation complete"],
+        "nonclaims": ["Does not constitute AUDITED_PASS"],
+        "known_limitations": [],
+        "protocol_deviations": [],
+        "unresolved_findings": [],
+        "inherited_audit_debt": [{"ref": "doc0.json", "sha256": "0" * 64}],
+        "recovery_notes": [],
+        "audit_replay_commands": [["python3", "-m", "unittest", "test"]],
+        "created_at": "2026-08-14T12:00:00Z",
+        "creator": "test-creator",
+        "bundle_hash": None,
     }
+    bundle["bundle_hash"] = _self_hash(bundle, "bundle_hash")
+    return bundle
 
 
 def _make_audit_record() -> dict:
-    return {
+    import base64, os
+    # Ed25519 signature is 64 bytes → base64 is 86 chars + "=="
+    fake_sig = base64.b64encode(os.urandom(64)).decode()
+    rec = {
         "schema_id": "seven/audit-record",
         "schema_version": 1,
         "audit_id": "test-audit-001",
         "wp_id": "WP-GA1",
+        "audit_assignment_ref_and_hash": {"ref": "assignment.json", "sha256": "0" * 64},
+        "assignment_verification_receipt_ref_and_hash": {"ref": "verify.json", "sha256": "0" * 64},
+        "audited_bundle_ref_and_hash": {"ref": "bundle.json", "sha256": "0" * 64},
+        "audited_subject": {"commit": "a" * 40, "tree": "b" * 40},
+        "evidence_index_commit_if_any": None,
+        "externally_observed_pinned_trust_root": {
+            "trust_root_hash": "0" * 64,
+            "source_channel_id": "test-channel",
+            "observed_at": "2026-08-14T12:00:00Z",
+            "observation_receipt_ref_and_hash": {"ref": "obs.json", "sha256": "0" * 64},
+        },
+        "runtime_manifest_trust_root_hash": "0" * 64,
+        "audit_plan_and_spec_refs_and_hashes": [{"ref": "plan.json", "sha256": "0" * 64}],
+        "auditor_principal_id": "test-auditor",
+        "auditor_attestation_key_id": "test-key-001",
+        "auditor_attestation_public_key_hash": "0" * 64,
+        "auditor_session_attestation_ref_and_hash": {"ref": "session.json", "sha256": "0" * 64},
+        "independence_evidence": [{"ref": "indep.json", "sha256": "0" * 64}],
+        "findings": [],
+        "replayed_test_receipts": [{"ref": "test.json", "sha256": "0" * 64}],
+        "external_execution_receipts": [],
+        "traceability_remainder": 0,
+        "orphan_remainder": 0,
+        "claims_confirmed": [],
+        "claims_rejected": [],
+        "nonclaims_checked": [],
+        "axis_verdicts": {
+            "implementation": {"verdict": "AUDITED_PASS", "finding_ids": [], "evidence_refs": [], "scope_reason_if_not_tested": None},
+            "factory": {"verdict": "AUDITED_PASS", "finding_ids": [], "evidence_refs": [], "scope_reason_if_not_tested": None},
+            "scientific": {"verdict": "SUPPORTS", "finding_ids": [], "evidence_refs": [], "scope_reason_if_not_tested": None},
+            "production_scale": {"verdict": "NOT_TESTED", "finding_ids": [], "evidence_refs": [], "scope_reason_if_not_tested": "out of scope"},
+        },
+        "scope_limits": [],
+        "followups": [],
+        "state_transition_effect": "NONE_UNTIL_HUMAN_GATE_SERVICE_ACCEPTS",
+        "created_at": "2026-08-14T12:00:00Z",
+        "canonicalizer_profile": "RFC8785_JCS_UTF8",
+        "signature_domain": "seven-audit-record/v1\u0000",
+        "signed_bytes_hash": "0" * 64,
+        "signature_envelope": {
+            "algorithm": "Ed25519",
+            "key_id": "test-key-001",
+            "signer_principal_id": "test-auditor",
+            "signature_encoding": "base64",
+            "signature_b64": fake_sig,
+            "signed_bytes_hash": "0" * 64,
+        },
+        "audit_record_hash_algorithm": "sha256(RFC8785-JCS-object-with-audit_record_hash-null)",
+        "audit_record_hash": None,
     }
+    rec["audit_record_hash"] = _self_hash(rec, "audit_record_hash")
+    return rec
 
 
 def _make_valid_signature_envelope(domain: str, signed_bytes_hash: str) -> dict:

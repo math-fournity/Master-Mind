@@ -21,6 +21,16 @@ class VerificationErrorCode(str, Enum):
     DAG_LOAD_FAILED = "DAG_LOAD_FAILED"
     STATE_COMMAND_REJECTED = "STATE_COMMAND_REJECTED"
 
+    # P0-A: CompletionContractVerifier 完整 Schema 验证
+    SCHEMA_VALIDATION_FAILED = "SCHEMA_VALIDATION_FAILED"
+    SCHEMA_FILE_NOT_FOUND = "SCHEMA_FILE_NOT_FOUND"
+    SCHEMA_FILE_LOAD_FAILED = "SCHEMA_FILE_LOAD_FAILED"
+    SCHEMA_FILE_HASH_DRIFT = "SCHEMA_FILE_HASH_DRIFT"
+    SELF_HASH_MISMATCH = "SELF_HASH_MISMATCH"
+    WP_ID_MISMATCH = "WP_ID_MISMATCH"
+    BUNDLE_STATUS_MISMATCH = "BUNDLE_STATUS_MISMATCH"
+    RFC3339_INVALID = "RFC3339_INVALID"
+
     # SecurityContractVerifier — 签名 / 授权链 / 额度
     SIGNATURE_INVALID = "SIGNATURE_INVALID"
     SIGNATURE_ALGORITHM_INVALID = "SIGNATURE_ALGORITHM_INVALID"
@@ -3198,3 +3208,23 @@ OP_NONCLAIMS: tuple[str, ...] = (
     "does_not_produce_system_completion_bundle",
     "status_implemented_pending_evidence",
 )
+
+# ─── P0-A: CompletionSchemaRegistry ────────────────────────────────────
+# 冻结的完成对象 Schema 注册表：completion_contract → (schema_id, schema_file, validator_version)
+# verifier 必须先重算 Schema 文件 hash，再运行 Schema，不能信任调用者传入的"已验证"布尔值。
+
+from pathlib import Path as _Path
+
+# Schema 文件相对于 docs/implementation/ 的路径
+_COMPLETION_SCHEMA_FILES: dict[str, str] = {
+    "DOC_BOOTSTRAP_RECORD": "doc-bootstrap-completion-record.v1.schema.json",
+    "IMPLEMENTATION_BUNDLE": "implementation-completion-bundle.v1.schema.json",
+    "AUDIT_RECORD": "audit-record.v1.schema.json",
+}
+
+# validator 版本（jsonschema Draft 2020-12）
+COMPLETION_SCHEMA_VALIDATOR_VERSION: str = "draft2020-12"
+COMPLETION_SCHEMA_FORMAT_POLICY: str = "strict-rfc3339"
+
+# self-hash 算法
+COMPLETION_SELF_HASH_ALGORITHM: str = "sha256(canonical-json-with-self_hash-null)"

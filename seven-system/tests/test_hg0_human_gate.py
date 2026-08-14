@@ -57,15 +57,70 @@ def _dag_sha256() -> str:
     return hashlib.sha256(canonical).hexdigest()
 
 
+def _self_hash(obj: dict, hash_field: str) -> str:
+    """Compute canonical self-hash of an object (field=null then sha256)."""
+    import hashlib as _h
+    tmp = dict(obj)
+    tmp[hash_field] = None
+    canonical = json.dumps(tmp, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    return _h.sha256(canonical).hexdigest()
+
+
 def _make_implementation_bundle(wp_id: str = "WP-HG0") -> dict:
-    return {
+    bundle = {
         "schema_id": "seven/implementation-completion-bundle",
         "schema_version": 1,
         "bundle_id": f"test-bundle-{wp_id}-001",
         "wp_id": wp_id,
         "implementation_attempt_id": "attempt-001",
         "status": "READY_FOR_AUDIT",
+        "baseline": {"commit": "a" * 40, "tree": "b" * 40},
+        "implementation_subject": {"commit": "a" * 40, "tree": "b" * 40},
+        "spec_refs_and_hashes": [{"ref": "README.md", "sha256": "0" * 64}],
+        "requirement_coverage": [{
+            "requirement_id": "AUTH-001",
+            "normative_clause_ids": ["NORM-test-01"],
+            "code_refs": ["src/test.py"],
+            "schema_refs": ["schema.json"],
+            "test_receipts": [{"ref": "test.json", "sha256": "0" * 64}],
+            "runtime_evidence_refs": [{"ref": "evidence.json", "sha256": "0" * 64}],
+            "status": "COVERED",
+        }],
+        "modified_files": ["src/test.py"],
+        "schema_ids_and_hashes": [{"ref": "schema.json", "sha256": "0" * 64}],
+        "code_entrypoints": ["test.entrypoint"],
+        "state_transitions_implemented": ["NOT_STARTED→IN_PROGRESS"],
+        "test_receipts": [{"ref": "test.json", "sha256": "0" * 64}],
+        "fault_injection_receipts": [],
+        "capability_reports": [{"ref": "cap.json", "sha256": "0" * 64}],
+        "live_run_receipts": [],
+        "artifact_refs": [],
+        "external_side_effect_counts": {
+            "database_connections": 0,
+            "database_reads": 0,
+            "database_writes": 0,
+            "redis_connections": 0,
+            "redis_reads": 0,
+            "redis_writes": 0,
+            "d_volume_writes": 0,
+            "model_invocations_by_profile": {},
+            "solver_launches": 0,
+            "human_gate_decisions": 0,
+        },
+        "claims": ["Implementation complete"],
+        "nonclaims": ["Does not constitute AUDITED_PASS"],
+        "known_limitations": [],
+        "protocol_deviations": [],
+        "unresolved_findings": [],
+        "inherited_audit_debt": [{"ref": "doc0.json", "sha256": "0" * 64}],
+        "recovery_notes": [],
+        "audit_replay_commands": [["python3", "-m", "unittest", "test"]],
+        "created_at": "2026-08-14T12:00:00Z",
+        "creator": "test-creator",
+        "bundle_hash": None,
     }
+    bundle["bundle_hash"] = _self_hash(bundle, "bundle_hash")
+    return bundle
 
 
 def _make_roster() -> ActorRoster:
