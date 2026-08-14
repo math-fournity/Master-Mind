@@ -84,7 +84,7 @@ Arango engine data directory没有使用专用D盘bind，但承载OrbStack overl
 
 ## 下一批工作包
 
-1. ~~DOC0完成bootstrap record后先实现`WP-GV0`~~ → **WP-GV0 已实现，状态 `READY_FOR_AUDIT`**（见下节"WP-GV0 实现状态"）。GV0用该store自托管自己的ImplementationCompletionBundle，在GV0前不接受任何普通工作包完成对象。
+1. ~~DOC0完成bootstrap record后先实现`WP-GV0`~~ → **WP-GV0 代码+测试完成，状态 `IMPLEMENTED_PENDING_EVIDENCE`**（两个硬阻塞阻止升至 READY_FOR_AUDIT，见下节"WP-GV0 实现状态"）。GV0用该store自托管自己的ImplementationCompletionBundle，在GV0前不接受任何普通工作包完成对象。
 2. 版本化定义逻辑站点v2 report与semantic verifier，再对原逻辑数据库执行只读identity/current DB/catalog核验；catalog冲突检查覆盖全部隔离的`seven_*_vN`，不得复用题海/`system/`或无版本集合。
 3. 只读生成`seven_*_v1` scaffold及`seven_*_v2+`原子结构的版本化Schema初始化计划，检查与现有catalog的冲突；不创建集合。
 4. 在单独授权的未来写工作包中设计真实DDL入口、人工收据、durable ledger、fence、resume/reconcile和故障注入；当前生产包只有只读planner。DB1I只交付SchemaState/bootstrap三对象，RT1才交付Runtime/Reconcile两份能力报告。
@@ -103,11 +103,11 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 ## 完整实现文档状态
 
-2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力；~~WP-GV0及其他工作包仍保持`NOT_STARTED/NOT_IMPLEMENTED`~~ → **WP-GV0 已实现 `READY_FOR_AUDIT`**，其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
+2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力；~~WP-GV0及其他工作包仍保持`NOT_STARTED/NOT_IMPLEMENTED`~~ → **WP-GV0 代码+测试完成，状态 `IMPLEMENTED_PENDING_EVIDENCE`**（两个硬阻塞阻止升至 READY_FOR_AUDIT，见下节），其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
 
-## WP-GV0 实现状态：READY_FOR_AUDIT
+## WP-GV0 实现状态：IMPLEMENTED_PENDING_EVIDENCE
 
-2026-08-14 完成 WP-GV0 development，状态为 `READY_FOR_AUDIT`（实施者不能写 `AUDITED_PASS`，需独立审计者）。
+2026-08-14 完成 WP-GV0 代码和测试开发，状态为 `IMPLEMENTED_PENDING_EVIDENCE`（不是 `READY_FOR_AUDIT`）。两个硬阻塞阻止升至 `READY_FOR_AUDIT`：
 
 ### 已实现
 
@@ -136,8 +136,25 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 - side-effect-free 参考后端仅用于隔离 fixture 测试，不是真实 DB 或 D 盘 ledger
 - 自托管 ImplementationCompletionBundle 需要 D 盘写授权（EEA/Permit/RESERVED），当前未获得
 
+### 硬阻塞（阻止升至 READY_FOR_AUDIT）
+
+1. **WorkPackagePlan schema-validity BLOCKED**：`normative_review_record_ref_and_hash` 必须是非 null ref_hash（Schema 对非 DOC0 包强制），但 `NormativeRequirementReviewRecord` 尚未生成——640 条条款全部 pending semantic review，`consumer_policy.requires_independent_review_record_before_non_doc0_plan=true`。已生成 plan draft（`evidence/wp-gv0/wp-gv0-plan-draft.v1.json`）显式记录此阻塞。
+2. **D-volume self-hosted ImplementationCompletionBundle BLOCKED**：12号文档明确"GV0先以SIDE_EFFECT_FREE在隔离fixture中实现...随后必须取得覆盖精确D盘写入的EEA、LiveRunPermit与原子RESERVED，才可使用已经验证的store生成自己的ImplementationCompletionBundle"。当前未获 D 盘写授权，bundle 未生成。
+
+### 已生成物证
+
+| 物证 | 路径 | 说明 |
+|---|---|---|
+| 测试执行收据 | `evidence/wp-gv0/gv0-test-execution-receipt-a3ac934.json` | 绑定 subject commit a3ac934，51 GV0 + 109 全量回归 PASS，零副作用 |
+| VerifierCapabilityReport | `evidence/wp-gv0/gv0-verifier-capability-report-a3ac934.json` | 绑定 DAG hash 和 implementation tree hash，列出全部 test IDs 和 golden/negative vectors |
+| WorkPackagePlan draft | `evidence/wp-gv0/wp-gv0-plan-draft.v1.json` | 显式记录两个阻塞和 inherited audit debt，不是 schema-valid plan |
+| 实现状态记录 | `evidence/wp-gv0/gv0-implementation-status-record-a3ac934.json` | 状态=IMPLEMENTED_PENDING_EVIDENCE，记录 blockers、claims、nonclaims |
+| GV0 测试 stdout | `evidence/wp-gv0/gv0-test-stdout-a3ac934.txt` | 51 项测试详细输出 |
+| 全量回归 stdout | `evidence/wp-gv0/full-regression-stdout-a3ac934.txt` | 109 项 + 25 subtests 摘要 |
+
 ### 继承的审计债
 
 - WP-DOC0 的 `READY_FOR_AUDIT` 审计债由 GV0 development 继承
-- 规范审查记录（`normative_requirement_review_record`）尚未生成——640 条条款全部 pending semantic review，`consumer_policy.requires_independent_review_record_before_non_doc0_plan=true`。这是 GV0 WorkPackagePlan schema-valid 的硬阻塞，但 board 明确允许按 DAG 启动无外部副作用 development 并显式继承审计债
-- GV0 的 `READY_FOR_AUDIT` 不等于 `AUDITED_PASS`——需独立审计者按四轴 verdict 审计
+- 规范审查记录（`normative_requirement_review_record`）尚未生成——640 条条款全部 pending semantic review，`consumer_policy.requires_independent_review_record_before_non_doc0_plan=true`。这是 GV0 WorkPackagePlan schema-valid 的硬阻塞
+- GV0 的 `IMPLEMENTED_PENDING_EVIDENCE` 不等于 `READY_FOR_AUDIT`，更不等于 `AUDITED_PASS`——需独立审计者按四轴 verdict 审计
+- D-volume self-hosted bundle 未生成——需 repo 外 owner 签发 EEA/LiveRunPermit/AuthorizationConsumptionReceipt(RESERVED)
