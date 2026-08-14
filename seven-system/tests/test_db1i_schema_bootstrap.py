@@ -124,6 +124,28 @@ def _make_gate_decision(*, decision: str = "APPROVE") -> dict:
     }
 
 
+class _MockHumanGateService:
+    """P0-C: mock HumanGateService for DB1I tests."""
+
+    def __init__(self, *, reject: bool = False) -> None:
+        self._reject = reject
+
+    def accept_gate_decision(self, decision: dict, *, evaluation_time: str = ""):
+        from seven_system.contracts.completion_contract import VerificationResult
+        from seven_system.contracts.errors import VerificationErrorCode as EC
+        if self._reject or decision.get("decision") != "APPROVE":
+            return VerificationResult(
+                verdict="FAIL",
+                error_codes=[EC.DB1I_HUMAN_GATE_DECISION_REJECTED],
+                details=["mock gate rejection"],
+            )
+        return VerificationResult(verdict="PASS")
+
+
+def _make_gate_service(*, reject: bool = False) -> _MockHumanGateService:
+    return _MockHumanGateService(reject=reject)
+
+
 def _make_protocol(
     *,
     adapter: FakeLogicalSiteAdapter | None = None,
@@ -142,6 +164,7 @@ def _prepare_and_apply(
     *,
     gate_decision: dict | None = None,
     permit: dict | None = None,
+    gate_service: _MockHumanGateService | None = None,
 ) -> SchemaBootstrapProtocol:
     """完整的 prepare → apply 流程，返回已完成的 protocol。"""
     if protocol is None:
@@ -154,7 +177,8 @@ def _prepare_and_apply(
 
     p = permit or _make_permit(plan_hash=plan.plan_hash)
     gd = gate_decision or _make_gate_decision()
-    protocol.prepare(permit=p, gate_decision=gd)
+    gs = gate_service or _make_gate_service()
+    protocol.prepare(permit=p, gate_decision=gd, human_gate_service=gs)
     protocol.apply()
     return protocol
 
@@ -437,8 +461,7 @@ class TestFencedApplyVerify(unittest.TestCase):
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
             protocol.prepare(
                 permit=_make_permit(plan_hash=plan.plan_hash),
-                gate_decision=bad_decision,
-            )
+                gate_decision=bad_decision, human_gate_service=_make_gate_service())
         self.assertEqual(ctx.exception.code, EC.DB1I_HUMAN_GATE_DECISION_REJECTED)
 
     def test_negative_apply_without_fence(self):
@@ -464,13 +487,11 @@ class TestFencedApplyVerify(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
             protocol.prepare(
                 permit=_make_permit(plan_hash=plan.plan_hash),
-                gate_decision=_make_gate_decision(),
-            )
+                gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         self.assertEqual(ctx.exception.code, EC.DB1I_DUPLICATE_APPLY)
 
     def test_negative_permit_plan_hash_mismatch(self):
@@ -479,8 +500,7 @@ class TestFencedApplyVerify(unittest.TestCase):
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
             protocol.prepare(
                 permit=_make_permit(plan_hash="wrong"),
-                gate_decision=_make_gate_decision(),
-            )
+                gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         self.assertEqual(ctx.exception.code, EC.DB1I_PERMIT_MISMATCH)
 
     def test_negative_permit_wrong_wp_id(self):
@@ -493,7 +513,7 @@ class TestFencedApplyVerify(unittest.TestCase):
         permit = _make_permit(plan_hash=plan.plan_hash)
         permit["wp_id"] = "WRONG"
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
-            protocol.prepare(permit=permit, gate_decision=_make_gate_decision())
+            protocol.prepare(permit=permit, gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         self.assertEqual(ctx.exception.code, EC.DB1I_PERMIT_MISMATCH)
 
     def test_negative_site_fingerprint_mismatch(self):
@@ -503,8 +523,7 @@ class TestFencedApplyVerify(unittest.TestCase):
         with self.assertRaises(Exception):
             protocol.prepare(
                 permit=_make_permit(),
-                gate_decision=_make_gate_decision(),
-            )
+                gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -543,8 +562,7 @@ class TestSchemaBootstrapReceipt(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         with self.assertRaises(SchemaBootstrapReceiptError):
             build_schema_bootstrap_receipt(protocol)
 
@@ -755,8 +773,7 @@ class TestFaultInjection(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         # 在第一个 action 的 DDL 前崩溃
         receipts = protocol.apply(crash_before_ordinal=0)
         self.assertFalse(protocol.applied)
@@ -776,8 +793,7 @@ class TestFaultInjection(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         # 在第一个 action 的 DDL 后崩溃
         receipts = protocol.apply(crash_after_ordinal=0)
         self.assertFalse(protocol.applied)
@@ -795,8 +811,7 @@ class TestFaultInjection(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         # 在第一个 action 后崩溃
         protocol.apply(crash_after_ordinal=0)
         # resume — 第一个 action 的 DDL 已生效，应 reconcile 为 VERIFIED
@@ -814,8 +829,7 @@ class TestFaultInjection(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         # 在第一个 action 的 DDL 前崩溃
         protocol.apply(crash_before_ordinal=0)
         # resume — DDL 未生效，应标记 FAILED
@@ -939,8 +953,7 @@ class TestEndToEnd(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         # apply
         receipts = protocol.apply()
         self.assertTrue(protocol.applied)
@@ -974,8 +987,7 @@ class TestEndToEnd(unittest.TestCase):
         protocol.site_adapter.connected = False
         protocol.prepare(
             permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(),
-        )
+            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
         # crash after first action
         protocol.apply(crash_after_ordinal=0)
         self.assertFalse(protocol.applied)

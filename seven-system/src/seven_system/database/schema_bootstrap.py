@@ -283,26 +283,24 @@ class SchemaBootstrapProtocol:
                 f"plan verification failed: {plan_errors[0][1]}",
             )
 
-        # 4. verify gate_decision
-        gate_verified = False
-        if human_gate_service is not None:
-            result = human_gate_service.accept_gate_decision(
-                gate_decision, evaluation_time=evaluation_time
+        # 4. verify gate_decision — P0-C: human_gate_service is MANDATORY
+        # 审计发现：human_gate_service=None 时弱 dict 检查可绕过。
+        # 修复：human_gate_service 必须非 None，且必须通过完整 HumanGateService 验证。
+        if human_gate_service is None:
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
+                "human_gate_service is mandatory for schema apply — "
+                "cannot proceed without real HumanGateService verification",
             )
-            if not result.passed:
-                raise SchemaBootstrapProtocolError(
-                    EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
-                    f"gate decision rejected: {result.details}",
-                )
-            gate_verified = True
-        else:
-            # 结构验证至少检查 decision == APPROVE
-            if gate_decision.get("decision") != "APPROVE":
-                raise SchemaBootstrapProtocolError(
-                    EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
-                    "gate decision must be APPROVE for schema apply",
-                )
-            gate_verified = True
+        result = human_gate_service.accept_gate_decision(
+            gate_decision, evaluation_time=evaluation_time
+        )
+        if not result.passed:
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
+                f"gate decision rejected: {result.details}",
+            )
+        gate_verified = True
 
         # 5. permit 绑定 plan_hash
         permit_plan_hash = permit.get("plan_hash", "")
