@@ -136,7 +136,13 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 - 51 项 GV0 专项测试（golden/negative/fault injection），全部 PASS
 - 109 项全量回归测试（含 25 subtests），全部 PASS
+- **2322 项总测试**（含 remediation 深度补全），全部 PASS
 - blocker tests 覆盖：owner/contract/schema/actor 错配、伪签名、EEA 扩权、重复 ordinal、额度不守恒、store symlink/fallback/hash-conflict
+- P0-B 深度：verification_status 由 verifier 生成 + 7 种签名对象统一验证（15 tests）
+- P0-C 深度：allowance 守恒 + 类型化对象 + DDL action catalog hash + reconcile（13 tests）
+- R5 深度：ImplementationCapabilityRegistry + TruthConsistencyChecker 双向对账（9 tests）
+- R6 深度 + 第 7 节：8 个 WP 真实但禁用 adapter 代码路径（32 tests）
+- 第 8.4 节：17 项跨层攻击向量测试
 
 ### 显式不主张（nonclaims）
 
