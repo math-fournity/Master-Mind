@@ -728,6 +728,39 @@ class VerificationErrorCode(str, Enum):
     VR_DAG_NOT_SEALED = "VR_DAG_NOT_SEALED"
     VR_PHASE_NOT_SEALED = "VR_PHASE_NOT_SEALED"
 
+    # WP-OP1 Operations/Scale — multi-worker / epoch / soak / budget / release
+    OP_UNAUDITED_LIVE = "OP_UNAUDITED_LIVE"
+    OP_WORKER_STARVATION = "OP_WORKER_STARVATION"
+    OP_QUEUE_LOSS = "OP_QUEUE_LOSS"
+    OP_MID_EPOCH_VERSION_CHANGE = "OP_MID_EPOCH_VERSION_CHANGE"
+    OP_HOLDOUT_REUSE_ACROSS_EPOCHS = "OP_HOLDOUT_REUSE_ACROSS_EPOCHS"
+    OP_CROSS_EPOCH_DUPLICATE = "OP_CROSS_EPOCH_DUPLICATE"
+    OP_REDIS_NOT_REBUILDABLE = "OP_REDIS_NOT_REBUILDABLE"
+    OP_EPOCH_NOT_SEALED = "OP_EPOCH_NOT_SEALED"
+    OP_CROSS_EPOCH_REMAINDER_NONZERO = "OP_CROSS_EPOCH_REMAINDER_NONZERO"
+    OP_BUDGET_NOT_CONSERVED = "OP_BUDGET_NOT_CONSERVED"
+    OP_ACTIVE_RELEASE_NOT_GATED = "OP_ACTIVE_RELEASE_NOT_GATED"
+    OP_SOAK_CRASH_NOT_RECOVERED = "OP_SOAK_CRASH_NOT_RECOVERED"
+    OP_EPOCH_SEAL_HASH_MISMATCH = "OP_EPOCH_SEAL_HASH_MISMATCH"
+    OP_COVERAGE_TENSOR_INVALID = "OP_COVERAGE_TENSOR_INVALID"
+    OP_SELECTION_RECORD_INVALID = "OP_SELECTION_RECORD_INVALID"
+    OP_LONGITUDINAL_VERDICT_INVALID = "OP_LONGITUDINAL_VERDICT_INVALID"
+    OP_WORKER_STATE_INVALID = "OP_WORKER_STATE_INVALID"
+    OP_EPOCH_STATE_INVALID = "OP_EPOCH_STATE_INVALID"
+    OP_EPOCH_TRANSITION_INVALID = "OP_EPOCH_TRANSITION_INVALID"
+    OP_SOAK_STATE_INVALID = "OP_SOAK_STATE_INVALID"
+    OP_BUDGET_KIND_INVALID = "OP_BUDGET_KIND_INVALID"
+    OP_RELEASE_STATE_INVALID = "OP_RELEASE_STATE_INVALID"
+    OP_DUPLICATE_KIND_INVALID = "OP_DUPLICATE_KIND_INVALID"
+    OP_OUTPUT_KIND_FORBIDDEN = "OP_OUTPUT_KIND_FORBIDDEN"
+    OP_CAPABILITY_HASH_MISMATCH = "OP_CAPABILITY_HASH_MISMATCH"
+    OP_WORKER_QUEUE_HASH_MISMATCH = "OP_WORKER_QUEUE_HASH_MISMATCH"
+    OP_EPOCH_SEAL_RECORD_INVALID = "OP_EPOCH_SEAL_RECORD_INVALID"
+    OP_COVERAGE_DELTA_INVALID = "OP_COVERAGE_DELTA_INVALID"
+    OP_BUDGET_LEDGER_HASH_MISMATCH = "OP_BUDGET_LEDGER_HASH_MISMATCH"
+    OP_RELEASE_POINTER_HASH_MISMATCH = "OP_RELEASE_POINTER_HASH_MISMATCH"
+    OP_LONGITUDINAL_VERDICT_HASH_MISMATCH = "OP_LONGITUDINAL_VERDICT_HASH_MISMATCH"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -3021,5 +3054,147 @@ VR_NONCLAIMS: tuple[str, ...] = (
     "does_not_produce_audit_record",
     "does_not_produce_system_completion_bundle",
     "multi_epoch_and_coverage_tensor_scheduling_belongs_to_op1",
+    "status_implemented_pending_evidence",
+)
+
+# ─── WP-OP1 Operations/Scale 常量 ──────────────────────────────────────
+
+# Worker 状态枚举
+OP_WORKER_STATES: frozenset[str] = frozenset(
+    {"IDLE", "BUSY", "DRAINED", "CRASHED", "RECOVERED"}
+)
+
+# Epoch 状态枚举
+OP_EPOCH_STATES: frozenset[str] = frozenset(
+    {"CREATED", "RUNNING", "SEALING", "SEALED", "SUPERSEDED"}
+)
+
+# Epoch 合法状态转换
+OP_EPOCH_TRANSITIONS: frozenset[tuple[str, str]] = frozenset(
+    {
+        ("CREATED", "RUNNING"),
+        ("RUNNING", "SEALING"),
+        ("SEALING", "SEALED"),
+        ("SEALED", "SUPERSEDED"),
+    }
+)
+
+# Soak test 状态枚举
+OP_SOAK_STATES: frozenset[str] = frozenset(
+    {"IDLE", "RUNNING", "CRASHED", "RECOVERING", "RECOVERED", "COMPLETED"}
+)
+
+# Budget 种类枚举
+OP_BUDGET_KINDS: frozenset[str] = frozenset(
+    {"COMPUTE", "HOLDOUT", "MODEL_CALLS", "SOLVER_RUNS", "WALL_TIME"}
+)
+
+# Active release pointer 状态枚举
+OP_RELEASE_STATES: frozenset[str] = frozenset(
+    {"FROZEN", "ACTIVATION_REQUESTED", "GATED", "ACTIVATED", "REJECTED"}
+)
+
+# Cross-Epoch duplicate 种类枚举
+OP_DUPLICATE_KINDS: frozenset[str] = frozenset(
+    {"SAME_PROBLEM", "SAME_SOURCE_CLUSTER", "SAME_EVIDENCE_CELL"}
+)
+
+# OP1 允许的输出对象种类
+OP_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "MultiWorkerSchedule",
+        "RedisProjectionRebuild",
+        "EpochSealRecord",
+        "CoverageTensorSnapshot",
+        "CoverageTensorDelta",
+        "EpochSelectionRecord",
+        "SoakTestReport",
+        "CrossEpochBudgetLedger",
+        "GlobalBudgetLedger",
+        "ActiveReleasePointer",
+        "CrossEpochDuplicateAssessment",
+        "LongitudinalLearningVerdict",
+        "OperationsCapabilityReport",
+    }
+)
+
+# OP1 明确禁止输出的对象种类（real scaling outputs without GA1 AUDITED_PASS）
+OP_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "LiveMultiWorkerDeployment",
+        "LiveSolverDispatch",
+        "LiveModelCall",
+        "LiveRedisWrite",
+        "LiveActiveReleaseActivation",
+        "AuditRecord",
+        "SystemCompletionBundle",
+    }
+)
+
+# OP1 能力报告 side-effect 键（必须全为 0 — SIDE_EFFECT_FREE）
+OP_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "solver_launches",
+    "model_live_calls",
+    "real_multi_worker_deployment",
+    "live_active_release_activation",
+)
+
+# OP1 能力报告 check IDs
+OP_CHECK_IDS: tuple[str, ...] = (
+    "op1.multi_worker.no_starvation",
+    "op1.multi_worker.no_queue_loss",
+    "op1.redis.rebuildable_from_events",
+    "op1.redis.rebuild_hash_match",
+    "op1.epoch.create_to_seal_to_next",
+    "op1.epoch.sealed_before_next",
+    "op1.epoch.cross_epoch_remainder_zero",
+    "op1.active_learning.coverage_tensor_valid",
+    "op1.active_learning.selection_record_valid",
+    "op1.soak.crash_recovered",
+    "op1.soak.continuous_execution",
+    "op1.budget.conserved_across_epochs",
+    "op1.budget.holdout_no_reuse",
+    "op1.release.mid_epoch_no_change",
+    "op1.release.activation_gated",
+    "op1.duplicate.no_cross_epoch_double_count",
+    "op1.longitudinal.verdict_valid",
+    "op1.boundary_no_other_wp_reports",
+    "op1.real_scaling_blocked_without_ga1",
+)
+
+# OP1 claims
+OP_CLAIMS: tuple[str, ...] = (
+    "multi_worker_scheduling_no_starvation",
+    "worker_queue_no_loss",
+    "redis_projection_rebuildable_from_events",
+    "redis_rebuild_hash_deterministic",
+    "epoch_create_seal_next_lifecycle",
+    "epoch_sealed_before_next",
+    "cross_epoch_remainder_zero",
+    "active_learning_coverage_tensor_valid",
+    "active_learning_selection_record_valid",
+    "soak_crash_recovered",
+    "soak_continuous_execution",
+    "budget_conserved_across_epochs",
+    "holdout_no_reuse_across_epochs",
+    "active_release_mid_epoch_no_change",
+    "active_release_activation_gated",
+    "no_cross_epoch_duplicate_counting",
+    "longitudinal_learning_verdict_valid",
+    "does_not_produce_other_wp_reports",
+)
+
+# OP1 explicit nonclaims
+OP_NONCLAIMS: tuple[str, ...] = (
+    "does_not_deploy_real_multi_worker",
+    "does_not_launch_real_solver",
+    "does_not_make_real_model_calls",
+    "does_not_write_real_redis",
+    "does_not_activate_live_release",
+    "real_scaling_blocked_needs_ga1_audited_pass",
+    "does_not_produce_audit_record",
+    "does_not_produce_system_completion_bundle",
     "status_implemented_pending_evidence",
 )
