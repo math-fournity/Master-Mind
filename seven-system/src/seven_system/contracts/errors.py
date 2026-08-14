@@ -658,6 +658,47 @@ class VerificationErrorCode(str, Enum):
     EV_SCOPE_LIMIT_MISSING = "EV_SCOPE_LIMIT_MISSING"
     EV_REGISTRY_VERSION_DRIFT = "EV_REGISTRY_VERSION_DRIFT"
 
+    # WP-RV1 P8 NO_CHANGE/Revision — localization / no-change / revision / holdout / candidate
+    RV_EVIDENCE_INDEX_READ_IN_P8 = "RV_EVIDENCE_INDEX_READ_IN_P8"
+    RV_FIT_EQUALS_CONFIRMATION = "RV_FIT_EQUALS_CONFIRMATION"
+    RV_HOLDOUT_REPEATED_PEEK = "RV_HOLDOUT_REPEATED_PEEK"
+    RV_SINGLE_CASE_SPLIT = "RV_SINGLE_CASE_SPLIT"
+    RV_CANDIDATE_SELF_APPROVED = "RV_CANDIDATE_SELF_APPROVED"
+    RV_OLD_EVIDENCE_MODIFIED = "RV_OLD_EVIDENCE_MODIFIED"
+    RV_NOCHANGE_UNSEALS_HOLDOUT = "RV_NOCHANGE_UNSEALS_HOLDOUT"
+    RV_REVISION_WITHOUT_TWO_GATES = "RV_REVISION_WITHOUT_TWO_GATES"
+    RV_PROVENANCE_SNAPSHOT_NOT_READONLY = "RV_PROVENANCE_SNAPSHOT_NOT_READONLY"
+    RV_FAILURE_LOCALIZATION_INCOMPLETE = "RV_FAILURE_LOCALIZATION_INCOMPLETE"
+    RV_NOCHANGE_NOT_SIGNED = "RV_NOCHANGE_NOT_SIGNED"
+    RV_REVISION_PROPOSAL_NOT_SIGNED = "RV_REVISION_PROPOSAL_NOT_SIGNED"
+    RV_HOLDOUT_ALREADY_CONSUMED = "RV_HOLDOUT_ALREADY_CONSUMED"
+    RV_PROSPECTIVE_REUSES_HOLDOUT = "RV_PROSPECTIVE_REUSES_HOLDOUT"
+    RV_CANDIDATE_NOT_FROZEN = "RV_CANDIDATE_NOT_FROZEN"
+    RV_REVISION_POLICY_NOT_FROZEN = "RV_REVISION_POLICY_NOT_FROZEN"
+    RV_LOCALIZATION_LAYER_INVALID = "RV_LOCALIZATION_LAYER_INVALID"
+    RV_PROVENANCE_SNAPSHOT_HASH_MISMATCH = "RV_PROVENANCE_SNAPSHOT_HASH_MISMATCH"
+    RV_PROVENANCE_SNAPSHOT_INCOMPLETE = "RV_PROVENANCE_SNAPSHOT_INCOMPLETE"
+    RV_NOCHANGE_STATE_INVALID = "RV_NOCHANGE_STATE_INVALID"
+    RV_REVISION_PROPOSAL_STATE_INVALID = "RV_REVISION_PROPOSAL_STATE_INVALID"
+    RV_CANDIDATE_STATE_INVALID = "RV_CANDIDATE_STATE_INVALID"
+    RV_PROSPECTIVE_STATE_INVALID = "RV_PROSPECTIVE_STATE_INVALID"
+    RV_HOLDOUT_STATUS_INVALID = "RV_HOLDOUT_STATUS_INVALID"
+    RV_REVISION_PROPOSAL_HASH_MISMATCH = "RV_REVISION_PROPOSAL_HASH_MISMATCH"
+    RV_CANDIDATE_HASH_MISMATCH = "RV_CANDIDATE_HASH_MISMATCH"
+    RV_PROSPECTIVE_HASH_MISMATCH = "RV_PROSPECTIVE_HASH_MISMATCH"
+    RV_NOCHANGE_HASH_MISMATCH = "RV_NOCHANGE_HASH_MISMATCH"
+    RV_LOCALIZATION_HASH_MISMATCH = "RV_LOCALIZATION_HASH_MISMATCH"
+    RV_HOLDOUT_CONSUMPTION_HASH_MISMATCH = "RV_HOLDOUT_CONSUMPTION_HASH_MISMATCH"
+    RV_REVISION_POLICY_HASH_MISMATCH = "RV_REVISION_POLICY_HASH_MISMATCH"
+    RV_OUTPUT_KIND_FORBIDDEN = "RV_OUTPUT_KIND_FORBIDDEN"
+    RV_HOLDOUT_VIEW_MISSING = "RV_HOLDOUT_VIEW_MISSING"
+    RV_PROSPECTIVE_NOT_ONE_TIME = "RV_PROSPECTIVE_NOT_ONE_TIME"
+    RV_REVISION_GATE_COUNT_INSUFFICIENT = "RV_REVISION_GATE_COUNT_INSUFFICIENT"
+    RV_NOCHANGE_REFERENCES_EVIDENCE_INDEX = "RV_NOCHANGE_REFERENCES_EVIDENCE_INDEX"
+    RV_REVISION_REFERENCES_EVIDENCE_INDEX = "RV_REVISION_REFERENCES_EVIDENCE_INDEX"
+    RV_LOCALIZATION_REFERENCES_EVIDENCE_INDEX = "RV_LOCALIZATION_REFERENCES_EVIDENCE_INDEX"
+    RV_CAPABILITY_HASH_MISMATCH = "RV_CAPABILITY_HASH_MISMATCH"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -2614,5 +2655,194 @@ EV_NONCLAIMS: tuple[str, ...] = (
     "does_not_generate_evidence_index",
     "does_not_generate_provenance_snapshot",
     "does_not_produce_final_verdict",
+    "status_implemented_pending_evidence",
+)
+
+
+# ─── WP-RV1 P8 NO_CHANGE/Revision 常量 ───────────────────────────────────
+
+# 故障定位层（P8 第一独立故障定位：哪一层出错）
+# 来自 docs/implementation/09-phase-pipeline-p0-p9.md P8 节
+RV_LOCALIZATION_LAYERS: frozenset[str] = frozenset(
+    {
+        "CORE",
+        "BOUNDARY",
+        "SELECTOR",
+        "RENDERER",
+        "INJECTION",
+        "CRITIC",
+        "MODEL_RESOURCE",
+    }
+)
+
+# P8 修订状态机
+RV_REVISION_STATES: frozenset[str] = frozenset(
+    {
+        "LOCALIZED",
+        "NO_CHANGE_DECIDED",
+        "REVISION_PROPOSED",
+        "CANDIDATE_FROZEN",
+        "PROSPECTIVE_PENDING",
+        "PROSPECTIVE_CONFIRMED",
+        "PROSPECTIVE_REJECTED",
+        "REVISED",
+        "BLOCKED",
+    }
+)
+
+# Holdout 消费状态（viewed holdout 立即 consumed）
+RV_HOLDOUT_STATUSES: frozenset[str] = frozenset(
+    {
+        "UNVIEWED",
+        "VIEWED",
+        "CONSUMED",
+    }
+)
+
+# NoChangeDecision 状态
+RV_NOCHANGE_STATES: frozenset[str] = frozenset(
+    {
+        "DRAFT",
+        "SIGNED",
+        "ACCEPTED",
+    }
+)
+
+# RevisionProposal 状态
+RV_REVISION_PROPOSAL_STATES: frozenset[str] = frozenset(
+    {
+        "DRAFT",
+        "PROPOSED",
+        "FIT_PLANNED",
+        "CANDIDATE_FROZEN",
+        "ONE_GATE_APPROVED",
+        "TWO_GATE_APPROVED",
+        "REJECTED",
+    }
+)
+
+# CandidateRelease 状态
+RV_CANDIDATE_STATES: frozenset[str] = frozenset(
+    {
+        "DRAFT",
+        "FROZEN",
+        "UNDER_PROSPECTIVE",
+        "CONFIRMED",
+        "REJECTED",
+    }
+)
+
+# ProspectiveEvaluation 状态（一次性 prospective）
+RV_PROSPECTIVE_STATES: frozenset[str] = frozenset(
+    {
+        "PENDING",
+        "CONFIRMED",
+        "REJECTED",
+    }
+)
+
+# RV1 允许的输出对象种类（P8 唯一阶段输出）
+# EvidenceIndex 不在 P8 生成（P9 才生成最终 EvidenceIndex）
+RV_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "ProvenanceSnapshot",
+        "FailureLocalization",
+        "NoChangeDecision",
+        "RevisionProposal",
+        "HoldoutConsumption",
+        "CandidateRelease",
+        "ProspectiveEvaluation",
+        "RevisionPolicy",
+        "RevisionCapabilityReport",
+    }
+)
+
+# RV1 明确禁止输出的对象种类（属于 P9 或其他阶段，不得在 P8 偷入）
+RV_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "EvidenceIndex",
+        "VerdictRecord",
+        "SixGateVerdict",
+        "ConfirmatoryEvidenceRecord",
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "RedisProjection",
+        "SystemCompletionBundle",
+        "AuditRecord",
+    }
+)
+
+# RV1 能力报告 side-effect 键（必须全为 0）
+RV_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+    "holdout_unseals",
+)
+
+# RV1 能力报告 check IDs
+RV_CHECK_IDS: tuple[str, ...] = (
+    "rv1.provenance.readonly_snapshot",
+    "rv1.provenance.references_sealed_evidence",
+    "rv1.provenance.not_evidence_index",
+    "rv1.localization.independent_first",
+    "rv1.localization.layer_valid",
+    "rv1.localization.references_evidence_by_hash",
+    "rv1.nochange.signed",
+    "rv1.nochange.does_not_unseal_holdout",
+    "rv1.revision.proposal_signed",
+    "rv1.revision.two_human_gates",
+    "rv1.revision.candidate_frozen",
+    "rv1.revision.candidate_not_self_approved",
+    "rv1.holdout.viewed_immediately_consumed",
+    "rv1.holdout.fit_not_confirmation",
+    "rv1.holdout.no_repeated_peek",
+    "rv1.holdout.no_single_case_split",
+    "rv1.prospective.one_time",
+    "rv1.prospective.no_reuse_viewed_holdout",
+    "rv1.immutability.old_evidence_not_modified",
+    "rv1.boundary_no_evidence_index_in_p8",
+    "rv1.boundary_no_other_wp_reports",
+)
+
+# RV1 claims
+RV_CLAIMS: tuple[str, ...] = (
+    "provenance_snapshot_readonly",
+    "provenance_references_sealed_evidence",
+    "provenance_not_evidence_index",
+    "failure_localization_independent_first",
+    "failure_localization_layer_valid",
+    "localization_references_evidence_by_hash",
+    "nochange_signed_when_decided",
+    "nochange_does_not_unseal_holdout",
+    "revision_proposal_signed",
+    "revision_requires_two_human_gates",
+    "candidate_frozen_before_prospective",
+    "candidate_not_self_approved",
+    "holdout_viewed_immediately_consumed",
+    "holdout_fit_not_confirmation",
+    "holdout_no_repeated_peek",
+    "holdout_no_single_case_split",
+    "prospective_one_time",
+    "prospective_no_reuse_viewed_holdout",
+    "old_evidence_not_modified",
+    "does_not_read_evidence_index_in_p8",
+    "does_not_produce_other_wp_reports",
+)
+
+# RV1 explicit nonclaims
+RV_NONCLAIMS: tuple[str, ...] = (
+    "does_not_produce_final_evidence_index",
+    "does_not_produce_final_verdict",
+    "does_not_unseal_holdout_on_no_change",
+    "does_not_self_approve_candidate",
+    "does_not_reuse_viewed_holdout",
+    "does_not_modify_old_evidence",
+    "does_not_write_db_or_redis",
+    "does_not_launch_real_solver",
+    "does_not_call_live_model",
     "status_implemented_pending_evidence",
 )
