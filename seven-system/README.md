@@ -2,7 +2,7 @@
 
 Seven System 是一个独立的实验系统：它的目标是把题海系统产生的真实 bare 失败、未来第六代系统提供的冻结 Tell/分类学资产，以及 387/388 号研究协议，组织成可重放、可归责、可恢复的非特化证据。当前 v0.1.0 实现了下文列出的 P0/P1 scaffold，以及 WP-1 的站点存储前置和离线 Strict DB contract；它还不能核验真实逻辑数据库站点、初始化Seven Schema或进行非特化科学实验。
 
-它不是第三套解题模型，也不接管正在运行的题海系统。
+它不是第三套解题模型，也不接管正在运行的题海系统。Seven未来会编排多个模型载体，但每个载体只承担被冻结的科学角色。
 
 ## 三套系统的边界
 
@@ -11,6 +11,26 @@ Seven System 是一个独立的实验系统：它的目标是把题海系统产�
 | Devin 大规模高并发题目测试系统 | 设计上要求Solver无工具地批量做题，发现能力边界和bare失败；现有物理无工具证明仍有缺口 | 只读消费冻结的题目、attempt和物证；不写回`math:*`队列 |
 | `system/` 第六代 AI 数学系统 | 未来的入题/解题系统；当前只有脉络分析子阶段有历史 POC | 未来只接收带 Schema 与哈希的冻结 bundle；禁止直接 import 或共享内部状态 |
 | `seven-system/` | 非特化 Case、因果实验、三审、EvidenceRecord 与版本学习的证据工厂 | 独立控制面、独立命名空间、独立大对象根和人工门 |
+
+## 模型角色边界
+
+Seven不是“全管线Devin”。未来执行面分成两个端口：
+
+```text
+TargetSolverPort
+└── DevinSolverAdapter → solver_harness → no-tool Solver
+
+ModelRolePort（机器AI角色；Cognitive Worker是子系统名）
+├── CodexWorkerAdapter（首个候选）
+└── future model/provider adapters
+
+HumanTaskPort → 人工复核队列（不能签Gate）
+HumanGateService → signed GateDecision
+```
+
+Devin继续承担bare、guided和control做题实验；Question Architect、数学核验、对抗审稿、Proof Judge及其他认知审计角色走可替换的认知Worker。Codex/Responses中的`gpt-5.6-sol`高推理配置是第一候选出题载体，不是已经证明最优的生产作者；模型、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration必须分别做能力探针，再与其他候选做盲化AuthoringBakeoff。
+
+所有**受控生成题**都必须经历不可变发布链：`P3A AuthoringBrief → QuestionDraftVersion → AdversarialReview/VerificationDossier → 人工G-Q-RELEASE → QuestionRelease → P3B Devin BareBaseline/BareQualificationResult → P3C人工G-CASE-ROLE/AdmissionDecision`。自然发现的真实bare失败仍是主要题源，走`P2A历史物证审计 → 按需P2B当前bare qualification → P3N机制/数学审查 → P3C G-CASE-ROLE`；受控生成只填正交CoverageCell空格。P2B/P3B都只陈述baseline资格，最终Case角色只由P3C人门冻结；它们不是P5因果实验。禁止“反复改题直到Devin失败”。
 
 ## 当前真实实现状态
 
@@ -27,7 +47,7 @@ Seven System 是一个独立的实验系统：它的目标是把题海系统产�
 - `wp1-db-contract-report` 离线受控测试、Schema+语义验证和 append-once 本地报告；
 - 明确列出 P2-P9 `NOT_IMPLEMENTED`。
 
-当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis 或启动 Devin CLI。真实逻辑DB site capability、Seven Schema初始化、Solver、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
+当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis、启动 Devin CLI或调用Codex/其他远程认知Worker。真实逻辑DB site capability、Seven Schema初始化、TargetSolverPort、ModelRolePort、角色能力/调用收据、QuestionRelease、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
 
 ## 第一次使用
 

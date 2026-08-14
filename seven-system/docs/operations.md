@@ -2,7 +2,7 @@
 
 ## 一句话结论
 
-当前 Seven System 能安全运行 P0/P1 scaffold，以及 WP-1 Strict DB 的离线契约报告：这些命令都不连接真实数据库、不写 Redis、不启动 Solver。它不是387号完整P1；没有`start`命令是刻意的安全边界。
+当前 Seven System 能安全运行 P0/P1 scaffold，以及 WP-1 Strict DB 的离线契约报告：这些命令都不连接真实数据库、不写 Redis、不启动 Solver，也不调用Codex或其他远程认知Worker。它不是387号完整P1；没有`start`命令是刻意的安全边界。
 
 ## 0. 操作者先确认自己在做什么
 
@@ -44,6 +44,10 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 - `implementation_ceiling = P1_DRY_RUN`；
 - P0/P1 scaffold、`WP1_SITE_STORAGE_PREREQUISITE`和`WP1_STRICT_DB_OFFLINE_CONTRACT_REPORT`在 `implemented`；
 - `DATABASE_SITE_CAPABILITY_OR_MIGRATION_APPLY`、Redis、真实 Solver、Vault、三审和 Evidence 在 `not_implemented`。
+
+当前`capabilities`若声称`TargetSolverPort`、`ModelRolePort`、Codex adapter、QuestionRelease或AuthoringBakeoff已经实现，立即停止并审计代码。387/389号已记录用户确认继续推进的多模型设计方向，不等于细节已最终验收，更不等于本版已有任何模型调用入口。
+
+当前v0.1机器枚举尚未逐项列出这些新对象；遗漏不是PASS，而是`NOT_IMPLEMENTED`。不要为补显示文字直接改动绑定WP-1 Strict Contract hash的CLI代码；该同步必须在后续代码工作包中连同测试和新版离线报告一起完成。
 
 如果输出声称真实 Solver 已实现，而代码版本仍是 `0.1.0`，停止并审计代码；不能继续运行。
 
@@ -89,7 +93,10 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 | `launch_interval_floor` | 不低于历史 3 秒站点下限 | 修正配置 |
 | `solver_asset_contract` | canonical AGENTS 有必要终止和禁工具规则 | 修复资产并重测 |
 | `answer_vault_boundary` | Vault 不在 Solver 工作根 | 修正物理边界 |
-| 四类 capability | live 依赖已由独立报告证明 | 报告未 PASS 就保持 BLOCKED |
+| 现有四类 capability | v0.1.0为DB、Safe Launch、No Tool、Answer Isolation预留的live依赖 | 任一报告未PASS就保持BLOCKED；它们不是387完整P0 |
+| Harness资源 capability（未来） | 逐字段证明token/context/reasoning/timeout等ResourceContract是requested、enforced、observed或unavailable | 不得用Safe Launch替代；当前无完整consumer |
+| 认知Worker capability（未来） | 对实际adapter/model/role配置证明requested/effective模型与权限/事件能力 | 当前无Schema或consumer；六类中缺任一适用项，P3/P6保持NOT_IMPLEMENTED/BLOCKED |
+| HumanGate readiness（未来，非模型能力报告） | 冻结actor roster、职责分离policy、签名/验签和HUMAN_PENDING语义 | 当前未实现；缺失时所有人工Gate lane保持HUMAN_PENDING/BLOCKED |
 
 `preflight` 是只读命令：不连接数据库、不写 Redis、不启动 Solver、不创建数据根。
 
@@ -277,9 +284,9 @@ echo "$ARANGO_DB"
 5. 任何Seven DDL都必须等v2 site verifier、计划哈希、人工授权和受控入口，不能用临时raw client补齐；
 6. 若未来确需改成专用bind/volume，另写维护、备份、回滚与生产影响方案并单独授权；不要把这个动作称为“迁到D盘”。
 
-### 发现真实 Solver 或 Redis 被修改
+### 发现真实 Solver、认知Worker或 Redis 被调用/修改
 
-v0.1.0 不应产生这些副作用。立即停止，把本次运行判为 protocol invalid，并审计入口脚本；不能继续把结果当 dry-run PASS。
+v0.1.0 不应产生这些副作用。任何Devin启动、Codex/API调用、远程model event或Redis变化都必须立即停止，把本次运行判为protocol invalid，并审计入口脚本；不能继续把结果当dry-run PASS。
 
 ## 10. 当前没有 start/stop/recover 命令
 
@@ -308,6 +315,8 @@ Seven v0.1.0 没有常驻服务，所以：
 - 发现新故障，先把检测写进统一 health 命令，再修服务；
 - DB 数字不能代替进程、文件和事件物证。
 
+未来worker必须分池观察：`author_pool`看草稿/费用/泄漏与最大修订数，`review_pool`看独立性和审稿backlog，`judge_pool`看盲化与分歧，`solver_pool`看无工具、launch interval和等资源arm。不得用solver总并发代表所有pool健康，也不得在某个pool阻塞时手工调用当前Codex会话补结果。
+
 这些原则继承题海系统的有效经验，但 Seven 不复用其 fail-open 工具审计、全局 `math:*` 队列或 `clear` 操作。
 
 ## 12. 结束本轮前的核对
@@ -322,5 +331,6 @@ Seven v0.1.0 没有常驻服务，所以：
 - [ ] dry-run 三类副作用均为 0；
 - [ ] 未手改已提交文件；
 - [ ] 未启动 Solver、未写 DB/Redis；
+- [ ] 未调用Codex或其他远程认知Worker；`ModelRolePort`、QuestionRelease、P3A/P3B/P3C与AuthoringBakeoff仍为NOT_IMPLEMENTED/NOT_RUN；
 - [ ] `verdict.json` 仍写科学结论 `NOT_TESTED`；
 - [ ] 下一步 blocker 已记录，而不是被静默忽略。

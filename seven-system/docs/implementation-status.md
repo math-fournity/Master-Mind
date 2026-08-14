@@ -52,18 +52,28 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 - Redis 队列或分布式 worker；
 - 387号完整P1的lease/fencing/outbox、崩溃恢复、重复投递和Redis重建矩阵；
 - 真实 Devin Solver dispatch；
+- `TargetSolverPort/DevinSolverAdapter`及其LaunchReceipt；
+- provider-neutral `ModelRolePort`（Cognitive Worker子系统）、`HumanTaskPort/HumanGateService`、Codex或其他模型adapter；
+- `RoleExecutionContract`、`CognitiveWorkerCapabilityReport`、`AIInvocationReceipt`和`ReviewIndependenceRecord`；
 - provider/工具表面层面的无工具强制；
 - 对现有 `trajectory.jsonl` 的 fail-closed 工具审计；
-- CandidateManifest/BareBaseline/CasePack/ExperimentPlan 导入；
+- CandidateManifest/BareBaseline/CasePack/ExperimentPlan、QuestionDraftVersion/QuestionRelease 导入；
 - D 盘 CAS 的 live→partial→seal；
 - 答案/holdout Vault；
 - Process/Proof/Leakage 三种盲化视图和 Judge；
 - RunAudit、contrast、EvidenceRecord；
 - RevisionProposal、prospective holdout、Promotion；
 - 自动出题、Selector、分类学迁移、Active Learning；
+- AuthoringBakeoff、WP-QA0 Offline Authoring Lab与WP-QA1 Question Admission；
 - 多 Tell 组合和跨 Epoch 持续学习；
 - Artifact GC、删除、清空队列或生产 pipe 回写。
 - 签名、WORM或外部DB anchoring；当前local receipt只保证Seven API下append-once。
+
+当前preflight只保留历史四类live capability槽位（DB、Safe Launch、No Tool、Answer Isolation），且live仍无条件BLOCK。387号完整P0另要求独立`HarnessCapabilityReport`（资源强制）与`CognitiveWorkerCapabilityReport`，合计至少六类；后两类当前均无完整Schema、生成器、semantic verifier或consumer。不能把Safe Launch当作Harness资源能力，也不能因旧四类报告存在就声称P3/P6可运行。
+
+凡经过人工Gate的lane还必须冻结HumanGate policy、授权actor roster、职责分离与签名验签readiness；这是六类机器/基础设施报告之外的人类治理前置，当前同样`NOT_IMPLEMENTED`。
+
+当前`seven.py capabilities`仍是v0.1 legacy枚举，尚未逐项列出TargetSolverPort、ModelRolePort、Human Gate、QuestionRelease、WP-QA0/QA1和Bakeoff；**机器列表中的沉默一律解释为NOT_IMPLEMENTED，绝不能解释为可用**。未来同步该代码会改变WP-1 Strict Contract绑定的实现树hash，必须在独立代码工作包中补测试并重发新报告，不能在本轮文档修订中偷改002物证。
 
 ## 为什么 live 模式必然 BLOCKED
 
@@ -80,4 +90,11 @@ Arango engine data directory没有使用专用D盘bind，但承载OrbStack overl
 5. Harness adapter：单次 canonical prompt、结构化 argv、`trajectory.jsonl` fail-closed 审计、能力报告。
 6. 物理答案 Vault 与三类最小权限 view。
 7. 只读 CandidateManifest exporter；不写生产 pipe。
-8. P2-P4 冻结对象导入后，再进入第一个单 Solver P5 工作包。
+8. 自然题走`P2A → 按需P2B → P3N → P3C`；生成题走`P3A → P3B admission-only bare → P3C`。P2B/P3B都只做problem-only准入；P2-P4冻结对象完成后，才进入第一个正式guided/control因果实验P5。
+9. 先实现`WP-CW0 Offline Cognitive Worker Runtime`：单一候选adapter、author/review角色、D盘file-backed Vault/receipt、串行/低并发和能力探针；不连DB/Redis/Devin，不实现Judge/solver pool。
+10. 单独实现`WP-HG0 Offline Human Task & Gate Runtime`：file-backed人工任务、actor身份、职责分离、签名GateDecision和HUMAN_PENDING；禁止ModelRole自批。
+11. 再运行`WP-QA0 Offline Authoring Lab`：一个人工批准的MechanismContract和CoverageCell、候选作者、statement-only对抗审稿、独立数学核验与人工QuestionRelease Gate；只写D盘artifact/Vault，不连DB/Redis、不启动Devin、不产生Tell结论。
+12. `WP-QA1 Question Admission`只有在QuestionRelease、Vault、D盘存储/空间、预算、`P3A/G-Q-RELEASE`及Database site、TargetSolverPort/Devin adapter、Harness资源、NoTool、SafeLaunch、AnswerIsolation、artifact seal/reconcile能力全部PASS后，才可执行canonical P3B problem-level bare并经P3C人工Gate冻结Case角色；它不等待完整P2/P3先PASS，file-only lab也不能冒充P3B。
+13. QA0通过后再做`WP-CW1 Production Cognitive Worker Expansion`，增加P3N/P6角色、judge pool、DB-backed lease/fence和reconcile；solver pool仍只归WP-2 TargetSolver。
+
+Codex/Responses中的`gpt-5.6-sol`高推理配置是WP-QA0的首选候选，不是已实现能力或已胜出的生产配置。requested/effective model、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration必须分别经过能力探针；随后用盲化AuthoringBakeoff决定载体。

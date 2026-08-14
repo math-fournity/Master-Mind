@@ -4,6 +4,14 @@
 
 ## 2026-08-14
 
+### 387/389号多模型执行架构：Devin目标Solver与认知Worker解耦
+
+- **触发**：用户确认做题继续由Devin CLI承载，同时指出Codex GPT-5.6高推理配置可能更适合正交出题，单纯集成Devin不足以支撑整个自动化管线。
+- **核心决策**：Devin只绑定`TargetSolverPort`并继续受`solver_harness + no-tool`硬约束；出题、数学核验、对抗审稿与Judge进入provider-neutral `ModelRolePort`（Cognitive Worker子系统），人工复核/人门另走`HumanTaskPort/HumanGateService`。`gpt-5.6-sol`只是首个待能力探针与盲化Bakeoff的候选载体，`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration分开记账。
+- **冻结链**：生成题拆为`P3A Authoring/G-Q-RELEASE → P3B problem-only Devin bare admission → P3C G-CASE-ROLE`，自然题走`P2A历史审计 → 按需P2B当前bare qualification → P3N review → P3C`；P2B/P3B都不属于P5因果实验。任意题面变化都必须新版本并使旧核验与bare失效。
+- **工程边界**：先规划WP-CW0/WP-HG0的file-backed离线纵切与WP-QA0，再做WP-QA1 Devin准入；P3N/P6、judge pool和分布式恢复延后到WP-CW1，solver pool始终归独立TargetSolver控制面。当前没有实现或运行这些端口或worker，没有连接DB/Redis，也没有产生Tell科学证据。
+- **修订文件**：387号、389号§16、Tell目录README、根/Seven AGENTS、Seven README与稳定docs。
+
 ### 389号Arango物理存储链路纠正：经OrbStack已落D盘
 
 - **触发**：用户纠正“Arango数据目录在D盘”的机器现状，要求同步相关文档认知。

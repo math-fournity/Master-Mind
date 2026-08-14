@@ -40,9 +40,12 @@ flowchart LR
     S["第六代 system：冻结 Tell/脉络 bundle（未来）"] --> C["Anti-corruption 适配器"]
     B --> D["Seven Control Plane"]
     C --> D
-    D --> E["无工具 Solver Pool"]
-    E --> F["D盘 Artifact CAS"]
-    F --> G["Process / Proof / Leakage 三审"]
+    D --> Q["CaseLab / QuestionRelease（未来）"]
+    Q --> W["Cognitive Worker Pools（未来）"]
+    Q --> E["Devin no-tool Solver Pool（未来）"]
+    W --> F["D盘 Artifact CAS / Vault"]
+    E --> F
+    F --> G["Process / Proof / Leakage 三审（未来）"]
     G --> H["RunAudit → randomized contrast"]
     H --> I["EvidenceRecord → 人工门 → Verdict"]
 ```
@@ -74,6 +77,28 @@ Solver 是叶子执行器，而不是系统管理员：
 
 题海系统当前的 3 秒启动间隔和历史 60 并发是有价值的站点经验，但不是跨模型永久常数。每个 Epoch 都在 RuntimeManifest 冻结实际并发、启动间隔和资源预算。
 
+### 认知 Worker 执行面
+
+Devin只绑定目标Solver，不绑定整条AI流水线。出题、数学核验、对抗审稿、Proof Judge及其他机器认知角色使用未来的provider-neutral `ModelRolePort`；“Cognitive Worker”是子系统/worker类别名，不是第二个Port。人工复核走`HumanTaskPort`，签名人门走不可被机器角色调用的`HumanGateService`。首个候选AI adapter可以是Codex，但角色合同不得写死provider。
+
+```text
+Role Router
+├── TargetSolverPort → DevinSolverAdapter → solver_harness
+├── ModelRolePort
+    ├── QuestionArchitectPort
+    ├── AdversarialEditorPort
+    ├── MathVerifierPort
+    └── ProofJudge/Auditor ports
+├── HumanTaskPort
+└── HumanGateService
+```
+
+每个角色作业必须冻结input view/hash、carrier/provider、requested model/effort/reasoning mode/orchestration、prompt/tool/network/sandbox/output-schema hash、预算、幂等与retry合同，并引用准许该精确profile的CapabilityReport。effective字段只能由运行后的append-only `AIInvocationReceipt`记录；收据还要保存脱敏请求ref/hash、provider response/thread ID、原始事件流ref/hash与Schema、工具事件、输入输出hash、output-schema及权限观察判定、usage/cost和终止原因。模型alias若不可固定，必须标`UNPINNED_ALIAS`；可重放的是证据谱系，不是假装能逐token复现。
+
+Codex/Responses中的`gpt-5.6-sol`高推理配置只是待检验的首选作者；模型、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration必须作为不同条件。进入生产前要用相同MechanismContract、CoverageCell和AuthoringBrief做盲化AuthoringBakeoff，比较数学正确、机制忠实、正交距离、捷径/泄漏、Devin bare准入、多样性和成本。Bakeoff只使用`authoring_calibration_only`题包；选定adapter后还要在未见brief上qualification，不能同一题包既选赢家又证明泛化。相同模型的新会话只记为context-independent，不能冒充model-independent。
+
+CaseLab有两条合法DAG：自然题走`P2A历史物证审计 → 按需P2B当前bare qualification → P3N Natural Case Review → P3C G-CASE-ROLE`；受控生成题走`P3A Authoring/G-Q-RELEASE → P3B generated bare admission → P3C G-CASE-ROLE`。P2B/P3B只运行problem-only Devin bare准入，不含Tell/Hint，不属于P5；P5仍是CasePack和ExperimentPlan冻结后的第一阶段正式guided/control因果实验。
+
 ### 审计执行面
 
 审计 Worker 可以使用工具，但权限相互隔离：
@@ -86,16 +111,20 @@ Solver 是叶子执行器，而不是系统管理员：
 
 三份报告分别 seal 后才允许组装 RunAudit。单次 RunAudit 只能陈述“发生了什么”；只有预注册 randomized contrast 才能形成 Tell 因果 EvidenceRecord。
 
+Case authoring同样采用最小视图：Architect完整输出进入Vault，只机械导出公开题面；Adversarial Editor只见题面；Math Verifier见题面与候选解但不见作者scratch、Tell或Devin结果；Devin只见QuestionRelease公开题面和arm允许的Hint。删除同一JSON里的答案字段、复用同一session或同一工作目录都不算物理隔离。
+
+未来至少分成`author_pool / review_pool / judge_pool / solver_pool`四个资源池，分别冻结并发、provider配额、token/费用、backlog、最大草稿/修订数和停止条件。禁止让高并发Solver预算成为所有认知Worker的全局常数。
+
 ## 单 Epoch 阶段
 
 | Phase | 目标 | v0.1.0 |
 |---|---|---|
-| P0 | 路径、DB、D盘、Vault、Harness、能力报告 preflight | 已实现静态只读检查 |
+| P0 | 路径、DB、D盘、Vault、Harness资源、NoTool、SafeLaunch、AnswerIsolation与认知Worker能力报告，以及HumanGate policy/actor roster/职责分离/readiness | 仅实现legacy dry-run静态边界；canonical至少六类live capability gate和额外HumanGate治理前置均未完成，真实DB/Vault等仍BLOCK |
 | P1 | Schema、幂等、冲突拒绝、恢复演练 | 仅实现单文件原语、append-only scaffold Gate/checkpoint/verdict与完整性seal；完整故障恢复矩阵未实现 |
-| P2 | CandidateManifest 与 problem-level bare 资格 | 未实现 |
-| P3 | CaseLab、数学核验、机制边界 | 未实现 |
+| P2 | P2A历史bare物证审计；物证不足时按需P2B当前problem-only资格重跑 | 未实现 |
+| P3 | 自然题P3N→P3C；生成题P3A release→P3B bare admission→P3C | 未实现 |
 | P4 | arms、contrast、资源、盲化、停止规则冻结 | 未实现 |
-| P5 | 等资源无工具 Solver 实验 | 未实现 |
+| P5 | CasePack/Plan冻结后的等资源无工具guided/control Solver因果实验 | 未实现；P3B admission-only bare不属于P5 |
 | P6 | Process/Proof/Leakage 三审 | 未实现 |
 | P7 | contrast EvidenceRecord | 未实现 |
 | P8 | 独立 NO_CHANGE 或受控 Revision | 未实现 |
@@ -141,6 +170,8 @@ at-least-once delivery + idempotent commit
 - 模型、代码、Schema 或 manifest 漂移；
 - 用户明确停止。
 
+认知Worker还须在模型/effort/orchestration未按请求生效、工具策略越界、角色view泄漏、最大草稿/修订数用尽或作者/审稿独立性不满足时停止；不得fallback到当前交互会话继续手工生成。
+
 当前 P0/P1 的停止条件更窄：preflight BLOCK、内容冲突或 dry-run 验证结束。
 
 ## 与 388 号分类学吸收结论的接口
@@ -154,10 +185,11 @@ at-least-once delivery + idempotent commit
 
 这保证未来能接入多观察视图、Tell-Hint M:N 和分类学版本，而不在首版自动生成或修改它们。opaque hash 不是“功能已经实现”。
 
-## 读完应记住的五句话
+## 读完应记住的六句话
 
 1. 题海系统发现失败，Seven System 证明或反驳非特化因果主张。
 2. 第六代 `system/` 是外部 producer，不能成为 Seven 的内部可变依赖。
 3. Solver 无工具是能力契约；Prompt 约束本身不是能力证明。
-4. 大对象在 D 盘；Seven复用`xishujuzhen_math_glm52`但只用`seven_*_v1`命名空间，DB存身份、索引、事件和引用，Redis只做可重建投影。
-5. v0.1.0 只到 P1；任何科学 Tell 结论都是 `NOT_TESTED`。
+4. Devin只承载目标Solver；出题、核验和Judge走可替换认知Worker，Codex只是待Bakeoff的首选候选。
+5. 大对象在 D 盘；Seven复用`xishujuzhen_math_glm52`但只用`seven_*_v1`命名空间，DB存身份、索引、事件和引用，Redis只做可重建投影。
+6. v0.1.0 只到 P1；任何模型调用、QuestionRelease或科学 Tell 结论都是 `NOT_IMPLEMENTED/NOT_TESTED`。

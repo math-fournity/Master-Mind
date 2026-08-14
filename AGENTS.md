@@ -297,13 +297,15 @@ AI数学系统运行时有两条Pipe：
 
 1. Devin Solver仍只能经`xishujuzhen/solver_harness/solver_harness.py launch`；
 2. Solver必须无工具；Prompt写“不要用工具”不等于能力PASS，缺独立NoTool能力报告时live运行必须BLOCK；
-3. DB访问仍须先确认`ARANGO_DB=xishujuzhen_math_glm52`，禁止默认库和直接raw client；
-4. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据或retry until solved；
-5. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
+3. Devin只绑定**目标Solver**角色；出题、数学核验、对抗审稿和Judge必须经未来provider-neutral `ModelRolePort`（Cognitive Worker是子系统名），不得塞入`solver_harness`或暗中直接调用某个CLI；人工复核/人门另走`HumanTaskPort/HumanGateService`；
+4. Codex/Responses中的`gpt-5.6-sol`高推理配置只是首选出题候选，必须分别探测模型、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration并通过盲化AuthoringBakeoff；同模型新会话只能算上下文独立，不能冒充异模型审查；
+5. DB访问仍须先确认`ARANGO_DB=xishujuzhen_math_glm52`，禁止默认库和直接raw client；
+6. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据、retry until solved或authoring retry until Devin fails；
+7. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
 
-**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_v1`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine字节已经经OrbStack image由D盘承载（`A-WP1-D=PASS`，evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），但仍在容器writable layer而非专用host bind（`A-WP1-BIND=WARNING_NOT_DEDICATED`）。不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_v1`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine字节已经经OrbStack image由D盘承载（`A-WP1-D=PASS`，evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），但仍在容器writable layer而非专用host bind（`A-WP1-BIND=WARNING_NOT_DEDICATED`）。`TargetSolverPort`、`ModelRolePort`（Cognitive Worker子系统）、Codex adapter、QuestionRelease管线和AuthoringBakeoff也都尚未实现或运行；当前不连接DB/Redis、不启动Solver、不调用远程认知Worker。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
 
-**最新数据库决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14-15。§14替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论；§15进一步纠正“OrbStack overlay即未落D盘”的不完整宿主存储判断。
+**最新工程决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14-16。§14替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论；§15纠正“OrbStack overlay即未落D盘”的不完整宿主存储判断；§16冻结“Devin目标Solver + provider-neutral认知Worker”的多模型执行边界。
 
 ---
 
@@ -1130,12 +1132,12 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 
 **第二层：管线验证（7个）**
 - [ ] **POC-VMS-14**：脉络分析管线——步骤1-4完整管线端到端运行（依赖VMS-11+VMS-12）
-- [ ] **POC-VMS-15**：并发Telling AI——多个Devin CLI实例并发做trace→tell匹配（依赖VMS-13）+分区粒度验证
+- [ ] **POC-VMS-15（历史载体方案）**：并发Telling AI——311号原案使用多个Devin CLI实例做trace→tell匹配（依赖VMS-13）+分区粒度验证；现行实现若进入Seven/第六代系统，Telling角色必须由provider-neutral `ModelRolePort`选择载体，不再把Devin写成角色本体
 - [ ] **POC-VMS-16**：Parser AI——从外部解答记录识别新(tell,hint)（依赖VMS-14）+两个输入机制验证
 - [ ] **POC-VMS-21**：分类维度结构验证——四层层次结构vs正交维度（依赖VMS-13，313号§4.1）
 - [ ] **POC-VMS-22**：FCA角色验证——用FCA定义分类体系vs用FCA验证完备性（依赖VMS-13+21，313号§4.3）
 - [ ] **POC-VMS-23**：非局部tell库补充——重新分析现有455个profile（依赖VMS-11，314号§2.1）
-- [ ] **POC-VMS-25**：Tell存储方案——目录AGENTS.md+Devin CLI启动+可审计遍历（依赖VMS-13+21，315号§4.1）
+- [ ] **POC-VMS-25（历史载体方案）**：Tell存储方案——目录AGENTS.md+可审计遍历（315号原案以Devin CLI启动，依赖VMS-13+21）；现行认知角色启动必须改由`ModelRolePort`路由
 
 **第三层：系统验证（4个）**
 - [ ] **POC-VMS-17**：端到端工作流——完整7阶段循环（依赖VMS-14+VMS-15）
@@ -1191,7 +1193,7 @@ tell的固有属性（形式背景的属性维度——tell本身的特点，不
 - **结构知识**（在分类学Schema/解释库中）：domain定义、段结构模式定义、子模式定义（如"同构之桥"是"跨域桥接"的子模式）、高Level概念的三种解释文本——这些是分类学的"坐标轴"
 - **内容知识**（在tell库/hint库中）：具体tell条目、具体hint条目，每个条目有{domain, 段结构模式}属性——这些是分类学中的"点"
 
-**高Level概念的存储和使用方式（338号）**：高Level部分和低Level部分一样放入AGENTS.md目录，有专门的devin cli从中启动进行识别。区别在描述方式——高Level部分要"说清楚"+带例子，不能只是一句抽象的话。详见技术说明书`04-概念树/07-高Level概念解释库.md`。
+**高Level概念的存储和使用方式（338号，载体口径已更新）**：高Level部分和低Level部分一样放入可审计分类目录，由专门的认知角色从中读取并识别。338号原案写作“专门的devin cli”，现只保留为历史adapter示例；现行物理载体必须由provider-neutral `ModelRolePort`选择。区别在描述方式——高Level部分要"说清楚"+带例子，不能只是一句抽象的话。详见技术说明书`04-概念树/07-高Level概念解释库.md`。
 
 **高Level概念的两种类型（340号）**：
 - **第一种（可展开的）**——如构造-分析-排除、累积-收敛、探索-诊断-修复、归约策略：概念本身定义了展开维度（过程的阶段），可以预先降低Level为具体形式列表。组合爆炸可控，覆盖缺口有限。
