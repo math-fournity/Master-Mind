@@ -222,11 +222,15 @@ def _make_valid_decision(
     payload_hash: str | None = None,
     issued_at: str = "2026-08-14T12:00:00Z",
     expires_at: str = "2026-08-15T12:00:00Z",
-    verification_status: str = "VERIFIED",
+    verification_status: str | None = "VERIFIED",
 ) -> dict:
-    """构建一个结构合法的 GateDecision dict。"""
+    """构建一个结构合法的 GateDecision dict。
+
+    P0-B 深度补全：verification_status 不能通过 build_gate_decision_dict 传入，
+    构建后手动设置。
+    """
     ph = payload_hash or _ZERO_HASH
-    return build_gate_decision_dict(
+    dec = build_gate_decision_dict(
         decision_id=decision_id,
         task_id=task_id,
         gate_type=gate_type,
@@ -243,8 +247,12 @@ def _make_valid_decision(
         signer_principal_id=actor_id,
         signature_b64=_SIG_B64,
         separation_evidence_refs=["sep-evidence-001"],
-        verification_status=verification_status,
     )
+    if verification_status is not None:
+        from seven_system.human.gate_decision import _compute_decision_hash
+        dec["verification_status"] = verification_status
+        dec["decision_hash"] = _compute_decision_hash(dec)
+    return dec
 
 
 def _create_task_for_decision(

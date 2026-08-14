@@ -181,7 +181,7 @@ def _compute_signed_bytes(signed_object: dict[str, Any], signature_domain: bytes
 
     unsigned_object = signed_object 移除 signature_envelope.signature_b64、
     signature_envelope.signed_bytes_hash、顶层 signed_bytes_hash、
-    顶层 decision_hash（或对应自引用 hash）、顶层 verification_status。
+    顶层自引用 hash（decision_hash 或 self_hash）、顶层 verification_status。
 
     注意：字段设为 None（不是 pop），与 gate_decision._compute_signed_bytes_hash 一致，
     确保 canonical_json 中字段顺序和值完全一致。
@@ -193,7 +193,11 @@ def _compute_signed_bytes(signed_object: dict[str, Any], signature_domain: bytes
     unsigned["signature_envelope"] = envelope
     # 设为 None（与 gate_decision 一致，不是 pop）
     unsigned["signed_bytes_hash"] = None
-    unsigned["decision_hash"] = None
+    # 支持不同对象类型的自引用 hash 字段
+    if "decision_hash" in unsigned:
+        unsigned["decision_hash"] = None
+    if "self_hash" in unsigned:
+        unsigned["self_hash"] = None
     unsigned["verification_status"] = None
 
     payload_bytes = canonical_json_bytes(unsigned)

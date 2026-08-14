@@ -78,8 +78,10 @@ class TestCrossLayerAttackVectors(unittest.TestCase):
             nonce="abcdefgh12345678", issued_at="2026-08-14T10:00:00Z",
             expires_at="2026-08-14T20:00:00Z", key_id="key-001",
             signer_principal_id="a-001", signature_b64="A" * 86 + "==",
-            verification_status="VERIFIED",
         )
+        dec["verification_status"] = "VERIFIED"
+        from seven_system.human.gate_decision import _compute_decision_hash
+        dec["decision_hash"] = _compute_decision_hash(dec)
         unsigned = dict(dec)
         env = dict(unsigned["signature_envelope"])
         env["signature_b64"] = None
@@ -329,7 +331,7 @@ class TestCrossLayerAttackVectors(unittest.TestCase):
     # ─── 13. HUMAN_PENDING+APPROVE 旁路 ───
     def test_13_human_pending_approve_bypass(self):
         """HUMAN_PENDING + APPROVE 不能通过验证。"""
-        from seven_system.human.gate_decision import build_gate_decision_dict, verify_gate_decision
+        from seven_system.human.gate_decision import build_gate_decision_dict, verify_gate_decision, _compute_decision_hash
         dec = build_gate_decision_dict(
             decision_id="dec-001", task_id="task-001", gate_type="G-Q-RELEASE",
             payload_ref="p.json", payload_hash="0" * 64, actor_id="a-001",
@@ -337,8 +339,9 @@ class TestCrossLayerAttackVectors(unittest.TestCase):
             nonce="abcdefgh12345678", issued_at="2026-08-14T10:00:00Z",
             expires_at="2026-08-14T20:00:00Z", key_id="key-001",
             signer_principal_id="a-001", signature_b64="A" * 86 + "==",
-            verification_status="HUMAN_PENDING",
         )
+        dec["verification_status"] = "HUMAN_PENDING"
+        dec["decision_hash"] = _compute_decision_hash(dec)
         result = verify_gate_decision(dec, public_key_bytes=b"\x00" * 32)
         self.assertEqual(result.verdict, "FAIL")
         self.assertIn(EC.GATE_VERIFICATION_STATUS_INVALID, result.error_codes)

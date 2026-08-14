@@ -378,12 +378,21 @@ def build_gate_decision_dict(
     signer_principal_id: str,
     signature_b64: str,
     separation_evidence_refs: list[str] | None = None,
-    verification_status: str = "HUMAN_PENDING",
+    verification_status: str | None = None,
 ) -> dict[str, Any]:
     """构建一个完整的 GateDecision dict，自动计算 signed_bytes_hash 和 decision_hash。
 
-    辅助函数：调用方提供签名结果（signature_b64），本函数计算所有 hash。
+    P0-B 深度补全：verification_status 不能由调用者传入。
+    - 构建时 verification_status = None（未验证状态）
+    - 必须通过 verify_and_stamp_gate_decision 由 verifier 生成 verification_status
+    - 调用者不能自由设置 verification_status（传非 None 值会被拒绝）
     """
+    if verification_status is not None:
+        raise ValueError(
+            "verification_status cannot be set by caller — "
+            "use verify_and_stamp_gate_decision to have the verifier generate it"
+        )
+
     envelope = {
         "algorithm": "Ed25519",
         "key_id": key_id,
@@ -415,7 +424,7 @@ def build_gate_decision_dict(
         "signed_bytes_hash": None,
         "signature_envelope": envelope,
         "separation_evidence_refs": list(separation_evidence_refs or []),
-        "verification_status": verification_status,
+        "verification_status": None,  # 由 verifier 生成
         "decision_hash_algorithm": HUMAN_GATE_HASH_ALGORITHM,
         "decision_hash": None,
     }
@@ -429,3 +438,39 @@ def build_gate_decision_dict(
     dec["decision_hash"] = _compute_decision_hash(dec)
 
     return dec
+
+
+def verify_and_stamp_gate_decision(
+    decision: dict[str, Any],
+    *,
+    public_key_bytes: bytes,
+) -> tuple[dict[str, Any], "SignatureVerificationReceipt"]:
+    """验证签名并盖印 verification_status。
+
+    P0-B 深度补全：verification_status 由 verifier 生成，不能由调用者传入。
+
+    流程：
+    1. 用 SignatureVerifierPort 执行真实 Ed25519 验签
+    2. 验签通过 → verification_status = "VERIFIED"
+    3. 验签失败 → verification_status = "SIGNATURE_FAILED"
+    4. 重算 decision_hash（因为 verification_status 变了）
+    5. 返回盖印后的 decision + receipt
+    """
+    from .signature_verifier import verify_signature, SignatureVerificationReceipt
+
+    receipt = verify_signature(
+        signed_object=decision,
+        public_key_bytes=public_key_bytes,
+        signature_domain=HUMAN_GATE_SIGNATURE_DOMAIN.encode("utf-8"),
+    )
+
+    stamped = dict(decision)
+    if receipt.verified:
+        stamped["verification_status"] = "VERIFIED"
+    else:
+        stamped["verification_status"] = "SIGNATURE_FAILED"
+
+    # 重算 decision_hash（verification_status 变了）
+    stamped["decision_hash"] = _compute_decision_hash(stamped)
+
+    return stamped, receipt

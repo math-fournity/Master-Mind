@@ -979,7 +979,7 @@ GATE_DECISIONS: frozenset[str] = frozenset(
 
 # Gate verification status 枚举
 GATE_VERIFICATION_STATUSES: frozenset[str] = frozenset(
-    {"HUMAN_PENDING", "VERIFIED", "BLOCKED", "QUARANTINED"}
+    {"HUMAN_PENDING", "VERIFIED", "BLOCKED", "QUARANTINED", "SIGNATURE_FAILED", "UNVERIFIED"}
 )
 
 # Key lifecycle 状态枚举
