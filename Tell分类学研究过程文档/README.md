@@ -67,6 +67,7 @@
 | 383 | `383-v0-2026-08-12-TellV3-POC1-因果取商-TellCore字段消融与最小充分字段集.md` | POC-1因果取商分析稿；对TellCore v0候选C的12字段逐项消融；最小充分字段集7个（invariant_claim/trigger_boundary/negative_boundary/parameter_slots/internal_policy step2-5/progress_model/termination），重要补充5个（binding_rules/step1+step6/critic/composition_contract/target_structure），元数据2个；7项通过标准全部PASS（3项有条件）；关键发现：1962的失败指向internal_policy的必要性（方向vs操作路径），2/5假朋友需要critic协同拒绝，TellCore不泄漏具体lemma；EvidenceRecord和后续POC要求 |
 | 385 | `dev-docs/385-v0-2026-08-12-TellV3六门审计POC-工作交接文档.md` | 自包含工作交接文档；POC-0和POC-1已完成，TellCore v0候选C采纳，最小充分字段集7个字段；下一步selector规则设计或HintRenderer模板设计；含完整阅读顺序、已完成成果摘要、TellCore v0最小充分字段集全文、执行顺序建议和工作规范 |
 | 386 | `386-v0-2026-08-13-正交出题文档索引-从已有bare失败题派生正交新题.md` | 正交出题文档索引；汇总项目历史中与"正交出题"（新题与原题题面正交但共享深层命题机制）相关的25份文档，分7个梯队；**第零梯队**：277→278→280→283号完整文档链（用户"99%"原话→操作化设计→静态hint失败→脉络继承+方向注入成功，bare 0%→tree 67%）；**第2.6节**：381号索引文档中语义分析新发现的8份文档（373号结构保持变形题/假朋友题/边界题系统化分类、350号保留思维力结构+改变表面特征+迁移性检验、348号"99%不相似但有1%共同点"交叉验证、371号案例包结构、365号换皮换领域变体方向、288/289号假朋友题和边界题的实验验证、351号出题约束）；**第6节**：正交出题与非特化（Tell,Hint）的关系——正交出题是非特化的关键验证方法，对应六门审计中的"可选择"和"可执行"两门，是"结构保持变换"的极端形式；提炼正交出题方法论骨架（设障脚本→Level 3-4机制→同构之桥→降Level落题→加锁→bare预注册）；明确正交程度谱系（Level 0-5，推荐Level 3-4）和与TellV3六门审计的衔接 |
+| 387 | `387-v0-2026-08-13-非特化证据工厂-持续POC与高维正交验证系统设计.md` | 持续设计稿；将海量真实bare失败、TellV3六门审计和高维正交出题合为独立“非特化证据工厂”；冻结首条golden slice为“局部—全局表示切换”，采用自动生产/门控晋级；校准277→283历史证据强度和token重启混杂；定义CandidateManifest、BareBaseline、CasePack、ExperimentPlan、EvidenceRecord、RevisionProposal及可恢复状态机；总体架构与数据模型已批准，实验矩阵、分类学覆盖、审计学习和运行验收待逐节确认 |
 
 ### 思想链条
 
@@ -108,6 +109,8 @@
 385: 工作交接文档（自包含）——POC-0和POC-1完成，下一步selector设计或HintRenderer设计
   ↓
 386: 正交出题文档索引——汇总17份"正交出题"相关文档（含277→278→280→283号完整文档链：用户"99%"原话→操作化设计→静态hint失败→脉络继承+方向注入成功），提炼方法论骨架，衔接TellV3六门审计
+  ↓
+387: 非特化证据工厂——把真实bare失败池、TellV3、正交题包、因果实验、EvidenceRecord与反例修订连接为长期闭环；首条golden slice采用局部—全局表示切换
 ```
 
 ---
