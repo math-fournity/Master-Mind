@@ -103,7 +103,7 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 ## 完整实现文档状态
 
-2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力。
+2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`。R1整改后 WP-DOC0 IN_PROGRESS（doc checker source hash/clauses/remainder漂移已修复，待干净subject上重新验证生成新receipt）；此前曾标为`READY_FOR_AUDIT`，但审计确认doc checker FAIL时不应保持该状态。不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力。
 
 **R0 整改后状态（2026-08-14）**：审计确认 WP-GV0 状态为 `IMPLEMENTED_PENDING_EVIDENCE`（不是 `READY_FOR_AUDIT`），且发现三个 P0 Gate 旁路（CompletionContractVerifier 未执行完整 Schema、HumanGate 无真实 Ed25519 验签、DB1I 授权链可绕过）。WP-VLT0 到 WP-OP1 共 22 个包曾被越级标为 `IMPLEMENTED_PENDING_EVIDENCE`，但 development dependency 未满足（GV0 未到 READY_FOR_AUDIT），现已纠正回 `NOT_STARTED`；既有代码视为 `existing unqualified implementation input`，须新 remediation attempt 重新资格化。其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
 
@@ -156,7 +156,7 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 ### 继承的审计债
 
-- WP-DOC0 的 `READY_FOR_AUDIT` 审计债由 GV0 development 继承
+- WP-DOC0 的 `IN_PROGRESS` 审计债由 GV0 development 继承（DOC0 曾标为 READY_FOR_AUDIT，R1 整改后回到 IN_PROGRESS）
 - 规范审查记录（`normative_requirement_review_record`）尚未生成——640 条条款全部 pending semantic review，`consumer_policy.requires_independent_review_record_before_non_doc0_plan=true`。这是 GV0 WorkPackagePlan schema-valid 的硬阻塞
 - GV0 的 `IMPLEMENTED_PENDING_EVIDENCE` 不等于 `READY_FOR_AUDIT`，更不等于 `AUDITED_PASS`——需独立审计者按四轴 verdict 审计
 - D-volume self-hosted bundle 未生成——需 repo 外 owner 签发 EEA/LiveRunPermit/AuthorizationConsumptionReceipt(RESERVED)
