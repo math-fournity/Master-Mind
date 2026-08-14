@@ -29,7 +29,7 @@
 | WP-EX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | 代码+测试完成（93 EX1测试 PASS），ExperimentPlan/ResourceContract/BranchSnapshot/RandomizationPlan/7-arm/P5Runner/RunArtifactBundle；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-AU1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EX1、WP-CW1 | WP-EX1、WP-CW1、WP-VLT0、WP-HG0 | 代码+测试完成（114 AU1测试 PASS，commit 1c5817f），BlindingBroker/ProcessAudit/ProofJudgment/LeakageAudit/RunAudit/AuditLaneStatus/CausalEligibility/DisagreementResolution；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-EV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-AU1 | WP-AU1 | 代码+测试完成（98 EV1测试 PASS，commit 76cad0b），EvidenceRecord/ContrastAggregator/4个Registry/MissingnessReport/CostDimension/EvidenceSeal；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-RV1 | `NOT_STARTED` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | P8 NO_CHANGE/Revision |
+| WP-RV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | 代码+测试完成（113 RV1测试 PASS，commit f438396），ProvenanceSnapshot/FailureLocalization/NoChangeDecision/RevisionProposal/HoldoutConsumption/CandidateRelease/ProspectiveEvaluation/RevisionPolicy/EvidenceImmutability；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-VR1 | `NOT_STARTED` | WP-RV1 | WP-RV1 | P9 Verdict/Replay |
 | WP-GA1 | `NOT_STARTED` | WP-VR1 | WP-VR1 | owner=`AUDITOR`；等待repo外AuditAssignment，实施者不得推进 |
 | WP-OP1 | `NOT_STARTED` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | 候选代码可在VR1后开发；真实规模化须GA1审计通过 |
