@@ -588,6 +588,39 @@ class VerificationErrorCode(str, Enum):
     EX_OUTPUT_KIND_FORBIDDEN = "EX_OUTPUT_KIND_FORBIDDEN"
     EX_CAPABILITY_HASH_MISMATCH = "EX_CAPABILITY_HASH_MISMATCH"
 
+    # WP-AU1 P6 Independent Audits — blinding / three-audit / seal / lane / causal
+    AU_ARM_LEAKED_INTO_VIEW = "AU_ARM_LEAKED_INTO_VIEW"
+    AU_JUDGE_CONCLUSION_CROSS_READ = "AU_JUDGE_CONCLUSION_CROSS_READ"
+    AU_RESTATE_AS_ACTION = "AU_RESTATE_AS_ACTION"
+    AU_DISAGREEMENT_AUTO_RESOLVED = "AU_DISAGREEMENT_AUTO_RESOLVED"
+    AU_MISSING_NOT_TERMINAL = "AU_MISSING_NOT_TERMINAL"
+    AU_CONTAMINATION_NOT_FLAGGED = "AU_CONTAMINATION_NOT_FLAGGED"
+    AU_AUDIT_NOT_SEALED_SEPARATELY = "AU_AUDIT_NOT_SEALED_SEPARATELY"
+    AU_PROCESS_ONLY_IN_RESULT_LAYER = "AU_PROCESS_ONLY_IN_RESULT_LAYER"
+    AU_VIEW_HASH_MISMATCH = "AU_VIEW_HASH_MISMATCH"
+    AU_AUDIT_PLAN_NOT_FROZEN = "AU_AUDIT_PLAN_NOT_FROZEN"
+    AU_AUDIT_PLAN_MODIFIED = "AU_AUDIT_PLAN_MODIFIED"
+    AU_BLINDING_INVALID = "AU_BLINDING_INVALID"
+    AU_SEAL_HASH_MISMATCH = "AU_SEAL_HASH_MISMATCH"
+    AU_RUN_AUDIT_INCOMPLETE = "AU_RUN_AUDIT_INCOMPLETE"
+    AU_LANE_STATUS_INVALID = "AU_LANE_STATUS_INVALID"
+    AU_CAUSAL_ELIGIBILITY_INVALID = "AU_CAUSAL_ELIGIBILITY_INVALID"
+    AU_INDEPENDENCE_VIOLATED = "AU_INDEPENDENCE_VIOLATED"
+    AU_AUDIT_ROLE_UNKNOWN = "AU_AUDIT_ROLE_UNKNOWN"
+    AU_AUDIT_REF_MISSING = "AU_AUDIT_REF_MISSING"
+    AU_AUDIT_PLAN_REF_MISSING = "AU_AUDIT_PLAN_REF_MISSING"
+    AU_BUNDLE_REF_MISSING = "AU_BUNDLE_REF_MISSING"
+    AU_VIEW_REF_MISSING = "AU_VIEW_REF_MISSING"
+    AU_LANE_TRANSITION_INVALID = "AU_LANE_TRANSITION_INVALID"
+    AU_CAUSAL_TRANSITION_INVALID = "AU_CAUSAL_TRANSITION_INVALID"
+    AU_RUN_AUDIT_STATE_INVALID = "AU_RUN_AUDIT_STATE_INVALID"
+    AU_OUTPUT_KIND_FORBIDDEN = "AU_OUTPUT_KIND_FORBIDDEN"
+    AU_CAPABILITY_HASH_MISMATCH = "AU_CAPABILITY_HASH_MISMATCH"
+    AU_DISAGREEMENT_NOT_RECORDED = "AU_DISAGREEMENT_NOT_RECORDED"
+    AU_OBSERVATION_NOT_FACT = "AU_OBSERVATION_NOT_FACT"
+    AU_LEAKAGE_BUDGET_EXCEEDED = "AU_LEAKAGE_BUDGET_EXCEEDED"
+    AU_BLIND_BREACH = "AU_BLIND_BREACH"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -2154,5 +2187,192 @@ EX_NONCLAIMS: tuple[str, ...] = (
     "does_not_write_db_or_redis",
     "does_not_authorize_live_canary_or_solver_dispatch",
     "does_not_produce_confirmatory_evidence",
+    "status_implemented_pending_evidence",
+)
+
+
+# ─── WP-AU1 P6 Independent Audits 常量 ──────────────────────────────────
+
+# P6 独立三审角色（与 CW_P6_ROLES 对齐，AU1 自有别名用于审计计划冻结）
+AU_AUDIT_ROLES: frozenset[str] = frozenset(
+    {"process_auditor", "proof_judge", "leakage_auditor"}
+)
+
+# 单 lane 终端状态枚举（来自 14-evidence-analysis-and-multi-epoch.md）
+# 优先级固定为 CONTAMINATED > INVALID_PROTOCOL > JUDGE_DISAGREEMENT/MISSING/INCONCLUSIVE > VALID
+AU_LANE_STATUSES: frozenset[str] = frozenset(
+    {
+        "VALID",
+        "INVALID_PROTOCOL",
+        "INCONCLUSIVE",
+        "MISSING",
+        "JUDGE_DISAGREEMENT",
+        "CONTAMINATED",
+    }
+)
+
+# lane 状态优先级（数值越大优先级越高；有利 lane 不能平均掉更高优先级的无效状态）
+AU_LANE_PRIORITY: dict[str, int] = {
+    "VALID": 0,
+    "INCONCLUSIVE": 1,
+    "MISSING": 1,
+    "JUDGE_DISAGREEMENT": 1,
+    "INVALID_PROTOCOL": 2,
+    "CONTAMINATED": 3,
+}
+
+# lane 终端状态——所有 AU_LANE_STATUSES 均为合法 terminal
+AU_LANE_TERMINAL_STATUSES: frozenset[str] = frozenset(AU_LANE_STATUSES)
+
+# lane 合法转换：初始 → 终端；terminal 不可再转换（除 audit_retry 保留原 attempt）
+# MISSING/INVALID_PROTOCOL/CONTAMINATED 不能被填成负结果
+AU_LANE_TRANSITIONS: dict[str, frozenset[str]] = {
+    "PENDING": frozenset(AU_LANE_STATUSES),
+    # terminal 状态不可再转换（空集表示无合法后继）
+    "VALID": frozenset(),
+    "INVALID_PROTOCOL": frozenset(),
+    "INCONCLUSIVE": frozenset(),
+    "MISSING": frozenset(),
+    "JUDGE_DISAGREEMENT": frozenset(),
+    "CONTAMINATED": frozenset(),
+}
+
+# RunAudit 因果资格枚举（来自 14-evidence-analysis-and-multi-epoch.md）
+AU_CAUSAL_ELIGIBILITY_STATUSES: frozenset[str] = frozenset(
+    {
+        "ELIGIBLE",
+        "PROCESS_ONLY",
+        "RESULT_ONLY",
+        "CONTAMINATED",
+        "INVALID",
+        "INCONCLUSIVE",
+    }
+)
+
+# 因果资格转换：初始 PENDING → 六种终态之一；终态不可再转换
+AU_CAUSAL_ELIGIBILITY_TRANSITIONS: dict[str, frozenset[str]] = {
+    "PENDING": frozenset(AU_CAUSAL_ELIGIBILITY_STATUSES),
+    "ELIGIBLE": frozenset(),
+    "PROCESS_ONLY": frozenset(),
+    "RESULT_ONLY": frozenset(),
+    "CONTAMINATED": frozenset(),
+    "INVALID": frozenset(),
+    "INCONCLUSIVE": frozenset(),
+}
+
+# RunAudit 组装状态枚举
+AU_RUN_AUDIT_STATES: frozenset[str] = frozenset(
+    {
+        "PENDING",      # 三审未齐
+        "ASSEMBLED",    # 三审已 seal 并组装
+        "INCOMPLETE",   # 缺失审计且未记为 MISSING terminal
+    }
+)
+
+# AU1 允许的输出对象种类
+AU_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "AuditPlan",
+        "BlindedView",
+        "ProcessAudit",
+        "ProofJudgment",
+        "LeakageAudit",
+        "RunAudit",
+        "AuditCapabilityReport",
+    }
+)
+
+# AU1 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+AU_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+        "EvidenceRecord",
+        "ConfirmatoryEvidenceRecord",
+        "P5ClaimRecord",
+        "ExperimentPlan",
+        "RunArtifactBundle",
+        "RedisProjection",
+        "TargetSolverRunArtifact",
+        "SolverDispatchReceipt",
+    }
+)
+
+# Blinding view 种类——三个审计各一个独立 view
+AU_VIEW_KINDS: frozenset[str] = frozenset(
+    {
+        "process_auditor_view",
+        "proof_judge_view",
+        "leakage_auditor_view",
+    }
+)
+
+# AU1 能力报告 side-effect 键（必须全为 0）
+AU_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# AU1 能力报告 check IDs
+AU_CHECK_IDS: tuple[str, ...] = (
+    "au1.plan.frozen_before_audit",
+    "au1.plan.immutable_after_freeze",
+    "au1.broker.three_views_generated",
+    "au1.broker.arm_identity_not_leaked",
+    "au1.audit.process_sealed_separately",
+    "au1.audit.proof_sealed_separately",
+    "au1.audit.leakage_sealed_separately",
+    "au1.audit.judge_no_cross_read",
+    "au1.audit.restate_not_counted_as_action",
+    "au1.audit.single_episode_observed_facts_only",
+    "au1.runaudit.assembled_from_three_sealed",
+    "au1.runaudit.seal_hash_verified",
+    "au1.lane.terminal_states_legal",
+    "au1.lane.missing_recorded_as_terminal",
+    "au1.lane.contamination_flagged",
+    "au1.disagreement.not_auto_resolved",
+    "au1.disagreement.recorded_not_silently_resolved",
+    "au1.causal.mechanically_derived_from_lanes",
+    "au1.causal.process_only_excluded_from_result_layer",
+    "au1.boundary_no_other_wp_reports",
+)
+
+# AU1 claims
+AU_CLAIMS: tuple[str, ...] = (
+    "audit_plan_frozen_before_audit",
+    "audit_plan_immutable_after_freeze",
+    "blinding_broker_generates_three_views",
+    "arm_identity_not_leaked_into_views",
+    "three_audits_sealed_separately",
+    "judge_cannot_read_other_judge_conclusion",
+    "restate_not_counted_as_action",
+    "single_episode_states_observed_facts_only",
+    "runaudit_assembled_from_three_sealed_audits",
+    "seal_hash_verified_on_assembly",
+    "lane_terminal_states_legal",
+    "missing_audit_recorded_as_missing_terminal",
+    "contamination_flagged_not_filled_as_negative",
+    "disagreement_not_auto_resolved_by_aggregator",
+    "disagreement_recorded_not_silently_resolved",
+    "causal_eligibility_mechanically_derived_from_lanes",
+    "process_only_excluded_from_result_layer",
+    "does_not_produce_other_wp_reports",
+)
+
+# AU1 explicit nonclaims
+AU_NONCLAIMS: tuple[str, ...] = (
+    "does_not_prove_live_solver_capability",
+    "does_not_prove_live_model_capability",
+    "does_not_launch_real_solver",
+    "does_not_write_db_or_redis",
+    "does_not_authorize_live_canary_or_solver_dispatch",
+    "does_not_produce_confirmatory_evidence",
+    "does_not_prove_tell_causal_evidence",
     "status_implemented_pending_evidence",
 )
