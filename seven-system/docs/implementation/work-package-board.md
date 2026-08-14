@@ -18,7 +18,7 @@
 | WP-QA0 | `NOT_STARTED` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | 受控双载体出题纵切与Bakeoff-A（无Target Solver/bare） |
 | WP-DB1L | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0、WP-HG0 | 代码+测试完成（62 DB1L测试 PASS），逻辑站点v2只读report/verifier，零写入收据；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-DB1I | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1L、WP-HG0、WP-VLT0 | WP-DB1L、WP-HG0、WP-VLT0 | 代码+测试完成（53 DB1I测试 PASS），SchemaBootstrapPlan+fenced apply/verify/resume+DVolumeLedger backend+SchemaStateReport/Receipt/ImportAnchor；自托管Bundle BLOCKED |
-| WP-RT1 | `NOT_STARTED` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 只交付Runtime/Reconcile能力与checkpoint |
+| WP-RT1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 代码+测试完成（113 RT1测试 PASS，commit 47bdf49），WorkEvent/LeaseFence/Outbox/CommitIntent/DBReservationBackend/RuntimeReconciler/RedisProjection/Checkpoint；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-SV1 | `NOT_STARTED` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | TargetSolver与NoTool Harness |
 | WP-IN1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（34 IN1测试 PASS），只读CandidateManifest exporter + duplicate lineage；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-TX1 | `NOT_STARTED` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | Taxonomy/Tell Registry与版本谱系 |
