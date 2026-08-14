@@ -2509,20 +2509,41 @@ ArangoDB (2.4M题) → Feeder → Redis pending队列
 
 ### 启动流程
 
+**一键启动（推荐）**：
+
 ```bash
 cd ~/master-mind-glm5.2-worktree
 
-# 前置检查
-docker ps | grep redis          # Redis容器
-curl -s http://localhost:8529/_api/version  # ArangoDB
-df -h /data                # D盘空间
+# 启动30并发（默认）
+bash xishujuzhen/solver_harness/pipe/pipe_start.sh
 
-# 一键启动30并发
+# 启动60并发
+bash xishujuzhen/solver_harness/pipe/pipe_start.sh 60
+```
+
+`pipe_start.sh`自动完成5步：
+1. 前置检查（Redis/ArangoDB/D盘/.env的ARANGO_DB）
+2. 恢复crash（清理zombie + 修复DB）
+3. 设置并发数
+4. 启动5个pipe-*服务（auto-restart模式）
+5. 启动launchd watchdog（守护服务+定期清理zombie）
+
+**一键停止**：
+
+```bash
+# 优雅停止（保留harness session，它们会自然完成）
+bash xishujuzhen/solver_harness/pipe/pipe_stop.sh
+
+# 停止并kill所有harness session
+bash xishujuzhen/solver_harness/pipe/pipe_stop.sh --kill
+```
+
+**手动启动（不推荐，缺少前置检查和watchdog）**：
+
+```bash
+cd ~/master-mind-glm5.2-worktree
 .venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py start \
-  --concurrency 30 --tier 1 --batch-size 100 --clear
-
-# 启动重试服务
-tmux new-session -d -s pipe-retry ".venv/bin/python3 xishujuzhen/solver_harness/pipe/retry_infrastructure.py --max-retries 3 --interval 60"
+  --concurrency 30 --tier 1,2,3 --batch-size 500
 ```
 
 ### 停止流程（优雅停止，不kill harness session）
