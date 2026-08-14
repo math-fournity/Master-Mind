@@ -26,7 +26,7 @@
 | WP-QA1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | 代码+测试完成（98 QA1测试 PASS，commit bb1d83a），P3B bare admission/BareBaseline/BareQualificationResult/Bakeoff-B盲评/BareResultRetention；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-CS1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | 代码+测试完成（93 CS1测试 PASS），CasePack/AdmissionDecision/CaseRole/DualEntry/MechanismReview/RelationMapping/P3CVerifier；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-ST1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-TX1、WP-CW1、WP-SV1 | WP-TX1、WP-CW1、WP-SV1、WP-CS1 | 代码+测试完成（105 ST1测试 PASS，commit d122f51），Selector/Renderer/Binder/Injector/Critic/StrategyRuntime/7-arm payload/FixturePreState；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-EX1 | `NOT_STARTED` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | P4/P5实验 |
+| WP-EX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | 代码+测试完成（93 EX1测试 PASS），ExperimentPlan/ResourceContract/BranchSnapshot/RandomizationPlan/7-arm/P5Runner/RunArtifactBundle；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-AU1 | `NOT_STARTED` | WP-EX1、WP-CW1 | WP-EX1、WP-CW1、WP-VLT0、WP-HG0 | P6三审 |
 | WP-EV1 | `NOT_STARTED` | WP-AU1 | WP-AU1 | P7 Evidence |
 | WP-RV1 | `NOT_STARTED` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | P8 NO_CHANGE/Revision |
