@@ -1,53 +1,40 @@
 # Seven System Remediation Handover YAML
 # 生成时间: 2026-08-14
 # 生成者: Devin (GLM-5.2 High)
-# 版本: 2.0 (补全后)
+# 版本: 3.0 (深度补全后，按第 13 节指定格式)
 
-remediation_session:
-  session_id: "remediation-2026-08-14-v2"
-  start_baseline_commit: "783d4be"
-  end_commit: "8ea0588"
-  total_commits: 15
+remediation_subject:
+  commit: 5b443843c7579d79457d198f491d1d6901b6d8df
+  tree: e0f17f3e29324b65fa4db1d476d35e952139a5a1
+  working_tree_clean: true  # seven-system/ 目录干净
 
-test_results:
-  total_tests: 2253
-  passed: 2253
-  failed: 0
-  errors: 0
-  test_command: "cd seven-system && PYTHONPATH=src python -m unittest discover -s tests -q"
-  new_tests_added: 136
-  new_test_files:
-    - "tests/test_p0a_completion_schema.py (18 tests, +3 补全)"
-    - "tests/test_p0b_ed25519.py (25 tests, +17 补全)"
-    - "tests/test_p0c_db1i_auth.py (16 tests, +11 补全)"
-    - "tests/test_r5_wp_state.py (29 tests, +15 补全)"
-    - "tests/test_r6_adapter_registry.py (31 tests, +15 补全)"
-    - "tests/test_section_8_4_cross_layer_attacks.py (17 tests, 17 项跨层攻击向量)"
+baseline:
+  audited_commit: 783d4be78407f9ce86a7f92268b2562d12749979
+  audited_tree: 36148d1fc8602ff6e40bf1bce9cb3f07214068f9
 
-remediation_items:
-  R0:
+work_packages:
+  - wp_id: WP-GV0
+    attempt_id: gv0-attempt-1-20260814
+    plan_ref_and_hash:
+      ref: docs/implementation/evidence/wp-gv0/wp-gv0-plan-draft.v1.json
+      sha256: 5d4b6731f89b0a41cf2e46a05d79c006085d0331ec5ed1069edc748dcad05510
+    development_dependencies_and_status:
+      - WP-DOC0: IMPLEMENTED_PENDING_EVIDENCE (not READY_FOR_AUDIT)
+    activation_dependencies_and_status:
+      - WP-DOC0: IMPLEMENTED_PENDING_EVIDENCE (not READY_FOR_AUDIT)
+    implementation_status: IMPLEMENTED_PENDING_EVIDENCE
+    completion_bundle_ref_and_hash: NOT_GENERATED  # BLOCKED: requires D-volume write authorization
+    inherited_audit_debt:
+      - "WP-DOC0: READY_FOR_AUDIT, not AUDITED_PASS; bootstrap record is LOCAL_GIT_APPEND_ONLY_NOT_CAS"
+      - "NormativeRequirementReviewRecord: not yet generated; 640 clauses pending semantic review"
+      - "D-volume CAS self-hosted ImplementationCompletionBundle: BLOCKED; requires EEA/LiveRunPermit/RESERVED"
+    blockers:
+      - "G0: NormativeRequirementReviewRecord not generated (640 clauses pending independent semantic review)"
+      - "D_VOLUME_AUTHORIZATION: EEA/LiveRunPermit/RESERVED not issued by repo-external owner"
+
+findings:
+  P0_A_completion_schema:
     status: COMPLETED
-    description: "冻结基线、纠正 board/implementation-status/capabilities 过度声明"
-    changes:
-      - "implementation-status.md: 22 WP 从 IMPLEMENTED_PENDING_EVIDENCE 纠正回 NOT_STARTED"
-      - "work-package-board.md: 同步纠正"
-
-  R1:
-    status: COMPLETED
-    description: "DOC0 checker 修复"
-    changes:
-      - "3 个未迁移 normative clause 迁移"
-      - "normative-requirement-index.v1.json 重新生成"
-      - "wp-doc0-plan.v1.json 同步"
-
-  G0:
-    status: BLOCKED_ON_NORMATIVE_REVIEW
-    description: "NormativeRequirementReviewRecord 外部门"
-    blocker: "640 normative clauses pending independent semantic review"
-
-  P0-A:
-    status: COMPLETED
-    description: "CompletionContractVerifier 完整 Schema 验证 + 补全"
     bypass_found: "空壳 {schema_id: ...} 获得 PASS"
     fix:
       - "新增 CompletionSchemaRegistry"
@@ -55,119 +42,186 @@ remediation_items:
       - "RFC3339 严格验证"
       - "self-hash 验证"
       - "跨字段绑定验证"
-      - "8 个新错误码"
-    fix_supplement:
-      - "新增 subject commit/tree hash 跨字段绑定验证"
-      - "新增 SUBJECT_HASH_MISMATCH 错误码"
-      - "3 个新补全测试"
+      - "subject commit/tree hash 跨字段绑定验证"
+      - "8 个新错误码 + SUBJECT_HASH_MISMATCH"
+    tests: 18
     claims:
       - "空壳/缺字段/additional property/错类型/非法RFC3339/hash漂移 全部 FAIL"
       - "subject commit/tree hash mismatch FAIL"
-      - "18 个 P0-A 测试 PASS"
 
-  P0-B:
+  P0_B_ed25519:
     status: COMPLETED
-    description: "HumanGate 真实 Ed25519 验签 + 补全"
     bypass_found: "全A伪签名获得 PASS"
     fix:
       - "verify_gate_decision 新增 public_key_bytes 参数"
       - "_verify_ed25519_signature 用 cryptography 库执行真实验签"
       - "KeyRegistry 新增 store_public_key/get_public_key"
       - "KeyRegistry 拒绝全0 public_key_sha256"
-    fix_supplement:
-      - "新增 SignatureVerifierPort 唯一接口（signature_verifier.py）"
-      - "Ed25519SignatureVerifier 实现 + 全局单例"
-      - "_verify_ed25519_signature 改用 SignatureVerifierPort"
+      - "SignatureVerifierPort 唯一接口 + Ed25519SignatureVerifier + 全局单例"
       - "HUMAN_PENDING+APPROVE / UNVERIFIED+APPROVE 拒绝"
       - "KeyRegistry.check_key 新增 public_key_sha256 一致性检查"
-      - "新增 GATE_VERIFICATION_STATUS_INVALID 错误码"
-      - "17 个新补全测试（payload修改/错公钥/错actor/错role/key hash不符/revoked/expired/not-yet-valid/错domain/HUMAN_PENDING+APPROVE/签名swap/verifier不可达/跨对象复用）"
+    depth_supplement:
+      - "verification_status 由 verifier 生成，不能由调用者传入（build_gate_decision_dict 拒绝 verification_status 参数）"
+      - "新增 verify_and_stamp_gate_decision：验签后由 verifier 设置 verification_status"
+      - "新增 signed_object_verifier.py：7 种签名对象统一验证核心"
+      - "7 种签名对象 domain separator 定义"
+      - "verify_audit_assignment/audit_record/eea/live_run_permit/authorization_consumption_receipt/normative_requirement_review_record"
+      - "_compute_signed_bytes 支持通用 self_hash 字段"
+      - "GATE_VERIFICATION_STATUSES 新增 SIGNATURE_FAILED, UNVERIFIED"
+    tests: 40  # 25 原有 + 15 深度补全
     claims:
       - "伪签名全部 FAIL"
       - "真实 Ed25519 签名 PASS"
       - "SignatureVerifierPort 跨对象复用 PASS"
-      - "25 个 P0-B 测试 PASS"
+      - "verification_status 由 verifier 生成 PASS"
+      - "7 种签名对象统一验证 PASS"
 
-  P0-C:
+  P0_C_db_authorization:
     status: COMPLETED
-    description: "DB1I 授权链修复 + 补全"
     bypass_found: "human_gate_service=None + {decision: APPROVE} 通过 prepare"
     fix:
       - "human_gate_service 改为 MANDATORY"
       - "删除弱 dict 回退分支"
-    fix_supplement:
       - "新增 SecurityContractVerifier（security_contract_verifier.py）"
       - "verify_authorization_chain: EEA → Permit → Reservation 完整链验证"
       - "Permit 绑定验证: plan_hash/wp_id/action_registry_id/site_fingerprint/db_name"
       - "Reservation 状态验证: RESERVED/ordinal/nonce/fence_token/permit_id"
       - "时间状态验证: permit 不能晚于 EEA 过期"
       - "SchemaBootstrapProtocol.prepare 新增 eea/reservation/security_contract_verifier 参数"
-      - "11 个新补全测试"
+    depth_supplement:
+      - "allowance 守恒验证: reserved = actual + held + released + remaining"
+      - "TypedEEA/TypedPermit/TypedReservation TypedDict 类型化对象"
+      - "TypedAuthorizationContext 类型化授权上下文"
+      - "DDLActionRecord: pre-state/read-back catalog hash + ordinal + fence + terminal state"
+      - "DDLActionReconciler: 重复 ordinal 拒绝 + UNKNOWN/PENDING reconcile"
+      - "verify_authorization_chain 新增 allowance 守恒验证"
+      - "verify_authorization_chain 新增 EEA/Permit 签名验证集成（verify_signatures 参数）"
+      - "新增 verify_typed_context: 类型化上下文验证"
+    tests: 29  # 16 原有 + 13 深度补全
     claims:
       - "None bypass 全部 FAIL"
       - "完整授权链验证 PASS"
-      - "16 个 P0-C 测试 PASS"
+      - "allowance 守恒验证 PASS"
+      - "DDL action reconcile PASS"
 
-  R5:
+  dependency_violations:
     status: COMPLETED
-    description: "WorkPackageStateService DAG 依赖强制执行 + 补全"
     fix:
-      - "新增 WorkPackageStateService"
-      - "can_start/start 检查 development_dependencies"
-      - "transition 强制合法状态转换"
-    fix_supplement:
-      - "complete 命令: IN_PROGRESS → READY_FOR_AUDIT，验证 completion contract"
-      - "activate 命令: AUDITED_PASS → live action，验证 activation deps + Permit + Reservation"
-      - "can_start 新增 Plan 验证"
-      - "inherit_audit_debt/get_audit_debt: audit debt 继承"
+      - "22 个 WP 从 IMPLEMENTED_PENDING_EVIDENCE 纠正回 NOT_STARTED"
+      - "WorkPackageStateService DAG 依赖强制执行"
+      - "complete/activate 命令 + Plan 验证 + audit debt 继承"
       - "StateEvent + event_log: append-only 状态变更事件源"
       - "verify_event_log_consistency: 事件日志一致性验证"
       - "implementer 不能写 AUDITED_* 状态"
-      - "15 个新补全测试"
+    depth_supplement:
+      - "ImplementationCapabilityRegistry: 机器化能力注册表"
+      - "TruthConsistencyChecker: board/implementation-status/capabilities/CLI 一致性检查"
+      - "check_board_consistency: board vs registry"
+      - "check_capabilities_consistency: CLI capabilities vs registry"
+      - "check_no_stub_as_real: stub/fake 不能声明为真实能力"
+      - "未知或列表沉默一律 NOT_IMPLEMENTED"
+      - "WP_OVERCLAIM 错误码"
+    tests: 38  # 29 原有 + 9 深度补全
     claims:
       - "24 个有依赖的 WP 全部被拒绝 start"
       - "complete/activate 命令执行正确"
       - "事件日志 append-only 且一致"
-      - "29 个 R5 测试 PASS"
+      - "board/capabilities/CLI 一致性检查 PASS"
 
-  R6:
+  evidence_gaps:
     status: COMPLETED
-    description: "AdapterRegistry 默认禁用副作用端口 + 补全"
     fix:
-      - "新增 AdapterRegistry"
-      - "6 个副作用端口默认 DISABLED"
-    fix_supplement:
-      - "新增 real_adapters.py: 真实 adapter 代码路径"
-      - "VLT0CompletionArtifactStore: D 盘 CAS 真实 adapter"
-      - "DBArangoAdapter: ArangoDB 真实 adapter"
-      - "RTRedisAdapter: Redis 真实 adapter"
-      - "SolverHarnessAdapter: Solver harness 真实 adapter"
-      - "ModelRoleCodexAdapter: Codex CLI 真实 adapter"
-      - "ModelRoleDevinAdapter: Devin CLI 真实 adapter"
-      - "SideEffectPort Protocol + 全局单例"
-      - "15 个新补全测试"
+      - "AdapterRegistry: 6 个副作用端口默认 DISABLED"
+      - "real_adapters.py: 真实 adapter 代码路径"
+      - "VLT0CompletionArtifactStore/DBArangoAdapter/RTRedisAdapter/SolverHarnessAdapter/ModelRoleCodexAdapter/ModelRoleDevinAdapter"
+    depth_supplement:
+      - "wp_real_adapters.py: 8 个 WP 真实但禁用 adapter 代码路径"
+      - "VLT0DCasAdapter: D盘 root-bound CAS，symlink 拒绝，live/partial/sealed 状态转换"
+      - "HG0ReplayableComponent: 完整可重放 HumanGate，append-only decision 链，HumanGate 授权"
+      - "DB1LReadOnlyAdapter: 只读 StrictDatabasePort，写操作一律拒绝"
+      - "DB1ISchemaApplyAdapter: deterministic plan/apply/readback/reconcile，重复 ordinal 拒绝"
+      - "RT1RedisProjectionAdapter: Redis 投影 + WorkEvent + lease/fence + outbox"
+      - "CWD1DevinCliAdapter: DevinCli model_uid=glm-5-2，fresh session，solver_harness 拒绝"
+      - "CWC1CodexAdapter: Codex 非交互 exec，model=gpt-5.6-sol effort=high"
+      - "SV1DevinSolverAdapter: TargetSolverPort→solver_harness，trajectory 缺失 invalid，tool event invalid"
+    tests: 63  # 31 原有 + 32 深度补全
     claims:
       - "所有 6 个端口默认禁用"
       - "禁用时 fail-closed，启用后执行真实代码路径"
-      - "31 个 R6 测试 PASS"
+      - "8 个 WP 真实但禁用 adapter 全部 PASS"
 
-  GV0_PLAN_FIX:
-    status: COMPLETED
-    description: "GV0 Plan 机械错误修复"
-    fix:
-      - "GV0-001 → AUTH-001"
-      - "GV0-002 → AUTH-002"
-      - "GV0-003 → DATA-005"
-      - "work-package-board.md 同步更新"
+verification:
+  doc_checker:
+    status: PASS
+    details: "implementation-status.md 和 work-package-board.md 与机器真值对齐"
+  unittest:
+    status: PASS
+    total_tests: 2322
+    passed: 2322
+    failed: 0
+    errors: 0
+    test_command: "cd seven-system && PYTHONPATH=src python -m unittest discover -s tests -q"
+    new_tests_added: 205  # 136 原有 + 69 深度补全
+  static_check:
+    status: PASS
+    details: "CLI registry-consistency-check PASS (24 capabilities, 6 implemented + 18 not_implemented)"
+  adversarial_vectors:
+    status: PASS
+    details: "17 项跨层攻击向量测试全部 PASS (test_section_8_4_cross_layer_attacks.py)"
+  operator_surface_remainder: 0
+  role_qualification_remainder: 0
+
+external_side_effects:
+  d_volume_writes: 0
+  db_connections: 0
+  db_writes: 0
+  redis_connections: 0
+  remote_model_calls: 0
+  target_solver_launches: 0
+
+claims:
+  - "P0-A: CompletionContractVerifier 完整 Schema 验证 + subject hash 绑定 (18 tests)"
+  - "P0-B: HumanGate 真实 Ed25519 验签 + verification_status 由 verifier 生成 + 7 种签名对象统一验证 (40 tests)"
+  - "P0-C: DB1I 授权链 + allowance 守恒 + 类型化对象 + DDL action catalog hash + reconcile (29 tests)"
+  - "R5: WorkPackageStateService DAG 依赖 + ImplementationCapabilityRegistry + TruthConsistencyChecker (38 tests)"
+  - "R6: AdapterRegistry + 8 个 WP 真实但禁用 adapter 代码路径 (63 tests)"
+  - "第 8.4 节: 17 项跨层攻击向量测试 (17 tests)"
+  - "第 9 节: GV0 Plan draft 更新反映 remediation 后状态"
+  - "第 10 节: seven.py capabilities + ImplementationCapabilityRegistry CLI 集成 + registry-consistency-check 命令"
+
+nonclaims:
+  - "GV0 state is IMPLEMENTED_PENDING_EVIDENCE, not READY_FOR_AUDIT"
+  - "No D-volume CAS self-hosted ImplementationCompletionBundle generated"
+  - "No independent audit performed"
+  - "Side-effect-free reference backend is for isolated fixture tests only"
+  - "NormativeRequirementReviewRecord not generated (640 clauses pending independent semantic review)"
+  - "All 22 non-GV0 WPs are NOT_STARTED (development dependency on GV0 READY_FOR_AUDIT not met)"
+  - "Real adapter code paths are memory-simulated, not real connections"
+  - "HG0 is SIDE_EFFECT_FREE, does not require AdapterRegistry but requires HumanGate authorization"
+
+protocol_deviations:
+  - "normative_review_record_ref_and_hash is null because no independent semantic review record exists yet"
+  - "consumer_policy.requires_independent_review_record_before_non_doc0_plan=true is a hard blocker for schema-valid plan"
+  - "GV0 Plan draft is a DRAFT that documents the blocker and inherited audit debt, not a schema-valid plan"
+
+next_required_owner_or_auditor_action:
+  - "G0: 外部独立语义审查（640 normative clauses）→ 生成 NormativeRequirementReviewRecord"
+  - "D 盘写授权: repo 外 owner 签发 EEA/LiveRunPermit/AuthorizationConsumptionReceipt(RESERVED)"
+  - "WP-DOC0: 从 IMPLEMENTED_PENDING_EVIDENCE 推进到 READY_FOR_AUDIT（需独立审计）"
+  - "WP-GV0: 依赖 WP-DOC0 READY_FOR_AUDIT 后可 start"
+  - "后续 22 个 WP: 按 DAG 依赖顺序逐步 start（每个须新 remediation attempt）"
 
 dependencies_added:
   - "jsonschema (Draft 2020-12 Schema validation)"
   - "cryptography (Ed25519 signature verification)"
 
 new_modules_added:
-  - "src/seven_system/human/signature_verifier.py (SignatureVerifierPort)"
-  - "src/seven_system/contracts/security_contract_verifier.py (SecurityContractVerifier)"
-  - "src/seven_system/operations/real_adapters.py (真实 adapter 代码路径)"
+  - "src/seven_system/human/signature_verifier.py (SignatureVerifierPort + Ed25519SignatureVerifier)"
+  - "src/seven_system/human/signed_object_verifier.py (7 种签名对象统一验证核心)"
+  - "src/seven_system/contracts/security_contract_verifier.py (SecurityContractVerifier + allowance守恒 + DDL reconcile)"
+  - "src/seven_system/operations/real_adapters.py (6 真实 adapter 代码路径)"
+  - "src/seven_system/operations/wp_real_adapters.py (8 WP 真实但禁用 adapter)"
+  - "src/seven_system/operations/capability_registry.py (ImplementationCapabilityRegistry + TruthConsistencyChecker)"
 
 blockers:
   G0:
@@ -178,10 +232,3 @@ blockers:
     type: EXTERNAL_DEPENDENCY
     description: "D 盘写授权（EEA/LiveRunPermit/RESERVED）未获得"
     required_action: "repo 外 owner 签发 EEA/LiveRunPermit/AuthorizationConsumptionReceipt"
-
-next_steps:
-  - "G0: 外部独立语义审查（640 normative clauses）"
-  - "D 盘写授权: repo 外 owner 签发 EEA/LiveRunPermit/RESERVED"
-  - "WP-DOC0: 从 IN_PROGRESS 推进到 READY_FOR_AUDIT"
-  - "WP-GV0: 依赖 WP-DOC0 READY_FOR_AUDIT 后可 start"
-  - "后续 22 个 WP: 按 DAG 依赖顺序逐步 start"
