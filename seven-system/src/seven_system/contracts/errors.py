@@ -621,6 +621,43 @@ class VerificationErrorCode(str, Enum):
     AU_LEAKAGE_BUDGET_EXCEEDED = "AU_LEAKAGE_BUDGET_EXCEEDED"
     AU_BLIND_BREACH = "AU_BLIND_BREACH"
 
+    # WP-EV1 P7 Contrast Evidence — aggregator / record / registries / seal / boundary
+    EV_EPISODE_AS_SUPPORT = "EV_EPISODE_AS_SUPPORT"
+    EV_CLUSTER_DOUBLE_COUNTED = "EV_CLUSTER_DOUBLE_COUNTED"
+    EV_INVALID_FILLED_ZERO = "EV_INVALID_FILLED_ZERO"
+    EV_ESTIMATOR_SWAPPED = "EV_ESTIMATOR_SWAPPED"
+    EV_CASE_FAMILY_NEW_CAUSAL_CLAIM = "EV_CASE_FAMILY_NEW_CAUSAL_CLAIM"
+    EV_MISSINGNESS_INCOMPLETE = "EV_MISSINGNESS_INCOMPLETE"
+    EV_MULTIPLICITY_INCOMPLETE = "EV_MULTIPLICITY_INCOMPLETE"
+    EV_COST_INCOMPLETE = "EV_COST_INCOMPLETE"
+    EV_EVIDENCE_INDEX_GENERATED_IN_P7 = "EV_EVIDENCE_INDEX_GENERATED_IN_P7"
+    EV_PROVENANCE_SNAPSHOT_GENERATED_IN_P7 = "EV_PROVENANCE_SNAPSHOT_GENERATED_IN_P7"
+    EV_NON_CONTRAST_WRITES_SUPPORTS = "EV_NON_CONTRAST_WRITES_SUPPORTS"
+    EV_EVIDENCE_STATUS_INVALID = "EV_EVIDENCE_STATUS_INVALID"
+    EV_ESTIMATOR_NOT_IN_REGISTRY = "EV_ESTIMATOR_NOT_IN_REGISTRY"
+    EV_MULTIPLICITY_RULE_NOT_IN_REGISTRY = "EV_MULTIPLICITY_RULE_NOT_IN_REGISTRY"
+    EV_STOPPING_RULE_NOT_IN_REGISTRY = "EV_STOPPING_RULE_NOT_IN_REGISTRY"
+    EV_STOPPING_RUN_UNTIL_SIGNIFICANT = "EV_STOPPING_RUN_UNTIL_SIGNIFICANT"
+    EV_EVIDENCE_SEAL_HASH_MISMATCH = "EV_EVIDENCE_SEAL_HASH_MISMATCH"
+    EV_CONTRAST_REF_MISSING = "EV_CONTRAST_REF_MISSING"
+    EV_COST_UNOBSERVABLE_FILLED = "EV_COST_UNOBSERVABLE_FILLED"
+    EV_USAGE_COMPLETENESS_INVALID = "EV_USAGE_COMPLETENESS_INVALID"
+    EV_EVIDENCE_RECORD_NOT_SEALED = "EV_EVIDENCE_RECORD_NOT_SEALED"
+    EV_CONTRAST_NOT_PREREGISTERED = "EV_CONTRAST_NOT_PREREGISTERED"
+    EV_ARM_RESULT_MISSING = "EV_ARM_RESULT_MISSING"
+    EV_RUN_AUDIT_REF_MISSING = "EV_RUN_AUDIT_REF_MISSING"
+    EV_CAUSAL_ELIGIBILITY_INSUFFICIENT = "EV_CAUSAL_ELIGIBILITY_INSUFFICIENT"
+    EV_REGISTRY_NOT_FROZEN = "EV_REGISTRY_NOT_FROZEN"
+    EV_REGISTRY_HASH_MISMATCH = "EV_REGISTRY_HASH_MISMATCH"
+    EV_GOLDEN_VECTOR_MISMATCH = "EV_GOLDEN_VECTOR_MISMATCH"
+    EV_OUTPUT_KIND_FORBIDDEN = "EV_OUTPUT_KIND_FORBIDDEN"
+    EV_CAPABILITY_HASH_MISMATCH = "EV_CAPABILITY_HASH_MISMATCH"
+    EV_SEAL_ROOT_HASH_MISMATCH = "EV_SEAL_ROOT_HASH_MISMATCH"
+    EV_SEAL_INCOMPLETE = "EV_SEAL_INCOMPLETE"
+    EV_ALTERNATIVE_EXPLANATION_MISSING = "EV_ALTERNATIVE_EXPLANATION_MISSING"
+    EV_SCOPE_LIMIT_MISSING = "EV_SCOPE_LIMIT_MISSING"
+    EV_REGISTRY_VERSION_DRIFT = "EV_REGISTRY_VERSION_DRIFT"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -2374,5 +2411,208 @@ AU_NONCLAIMS: tuple[str, ...] = (
     "does_not_authorize_live_canary_or_solver_dispatch",
     "does_not_produce_confirmatory_evidence",
     "does_not_prove_tell_causal_evidence",
+    "status_implemented_pending_evidence",
+)
+
+
+# ─── WP-EV1 P7 Contrast Evidence 常量 ───────────────────────────────────
+
+# Evidence status 枚举（来自 14-evidence-analysis-and-multi-epoch.md EvidenceStatusRegistry v1）
+# 只有 contrast-level EvidenceRecord 可对 Tell causal claim 写 SUPPORTS/CONTRADICTS
+EV_EVIDENCE_STATUSES: frozenset[str] = frozenset(
+    {
+        "SUPPORTS",
+        "CONTRADICTS",
+        "DOES_NOT_SUPPORT",
+        "INCONCLUSIVE_DUE_TO_PROTOCOL",
+        "NOT_TESTED",
+    }
+)
+
+# Evidence status 机器条件（claim 级总映射，来自 14-evidence-analysis-and-multi-epoch.md）
+# SUPPORTS→SUPPORTS；CONTRADICTS→CONTRADICTS；DOES_NOT_SUPPORT→DOES_NOT_SUPPORT；
+# INCONCLUSIVE_DUE_TO_PROTOCOL→INCONCLUSIVE；NOT_TESTED→NOT_TESTED
+EV_EVIDENCE_STATES: dict[str, str] = {
+    "SUPPORTS": "SUPPORTS",
+    "CONTRADICTS": "CONTRADICTS",
+    "DOES_NOT_SUPPORT": "DOES_NOT_SUPPORT",
+    "INCONCLUSIVE_DUE_TO_PROTOCOL": "INCONCLUSIVE",
+    "NOT_TESTED": "NOT_TESTED",
+}
+
+# 估计器种类（AnalysisMethodRegistry v1，来自 14-evidence-analysis-and-multi-epoch.md）
+EV_ESTIMATOR_KINDS: frozenset[str] = frozenset(
+    {
+        "PAIRED_CLUSTER_DIFFERENCE_V1",
+        "STRATIFIED_CLUSTER_BOOTSTRAP_V1",
+        "RANDOMIZATION_INFERENCE_V1",
+        "DESCRIPTIVE_SMALL_N_V1",
+    }
+)
+
+# 多重性规则种类（MultiplicityRuleRegistry v1）
+EV_MULTIPLICITY_KINDS: frozenset[str] = frozenset(
+    {
+        "PRIMARY_V1",
+        "HIERARCHICAL_V1",
+        "HOLM_V1",
+        "EXPLORATORY_V1",
+    }
+)
+
+# 停止规则种类（StoppingRuleRegistry v1）
+# 禁止 "run until significant"
+EV_STOPPING_KINDS: frozenset[str] = frozenset(
+    {
+        "MAXIMUM_CLUSTERS_V1",
+        "RESOURCE_LIMIT_V1",
+        "SAFETY_TRIPWIRE_V1",
+        "SEQUENTIAL_BOUNDARY_V1",
+    }
+)
+
+# Missingness 种类（MissingnessReport）
+EV_MISSINGNESS_KINDS: frozenset[str] = frozenset(
+    {
+        "NONE",            # 无缺失
+        "ARM_MISSING",     # 整个 arm 缺失
+        "EPISODE_MISSING", # 单 episode 缺失
+        "INVALID_RESULT",  # 无效结果（不得填 0）
+        "CONTAMINATION",   # 污染
+        "OBSERVATION_GAP", # 观测不足
+        "PROTOCOL_DRIFT",  # 协议漂移
+    }
+)
+
+# Cost 维度种类（CostDimension）
+EV_COST_KINDS: frozenset[str] = frozenset(
+    {
+        "tokens",
+        "wallclock",
+        "rate_limit",
+        "quota",
+        "human_minutes",
+        "provider_billed_amount",
+    }
+)
+
+# usage completeness 状态（CostDimension）
+# COMPLETE 之外的状态阻止正式 cost metrics；provider_billed_amount UNOBSERVABLE 时不填值
+EV_USAGE_COMPLETENESS_STATUSES: frozenset[str] = frozenset(
+    {
+        "COMPLETE",
+        "PARTIAL",
+        "MISSING",
+        "UNOBSERVABLE_DECLARED",
+    }
+)
+
+# EV1 允许的输出对象种类（P7 唯一阶段输出）
+# EvidenceIndex 和 ProvenanceSnapshot 不在 P7 生成（P8/P9 才生成）
+EV_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "EvidenceRecord",
+        "EvidenceSeal",
+        "EvidenceCapabilityReport",
+    }
+)
+
+# EV1 明确禁止输出的对象种类（属于 P8/P9，不得在 P7 偷入）
+EV_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "EvidenceIndex",
+        "ProvenanceSnapshot",
+        "VerdictRecord",
+        "SixGateVerdict",
+        "RevisionProposal",
+        "NoChangeDecision",
+        "ConfirmatoryEvidenceRecord",
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "RedisProjection",
+    }
+)
+
+# EV1 能力报告 side-effect 键（必须全为 0）
+EV_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# EV1 能力报告 check IDs
+EV_CHECK_IDS: tuple[str, ...] = (
+    "ev1.contrast.pre_registered",
+    "ev1.contrast.aggregated_by_pre_registered",
+    "ev1.contrast.episode_not_used_as_support",
+    "ev1.contrast.cluster_not_double_counted",
+    "ev1.contrast.invalid_not_filled_zero",
+    "ev1.estimator.from_p4_frozen_registry",
+    "ev1.estimator.not_swapped_after_run",
+    "ev1.multiplicity.from_frozen_registry",
+    "ev1.multiplicity.exploratory_not_in_family",
+    "ev1.stopping.from_frozen_registry",
+    "ev1.stopping.no_run_until_significant",
+    "ev1.missingness.reported_per_arm",
+    "ev1.missingness.invalid_not_filled_zero",
+    "ev1.cost.tokens_aggregated",
+    "ev1.cost.wallclock_aggregated",
+    "ev1.cost.provider_billed_unobservable_when_not_observable",
+    "ev1.cost.usage_completeness_blocks_when_not_complete",
+    "ev1.evidence.status_from_frozen_registry",
+    "ev1.evidence.contrast_level_writes_supports",
+    "ev1.evidence.case_family_only_extends_scope",
+    "ev1.evidence.alternative_explanations_preserved",
+    "ev1.evidence.scope_limit_preserved",
+    "ev1.seal.root_hash_computed",
+    "ev1.seal.seal_hash_verified",
+    "ev1.boundary_no_evidence_index_in_p7",
+    "ev1.boundary_no_provenance_snapshot_in_p7",
+    "ev1.boundary_no_other_wp_reports",
+)
+
+# EV1 claims
+EV_CLAIMS: tuple[str, ...] = (
+    "contrast_pre_registered_in_p4",
+    "aggregation_by_pre_registered_contrast",
+    "single_episode_not_used_as_support",
+    "cluster_not_double_counted",
+    "invalid_results_not_filled_zero",
+    "estimator_from_p4_frozen_registry",
+    "estimator_not_swapped_after_run",
+    "multiplicity_from_frozen_registry",
+    "exploratory_not_in_confirmatory_family",
+    "stopping_from_frozen_registry",
+    "no_run_until_significant",
+    "missingness_reported_per_arm",
+    "cost_tokens_aggregated",
+    "cost_wallclock_aggregated",
+    "provider_billed_unobservable_when_not_observable",
+    "usage_completeness_blocks_formal_cost_when_not_complete",
+    "evidence_status_from_frozen_registry",
+    "only_contrast_level_writes_supports_contradicts",
+    "case_family_only_extends_scope",
+    "alternative_explanations_preserved",
+    "scope_limit_preserved",
+    "evidence_seal_root_hash_computed",
+    "evidence_seal_seal_hash_verified",
+    "does_not_produce_evidence_index_in_p7",
+    "does_not_produce_provenance_snapshot_in_p7",
+    "does_not_produce_other_wp_reports",
+)
+
+# EV1 explicit nonclaims
+EV_NONCLAIMS: tuple[str, ...] = (
+    "does_not_prove_live_solver_capability",
+    "does_not_prove_live_model_capability",
+    "does_not_launch_real_solver",
+    "does_not_write_db_or_redis",
+    "does_not_authorize_live_canary_or_solver_dispatch",
+    "does_not_generate_evidence_index",
+    "does_not_generate_provenance_snapshot",
+    "does_not_produce_final_verdict",
     "status_implemented_pending_evidence",
 )
