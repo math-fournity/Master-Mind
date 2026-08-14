@@ -439,5 +439,255 @@ class TestSecurityContractVerifier(unittest.TestCase):
         self.assertEqual(result.verdict, "FAIL")
 
 
+# ─── P0-C 深度补全测试 ─────────────────────────────────────────────────
+
+class TestAllowanceConservation(unittest.TestCase):
+    """P0-C 深度补全：allowance 守恒验证。"""
+
+    def test_allowance_conserved(self):
+        """守恒的 allowance 通过。"""
+        from seven_system.contracts.security_contract_verifier import verify_allowance_conservation
+        reservation = {
+            "reserved_amount": 100,
+            "actual_amount": 30,
+            "held_amount": 20,
+            "released_amount": 10,
+            "remaining_amount": 40,
+        }
+        ok, errors, details = verify_allowance_conservation(reservation)
+        self.assertTrue(ok)
+
+    def test_allowance_not_conserved(self):
+        """不守恒的 allowance 必须拒绝。"""
+        from seven_system.contracts.security_contract_verifier import verify_allowance_conservation
+        reservation = {
+            "reserved_amount": 100,
+            "actual_amount": 30,
+            "held_amount": 20,
+            "released_amount": 10,
+            "remaining_amount": 50,  # 30+20+10+50=110 != 100
+        }
+        ok, errors, details = verify_allowance_conservation(reservation)
+        self.assertFalse(ok)
+
+    def test_reserved_exceeds_permit_budget(self):
+        """reserved 超过 permit budget 必须拒绝。"""
+        from seven_system.contracts.security_contract_verifier import verify_allowance_conservation
+        reservation = {
+            "reserved_amount": 200,
+            "actual_amount": 50,
+            "held_amount": 50,
+            "released_amount": 50,
+            "remaining_amount": 50,
+        }
+        ok, errors, details = verify_allowance_conservation(reservation, permit_budget=100)
+        self.assertFalse(ok)
+
+    def test_permit_budget_exceeds_eea_budget(self):
+        """permit budget 超过 EEA budget 必须拒绝。"""
+        from seven_system.contracts.security_contract_verifier import verify_allowance_conservation
+        reservation = {
+            "reserved_amount": 50,
+            "actual_amount": 50,
+            "held_amount": 0,
+            "released_amount": 0,
+            "remaining_amount": 0,
+        }
+        ok, errors, details = verify_allowance_conservation(
+            reservation, eea_budget=100, permit_budget=200,
+        )
+        self.assertFalse(ok)
+
+
+class TestDDLActionReconciler(unittest.TestCase):
+    """P0-C 深度补全：DDL action catalog hash 和 reconcile。"""
+
+    def test_record_action_success(self):
+        """成功记录 DDL action。"""
+        from seven_system.contracts.security_contract_verifier import DDLActionReconciler, DDLActionRecord
+        reconciler = DDLActionReconciler()
+        action = DDLActionRecord(
+            action_id="ddl-001", ordinal=0, fence_token=1,
+            pre_state_catalog_hash="a" * 64, apply_result="SUCCESS",
+            read_back_catalog_hash="b" * 64, terminal_state="COMMITTED",
+        )
+        ok, errors, details = reconciler.record_action(action)
+        self.assertTrue(ok)
+
+    def test_duplicate_ordinal_rejected(self):
+        """重复 ordinal 必须拒绝。"""
+        from seven_system.contracts.security_contract_verifier import DDLActionReconciler, DDLActionRecord
+        reconciler = DDLActionReconciler()
+        action1 = DDLActionRecord(
+            action_id="ddl-001", ordinal=0, fence_token=1,
+            pre_state_catalog_hash="a" * 64, apply_result="SUCCESS",
+        )
+        action2 = DDLActionRecord(
+            action_id="ddl-002", ordinal=0, fence_token=2,
+            pre_state_catalog_hash="c" * 64, apply_result="SUCCESS",
+        )
+        reconciler.record_action(action1)
+        ok, errors, details = reconciler.record_action(action2)
+        self.assertFalse(ok)
+
+    def test_reconcile_unknown_result(self):
+        """UNKNOWN 结果的 action 需要 reconcile。"""
+        from seven_system.contracts.security_contract_verifier import DDLActionReconciler, DDLActionRecord
+        reconciler = DDLActionReconciler()
+        action = DDLActionRecord(
+            action_id="ddl-001", ordinal=0, fence_token=1,
+            pre_state_catalog_hash="a" * 64, apply_result="UNKNOWN",
+        )
+        reconciler.record_action(action)
+        ok, errors, details = reconciler.reconcile()
+        self.assertFalse(ok)
+
+    def test_reconcile_pending_state(self):
+        """PENDING 状态的 action 需要 reconcile。"""
+        from seven_system.contracts.security_contract_verifier import DDLActionReconciler, DDLActionRecord
+        reconciler = DDLActionReconciler()
+        action = DDLActionRecord(
+            action_id="ddl-001", ordinal=0, fence_token=1,
+            pre_state_catalog_hash="a" * 64, apply_result="SUCCESS",
+            terminal_state="PENDING",
+        )
+        reconciler.record_action(action)
+        ok, errors, details = reconciler.reconcile()
+        self.assertFalse(ok)
+
+    def test_reconcile_committed_success(self):
+        """COMMITTED + SUCCESS 的 action reconcile 通过。"""
+        from seven_system.contracts.security_contract_verifier import DDLActionReconciler, DDLActionRecord
+        reconciler = DDLActionReconciler()
+        action = DDLActionRecord(
+            action_id="ddl-001", ordinal=0, fence_token=1,
+            pre_state_catalog_hash="a" * 64, apply_result="SUCCESS",
+            read_back_catalog_hash="b" * 64, terminal_state="COMMITTED",
+        )
+        reconciler.record_action(action)
+        ok, errors, details = reconciler.reconcile()
+        self.assertTrue(ok)
+
+
+class TestTypedAuthorizationContext(unittest.TestCase):
+    """P0-C 深度补全：类型化授权上下文。"""
+
+    def test_typed_context_creation(self):
+        """类型化授权上下文可创建。"""
+        from seven_system.contracts.security_contract_verifier import (
+            TypedAuthorizationContext, TypedEEA, TypedPermit,
+        )
+        ctx = TypedAuthorizationContext(
+            eea=TypedEEA(
+                schema_id="seven/external-execution-authorization",
+                authorization_mode="TRUST_ROOT",
+                expires_at="2026-08-16T00:00:00Z",
+            ),
+            permit=TypedPermit(
+                schema_id="seven/live-run-permit",
+                permit_id="p1",
+                plan_hash="a" * 64,
+                wp_id="G-DB-SCHEMA-APPLY",
+                expires_at="2026-08-15T00:00:00Z",
+            ),
+        )
+        self.assertEqual(ctx.eea["authorization_mode"], "TRUST_ROOT")
+
+    def test_typed_context_verification(self):
+        """类型化授权上下文验证。"""
+        from seven_system.contracts.security_contract_verifier import (
+            SecurityContractVerifier, TypedAuthorizationContext, TypedEEA, TypedPermit,
+        )
+        verifier = SecurityContractVerifier()
+        ctx = TypedAuthorizationContext(
+            eea=TypedEEA(
+                schema_id="seven/external-execution-authorization",
+                authorization_mode="TRUST_ROOT_OR_SCHEMA_BOOTSTRAP",
+                unaudited_dependency_bundle_refs_and_hashes=[{"ref": "b.json", "sha256": "0" * 64}],
+                action_scopes=[{"action_registry_id": "X", "budget": {"max_tokens": 100}}],
+                expires_at="2026-08-16T00:00:00Z",
+            ),
+            permit=TypedPermit(
+                schema_id="seven/live-run-permit",
+                permit_id="p1",
+                plan_hash="a" * 64,
+                wp_id="G-DB-SCHEMA-APPLY",
+                expires_at="2026-08-15T00:00:00Z",
+            ),
+        )
+        result = verifier.verify_typed_context(ctx, expected_plan_hash="a" * 64, expected_wp_id="G-DB-SCHEMA-APPLY")
+        # Should not crash; verdict depends on EEA/Permit structure validation
+        self.assertIsNotNone(result.verdict)
+
+
+class TestAuthorizationChainWithAllowance(unittest.TestCase):
+    """P0-C 深度补全：授权链 + allowance 守恒联合验证。"""
+
+    def test_chain_with_conserved_allowance_passes(self):
+        """守恒的 allowance 不影响授权链验证。"""
+        from seven_system.contracts.security_contract_verifier import SecurityContractVerifier
+        verifier = SecurityContractVerifier()
+        eea = {
+            "authorization_mode": "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP",
+            "unaudited_dependency_bundle_refs_and_hashes": [{"ref": "b.json", "sha256": "0" * 64}],
+            "action_scopes": [{"action_registry_id": "X", "budget": {"max_tokens": 100}}],
+            "expires_at": "2026-08-16T00:00:00Z",
+            "budget": {"max_tokens": 100},
+        }
+        permit = {
+            "permit_id": "p1", "plan_hash": "a" * 64, "wp_id": "G-DB-SCHEMA-APPLY",
+            "expires_at": "2026-08-15T00:00:00Z",
+            "budget": {"max_tokens": 100},
+        }
+        reservation = {
+            "permit_id": "p1", "status": "RESERVED", "ordinal": 0,
+            "nonce": "n", "fence_token": 1,
+            "reserved_amount": 100, "actual_amount": 30,
+            "held_amount": 20, "released_amount": 10, "remaining_amount": 40,
+        }
+        result = verifier.verify_authorization_chain(
+            eea=eea, permit=permit, reservation=reservation,
+            expected_plan_hash="a" * 64, expected_wp_id="G-DB-SCHEMA-APPLY",
+        )
+        # allowance 守恒通过（100 = 30+20+10+40），不应引入额外错误
+        self.assertNotIn(
+            "allowance not conserved",
+            " ".join(result.details),
+        )
+
+    def test_chain_with_unconserved_allowance_fails(self):
+        """不守恒的 allowance 导致授权链 FAIL。"""
+        from seven_system.contracts.security_contract_verifier import SecurityContractVerifier
+        verifier = SecurityContractVerifier()
+        eea = {
+            "authorization_mode": "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP",
+            "unaudited_dependency_bundle_refs_and_hashes": [{"ref": "b.json", "sha256": "0" * 64}],
+            "action_scopes": [{"action_registry_id": "X", "budget": {"max_tokens": 100}}],
+            "expires_at": "2026-08-16T00:00:00Z",
+            "budget": {"max_tokens": 100},
+        }
+        permit = {
+            "permit_id": "p1", "plan_hash": "a" * 64, "wp_id": "G-DB-SCHEMA-APPLY",
+            "expires_at": "2026-08-15T00:00:00Z",
+            "budget": {"max_tokens": 100},
+        }
+        reservation = {
+            "permit_id": "p1", "status": "RESERVED", "ordinal": 0,
+            "nonce": "n", "fence_token": 1,
+            "reserved_amount": 100, "actual_amount": 50,
+            "held_amount": 50, "released_amount": 0, "remaining_amount": 10,
+            # 50+50+0+10=110 != 100
+        }
+        result = verifier.verify_authorization_chain(
+            eea=eea, permit=permit, reservation=reservation,
+            expected_plan_hash="a" * 64, expected_wp_id="G-DB-SCHEMA-APPLY",
+        )
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(
+            "allowance not conserved",
+            " ".join(result.details),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

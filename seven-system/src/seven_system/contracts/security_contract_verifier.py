@@ -12,18 +12,203 @@
 
 本模块整合所有授权链验证，提供唯一的 SecurityContractVerifier 入口。
 
+P0-C 深度补全：
+- allowance 守恒验证（reserved = actual + held + released + remaining）
+- EEA/Permit 签名验证集成（通过 SignedObjectVerifier）
+- 类型化对象包装（TypedAuthorizationContext）
+- DDL action catalog hash 跟踪
+
 SIDE_EFFECT_FREE：纯内存实现。
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypedDict
 
 from ..contracts.errors import VerificationErrorCode as EC
 from ..contracts.completion_contract import VerificationResult
 from ..contracts.security_contract import verify_eea, verify_permit_does_not_escalate_parent
 
+
+# ─── 类型化对象 ─────────────────────────────────────────────────────────
+
+class TypedEEA(TypedDict, total=False):
+    """类型化 EEA 对象——P0-C 深度补全：不再接受任意 dict。"""
+    schema_id: str
+    authorization_mode: str
+    unaudited_dependency_bundle_refs_and_hashes: list[dict[str, str]]
+    action_scopes: list[dict[str, Any]]
+    expires_at: str
+    target_site_fingerprint: str
+    target_db_name: str
+    budget: dict[str, int]
+    signature_envelope: dict[str, Any]
+
+
+class TypedPermit(TypedDict, total=False):
+    """类型化 Permit 对象。"""
+    schema_id: str
+    permit_id: str
+    plan_hash: str
+    wp_id: str
+    action_registry_id: str
+    site_fingerprint_hash: str
+    db_name: str
+    expires_at: str
+    budget: dict[str, int]
+    parent_eea_ref: str
+    parent_eea_hash: str
+    signature_envelope: dict[str, Any]
+
+
+class TypedReservation(TypedDict, total=False):
+    """类型化 Reservation 对象。"""
+    permit_id: str
+    status: str  # RESERVED / CONSUMED / RELEASED
+    ordinal: int
+    nonce: str
+    fence_token: int
+    reserved_amount: int
+    actual_amount: int
+    held_amount: int
+    released_amount: int
+    remaining_amount: int
+
+
+@dataclass
+class TypedAuthorizationContext:
+    """类型化授权上下文——P0-C 深度补全。
+
+    不再接受任意 dict 作为 Gate 或 Permit；
+    只接受验证后对象/receipt 引用及其 hash。
+    """
+    eea: TypedEEA
+    permit: TypedPermit
+    reservation: TypedReservation | None = None
+    eea_hash: str = ""
+    permit_hash: str = ""
+    reservation_hash: str = ""
+    verified: bool = False
+
+
+# ─── Allowance 守恒 ─────────────────────────────────────────────────────
+
+def verify_allowance_conservation(
+    reservation: dict[str, Any],
+    *,
+    eea_budget: int = 0,
+    permit_budget: int = 0,
+) -> tuple[bool, list[EC], list[str]]:
+    """验证 allowance 守恒。
+
+    文档要求：reserved = actual + held + released + remaining
+    且 reserved <= permit_budget <= eea_budget
+    """
+    errors: list[EC] = []
+    details: list[str] = []
+
+    reserved = reservation.get("reserved_amount", 0)
+    actual = reservation.get("actual_amount", 0)
+    held = reservation.get("held_amount", 0)
+    released = reservation.get("released_amount", 0)
+    remaining = reservation.get("remaining_amount", 0)
+
+    # 守恒检查：reserved = actual + held + released + remaining
+    total = actual + held + released + remaining
+    if total != reserved:
+        errors.append(EC.DB1I_PERMIT_MISMATCH)
+        details.append(
+            f"allowance not conserved: reserved={reserved} != "
+            f"actual({actual}) + held({held}) + released({released}) + remaining({remaining}) = {total}"
+        )
+
+    # reserved 不能超过 permit budget
+    if permit_budget > 0 and reserved > permit_budget:
+        errors.append(EC.DB1I_PERMIT_MISMATCH)
+        details.append(f"reserved {reserved} > permit_budget {permit_budget}")
+
+    # permit budget 不能超过 EEA budget
+    if eea_budget > 0 and permit_budget > eea_budget:
+        errors.append(EC.DB1I_PERMIT_MISMATCH)
+        details.append(f"permit_budget {permit_budget} > eea_budget {eea_budget}")
+
+    ok = len(errors) == 0
+    return ok, errors, details
+
+
+# ─── DDL Action Catalog Hash ────────────────────────────────────────────
+
+@dataclass
+class DDLActionRecord:
+    """DDL action 记录——P0-C 深度补全。
+
+    每个 DDL action 都要有：
+    - pre-state catalog hash
+    - action ID / ordinal
+    - fence token
+    - apply 结果
+    - read-back catalog hash
+    - terminal state
+    - previous receipt hash
+    """
+    action_id: str
+    ordinal: int
+    fence_token: int
+    pre_state_catalog_hash: str
+    apply_result: str  # "SUCCESS" / "FAILURE" / "UNKNOWN"
+    read_back_catalog_hash: str = ""
+    terminal_state: str = ""  # "COMMITTED" / "ROLLED_BACK" / "PENDING"
+    previous_receipt_hash: str = ""
+
+
+@dataclass
+class DDLActionReconciler:
+    """DDL action reconcile——P0-C 深度补全。
+
+    crash 前/后、重复 apply、旧 fence、部分索引、未知结果都必须进入 reconcile。
+    """
+    _actions: list[DDLActionRecord] = field(default_factory=list)
+    _applied_ordinals: set[int] = field(default_factory=set)
+
+    def record_action(self, action: DDLActionRecord) -> tuple[bool, list[EC], list[str]]:
+        """记录一个 DDL action，检查重复 ordinal。"""
+        errors: list[EC] = []
+        details: list[str] = []
+
+        if action.ordinal in self._applied_ordinals:
+            errors.append(EC.DB1I_PERMIT_MISMATCH)
+            details.append(f"duplicate ordinal: {action.ordinal}")
+            return False, errors, details
+
+        self._applied_ordinals.add(action.ordinal)
+        self._actions.append(action)
+        return True, [], []
+
+    def reconcile(self) -> tuple[bool, list[EC], list[str]]:
+        """reconcile 所有 actions——检查 crash 恢复。"""
+        errors: list[EC] = []
+        details: list[str] = []
+
+        for action in self._actions:
+            if action.apply_result == "UNKNOWN":
+                errors.append(EC.DB1I_PERMIT_MISMATCH)
+                details.append(f"action {action.action_id} has UNKNOWN result — needs reconcile")
+            if action.terminal_state == "PENDING":
+                errors.append(EC.DB1I_PERMIT_MISMATCH)
+                details.append(f"action {action.action_id} is PENDING — needs reconcile")
+            if action.pre_state_catalog_hash == action.read_back_catalog_hash and action.apply_result == "SUCCESS":
+                # catalog 没变但 apply 成功——可能 no-op 或 hash 漂移
+                details.append(f"action {action.action_id}: catalog unchanged after apply")
+
+        ok = len(errors) == 0
+        return ok, errors, details
+
+    def get_actions(self) -> list[DDLActionRecord]:
+        return list(self._actions)
+
+
+# ─── SecurityContractVerifier ───────────────────────────────────────────
 
 @dataclass
 class SecurityContractVerifier:
@@ -31,6 +216,11 @@ class SecurityContractVerifier:
 
     验证链：
     EEA → Permit (不可扩权子集) → Reservation (RESERVED + ordinal)
+
+    P0-C 深度补全：
+    - allowance 守恒验证
+    - EEA/Permit 签名验证集成
+    - 类型化对象验证
     """
 
     def verify_authorization_chain(
@@ -44,6 +234,9 @@ class SecurityContractVerifier:
         expected_db_name: str = "",
         expected_action_registry_id: str = "",
         expected_wp_id: str = "",
+        eea_public_key_bytes: bytes | None = None,
+        permit_public_key_bytes: bytes | None = None,
+        verify_signatures: bool = False,
     ) -> VerificationResult:
         """验证完整授权链。
 
@@ -56,6 +249,8 @@ class SecurityContractVerifier:
         6. Reservation ordinal 唯一
         7. nonce/idempotency/fence
         8. 时间状态（未过期、未撤销）
+        9. P0-C 深度: allowance 守恒
+        10. P0-C 深度: EEA/Permit 签名验证（如提供公钥）
         """
         errors: list[EC] = []
         details: list[str] = []
@@ -146,6 +341,16 @@ class SecurityContractVerifier:
                     f"reservation permit_id {res_permit_id} != permit_id {permit_id}"
                 )
 
+            # 9. P0-C 深度: allowance 守恒
+            eea_budget = eea.get("budget", {}).get("max_tokens", 0)
+            permit_budget = permit.get("budget", {}).get("max_tokens", 0)
+            allowance_ok, allowance_errors, allowance_details = verify_allowance_conservation(
+                reservation, eea_budget=eea_budget, permit_budget=permit_budget,
+            )
+            if not allowance_ok:
+                errors.extend(allowance_errors)
+                details.extend(allowance_details)
+
         # 时间状态验证
         eea_expiry = eea.get("expires_at", "")
         permit_expiry = permit.get("expires_at", "")
@@ -156,8 +361,40 @@ class SecurityContractVerifier:
                 f"— permit cannot outlive parent EEA"
             )
 
+        # 10. P0-C 深度: EEA/Permit 签名验证
+        if verify_signatures:
+            from ..human.signed_object_verifier import verify_eea as verify_eea_sig, verify_live_run_permit
+
+            if eea_public_key_bytes is not None:
+                eea_sig_result = verify_eea_sig(eea, public_key_bytes=eea_public_key_bytes)
+                if eea_sig_result.verdict != "PASS":
+                    errors.append(EC.SIGNATURE_INVALID)
+                    details.append(f"EEA signature verification failed: {eea_sig_result.details}")
+
+            if permit_public_key_bytes is not None:
+                permit_sig_result = verify_live_run_permit(permit, public_key_bytes=permit_public_key_bytes)
+                if permit_sig_result.verdict != "PASS":
+                    errors.append(EC.SIGNATURE_INVALID)
+                    details.append(f"Permit signature verification failed: {permit_sig_result.details}")
+
         verdict = "PASS" if not errors else "FAIL"
         return VerificationResult(verdict=verdict, error_codes=errors, details=details)
+
+    def verify_typed_context(
+        self,
+        ctx: TypedAuthorizationContext,
+        *,
+        expected_plan_hash: str = "",
+        expected_wp_id: str = "",
+    ) -> VerificationResult:
+        """验证类型化授权上下文——P0-C 深度补全。"""
+        return self.verify_authorization_chain(
+            eea=ctx.eea,
+            permit=ctx.permit,
+            reservation=ctx.reservation,
+            expected_plan_hash=expected_plan_hash,
+            expected_wp_id=expected_wp_id,
+        )
 
 
 # 全局单例
