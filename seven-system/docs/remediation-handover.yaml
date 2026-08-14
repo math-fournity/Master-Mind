@@ -1,0 +1,175 @@
+# Seven System Remediation Handover YAML
+# 生成时间: 2026-08-14
+# 生成者: Devin (GLM-5.2 High)
+
+remediation_session:
+  session_id: "remediation-2026-08-14"
+  start_baseline_commit: "783d4be"
+  end_commit: "9264842"
+  total_commits: 7
+
+test_results:
+  total_tests: 2175
+  passed: 2175
+  failed: 0
+  errors: 0
+  test_command: "cd seven-system && PYTHONPATH=src python -m unittest discover -s tests -q"
+  new_tests_added: 58
+  new_test_files:
+    - "tests/test_p0a_completion_schema.py (15 tests)"
+    - "tests/test_p0b_ed25519.py (8 tests)"
+    - "tests/test_p0c_db1i_auth.py (5 tests)"
+    - "tests/test_r5_wp_state.py (14 tests)"
+    - "tests/test_r6_adapter_registry.py (16 tests)"
+
+remediation_items:
+  R0:
+    status: COMPLETED
+    description: "冻结基线、纠正 board/implementation-status/capabilities 过度声明"
+    commit: "6d9d949"
+    changes:
+      - "implementation-status.md: 22 WP 从 IMPLEMENTED_PENDING_EVIDENCE 纠正回 NOT_STARTED"
+      - "work-package-board.md: 同步纠正"
+    claims:
+      - "22 个越级 WP 已回退到 NOT_STARTED"
+      - "历史错误状态保留在文档中"
+    nonclaims:
+      - "不构成这些 WP 的实现完成"
+      - "既有代码视为 existing unqualified implementation input"
+
+  R1:
+    status: COMPLETED
+    description: "DOC0 checker 修复"
+    commit: "8423470"
+    changes:
+      - "3 个未迁移 normative clause 迁移"
+      - "normative-requirement-index.v1.json 重新生成"
+      - "wp-doc0-plan.v1.json 同步"
+      - "WP-DOC0 状态改为 IN_PROGRESS"
+      - "migration chain 修复"
+      - "migration_map_sha256 修复"
+    claims:
+      - "DOC0 checker 在干净 subject 上 PASS"
+      - "2117 existing tests PASS 无回归"
+    nonclaims:
+      - "不构成 DOC0 的 AUDITED_PASS"
+      - "normative clause 语义审查仍待 G0"
+
+  G0:
+    status: BLOCKED_ON_NORMATIVE_REVIEW
+    description: "NormativeRequirementReviewRecord 外部门"
+    blocker: "640 normative clauses pending independent semantic review"
+    required_external_objects:
+      - "AuditAssignment (by trusted owner path)"
+      - "NormativeRequirementReviewRecord (per clause)"
+    claims:
+      - "已列出所需外部对象"
+    nonclaims:
+      - "agent 无法自行完成独立语义审查"
+
+  P0-A:
+    status: COMPLETED
+    description: "CompletionContractVerifier 完整 Schema 验证"
+    commit: "7c6d179"
+    bypass_found: "空壳 {schema_id: ...} 获得 PASS"
+    root_cause: "verifier 只比较 schema_id 字符串，不执行 Draft 2020-12 Schema"
+    fix:
+      - "新增 CompletionSchemaRegistry"
+      - "verifier 加载 Schema 文件、重算 hash、执行完整 Draft 2020-12 验证"
+      - "RFC3339 严格验证"
+      - "self-hash 验证"
+      - "跨字段绑定验证"
+      - "8 个新错误码"
+    claims:
+      - "空壳/缺字段/additional property/错类型/非法RFC3339/hash漂移 全部 FAIL"
+      - "15 个 P0-A 负向测试 PASS"
+    nonclaims:
+      - "不构成 completion contract 的 AUDITED_PASS"
+
+  P0-B:
+    status: COMPLETED
+    description: "HumanGate 真实 Ed25519 验签"
+    commit: "2c5d296"
+    bypass_found: "全A伪签名获得 PASS"
+    root_cause: "verify_gate_decision 只检查 base64 格式，不执行真实 Ed25519 验签"
+    fix:
+      - "verify_gate_decision 新增 public_key_bytes 参数"
+      - "_verify_ed25519_signature 用 cryptography 库执行真实验签"
+      - "KeyRegistry 新增 store_public_key/get_public_key"
+      - "KeyRegistry 拒绝全0 public_key_sha256"
+      - "HumanGateService 从 key_registry 获取公钥传递给验证器"
+    claims:
+      - "伪签名（全A/全0/随机）全部 FAIL"
+      - "真实 Ed25519 签名 PASS"
+      - "8 个 P0-B 测试 PASS"
+    nonclaims:
+      - "不构成 HumanGate 的 AUDITED_PASS"
+      - "公钥分发机制仍需外部信任根"
+
+  P0-C:
+    status: COMPLETED
+    description: "DB1I 授权链修复"
+    commit: "84f5143"
+    bypass_found: "human_gate_service=None + {decision: APPROVE} 通过 prepare"
+    root_cause: "prepare() 在 human_gate_service=None 时回退到弱 dict 检查"
+    fix:
+      - "human_gate_service 改为 MANDATORY"
+      - "删除弱 dict 回退分支"
+      - "None 立即 raise DB1I_HUMAN_GATE_DECISION_REJECTED"
+    claims:
+      - "None bypass 全部 FAIL"
+      - "5 个 P0-C 测试 PASS"
+    nonclaims:
+      - "不构成 DB1I 的 AUDITED_PASS"
+
+  R5:
+    status: COMPLETED
+    description: "WorkPackageStateService DAG 依赖强制执行"
+    commit: "c719042"
+    fix:
+      - "新增 WorkPackageStateService"
+      - "can_start/start 检查 development_dependencies"
+      - "transition 强制合法状态转换"
+      - "project_to_board 生成 board 投影"
+      - "verify_board_consistency 验证一致性"
+      - "4 个新错误码"
+    claims:
+      - "24 个有依赖的 WP 全部被拒绝 start（依赖未满足）"
+      - "越级转换全部拒绝"
+      - "14 个 R5 测试 PASS"
+    nonclaims:
+      - "不构成这些 WP 的实现完成"
+      - "board 投影是内存状态，不持久化"
+
+  R6:
+    status: COMPLETED
+    description: "AdapterRegistry 默认禁用副作用端口"
+    commit: "9264842"
+    fix:
+      - "新增 AdapterRegistry"
+      - "6 个副作用端口默认 DISABLED"
+      - "enable 需要 authorization_ref"
+      - "check_enabled fail-closed"
+    claims:
+      - "所有 6 个端口默认禁用"
+      - "禁用状态下 fail-closed"
+      - "16 个 R6 测试 PASS"
+    nonclaims:
+      - "不构成这些 adapter 的实现完成"
+      - "实际 adapter 代码仍为 SIDE_EFFECT_FREE mock"
+
+dependencies_added:
+  - "jsonschema (Draft 2020-12 Schema validation)"
+  - "cryptography (Ed25519 signature verification)"
+
+blockers:
+  G0:
+    type: EXTERNAL_DEPENDENCY
+    description: "640 normative clauses pending independent semantic review"
+    required_action: "外部 AuditAssignment + NormativeRequirementReviewRecord"
+
+next_steps:
+  - "G0: 外部独立语义审查（640 normative clauses）"
+  - "WP-DOC0: 从 IN_PROGRESS 推进到 READY_FOR_AUDIT（需 DOC0 checker 持续 PASS）"
+  - "WP-GV0: 依赖 WP-DOC0 READY_FOR_AUDIT 后可 start"
+  - "后续 22 个 WP: 按 DAG 依赖顺序逐步 start"
