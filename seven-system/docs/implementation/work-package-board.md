@@ -10,17 +10,17 @@
 |---|---|---|---|---|
 | WP-DOC0 | `READY_FOR_AUDIT` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle |
 | WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试完成（51 GV0 + 109 全量回归 PASS），但自托管 ImplementationCompletionBundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；状态为 IMPLEMENTED_PENDING_EVIDENCE，不是 READY_FOR_AUDIT |
-| WP-VLT0 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 复用GV0 CAS核心扩展完整Artifact/Vault，禁止第二store |
+| WP-VLT0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（91 VLT0测试 PASS），复用GV0 CAS核心扩展Vault/view/seal/reconcile；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-HG0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | HumanTask/HumanGate；消费GV0验证器 |
 | WP-CW0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | ModelRole公共运行时与fake adapter |
 | WP-CW-D1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | Devin `glm-5-2` High认知adapter；live canary等待DB运行账本与reconcile |
 | WP-CW-C1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | Codex认知adapter；live canary等待DB运行账本与reconcile |
 | WP-QA0 | `NOT_STARTED` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | 受控双载体出题纵切与Bakeoff-A（无Target Solver/bare） |
-| WP-DB1L | `NOT_STARTED` | WP-GV0 | WP-GV0、WP-HG0 | 全部`seven_*_vN`逻辑站点只读核验 |
+| WP-DB1L | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0、WP-HG0 | 代码+测试完成（62 DB1L测试 PASS），逻辑站点v2只读report/verifier，零写入收据；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-DB1I | `NOT_STARTED` | WP-DB1L、WP-HG0、WP-VLT0 | WP-DB1L、WP-HG0、WP-VLT0 | 受控版本化Schema；只交付SchemaState/bootstrap三对象 |
 | WP-RT1 | `NOT_STARTED` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 只交付Runtime/Reconcile能力与checkpoint |
 | WP-SV1 | `NOT_STARTED` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | TargetSolver与NoTool Harness |
-| WP-IN1 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 只读CandidateManifest导入 |
+| WP-IN1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（34 IN1测试 PASS），只读CandidateManifest exporter + duplicate lineage；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-TX1 | `NOT_STARTED` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | Taxonomy/Tell Registry与版本谱系 |
 | WP-CW1 | `NOT_STARTED` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | P3N/P6生产认知worker |
 | WP-QA1 | `NOT_STARTED` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | 生成题bare准入与Bakeoff-B |
