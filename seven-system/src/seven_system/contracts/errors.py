@@ -699,6 +699,35 @@ class VerificationErrorCode(str, Enum):
     RV_LOCALIZATION_REFERENCES_EVIDENCE_INDEX = "RV_LOCALIZATION_REFERENCES_EVIDENCE_INDEX"
     RV_CAPABILITY_HASH_MISMATCH = "RV_CAPABILITY_HASH_MISMATCH"
 
+    # WP-VR1 P9 Verdict/Replay — axis / gate / averaging / NOT_TESTED
+    VR_PASS_AVERAGED_FAIL = "VR_PASS_AVERAGED_FAIL"
+    VR_NOT_TESTED_AS_PASS = "VR_NOT_TESTED_AS_PASS"
+    VR_ORPHAN_OBJECT = "VR_ORPHAN_OBJECT"
+    VR_NON_RETRACEABLE = "VR_NON_RETRACEABLE"
+    VR_OWNER_CONTRACT_MISMATCH = "VR_OWNER_CONTRACT_MISMATCH"
+    VR_EVIDENCE_INDEX_BEFORE_P9 = "VR_EVIDENCE_INDEX_BEFORE_P9"
+    VR_COMPLETION_CONTRACT_REMAINDER_NONZERO = "VR_COMPLETION_CONTRACT_REMAINDER_NONZERO"
+    VR_FULL_CHAIN_REMAINDER_NONZERO = "VR_FULL_CHAIN_REMAINDER_NONZERO"
+    VR_VERDICT_RULE_UNKNOWN_NOT_FAIL_CLOSED = "VR_VERDICT_RULE_UNKNOWN_NOT_FAIL_CLOSED"
+    VR_AXIS_INVALID = "VR_AXIS_INVALID"
+    VR_GATE_INVALID = "VR_GATE_INVALID"
+    VR_REPLAY_INCOMPLETE = "VR_REPLAY_INCOMPLETE"
+    VR_CHECKPOINT_HASH_MISMATCH = "VR_CHECKPOINT_HASH_MISMATCH"
+    VR_VERDICT_HASH_MISMATCH = "VR_VERDICT_HASH_MISMATCH"
+    VR_EVIDENCE_INDEX_HASH_MISMATCH = "VR_EVIDENCE_INDEX_HASH_MISMATCH"
+    VR_COST_DELTA_INCOMPLETE = "VR_COST_DELTA_INCOMPLETE"
+    VR_COVERAGE_DELTA_INCOMPLETE = "VR_COVERAGE_DELTA_INCOMPLETE"
+    VR_SUMMARY_INVALID = "VR_SUMMARY_INVALID"
+    VR_RUNTIME_CHECKPOINT_INVALID = "VR_RUNTIME_CHECKPOINT_INVALID"
+    VR_OUTPUT_KIND_FORBIDDEN = "VR_OUTPUT_KIND_FORBIDDEN"
+    VR_CAPABILITY_HASH_MISMATCH = "VR_CAPABILITY_HASH_MISMATCH"
+    VR_DUPLICATE_OBJECT = "VR_DUPLICATE_OBJECT"
+    VR_MISSING_OBJECT = "VR_MISSING_OBJECT"
+    VR_AXIS_NOT_INDEPENDENT = "VR_AXIS_NOT_INDEPENDENT"
+    VR_GATE_NOT_INDEPENDENT = "VR_GATE_NOT_INDEPENDENT"
+    VR_DAG_NOT_SEALED = "VR_DAG_NOT_SEALED"
+    VR_PHASE_NOT_SEALED = "VR_PHASE_NOT_SEALED"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -2844,5 +2873,153 @@ RV_NONCLAIMS: tuple[str, ...] = (
     "does_not_write_db_or_redis",
     "does_not_launch_real_solver",
     "does_not_call_live_model",
+    "status_implemented_pending_evidence",
+)
+
+
+# ─── WP-VR1 P9 Verdict/Replay 常量 ───────────────────────────────────────
+
+# Verdict 分轴——Factory（系统完备性）、Scientific（证据质量）、Scale（生产就绪）
+# 三轴独立评估，不得平均 PASS 和 FAIL
+VR_VERDICT_AXES: frozenset[str] = frozenset(
+    {"FACTORY", "SCIENTIFIC", "SCALE"}
+)
+
+# Verdict 状态枚举——每个轴独立 PASS/FAIL/NOT_TESTED/BLOCKED
+# NOT_TESTED 不得当作 PASS
+VR_VERDICT_STATUSES: frozenset[str] = frozenset(
+    {"PASS", "FAIL", "NOT_TESTED", "BLOCKED"}
+)
+
+# SixGate 种类——六门审计
+VR_GATE_KINDS: frozenset[str] = frozenset(
+    {
+        "G_P0_READINESS",
+        "G_P1_DRYRUN",
+        "G_P2_CANDIDATE",
+        "G_P3_QUESTION",
+        "G_P4_PLAN",
+        "G_P5_RUN",
+    }
+)
+
+# SixGate 状态——每门独立评估
+VR_GATE_STATUSES: frozenset[str] = frozenset(
+    {"PASS", "FAIL", "NOT_TESTED", "BLOCKED"}
+)
+
+# Replay 状态——每个对象在 replay 中的归宿
+VR_REPLAY_STATUSES: frozenset[str] = frozenset(
+    {"PLACED", "ORPHAN", "DUPLICATE", "MISSING"}
+)
+
+# Remainder 种类——completion-contract remainder 和 full-chain remainder
+VR_REMAINDER_KINDS: frozenset[str] = frozenset(
+    {"COMPLETION_CONTRACT", "FULL_CHAIN"}
+)
+
+# Verdict rule 状态——Evidence status → P9 四轴 verdict 映射的输出状态
+VR_VERDICT_RULE_STATUSES: frozenset[str] = frozenset(
+    {"PASS", "FAIL", "NOT_TESTED", "BLOCKED"}
+)
+
+# VR1 允许的输出对象种类（P9 唯一阶段输出）
+VR_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "MachineVerdict",
+        "SixGateVerdict",
+        "EvidenceIndex",
+        "RuntimeCheckpoint",
+        "EvidenceReplay",
+        "CompletionContractRemainder",
+        "FullChainRemainder",
+        "CostAndCoverageDelta",
+        "HumanReadableSummary",
+        "VerdictCapabilityReport",
+    }
+)
+
+# VR1 明确禁止输出的对象种类（属于其他工作包，不得在 P9 偷入）
+VR_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+        "RedisProjection",
+        "AuditRecord",
+        "SystemCompletionBundle",
+    }
+)
+
+# VR1 能力报告 side-effect 键（必须全为 0）
+VR_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# VR1 能力报告 check IDs
+VR_CHECK_IDS: tuple[str, ...] = (
+    "vr1.verdict.factory_axis_independent",
+    "vr1.verdict.scientific_axis_independent",
+    "vr1.verdict.scale_axis_independent",
+    "vr1.verdict.no_pass_averaged_fail",
+    "vr1.verdict.not_tested_not_pass",
+    "vr1.gate.six_gates_independent",
+    "vr1.gate.not_tested_not_pass",
+    "vr1.evidence_index.generated_in_p9_only",
+    "vr1.evidence_index.retraceable_from_verdict",
+    "vr1.checkpoint.hash_bound",
+    "vr1.replay.all_objects_placed",
+    "vr1.replay.no_orphans",
+    "vr1.replay.no_duplicates",
+    "vr1.replay.no_missing",
+    "vr1.remainder.completion_contract_zero",
+    "vr1.remainder.full_chain_zero",
+    "vr1.rule_registry.fail_closed_unknown",
+    "vr1.cost_delta.complete",
+    "vr1.coverage_delta.complete",
+    "vr1.summary.valid",
+    "vr1.boundary_no_other_wp_reports",
+)
+
+# VR1 claims
+VR_CLAIMS: tuple[str, ...] = (
+    "factory_axis_independently_evaluated",
+    "scientific_axis_independently_evaluated",
+    "scale_axis_independently_evaluated",
+    "pass_not_averaged_with_fail",
+    "not_tested_not_treated_as_pass",
+    "six_gates_independently_evaluated",
+    "evidence_index_generated_in_p9_only",
+    "evidence_retraceable_from_verdict",
+    "checkpoint_hash_bound",
+    "all_objects_have_legal_destination",
+    "no_orphan_objects",
+    "no_duplicate_objects",
+    "no_missing_objects",
+    "completion_contract_remainder_zero",
+    "full_chain_remainder_zero",
+    "verdict_rule_registry_fail_closed",
+    "cost_delta_complete",
+    "coverage_delta_complete",
+    "human_readable_summary_valid",
+    "does_not_produce_other_wp_reports",
+)
+
+# VR1 explicit nonclaims
+VR_NONCLAIMS: tuple[str, ...] = (
+    "does_not_prove_live_solver_capability",
+    "does_not_prove_live_model_capability",
+    "does_not_launch_real_solver",
+    "does_not_write_db_or_redis",
+    "does_not_authorize_live_canary_or_solver_dispatch",
+    "does_not_produce_audit_record",
+    "does_not_produce_system_completion_bundle",
+    "multi_epoch_and_coverage_tensor_scheduling_belongs_to_op1",
     "status_implemented_pending_evidence",
 )
