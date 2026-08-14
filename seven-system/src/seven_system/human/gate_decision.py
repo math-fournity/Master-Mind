@@ -283,6 +283,14 @@ def verify_gate_decision(
     if vstatus not in GATE_VERIFICATION_STATUSES:
         _err(EC.STATE_COMMAND_REJECTED, f"unknown verification_status: {vstatus}")
 
+    # P0-B 补全: HUMAN_PENDING + APPROVE 必须拒绝
+    # verification_status 不是 VERIFIED 时，不能产生 APPROVE 效果
+    if dec_value == "APPROVE" and vstatus != "VERIFIED":
+        _err(
+            EC.GATE_VERIFICATION_STATUS_INVALID,
+            f"APPROVE decision requires verification_status=VERIFIED, got {vstatus}",
+        )
+
     # 13. decision_hash_algorithm
     hash_algo = decision.get("decision_hash_algorithm", "")
     if hash_algo != HUMAN_GATE_HASH_ALGORITHM:
@@ -321,47 +329,19 @@ def _verify_ed25519_signature(
 ) -> None:
     """执行真实 Ed25519 验签。
 
-    P0-B 整改：不再只检查 base64 格式，而是用 cryptography 库
-    执行真实的 Ed25519 签名验证。伪签名（全A、全0、随机）全部 FAIL。
+    P0-B 补全：使用 SignatureVerifierPort 唯一接口执行验签。
+    不再直接调用 cryptography 库——所有验签通过 SignatureVerifierPort。
     """
-    import base64 as _b64
+    from .signature_verifier import verify_signature
 
-    try:
-        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
-        from cryptography.exceptions import InvalidSignature
-    except ImportError:
+    receipt = verify_signature(
+        signed_object=decision,
+        public_key_bytes=public_key_bytes,
+        signature_domain=HUMAN_GATE_SIGNATURE_DOMAIN.encode("utf-8"),
+    )
+    if not receipt.verified:
         errors.append(EC.SIGNATURE_INVALID)
-        details.append("cryptography library not available — fail-closed")
-        return
-
-    # Get signature from envelope
-    envelope = decision.get("signature_envelope", {})
-    sig_b64 = envelope.get("signature_b64", "")
-    if not isinstance(sig_b64, str) or not _SIG_B64_RE.match(sig_b64):
-        errors.append(EC.SIGNATURE_INVALID)
-        details.append("signature_b64 is not valid Ed25519 base64 format")
-        return
-
-    try:
-        signature = _b64.b64decode(sig_b64)
-    except Exception:
-        errors.append(EC.SIGNATURE_INVALID)
-        details.append("signature_b64 decode failed")
-        return
-
-    # Get signed bytes
-    signed_bytes = _get_signed_bytes_for_verification(decision)
-
-    # Verify with real Ed25519
-    try:
-        public_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
-        public_key.verify(signature, signed_bytes)
-    except InvalidSignature:
-        errors.append(EC.SIGNATURE_INVALID)
-        details.append("Ed25519 signature verification failed — fake or forged signature")
-    except Exception as exc:
-        errors.append(EC.SIGNATURE_INVALID)
-        details.append(f"Ed25519 verification error: {exc}")
+        details.append(receipt.verification_error or "signature verification failed")
 
 
 def _get_signed_bytes_for_verification(decision: dict[str, Any]) -> bytes:

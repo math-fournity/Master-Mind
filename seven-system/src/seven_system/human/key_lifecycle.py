@@ -291,6 +291,19 @@ class KeyRegistry:
                 f"not {expected_actor_id}"
             )
 
+        # P0-B 补全: public_key_sha256 与存储的 public_key_bytes 一致性检查
+        stored_pub = self._public_keys.get(key_id)
+        if stored_pub is not None:
+            import hashlib as _hl
+            actual_hash = _hl.sha256(stored_pub).hexdigest()
+            if actual_hash != record.public_key_sha256:
+                errors.append(EC.OBJECT_HASH_MISMATCH)
+                details.append(
+                    f"key {key_id} public_key_sha256 mismatch: "
+                    f"registered={record.public_key_sha256[:16]}..., "
+                    f"actual={actual_hash[:16]}..."
+                )
+
         if required_role is not None and required_role not in record.eligible_roles:
             errors.append(EC.KEY_ROLE_NOT_ELIGIBLE)
             details.append(

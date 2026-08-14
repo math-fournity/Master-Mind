@@ -222,7 +222,7 @@ def _make_valid_decision(
     payload_hash: str | None = None,
     issued_at: str = "2026-08-14T12:00:00Z",
     expires_at: str = "2026-08-15T12:00:00Z",
-    verification_status: str = "HUMAN_PENDING",
+    verification_status: str = "VERIFIED",
 ) -> dict:
     """构建一个结构合法的 GateDecision dict。"""
     ph = payload_hash or _ZERO_HASH

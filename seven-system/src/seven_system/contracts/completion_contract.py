@@ -223,8 +223,11 @@ def _validate_cross_object_binding(
     state_command: str | None,
     errors: list[VerificationErrorCode],
     details: list[str],
+    *,
+    expected_subject_commit: str | None = None,
+    expected_subject_tree: str | None = None,
 ) -> None:
-    """验证 WP ID、status 等跨字段绑定。"""
+    """验证 WP ID、status、subject commit/tree 等跨字段绑定。"""
     # WP ID must match request
     obj_wp_id = submitted_object.get("wp_id")
     if isinstance(obj_wp_id, str) and obj_wp_id != wp_id:
@@ -241,6 +244,25 @@ def _validate_cross_object_binding(
                 f"bundle.status={obj_status}"
             )
 
+    # P0-A 补全: implementation subject commit/tree 必须与冻结 subject 一致
+    if expected_subject_commit is not None or expected_subject_tree is not None:
+        impl_subject = submitted_object.get("implementation_subject", {})
+        if isinstance(impl_subject, dict):
+            obj_commit = impl_subject.get("commit", "")
+            obj_tree = impl_subject.get("tree", "")
+            if expected_subject_commit is not None and obj_commit != expected_subject_commit:
+                errors.append(EC.SUBJECT_HASH_MISMATCH)
+                details.append(
+                    f"implementation_subject.commit mismatch: "
+                    f"expected {expected_subject_commit}, got {obj_commit}"
+                )
+            if expected_subject_tree is not None and obj_tree != expected_subject_tree:
+                errors.append(EC.SUBJECT_HASH_MISMATCH)
+                details.append(
+                    f"implementation_subject.tree mismatch: "
+                    f"expected {expected_subject_tree}, got {obj_tree}"
+                )
+
 
 def verify_completion_contract(
     *,
@@ -250,6 +272,8 @@ def verify_completion_contract(
     submitted_object: dict[str, Any],
     actor_type: str,  # "IMPLEMENTER" | "AUDITOR" | "SYSTEM"
     state_command: str | None = None,
+    expected_subject_commit: str | None = None,
+    expected_subject_tree: str | None = None,
 ) -> VerificationResult:
     """验证完成合同。
 
@@ -340,7 +364,9 @@ def verify_completion_contract(
 
     # Step 8: 验证跨字段绑定
     _validate_cross_object_binding(
-        submitted_object, wp_id, state_command, errors, details
+        submitted_object, wp_id, state_command, errors, details,
+        expected_subject_commit=expected_subject_commit,
+        expected_subject_tree=expected_subject_tree,
     )
 
     # Step 9: 验证 actor 权限和状态命令

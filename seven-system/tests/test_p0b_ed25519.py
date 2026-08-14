@@ -96,6 +96,7 @@ def _make_signed_decision(
     decision_id="dec-real-001",
     actor_id="human-reviewer-001",
     decision="APPROVE",
+    verification_status="VERIFIED",
 ) -> dict:
     """Build a GateDecision with a real Ed25519 signature."""
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
@@ -119,6 +120,7 @@ def _make_signed_decision(
         key_id="key-001",
         signer_principal_id=actor_id,
         signature_b64="A" * 86 + "==",  # placeholder
+        verification_status=verification_status,
     )
 
     # Get the actual signed bytes
@@ -144,6 +146,7 @@ def _make_signed_decision(
         key_id="key-001",
         signer_principal_id=actor_id,
         signature_b64=real_sig,
+        verification_status=verification_status,
     )
 
     return dec
@@ -199,6 +202,7 @@ class TestFakeSignatureBypass(unittest.TestCase):
             key_id="key-001",
             signer_principal_id="human-reviewer-001",
             signature_b64=fake_sig,
+            verification_status="VERIFIED",
         )
 
     def test_all_a_fake_signature_rejected(self):
@@ -330,6 +334,7 @@ class TestHumanGateServiceSignatureVerification(unittest.TestCase):
             key_id="key-001",
             signer_principal_id="human-reviewer-001",
             signature_b64=fake_sig,
+            verification_status="VERIFIED",
         )
 
         # Setup HumanGateService
@@ -403,6 +408,446 @@ class TestHumanGateServiceSignatureVerification(unittest.TestCase):
             evaluation_time="2026-08-14T12:00:00Z",
         )
         self.assertEqual(result.verdict, "PASS", f"Real signature should PASS: {result.details}")
+
+
+# ─── P0-B 补全：8 个缺失的负向测试 ─────────────────────────────────────
+
+class TestPayloadModificationAfterSigning(unittest.TestCase):
+    """签名后修改 payload 必须拒绝。"""
+
+    def test_payload_modified_after_signing_rejected(self):
+        """签名后修改 payload_hash 必须导致验签失败。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key)
+        # 修改 payload_hash（签名后篡改）
+        dec["payload_hash"] = "1" * 64
+        # 重算 decision_hash（但不重签）
+        from seven_system.human.gate_decision import _compute_decision_hash
+        dec["decision_hash"] = _compute_decision_hash(dec)
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        result = verify_gate_decision(dec, public_key_bytes=raw_pub)
+        self.assertEqual(result.verdict, "FAIL")
+
+
+class TestWrongPublicKey(unittest.TestCase):
+    """错公钥必须拒绝。"""
+
+    def test_wrong_public_key_rejected(self):
+        """用不同的公钥验签必须失败。"""
+        private_key, _ = _make_real_ed25519_keypair()
+        _, other_public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key)
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        wrong_pub = other_public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        result = verify_gate_decision(dec, public_key_bytes=wrong_pub)
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.SIGNATURE_INVALID, result.error_codes)
+
+
+class TestWrongActorRole(unittest.TestCase):
+    """错 actor/role 必须拒绝。"""
+
+    def test_wrong_actor_rejected(self):
+        """actor_id 与注册的不一致必须被 HumanGateService 拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        pub_hash = _public_key_sha256(public_key)
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        dec = _make_signed_decision(private_key, actor_id="wrong-actor-001")
+
+        roster = _make_roster()  # 只有 human-reviewer-001
+        gate_registry = _make_gate_registry()
+        key_registry = KeyRegistry()
+        task_port = _make_task_port()
+        key_registry.provision(
+            key_id="key-001",
+            actor_id="human-reviewer-001",  # 注册的是这个 actor
+            public_key_sha256=pub_hash,
+            eligible_roles=frozenset({"MATH_VERIFIER"}),
+            valid_from="2026-08-14T00:00:00Z",
+            valid_to="2026-08-15T00:00:00Z",
+            provisioning_ref="provisioning.json",
+        )
+        key_registry.store_public_key("key-001", raw_pub)
+
+        gate = HumanGateService(
+            actor_roster=roster,
+            gate_type_registry=gate_registry,
+            key_registry=key_registry,
+            task_port=task_port,
+        )
+        result = gate.accept_gate_decision(dec, evaluation_time="2026-08-14T12:00:00Z")
+        self.assertEqual(result.verdict, "FAIL")
+
+
+class TestKeyHashMismatch(unittest.TestCase):
+    """key hash 与实际公钥bytes不一致必须拒绝。"""
+
+    def test_key_hash_mismatch_rejected(self):
+        """KeyRegistry 中 public_key_sha256 与存储的 public_key_bytes 不一致必须拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        key_registry = KeyRegistry()
+        # 注册一个错误的 hash（不是 raw_pub 的真实 hash）
+        key_registry.provision(
+            key_id="key-001",
+            actor_id="human-reviewer-001",
+            public_key_sha256="e" * 64,  # 错误 hash
+            eligible_roles=frozenset({"MATH_VERIFIER"}),
+            valid_from="2026-08-14T00:00:00Z",
+            valid_to="2026-08-15T00:00:00Z",
+            provisioning_ref="provisioning.json",
+        )
+        key_registry.store_public_key("key-001", raw_pub)
+
+        # 验证 key_registry 检测到不一致
+        result = key_registry.check_key(
+            "key-001",
+            expected_actor_id="human-reviewer-001",
+            required_role="MATH_VERIFIER",
+            evaluation_time="2026-08-14T12:00:00Z",
+        )
+        # check_key 应该检测到 hash 不匹配
+        self.assertEqual(result.verdict, "FAIL")
+
+
+class TestRevokedExpiredKey(unittest.TestCase):
+    """revoked/expired/not-yet-valid key 必须拒绝。"""
+
+    def test_revoked_key_rejected(self):
+        """撤销的 key 必须被拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        pub_hash = _public_key_sha256(public_key)
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        key_registry = KeyRegistry()
+        key_registry.provision(
+            key_id="key-001",
+            actor_id="human-reviewer-001",
+            public_key_sha256=pub_hash,
+            eligible_roles=frozenset({"MATH_VERIFIER"}),
+            valid_from="2026-08-14T00:00:00Z",
+            valid_to="2026-08-15T00:00:00Z",
+            provisioning_ref="provisioning.json",
+        )
+        key_registry.store_public_key("key-001", raw_pub)
+        key_registry.revoke("key-001", revocation_ref="revocation.json")
+
+        result = key_registry.check_key(
+            "key-001",
+            expected_actor_id="human-reviewer-001",
+            required_role="MATH_VERIFIER",
+            evaluation_time="2026-08-14T12:00:00Z",
+        )
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.KEY_REVOKED, result.error_codes)
+
+    def test_expired_key_rejected(self):
+        """过期的 key 必须被拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        pub_hash = _public_key_sha256(public_key)
+
+        key_registry = KeyRegistry()
+        key_registry.provision(
+            key_id="key-001",
+            actor_id="human-reviewer-001",
+            public_key_sha256=pub_hash,
+            eligible_roles=frozenset({"MATH_VERIFIER"}),
+            valid_from="2026-08-14T00:00:00Z",
+            valid_to="2026-08-14T11:00:00Z",  # 已过期
+            provisioning_ref="provisioning.json",
+        )
+
+        result = key_registry.check_key(
+            "key-001",
+            expected_actor_id="human-reviewer-001",
+            required_role="MATH_VERIFIER",
+            evaluation_time="2026-08-14T12:00:00Z",  # 在过期之后
+        )
+        self.assertEqual(result.verdict, "FAIL")
+
+    def test_not_yet_valid_key_rejected(self):
+        """尚未生效的 key 必须被拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        pub_hash = _public_key_sha256(public_key)
+
+        key_registry = KeyRegistry()
+        key_registry.provision(
+            key_id="key-001",
+            actor_id="human-reviewer-001",
+            public_key_sha256=pub_hash,
+            eligible_roles=frozenset({"MATH_VERIFIER"}),
+            valid_from="2026-08-15T00:00:00Z",  # 明天才生效
+            valid_to="2026-08-16T00:00:00Z",
+            provisioning_ref="provisioning.json",
+        )
+
+        result = key_registry.check_key(
+            "key-001",
+            expected_actor_id="human-reviewer-001",
+            required_role="MATH_VERIFIER",
+            evaluation_time="2026-08-14T12:00:00Z",  # 今天
+        )
+        self.assertEqual(result.verdict, "FAIL")
+
+
+class TestWrongDomainSeparator(unittest.TestCase):
+    """错 domain separator 必须拒绝。"""
+
+    def test_wrong_domain_separator_rejected(self):
+        """用错误的 domain separator 签名必须导致验签失败。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        # 用错误 domain 签名
+        from seven_system.hashing import canonical_json_bytes
+        dec = build_gate_decision_dict(
+            decision_id="dec-wrong-domain-001",
+            task_id="task-001",
+            gate_type="G-Q-RELEASE",
+            payload_ref="payload.json",
+            payload_hash="0" * 64,
+            actor_id="human-reviewer-001",
+            actor_role="MATH_VERIFIER",
+            decision="APPROVE",
+            reason_codes=["test"],
+            nonce="abcdefgh12345678",
+            issued_at="2026-08-14T10:00:00Z",
+            expires_at="2026-08-14T20:00:00Z",
+            key_id="key-001",
+            signer_principal_id="human-reviewer-001",
+            signature_b64="A" * 86 + "==",
+            verification_status="VERIFIED",
+        )
+
+        # 用错误 domain 签名
+        wrong_domain = b"wrong-domain\0"
+        unsigned = dict(dec)
+        envelope = dict(unsigned.get("signature_envelope", {}))
+        envelope["signature_b64"] = None
+        envelope["signed_bytes_hash"] = None
+        unsigned["signature_envelope"] = envelope
+        unsigned["signed_bytes_hash"] = None
+        unsigned["decision_hash"] = None
+        unsigned["verification_status"] = None
+        signed_bytes = wrong_domain + canonical_json_bytes(unsigned)
+        real_sig = _ed25519_sign(private_key, signed_bytes)
+
+        # 重建 decision with real sig but correct domain in the object
+        dec = build_gate_decision_dict(
+            decision_id="dec-wrong-domain-001",
+            task_id="task-001",
+            gate_type="G-Q-RELEASE",
+            payload_ref="payload.json",
+            payload_hash="0" * 64,
+            actor_id="human-reviewer-001",
+            actor_role="MATH_VERIFIER",
+            decision="APPROVE",
+            reason_codes=["test"],
+            nonce="abcdefgh12345678",
+            issued_at="2026-08-14T10:00:00Z",
+            expires_at="2026-08-14T20:00:00Z",
+            key_id="key-001",
+            signer_principal_id="human-reviewer-001",
+            signature_b64=real_sig,
+            verification_status="VERIFIED",
+        )
+
+        # 验证时用正确的 domain，签名是用错误 domain 签的，应该 FAIL
+        result = verify_gate_decision(dec, public_key_bytes=raw_pub)
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.SIGNATURE_INVALID, result.error_codes)
+
+
+class TestHumanPendingApprove(unittest.TestCase):
+    """HUMAN_PENDING + APPROVE 必须拒绝。"""
+
+    def test_human_pending_with_approve_rejected(self):
+        """verification_status=HUMAN_PENDING + decision=APPROVE 必须被拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key, verification_status="HUMAN_PENDING")
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        result = verify_gate_decision(dec, public_key_bytes=raw_pub)
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.GATE_VERIFICATION_STATUS_INVALID, result.error_codes)
+
+    def test_unverified_with_approve_rejected(self):
+        """verification_status=UNVERIFIED + decision=APPROVE 必须被拒绝。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key, verification_status="UNVERIFIED")
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        result = verify_gate_decision(dec, public_key_bytes=raw_pub)
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.GATE_VERIFICATION_STATUS_INVALID, result.error_codes)
+
+
+class TestSignatureSwapAttack(unittest.TestCase):
+    """同签名换 task/gate/nonce 必须拒绝。"""
+
+    def test_same_signature_different_task_rejected(self):
+        """同一个签名用在不同的 task_id 上必须失败。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key, decision_id="dec-swap-001")
+
+        # 篡改 task_id（签名后修改）
+        dec["task_id"] = "task-002"
+        from seven_system.human.gate_decision import _compute_decision_hash
+        dec["decision_hash"] = _compute_decision_hash(dec)
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        result = verify_gate_decision(dec, public_key_bytes=raw_pub)
+        self.assertEqual(result.verdict, "FAIL")
+
+    def test_same_signature_different_nonce_rejected(self):
+        """同一个签名用不同的 nonce 必须失败。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key, decision_id="dec-swap-002")
+
+        # 篡改 nonce
+        dec["nonce"] = "zyxwvuts98765432"
+        from seven_system.human.gate_decision import _compute_decision_hash
+        dec["decision_hash"] = _compute_decision_hash(dec)
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+        result = verify_gate_decision(dec, public_key_bytes=raw_pub)
+        self.assertEqual(result.verdict, "FAIL")
+
+
+class TestVerifierUnreachable(unittest.TestCase):
+    """verifier 不可达时必须 BLOCKED，不能 fallback 到结构检查。"""
+
+    def test_verifier_unreachable_fail_closed(self):
+        """cryptography 库不可用时必须 fail-closed。"""
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key)
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        # 模拟 verifier 不可达：传入无效公钥 bytes
+        result = verify_gate_decision(dec, public_key_bytes=b"\x00" * 31)  # 错误长度
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.SIGNATURE_INVALID, result.error_codes)
+
+
+# ─── P0-B 补全：SignatureVerifierPort 跨对象复用测试 ────────────────────
+
+class TestSignatureVerifierPort(unittest.TestCase):
+    """SignatureVerifierPort 唯一接口测试。"""
+
+    def test_signature_verifier_port_exists(self):
+        """SignatureVerifierPort 接口存在且可导入。"""
+        from seven_system.human.signature_verifier import (
+            SignatureVerifierPort,
+            Ed25519SignatureVerifier,
+            get_signature_verifier,
+            verify_signature,
+        )
+        # 验证全局单例
+        verifier = get_signature_verifier()
+        self.assertIsInstance(verifier, Ed25519SignatureVerifier)
+
+    def test_signature_verifier_rejects_fake(self):
+        """SignatureVerifierPort 拒绝伪签名。"""
+        from seven_system.human.signature_verifier import verify_signature
+        from seven_system.contracts.errors import HUMAN_GATE_SIGNATURE_DOMAIN
+
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key)
+
+        # 用不同的公钥验签
+        _, other_key = _make_real_ed25519_keypair()
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        wrong_pub = other_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        receipt = verify_signature(
+            signed_object=dec,
+            public_key_bytes=wrong_pub,
+            signature_domain=HUMAN_GATE_SIGNATURE_DOMAIN.encode("utf-8"),
+        )
+        self.assertFalse(receipt.verified)
+
+    def test_signature_verifier_accepts_real(self):
+        """SignatureVerifierPort 接受真实签名。"""
+        from seven_system.human.signature_verifier import verify_signature
+        from seven_system.contracts.errors import HUMAN_GATE_SIGNATURE_DOMAIN
+
+        private_key, public_key = _make_real_ed25519_keypair()
+        dec = _make_signed_decision(private_key)
+
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        receipt = verify_signature(
+            signed_object=dec,
+            public_key_bytes=raw_pub,
+            signature_domain=HUMAN_GATE_SIGNATURE_DOMAIN.encode("utf-8"),
+        )
+        self.assertTrue(receipt.verified)
+        self.assertEqual(receipt.algorithm, "Ed25519")
+
+    def test_cross_object_reuse(self):
+        """SignatureVerifierPort 可用于非 GateDecision 对象（如 AuditAssignment）。
+
+        对于非 GateDecision 对象，自引用 hash 字段名可能不同（如 assignment_hash），
+        但 SignatureVerifierPort 的 _compute_signed_bytes 会移除 decision_hash。
+        因此跨对象复用时，对象需要用 decision_hash 作为自引用字段名，
+        或调用方需要确保签名和验签使用相同的 unsigned bytes 计算。
+        """
+        from seven_system.human.signature_verifier import verify_signature, _compute_signed_bytes
+
+        private_key, public_key = _make_real_ed25519_keypair()
+        from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        raw_pub = public_key.public_bytes(Encoding.Raw, PublicFormat.Raw)
+
+        # 构造一个非 GateDecision 的签名对象（模拟 AuditAssignment）
+        # 使用 decision_hash 作为自引用字段（与 SignatureVerifierPort 一致）
+        domain = b"seven-audit-assignment/v1\0"
+        obj = {
+            "schema_id": "seven/audit-assignment",
+            "assignment_id": "asg-001",
+            "key_id": "key-001",
+            "signature_envelope": {
+                "algorithm": "Ed25519",
+                "key_id": "key-001",
+                "signer_principal_id": "owner-001",
+                "signature_encoding": "base64",
+                "signature_b64": "",  # placeholder
+                "signed_bytes_hash": None,
+            },
+            "signed_bytes_hash": None,
+            "decision_hash": None,  # 使用 decision_hash 以与 SignatureVerifierPort 一致
+            "verification_status": None,
+        }
+
+        # 用 SignatureVerifierPort 的 _compute_signed_bytes 计算 signed bytes
+        signed_bytes = _compute_signed_bytes(obj, domain)
+
+        # 签名
+        real_sig = _ed25519_sign(private_key, signed_bytes)
+        obj["signature_envelope"]["signature_b64"] = real_sig
+
+        # 用 SignatureVerifierPort 验证
+        receipt = verify_signature(
+            signed_object=obj,
+            public_key_bytes=raw_pub,
+            signature_domain=domain,
+        )
+        self.assertTrue(receipt.verified, f"Cross-object reuse should work: {receipt.verification_error}")
 
 
 if __name__ == "__main__":

@@ -290,6 +290,55 @@ class TestCrossObjectBinding(unittest.TestCase):
         )
         self.assertEqual(result.verdict, "FAIL")
 
+    def test_bundle_subject_commit_tree_mismatch_rejected(self):
+        """bundle 的 implementation_subject commit/tree 与冻结 subject 不符必须 FAIL。"""
+        bundle = _make_valid_bundle()
+        # bundle 中 commit="a"*40, tree="b"*40
+        # 传入不同的 expected_subject_commit/tree
+        result = verify_completion_contract(
+            dag_path=DAG_PATH,
+            expected_dag_sha256=_dag_sha256(),
+            wp_id="WP-GV0",
+            submitted_object=bundle,
+            actor_type="IMPLEMENTER",
+            state_command="READY_FOR_AUDIT",
+            expected_subject_commit="c" * 40,
+            expected_subject_tree="d" * 40,
+        )
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.SUBJECT_HASH_MISMATCH, result.error_codes)
+
+    def test_bundle_subject_commit_match_passes(self):
+        """bundle 的 implementation_subject commit/tree 与冻结 subject 一致时 PASS。"""
+        bundle = _make_valid_bundle()
+        result = verify_completion_contract(
+            dag_path=DAG_PATH,
+            expected_dag_sha256=_dag_sha256(),
+            wp_id="WP-GV0",
+            submitted_object=bundle,
+            actor_type="IMPLEMENTER",
+            state_command="READY_FOR_AUDIT",
+            expected_subject_commit="a" * 40,
+            expected_subject_tree="b" * 40,
+        )
+        self.assertEqual(result.verdict, "PASS", f"matching subject should PASS: {result.details}")
+
+    def test_bundle_subject_tree_only_mismatch_rejected(self):
+        """只有 tree 不匹配也必须 FAIL。"""
+        bundle = _make_valid_bundle()
+        result = verify_completion_contract(
+            dag_path=DAG_PATH,
+            expected_dag_sha256=_dag_sha256(),
+            wp_id="WP-GV0",
+            submitted_object=bundle,
+            actor_type="IMPLEMENTER",
+            state_command="READY_FOR_AUDIT",
+            expected_subject_commit="a" * 40,  # matches
+            expected_subject_tree="x" * 40,   # mismatch
+        )
+        self.assertEqual(result.verdict, "FAIL")
+        self.assertIn(EC.SUBJECT_HASH_MISMATCH, result.error_codes)
+
 
 # ─── Owner/contract/actor validation ───────────────────────────────────
 
