@@ -35,7 +35,7 @@ last_recover=0
 while true; do
     # 检查5个服务
     ensure_service pipe-feeder \
-        "while true; do $PY $REPO/xishujuzhen/solver_harness/pipe/feeder.py --tier 1,2,3 --batch-size 100 --low-water-mark 50 2>&1; echo '[auto-restart] feeder退出, 5秒后重启...'; sleep 5; done"
+        "while true; do $PY $REPO/xishujuzhen/solver_harness/pipe/feeder.py --tier 1,2,3 --batch-size 500 --low-water-mark 1000 2>&1; echo '[auto-restart] feeder退出, 5秒后重启...'; sleep 5; done"
 
     ensure_service pipe-runner \
         "while true; do PYTHONPATH=$PYTHONPATH $PY $REPO/xishujuzhen/solver_harness/pipe/runner.py --poll-interval 5 --print-mode 2>&1; echo '[auto-restart] runner退出, 5秒后重启...'; sleep 5; done"
