@@ -144,5 +144,153 @@ class TestFailClosedOnDisabled(unittest.TestCase):
         self.assertFalse(ok)
 
 
+# ─── R6 补全：真实 adapter 代码路径测试 ─────────────────────────────────
+
+class TestRealAdapterPaths(unittest.TestCase):
+    """R6 补全: 真实但默认禁用的 adapter 代码路径测试。"""
+
+    def test_real_adapters_importable(self):
+        """所有真实 adapter 可导入。"""
+        from seven_system.operations.real_adapters import (
+            VLT0CompletionArtifactStore,
+            DBArangoAdapter,
+            RTRedisAdapter,
+            SolverHarnessAdapter,
+            ModelRoleCodexAdapter,
+            ModelRoleDevinAdapter,
+            get_global_registry,
+            get_global_adapters,
+        )
+        adapters = get_global_adapters()
+        self.assertIn("VLT0_CAS", adapters)
+        self.assertIn("DB_ARANGO", adapters)
+        self.assertIn("RT_REDIS", adapters)
+        self.assertIn("SOLVER_HARNESS", adapters)
+        self.assertIn("MODEL_ROLE_CODEX", adapters)
+        self.assertIn("MODEL_ROLE_DEVIN", adapters)
+
+    def test_vlt0_disabled_fail_closed(self):
+        """VLT0 禁用时 write_artifact fail-closed。"""
+        from seven_system.operations.real_adapters import VLT0CompletionArtifactStore
+        registry = AdapterRegistry()
+        adapter = VLT0CompletionArtifactStore()
+        result = adapter.execute(registry, "write_artifact", artifact_id="art-001", content=b"test")
+        self.assertFalse(result["ok"])
+
+    def test_vlt0_enabled_write_artifact(self):
+        """VLT0 启用后 write_artifact 成功。"""
+        from seven_system.operations.real_adapters import VLT0CompletionArtifactStore
+        registry = AdapterRegistry()
+        registry.enable("VLT0_CAS", authorization_ref="permit.json")
+        adapter = VLT0CompletionArtifactStore()
+        result = adapter.execute(registry, "write_artifact", artifact_id="art-001", content=b"test")
+        self.assertTrue(result["ok"])
+        self.assertIn("cas_hash", result)
+
+    def test_db_disabled_fail_closed(self):
+        """DB 禁用时 insert_document fail-closed。"""
+        from seven_system.operations.real_adapters import DBArangoAdapter
+        registry = AdapterRegistry()
+        adapter = DBArangoAdapter()
+        result = adapter.execute(registry, "insert_document", collection="test", document={"_key": "1"})
+        self.assertFalse(result["ok"])
+
+    def test_db_enabled_insert_document(self):
+        """DB 启用后 insert_document 成功。"""
+        from seven_system.operations.real_adapters import DBArangoAdapter
+        registry = AdapterRegistry()
+        registry.enable("DB_ARANGO", authorization_ref="permit.json")
+        adapter = DBArangoAdapter()
+        result = adapter.execute(registry, "insert_document", collection="test", document={"_key": "1"})
+        self.assertTrue(result["ok"])
+
+    def test_rt_disabled_fail_closed(self):
+        """RT 禁用时 set fail-closed。"""
+        from seven_system.operations.real_adapters import RTRedisAdapter
+        registry = AdapterRegistry()
+        adapter = RTRedisAdapter()
+        result = adapter.execute(registry, "set", key="k1", value="v1")
+        self.assertFalse(result["ok"])
+
+    def test_rt_enabled_set_get(self):
+        """RT 启用后 set/get 成功。"""
+        from seven_system.operations.real_adapters import RTRedisAdapter
+        registry = AdapterRegistry()
+        registry.enable("RT_REDIS", authorization_ref="permit.json")
+        adapter = RTRedisAdapter()
+        result = adapter.execute(registry, "set", key="k1", value="v1")
+        self.assertTrue(result["ok"])
+        result = adapter.execute(registry, "get", key="k1")
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["value"], "v1")
+
+    def test_solver_disabled_fail_closed(self):
+        """Solver 禁用时 launch_solver fail-closed。"""
+        from seven_system.operations.real_adapters import SolverHarnessAdapter
+        registry = AdapterRegistry()
+        adapter = SolverHarnessAdapter()
+        result = adapter.execute(registry, "launch_solver", problem_id="p-001")
+        self.assertFalse(result["ok"])
+
+    def test_solver_enabled_launch(self):
+        """Solver 启用后 launch_solver 成功。"""
+        from seven_system.operations.real_adapters import SolverHarnessAdapter
+        registry = AdapterRegistry()
+        registry.enable("SOLVER_HARNESS", authorization_ref="permit.json")
+        adapter = SolverHarnessAdapter()
+        result = adapter.execute(registry, "launch_solver", problem_id="p-001")
+        self.assertTrue(result["ok"])
+        self.assertIn("session_id", result)
+
+    def test_model_role_codex_disabled_fail_closed(self):
+        """ModelRole Codex 禁用时 invoke fail-closed。"""
+        from seven_system.operations.real_adapters import ModelRoleCodexAdapter
+        registry = AdapterRegistry()
+        adapter = ModelRoleCodexAdapter()
+        result = adapter.execute(registry, "invoke", prompt="test")
+        self.assertFalse(result["ok"])
+
+    def test_model_role_codex_enabled_invoke(self):
+        """ModelRole Codex 启用后 invoke 成功。"""
+        from seven_system.operations.real_adapters import ModelRoleCodexAdapter
+        registry = AdapterRegistry()
+        registry.enable("MODEL_ROLE_CODEX", authorization_ref="permit.json")
+        adapter = ModelRoleCodexAdapter()
+        result = adapter.execute(registry, "invoke", prompt="test")
+        self.assertTrue(result["ok"])
+
+    def test_model_role_devin_disabled_fail_closed(self):
+        """ModelRole Devin 禁用时 invoke fail-closed。"""
+        from seven_system.operations.real_adapters import ModelRoleDevinAdapter
+        registry = AdapterRegistry()
+        adapter = ModelRoleDevinAdapter()
+        result = adapter.execute(registry, "invoke", prompt="test")
+        self.assertFalse(result["ok"])
+
+    def test_model_role_devin_enabled_invoke(self):
+        """ModelRole Devin 启用后 invoke 成功。"""
+        from seven_system.operations.real_adapters import ModelRoleDevinAdapter
+        registry = AdapterRegistry()
+        registry.enable("MODEL_ROLE_DEVIN", authorization_ref="permit.json")
+        adapter = ModelRoleDevinAdapter()
+        result = adapter.execute(registry, "invoke", prompt="test")
+        self.assertTrue(result["ok"])
+
+    def test_global_registry_all_disabled(self):
+        """全局 registry 默认所有端口禁用。"""
+        from seven_system.operations.real_adapters import get_global_registry
+        registry = get_global_registry()
+        self.assertTrue(registry.all_disabled())
+
+    def test_unknown_operation_rejected(self):
+        """未知操作必须被拒绝。"""
+        from seven_system.operations.real_adapters import VLT0CompletionArtifactStore
+        registry = AdapterRegistry()
+        registry.enable("VLT0_CAS", authorization_ref="permit.json")
+        adapter = VLT0CompletionArtifactStore()
+        result = adapter.execute(registry, "unknown_op")
+        self.assertFalse(result["ok"])
+
+
 if __name__ == "__main__":
     unittest.main()
