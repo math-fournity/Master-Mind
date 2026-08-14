@@ -555,6 +555,39 @@ class VerificationErrorCode(str, Enum):
     CS_OUTPUT_KIND_FORBIDDEN = "CS_OUTPUT_KIND_FORBIDDEN"
     CS_CAPABILITY_HASH_MISMATCH = "CS_CAPABILITY_HASH_MISMATCH"
 
+    # WP-EX1 P4/P5 Experiment — plan / resource / branch / randomization / arms / contrasts / runner / artifacts
+    EX_BUDGET_EXCEEDED = "EX_BUDGET_EXCEEDED"
+    EX_BASELINE_TRUNCATED = "EX_BASELINE_TRUNCATED"
+    EX_PLAN_MODIFIED_AFTER_START = "EX_PLAN_MODIFIED_AFTER_START"
+    EX_ARMS_NOT_EQUAL_RESOURCE = "EX_ARMS_NOT_EQUAL_RESOURCE"
+    EX_NEGATIVE_RESULT_DELETED = "EX_NEGATIVE_RESULT_DELETED"
+    EX_INVALID_RESULT_DELETED = "EX_INVALID_RESULT_DELETED"
+    EX_RANDOMIZATION_NOT_REPLAYABLE = "EX_RANDOMIZATION_NOT_REPLAYABLE"
+    EX_CASE_PACK_REF_MISSING = "EX_CASE_PACK_REF_MISSING"
+    EX_STRATEGY_RELEASE_REF_MISSING = "EX_STRATEGY_RELEASE_REF_MISSING"
+    EX_CONTRAST_NOT_PREREGISTERED = "EX_CONTRAST_NOT_PREREGISTERED"
+    EX_ARM_KIND_INVALID = "EX_ARM_KIND_INVALID"
+    EX_BRANCH_SNAPSHOT_HASH_MISMATCH = "EX_BRANCH_SNAPSHOT_HASH_MISMATCH"
+    EX_RESOURCE_CONTRACT_HASH_MISMATCH = "EX_RESOURCE_CONTRACT_HASH_MISMATCH"
+    EX_RUN_ARTIFACT_BUNDLE_INCOMPLETE = "EX_RUN_ARTIFACT_BUNDLE_INCOMPLETE"
+    EX_TERMINATION_INVALID = "EX_TERMINATION_INVALID"
+    EX_QUARANTINE_INVALID = "EX_QUARANTINE_INVALID"
+    EX_OBSERVABILITY_INCOMPLETE = "EX_OBSERVABILITY_INCOMPLETE"
+    EX_PLAN_HASH_MISMATCH = "EX_PLAN_HASH_MISMATCH"
+    EX_PLAN_STATE_INVALID = "EX_PLAN_STATE_INVALID"
+    EX_ARM_REF_MISSING = "EX_ARM_REF_MISSING"
+    EX_CONTRAST_KIND_INVALID = "EX_CONTRAST_KIND_INVALID"
+    EX_CONTRAST_ARMS_NOT_FOUND = "EX_CONTRAST_ARMS_NOT_FOUND"
+    EX_CONTRAST_METRIC_INVALID = "EX_CONTRAST_METRIC_INVALID"
+    EX_RESOURCE_BUDGET_INVALID = "EX_RESOURCE_BUDGET_INVALID"
+    EX_BRANCH_SNAPSHOT_NOT_FROZEN = "EX_BRANCH_SNAPSHOT_NOT_FROZEN"
+    EX_RESOURCE_CONTRACT_NOT_FROZEN = "EX_RESOURCE_CONTRACT_NOT_FROZEN"
+    EX_RANDOMIZATION_BLOCK_INVALID = "EX_RANDOMIZATION_BLOCK_INVALID"
+    EX_RANDOMIZATION_SEED_INVALID = "EX_RANDOMIZATION_SEED_INVALID"
+    EX_RUN_STATE_INVALID = "EX_RUN_STATE_INVALID"
+    EX_OUTPUT_KIND_FORBIDDEN = "EX_OUTPUT_KIND_FORBIDDEN"
+    EX_CAPABILITY_HASH_MISMATCH = "EX_CAPABILITY_HASH_MISMATCH"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -1929,5 +1962,197 @@ CS_NONCLAIMS: tuple[str, ...] = (
     "no_live_model_calls",
     "no_db_writes",
     "no_solver_launches",
+    "status_implemented_pending_evidence",
+)
+
+# ─── WP-EX1 P4/P5 Experiment 常量 ───────────────────────────────────────
+
+# Arm kind 枚举——实验对比臂（与 ST_ARM_KINDS 对齐，小写形式用于 ExperimentArm）
+EX_ARM_KINDS: frozenset[str] = frozenset(
+    {
+        "problem_only",
+        "lineage",
+        "direction",
+        "lineage_direction",
+        "distractor",
+        "operation_critic",
+        "position_neutral",
+    }
+)
+
+# Contrast kind 枚举——对比种类
+EX_CONTRAST_KINDS: frozenset[str] = frozenset(
+    {
+        "equal_resource_fresh_restart",
+        "lineage_vs_problem_only",
+        "direction_vs_problem_only",
+        "lineage_direction_vs_problem_only",
+        "distractor_vs_problem_only",
+        "operation_critic_vs_problem_only",
+        "position_neutral_vs_problem_only",
+        "lineage_vs_direction",
+        "lineage_direction_vs_lineage",
+        "lineage_direction_vs_direction",
+    }
+)
+
+# ExperimentPlan 状态枚举（有序状态机）
+EX_PLAN_STATES: frozenset[str] = frozenset(
+    {
+        "DRAFT",          # 可修改
+        "FROZEN",         # P4 冻结，不可修改
+        "STARTED",        # P5 实验已启动
+        "COMPLETED",      # P5 实验完成
+        "SUPERSEDED",     # 被新 plan 取代
+    }
+)
+
+# Run 状态枚举（per-arm run lifecycle）
+EX_RUN_STATES: frozenset[str] = frozenset(
+    {
+        "PENDING",
+        "PREPARED",
+        "LAUNCHED",
+        "COLLECTED",
+        "COMPLETED",
+        "FAILED",
+        "QUARANTINED",
+        "INVALID",
+    }
+)
+
+# Termination reason 枚举（与 SV_TERMINAL_REASONS 对齐）
+EX_TERMINATION_REASONS: frozenset[str] = frozenset(
+    {
+        "COMPLETED",
+        "CANCELLED",
+        "TIMED_OUT",
+        "BUDGET_EXCEEDED",
+        "TERMINATED",
+        "FAILED_PERMANENT",
+        "QUARANTINED",
+    }
+)
+
+# Observability status 枚举
+EX_OBSERVABILITY_STATUSES: frozenset[str] = frozenset(
+    {
+        "COMPLETE",
+        "PARTIAL",
+        "MISSING",
+        "UNOBSERVABLE_DECLARED",
+    }
+)
+
+# EX1 允许的输出对象种类
+EX_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "ExperimentPlan",
+        "ResourceContract",
+        "BranchSnapshot",
+        "RandomizationPlan",
+        "ExperimentArm",
+        "ContrastSpec",
+        "RunArtifactBundle",
+        "ExperimentCapabilityReport",
+    }
+)
+
+# EX1 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+EX_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+        "EvidenceRecord",
+        "ConfirmatoryEvidenceRecord",
+        "P5ClaimRecord",
+        "RunAudit",
+        "RedisProjection",
+    }
+)
+
+# Purpose kind 枚举——RunArtifactBundle 的 purpose
+EX_PURPOSE_KINDS: frozenset[str] = frozenset(
+    {
+        "causal_experiment",
+        "bare_baseline",
+        "calibration",
+    }
+)
+
+# EX1 能力报告 side-effect 键（必须全为 0）
+EX_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# EX1 能力报告 check IDs
+EX_CHECK_IDS: tuple[str, ...] = (
+    "ex1.plan.frozen_before_start",
+    "ex1.plan.immutable_after_start",
+    "ex1.plan.modification_requires_new_plan",
+    "ex1.resource.equal_resource_all_arms",
+    "ex1.resource.distractor_not_equivalent_blocked",
+    "ex1.branch.shared_pre_treatment_state",
+    "ex1.branch.hash_frozen",
+    "ex1.randomization.deterministic_replay",
+    "ex1.randomization.same_seed_same_assignment",
+    "ex1.arms.all_seven_kinds",
+    "ex1.arms.case_pack_ref_present",
+    "ex1.arms.strategy_release_ref_present",
+    "ex1.contrast.pre_registered",
+    "ex1.contrast.evidence_only_at_contrast_level",
+    "ex1.runner.all_arms_retained",
+    "ex1.runner.negative_results_retained",
+    "ex1.runner.invalid_results_retained",
+    "ex1.runner.budget_exceeded_blocked",
+    "ex1.runner.baseline_truncated_blocked",
+    "ex1.runner.plan_modified_after_start_blocked",
+    "ex1.artifact.sealed_per_arm",
+    "ex1.artifact.references_arm_plan_branch_resource",
+    "ex1.boundary_no_other_wp_reports",
+)
+
+# EX1 claims
+EX_CLAIMS: tuple[str, ...] = (
+    "plan_frozen_before_p5_start",
+    "plan_immutable_after_start",
+    "plan_modification_requires_new_experiment_plan",
+    "all_arms_equal_resource_contract",
+    "distractor_not_equivalent_blocked",
+    "all_arms_share_branch_snapshot",
+    "branch_snapshot_hash_frozen",
+    "randomization_deterministic_replay",
+    "same_seed_same_assignment",
+    "all_seven_arm_kinds_present",
+    "all_arms_have_case_pack_ref",
+    "all_arms_have_strategy_release_ref",
+    "all_contrasts_pre_registered",
+    "contrast_evidence_only_at_contrast_level",
+    "all_arm_results_retained",
+    "negative_results_retained",
+    "invalid_results_retained",
+    "budget_exceeded_blocked",
+    "baseline_truncated_blocked",
+    "plan_modified_after_start_blocked",
+    "run_artifact_bundle_sealed_per_arm",
+    "run_artifact_bundle_references_arm_plan_branch_resource",
+    "does_not_produce_other_wp_reports",
+)
+
+# EX1 explicit nonclaims
+EX_NONCLAIMS: tuple[str, ...] = (
+    "does_not_prove_live_solver_capability",
+    "does_not_prove_live_model_capability",
+    "does_not_launch_real_solver",
+    "does_not_write_db_or_redis",
+    "does_not_authorize_live_canary_or_solver_dispatch",
+    "does_not_produce_confirmatory_evidence",
     "status_implemented_pending_evidence",
 )
