@@ -532,6 +532,29 @@ class VerificationErrorCode(str, Enum):
     ST_STRATEGY_STATE_INVALID = "ST_STRATEGY_STATE_INVALID"
     ST_OUTPUT_KIND_FORBIDDEN = "ST_OUTPUT_KIND_FORBIDDEN"
 
+    # WP-CS1 CaseLab Dual-Entry & P3C — case pack / admission / role freeze
+    CS_NATURAL_CASE_FORGED_DRAFT = "CS_NATURAL_CASE_FORGED_DRAFT"
+    CS_MODEL_SELF_SIGNED_ROLE = "CS_MODEL_SELF_SIGNED_ROLE"
+    CS_PROCESS_ONLY_IN_RESULT_LAYER = "CS_PROCESS_ONLY_IN_RESULT_LAYER"
+    CS_EVIDENCE_REF_MISSING = "CS_EVIDENCE_REF_MISSING"
+    CS_CASE_PACK_HASH_MISMATCH = "CS_CASE_PACK_HASH_MISMATCH"
+    CS_ADMISSION_DECISION_UNSIGNED = "CS_ADMISSION_DECISION_UNSIGNED"
+    CS_ROLE_WITHOUT_EVIDENCE = "CS_ROLE_WITHOUT_EVIDENCE"
+    CS_CASE_ROLE_INVALID = "CS_CASE_ROLE_INVALID"
+    CS_DUAL_ENTRY_PATH_INVALID = "CS_DUAL_ENTRY_PATH_INVALID"
+    CS_MECHANISM_REVIEW_FAILED = "CS_MECHANISM_REVIEW_FAILED"
+    CS_RELATION_MAPPING_INVALID = "CS_RELATION_MAPPING_INVALID"
+    CS_CASE_PACK_NOT_IMMUTABLE = "CS_CASE_PACK_NOT_IMMUTABLE"
+    CS_P3C_VERIFICATION_FAILED = "CS_P3C_VERIFICATION_FAILED"
+    CS_ROLE_NOT_FROZEN = "CS_ROLE_NOT_FROZEN"
+    CS_ADMISSION_ROLE_UNKNOWN = "CS_ADMISSION_ROLE_UNKNOWN"
+    CS_CASE_PACK_VERSION_REF_BROKEN = "CS_CASE_PACK_VERSION_REF_BROKEN"
+    CS_CASE_PACK_STATE_INVALID = "CS_CASE_PACK_STATE_INVALID"
+    CS_ADMISSION_STATE_INVALID = "CS_ADMISSION_STATE_INVALID"
+    CS_P3C_STATE_INVALID = "CS_P3C_STATE_INVALID"
+    CS_OUTPUT_KIND_FORBIDDEN = "CS_OUTPUT_KIND_FORBIDDEN"
+    CS_CAPABILITY_HASH_MISMATCH = "CS_CAPABILITY_HASH_MISMATCH"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -1762,6 +1785,146 @@ QA1_CLAIMS: tuple[str, ...] = (
 QA1_NONCLAIMS: tuple[str, ...] = (
     "no_p5_claim",
     "no_tell_hint_in_bare",
+    "no_confirmatory_evidence",
+    "no_live_model_calls",
+    "no_db_writes",
+    "no_solver_launches",
+    "status_implemented_pending_evidence",
+)
+
+# ─── WP-CS1 CaseLab Dual-Entry & P3C 常量 ───────────────────────────────
+
+# Case role 枚举——P3C 冻结的角色种类
+CS_CASE_ROLES: frozenset[str] = frozenset(
+    {
+        "positive",       # target mechanism present
+        "false_friend",   # looks like target but isn't
+        "boundary",       # edge case
+        "unrelated",      # no target mechanism
+    }
+)
+
+# Dual entry path 枚举——两条进入路径
+CS_ENTRY_PATHS: frozenset[str] = frozenset(
+    {
+        "NATURAL",    # P2A/[P2B]+P3N evidence (natural problem + natural review)
+        "GENERATED",  # P3A+P3B evidence (generated problem + bare admission)
+    }
+)
+
+# Admission status 枚举——AdmissionDecision 的状态
+CS_ADMISSION_STATUSES: frozenset[str] = frozenset(
+    {
+        "PENDING",          # 等待 HumanGate 签名
+        "ADMITTED",         # 已签准入实验
+        "REJECTED",         # 被拒绝
+        "PROCESS_ONLY",     # admitted_for_process_only（不进入 result layer）
+    }
+)
+
+# Case pack state 枚举——CasePackVersion 的状态
+CS_CASE_PACK_STATES: frozenset[str] = frozenset(
+    {
+        "DRAFT",        # 未签名，可修改
+        "FROZEN",       # G-CASE-ROLE 签名后冻结，不可修改
+        "SUPERSEDED",   # 被新版本取代
+    }
+)
+
+# Mechanism review kind 枚举——MechanismReview 的审查种类
+CS_MECHANISM_REVIEW_KINDS: frozenset[str] = frozenset(
+    {
+        "IDENTIFICATION",   # 机制识别审查
+        "BOUNDARY_CHECK",   # 机制边界审查
+        "COMPLETENESS",     # 机制完备性审查
+    }
+)
+
+# CS1 允许的输出对象种类
+CS_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "CasePack",
+        "CasePackVersion",
+        "AdmissionDecision",
+        "CaseRole",
+        "MechanismReview",
+        "RelationMapping",
+        "DualEntryFixture",
+        "P3CVerificationReport",
+        "CaseLabCapabilityReport",
+    }
+)
+
+# CS1 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+CS_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "EvidenceRecord",
+        "ConfirmatoryEvidenceRecord",
+        "P5ClaimRecord",
+        "RunAudit",
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "SolverLaunchReceipt",
+        "RedisProjection",
+    }
+)
+
+# P3C state 枚举——P3C 验签状态
+CS_P3C_STATES: frozenset[str] = frozenset(
+    {
+        "UNVERIFIED",     # 未验签
+        "VERIFIED",       # 验签通过
+        "BLOCKED",        # 验签失败（blocker 命中）
+    }
+)
+
+# CS1 gate 类型（G-CASE-ROLE）
+CS_GATE_TYPE_CASE_ROLE: str = "G-CASE-ROLE"
+
+# CS1 能力报告 side-effect 键（必须全为 0）
+CS_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# CS1 能力报告 check IDs
+CS_CHECK_IDS: tuple[str, ...] = (
+    "cs1.dual_entry.natural_path_p2a_p3n",
+    "cs1.dual_entry.generated_path_p3a_p3b",
+    "cs1.p3c.role_frozen_by_human",
+    "cs1.p3c.model_cannot_sign_g_case_role",
+    "cs1.p3c.process_only_excluded_from_result_layer",
+    "cs1.p3c.evidence_refs_valid",
+    "cs1.p3c.case_pack_hash_match",
+    "cs1.p3c.admission_decision_signed",
+    "cs1.p3c.role_assignment_has_evidence",
+    "cs1.natural_case.no_forged_draft",
+    "cs1.boundary.no_confirmatory_evidence",
+    "cs1.boundary.no_p5_claim",
+)
+
+# CS1 claims
+CS_CLAIMS: tuple[str, ...] = (
+    "dual_entry_natural_path_verified",
+    "dual_entry_generated_path_verified",
+    "p3c_role_freeze_by_human_verified",
+    "model_cannot_sign_g_case_role",
+    "process_only_excluded_from_result_layer",
+    "evidence_refs_valid_and_hash_bound",
+    "case_pack_hash_deterministic",
+    "admission_decision_signed_by_human",
+    "role_assignment_has_evidence",
+    "natural_case_no_forged_draft",
+)
+
+# CS1 explicit nonclaims
+CS_NONCLAIMS: tuple[str, ...] = (
+    "no_p5_claim",
     "no_confirmatory_evidence",
     "no_live_model_calls",
     "no_db_writes",
