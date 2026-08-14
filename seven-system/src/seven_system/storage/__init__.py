@@ -21,6 +21,16 @@ from .artifact_store import (
     CompletionArtifactStore,
     ArtifactRef,
 )
+from .artifact_seal import (
+    ArtifactSealProtocol,
+    CommitIntent,
+    ArtifactManifest,
+)
+from .reconcile import (
+    ArtifactReconciler,
+    ReconcileEntry,
+    DBArtifactRecord,
+)
 
 __all__ = [
     "ContentConflictError",
@@ -29,4 +39,10 @@ __all__ = [
     "read_json",
     "CompletionArtifactStore",
     "ArtifactRef",
+    "ArtifactSealProtocol",
+    "CommitIntent",
+    "ArtifactManifest",
+    "ArtifactReconciler",
+    "ReconcileEntry",
+    "DBArtifactRecord",
 ]
