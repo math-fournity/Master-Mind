@@ -62,14 +62,15 @@ cd "$SEVEN_WORKSPACE_ROOT"
 
 后续至少补：
 
-1. 在修正D盘物理bind且获单独授权后，先做真实站点只读catalog/物理存储核验；
-2. migration durable ledger、fence、崩溃resume/reconcile和故障注入；
-3. Harness 只靠 Prompt 禁工具必须 capability FAIL；
-4. `trajectory.jsonl` 缺失/损坏必须 `invalid_observability`；
-5. 任意 tool call 对所有终态独立否决；
-6. 重复 dispatch 100 次只能产生一个 LaunchReceipt；
-7. 旧 fence 晚提交必须被拒；
-8. CAS 已提交/DB 未提交可 reconcile；反向缺 CAS 必须 quarantine；
-9. Process/Proof/Leakage view 的越权字段必须构建失败；
-10. 无人工决定必须永久 `HUMAN_PENDING`；
-11. Evidence Index 反查到 RunArtifact 的集合对账 remainder=0。
+1. 先新增逻辑站点v2合同与semantic verifier，再对原逻辑数据库做identity/current DB/principal/catalog只读核验；
+2. 对`seven_*_v1`做零写入Schema计划与冲突检查；实际Schema初始化另需人工授权、durable ledger、fence、崩溃resume/reconcile和故障注入；
+3. Arango engine迁D盘作为独立运维测试线，不阻塞前两项；
+4. Harness 只靠 Prompt 禁工具必须 capability FAIL；
+5. `trajectory.jsonl` 缺失/损坏必须 `invalid_observability`；
+6. 任意 tool call 对所有终态独立否决；
+7. 重复 dispatch 100 次只能产生一个 LaunchReceipt；
+8. 旧 fence 晚提交必须被拒；
+9. CAS 已提交/DB 未提交可 reconcile；反向缺 CAS 必须 quarantine；
+10. Process/Proof/Leakage view 的越权字段必须构建失败；
+11. 无人工决定必须永久 `HUMAN_PENDING`；
+12. Evidence Index 反查到 RunArtifact 的集合对账 remainder=0。

@@ -65,7 +65,7 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 }
 ```
 
-这个 PASS 只表示 **dry-run P0** 的卷、路径、容量和静态配置检查通过。由于 dry-run 中 `expected_database` 和 `database_capability` 都是 `NOT_REQUIRED`，它不证明 ArangoDB engine 在 D 盘，也不解锁 migration 或 live。
+这个 PASS 只表示 **dry-run P0** 的卷、路径、容量和静态配置检查通过。由于 dry-run 中 `expected_database` 和 `database_capability` 都是 `NOT_REQUIRED`，它不证明逻辑DB站点能力、ArangoDB engine在D盘，也不解锁Schema初始化或live。
 
 如果 README、数据根或挂载漂移，仍应立即恢复为非零退出和 `BLOCKED`。Preflight 不会替你修复目录，也不会 fallback 到别处。
 
@@ -155,13 +155,13 @@ full_tests=58
 当前CLI只有离线`wp1-db-contract-report`，不要把文档里的能力名称猜成子命令：
 
 - 生产database package只有确定性只读`plan_migration`，没有operator site-plan/site-verify命令；
-- Site Schema只是尚未被消费的前向shape，没有site report generator或semantic verifier；Schema-valid不等于capability-valid；
+- Site v1 Schema只是未被消费且已被新决策取代的前向shape，没有site report generator或semantic verifier；Schema-valid不等于capability-valid，禁止消费v1；
 - 生产package和真实Arango adapter中都不存在apply、DDL、authorization或receipt primitive；
-- 共享生产DB的任何DDL、migration、容器重启或数据搬迁都被禁止，除非另有维护方案和用户明确授权。
+- Seven Schema初始化的任何DDL仍被禁止，直到逻辑站点v2核验、计划哈希、受控入口和人工授权全部完成；容器重启和物理数据搬迁是另一个独立维护事项，也必须另有方案与授权。
 
 不得用ad hoc raw client、私有导入或临时脚本补出不存在的站点/写入入口。
 
-`DatabaseSiteCapabilityReport` 当前必须 BLOCKED：Arango 的 D 盘 bind 终点是容器 `/data`，实际 engine data directory 是 `/var/lib/arangodb3`；因此 `G-WP1-P=BLOCKED`、`G-WP1-M=NOT_REACHED`。
+目标架构已经确认复用原Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用`seven_*_v1`命名空间。当前`G-WP1-L/I=NOT_IMPLEMENTED`，所以仍不能声称真实site capability或执行Schema初始化。engine未落D盘记为`A-WP1-D=DEFERRED_WARNING`，不再是逻辑接入的硬阻塞。
 
 ## 5. 初始化一个 Epoch
 
@@ -266,15 +266,15 @@ echo "$ARANGO_DB"
 
 不是 `xishujuzhen_math_glm52` 就停止。当前 v0.1.0 不会连接 DB。
 
-### WP-1 DB 物理 Gate BLOCKED
+### WP-1 DB逻辑复用与物理存储告警
 
-当前共享 ArangoDB 的 host bind `/data/arangodb/data -> /data` 没有承载实际 engine data directory `/var/lib/arangodb3`。处理原则：
+当前共享ArangoDB的host bind `/data/arangodb/data -> /data`没有承载实际engine data directory `/var/lib/arangodb3`。该事实保留，但处理原则已经拆层：
 
 1. 保持服务原状，不停止、不重启、不复制 engine 数据；
-2. `G-WP1-P=BLOCKED`，`G-WP1-M=NOT_REACHED`；
-3. 离线 contract PASS 不能覆盖这个 blocker；
-4. 另写维护、备份、回滚与生产影响方案，并取得用户对共享 DB 变更的明确授权后，才讨论修正 bind；
-5. 修正后也要先只读 verify，不能直接自动 apply migration。
+2. 物理状态记录为`A-WP1-D=DEFERRED_WARNING`，不阻塞对原逻辑DB的未来只读identity/catalog核验；
+3. `G-WP1-L/I=NOT_IMPLEMENTED`，离线contract PASS不能冒充真实站点或Schema初始化PASS；
+4. 任何Seven DDL都必须等v2 site verifier、计划哈希、人工授权和受控入口，不能用临时raw client补齐；
+5. 若未来确需把engine迁D盘，另写维护、备份、回滚与生产影响方案并单独授权。
 
 ### 发现真实 Solver 或 Redis 被修改
 
@@ -314,7 +314,8 @@ Seven v0.1.0 没有常驻服务，所以：
 - [ ] `capabilities` 仍明确 P1 上限；
 - [ ] preflight report 与实际卷/路径一致；
 - [ ] Strict DB报告重新验证PASS，subject/file hash与记录一致；
-- [ ] `G-WP1-P`仍为BLOCKED、`G-WP1-M`仍为NOT_REACHED，没有用离线PASS替代site PASS；
+- [ ] `G-WP1-L/I`仍为NOT_IMPLEMENTED，没有用离线PASS替代site PASS，也没有消费已废止的Site v1合同；
+- [ ] `A-WP1-D`仍按真实物理状态记录为DEFERRED_WARNING，没有被误写成逻辑接入硬阻塞；
 - [ ] Epoch manifest hash 验证 PASS；
 - [ ] dry-run 三类副作用均为 0；
 - [ ] 未手改已提交文件；

@@ -1,6 +1,6 @@
 # Seven System · 非特化证据工厂
 
-Seven System 是一个独立的实验系统：它的目标是把题海系统产生的真实 bare 失败、未来第六代系统提供的冻结 Tell/分类学资产，以及 387/388 号研究协议，组织成可重放、可归责、可恢复的非特化证据。当前 v0.1.0 实现了下文列出的 P0/P1 scaffold，以及 WP-1 的站点存储前置和离线 Strict DB contract；它还不能进行真实数据库 migration 或非特化科学实验。
+Seven System 是一个独立的实验系统：它的目标是把题海系统产生的真实 bare 失败、未来第六代系统提供的冻结 Tell/分类学资产，以及 387/388 号研究协议，组织成可重放、可归责、可恢复的非特化证据。当前 v0.1.0 实现了下文列出的 P0/P1 scaffold，以及 WP-1 的站点存储前置和离线 Strict DB contract；它还不能核验真实逻辑数据库站点、初始化Seven Schema或进行非特化科学实验。
 
 它不是第三套解题模型，也不接管正在运行的题海系统。
 
@@ -23,11 +23,11 @@ Seven System 是一个独立的实验系统：它的目标是把题海系统产�
 - append-only P1 GateDecision、后续 checkpoint 与 scaffold verdict；
 - 初始/P1两级完整性索引与 Epoch 完整性检查；
 - D 盘 README、Seven 数据根与真实 dry-run preflight；
-- Strict DB 固定数据库身份、集合白名单、只读 planner、7集合/13唯一索引的 canonical migration spec；
+- Strict DB 固定数据库身份、集合白名单、只读 planner、7集合/13唯一索引的 canonical Schema初始化spec（代码历史名为migration spec）；
 - `wp1-db-contract-report` 离线受控测试、Schema+语义验证和 append-once 本地报告；
 - 明确列出 P2-P9 `NOT_IMPLEMENTED`。
 
-当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis 或启动 Devin CLI。真实 DB site capability/migration、Solver、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
+当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis 或启动 Devin CLI。真实逻辑DB site capability、Seven Schema初始化、Solver、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
 
 ## 第一次使用
 
@@ -46,7 +46,7 @@ cd "$SEVEN_WORKSPACE_ROOT"
 
 `seven-system/`本身只使用Python标准库；若未来独立迁出，可从其新repo根用`python3 scripts/seven.py ...`运行，无需依赖当前父repo路径。
 
-当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置；当前 Arango engine data directory 没有落在批准的 D 盘 bind 上，所以 DB site capability 仍为 `BLOCKED`，migration 为 `NOT_REACHED`。
+当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离的`seven_*_v1`集合/索引；当前真实逻辑站点核验和Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine data尚未落D盘是独立`DEFERRED_WARNING`，不是上述能力的前置Gate。
 
 上述固定 report ID重入时会重新校验当前实现绑定的离线报告，完全匹配才返回`ALREADY_COMMITTED`。报告位于`/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json`；其 PASS 不证明真实 DB 连接、物理落盘或 migration。
 
@@ -63,7 +63,7 @@ seven-system/
 └── tests/                   隔离单元与 dry-run 测试
 ```
 
-大对象、数据库数据、运行日志和 Epoch 产物不进入本目录；Seven 的批准数据根是 `/data/seven-system-data/`。目录存在不证明 CAS、Vault、WORM 或 DB 物理落盘能力。
+大对象、运行日志和 Epoch 产物不进入本目录；Seven 的批准数据根是 `/data/seven-system-data/`。ArangoDB未来只保存小型元数据、事件和artifact引用。目录存在不证明 CAS、Vault、WORM 或 DB 物理落盘能力。
 
 ## 关键文档
 

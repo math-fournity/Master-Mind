@@ -2,6 +2,16 @@
 
 本文件记录项目正式编号文档及其索引的新增与修订。从 2026-08-05 开始维护；更早的变更以 Git 历史和各编号文档为准。
 
+## 2026-08-14
+
+### 389号Seven数据库政策纠偏：复用原逻辑数据库
+
+- **触发**：用户确认Seven不需要先迁移Arango物理数据，可以继续使用原逻辑数据库，并要求文档反映最新情况。
+- **事实保留**：Arango engine data仍在容器`/var/lib/arangodb3`，D盘bind `/data`为空；本轮没有连接、写入、重启或迁移数据库。
+- **政策修正**：将“逻辑数据库复用”“Seven Schema初始化”“物理数据搬迁”拆开；冻结复用`xishujuzhen_math_glm52`且只使用`seven_*_v1`命名空间的架构，物理D-backing降为`DEFERRED_WARNING`。
+- **当前边界**：`G-WP1-S/C=PASS`；逻辑站点能力与Schema初始化仍`NOT_IMPLEMENTED`；不把离线contract升级为site PASS，不授权当前DDL/write。
+- **修订文件**：389号§14、Tell目录README索引、根/Seven AGENTS、Seven README与稳定docs、旧Site v1 Schema说明、`/data/README.md`。
+
 ## 2026-08-05
 
 ### 146号审计方法论手册150号迭代：F7系统性遗漏模式

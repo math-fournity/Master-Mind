@@ -101,7 +101,7 @@ Solver 是叶子执行器，而不是系统管理员：
 | P8 | 独立 NO_CHANGE 或受控 Revision | 未实现 |
 | P9 | 多维 Verdict、Checkpoint 和 Evidence Index | 未实现 |
 
-WP-1不是canonical P1的别名。它的四门当前为：站点存储`G-WP1-S=PASS`、离线代码契约`G-WP1-C=PASS`、数据库物理存储`G-WP1-P=BLOCKED`、真实migration`G-WP1-M=NOT_REACHED`。生产database package只有只读planner，没有apply/DDL入口；因此离线contract PASS不能被架构图解读为数据库控制面已经上线。
+WP-1不是canonical P1的别名。现行模型把三个层次分开：站点大对象存储`G-WP1-S=PASS`、离线代码契约`G-WP1-C=PASS`；复用原逻辑数据库所需的真实身份/catalog核验`G-WP1-L=NOT_IMPLEMENTED`；Seven Schema初始化`G-WP1-I=NOT_IMPLEMENTED`。Arango engine未由D盘承载保留为非阻塞告警`A-WP1-D=DEFERRED_WARNING`。生产database package只有只读planner，没有site verifier或apply/DDL入口；因此离线contract PASS不能被架构图解读为数据库控制面已经上线。
 
 ## 状态与真值源
 
@@ -159,5 +159,5 @@ at-least-once delivery + idempotent commit
 1. 题海系统发现失败，Seven System 证明或反驳非特化因果主张。
 2. 第六代 `system/` 是外部 producer，不能成为 Seven 的内部可变依赖。
 3. Solver 无工具是能力契约；Prompt 约束本身不是能力证明。
-4. 大对象在 D 盘，DB 存身份、索引、事件和引用，Redis 只做可重建投影。
+4. 大对象在 D 盘；Seven复用`xishujuzhen_math_glm52`但只用`seven_*_v1`命名空间，DB存身份、索引、事件和引用，Redis只做可重建投影。
 5. v0.1.0 只到 P1；任何科学 Tell 结论都是 `NOT_TESTED`。
