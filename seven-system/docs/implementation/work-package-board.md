@@ -11,8 +11,8 @@
 | WP-DOC0 | `READY_FOR_AUDIT` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle |
 | WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试完成（51 GV0 + 109 全量回归 PASS），但自托管 ImplementationCompletionBundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；状态为 IMPLEMENTED_PENDING_EVIDENCE，不是 READY_FOR_AUDIT |
 | WP-VLT0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（91 VLT0测试 PASS），复用GV0 CAS核心扩展Vault/view/seal/reconcile；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-HG0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | HumanTask/HumanGate；消费GV0验证器 |
-| WP-CW0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | ModelRole公共运行时与fake adapter |
+| WP-HG0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 代码+测试完成（58 HG0测试 PASS），HumanTask/HumanGate/KeyLifecycle/ActorRoster，消费GV0验证器；自托管Bundle BLOCKED |
+| WP-CW0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 代码+测试完成（82 CW0测试 PASS），ModelRolePort+fake adapter+11 frozen roles+attempt/reconcile；自托管Bundle BLOCKED |
 | WP-CW-D1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | Devin `glm-5-2` High认知adapter；live canary等待DB运行账本与reconcile |
 | WP-CW-C1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | Codex认知adapter；live canary等待DB运行账本与reconcile |
 | WP-QA0 | `NOT_STARTED` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | 受控双载体出题纵切与Bakeoff-A（无Target Solver/bare） |
