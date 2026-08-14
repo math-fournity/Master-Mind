@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/operator-command-registry/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "registry_id", "entries", "canonicalizer_profile", "registry_hash_algorithm", "registry_hash"],
+  "properties": {
+    "schema_id": {"const": "seven/operator-command-registry"},
+    "schema_version": {"const": 1},
+    "registry_id": {"type": "string", "minLength": 1},
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/entry"}
+    },
+    "canonicalizer_profile": {"const": "RFC8785_JCS_UTF8"},
+    "registry_hash_algorithm": {"const": "sha256(RFC8785-JCS-object-with-registry_hash-null)"},
+    "registry_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "authorization_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_external_execution_authorization",
+        "requires_live_run_permit",
+        "required_action_kind",
+        "authorization_action_registry_entry_ref_and_hash",
+        "requires_human_gate_decision"
+      ],
+      "properties": {
+        "requires_external_execution_authorization": {"type": "boolean"},
+        "requires_live_run_permit": {"type": "boolean"},
+        "required_action_kind": {
+          "anyOf": [
+            {"type": "null"},
+            {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"}
+          ]
+        },
+        "authorization_action_registry_entry_ref_and_hash": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/ref_hash"}
+          ]
+        },
+        "requires_human_gate_decision": {"type": "boolean"}
+      }
+    },
+    "idempotency_and_fence_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id_required",
+        "expected_input_hash_required",
+        "expected_revision_or_fence_required",
+        "reservation_and_dispatch_atomic",
+        "duplicate_identical_behavior",
+        "duplicate_conflicting_behavior",
+        "unknown_start_behavior"
+      ],
+      "properties": {
+        "request_id_required": {"const": true},
+        "expected_input_hash_required": {"const": true},
+        "expected_revision_or_fence_required": {"type": "boolean"},
+        "reservation_and_dispatch_atomic": {"type": "boolean"},
+        "duplicate_identical_behavior": {"const": "RETURN_EXISTING_RESULT"},
+        "duplicate_conflicting_behavior": {"const": "CONFLICT_OR_QUARANTINE"},
+        "unknown_start_behavior": {"enum": ["NOT_APPLICABLE", "UNKNOWN_START_HELD_OR_QUARANTINE"]}
+      }
+    },
+    "safety_semantics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["narrows_activity_only", "can_resume_or_activate", "can_increase_external_work"],
+      "properties": {
+        "narrows_activity_only": {"const": true},
+        "can_resume_or_activate": {"const": false},
+        "can_increase_external_work": {"const": false}
+      }
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_id",
+        "surface_bindings",
+        "command_schema_ref_and_hash",
+        "application_service_and_method",
+        "final_ports",
+        "effect_class",
+        "authorization_contract",
+        "idempotency_and_fence_contract",
+        "safety_semantics_if_any",
+        "receipt_types",
+        "allowed_exit_codes",
+        "introduced_in",
+        "deprecated_in"
+      ],
+      "properties": {
+        "command_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]+$"},
+        "surface_bindings": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "command_schema_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+        "application_service_and_method": {"type": "string", "minLength": 1},
+        "final_ports": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "effect_class": {"enum": ["READ_ONLY", "SAFETY_ONLY", "EXTERNAL_SIDE_EFFECT"]},
+        "authorization_contract": {"$ref": "#/$defs/authorization_contract"},
+        "idempotency_and_fence_contract": {"$ref": "#/$defs/idempotency_and_fence_contract"},
+        "safety_semantics_if_any": {
+          "anyOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/safety_semantics"}
+          ]
+        },
+        "receipt_types": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"}, "uniqueItems": true},
+        "allowed_exit_codes": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 0, "maximum": 255}, "uniqueItems": true},
+        "introduced_in": {"type": "string", "minLength": 1},
+        "deprecated_in": {"type": ["string", "null"], "minLength": 1}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"effect_class": {"const": "EXTERNAL_SIDE_EFFECT"}}, "required": ["effect_class"]},
+          "then": {
+            "properties": {
+              "authorization_contract": {
+                "properties": {
+                  "requires_external_execution_authorization": {"const": true},
+                  "requires_live_run_permit": {"const": true},
+                  "required_action_kind": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+                  "authorization_action_registry_entry_ref_and_hash": {"$ref": "#/$defs/ref_hash"}
+                }
+              },
+              "idempotency_and_fence_contract": {
+                "properties": {
+                  "expected_revision_or_fence_required": {"const": true},
+                  "reservation_and_dispatch_atomic": {"const": true},
+                  "unknown_start_behavior": {"const": "UNKNOWN_START_HELD_OR_QUARANTINE"}
+                }
+              },
+              "safety_semantics_if_any": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"effect_class": {"const": "READ_ONLY"}}, "required": ["effect_class"]},
+          "then": {
+            "properties": {
+              "authorization_contract": {
+                "properties": {
+                  "requires_external_execution_authorization": {"const": false},
+                  "requires_live_run_permit": {"const": false},
+                  "required_action_kind": {"type": "null"},
+                  "authorization_action_registry_entry_ref_and_hash": {"type": "null"},
+                  "requires_human_gate_decision": {"const": false}
+                }
+              },
+              "idempotency_and_fence_contract": {
+                "properties": {
+                  "reservation_and_dispatch_atomic": {"const": false},
+                  "unknown_start_behavior": {"const": "NOT_APPLICABLE"}
+                }
+              },
+              "safety_semantics_if_any": {"type": "null"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"effect_class": {"const": "SAFETY_ONLY"}}, "required": ["effect_class"]},
+          "then": {
+            "properties": {
+              "authorization_contract": {
+                "properties": {
+                  "requires_external_execution_authorization": {"const": false},
+                  "requires_live_run_permit": {"const": false},
+                  "required_action_kind": {"type": "null"},
+                  "authorization_action_registry_entry_ref_and_hash": {"type": "null"},
+                  "requires_human_gate_decision": {"const": false}
+                }
+              },
+              "idempotency_and_fence_contract": {
+                "properties": {
+                  "reservation_and_dispatch_atomic": {"const": false},
+                  "unknown_start_behavior": {"const": "NOT_APPLICABLE"}
+                }
+              },
+              "safety_semantics_if_any": {"$ref": "#/$defs/safety_semantics"}
+            }
+          }
+        }
+      ]
+    }
+  }
+}

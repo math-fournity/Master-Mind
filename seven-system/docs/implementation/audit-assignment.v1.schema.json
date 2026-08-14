@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/audit-assignment/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "assignment_id",
+    "owner_actor_id",
+    "owner_repo_external_channel",
+    "externally_pinned_trust_root",
+    "actor_roster_ref_and_hash",
+    "human_gate_policy_ref_and_hash",
+    "signature_algorithm_registry_ref_and_hash",
+    "auditor_principal_id",
+    "auditor_attestation_public_key",
+    "target_work_package_id",
+    "subject_commit_and_tree",
+    "completion_bundle_ref_and_hash",
+    "evidence_index_commit_if_any",
+    "independence_and_separation_policy_ref_and_hash",
+    "allowed_audit_scope",
+    "required_audit_plan_and_spec_refs_and_hashes",
+    "issued_at",
+    "not_before",
+    "expires_at",
+    "nonce",
+    "canonicalizer_profile",
+    "signature_domain",
+    "signed_bytes_hash",
+    "signature_envelope",
+    "assignment_hash_algorithm",
+    "assignment_hash"
+  ],
+  "properties": {
+    "schema_id": {"const": "seven/audit-assignment"},
+    "schema_version": {"const": 1},
+    "assignment_id": {"type": "string", "minLength": 1},
+    "owner_actor_id": {"type": "string", "minLength": 1},
+    "owner_repo_external_channel": {"$ref": "#/$defs/repo_external_channel"},
+    "externally_pinned_trust_root": {"$ref": "#/$defs/named_hash"},
+    "actor_roster_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "human_gate_policy_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "signature_algorithm_registry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "auditor_principal_id": {"type": "string", "minLength": 1},
+    "auditor_attestation_public_key": {"$ref": "#/$defs/ed25519_public_key"},
+    "target_work_package_id": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$"},
+    "subject_commit_and_tree": {"$ref": "#/$defs/commit_tree"},
+    "completion_bundle_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "evidence_index_commit_if_any": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/commit_tree"}
+      ]
+    },
+    "independence_and_separation_policy_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "allowed_audit_scope": {"$ref": "#/$defs/audit_scope"},
+    "required_audit_plan_and_spec_refs_and_hashes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/ref_hash"}
+    },
+    "issued_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "not_before": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "expires_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "nonce": {"type": "string", "minLength": 16},
+    "canonicalizer_profile": {"const": "RFC8785_JCS_UTF8"},
+    "signature_domain": {"const": "seven-audit-assignment/v1\u0000"},
+    "signed_bytes_hash": {"$ref": "#/$defs/hash"},
+    "signature_envelope": {"$ref": "#/$defs/signature_envelope"},
+    "assignment_hash_algorithm": {"const": "sha256(RFC8785-JCS-object-with-assignment_hash-null)"},
+    "assignment_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_utc_timestamp": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "named_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "sha256"],
+      "properties": {
+        "object_id": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "commit_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "repo_external_channel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["channel_id", "channel_kind", "observation_instructions_ref_and_hash"],
+      "properties": {
+        "channel_id": {"type": "string", "minLength": 1},
+        "channel_kind": {"enum": ["HUMAN_VERIFIED_OUT_OF_BAND", "OWNER_CONTROLLED_SIGNED_CHANNEL"]},
+        "observation_instructions_ref_and_hash": {"$ref": "#/$defs/ref_hash"}
+      }
+    },
+    "ed25519_public_key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key_id", "algorithm", "public_key_encoding", "public_key_b64", "public_key_sha256"],
+      "properties": {
+        "key_id": {"type": "string", "minLength": 1},
+        "algorithm": {"const": "Ed25519"},
+        "public_key_encoding": {"const": "raw-32-byte-base64"},
+        "public_key_b64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{43}=$"},
+        "public_key_sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "audit_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed_audit_axes",
+        "allowed_audit_actions",
+        "allowed_external_side_effects",
+        "requires_separate_external_execution_authorization"
+      ],
+      "properties": {
+        "allowed_audit_axes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"enum": ["implementation", "factory", "scientific", "production_scale"]}
+        },
+        "allowed_audit_actions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"}
+        },
+        "allowed_external_side_effects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["action_kind", "authorization_action_registry_entry_ref_and_hash", "max_count"],
+            "properties": {
+              "action_kind": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+              "authorization_action_registry_entry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+              "max_count": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "requires_separate_external_execution_authorization": {"const": true}
+      }
+    },
+    "signature_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "key_id",
+        "signer_actor_id",
+        "signature_encoding",
+        "signature_b64",
+        "signed_bytes_hash",
+        "trust_root_hash",
+        "actor_roster_hash",
+        "policy_hash",
+        "signature_algorithm_registry_hash"
+      ],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "key_id": {"type": "string", "minLength": 1},
+        "signer_actor_id": {"type": "string", "minLength": 1},
+        "signature_encoding": {"const": "base64"},
+        "signature_b64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+        "signed_bytes_hash": {"$ref": "#/$defs/hash"},
+        "trust_root_hash": {"$ref": "#/$defs/hash"},
+        "actor_roster_hash": {"$ref": "#/$defs/hash"},
+        "policy_hash": {"$ref": "#/$defs/hash"},
+        "signature_algorithm_registry_hash": {"$ref": "#/$defs/hash"}
+      }
+    }
+  }
+}

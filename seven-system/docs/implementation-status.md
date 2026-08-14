@@ -53,7 +53,8 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 - 387号完整P1的lease/fencing/outbox、崩溃恢复、重复投递和Redis重建矩阵；
 - 真实 Devin Solver dispatch；
 - `TargetSolverPort/DevinSolverAdapter`及其LaunchReceipt；
-- provider-neutral `ModelRolePort`（Cognitive Worker子系统）、`HumanTaskPort/HumanGateService`、Codex或其他模型adapter；
+- provider-neutral `ModelRolePort`（Cognitive Worker子系统）、`HumanTaskPort/HumanGateService`、`DevinCliModelRoleAdapter`、Codex或其他模型adapter；
+- WP-GV0 `SecurityContractVerifier/CompletionContractVerifier`公共核心及其DB/bootstrap reservation backends；
 - `RoleExecutionContract`、`CognitiveWorkerCapabilityReport`、`AIInvocationReceipt`和`ReviewIndependenceRecord`；
 - provider/工具表面层面的无工具强制；
 - 对现有 `trajectory.jsonl` 的 fail-closed 工具审计；
@@ -64,7 +65,7 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 - RunAudit、contrast、EvidenceRecord；
 - RevisionProposal、prospective holdout、Promotion；
 - 自动出题、Selector、分类学迁移、Active Learning；
-- AuthoringBakeoff、WP-QA0 Offline Authoring Lab与WP-QA1 Question Admission；
+- AuthoringBakeoff、WP-QA0 Controlled Authoring Lab与WP-QA1 Question Admission；
 - 多 Tell 组合和跨 Epoch 持续学习；
 - Artifact GC、删除、清空队列或生产 pipe 回写。
 - 签名、WORM或外部DB anchoring；当前local receipt只保证Seven API下append-once。
@@ -73,7 +74,7 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 
 凡经过人工Gate的lane还必须冻结HumanGate policy、授权actor roster、职责分离与签名验签readiness；这是六类机器/基础设施报告之外的人类治理前置，当前同样`NOT_IMPLEMENTED`。
 
-当前`seven.py capabilities`仍是v0.1 legacy枚举，尚未逐项列出TargetSolverPort、ModelRolePort、Human Gate、QuestionRelease、WP-QA0/QA1和Bakeoff；**机器列表中的沉默一律解释为NOT_IMPLEMENTED，绝不能解释为可用**。未来同步该代码会改变WP-1 Strict Contract绑定的实现树hash，必须在独立代码工作包中补测试并重发新报告，不能在本轮文档修订中偷改002物证。
+当前`seven.py capabilities`仍是v0.1 legacy枚举，尚未逐项列出TargetSolverPort、ModelRolePort、Devin/Codex认知adapter、Human Gate、QuestionRelease、WP-QA0/QA1和Bakeoff；**机器列表中的沉默一律解释为NOT_IMPLEMENTED，绝不能解释为可用**。未来同步该代码会改变WP-1 Strict Contract绑定的实现树hash，必须在独立代码工作包中补测试并重发新报告，不能在本轮文档修订中偷改002物证。
 
 ## 为什么 live 模式必然 BLOCKED
 
@@ -83,18 +84,23 @@ Arango engine data directory没有使用专用D盘bind，但承载OrbStack overl
 
 ## 下一批工作包
 
-1. 版本化定义逻辑站点v2 report与semantic verifier，再对原逻辑数据库执行只读identity/current DB/catalog核验。
-2. 只读生成`seven_*_v1` Schema初始化计划，检查与现有catalog的冲突；不创建集合。
-3. 在单独授权的未来写工作包中设计真实DDL入口、人工收据、durable ledger、fence、resume/reconcile和故障注入；当前生产包只有只读planner。
-4. 若要把Arango从容器writable overlay改成专用bind/volume，另列独立运维硬化事项，按容器生命周期、备份、停机和回滚需要决定；这不是“迁到D盘”，也不阻塞前两步。
-5. Harness adapter：单次 canonical prompt、结构化 argv、`trajectory.jsonl` fail-closed 审计、能力报告。
-6. 物理答案 Vault 与三类最小权限 view。
-7. 只读 CandidateManifest exporter；不写生产 pipe。
-8. 自然题走`P2A → 按需P2B → P3N → P3C`；生成题走`P3A → P3B admission-only bare → P3C`。P2B/P3B都只做problem-only准入；P2-P4冻结对象完成后，才进入第一个正式guided/control因果实验P5。
-9. 先实现`WP-CW0 Offline Cognitive Worker Runtime`：单一候选adapter、author/review角色、D盘file-backed Vault/receipt、串行/低并发和能力探针；不连DB/Redis/Devin，不实现Judge/solver pool。
-10. 单独实现`WP-HG0 Offline Human Task & Gate Runtime`：file-backed人工任务、actor身份、职责分离、签名GateDecision和HUMAN_PENDING；禁止ModelRole自批。
-11. 再运行`WP-QA0 Offline Authoring Lab`：一个人工批准的MechanismContract和CoverageCell、候选作者、statement-only对抗审稿、独立数学核验与人工QuestionRelease Gate；只写D盘artifact/Vault，不连DB/Redis、不启动Devin、不产生Tell结论。
-12. `WP-QA1 Question Admission`只有在QuestionRelease、Vault、D盘存储/空间、预算、`P3A/G-Q-RELEASE`及Database site、TargetSolverPort/Devin adapter、Harness资源、NoTool、SafeLaunch、AnswerIsolation、artifact seal/reconcile能力全部PASS后，才可执行canonical P3B problem-level bare并经P3C人工Gate冻结Case角色；它不等待完整P2/P3先PASS，file-only lab也不能冒充P3B。
-13. QA0通过后再做`WP-CW1 Production Cognitive Worker Expansion`，增加P3N/P6角色、judge pool、DB-backed lease/fence和reconcile；solver pool仍只归WP-2 TargetSolver。
+1. DOC0完成bootstrap record后先实现`WP-GV0`：唯一的`SecurityContractVerifier/CompletionContractVerifier`公共核心、ReservationBackendPort、固定错误码/正负向量，并复用、硬化v0.1 artifact store为只用于普通完成包的最小D盘`CompletionArtifactStore`；GV0用该store自托管自己的ImplementationCompletionBundle，在GV0前不接受任何普通工作包完成对象。
+2. 版本化定义逻辑站点v2 report与semantic verifier，再对原逻辑数据库执行只读identity/current DB/catalog核验；catalog冲突检查覆盖全部隔离的`seven_*_vN`，不得复用题海/`system/`或无版本集合。
+3. 只读生成`seven_*_v1` scaffold及`seven_*_v2+`原子结构的版本化Schema初始化计划，检查与现有catalog的冲突；不创建集合。
+4. 在单独授权的未来写工作包中设计真实DDL入口、人工收据、durable ledger、fence、resume/reconcile和故障注入；当前生产包只有只读planner。DB1I只交付SchemaState/bootstrap三对象，RT1才交付Runtime/Reconcile两份能力报告。
+5. 若要把Arango从容器writable overlay改成专用bind/volume，另列独立运维硬化事项，按容器生命周期、备份、停机和回滚需要决定；这不是“迁到D盘”，也不阻塞前述只读核验。
+6. Harness adapter：单次 canonical prompt、结构化 argv、`trajectory.jsonl` fail-closed 审计、能力报告。
+7. WP-VLT0复用GV0同一CAS核心，扩展物理答案 Vault、三类最小权限 view及完整artifact reconcile；禁止另造第二套bundle store。
+8. 只读 CandidateManifest exporter；不写生产 pipe。
+9. 自然题走`P2A → 按需P2B → P3N → P3C`；生成题走`P3A → P3B admission-only bare → P3C`。P2B/P3B都只做problem-only准入；P2-P4冻结对象完成后，才进入第一个正式guided/control因果实验P5。
+10. 先实现`WP-CW0 Offline Cognitive Worker Runtime`公共合同、fake adapter、author/review角色、D盘file-backed Vault/receipt和低并发恢复；随后分别实现`WP-CW-D1 DevinCliModelRoleAdapter`与`WP-CW-C1 CodexExecModelRoleAdapter`。Devin认知候选精确请求`glm-5-2`（GLM-5.2 High，effort由UID编码），不得使用solver_harness或Solver workspace。
+11. 单独实现`WP-HG0 Offline Human Task & Gate Runtime`：file-backed人工任务、actor身份、职责分离、签名GateDecision和HUMAN_PENDING；禁止ModelRole自批。这里的offline只证明组件合同，不是canonical Gate激活。
+12. `WP-QA0` development只用fake/stub和签名fixtures证明不可变P3A状态链，不调用真实Devin/Codex、不提交正式HumanGate。真实双载体纵切与`AuthoringBakeoff-A`必须等待DB1I的`DatabaseSchemaStateReport`、RT1的`DatabaseRuntimeCapabilityReport + ArtifactCommitReconcileCapabilityReport`、VLT0/HG0能力与逐次授权全部有效；模型调用、HumanGate、WorkEvent和artifact只走canonical DB/CAS运行链，不连Redis、不启动Target Solver、不产生bare/Tell结论，禁止file-only live旁路。
+13. `WP-QA1 Question Admission`只有在QuestionRelease、Vault、D盘存储/空间、预算、`P3A/G-Q-RELEASE`及Database logical site/schema state/runtime、TargetSolverPort/Devin adapter、Harness资源、NoTool、SafeLaunch、AnswerIsolation、artifact commit/reconcile能力全部PASS后，才可执行canonical P3B problem-level bare并经P3C人工Gate冻结Case角色；它不等待完整P2/P3先PASS，file-only lab也不能冒充P3B。
+14. QA0通过后再做`WP-CW1 Production Cognitive Worker Expansion`，增加P3N/P6角色、judge pool、DB-backed lease/fence和reconcile；solver pool仍只归`WP-SV1` TargetSolver。
 
-Codex/Responses中的`gpt-5.6-sol`高推理配置是WP-QA0的首选候选，不是已实现能力或已胜出的生产配置。requested/effective model、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration必须分别经过能力探针；随后用盲化AuthoringBakeoff决定载体。
+Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中的`gpt-5.6-sol`高推理配置是WP-QA0的并列候选，不是已实现能力或已胜出的生产配置。Devin的High由精确model UID编码；Codex的model/effort/mode/orchestration分别冻结。两者都必须经过角色级能力探针；WP-QA0的Bakeoff-A不含bare，WP-QA1对不可变calibration releases执行Bakeoff-B，之后还需未见brief qualification。评价只决定角色默认profile，不取消其他已合格adapter。
+
+## 完整实现文档状态
+
+2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。该文档工作包当前仍是`WP-DOC0 IN_PROGRESS`，其machine completion contract固定为`DOC_BOOTSTRAP_RECORD`；只有subject commit上的机器检查、`DocBootstrapCompletionRecord`和状态索引提交完成后才可写`READY_FOR_AUDIT`，不得生成ImplementationCompletionBundle。文档存在不提升任何运行能力；WP-GV0及其他工作包均保持`NOT_STARTED/NOT_IMPLEMENTED`。

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/implementation-completion-bundle/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "bundle_id", "wp_id", "implementation_attempt_id", "status", "baseline", "implementation_subject", "spec_refs_and_hashes", "requirement_coverage", "modified_files", "schema_ids_and_hashes", "code_entrypoints", "state_transitions_implemented", "test_receipts", "fault_injection_receipts", "capability_reports", "live_run_receipts", "artifact_refs", "external_side_effect_counts", "claims", "nonclaims", "known_limitations", "protocol_deviations", "unresolved_findings", "inherited_audit_debt", "recovery_notes", "audit_replay_commands", "created_at", "creator", "bundle_hash"],
+  "properties": {
+    "schema_id": {"const": "seven/implementation-completion-bundle"},
+    "schema_version": {"const": 1},
+    "bundle_id": {"type": "string", "minLength": 1},
+    "wp_id": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$", "not": {"const": "WP-GA1"}},
+    "implementation_attempt_id": {"type": "string", "minLength": 1},
+    "status": {"const": "READY_FOR_AUDIT"},
+    "baseline": {"$ref": "#/$defs/commit_tree"},
+    "implementation_subject": {"$ref": "#/$defs/commit_tree"},
+    "spec_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}},
+    "requirement_coverage": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["requirement_id", "normative_clause_ids", "code_refs", "schema_refs", "test_receipts", "runtime_evidence_refs", "status"], "properties": {"requirement_id": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"}, "normative_clause_ids": {"type": "array", "items": {"type": "string", "pattern": "^NORM-"}, "uniqueItems": true}, "code_refs": {"type": "array", "items": {"type": "string"}}, "schema_refs": {"type": "array", "items": {"type": "string"}}, "test_receipts": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}}, "runtime_evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}}, "status": {"enum": ["COVERED", "NOT_APPLICABLE", "UNRESOLVED"]}}}},
+    "modified_files": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "schema_ids_and_hashes": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "code_entrypoints": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "state_transitions_implemented": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "test_receipts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}},
+    "fault_injection_receipts": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "capability_reports": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "live_run_receipts": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "artifact_refs": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "external_side_effect_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["database_connections", "database_reads", "database_writes", "redis_connections", "redis_reads", "redis_writes", "d_volume_writes", "model_invocations_by_profile", "solver_launches", "human_gate_decisions"],
+      "properties": {
+        "database_connections": {"type": "integer", "minimum": 0},
+        "database_reads": {"type": "integer", "minimum": 0},
+        "database_writes": {"type": "integer", "minimum": 0},
+        "redis_connections": {"type": "integer", "minimum": 0},
+        "redis_reads": {"type": "integer", "minimum": 0},
+        "redis_writes": {"type": "integer", "minimum": 0},
+        "d_volume_writes": {"type": "integer", "minimum": 0},
+        "model_invocations_by_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {"^[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}$": {"type": "integer", "minimum": 0}}
+        },
+        "solver_launches": {"type": "integer", "minimum": 0},
+        "human_gate_decisions": {"type": "integer", "minimum": 0}
+      }
+    },
+    "claims": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "nonclaims": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "known_limitations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "protocol_deviations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "unresolved_findings": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "inherited_audit_debt": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "recovery_notes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "audit_replay_commands": {"type": "array", "minItems": 1, "items": {"type": "array", "items": {"type": "string"}, "minItems": 1}},
+    "created_at": {"type": "string", "format": "date-time"},
+    "creator": {"type": "string", "minLength": 1},
+    "bundle_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref_hash": {"type": "object", "additionalProperties": false, "required": ["ref", "sha256"], "properties": {"ref": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/hash"}}},
+    "commit_tree": {"type": "object", "additionalProperties": false, "required": ["commit", "tree"], "properties": {"commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"}, "tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}}
+  }
+}

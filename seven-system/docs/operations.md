@@ -2,7 +2,7 @@
 
 ## 一句话结论
 
-当前 Seven System 能安全运行 P0/P1 scaffold，以及 WP-1 Strict DB 的离线契约报告：这些命令都不连接真实数据库、不写 Redis、不启动 Solver，也不调用Codex或其他远程认知Worker。它不是387号完整P1；没有`start`命令是刻意的安全边界。
+当前 Seven System 能安全运行 P0/P1 scaffold，以及 WP-1 Strict DB 的离线契约报告：这些命令都不连接真实数据库、不写 Redis、不启动 Solver，也不调用Devin/Codex认知Worker。它不是387号完整P1；没有`start`命令是刻意的安全边界。
 
 ## 0. 操作者先确认自己在做什么
 
@@ -45,7 +45,7 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 - P0/P1 scaffold、`WP1_SITE_STORAGE_PREREQUISITE`和`WP1_STRICT_DB_OFFLINE_CONTRACT_REPORT`在 `implemented`；
 - `DATABASE_SITE_CAPABILITY_OR_MIGRATION_APPLY`、Redis、真实 Solver、Vault、三审和 Evidence 在 `not_implemented`。
 
-当前`capabilities`若声称`TargetSolverPort`、`ModelRolePort`、Codex adapter、QuestionRelease或AuthoringBakeoff已经实现，立即停止并审计代码。387/389号已记录用户确认继续推进的多模型设计方向，不等于细节已最终验收，更不等于本版已有任何模型调用入口。
+当前`capabilities`若声称`TargetSolverPort`、`ModelRolePort`、Devin/Codex认知adapter、QuestionRelease或AuthoringBakeoff已经实现，立即停止并审计代码。完整实现方向已经落盘，不等于本版已有任何模型调用入口。
 
 当前v0.1机器枚举尚未逐项列出这些新对象；遗漏不是PASS，而是`NOT_IMPLEMENTED`。不要为补显示文字直接改动绑定WP-1 Strict Contract hash的CLI代码；该同步必须在后续代码工作包中连同测试和新版离线报告一起完成。
 
@@ -284,7 +284,7 @@ echo "$ARANGO_DB"
 5. 任何Seven DDL都必须等v2 site verifier、计划哈希、人工授权和受控入口，不能用临时raw client补齐；
 6. 若未来确需改成专用bind/volume，另写维护、备份、回滚与生产影响方案并单独授权；不要把这个动作称为“迁到D盘”。
 
-### 发现真实 Solver、认知Worker或 Redis 被调用/修改
+### 发现真实 Solver、Devin/Codex认知Worker或 Redis 被调用/修改
 
 v0.1.0 不应产生这些副作用。任何Devin启动、Codex/API调用、远程model event或Redis变化都必须立即停止，把本次运行判为protocol invalid，并审计入口脚本；不能继续把结果当dry-run PASS。
 
@@ -331,6 +331,7 @@ Seven v0.1.0 没有常驻服务，所以：
 - [ ] dry-run 三类副作用均为 0；
 - [ ] 未手改已提交文件；
 - [ ] 未启动 Solver、未写 DB/Redis；
-- [ ] 未调用Codex或其他远程认知Worker；`ModelRolePort`、QuestionRelease、P3A/P3B/P3C与AuthoringBakeoff仍为NOT_IMPLEMENTED/NOT_RUN；
+- [ ] 未调用Devin/Codex认知Worker；`ModelRolePort`、QuestionRelease、P3A/P3B/P3C与AuthoringBakeoff仍为NOT_IMPLEMENTED/NOT_RUN；
+- [ ] 后续实现AI从`docs/implementation/README.md`领取工作包，实施者没有给自己的工作写`AUDITED_PASS`；
 - [ ] `verdict.json` 仍写科学结论 `NOT_TESTED`；
 - [ ] 下一步 blocker 已记录，而不是被静默忽略。

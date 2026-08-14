@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/analysis/golden-vectors/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "rng_contract", "vectors"],
+  "properties": {
+    "schema_id": {"const": "seven/analysis/golden-vectors"},
+    "schema_version": {"const": 1},
+    "rng_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "counter_encoding", "message_format", "integer_source", "index_rule"],
+      "properties": {
+        "algorithm": {"const": "HMAC-SHA256"},
+        "counter_encoding": {"const": "unsigned-64-bit-big-endian"},
+        "message_format": {"type": "string", "minLength": 1},
+        "integer_source": {"type": "string", "minLength": 1},
+        "index_rule": {"const": "rejection-sample-then-value-mod-n"}
+      }
+    },
+    "vectors": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["vector_id", "kind", "input", "expected"],
+        "properties": {
+          "vector_id": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "minLength": 1},
+          "input": {
+            "oneOf": [
+              {"$ref": "#/$defs/paired_input"},
+              {"$ref": "#/$defs/bootstrap_input"},
+              {"$ref": "#/$defs/missingness_input"},
+              {"$ref": "#/$defs/dedup_input"},
+              {"$ref": "#/$defs/holm_input"}
+            ]
+          },
+          "expected": {
+            "oneOf": [
+              {"$ref": "#/$defs/paired_expected"},
+              {"$ref": "#/$defs/bootstrap_expected"},
+              {"$ref": "#/$defs/missingness_expected"},
+              {"$ref": "#/$defs/dedup_expected"},
+              {"$ref": "#/$defs/holm_expected"}
+            ]
+          }
+        },
+        "allOf": [
+          {"if": {"properties": {"kind": {"const": "PAIRED_CLUSTER_DIFFERENCE_V1"}}}, "then": {"properties": {"input": {"$ref": "#/$defs/paired_input"}, "expected": {"$ref": "#/$defs/paired_expected"}}}},
+          {"if": {"properties": {"kind": {"const": "STRATIFIED_CLUSTER_BOOTSTRAP_V1"}}}, "then": {"properties": {"input": {"$ref": "#/$defs/bootstrap_input"}, "expected": {"$ref": "#/$defs/bootstrap_expected"}}}},
+          {"if": {"properties": {"kind": {"const": "MISSINGNESS_POLICY"}}}, "then": {"properties": {"input": {"$ref": "#/$defs/missingness_input"}, "expected": {"$ref": "#/$defs/missingness_expected"}}}},
+          {"if": {"properties": {"kind": {"const": "CLUSTER_DEDUPLICATION"}}}, "then": {"properties": {"input": {"$ref": "#/$defs/dedup_input"}, "expected": {"$ref": "#/$defs/dedup_expected"}}}},
+          {"if": {"properties": {"kind": {"const": "HOLM_V1"}}}, "then": {"properties": {"input": {"$ref": "#/$defs/holm_input"}, "expected": {"$ref": "#/$defs/holm_expected"}}}}
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "cluster_difference": {"type": "object", "additionalProperties": false, "required": ["cluster_id", "difference"], "properties": {"cluster_id": {"type": "string", "minLength": 1}, "difference": {"type": "string", "minLength": 1}}},
+    "paired_input": {"type": "object", "additionalProperties": false, "required": ["cluster_differences"], "properties": {"cluster_differences": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/cluster_difference"}}}},
+    "paired_expected": {"type": "object", "additionalProperties": false, "required": ["eligible_cluster_count", "equal_weight_mean"], "properties": {"eligible_cluster_count": {"type": "integer", "minimum": 0}, "equal_weight_mean": {"type": "string", "minLength": 1}}},
+    "bootstrap_input": {"type": "object", "additionalProperties": false, "required": ["seed_utf8", "contrast_id", "stratum_cluster_ids", "draw_count"], "properties": {"seed_utf8": {"type": "string", "minLength": 1}, "contrast_id": {"type": "string", "minLength": 1}, "stratum_cluster_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "draw_count": {"type": "integer", "minimum": 1}}},
+    "bootstrap_expected": {"type": "object", "additionalProperties": false, "required": ["indices", "first_digest_sha256"], "properties": {"indices": {"type": "array", "items": {"type": "integer", "minimum": 0}}, "first_digest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "arm_value": {"type": "object", "additionalProperties": false, "required": ["cluster_id", "status", "value"], "properties": {"cluster_id": {"type": "string", "minLength": 1}, "status": {"type": "string", "minLength": 1}, "value": {"type": ["string", "number", "null"]}}},
+    "missingness_input": {"type": "object", "additionalProperties": false, "required": ["arm_values"], "properties": {"arm_values": {"type": "array", "items": {"$ref": "#/$defs/arm_value"}}}},
+    "missingness_expected": {"type": "object", "additionalProperties": false, "required": ["analysis_value_count", "invalid_count", "must_not_impute_zero"], "properties": {"analysis_value_count": {"type": "integer", "minimum": 0}, "invalid_count": {"type": "integer", "minimum": 0}, "must_not_impute_zero": {"const": true}}},
+    "run_ref": {"type": "object", "additionalProperties": false, "required": ["run_id", "source_rollout_id"], "properties": {"run_id": {"type": "string", "minLength": 1}, "source_rollout_id": {"type": "string", "minLength": 1}}},
+    "dedup_input": {"type": "object", "additionalProperties": false, "required": ["runs"], "properties": {"runs": {"type": "array", "items": {"$ref": "#/$defs/run_ref"}}}},
+    "dedup_expected": {"type": "object", "additionalProperties": false, "required": ["scientific_cluster_count", "duplicate_run_count"], "properties": {"scientific_cluster_count": {"type": "integer", "minimum": 0}, "duplicate_run_count": {"type": "integer", "minimum": 0}}},
+    "contrast_p": {"type": "object", "additionalProperties": false, "required": ["contrast_id", "raw_p"], "properties": {"contrast_id": {"type": "string", "minLength": 1}, "raw_p": {"type": "string", "minLength": 1}}},
+    "holm_input": {"type": "object", "additionalProperties": false, "required": ["alpha", "contrasts"], "properties": {"alpha": {"type": "string", "minLength": 1}, "contrasts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/contrast_p"}}}},
+    "holm_expected": {"type": "object", "additionalProperties": false, "required": ["ordered_contrast_ids", "thresholds", "rejected"], "properties": {"ordered_contrast_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}, "thresholds": {"type": "array", "items": {"type": "string", "minLength": 1}}, "rejected": {"type": "array", "items": {"type": "boolean"}}}}
+  }
+}

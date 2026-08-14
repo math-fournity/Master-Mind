@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/external-execution-authorization/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "authorization_id",
+    "authorization_mode",
+    "subject_work_package_ids",
+    "subject_completion_bundle_refs_and_hashes",
+    "activation_audit_record_refs_and_hashes",
+    "unaudited_dependency_bundle_refs_and_hashes",
+    "epoch_id_if_any",
+    "run_id_if_any",
+    "authorization_action_registry_ref_and_hash",
+    "action_scopes",
+    "externally_pinned_trust_root",
+    "actor_roster_ref_and_hash",
+    "human_gate_policy_ref_and_hash",
+    "signature_algorithm_registry_ref_and_hash",
+    "revocation_policy_ref_and_hash",
+    "stop_conditions",
+    "issuer_actor_id",
+    "issuer_key_id",
+    "issued_at",
+    "not_before",
+    "expires_at",
+    "nonce",
+    "canonicalizer_profile",
+    "signature_domain",
+    "signed_bytes_hash",
+    "signature_envelope",
+    "authorization_hash_algorithm",
+    "authorization_hash"
+  ],
+  "properties": {
+    "schema_id": {"const": "seven/external-execution-authorization"},
+    "schema_version": {"const": 1},
+    "authorization_id": {"type": "string", "minLength": 1},
+    "authorization_mode": {"enum": ["AUDITED_ACTIVATION", "UNAUDITED_AUTHORIZED_CANARY", "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP"]},
+    "subject_work_package_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$"}
+    },
+    "subject_completion_bundle_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}},
+    "activation_audit_record_refs_and_hashes": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "unaudited_dependency_bundle_refs_and_hashes": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "epoch_id_if_any": {"type": ["string", "null"], "minLength": 1},
+    "run_id_if_any": {"type": ["string", "null"], "minLength": 1},
+    "authorization_action_registry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "action_scopes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/action_scope"}},
+    "externally_pinned_trust_root": {"$ref": "#/$defs/named_hash"},
+    "actor_roster_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "human_gate_policy_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "signature_algorithm_registry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "revocation_policy_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "stop_conditions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "issuer_actor_id": {"type": "string", "minLength": 1},
+    "issuer_key_id": {"type": "string", "minLength": 1},
+    "issued_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "not_before": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "expires_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "nonce": {"type": "string", "minLength": 16},
+    "canonicalizer_profile": {"const": "RFC8785_JCS_UTF8"},
+    "signature_domain": {"const": "seven-external-execution-authorization/v1\u0000"},
+    "signed_bytes_hash": {"$ref": "#/$defs/hash"},
+    "signature_envelope": {"$ref": "#/$defs/signature_envelope"},
+    "authorization_hash_algorithm": {"const": "sha256(RFC8785-JCS-object-with-authorization_hash-null)"},
+    "authorization_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"authorization_mode": {"const": "AUDITED_ACTIVATION"}}, "required": ["authorization_mode"]},
+      "then": {
+        "properties": {
+          "activation_audit_record_refs_and_hashes": {"minItems": 1},
+          "unaudited_dependency_bundle_refs_and_hashes": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"authorization_mode": {"enum": ["UNAUDITED_AUTHORIZED_CANARY", "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP"]}}, "required": ["authorization_mode"]},
+      "then": {
+        "properties": {
+          "unaudited_dependency_bundle_refs_and_hashes": {"minItems": 1}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_utc_timestamp": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "named_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "sha256"],
+      "properties": {
+        "object_id": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "allowed_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_hash", "sensitivity"],
+      "properties": {
+        "input_hash": {"$ref": "#/$defs/hash"},
+        "sensitivity": {"enum": ["public", "restricted", "solution_bearing", "holdout_bearing"]}
+      }
+    },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_invocations",
+        "max_solver_launches",
+        "max_database_writes",
+        "max_redis_writes",
+        "max_d_volume_writes",
+        "max_human_gate_commits",
+        "max_active_release_changes",
+        "max_tokens",
+        "max_cost_microunits",
+        "currency"
+      ],
+      "properties": {
+        "max_invocations": {"type": "integer", "minimum": 0},
+        "max_solver_launches": {"type": "integer", "minimum": 0},
+        "max_database_writes": {"type": "integer", "minimum": 0},
+        "max_redis_writes": {"type": "integer", "minimum": 0},
+        "max_d_volume_writes": {"type": "integer", "minimum": 0},
+        "max_human_gate_commits": {"type": "integer", "minimum": 0},
+        "max_active_release_changes": {"type": "integer", "minimum": 0},
+        "max_tokens": {"type": "integer", "minimum": 0},
+        "max_cost_microunits": {"type": "integer", "minimum": 0},
+        "currency": {"type": "string", "pattern": "^[A-Z]{3}$"}
+      },
+      "anyOf": [
+        {"properties": {"max_invocations": {"minimum": 1}}},
+        {"properties": {"max_solver_launches": {"minimum": 1}}},
+        {"properties": {"max_database_writes": {"minimum": 1}}},
+        {"properties": {"max_redis_writes": {"minimum": 1}}},
+        {"properties": {"max_d_volume_writes": {"minimum": 1}}},
+        {"properties": {"max_human_gate_commits": {"minimum": 1}}},
+        {"properties": {"max_active_release_changes": {"minimum": 1}}},
+        {"properties": {"max_tokens": {"minimum": 1}}},
+        {"properties": {"max_cost_microunits": {"minimum": 1}}}
+      ]
+    },
+    "action_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_id",
+        "scope_hash_algorithm",
+        "scope_hash",
+        "action_kind",
+        "authorization_action_registry_entry_ref_and_hash",
+        "target_site_hash_if_any",
+        "target_database_identity_hash_if_any",
+        "target_redis_namespace_hash_if_any",
+        "target_release_or_pointer_hash_if_any",
+        "allowed_carrier_profile_hashes",
+        "allowed_role_or_solver_contract_hashes",
+        "allowed_inputs",
+        "required_output_sink_and_acl_hash_if_any",
+        "budget"
+      ],
+      "properties": {
+        "scope_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+        "scope_hash_algorithm": {"const": "sha256(RFC8785-JCS-action-scope-with-scope_hash-null)"},
+        "scope_hash": {"$ref": "#/$defs/hash"},
+        "action_kind": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+        "authorization_action_registry_entry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+        "target_site_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "target_database_identity_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "target_redis_namespace_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "target_release_or_pointer_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "allowed_carrier_profile_hashes": {"type": "array", "items": {"$ref": "#/$defs/hash"}, "uniqueItems": true},
+        "allowed_role_or_solver_contract_hashes": {"type": "array", "items": {"$ref": "#/$defs/hash"}, "uniqueItems": true},
+        "allowed_inputs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/allowed_input"}},
+        "required_output_sink_and_acl_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "budget": {"$ref": "#/$defs/budget"}
+      }
+    },
+    "signature_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "key_id",
+        "signer_actor_id",
+        "signature_encoding",
+        "signature_b64",
+        "signed_bytes_hash",
+        "trust_root_hash",
+        "actor_roster_hash",
+        "policy_hash",
+        "signature_algorithm_registry_hash"
+      ],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "key_id": {"type": "string", "minLength": 1},
+        "signer_actor_id": {"type": "string", "minLength": 1},
+        "signature_encoding": {"const": "base64"},
+        "signature_b64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+        "signed_bytes_hash": {"$ref": "#/$defs/hash"},
+        "trust_root_hash": {"$ref": "#/$defs/hash"},
+        "actor_roster_hash": {"$ref": "#/$defs/hash"},
+        "policy_hash": {"$ref": "#/$defs/hash"},
+        "signature_algorithm_registry_hash": {"$ref": "#/$defs/hash"}
+      }
+    }
+  }
+}

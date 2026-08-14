@@ -290,22 +290,23 @@ AI数学系统运行时有两条Pipe：
 
 - scripts、运行资产、Schema、docs和tests全部在`seven-system/`；
 - 大对象、日志、Epoch和未来Vault进入经批准的D盘数据根；数据库只存元数据、事件和artifact引用；
-- Seven复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，未来只创建隔离的`seven_*_v1`集合/索引；Arango engine字节已经经OrbStack `data.img.raw`由D盘承载，但未使用`/data/arangodb/data`专用bind；物理存储形态不是逻辑数据库复用的前置Gate；
+- Seven复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，未来只创建隔离且显式版本化的`seven_*_vN`集合/索引（`N`为正整数；v1为scaffold，后续版本承载经批准的原子结构）；不得复用题海或`system/`集合。Arango engine字节已经经OrbStack `data.img.raw`由D盘承载，但未使用`/data/arangodb/data`专用bind；物理存储形态不是逻辑数据库复用的前置Gate；
 - `/data`缺失、卷README缺失、数据根未批准或空间不足时fail-closed，不得fallback到repo/Home/`/tmp`。
 
 **硬约束**：
 
 1. Devin Solver仍只能经`xishujuzhen/solver_harness/solver_harness.py launch`；
 2. Solver必须无工具；Prompt写“不要用工具”不等于能力PASS，缺独立NoTool能力报告时live运行必须BLOCK；
-3. Devin只绑定**目标Solver**角色；出题、数学核验、对抗审稿和Judge必须经未来provider-neutral `ModelRolePort`（Cognitive Worker是子系统名），不得塞入`solver_harness`或暗中直接调用某个CLI；人工复核/人门另走`HumanTaskPort/HumanGateService`；
-4. Codex/Responses中的`gpt-5.6-sol`高推理配置只是首选出题候选，必须分别探测模型、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration并通过盲化AuthoringBakeoff；同模型新会话只能算上下文独立，不能冒充异模型审查；
+3. 只有**目标Solver作业**可以进入`solver_harness`；Devin CLI并不专属于Solver。出题、数学核验、对抗审稿和Judge统一经provider-neutral `ModelRolePort`（Cognitive Worker是子系统名），同时允许物理隔离的`DevinCliModelRoleAdapter`与`CodexExecModelRoleAdapter`。Devin认知worker不得复用Solver port/workspace/session/AGENTS/capability/receipt/resource pool；人工复核/人门另走`HumanTaskPort/HumanGateService`；
+4. Devin认知角色的首个精确候选为`glm-5-2`（本机catalog显示`GLM-5.2 High`，effort由model UID编码），Codex/Responses中的`gpt-5.6-sol`高推理配置为并列候选；两者都必须按角色与精确profile探测requested/effective模型、effort、mode、orchestration、权限、事件和成本。盲化AuthoringBakeoff只选择角色默认profile，不取消其他已合格载体；同模型新会话只能算上下文独立，不能冒充异模型审查；
 5. DB访问仍须先确认`ARANGO_DB=xishujuzhen_math_glm52`，禁止默认库和直接raw client；
 6. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据、retry until solved或authoring retry until Devin fails；
 7. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
+8. 完整实现按`seven-system/docs/implementation/README.md`的development/activation双依赖推进：上游`READY_FOR_AUDIT`可支持无副作用开发并继承审计债；真实DB、模型、Solver、正式HumanGate、canonical阶段与科学Evidence还需`AUDITED_PASS`或本次未审canary被父级EEA精确覆盖，并且每个具体副作用另有不可扩权LiveRunPermit与原子额度预留收据。实施AI不得把候选系统自签为正式PASS。
 
-**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_v1`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine字节已经经OrbStack image由D盘承载（`A-WP1-D=PASS`，evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），但仍在容器writable layer而非专用host bind（`A-WP1-BIND=WARNING_NOT_DEDICATED`）。`TargetSolverPort`、`ModelRolePort`（Cognitive Worker子系统）、Codex adapter、QuestionRelease管线和AuthoringBakeoff也都尚未实现或运行；当前不连接DB/Redis、不启动Solver、不调用远程认知Worker。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_vN`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine字节已经经OrbStack image由D盘承载（`A-WP1-D=PASS`，evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），但仍在容器writable layer而非专用host bind（`A-WP1-BIND=WARNING_NOT_DEDICATED`）。`TargetSolverPort`、`ModelRolePort`（Cognitive Worker子系统）、Devin/Codex认知adapter、QuestionRelease管线和AuthoringBakeoff也都尚未实现或运行；当前不连接DB/Redis、不启动Solver、不调用远程认知Worker。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
 
-**最新工程决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14-16。§14替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论；§15纠正“OrbStack overlay即未落D盘”的不完整宿主存储判断；§16冻结“Devin目标Solver + provider-neutral认知Worker”的多模型执行边界。
+**最新工程决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14-17。§14替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论；§15纠正“OrbStack overlay即未落D盘”的不完整宿主存储判断；§16记录初版多模型边界；§17按用户最新决策修正为“目标Solver专用Devin执行面 + ModelRole中的Devin/Codex双认知载体”。完整文档总入口和实施者入口是`seven-system/docs/implementation/README.md`；未来独立审计者必须从`seven-system/docs/audit/README.md`开始，再回读被冻结的实现规范与CompletionBundle。
 
 ---
 
@@ -341,7 +342,7 @@ AI数学系统运行时有两条Pipe：
 
 **题目录入信息抓手**：`problem_entries`集合——每道题入题一条记录，是查找该题目所有录入信息的抓手。从这条记录可以找到工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径。查找方法：`db.find_problem_entries_by_problem_id(problem_id)`。`system/`及本repo原有业务代码的数据库操作统一通过`system/db.py`模块，不直接操作ArangoDB客户端。
 
-**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。Seven复用同一Arango服务与逻辑数据库`xishujuzhen_math_glm52`，但不得复用现有业务集合；未来仅允许隔离的`seven_*_v1`命名空间。这个架构许可不构成当前写授权：真实Schema初始化仍须通过精确数据库身份、只读catalog核验、显式计划哈希、人工确认、受控DDL入口和执行收据。Arango物理字节已经经OrbStack image由D盘承载，但未使用专用host bind；两者都不得被误写成逻辑site capability已PASS或Schema写入已授权。
+**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。Seven复用同一Arango服务与逻辑数据库`xishujuzhen_math_glm52`，但不得复用现有业务集合；未来仅允许隔离且显式版本化的`seven_*_vN`命名空间，`N`必须是正整数，禁止无版本Seven集合和非`seven_`前缀集合。这个架构许可不构成当前写授权：真实Schema初始化仍须通过精确数据库身份、只读catalog核验、显式计划哈希、人工确认、受控DDL入口和执行收据。Arango物理字节已经经OrbStack image由D盘承载，但未使用专用host bind；两者都不得被误写成逻辑site capability已PASS或Schema写入已授权。
 
 ### 硬约束 2 · Git 规则
 
@@ -1132,12 +1133,12 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 
 **第二层：管线验证（7个）**
 - [ ] **POC-VMS-14**：脉络分析管线——步骤1-4完整管线端到端运行（依赖VMS-11+VMS-12）
-- [ ] **POC-VMS-15（历史载体方案）**：并发Telling AI——311号原案使用多个Devin CLI实例做trace→tell匹配（依赖VMS-13）+分区粒度验证；现行实现若进入Seven/第六代系统，Telling角色必须由provider-neutral `ModelRolePort`选择载体，不再把Devin写成角色本体
+- [ ] **POC-VMS-15（历史载体方案）**：并发Telling AI——311号原案使用多个Devin CLI实例做trace→tell匹配（依赖VMS-13）+分区粒度验证；现行实现若进入Seven/第六代系统，Telling角色必须由provider-neutral `ModelRolePort`选择载体，Devin可作为`DevinCliModelRoleAdapter`但不再等同于角色本体
 - [ ] **POC-VMS-16**：Parser AI——从外部解答记录识别新(tell,hint)（依赖VMS-14）+两个输入机制验证
 - [ ] **POC-VMS-21**：分类维度结构验证——四层层次结构vs正交维度（依赖VMS-13，313号§4.1）
 - [ ] **POC-VMS-22**：FCA角色验证——用FCA定义分类体系vs用FCA验证完备性（依赖VMS-13+21，313号§4.3）
 - [ ] **POC-VMS-23**：非局部tell库补充——重新分析现有455个profile（依赖VMS-11，314号§2.1）
-- [ ] **POC-VMS-25（历史载体方案）**：Tell存储方案——目录AGENTS.md+可审计遍历（315号原案以Devin CLI启动，依赖VMS-13+21）；现行认知角色启动必须改由`ModelRolePort`路由
+- [ ] **POC-VMS-25（历史载体方案）**：Tell存储方案——目录AGENTS.md+可审计遍历（315号原案以Devin CLI启动，依赖VMS-13+21）；现行认知角色启动必须改由`ModelRolePort`路由，其中Devin和Codex都只是可资格化adapter
 
 **第三层：系统验证（4个）**
 - [ ] **POC-VMS-17**：端到端工作流——完整7阶段循环（依赖VMS-14+VMS-15）
@@ -1193,7 +1194,7 @@ tell的固有属性（形式背景的属性维度——tell本身的特点，不
 - **结构知识**（在分类学Schema/解释库中）：domain定义、段结构模式定义、子模式定义（如"同构之桥"是"跨域桥接"的子模式）、高Level概念的三种解释文本——这些是分类学的"坐标轴"
 - **内容知识**（在tell库/hint库中）：具体tell条目、具体hint条目，每个条目有{domain, 段结构模式}属性——这些是分类学中的"点"
 
-**高Level概念的存储和使用方式（338号，载体口径已更新）**：高Level部分和低Level部分一样放入可审计分类目录，由专门的认知角色从中读取并识别。338号原案写作“专门的devin cli”，现只保留为历史adapter示例；现行物理载体必须由provider-neutral `ModelRolePort`选择。区别在描述方式——高Level部分要"说清楚"+带例子，不能只是一句抽象的话。详见技术说明书`04-概念树/07-高Level概念解释库.md`。
+**高Level概念的存储和使用方式（338号，载体口径已更新）**：高Level部分和低Level部分一样放入可审计分类目录，由专门的认知角色从中读取并识别。338号原案写作“专门的devin cli”；现行物理载体必须由provider-neutral `ModelRolePort`选择，Devin CLI仍可作为经过角色级能力门的正式adapter，与Codex并列。区别在描述方式——高Level部分要"说清楚"+带例子，不能只是一句抽象的话。详见技术说明书`04-概念树/07-高Level概念解释库.md`。
 
 **高Level概念的两种类型（340号）**：
 - **第一种（可展开的）**——如构造-分析-排除、累积-收敛、探索-诊断-修复、归约策略：概念本身定义了展开维度（过程的阶段），可以预先降低Level为具体形式列表。组合爆炸可控，覆盖缺口有限。

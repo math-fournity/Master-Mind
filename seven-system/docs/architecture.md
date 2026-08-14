@@ -41,7 +41,7 @@ flowchart LR
     B --> D["Seven Control Plane"]
     C --> D
     D --> Q["CaseLab / QuestionRelease（未来）"]
-    Q --> W["Cognitive Worker Pools（未来）"]
+    Q --> W["Devin/Codex Cognitive Worker Pools（未来）"]
     Q --> E["Devin no-tool Solver Pool（未来）"]
     W --> F["D盘 Artifact CAS / Vault"]
     E --> F
@@ -79,23 +79,23 @@ Solver 是叶子执行器，而不是系统管理员：
 
 ### 认知 Worker 执行面
 
-Devin只绑定目标Solver，不绑定整条AI流水线。出题、数学核验、对抗审稿、Proof Judge及其他机器认知角色使用未来的provider-neutral `ModelRolePort`；“Cognitive Worker”是子系统/worker类别名，不是第二个Port。人工复核走`HumanTaskPort`，签名人门走不可被机器角色调用的`HumanGateService`。首个候选AI adapter可以是Codex，但角色合同不得写死provider。
+只有目标Solver作业可以进入`solver_harness`，但Devin CLI并不专属于Solver。出题、数学核验、对抗审稿、Proof Judge及其他机器认知角色使用未来的provider-neutral `ModelRolePort`；“Cognitive Worker”是子系统/worker类别名，不是第二个Port。`ModelRolePort`同时允许物理隔离的Devin与Codex adapter。人工复核走`HumanTaskPort`，签名人门走不可被机器角色调用的`HumanGateService`。角色合同不得写死provider。
 
 ```text
 Role Router
 ├── TargetSolverPort → DevinSolverAdapter → solver_harness
-├── ModelRolePort
-    ├── QuestionArchitectPort
-    ├── AdversarialEditorPort
-    ├── MathVerifierPort
-    └── ProofJudge/Auditor ports
+├── ModelRolePort → RoleTypeRegistry中的机器认知角色
+│   ├── DevinCliModelRoleAdapter → `glm-5-2` / GLM-5.2 High候选
+│   └── CodexExecModelRoleAdapter → GPT-5.6高推理候选
 ├── HumanTaskPort
 └── HumanGateService
 ```
 
+Question Architect、Adversarial Editor、Math Verifier、Proof Judge和Auditor是`RoleTypeRegistry`中的角色，不是可以绕过`ModelRolePort`的第二组端口。阶段代码只能提交带精确role、view、profile和资格单元的`RoleExecutionContract`。
+
 每个角色作业必须冻结input view/hash、carrier/provider、requested model/effort/reasoning mode/orchestration、prompt/tool/network/sandbox/output-schema hash、预算、幂等与retry合同，并引用准许该精确profile的CapabilityReport。effective字段只能由运行后的append-only `AIInvocationReceipt`记录；收据还要保存脱敏请求ref/hash、provider response/thread ID、原始事件流ref/hash与Schema、工具事件、输入输出hash、output-schema及权限观察判定、usage/cost和终止原因。模型alias若不可固定，必须标`UNPINNED_ALIAS`；可重放的是证据谱系，不是假装能逐token复现。
 
-Codex/Responses中的`gpt-5.6-sol`高推理配置只是待检验的首选作者；模型、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration必须作为不同条件。进入生产前要用相同MechanismContract、CoverageCell和AuthoringBrief做盲化AuthoringBakeoff，比较数学正确、机制忠实、正交距离、捷径/泄漏、Devin bare准入、多样性和成本。Bakeoff只使用`authoring_calibration_only`题包；选定adapter后还要在未见brief上qualification，不能同一题包既选赢家又证明泛化。相同模型的新会话只记为context-independent，不能冒充model-independent。
+Devin认知角色的首个精确候选是`--model glm-5-2`，本机catalog将其标为`GLM-5.2 High`；High由model UID编码。Codex/Responses中的`gpt-5.6-sol`高推理配置是并列候选。两者都必须按角色、model、effort、reasoning mode、orchestration和权限分别探测。Authoring评估分两段：WP-QA0在不启动Target Solver时只比较数学正确、机制忠实、正交距离、捷径/泄漏、多样性和成本；WP-QA1对已经不可变发布的专用calibration releases增加problem-only bare准入指标，结果不得回流修改同一题稿。默认adapter还要在未见brief上qualification。结果可以是分角色默认，不要求全局唯一赢家；相同模型的新会话只记为context-independent，不能冒充model-independent。
 
 CaseLab有两条合法DAG：自然题走`P2A历史物证审计 → 按需P2B当前bare qualification → P3N Natural Case Review → P3C G-CASE-ROLE`；受控生成题走`P3A Authoring/G-Q-RELEASE → P3B generated bare admission → P3C G-CASE-ROLE`。P2B/P3B只运行problem-only Devin bare准入，不含Tell/Hint，不属于P5；P5仍是CasePack和ExperimentPlan冻结后的第一阶段正式guided/control因果实验。
 
@@ -111,7 +111,7 @@ CaseLab有两条合法DAG：自然题走`P2A历史物证审计 → 按需P2B当�
 
 三份报告分别 seal 后才允许组装 RunAudit。单次 RunAudit 只能陈述“发生了什么”；只有预注册 randomized contrast 才能形成 Tell 因果 EvidenceRecord。
 
-Case authoring同样采用最小视图：Architect完整输出进入Vault，只机械导出公开题面；Adversarial Editor只见题面；Math Verifier见题面与候选解但不见作者scratch、Tell或Devin结果；Devin只见QuestionRelease公开题面和arm允许的Hint。删除同一JSON里的答案字段、复用同一session或同一工作目录都不算物理隔离。
+Case authoring同样采用最小视图：Architect完整输出进入Vault，只机械导出公开题面；Adversarial Editor只见题面；Math Verifier见题面与候选解但不见作者scratch、Tell或Target Solver结果；Target Solver只见QuestionRelease公开题面和arm允许的Hint。无论角色由Devin还是Codex承载，都必须使用独立session/workspace/view/sink；删除同一JSON里的答案字段不算物理隔离。
 
 未来至少分成`author_pool / review_pool / judge_pool / solver_pool`四个资源池，分别冻结并发、provider配额、token/费用、backlog、最大草稿/修订数和停止条件。禁止让高并发Solver预算成为所有认知Worker的全局常数。
 
@@ -190,6 +190,6 @@ at-least-once delivery + idempotent commit
 1. 题海系统发现失败，Seven System 证明或反驳非特化因果主张。
 2. 第六代 `system/` 是外部 producer，不能成为 Seven 的内部可变依赖。
 3. Solver 无工具是能力契约；Prompt 约束本身不是能力证明。
-4. Devin只承载目标Solver；出题、核验和Judge走可替换认知Worker，Codex只是待Bakeoff的首选候选。
-5. 大对象在 D 盘；Seven复用`xishujuzhen_math_glm52`但只用`seven_*_v1`命名空间，DB存身份、索引、事件和引用，Redis只做可重建投影。
-6. v0.1.0 只到 P1；任何模型调用、QuestionRelease或科学 Tell 结论都是 `NOT_IMPLEMENTED/NOT_TESTED`。
+4. 目标Solver只走Devin Harness；认知角色可由ModelRolePort中的Devin或Codex承载，两者都要资格化并可按角色Bakeoff。
+5. 大对象在 D 盘；Seven复用`xishujuzhen_math_glm52`但只用隔离、显式版本化的`seven_*_vN`命名空间（v1为scaffold，v2+承载经批准的原子结构），DB存身份、索引、事件和引用，Redis只做可重建投影。
+6. v0.1.0 只到`P1_DRY_RUN scaffold`，不是canonical P1；任何模型调用、QuestionRelease或科学 Tell 结论都是`NOT_IMPLEMENTED/NOT_TESTED`。

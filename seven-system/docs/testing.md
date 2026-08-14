@@ -2,7 +2,7 @@
 
 ## 一句话结论
 
-当前测试证明 P0/P1 scaffold和WP-1 Strict DB离线契约在隔离环境中fail-closed；测试不得连接真实 DB、Redis、Devin CLI、Codex或其他远程模型。只有显式的报告CLI会把验证后的本地JSON append-once提交到批准的D盘根。
+当前测试证明 P0/P1 scaffold和WP-1 Strict DB离线契约在隔离环境中fail-closed；测试不得连接真实 DB、Redis、Devin CLI（无论Solver还是认知角色）、Codex或其他远程模型。只有显式的报告CLI会把验证后的本地JSON append-once提交到批准的D盘根。
 
 ## 运行全部测试
 
@@ -51,7 +51,7 @@ cd "$SEVEN_WORKSPACE_ROOT"
 - 没证明runtime append-only/CAS/outbox delivery，也没认证wall-clock或本地文件不可变性/WORM；
 - 没证明 Redis lease/fencing；
 - 没证明现有 Harness 真正关闭了工具表面；
-- 没证明`TargetSolverPort`、`ModelRolePort`、`HumanTaskPort`或`HumanGateService`已经实现；
+- 没证明`TargetSolverPort`、`ModelRolePort`、`DevinCliModelRoleAdapter`、Codex adapter、`HumanTaskPort`或`HumanGateService`已经实现；
 - 没证明Codex GPT-5.6、任何推理强度或多智能体编排在本站可用，也没证明其出题优于其他载体；
 - 没证明同模型新会话构成异模型/异provider审查；
 - 没证明 answer Vault 隔离；
@@ -78,14 +78,16 @@ cd "$SEVEN_WORKSPACE_ROOT"
 10. Process/Proof/Leakage view 的越权字段必须构建失败；
 11. 无人工决定必须永久 `HUMAN_PENDING`；
 12. Evidence Index 反查到 RunArtifact 的集合对账 remainder=0。
-13. Cognitive Worker能力探针必须核对requested/effective carrier、model、reasoning effort、reasoning mode、orchestration、工具/网络/sandbox策略和原始事件流；一条profile PASS不得解锁未测组合，不匹配即BLOCK。
+13. Cognitive Worker能力探针必须核对requested/effective carrier、model、reasoning effort、reasoning mode、orchestration、工具/网络/sandbox策略和原始事件流；一条profile PASS不得解锁未测组合，不匹配即BLOCK。Devin认知候选还必须核对`glm-5-2`精确UID、catalog快照、每个generation-bearing step的generation model、独立workspace/session/config以及“从不调用solver_harness”。
 14. Question Architect、Adversarial Editor、Math Verifier与Proof Judge的view越权、session/workdir复用或缺`ReviewIndependenceRecord`必须失败。
 15. QuestionDraft任意文本变化必须使旧候选解、审稿、VerificationDossier和bare结果失效；原地改题测试必须BLOCK。
 16. 每个AuthoringBrief达到最大草稿/修订数后必须停止，拒绝`retry until Devin fails`；所有失败草稿和成本仍在Evidence Index中。
-17. 在相同MechanismContract/CoverageCell下盲化AuthoringBakeoff，并分别报告数学正确、机制忠实、正交距离、捷径/泄漏、bare准入、多样性和成本，不能只看Devin失败率。
+17. 在相同MechanismContract/CoverageCell下对Devin `glm-5-2` High、Codex及其他合格profile做两段盲化Authoring Evaluation：QA0的Bakeoff-A不启动Target Solver，只评数学正确、机制忠实、正交距离、捷径/泄漏、多样性和成本；QA1的Bakeoff-B只对已发布不可变calibration releases增加bare准入指标，且不得回流改题。两段calibration都不得进入确认性Evidence。
 18. 自然题`P2A→按需P2B→P3N→P3C`与生成题`P3A→P3B→P3C`分别做DAG/remainder测试；P2B/P3B必须是problem-only bare、禁止Tell/Hint，判定层只产BareQualificationResult（物理产物仍含RunArtifactBundle/BareBaseline）且不得计为P5样本；AdmissionDecision只能由P3C签名人门产生。历史物证不足时必须触发P2B或保持discovery-only。
 19. 相同Role job重复dispatch只能产生一个`RoleInvocationAttempt`；provider request已接受/生成状态未知时必须quarantine而非重呼，reattach与旧fence cancel/commit都要故障注入。
 20. Architect、Editor、Verifier、Proof Judge和Leakage Auditor的solution-bearing raw request/event/output必须进入受限Vault；普通ledger只允许ref/hash，越权sink构建失败。
 21. `ModelRolePort`不得签发`HumanGateDecision`；缺HumanGate policy、授权actor roster、职责分离证据、有效签名/验签或readiness时必须保持`HUMAN_PENDING/BLOCKED`。
 22. Bakeoff calibration pack不得进入P5/P7确认性证据；默认adapter必须在未见brief qualification pack复验。
 23. AI调用收据必须冻结provider原始usage、币种、价格表hash、成本算法版本；multi-agent child/topology不可观察时必须显式`UNOBSERVABLE`，不能伪造分项成本。
+
+完整后续测试与故障注入矩阵见`docs/implementation/10-testing-and-fault-injection.md`；未来独立审计从`docs/audit/README.md`开始。

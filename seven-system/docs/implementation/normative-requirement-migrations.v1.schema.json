@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/docs/normative-requirement-migrations/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "mappings", "policy_migrations"],
+  "properties": {
+    "schema_id": {"const": "seven/docs/normative-requirement-migrations"},
+    "schema_version": {"const": 1},
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["old_clause_id", "disposition", "new_clause_ids", "reason", "decision_ref"],
+        "properties": {
+          "old_clause_id": {"type": "string", "pattern": "^NORM-"},
+          "disposition": {"enum": ["REPLACED_BY", "RECLASSIFIED", "RETIRED"]},
+          "new_clause_ids": {"type": "array", "items": {"type": "string", "pattern": "^NORM-"}, "uniqueItems": true},
+          "reason": {"type": "string", "minLength": 1},
+          "decision_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "policy_migrations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["migration_id", "from_generator_contract_version", "to_generator_contract_version", "policy_area", "old_index_sha256", "expected_affected_clause_count", "affected_old_clause_ids_sha256", "new_consumer_wp_ids", "new_consumer_assignment_basis", "reason", "decision_ref"],
+        "properties": {
+          "migration_id": {"type": "string", "minLength": 1},
+          "from_generator_contract_version": {"type": "integer", "minimum": 1},
+          "to_generator_contract_version": {"type": "integer", "minimum": 1},
+          "policy_area": {"const": "LOCAL_ONLY_CONSUMER_ASSIGNMENT"},
+          "old_index_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "expected_affected_clause_count": {"type": "integer", "minimum": 1},
+          "affected_old_clause_ids_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "new_consumer_wp_ids": {"const": ["WP-DOC0"]},
+          "new_consumer_assignment_basis": {"const": "DOC0_TEMPORARY_PENDING_INDEPENDENT_SEMANTIC_REVIEW"},
+          "reason": {"type": "string", "minLength": 1},
+          "decision_ref": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

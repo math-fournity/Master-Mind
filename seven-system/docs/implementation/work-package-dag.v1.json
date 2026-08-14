@@ -1,0 +1,37 @@
+{
+  "schema_id": "seven/work-package-dag",
+  "schema_version": 1,
+  "schema_ref": "work-package-dag.v1.schema.json",
+  "dag_id": "seven-complete-implementation-v1",
+  "dependency_semantics": {
+    "development": "Every development dependency must be READY_FOR_AUDIT or AUDITED_PASS; unaudited dependencies are recorded as inherited_audit_debt and only side-effect-free work may continue",
+    "activation": "Every activation dependency must be AUDITED_PASS, unless a signed ExternalExecutionAuthorization explicitly binds each unaudited dependency bundle for one UNAUDITED_AUTHORIZED_CANARY. Every live action additionally requires a valid parent authorization, a non-escalating LiveRunPermit, and an atomic AuthorizationConsumptionReceipt reservation"
+  },
+  "work_packages": [
+    {"wp_id": "WP-DOC0", "owner_type": "IMPLEMENTER", "completion_contract": "DOC_BOOTSTRAP_RECORD", "development_dependencies": [], "activation_dependencies": []},
+    {"wp_id": "WP-GV0", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-DOC0"], "activation_dependencies": ["WP-DOC0"]},
+    {"wp_id": "WP-VLT0", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-GV0"], "activation_dependencies": ["WP-GV0"]},
+    {"wp_id": "WP-HG0", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-GV0", "WP-VLT0"], "activation_dependencies": ["WP-GV0", "WP-VLT0"]},
+    {"wp_id": "WP-CW0", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-GV0", "WP-VLT0"], "activation_dependencies": ["WP-GV0", "WP-VLT0"]},
+    {"wp_id": "WP-CW-D1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-CW0"], "activation_dependencies": ["WP-CW0", "WP-VLT0", "WP-HG0", "WP-DB1I", "WP-RT1"]},
+    {"wp_id": "WP-CW-C1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-CW0"], "activation_dependencies": ["WP-CW0", "WP-VLT0", "WP-HG0", "WP-DB1I", "WP-RT1"]},
+    {"wp_id": "WP-QA0", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-HG0", "WP-CW-D1", "WP-CW-C1"], "activation_dependencies": ["WP-VLT0", "WP-HG0", "WP-DB1I", "WP-RT1", "WP-CW-D1", "WP-CW-C1"]},
+    {"wp_id": "WP-DB1L", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-GV0"], "activation_dependencies": ["WP-GV0", "WP-HG0"]},
+    {"wp_id": "WP-DB1I", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-DB1L", "WP-HG0", "WP-VLT0"], "activation_dependencies": ["WP-DB1L", "WP-HG0", "WP-VLT0"]},
+    {"wp_id": "WP-RT1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-DB1I", "WP-VLT0"], "activation_dependencies": ["WP-DB1I", "WP-VLT0", "WP-HG0"]},
+    {"wp_id": "WP-SV1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-VLT0", "WP-RT1"], "activation_dependencies": ["WP-VLT0", "WP-RT1", "WP-HG0"]},
+    {"wp_id": "WP-IN1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-GV0"], "activation_dependencies": ["WP-GV0"]},
+    {"wp_id": "WP-TX1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-IN1", "WP-VLT0", "WP-RT1", "WP-HG0"], "activation_dependencies": ["WP-IN1", "WP-VLT0", "WP-RT1", "WP-HG0"]},
+    {"wp_id": "WP-CW1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-RT1", "WP-CW-D1", "WP-CW-C1"], "activation_dependencies": ["WP-RT1", "WP-VLT0", "WP-HG0", "WP-CW-D1", "WP-CW-C1"]},
+    {"wp_id": "WP-QA1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-QA0", "WP-SV1", "WP-RT1", "WP-HG0"], "activation_dependencies": ["WP-QA0", "WP-VLT0", "WP-SV1", "WP-RT1", "WP-HG0"]},
+    {"wp_id": "WP-CS1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-IN1", "WP-TX1", "WP-CW1", "WP-HG0", "WP-QA1", "WP-SV1"], "activation_dependencies": ["WP-IN1", "WP-TX1", "WP-CW1", "WP-HG0", "WP-QA1", "WP-SV1"]},
+    {"wp_id": "WP-ST1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-TX1", "WP-CW1", "WP-SV1"], "activation_dependencies": ["WP-TX1", "WP-CW1", "WP-SV1", "WP-CS1"]},
+    {"wp_id": "WP-EX1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-CS1", "WP-QA1", "WP-SV1", "WP-ST1"], "activation_dependencies": ["WP-CS1", "WP-QA1", "WP-SV1", "WP-ST1", "WP-HG0"]},
+    {"wp_id": "WP-AU1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-EX1", "WP-CW1"], "activation_dependencies": ["WP-EX1", "WP-CW1", "WP-VLT0", "WP-HG0"]},
+    {"wp_id": "WP-EV1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-AU1"], "activation_dependencies": ["WP-AU1"]},
+    {"wp_id": "WP-RV1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-EV1", "WP-HG0"], "activation_dependencies": ["WP-EV1", "WP-HG0"]},
+    {"wp_id": "WP-VR1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-RV1"], "activation_dependencies": ["WP-RV1"]},
+    {"wp_id": "WP-GA1", "owner_type": "AUDITOR", "completion_contract": "AUDIT_RECORD", "development_dependencies": ["WP-VR1"], "activation_dependencies": ["WP-VR1"]},
+    {"wp_id": "WP-OP1", "owner_type": "IMPLEMENTER", "completion_contract": "IMPLEMENTATION_BUNDLE", "development_dependencies": ["WP-VR1"], "activation_dependencies": ["WP-GA1", "WP-HG0", "WP-RT1", "WP-VLT0"]}
+  ]
+}

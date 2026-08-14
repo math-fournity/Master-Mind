@@ -4,13 +4,14 @@
 
 ## 2026-08-14
 
-### 387/389号多模型执行架构：Devin目标Solver与认知Worker解耦
+### 387/389号与Seven实现手册：目标Solver专用执行面 + Devin/Codex双认知载体
 
-- **触发**：用户确认做题继续由Devin CLI承载，同时指出Codex GPT-5.6高推理配置可能更适合正交出题，单纯集成Devin不足以支撑整个自动化管线。
-- **核心决策**：Devin只绑定`TargetSolverPort`并继续受`solver_harness + no-tool`硬约束；出题、数学核验、对抗审稿与Judge进入provider-neutral `ModelRolePort`（Cognitive Worker子系统），人工复核/人门另走`HumanTaskPort/HumanGateService`。`gpt-5.6-sol`只是首个待能力探针与盲化Bakeoff的候选载体，`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration分开记账。
+- **触发**：用户确认做题继续由Devin CLI承载，同时先指出Codex GPT-5.6高推理配置可能更适合正交出题，随后进一步要求Devin CLI的`glm-5.2` High也必须能执行出题、核验、Judge和审计等全部机器认知角色，并要求形成可供下一位AI完整实现、也可供未来独立审计的多文档体系。
+- **核心决策**：只有目标Solver作业可以进入`TargetSolverPort → DevinSolverAdapter → solver_harness`并继续受NoTool硬约束；Devin CLI并不专属于Solver，它也可经物理隔离的`DevinCliModelRoleAdapter`进入provider-neutral `ModelRolePort`，与`CodexExecModelRoleAdapter`等候选并列。首个Devin认知profile精确冻结`requested_cli_model_arg=glm-5-2`、`normalized_reasoning_effort=high`、`effort_encoding=model_uid`。人工复核/人门另走`HumanTaskPort/HumanGateService`。
 - **冻结链**：生成题拆为`P3A Authoring/G-Q-RELEASE → P3B problem-only Devin bare admission → P3C G-CASE-ROLE`，自然题走`P2A历史审计 → 按需P2B当前bare qualification → P3N review → P3C`；P2B/P3B都不属于P5因果实验。任意题面变化都必须新版本并使旧核验与bare失效。
-- **工程边界**：先规划WP-CW0/WP-HG0的file-backed离线纵切与WP-QA0，再做WP-QA1 Devin准入；P3N/P6、judge pool和分布式恢复延后到WP-CW1，solver pool始终归独立TargetSolver控制面。当前没有实现或运行这些端口或worker，没有连接DB/Redis，也没有产生Tell科学证据。
-- **修订文件**：387号、389号§16、Tell目录README、根/Seven AGENTS、Seven README与稳定docs。
+- **工程边界**：先完成WP-DOC0，再由WP-GV0落地唯一的Security/Completion验证核心和最小CompletionArtifactStore；随后依赖式推进WP-VLT0/HG0/CW0、WP-CW-D1、WP-CW-C1和双adapter WP-QA0。P3N/P6、judge pool和分布式恢复延后到WP-CW1，solver pool始终归独立TargetSolver控制面。当前没有实现或运行这些端口或worker，没有连接DB/Redis，也没有产生Tell科学证据。
+- **文档体系**：新增`seven-system/docs/implementation/`规定性实现入口、工作包DAG、对象/Schema、执行口、存储、安全、恢复、P0-P9、测试、AI实施手册和完成物证；新增`seven-system/docs/audit/`独立审计方法；新增`seven-system/docs/decisions/`架构裁决；外部`seven-system非特化证据工厂研发过程文档/README.md`只重定向到canonical入口，不形成第二真值源。
+- **修订文件**：387号、389号§16-17、Tell目录README、根/Seven AGENTS、Seven README、稳定docs和ChangeLog。
 
 ### 389号Arango物理存储链路纠正：经OrbStack已落D盘
 

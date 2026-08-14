@@ -1,0 +1,43 @@
+{
+  "schema_id": "seven/analysis/golden-vectors",
+  "schema_version": 1,
+  "rng_contract": {
+    "algorithm": "HMAC-SHA256",
+    "counter_encoding": "unsigned-64-bit-big-endian",
+    "message_format": "method_id|contrast_id|counter_bytes",
+    "integer_source": "first-8-digest-bytes-as-unsigned-big-endian",
+    "index_rule": "rejection-sample-then-value-mod-n"
+  },
+  "vectors": [
+    {
+      "vector_id": "paired-two-cluster-v1",
+      "kind": "PAIRED_CLUSTER_DIFFERENCE_V1",
+      "input": {"cluster_differences": [{"cluster_id": "c1", "difference": "1"}, {"cluster_id": "c2", "difference": "0"}]},
+      "expected": {"eligible_cluster_count": 2, "equal_weight_mean": "0.5"}
+    },
+    {
+      "vector_id": "bootstrap-first-indices-v1",
+      "kind": "STRATIFIED_CLUSTER_BOOTSTRAP_V1",
+      "input": {"seed_utf8": "seven-analysis-vector-seed-v1", "contrast_id": "contrast-a", "stratum_cluster_ids": ["c1", "c2"], "draw_count": 8},
+      "expected": {"indices": [1, 1, 1, 0, 0, 1, 1, 1], "first_digest_sha256": "8e529e9144543d1d87baac025514bb5b1ec6dbeddf593d0183885b4fd327c7bd"}
+    },
+    {
+      "vector_id": "invalid-is-not-zero-v1",
+      "kind": "MISSINGNESS_POLICY",
+      "input": {"arm_values": [{"cluster_id": "c1", "status": "INVALID_PROTOCOL", "value": null}]},
+      "expected": {"analysis_value_count": 0, "invalid_count": 1, "must_not_impute_zero": true}
+    },
+    {
+      "vector_id": "duplicate-rollout-cluster-v1",
+      "kind": "CLUSTER_DEDUPLICATION",
+      "input": {"runs": [{"run_id": "r1", "source_rollout_id": "s1"}, {"run_id": "r2", "source_rollout_id": "s1"}]},
+      "expected": {"scientific_cluster_count": 1, "duplicate_run_count": 1}
+    },
+    {
+      "vector_id": "holm-equal-p-tie-v1",
+      "kind": "HOLM_V1",
+      "input": {"alpha": "0.05", "contrasts": [{"contrast_id": "c-b", "raw_p": "0.01"}, {"contrast_id": "c-a", "raw_p": "0.01"}]},
+      "expected": {"ordered_contrast_ids": ["c-a", "c-b"], "thresholds": ["0.025", "0.05"], "rejected": [true, true]}
+    }
+  ]
+}

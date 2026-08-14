@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/docs/doc-contract-verification-receipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "receipt_id",
+    "implementation_subject",
+    "checked_source_set_sha256",
+    "normative_index_ref_and_hash",
+    "canonical_dag_ref_and_hash",
+    "work_package_plan_ref_and_hash",
+    "migration_map_ref_and_hash",
+    "spec_refs_and_hashes",
+    "schema_refs_and_hashes",
+    "checker_ref_and_hash",
+    "dependency_lock_ref_and_hash",
+    "exact_argv",
+    "cwd",
+    "verification_ids",
+    "started_at",
+    "completed_at",
+    "environment",
+    "counts",
+    "output_binding",
+    "verdict",
+    "explicit_nonclaims",
+    "errors",
+    "creator",
+    "receipt_hash_algorithm",
+    "receipt_hash"
+  ],
+  "properties": {
+    "schema_id": {"const": "seven/docs/doc-contract-verification-receipt"},
+    "schema_version": {"const": 1},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "implementation_subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree", "working_tree_clean", "source_relation"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "working_tree_clean": {"type": "boolean"},
+        "source_relation": {"enum": ["COMMITTED_TREE", "WORKING_TREE_SNAPSHOT_OVER_BASELINE"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"working_tree_clean": {"const": true}}, "required": ["working_tree_clean"]},
+          "then": {"properties": {"source_relation": {"const": "COMMITTED_TREE"}}},
+          "else": {"properties": {"source_relation": {"const": "WORKING_TREE_SNAPSHOT_OVER_BASELINE"}}}
+        }
+      ]
+    },
+    "checked_source_set_sha256": {"$ref": "#/$defs/hash"},
+    "normative_index_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "canonical_dag_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "work_package_plan_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "migration_map_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "spec_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}, "uniqueItems": true},
+    "schema_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}, "uniqueItems": true},
+    "checker_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "dependency_lock_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "exact_argv": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "cwd": {"type": "string", "minLength": 1},
+    "verification_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^DOC0-[A-Z0-9-]+$"}
+    },
+    "started_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "completed_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "jsonschema", "platform"],
+      "properties": {
+        "python": {"type": "string", "minLength": 1},
+        "jsonschema": {"type": "string", "minLength": 1},
+        "platform": {"type": "string", "minLength": 1}
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "work_packages",
+        "development_edges",
+        "activation_edges",
+        "schema_files",
+        "security_schema_vectors",
+        "receipt_schema_vectors",
+        "audit_record_semantic_vectors",
+        "rfc3339_negative_vectors",
+        "markdown_files",
+        "relative_links",
+        "normative_clauses",
+        "planned_normative_clauses",
+        "plan_missing_normative_clauses",
+        "plan_extra_normative_clauses",
+        "pending_independent_semantic_reviews"
+      ],
+      "properties": {
+        "work_packages": {"type": "integer", "minimum": 1},
+        "development_edges": {"type": "integer", "minimum": 0},
+        "activation_edges": {"type": "integer", "minimum": 0},
+        "schema_files": {"type": "integer", "minimum": 1},
+        "security_schema_vectors": {"type": "integer", "minimum": 1},
+        "receipt_schema_vectors": {"type": "integer", "minimum": 1},
+        "audit_record_semantic_vectors": {"type": "integer", "minimum": 1},
+        "rfc3339_negative_vectors": {"type": "integer", "minimum": 1},
+        "markdown_files": {"type": "integer", "minimum": 1},
+        "relative_links": {"type": "integer", "minimum": 0},
+        "normative_clauses": {"type": "integer", "minimum": 1},
+        "planned_normative_clauses": {"type": "integer", "minimum": 1},
+        "plan_missing_normative_clauses": {"type": "integer", "minimum": 0},
+        "plan_extra_normative_clauses": {"type": "integer", "minimum": 0},
+        "pending_independent_semantic_reviews": {"type": "integer", "minimum": 0}
+      }
+    },
+    "output_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hash_algorithm", "sha256"],
+      "properties": {
+        "hash_algorithm": {"const": "sha256(canonical-json-of-verdict-counts-errors)"},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "verdict": {"enum": ["PASS", "FAIL"]},
+    "explicit_nonclaims": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "errors": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "creator": {"type": "string", "minLength": 1},
+    "receipt_hash_algorithm": {"const": "sha256(canonical-json-with-receipt_hash-null)"},
+    "receipt_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"verdict": {"const": "PASS"}}, "required": ["verdict"]},
+      "then": {
+        "properties": {
+          "errors": {"maxItems": 0},
+          "counts": {
+            "properties": {
+              "plan_missing_normative_clauses": {"const": 0},
+              "plan_extra_normative_clauses": {"const": 0}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"verdict": {"const": "FAIL"}}, "required": ["verdict"]},
+      "then": {"properties": {"errors": {"minItems": 1}}}
+    }
+  ],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_utc_timestamp": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    }
+  }
+}

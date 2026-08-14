@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/authoring-bootstrap-input-pack/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "pack_id", "mechanism_contract_refs_and_hashes", "coverage_cell_refs_and_hashes", "authoring_evaluation_pack_ref_and_hash", "purpose", "prohibited_downstream_lanes", "human_gate_decision_ref_and_hash", "pack_hash"],
+  "properties": {
+    "schema_id": {"const": "seven/authoring-bootstrap-input-pack"},
+    "schema_version": {"const": 1},
+    "pack_id": {"type": "string", "minLength": 1},
+    "mechanism_contract_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}},
+    "coverage_cell_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}},
+    "authoring_evaluation_pack_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "purpose": {"const": "AUTHORING_CALIBRATION_ONLY"},
+    "prohibited_downstream_lanes": {"type": "array", "minItems": 1, "items": {"enum": ["CONFIRMATORY_EVIDENCE", "CASE_ROLE_PROOF", "TELL_CAUSAL_CLAIM"]}, "uniqueItems": true},
+    "human_gate_decision_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "pack_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {"ref_hash": {"type": "object", "additionalProperties": false, "required": ["ref", "sha256"], "properties": {"ref": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

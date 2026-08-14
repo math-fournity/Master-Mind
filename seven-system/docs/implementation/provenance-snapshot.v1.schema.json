@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/provenance-snapshot/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "snapshot_id", "experiment_plan_ref_and_hash", "evidence_record_refs_and_hashes", "lineage_group_ids", "duplicate_assessments", "sealed_before_revision", "snapshot_hash"],
+  "properties": {
+    "schema_id": {"const": "seven/provenance-snapshot"},
+    "schema_version": {"const": 1},
+    "snapshot_id": {"type": "string", "minLength": 1},
+    "experiment_plan_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "evidence_record_refs_and_hashes": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref_hash"}},
+    "lineage_group_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "duplicate_assessments": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "sealed_before_revision": {"const": true},
+    "snapshot_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  },
+  "$defs": {"ref_hash": {"type": "object", "additionalProperties": false, "required": ["ref", "sha256"], "properties": {"ref": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

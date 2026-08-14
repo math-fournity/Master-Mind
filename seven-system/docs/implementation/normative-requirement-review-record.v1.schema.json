@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/docs/normative-requirement-review-record/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "index_ref_and_hash", "audit_assignment_ref_and_hash", "reviewer_actor_id", "reviewed_consumer_policy_id", "temporary_doc0_consumer_nonclaim_acknowledged", "decisions", "remainder", "signature_envelope"],
+  "properties": {
+    "schema_id": {"const": "seven/docs/normative-requirement-review-record"},
+    "schema_version": {"const": 1},
+    "index_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "audit_assignment_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "reviewer_actor_id": {"type": "string", "minLength": 1},
+    "reviewed_consumer_policy_id": {"const": "LOCAL_ONLY_DOC0_TEMPORARY_CATCH_ALL_V1"},
+    "temporary_doc0_consumer_nonclaim_acknowledged": {"const": true},
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["clause_id", "decision", "requirement_ids", "applicable_wp_ids", "consumer_wp_ids", "consumer_assignment_basis", "reason"],
+        "properties": {
+          "clause_id": {"type": "string", "pattern": "^NORM-"},
+          "decision": {"enum": ["CONFIRMED_EXACT", "CONFIRMED_LOCAL_ONLY", "RECLASSIFY_REQUIRED", "INVALID_CLAUSE"]},
+          "requirement_ids": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z]+-[0-9]{3}$"}, "uniqueItems": true},
+          "applicable_wp_ids": {"type": "array", "items": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$"}, "uniqueItems": true},
+          "consumer_wp_ids": {"type": "array", "items": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$"}, "uniqueItems": true},
+          "consumer_assignment_basis": {"const": "INDEPENDENT_SEMANTIC_REVIEW"},
+          "reason": {"type": "string", "minLength": 1}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"decision": {"const": "CONFIRMED_EXACT"}}, "required": ["decision"]},
+            "then": {"properties": {"requirement_ids": {"minItems": 1}, "applicable_wp_ids": {"minItems": 1}, "consumer_wp_ids": {"minItems": 1}}}
+          },
+          {
+            "if": {"properties": {"decision": {"const": "CONFIRMED_LOCAL_ONLY"}}, "required": ["decision"]},
+            "then": {"properties": {"requirement_ids": {"maxItems": 0}, "applicable_wp_ids": {"minItems": 1}, "consumer_wp_ids": {"minItems": 1}}}
+          }
+        ]
+      }
+    },
+    "remainder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unreviewed_clause_count", "duplicate_clause_decision_count", "unknown_requirement_count", "unknown_work_package_count", "consumer_unassigned_count", "unconsumed_clause_count", "reclassification_required_count", "invalid_clause_count"],
+      "properties": {
+        "unreviewed_clause_count": {"const": 0},
+        "duplicate_clause_decision_count": {"const": 0},
+        "unknown_requirement_count": {"const": 0},
+        "unknown_work_package_count": {"const": 0},
+        "consumer_unassigned_count": {"const": 0},
+        "unconsumed_clause_count": {"const": 0},
+        "reclassification_required_count": {"const": 0},
+        "invalid_clause_count": {"const": 0}
+      }
+    },
+    "signature_envelope": {"$ref": "#/$defs/signature_envelope"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "signature_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "domain_separator", "signer_actor_id", "key_id", "signed_payload_sha256", "signature_base64"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "domain_separator": {"const": "seven.normative-requirement-review-record.v1"},
+        "signer_actor_id": {"type": "string", "minLength": 1},
+        "key_id": {"type": "string", "minLength": 1},
+        "signed_payload_sha256": {"$ref": "#/$defs/hash"},
+        "signature_base64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"}
+      }
+    }
+  }
+}

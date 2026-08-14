@@ -114,7 +114,7 @@ echo "$ARANGO_DB"
 Seven复用这个原逻辑数据库，但不复用它的原业务Schema：
 
 - 题海系统、`system/`与Seven可以共用同一Arango服务和逻辑数据库；
-- Seven只允许访问隔离的`seven_*_v1`集合/索引；
+- Seven只允许访问隔离、显式版本化的`seven_*_vN`集合/索引；v1仅为当前scaffold，live原子结构必须使用经批准的v2或更高版本；
 - Seven不得写题海或`system/`集合，不得把原集合改名成Seven集合；
 - 大对象仍在D盘CAS，数据库只保存小型元数据、事件和artifact引用。
 

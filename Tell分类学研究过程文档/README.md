@@ -72,9 +72,9 @@
 | 383 | `383-v0-2026-08-12-TellV3-POC1-因果取商-TellCore字段消融与最小充分字段集.md` | TellCore v0候选C的文档级字段必要性分析；提出7个最小字段及重要补充，形成后续真实消融假设。它没有运行Solver字段消融，且依赖含数学错误的382题包，故状态为STRUCTURE_REVIEW而非经验POC PASS |
 | 385 | `dev-docs/385-v0-2026-08-12-TellV3六门审计POC-工作交接文档.md` | 自包含历史交接；保存候选TellCore字段集、阅读顺序与后续执行建议。其“POC-0/1已完成/PASS”口径已被388号降级为DESIGN_FREEZE/STRUCTURE_REVIEW，不能当作经验有效性证据 |
 | 386 | `386-v0-2026-08-13-正交出题文档索引-从已有bare失败题派生正交新题.md` | 正交出题历史引用图与方法论索引；277→278→280→283链应按387/388校准：280否定同一静态抽象Hint强命题，283只给整体lineage+题目化方向+近解答提示包的污染性阳性，且两道成功题使用不同T01/T03；索引可用于追溯，不代表强命题已检验通过 |
-| 387 | `387-v0-2026-08-13-非特化证据工厂-持续POC与高维正交验证系统设计.md` | 主体设计已逐节批准且整稿自审PASS；将海量真实bare失败、TellV3六门审计和高维正交出题合为独立“非特化证据工厂”；冻结episode→RunAudit→randomized contrast EvidenceRecord的证据层级、四轴Case坐标、三审答案ACL、分阶段因果矩阵、组件级Tell版本学习与合法NO_CHANGE；2026-08-14按用户确认继续推进的方向把角色、载体与模型分离：Devin只承载目标Solver，出题/核验/审计走provider-neutral ModelRole执行面，并将自然题`P2→P3N→P3C`与生成题`P3A→P3B→P3C`分成两条准入DAG；新增细节是未实现的工作规格，不是模型能力PASS |
+| 387 | `387-v0-2026-08-13-非特化证据工厂-持续POC与高维正交验证系统设计.md` | 主体设计已逐节批准且整稿自审PASS；将海量真实bare失败、TellV3六门审计和高维正交出题合为独立“非特化证据工厂”；冻结episode→RunAudit→randomized contrast EvidenceRecord的证据层级、四轴Case坐标、三审答案ACL、分阶段因果矩阵、组件级Tell版本学习与合法NO_CHANGE；2026-08-14进一步把角色、载体与执行面正交化：只有Target Solver进入`DevinSolverAdapter→solver_harness`，Devin `glm-5-2` High也可经独立`DevinCliModelRoleAdapter`执行全部机器认知角色，并与Codex等载体并列；自然题`P2A/P2B→P3N→P3C`与生成题`P3A→P3B→P3C`是两条准入DAG；新增细节是未实现的工作规格，不是模型能力PASS |
 | 388 | `388-v0-2026-08-13-Tell分类学全量研究对非特化体系的吸收审计.md` | 全量审计完成；冻结历史语料54/54、外部核心资产回源、remainder=0。结论是旧分类学应以ObservationView/TellManifestation/TellRecognitionRecord/TaxonomySnapshot/TellHintRelation等桥接对象接入387号，而不是把v3五类原样当已验证TellCore；给出逐节吸收矩阵、五组新增正交实验、证据重新定级、内部漂移、CC-013数学错误与P0-P3修订优先级；未直接修改387号或系统实现 |
-| 389 | `389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` | 将387/388号、题海系统和第六代`system/`合流为独立`seven-system/`，落地P0/P1 scaffold与WP-1离线Strict DB契约；D盘README和数据根已建立，受控runner 20项、全量58项测试PASS，真实DB/Redis/Solver仍未启动。§14记录复用原逻辑数据库的政策纠偏；§15确认Arango字节经OrbStack image由D盘承载但没有专用bind；§16记录用户确认继续推进的多模型方向，并把首期拆为WP-CW0/WP-HG0离线运行时、WP-QA0出题纵切、WP-QA1 Devin准入及后续WP-CW1。当前逻辑site、Schema初始化、Devin Solver与Codex认知Worker都仍未实现或运行 |
+| 389 | `389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` | 将387/388号、题海系统和第六代`system/`合流为独立`seven-system/`，落地P0/P1 scaffold与WP-1离线Strict DB契约；D盘README和数据根已建立，受控runner 20项、全量58项测试PASS，真实DB/Redis/Solver仍未启动。§14记录复用原逻辑数据库的政策纠偏；§15确认Arango字节经OrbStack image由D盘承载但没有专用bind；§16保留“目标Solver与认知执行面分离”的初版，§17按用户最新要求取代“Devin只能做Solver”的过窄限制，冻结TargetSolver专用Harness与Devin/Codex双认知adapter，并指向完整实现/审计文档体系。当前逻辑site、Schema初始化、Target Solver与全部认知adapter都仍未实现或运行 |
 
 ### 思想链条
 
@@ -121,7 +121,7 @@
   ↓
 388: Tell分类学吸收审计——把旧分类学校准为证据工厂的版本化观察/识别层，不把先验五类直接当已验证Core
   ↓
-389: Seven System工程化首版——分离题海生产、第六代producer与非特化证据工厂；落地P0/P1 scaffold和WP-1离线契约；§14-15冻结数据库复用与真实D-backing；§16把Devin目标Solver与可替换认知Worker解耦，并规划离线出题到bare准入链
+389: Seven System工程化首版——分离题海生产、第六代producer与非特化证据工厂；落地P0/P1 scaffold和WP-1离线契约；§14-15冻结数据库复用与真实D-backing；§16-17冻结TargetSolver专用Harness和Devin/Codex双认知adapter，并规划从离线出题到bare准入、P4-P9与独立审计的实现链
 ```
 
 ---

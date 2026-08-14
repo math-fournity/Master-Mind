@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/view-derivation/v1",
+  "title": "ViewDerivation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "object_type",
+    "derivation_id",
+    "capability_ref_and_hash",
+    "access_decision_ref_and_hash",
+    "principal",
+    "operation",
+    "source_object",
+    "derived_view",
+    "sink_binding",
+    "view_policy_ref_and_hash",
+    "derivation_rule_ref_and_hash",
+    "generator_ref_and_hash",
+    "redaction_manifest_ref_and_hash",
+    "sink_write_receipt_ref_and_hash",
+    "revocation_check",
+    "nonce",
+    "deny_by_default",
+    "raw_vault_path_disclosed",
+    "model_delivery",
+    "derived_at",
+    "issuer",
+    "externally_pinned_trust_root",
+    "issuer_key_registry_ref_and_hash",
+    "canonicalizer_profile",
+    "signature_domain",
+    "signed_bytes_hash",
+    "signature_envelope",
+    "derivation_hash_algorithm",
+    "derivation_hash"
+  ],
+  "properties": {
+    "schema_id": {"const": "seven/view-derivation"},
+    "schema_version": {"const": 1},
+    "object_type": {"const": "ViewDerivation"},
+    "derivation_id": {"$ref": "#/$defs/exact_id"},
+    "capability_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "access_decision_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "principal": {"$ref": "#/$defs/principal"},
+    "operation": {"enum": ["READ_DERIVED_VIEW", "DERIVE_VIEW", "WRITE_RESTRICTED_OBJECT", "SEAL_RESTRICTED_OBJECT"]},
+    "source_object": {"$ref": "#/$defs/object_binding"},
+    "derived_view": {"$ref": "#/$defs/view_binding"},
+    "sink_binding": {"$ref": "#/$defs/sink_binding"},
+    "view_policy_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "derivation_rule_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "generator_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "redaction_manifest_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "sink_write_receipt_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "revocation_check": {"$ref": "#/$defs/revocation_check"},
+    "nonce": {"$ref": "#/$defs/nonce"},
+    "deny_by_default": {"const": true},
+    "raw_vault_path_disclosed": {"const": false},
+    "model_delivery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["delivery_mode", "delivered_view_binding_source", "raw_vault_locator_exposed", "capability_token_exposed"],
+      "properties": {
+        "delivery_mode": {"const": "OPAQUE_HANDLE_AND_DERIVED_BYTES"},
+        "delivered_view_binding_source": {"const": "TOP_LEVEL_DERIVED_VIEW"},
+        "raw_vault_locator_exposed": {"const": false},
+        "capability_token_exposed": {"const": false}
+      }
+    },
+    "derived_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "issuer": {"$ref": "#/$defs/issuer"},
+    "externally_pinned_trust_root": {"$ref": "#/$defs/named_hash"},
+    "issuer_key_registry_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+    "canonicalizer_profile": {"const": "RFC8785_JCS_UTF8"},
+    "signature_domain": {"const": "seven-view-derivation/v1\u0000"},
+    "signed_bytes_hash": {"$ref": "#/$defs/hash"},
+    "signature_envelope": {"$ref": "#/$defs/signature"},
+    "derivation_hash_algorithm": {"const": "sha256(RFC8785-JCS-object-with-derivation_hash-null)"},
+    "derivation_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "principal": {"properties": {"principal_type": {"const": "TARGET_SOLVER"}}, "required": ["principal_type"]},
+          "operation": {"enum": ["READ_DERIVED_VIEW", "DERIVE_VIEW"]}
+        },
+        "required": ["principal", "operation"]
+      },
+      "then": {"properties": {"source_object": {"properties": {"sensitivity": {"enum": ["PUBLIC", "RESTRICTED"]}}}}}
+    },
+    {
+      "if": {"properties": {"operation": {"enum": ["WRITE_RESTRICTED_OBJECT", "SEAL_RESTRICTED_OBJECT"]}}, "required": ["operation"]},
+      "then": {"properties": {"sink_binding": {"properties": {"sink_kind": {"enum": ["RESTRICTED_VAULT", "RESTRICTED_CAS"]}}}}}
+    }
+  ],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_utc_timestamp": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"},
+    "exact_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9._:@+-]{0,254}[A-Za-z0-9])?$",
+      "not": {"enum": ["ANY", "ALL", "DEFAULT", "any", "all", "default"]}
+    },
+    "nonce": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{16,128}$"},
+    "opaque_ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref_id", "sha256"],
+      "properties": {"ref_id": {"$ref": "#/$defs/exact_id"}, "sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "named_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "sha256"],
+      "properties": {"object_id": {"$ref": "#/$defs/exact_id"}, "sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "principal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["principal_id", "principal_type", "role_type_id", "carrier_profile_sha256", "target_solver_contract_sha256", "execution_attempt_id"],
+      "properties": {
+        "principal_id": {"$ref": "#/$defs/exact_id"},
+        "principal_type": {"enum": ["MODEL_ROLE", "TARGET_SOLVER", "HUMAN", "SERVICE", "AUDITOR"]},
+        "role_type_id": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/exact_id"}]},
+        "carrier_profile_sha256": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "target_solver_contract_sha256": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+        "execution_attempt_id": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/exact_id"}]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"principal_type": {"const": "MODEL_ROLE"}}, "required": ["principal_type"]},
+          "then": {
+            "properties": {
+              "role_type_id": {"$ref": "#/$defs/exact_id"},
+              "carrier_profile_sha256": {"$ref": "#/$defs/hash"},
+              "target_solver_contract_sha256": {"type": "null"},
+              "execution_attempt_id": {"$ref": "#/$defs/exact_id"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"principal_type": {"const": "TARGET_SOLVER"}}, "required": ["principal_type"]},
+          "then": {
+            "properties": {
+              "role_type_id": {"type": "null"},
+              "carrier_profile_sha256": {"type": "null"},
+              "target_solver_contract_sha256": {"$ref": "#/$defs/hash"},
+              "execution_attempt_id": {"$ref": "#/$defs/exact_id"}
+            }
+          }
+        }
+      ]
+    },
+    "object_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "object_sha256", "sensitivity"],
+      "properties": {"object_id": {"$ref": "#/$defs/exact_id"}, "object_sha256": {"$ref": "#/$defs/hash"}, "sensitivity": {"enum": ["PUBLIC", "RESTRICTED", "SOLUTION_BEARING", "HOLDOUT_BEARING"]}}
+    },
+    "view_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["view_id", "view_sha256", "view_policy_sha256"],
+      "properties": {"view_id": {"$ref": "#/$defs/exact_id"}, "view_sha256": {"$ref": "#/$defs/hash"}, "view_policy_sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "sink_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sink_id", "sink_kind", "sink_policy_sha256"],
+      "properties": {"sink_id": {"$ref": "#/$defs/exact_id"}, "sink_kind": {"enum": ["EPHEMERAL_MODEL_INPUT", "RESTRICTED_VAULT", "RESTRICTED_CAS", "AUDIT_ONLY"]}, "sink_policy_sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "revocation_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["revocation_handle", "status", "registry_ref_and_hash", "checked_at", "revocation_record_ref_and_hash"],
+      "properties": {
+        "revocation_handle": {"$ref": "#/$defs/exact_id"},
+        "status": {"const": "ACTIVE"},
+        "registry_ref_and_hash": {"$ref": "#/$defs/opaque_ref_hash"},
+        "checked_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+        "revocation_record_ref_and_hash": {"type": "null"}
+      }
+    },
+    "issuer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issuer_principal_id", "issuer_key_id", "issuer_public_key_sha256"],
+      "properties": {"issuer_principal_id": {"$ref": "#/$defs/exact_id"}, "issuer_key_id": {"$ref": "#/$defs/exact_id"}, "issuer_public_key_sha256": {"$ref": "#/$defs/hash"}}
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "key_id", "signer_principal_id", "signature_encoding", "signature_b64", "signed_bytes_hash", "trust_root_hash", "issuer_key_registry_hash"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "key_id": {"$ref": "#/$defs/exact_id"},
+        "signer_principal_id": {"$ref": "#/$defs/exact_id"},
+        "signature_encoding": {"const": "base64"},
+        "signature_b64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+        "signed_bytes_hash": {"$ref": "#/$defs/hash"},
+        "trust_root_hash": {"$ref": "#/$defs/hash"},
+        "issuer_key_registry_hash": {"$ref": "#/$defs/hash"}
+      }
+    }
+  }
+}

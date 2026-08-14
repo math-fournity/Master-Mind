@@ -14,21 +14,22 @@ Seven System 是一个独立的实验系统：它的目标是把题海系统产�
 
 ## 模型角色边界
 
-Seven不是“全管线Devin”。未来执行面分成两个端口：
+Seven不是“所有角色都塞进同一条Devin执行链”。未来执行面分成两个端口；Devin CLI可以同时拥有两个物理隔离的adapter：
 
 ```text
 TargetSolverPort
 └── DevinSolverAdapter → solver_harness → no-tool Solver
 
 ModelRolePort（机器AI角色；Cognitive Worker是子系统名）
-├── CodexWorkerAdapter（首个候选）
+├── DevinCliModelRoleAdapter（`glm-5-2` / GLM-5.2 High候选）
+├── CodexExecModelRoleAdapter（GPT-5.6高推理候选）
 └── future model/provider adapters
 
 HumanTaskPort → 人工复核队列（不能签Gate）
 HumanGateService → signed GateDecision
 ```
 
-Devin继续承担bare、guided和control做题实验；Question Architect、数学核验、对抗审稿、Proof Judge及其他认知审计角色走可替换的认知Worker。Codex/Responses中的`gpt-5.6-sol`高推理配置是第一候选出题载体，不是已经证明最优的生产作者；模型、`xhigh/max` effort、standard/pro reasoning mode与single/multi-agent（Ultra-like）orchestration必须分别做能力探针，再与其他候选做盲化AuthoringBakeoff。
+目标Solver继续由Devin承担bare、guided和control做题实验；Question Architect、数学核验、对抗审稿、Proof Judge及其他认知审计角色走可替换的认知Worker，其中Devin CLI与Codex均为一等候选。Devin认知profile首个精确候选是`--model glm-5-2`，本机catalog将其标为`GLM-5.2 High`；High由model UID编码，不是独立CLI effort参数。Codex/Responses中的`gpt-5.6-sol`高推理配置是并列候选。两者都不是已证明最优的生产作者，必须按角色和精确profile做能力探针、单adapter纵切、盲化Bakeoff和未见brief qualification。
 
 所有**受控生成题**都必须经历不可变发布链：`P3A AuthoringBrief → QuestionDraftVersion → AdversarialReview/VerificationDossier → 人工G-Q-RELEASE → QuestionRelease → P3B Devin BareBaseline/BareQualificationResult → P3C人工G-CASE-ROLE/AdmissionDecision`。自然发现的真实bare失败仍是主要题源，走`P2A历史物证审计 → 按需P2B当前bare qualification → P3N机制/数学审查 → P3C G-CASE-ROLE`；受控生成只填正交CoverageCell空格。P2B/P3B都只陈述baseline资格，最终Case角色只由P3C人门冻结；它们不是P5因果实验。禁止“反复改题直到Devin失败”。
 
@@ -47,7 +48,7 @@ Devin继续承担bare、guided和control做题实验；Question Architect、数�
 - `wp1-db-contract-report` 离线受控测试、Schema+语义验证和 append-once 本地报告；
 - 明确列出 P2-P9 `NOT_IMPLEMENTED`。
 
-当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis、启动 Devin CLI或调用Codex/其他远程认知Worker。真实逻辑DB site capability、Seven Schema初始化、TargetSolverPort、ModelRolePort、角色能力/调用收据、QuestionRelease、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
+当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis、启动 Devin CLI或调用Codex/其他远程认知Worker。真实逻辑DB site capability、Seven Schema初始化、TargetSolverPort、ModelRolePort、Devin/Codex认知adapter、角色能力/调用收据、QuestionRelease、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
 
 ## 第一次使用
 
@@ -66,7 +67,7 @@ cd "$SEVEN_WORKSPACE_ROOT"
 
 `seven-system/`本身只使用Python标准库；若未来独立迁出，可从其新repo根用`python3 scripts/seven.py ...`运行，无需依赖当前父repo路径。
 
-当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离的`seven_*_v1`集合/索引；当前真实逻辑站点核验和Schema初始化仍为`NOT_IMPLEMENTED`。宿主层只读核验已确认OrbStack全部Docker数据由`/data/OrbStack/data/data.img.raw`承载，因此`A-WP1-D=PASS`；Arango仍把`/var/lib/arangodb3`放在容器writable overlay中，没有使用`/data/arangodb/data:/data`专用bind，因此`A-WP1-BIND=WARNING_NOT_DEDICATED`。不要把宿主D-backing PASS误读为数据库控制面或Schema能力PASS。
+当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离、显式版本化的`seven_*_vN`集合/索引；v1仅为现有scaffold，未来经批准的原子结构使用v2或更高版本。当前真实逻辑站点核验和Schema初始化仍为`NOT_IMPLEMENTED`。宿主层只读核验已确认OrbStack全部Docker数据由`/data/OrbStack/data/data.img.raw`承载，因此`A-WP1-D=PASS`；Arango仍把`/var/lib/arangodb3`放在容器writable overlay中，没有使用`/data/arangodb/data:/data`专用bind，因此`A-WP1-BIND=WARNING_NOT_DEDICATED`。不要把宿主D-backing PASS误读为数据库控制面或Schema能力PASS。
 
 上述固定 report ID重入时会重新校验当前实现绑定的离线报告，完全匹配才返回`ALREADY_COMMITTED`。报告位于`/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json`；其 PASS 不证明真实 DB 连接、物理落盘或 migration。`A-WP1-D=PASS`来自独立的宿主存储链核验，不是这份离线报告的主张。
 
@@ -87,6 +88,8 @@ seven-system/
 
 ## 关键文档
 
+- [完整实现唯一入口](docs/implementation/README.md)
+- [未来独立审计入口](docs/audit/README.md)
 - [操作手册](docs/operations.md)
 - [架构与系统边界](docs/architecture.md)
 - [D 盘与数据库契约](docs/storage-and-database.md)

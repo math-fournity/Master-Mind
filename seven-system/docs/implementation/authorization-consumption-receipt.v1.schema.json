@@ -1,0 +1,275 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/authorization-consumption-receipt/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "schema_version",
+    "receipt_id",
+    "logical_consumption_id",
+    "state_revision",
+    "previous_receipt_ref_and_hash_if_any",
+    "parent_authorization_id",
+    "parent_authorization_ref_and_hash",
+    "permit_id",
+    "permit_ref_and_hash",
+    "consumption_ordinal",
+    "parent_action_scope_id",
+    "parent_action_scope_hash",
+    "action_kind",
+    "authorization_action_registry_entry_ref_and_hash",
+    "job_id",
+    "attempt_id",
+    "input_hash",
+    "carrier_profile_or_solver_contract_hash_if_any",
+    "target_binding_hash",
+    "required_output_sink_and_acl_hash_if_any",
+    "idempotency_key",
+    "aggregate_id",
+    "expected_aggregate_revision",
+    "fence_token",
+    "reservation_backend",
+    "status",
+    "reserved_at",
+    "status_recorded_at",
+    "terminal_at_if_any",
+    "external_start_observation",
+    "start_observation_evidence_refs",
+    "proof_not_started_refs",
+    "reservation_transaction_receipt_ref_and_hash",
+    "reserved_unit_budget",
+    "actual_side_effects",
+    "held_allowance",
+    "released_allowance",
+    "remaining_allowance",
+    "recovery_decision_ref_and_hash_if_any",
+    "externally_pinned_trust_root",
+    "service_attestation_key_registry_ref_and_hash",
+    "canonicalizer_profile",
+    "attestation_domain",
+    "attested_bytes_hash",
+    "service_attestation",
+    "receipt_hash_algorithm",
+    "receipt_hash"
+  ],
+  "properties": {
+    "schema_id": {"const": "seven/authorization-consumption-receipt"},
+    "schema_version": {"const": 1},
+    "receipt_id": {"type": "string", "minLength": 1},
+    "logical_consumption_id": {"type": "string", "minLength": 1},
+    "state_revision": {"type": "integer", "minimum": 0},
+    "previous_receipt_ref_and_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/ref_hash"}]},
+    "parent_authorization_id": {"type": "string", "minLength": 1},
+    "parent_authorization_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "permit_id": {"type": "string", "minLength": 1},
+    "permit_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "consumption_ordinal": {"type": "integer", "minimum": 0},
+    "parent_action_scope_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"},
+    "parent_action_scope_hash": {"$ref": "#/$defs/hash"},
+    "action_kind": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]+$"},
+    "authorization_action_registry_entry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "job_id": {"type": "string", "minLength": 1},
+    "attempt_id": {"type": "string", "minLength": 1},
+    "input_hash": {"$ref": "#/$defs/hash"},
+    "carrier_profile_or_solver_contract_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+    "target_binding_hash": {"$ref": "#/$defs/hash"},
+    "required_output_sink_and_acl_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/hash"}]},
+    "idempotency_key": {"type": "string", "minLength": 16},
+    "aggregate_id": {"type": "string", "minLength": 1},
+    "expected_aggregate_revision": {"type": "integer", "minimum": 0},
+    "fence_token": {"type": "integer", "minimum": 0},
+    "reservation_backend": {"enum": ["DB_V2_OR_EQUIVALENT_TRANSACTIONAL_LEDGER", "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER"]},
+    "status": {"enum": ["RESERVED", "CONSUMED", "RELEASED_UNUSED", "UNKNOWN_START_HELD", "QUARANTINED"]},
+    "reserved_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "status_recorded_at": {"$ref": "#/$defs/canonical_utc_timestamp"},
+    "terminal_at_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/canonical_utc_timestamp"}]},
+    "external_start_observation": {"enum": ["NOT_OBSERVED", "CONFIRMED_ACCEPTED_OR_STARTED", "PROVEN_NOT_STARTED", "UNKNOWN"]},
+    "start_observation_evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "proof_not_started_refs": {"type": "array", "items": {"$ref": "#/$defs/ref_hash"}},
+    "reservation_transaction_receipt_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "reserved_unit_budget": {"$ref": "#/$defs/nonzero_allowance"},
+    "actual_side_effects": {"$ref": "#/$defs/allowance"},
+    "held_allowance": {"$ref": "#/$defs/allowance"},
+    "released_allowance": {"$ref": "#/$defs/allowance"},
+    "remaining_allowance": {"$ref": "#/$defs/allowance"},
+    "recovery_decision_ref_and_hash_if_any": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/ref_hash"}]},
+    "externally_pinned_trust_root": {"$ref": "#/$defs/named_hash"},
+    "service_attestation_key_registry_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "canonicalizer_profile": {"const": "RFC8785_JCS_UTF8"},
+    "attestation_domain": {"const": "seven-authorization-consumption-receipt/v1\u0000"},
+    "attested_bytes_hash": {"$ref": "#/$defs/hash"},
+    "service_attestation": {"$ref": "#/$defs/service_attestation"},
+    "receipt_hash_algorithm": {"const": "sha256(RFC8785-JCS-object-with-receipt_hash-null)"},
+    "receipt_hash": {"$ref": "#/$defs/hash"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "RESERVED"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "terminal_at_if_any": {"type": "null"},
+          "external_start_observation": {"const": "NOT_OBSERVED"},
+          "start_observation_evidence_refs": {"maxItems": 0},
+          "proof_not_started_refs": {"maxItems": 0},
+          "actual_side_effects": {"$ref": "#/$defs/zero_allowance"},
+          "held_allowance": {"$ref": "#/$defs/nonzero_allowance"},
+          "released_allowance": {"$ref": "#/$defs/zero_allowance"},
+          "recovery_decision_ref_and_hash_if_any": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "CONSUMED"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "terminal_at_if_any": {"$ref": "#/$defs/canonical_utc_timestamp"},
+          "external_start_observation": {"const": "CONFIRMED_ACCEPTED_OR_STARTED"},
+          "start_observation_evidence_refs": {"minItems": 1},
+          "proof_not_started_refs": {"maxItems": 0},
+          "actual_side_effects": {"$ref": "#/$defs/nonzero_allowance"},
+          "held_allowance": {"$ref": "#/$defs/zero_allowance"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "RELEASED_UNUSED"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "terminal_at_if_any": {"$ref": "#/$defs/canonical_utc_timestamp"},
+          "external_start_observation": {"const": "PROVEN_NOT_STARTED"},
+          "start_observation_evidence_refs": {"maxItems": 0},
+          "proof_not_started_refs": {"minItems": 1},
+          "actual_side_effects": {"$ref": "#/$defs/zero_allowance"},
+          "held_allowance": {"$ref": "#/$defs/zero_allowance"},
+          "released_allowance": {"$ref": "#/$defs/nonzero_allowance"},
+          "recovery_decision_ref_and_hash_if_any": {"$ref": "#/$defs/ref_hash"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "UNKNOWN_START_HELD"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "terminal_at_if_any": {"type": "null"},
+          "external_start_observation": {"const": "UNKNOWN"},
+          "start_observation_evidence_refs": {"minItems": 1},
+          "proof_not_started_refs": {"maxItems": 0},
+          "actual_side_effects": {"$ref": "#/$defs/zero_allowance"},
+          "held_allowance": {"$ref": "#/$defs/nonzero_allowance"},
+          "released_allowance": {"$ref": "#/$defs/zero_allowance"},
+          "recovery_decision_ref_and_hash_if_any": {"$ref": "#/$defs/ref_hash"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "QUARANTINED"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "terminal_at_if_any": {"$ref": "#/$defs/canonical_utc_timestamp"},
+          "recovery_decision_ref_and_hash_if_any": {"$ref": "#/$defs/ref_hash"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_utc_timestamp": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\\.[0-9]{1,9})?Z$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "named_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object_id", "sha256"],
+      "properties": {
+        "object_id": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "allowance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "invocations",
+        "solver_launches",
+        "database_writes",
+        "redis_writes",
+        "d_volume_writes",
+        "human_gate_commits",
+        "active_release_changes",
+        "tokens",
+        "cost_microunits",
+        "currency"
+      ],
+      "properties": {
+        "invocations": {"type": "integer", "minimum": 0},
+        "solver_launches": {"type": "integer", "minimum": 0},
+        "database_writes": {"type": "integer", "minimum": 0},
+        "redis_writes": {"type": "integer", "minimum": 0},
+        "d_volume_writes": {"type": "integer", "minimum": 0},
+        "human_gate_commits": {"type": "integer", "minimum": 0},
+        "active_release_changes": {"type": "integer", "minimum": 0},
+        "tokens": {"type": "integer", "minimum": 0},
+        "cost_microunits": {"type": "integer", "minimum": 0},
+        "currency": {"type": "string", "pattern": "^[A-Z]{3}$"}
+      }
+    },
+    "zero_allowance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invocations", "solver_launches", "database_writes", "redis_writes", "d_volume_writes", "human_gate_commits", "active_release_changes", "tokens", "cost_microunits", "currency"],
+      "properties": {
+        "invocations": {"const": 0},
+        "solver_launches": {"const": 0},
+        "database_writes": {"const": 0},
+        "redis_writes": {"const": 0},
+        "d_volume_writes": {"const": 0},
+        "human_gate_commits": {"const": 0},
+        "active_release_changes": {"const": 0},
+        "tokens": {"const": 0},
+        "cost_microunits": {"const": 0},
+        "currency": {"type": "string", "pattern": "^[A-Z]{3}$"}
+      }
+    },
+    "nonzero_allowance": {
+      "allOf": [
+        {"$ref": "#/$defs/allowance"},
+        {
+          "anyOf": [
+            {"properties": {"invocations": {"minimum": 1}}},
+            {"properties": {"solver_launches": {"minimum": 1}}},
+            {"properties": {"database_writes": {"minimum": 1}}},
+            {"properties": {"redis_writes": {"minimum": 1}}},
+            {"properties": {"d_volume_writes": {"minimum": 1}}},
+            {"properties": {"human_gate_commits": {"minimum": 1}}},
+            {"properties": {"active_release_changes": {"minimum": 1}}},
+            {"properties": {"tokens": {"minimum": 1}}},
+            {"properties": {"cost_microunits": {"minimum": 1}}}
+          ]
+        }
+      ]
+    },
+    "service_attestation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "key_id", "service_principal_id", "signature_encoding", "signature_b64", "attested_bytes_hash", "trust_root_hash", "service_attestation_key_registry_hash"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "key_id": {"type": "string", "minLength": 1},
+        "service_principal_id": {"type": "string", "minLength": 1},
+        "signature_encoding": {"const": "base64"},
+        "signature_b64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+        "attested_bytes_hash": {"$ref": "#/$defs/hash"},
+        "trust_root_hash": {"$ref": "#/$defs/hash"},
+        "service_attestation_key_registry_hash": {"$ref": "#/$defs/hash"}
+      }
+    }
+  }
+}
