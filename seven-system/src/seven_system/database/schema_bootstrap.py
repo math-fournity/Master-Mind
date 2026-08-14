@@ -246,6 +246,9 @@ class SchemaBootstrapProtocol:
         fence_token: int = 1,
         acquired_at: str = "2026-08-14T12:00:00Z",
         expires_at: str = "2026-08-15T12:00:00Z",
+        eea: dict[str, Any] | None = None,
+        reservation: dict[str, Any] | None = None,
+        security_contract_verifier: Any | None = None,
     ) -> SchemaBootstrapContext:
         """冻结 apply 输入：site fingerprint、plan、permit、gate decision。
 
@@ -253,8 +256,9 @@ class SchemaBootstrapProtocol:
         1. site_adapter 连接并读取 site fingerprint
         2. 构建 bootstrap plan（绑定 site fingerprint hash）
         3. 验证 plan
-        4. 验证 gate_decision（通过 HumanGateService 或结构验证）
+        4. 验证 gate_decision（通过 HumanGateService — MANDATORY）
         5. 验证 permit 绑定 plan_hash
+        6. P0-C 补全: 验证完整授权链（EEA → Permit → Reservation）
         """
 
         if self.applied:
@@ -314,6 +318,22 @@ class SchemaBootstrapProtocol:
                 EC.DB1I_PERMIT_MISMATCH,
                 "permit wp_id must be G-DB-SCHEMA-APPLY",
             )
+
+        # 6. P0-C 补全: 完整授权链验证（EEA → Permit → Reservation）
+        if security_contract_verifier is not None and eea is not None:
+            auth_result = security_contract_verifier.verify_authorization_chain(
+                eea=eea,
+                permit=permit,
+                reservation=reservation,
+                expected_plan_hash=plan.plan_hash,
+                expected_site_fingerprint=fingerprint.fingerprint_hash,
+                expected_wp_id="G-DB-SCHEMA-APPLY",
+            )
+            if not auth_result.passed:
+                raise SchemaBootstrapProtocolError(
+                    EC.DB1I_PERMIT_MISMATCH,
+                    f"authorization chain verification failed: {auth_result.details}",
+                )
 
         context = SchemaBootstrapContext(
             plan=plan,
