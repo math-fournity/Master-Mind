@@ -102,7 +102,7 @@ def clean_ansi(text: str) -> str:
 
 
 # === 基础设施失败（重试，不计入Profile）===
-INFRA_FAILURES = {"failed_connection", "rate_limited", "launch_error", "dead_session"}
+INFRA_FAILURES = {"failed_connection", "rate_limited", "launch_error", "dead_session", "crash_recovered"}
 
 # === 模型能力失败（Profile数据，不重试）===
 MODEL_FAILURES = {
@@ -396,6 +396,16 @@ def classify(attempt_meta: dict, pane_text: str, pipe_text: str, is_running: boo
         logger.warning(f"classify判定=dead_session: problem_key={problem_key} exp_id={exp_id} "
                        f"devin cli已退出(DEVIN_CLI_EXITED)但无proof elapsed={elapsed:.0f}s")
         return "dead_session", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "dead_session", "elapsed": elapsed}
+
+    # 6.5 crash_recovered——tmux session不存在且无DEVIN_CLI_EXITED
+    # 典型场景：网络切换/断电导致tmux server死亡，所有session被杀
+    # pipe.log中没有DEVIN_CLI_EXITED（devin cli没正常退出），session也不存在
+    # 给60秒grace period（网络恢复后tmux可能重建），超过则判定crash_recovered
+    if not is_running and "DEVIN_CLI_EXITED" not in pipe_text and elapsed > 60:
+        logger.warning(f"classify判定=crash_recovered: problem_key={problem_key} exp_id={exp_id} "
+                       f"tmux session不存在且无DEVIN_CLI_EXITED elapsed={elapsed:.0f}s pipe_len={pipe_len} "
+                       f"疑似tmux server死亡(网络切换/断电)")
+        return "crash_recovered", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "crash_recovered", "elapsed": elapsed}
 
     # 7. stall——区分thinking spin和真stall
     if time.time() - last_activity > stall_time:
