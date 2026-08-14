@@ -242,6 +242,7 @@ class VerificationErrorCode(str, Enum):
     WP_UNKNOWN = "WP_UNKNOWN"
     WP_ILLEGAL_TRANSITION = "WP_ILLEGAL_TRANSITION"
     WP_ALREADY_STARTED = "WP_ALREADY_STARTED"
+    WP_OVERCLAIM = "WP_OVERCLAIM"
 
     # WP-CW-D1 DevinCliModelRoleAdapter — profile / parser / capability
     CWD1_MODEL_UID_MISMATCH = "CWD1_MODEL_UID_MISMATCH"

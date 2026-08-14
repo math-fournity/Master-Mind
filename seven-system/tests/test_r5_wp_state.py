@@ -356,5 +356,108 @@ class TestEventLog(unittest.TestCase):
         self.assertTrue(ok, f"event log should be consistent: {details}")
 
 
+# ─── R5 深度补全：双向对账测试 ─────────────────────────────────────────
+
+class TestImplementationCapabilityRegistry(unittest.TestCase):
+    """R5 深度补全：ImplementationCapabilityRegistry 测试。"""
+
+    def test_default_registry_created(self):
+        """默认能力注册表可创建。"""
+        from seven_system.operations.capability_registry import create_default_registry
+        registry = create_default_registry()
+        self.assertIsNotNone(registry)
+
+    def test_known_capabilities_registered(self):
+        """已知能力已注册。"""
+        from seven_system.operations.capability_registry import create_default_registry
+        registry = create_default_registry()
+        for cap_id in ["P1_DRY_RUN", "COMPLETION_CONTRACT_VERIFIER", "HUMAN_GATE_ED25519"]:
+            self.assertIsNotNone(registry.get(cap_id), f"{cap_id} should be registered")
+
+    def test_unknown_capability_returns_not_implemented(self):
+        """未知能力一律 NOT_IMPLEMENTED。"""
+        from seven_system.operations.capability_registry import create_default_registry
+        registry = create_default_registry()
+        self.assertEqual(registry.get_status("UNKNOWN_CAP"), "NOT_IMPLEMENTED")
+        self.assertFalse(registry.is_reachable("UNKNOWN_CAP"))
+
+    def test_not_implemented_capabilities_listed(self):
+        """未实现的能力明确列出。"""
+        from seven_system.operations.capability_registry import create_default_registry
+        registry = create_default_registry()
+        for cap_id in ["VLT0_D_CAS", "DB_ARANGO_LIVE", "TARGET_SOLVER_PORT"]:
+            entry = registry.get(cap_id)
+            self.assertIsNotNone(entry, f"{cap_id} should be in registry")
+            self.assertEqual(entry.implementation_status, "NOT_IMPLEMENTED")
+
+
+class TestTruthConsistencyChecker(unittest.TestCase):
+    """R5 深度补全：文档/机器真值双向对账。"""
+
+    def test_board_consistent_with_registry_passes(self):
+        """board 与 registry 一致时 PASS。"""
+        from seven_system.operations.capability_registry import (
+            create_default_registry, TruthConsistencyChecker,
+        )
+        registry = create_default_registry()
+        checker = TruthConsistencyChecker(registry=registry)
+        board = {
+            "P1_DRY_RUN": "IMPLEMENTED_PENDING_EVIDENCE",
+            "VLT0_D_CAS": "NOT_IMPLEMENTED",
+        }
+        result = checker.check_board_consistency(board)
+        self.assertEqual(result.verdict, "PASS")
+
+    def test_board_overclaim_detected(self):
+        """board 过度声明被检测。"""
+        from seven_system.operations.capability_registry import (
+            create_default_registry, TruthConsistencyChecker,
+        )
+        registry = create_default_registry()
+        checker = TruthConsistencyChecker(registry=registry)
+        board = {
+            "VLT0_D_CAS": "IMPLEMENTED_PENDING_EVIDENCE",  # overclaim
+        }
+        result = checker.check_board_consistency(board)
+        self.assertEqual(result.verdict, "FAIL")
+
+    def test_capabilities_consistent_with_registry(self):
+        """CLI capabilities 与 registry 一致时 PASS。"""
+        from seven_system.operations.capability_registry import (
+            create_default_registry, TruthConsistencyChecker,
+        )
+        registry = create_default_registry()
+        checker = TruthConsistencyChecker(registry=registry)
+        cli_caps = ["P1_DRY_RUN", "COMPLETION_CONTRACT_VERIFIER"]
+        result = checker.check_capabilities_consistency(cli_caps)
+        self.assertEqual(result.verdict, "PASS")
+
+    def test_cli_reports_unknown_capability_detected(self):
+        """CLI 报告未知能力被检测。"""
+        from seven_system.operations.capability_registry import (
+            create_default_registry, TruthConsistencyChecker,
+        )
+        registry = create_default_registry()
+        checker = TruthConsistencyChecker(registry=registry)
+        cli_caps = ["P1_DRY_RUN", "FAKE_CAPABILITY"]
+        result = checker.check_capabilities_consistency(cli_caps)
+        self.assertEqual(result.verdict, "FAIL")
+
+    def test_no_stub_as_real(self):
+        """stub/fake 不能被声明为真实能力。"""
+        from seven_system.operations.capability_registry import (
+            create_default_registry, TruthConsistencyChecker,
+        )
+        registry = create_default_registry()
+        checker = TruthConsistencyChecker(registry=registry)
+        result = checker.check_no_stub_as_real(["VLT0_D_CAS"])
+        # VLT0_D_CAS is NOT_IMPLEMENTED, declaring it real should not trigger stub check
+        # because it's not a stub, it's just not implemented
+        # Let's test with ADAPTER_REGISTRY which has "mock" in nonclaims
+        result2 = checker.check_no_stub_as_real(["ADAPTER_REGISTRY"])
+        # ADAPTER_REGISTRY has "mock" in nonclaims, so declaring it real should FAIL
+        self.assertEqual(result2.verdict, "FAIL")
+
+
 if __name__ == "__main__":
     unittest.main()
