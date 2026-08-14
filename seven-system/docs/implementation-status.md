@@ -103,4 +103,4 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 ## 完整实现文档状态
 
-2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。该文档工作包当前仍是`WP-DOC0 IN_PROGRESS`，其machine completion contract固定为`DOC_BOOTSTRAP_RECORD`；只有subject commit上的机器检查、`DocBootstrapCompletionRecord`和状态索引提交完成后才可写`READY_FOR_AUDIT`，不得生成ImplementationCompletionBundle。文档存在不提升任何运行能力；WP-GV0及其他工作包均保持`NOT_STARTED/NOT_IMPLEMENTED`。
+2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力；WP-GV0及其他工作包仍保持`NOT_STARTED/NOT_IMPLEMENTED`。

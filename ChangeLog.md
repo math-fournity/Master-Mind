@@ -11,6 +11,7 @@
 - **冻结链**：生成题拆为`P3A Authoring/G-Q-RELEASE → P3B problem-only Devin bare admission → P3C G-CASE-ROLE`，自然题走`P2A历史审计 → 按需P2B当前bare qualification → P3N review → P3C`；P2B/P3B都不属于P5因果实验。任意题面变化都必须新版本并使旧核验与bare失效。
 - **工程边界**：先完成WP-DOC0，再由WP-GV0落地唯一的Security/Completion验证核心和最小CompletionArtifactStore；随后依赖式推进WP-VLT0/HG0/CW0、WP-CW-D1、WP-CW-C1和双adapter WP-QA0。P3N/P6、judge pool和分布式恢复延后到WP-CW1，solver pool始终归独立TargetSolver控制面。当前没有实现或运行这些端口或worker，没有连接DB/Redis，也没有产生Tell科学证据。
 - **文档体系**：新增`seven-system/docs/implementation/`规定性实现入口、工作包DAG、对象/Schema、执行口、存储、安全、恢复、P0-P9、测试、AI实施手册和完成物证；新增`seven-system/docs/audit/`独立审计方法；新增`seven-system/docs/decisions/`架构裁决；外部`seven-system非特化证据工厂研发过程文档/README.md`只重定向到canonical入口，不形成第二真值源。
+- **DOC0证据封存**：规定性subject已冻结为commit `8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`；在该干净提交上复跑文档合同检查并形成`DocContractVerificationReceipt`、`DOC0TestExecutionReceipt`和`DocBootstrapCompletionRecord`。WP-DOC0只推进到`READY_FOR_AUDIT`，等待repo外独立审计；全部运行能力和科学主张仍为`NOT_IMPLEMENTED/NOT_TESTED`。
 - **修订文件**：387号、389号§16-17、Tell目录README、根/Seven AGENTS、Seven README、稳定docs和ChangeLog。
 
 ### 389号Arango物理存储链路纠正：经OrbStack已落D盘
