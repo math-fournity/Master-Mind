@@ -83,6 +83,15 @@ class KeyRegistry:
 
     def __init__(self) -> None:
         self._keys: dict[str, KeyRecord] = {}
+        self._public_keys: dict[str, bytes] = {}  # P0-B: key_id → raw public key bytes
+
+    def store_public_key(self, key_id: str, public_key_bytes: bytes) -> None:
+        """P0-B: 存储密钥的原始公钥字节，用于真实 Ed25519 验签。"""
+        self._public_keys[key_id] = public_key_bytes
+
+    def get_public_key(self, key_id: str) -> bytes | None:
+        """P0-B: 获取密钥的原始公钥字节。"""
+        return self._public_keys.get(key_id)
 
     def provision(
         self,
@@ -121,6 +130,10 @@ class KeyRegistry:
         if not isinstance(public_key_sha256, str) or not _HASH_RE.match(public_key_sha256):
             errors.append(EC.OBJECT_HASH_MISMATCH)
             details.append(f"invalid public_key_sha256: {public_key_sha256!r}")
+        elif public_key_sha256 == "0" * 64:
+            # P0-B: 全0公钥 hash 必须拒绝（不能用作占位符）
+            errors.append(EC.OBJECT_HASH_MISMATCH)
+            details.append("public_key_sha256 must not be all-zero")
 
         invalid_roles = set(eligible_roles) - HUMAN_GATE_ROLES
         if invalid_roles:

@@ -84,8 +84,15 @@ class HumanGateService:
         errors: list[EC] = []
         details: list[str] = []
 
-        # ─── Step 1: 结构验证 ───
-        struct_result = verify_gate_decision(decision)
+        # ─── Step 1: 结构验证 + P0-B 真实 Ed25519 验签 ───
+        # 先提取 key_id 用于公钥查找
+        key_id = decision.get("key_id", "")
+        # P0-B: 如果 key_registry 中有此 key_id 的公钥，执行真实 Ed25519 验签
+        public_key_bytes = self.key_registry.get_public_key(key_id) if key_id else None
+        struct_result = verify_gate_decision(
+            decision,
+            public_key_bytes=public_key_bytes,
+        )
         if not struct_result.passed:
             errors.extend(struct_result.error_codes)
             details.extend(struct_result.details)

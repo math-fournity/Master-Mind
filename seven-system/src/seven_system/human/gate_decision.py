@@ -147,6 +147,7 @@ def verify_gate_decision(
     decision: dict[str, Any],
     *,
     expected_payload_hash: str | None = None,
+    public_key_bytes: bytes | None = None,
 ) -> VerificationResult:
     """验证 GateDecision 的结构合法性。
 
@@ -166,9 +167,11 @@ def verify_gate_decision(
     13. verification_status 在合法枚举中
     14. decision_hash 正确（重算）
     15. expected_payload_hash 匹配（如提供）
+    16. P0-B: 真实 Ed25519 验签（如提供 public_key_bytes）
 
-    注意：本验证器只做结构检查。actor 活跃度、key 生命周期、
-    replay 防护、职责分离由 HumanGateService 在调用本验证器前后执行。
+    P0-B 整改：如果提供 public_key_bytes，执行真实 Ed25519 验签。
+    如果不提供 public_key_bytes，只做结构检查（向后兼容旧调用方，
+    但 HumanGateService 必须提供 public_key_bytes）。
     """
     errors: list[EC] = []
     details: list[str] = []
@@ -302,8 +305,79 @@ def verify_gate_decision(
                 f"payload_hash mismatch: expected {expected_payload_hash}, got {payload_hash}",
             )
 
+    # 16. P0-B: 真实 Ed25519 验签（如提供 public_key_bytes）
+    if public_key_bytes is not None and not errors:
+        _verify_ed25519_signature(decision, public_key_bytes, errors, details)
+
     verdict = "PASS" if not errors else "FAIL"
     return VerificationResult(verdict=verdict, error_codes=errors, details=details)
+
+
+def _verify_ed25519_signature(
+    decision: dict[str, Any],
+    public_key_bytes: bytes,
+    errors: list[EC],
+    details: list[str],
+) -> None:
+    """执行真实 Ed25519 验签。
+
+    P0-B 整改：不再只检查 base64 格式，而是用 cryptography 库
+    执行真实的 Ed25519 签名验证。伪签名（全A、全0、随机）全部 FAIL。
+    """
+    import base64 as _b64
+
+    try:
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        from cryptography.exceptions import InvalidSignature
+    except ImportError:
+        errors.append(EC.SIGNATURE_INVALID)
+        details.append("cryptography library not available — fail-closed")
+        return
+
+    # Get signature from envelope
+    envelope = decision.get("signature_envelope", {})
+    sig_b64 = envelope.get("signature_b64", "")
+    if not isinstance(sig_b64, str) or not _SIG_B64_RE.match(sig_b64):
+        errors.append(EC.SIGNATURE_INVALID)
+        details.append("signature_b64 is not valid Ed25519 base64 format")
+        return
+
+    try:
+        signature = _b64.b64decode(sig_b64)
+    except Exception:
+        errors.append(EC.SIGNATURE_INVALID)
+        details.append("signature_b64 decode failed")
+        return
+
+    # Get signed bytes
+    signed_bytes = _get_signed_bytes_for_verification(decision)
+
+    # Verify with real Ed25519
+    try:
+        public_key = Ed25519PublicKey.from_public_bytes(public_key_bytes)
+        public_key.verify(signature, signed_bytes)
+    except InvalidSignature:
+        errors.append(EC.SIGNATURE_INVALID)
+        details.append("Ed25519 signature verification failed — fake or forged signature")
+    except Exception as exc:
+        errors.append(EC.SIGNATURE_INVALID)
+        details.append(f"Ed25519 verification error: {exc}")
+
+
+def _get_signed_bytes_for_verification(decision: dict[str, Any]) -> bytes:
+    """获取用于验签的 signed bytes（与 _compute_signed_bytes_hash 一致）。"""
+    unsigned = dict(decision)
+    envelope = dict(unsigned.get("signature_envelope", {}))
+    envelope["signature_b64"] = None
+    envelope["signed_bytes_hash"] = None
+    unsigned["signature_envelope"] = envelope
+    unsigned["signed_bytes_hash"] = None
+    unsigned["decision_hash"] = None
+    unsigned["verification_status"] = None
+
+    domain_bytes = HUMAN_GATE_SIGNATURE_DOMAIN.encode("utf-8")
+    payload_bytes = canonical_json_bytes(unsigned)
+    return domain_bytes + payload_bytes
 
 
 def build_gate_decision_dict(

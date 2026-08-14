@@ -43,7 +43,7 @@ from seven_system.human.human_gate import HumanGateService
 
 # ─── helpers ───────────────────────────────────────────────────────────
 
-_ZERO_HASH = "0" * 64
+_ZERO_HASH = "e" * 64  # P0-B: 不能用全0 hash，KeyRegistry 现在拒绝全0
 _SIG_B64 = "A" * 86 + "=="
 
 DAG_PATH = SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json"
