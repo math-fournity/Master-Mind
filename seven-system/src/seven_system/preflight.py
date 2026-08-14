@@ -15,7 +15,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from .config import LIVE_MODES, SevenConfig
+from .config import (
+    CANONICAL_DATABASE_ADAPTER,
+    CANONICAL_DATABASE_ID,
+    LIVE_MODES,
+    SevenConfig,
+)
 from .hashing import file_sha256, object_hash
 
 
@@ -114,6 +119,19 @@ def _capability_check(
     expected_capability: str,
     expected_subject_hash: str,
 ) -> Check:
+    if expected_capability == "database":
+        if required:
+            return Check(
+                check_id,
+                "BLOCK",
+                "legacy capability-report/v1 is not accepted for database site capability; "
+                "the dedicated semantic verifier is not implemented",
+            )
+        return Check(
+            check_id,
+            "NOT_REQUIRED",
+            "dry_run does not consume any database capability report",
+        )
     if path is None:
         if required:
             return Check(check_id, "BLOCK", "required capability report is not configured")
@@ -188,6 +206,18 @@ def run_preflight(config: SevenConfig) -> dict[str, Any]:
             "system_identity",
             "PASS" if config.system_id == "seven-system" else "BLOCK",
             f"system_id={config.system_id}",
+        )
+    )
+
+    database_contract_ok = (
+        config.expected_database == CANONICAL_DATABASE_ID
+        and config.database_adapter == CANONICAL_DATABASE_ADAPTER
+    )
+    checks.append(
+        Check(
+            "database_contract_identity",
+            "PASS" if database_contract_ok else "BLOCK",
+            "database identity and adapter contract must match the canonical Seven values",
         )
     )
 
@@ -321,7 +351,11 @@ def run_preflight(config: SevenConfig) -> dict[str, Any]:
                     if db_ok
                     else "ARANGO_DB is unset or does not match expected database"
                 ),
-                {"expected": config.expected_database, "actual": db_env},
+                {
+                    "expected": config.expected_database,
+                    "present": db_env is not None,
+                    "matches": db_ok,
+                },
             )
         )
     else:

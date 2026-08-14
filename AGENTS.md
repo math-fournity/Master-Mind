@@ -300,7 +300,7 @@ AI数学系统运行时有两条Pipe：
 4. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据或retry until solved；
 5. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
 
-**当前真实实现上限**：`seven-system` v0.1.0只实现P0只读preflight与P1 scaffold dry-run（不是387号完整P1）；不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有apply/DDL primitive；Arango物理数据目录未验证落在D盘，因此Database Site Capability与migration保持BLOCKED/NOT_REACHED。不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
 
 ---
 
@@ -334,7 +334,9 @@ AI数学系统运行时有两条Pipe：
 2. **每次运行前必须确认 `echo $ARANGO_DB` 输出 `xishujuzhen_math_glm52`**。若忘了 source `.env`，脚本会 fallback 到默认值 `xishujuzhen_math`，那是错误的数据库。
 3. **运行 POC、研究 runtime、事件存储、启发规则存储**等所有会写库的代码前，先核对环境变量。
 
-**题目录入信息抓手**：`problem_entries`集合——每道题入题一条记录，是查找该题目所有录入信息的抓手。从这条记录可以找到工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径。查找方法：`db.find_problem_entries_by_problem_id(problem_id)`。数据库操作统一通过`system/db.py`模块，不直接操作ArangoDB客户端。
+**题目录入信息抓手**：`problem_entries`集合——每道题入题一条记录，是查找该题目所有录入信息的抓手。从这条记录可以找到工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径。查找方法：`db.find_problem_entries_by_problem_id(problem_id)`。`system/`及本repo原有业务代码的数据库操作统一通过`system/db.py`模块，不直接操作ArangoDB客户端。
+
+**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。这个例外只解决自包含与接口所有权，不构成写授权：真实migration仍须通过显式计划哈希、人工确认和站点数据库能力Gate，当前Arango实际data dir未落在D盘时必须保持BLOCKED。
 
 ### 硬约束 2 · Git 规则
 

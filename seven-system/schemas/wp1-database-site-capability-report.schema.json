@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/seven-system/wp1-database-site-capability-report.schema.json",
+  "title": "Seven System WP-1 Database Site Capability Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_kind",
+    "site_id",
+    "generated_at",
+    "subject_hash",
+    "strict_contract_report_hash",
+    "expected_database",
+    "approved_volume_root",
+    "approved_database_host_root",
+    "observation",
+    "gates",
+    "migration_state",
+    "verdict",
+    "blockers",
+    "side_effects",
+    "explicit_nonclaims"
+  ],
+  "properties": {
+    "schema_version": {"const": "wp1-database-site-capability-report/v1"},
+    "report_kind": {"const": "DatabaseSiteCapabilityReport"},
+    "site_id": {"type": "string", "minLength": 1},
+    "generated_at": {"type": "string", "minLength": 1},
+    "subject_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "strict_contract_report_hash": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "expected_database": {"const": "xishujuzhen_math_glm52"},
+    "approved_volume_root": {"const": "/data"},
+    "approved_database_host_root": {"const": "/data/arangodb/data"},
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "container_name",
+        "engine_data_directory",
+        "observed_bind_source",
+        "observed_bind_destination",
+        "engine_data_is_d_backed",
+        "evidence"
+      ],
+      "properties": {
+        "container_name": {"type": "string", "minLength": 1},
+        "engine_data_directory": {"type": "string", "minLength": 1},
+        "observed_bind_source": {"type": "string", "minLength": 1},
+        "observed_bind_destination": {"type": "string", "minLength": 1},
+        "engine_data_is_d_backed": {"type": "boolean"},
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["gate_id", "verdict", "evidence"],
+        "properties": {
+          "gate_id": {"enum": ["G-WP1-S", "G-WP1-C", "G-WP1-P", "G-WP1-M"]},
+          "verdict": {"enum": ["PASS", "FAIL", "BLOCKED", "NOT_REACHED", "INCONCLUSIVE"]},
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "migration_state": {"enum": ["NOT_REACHED", "PLAN_ONLY", "VERIFIED", "APPLIED"]},
+    "verdict": {"enum": ["PASS", "FAIL", "BLOCKED", "INCONCLUSIVE"]},
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "database_writes",
+        "migrations_applied",
+        "container_restarts",
+        "production_state_changes",
+        "solver_launches",
+        "redis_writes"
+      ],
+      "properties": {
+        "database_writes": {"const": 0},
+        "migrations_applied": {"const": 0},
+        "container_restarts": {"const": 0},
+        "production_state_changes": {"const": 0},
+        "solver_launches": {"const": 0},
+        "redis_writes": {"const": 0}
+      }
+    },
+    "explicit_nonclaims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

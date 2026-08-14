@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/seven-system/wp1-strict-db-contract-report.schema.json",
+  "title": "Seven System WP-1 Strict DB Contract Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_kind",
+    "contract",
+    "scope",
+    "generated_at",
+    "subject_hash",
+    "verdict",
+    "checks",
+    "claims",
+    "migration_policy",
+    "side_effects",
+    "blockers",
+    "explicit_nonclaims"
+  ],
+  "properties": {
+    "schema_version": {"const": "wp1-strict-db-contract-report/v1"},
+    "report_kind": {"const": "StrictDbContractReport"},
+    "contract": {"const": "seven-database-port/v1"},
+    "scope": {"const": "OFFLINE_STATIC_AND_FAKE_ADAPTER"},
+    "generated_at": {"type": "string", "minLength": 1},
+    "subject_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "verdict": {"enum": ["PASS", "FAIL", "BLOCKED", "INCONCLUSIVE"]},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "verdict", "evidence"],
+        "properties": {
+          "check_id": {"type": "string", "minLength": 1},
+          "verdict": {"enum": ["PASS", "FAIL", "BLOCKED", "INCONCLUSIVE"]},
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "expected_database_fail_closed",
+        "no_default_database",
+        "reads_have_no_schema_side_effects",
+        "migration_is_explicit",
+        "collection_names_are_seven_prefixed",
+        "unique_index_plan_is_frozen",
+        "ledger_sequence_unique_index_spec_frozen",
+        "outbox_unique_index_spec_frozen",
+        "no_raw_client_escape_hatch"
+      ],
+      "properties": {
+        "expected_database_fail_closed": {"type": "boolean"},
+        "no_default_database": {"type": "boolean"},
+        "reads_have_no_schema_side_effects": {"type": "boolean"},
+        "migration_is_explicit": {"type": "boolean"},
+        "collection_names_are_seven_prefixed": {"type": "boolean"},
+        "unique_index_plan_is_frozen": {"type": "boolean"},
+        "ledger_sequence_unique_index_spec_frozen": {"type": "boolean"},
+        "outbox_unique_index_spec_frozen": {"type": "boolean"},
+        "no_raw_client_escape_hatch": {"type": "boolean"}
+      }
+    },
+    "migration_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "expected_database",
+        "collection_prefix",
+        "shared_production_apply_allowed"
+      ],
+      "properties": {
+        "mode": {"const": "PLAN_AND_VERIFY_ONLY"},
+        "expected_database": {"const": "xishujuzhen_math_glm52"},
+        "collection_prefix": {"const": "seven_"},
+        "shared_production_apply_allowed": {"const": false}
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "database_connections",
+        "database_writes",
+        "migrations_applied",
+        "container_restarts",
+        "solver_launches",
+        "redis_writes"
+      ],
+      "properties": {
+        "database_connections": {"const": 0},
+        "database_writes": {"const": 0},
+        "migrations_applied": {"const": 0},
+        "container_restarts": {"const": 0},
+        "solver_launches": {"const": 0},
+        "redis_writes": {"const": 0}
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "explicit_nonclaims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  }
+}

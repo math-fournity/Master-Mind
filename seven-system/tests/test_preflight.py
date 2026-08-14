@@ -81,6 +81,7 @@ class PreflightTests(unittest.TestCase):
             ):
                 report = run_preflight(load_config(config_path))
             self.assertEqual(report["overall_verdict"], "BLOCKED")
+            self.assertIn("database_capability", report["blockers"])
             self.assertIn("live_execution_implementation", report["blockers"])
 
     def test_capability_top_level_pass_cannot_hide_failed_check(self) -> None:
@@ -133,6 +134,19 @@ class PreflightTests(unittest.TestCase):
             with patched_site(payload):
                 report = run_preflight(load_config(config_path))
             self.assertIn("no_tool_capability", report["blockers"])
+
+    def test_wrong_database_environment_value_is_never_logged(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config_path, payload = build_site(Path(directory), mode="golden_slice")
+            secret_wrong_value = "wrong-db-with-secret-token"
+            with patched_site(payload), patch.dict(
+                os.environ,
+                {"ARANGO_DB": secret_wrong_value},
+                clear=True,
+            ):
+                report = run_preflight(load_config(config_path))
+            self.assertIn("expected_database", report["blockers"])
+            self.assertNotIn(secret_wrong_value, json.dumps(report))
 
 
 if __name__ == "__main__":

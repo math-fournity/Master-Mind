@@ -2,7 +2,7 @@
 
 ## 一句话结论
 
-当前 Seven System 只能安全运行 P0与P1 scaffold：先做只读 preflight，再初始化有限Epoch，最后执行不会连接数据库或启动Solver的dry-run。它不是387号完整P1；没有`start`命令是刻意的安全边界。
+当前 Seven System 能安全运行 P0/P1 scaffold，以及 WP-1 Strict DB 的离线契约报告：这些命令都不连接真实数据库、不写 Redis、不启动 Solver。它不是387号完整P1；没有`start`命令是刻意的安全边界。
 
 ## 0. 操作者先确认自己在做什么
 
@@ -42,8 +42,8 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 你应看到：
 
 - `implementation_ceiling = P1_DRY_RUN`；
-- P0与P1 scaffold能力在 `implemented`；
-- DB、Redis、真实 Solver、Vault、三审和 Evidence 在 `not_implemented`。
+- P0/P1 scaffold、`WP1_SITE_STORAGE_PREREQUISITE`和`WP1_STRICT_DB_OFFLINE_CONTRACT_REPORT`在 `implemented`；
+- `DATABASE_SITE_CAPABILITY_OR_MIGRATION_APPLY`、Redis、真实 Solver、Vault、三审和 Evidence 在 `not_implemented`。
 
 如果输出声称真实 Solver 已实现，而代码版本仍是 `0.1.0`，停止并审计代码；不能继续运行。
 
@@ -56,21 +56,18 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
   --config seven-system/config/runtime.example.json
 ```
 
-当前应返回非零退出码和：
+2026-08-14，D 卷 README 和数据根已由用户批准并准备完成。当前示例配置应返回退出码 `0` 和：
 
 ```json
 {
-  "overall_verdict": "BLOCKED",
+  "overall_verdict": "PASS",
   "side_effects": "NONE"
 }
 ```
 
-至少会有两个 blocker：
+这个 PASS 只表示 **dry-run P0** 的卷、路径、容量和静态配置检查通过。由于 dry-run 中 `expected_database` 和 `database_capability` 都是 `NOT_REQUIRED`，它不证明 ArangoDB engine 在 D 盘，也不解锁 migration 或 live。
 
-- `volume_readme`：`/data/README.md` 不存在；
-- `data_root_ready`：`/data/seven-system-data/` 不存在。
-
-这是正确的 fail-closed。Preflight 不会替你创建目录，也不会 fallback 到别处。
+如果 README、数据根或挂载漂移，仍应立即恢复为非零退出和 `BLOCKED`。Preflight 不会替你修复目录，也不会 fallback 到别处。
 
 ### 3.2 每项检查的含义
 
@@ -98,7 +95,7 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 
 ## 4. 准备站点配置
 
-只有用户批准 D 盘 README 和数据根后，才复制站点配置：
+D 盘 README 和数据根已经批准；需要保存站点本地覆盖时才复制配置：
 
 ```bash
 cp seven-system/config/runtime.example.json \
@@ -120,6 +117,51 @@ cp seven-system/config/runtime.example.json \
 配置会在转换为运行时对象前执行`runtime-config.schema.json`；未知字段、类型错误和非法常量都会直接拒绝，不会静默忽略。
 
 不要为了让 preflight 变绿而把 `require_volume_readme` 改成 `false`；站点正式配置应保留这个保护。
+
+## 4.1 生成或复验 Strict DB 离线报告
+
+唯一已实现的 WP-1 DB 命令是：
+
+```bash
+.venv/bin/python seven-system/scripts/seven.py wp1-db-contract-report \
+  --config seven-system/config/runtime.example.json \
+  --report-id wp1-contract-20260814-002
+```
+
+它先要求dry-run P0 preflight PASS，再用`python -I -S -B`启动只输出机器JSON的受控runner；子进程环境不继承调用者的`PYTHONPATH`、sitecustomize或`ARANGO_*`凭据。机器收据绑定完整test IDs，并把allowlist和13索引语义测试列为required evidence。随后执行`wp1-strict-db-contract-report.schema.json`和跨字段semantic verifier，最后把报告通过Seven API append-once提交到批准的数据根。它的允许副作用只有本地报告文件提交；报告内以下外部副作用必须全为0：DB connection/write、migration、容器重启、Redis write、Solver launch。
+
+当前固定报告：
+
+```text
+path=/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json
+status=ALREADY_COMMITTED
+verdict=PASS
+subject_hash=77c6e348b4124a53080322d5cbe478b5ded3c8bea31dfc4555ac320aaa97799b
+implementation_hash=656d6e807ad2e5f1e0b237145cfef94640b5eddd6054fc47d3c51111a1cc609e
+test_execution_receipt_sha256=055ac2d9d9479663b529888295701ddc7f347830bfbbb1372ece775534e4533a
+file_sha256=68c96aa4eec1fa8f7fc0e55222f6395c7b9096c683cae85f15888bc323c64b71
+isolated_runner_tests=20
+full_tests=58
+```
+
+重复执行同一命令会重新运行受控测试、重算当前 subject 并复验已有文件；完全匹配时返回 `ALREADY_COMMITTED`。代码、spec、绑定测试、Schema或validator漂移后，旧ID会报错且不会被覆盖。完成新一版评审后应使用新的report ID追加报告，禁止编辑、删除或覆盖旧报告。
+
+`wp1-contract-20260814-001.json`是在后续源码硬化前生成的历史报告，现为`STALE/SUPERSEDED`，必须保留且不得覆盖；只有002与当前subject匹配，是本轮当前物证。
+
+这个PASS只关闭`G-WP1-C`。报告自身明确写出六项非主张：不证明DB site capability；不验证物理DB存储；不连接Arango或apply migration；不提供durable migration ledger/fence/resume；不证明runtime append-only/CAS/outbox delivery语义；不认证wall-clock或文件不可变性。`generated_at`由builder生成且调用者不能注入，但verifier只核对时区化ISO-8601格式，不提供可信时间证明。本地文件也不是WORM。
+
+### 4.2 仍不存在或禁止的 DB 操作
+
+当前CLI只有离线`wp1-db-contract-report`，不要把文档里的能力名称猜成子命令：
+
+- 生产database package只有确定性只读`plan_migration`，没有operator site-plan/site-verify命令；
+- Site Schema只是尚未被消费的前向shape，没有site report generator或semantic verifier；Schema-valid不等于capability-valid；
+- 生产package和真实Arango adapter中都不存在apply、DDL、authorization或receipt primitive；
+- 共享生产DB的任何DDL、migration、容器重启或数据搬迁都被禁止，除非另有维护方案和用户明确授权。
+
+不得用ad hoc raw client、私有导入或临时脚本补出不存在的站点/写入入口。
+
+`DatabaseSiteCapabilityReport` 当前必须 BLOCKED：Arango 的 D 盘 bind 终点是容器 `/data`，实际 engine data directory 是 `/var/lib/arangodb3`；因此 `G-WP1-P=BLOCKED`、`G-WP1-M=NOT_REACHED`。
 
 ## 5. 初始化一个 Epoch
 
@@ -190,7 +232,7 @@ python3 -m json.tool \
 | 退出码 | 含义 |
 |---|---|
 | `0` | 命令完成；对 preflight 表示没有 blocker |
-| `2` | 配置错误、preflight BLOCKED、身份冲突或 I/O 错误 |
+| `2` | 配置错误、preflight BLOCKED、身份/报告冲突、Strict DB受控测试失败或 I/O 错误 |
 | `3` | dry-run FAIL，或 Epoch 完整性/`current_runtime_compatibility` 未 PASS |
 
 自动脚本必须检查退出码，不能只 grep 输出中的 `PASS`。
@@ -223,6 +265,16 @@ echo "$ARANGO_DB"
 ```
 
 不是 `xishujuzhen_math_glm52` 就停止。当前 v0.1.0 不会连接 DB。
+
+### WP-1 DB 物理 Gate BLOCKED
+
+当前共享 ArangoDB 的 host bind `/data/arangodb/data -> /data` 没有承载实际 engine data directory `/var/lib/arangodb3`。处理原则：
+
+1. 保持服务原状，不停止、不重启、不复制 engine 数据；
+2. `G-WP1-P=BLOCKED`，`G-WP1-M=NOT_REACHED`；
+3. 离线 contract PASS 不能覆盖这个 blocker；
+4. 另写维护、备份、回滚与生产影响方案，并取得用户对共享 DB 变更的明确授权后，才讨论修正 bind；
+5. 修正后也要先只读 verify，不能直接自动 apply migration。
 
 ### 发现真实 Solver 或 Redis 被修改
 
@@ -261,6 +313,8 @@ Seven v0.1.0 没有常驻服务，所以：
 
 - [ ] `capabilities` 仍明确 P1 上限；
 - [ ] preflight report 与实际卷/路径一致；
+- [ ] Strict DB报告重新验证PASS，subject/file hash与记录一致；
+- [ ] `G-WP1-P`仍为BLOCKED、`G-WP1-M`仍为NOT_REACHED，没有用离线PASS替代site PASS；
 - [ ] Epoch manifest hash 验证 PASS；
 - [ ] dry-run 三类副作用均为 0；
 - [ ] 未手改已提交文件；

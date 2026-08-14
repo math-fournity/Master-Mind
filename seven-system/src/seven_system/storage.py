@@ -105,6 +105,8 @@ def commit_text_once(
     )
 
 
-def read_json(path: Path) -> Any:
+def read_json(path: Path, *, boundary_root: Path | None = None) -> Any:
+    if boundary_root is not None:
+        path = _bounded_path(path, boundary_root)
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)

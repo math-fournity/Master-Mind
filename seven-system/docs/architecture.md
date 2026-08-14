@@ -47,7 +47,7 @@ flowchart LR
     H --> I["EvidenceRecord → 人工门 → Verdict"]
 ```
 
-虚线意义上的“未来”接口在 v0.1.0 尚未实现；当前只运行 Control Plane 的 P0/P1。
+虚线意义上的“未来”接口在 v0.1.0 尚未实现；当前运行Control Plane的P0/P1 scaffold和WP-1离线Strict DB contract。后者是工程前置能力，不提升canonical phase ceiling。
 
 ## 控制面与执行面
 
@@ -100,6 +100,8 @@ Solver 是叶子执行器，而不是系统管理员：
 | P7 | contrast EvidenceRecord | 未实现 |
 | P8 | 独立 NO_CHANGE 或受控 Revision | 未实现 |
 | P9 | 多维 Verdict、Checkpoint 和 Evidence Index | 未实现 |
+
+WP-1不是canonical P1的别名。它的四门当前为：站点存储`G-WP1-S=PASS`、离线代码契约`G-WP1-C=PASS`、数据库物理存储`G-WP1-P=BLOCKED`、真实migration`G-WP1-M=NOT_REACHED`。生产database package只有只读planner，没有apply/DDL入口；因此离线contract PASS不能被架构图解读为数据库控制面已经上线。
 
 ## 状态与真值源
 

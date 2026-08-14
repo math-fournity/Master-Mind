@@ -14,6 +14,8 @@ from .schema_validation import validate_schema
 LIVE_MODES = {"golden_slice", "continuous", "fault_injection"}
 ALL_MODES = LIVE_MODES | {"dry_run"}
 SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "schemas"
+CANONICAL_DATABASE_ID = "xishujuzhen_math_glm52"
+CANONICAL_DATABASE_ADAPTER = "seven-database-port/v1"
 
 
 class ConfigError(ValueError):
@@ -118,6 +120,17 @@ class SevenConfig:
         ):
             raise ConfigError("solver.max_concurrency must be a positive integer")
 
+        expected_database = _required_text(
+            database, "expected_database", "database"
+        )
+        if expected_database != CANONICAL_DATABASE_ID:
+            raise ConfigError("database.expected_database is not the canonical Seven DB")
+        database_adapter = _required_text(
+            database, "adapter_contract", "database"
+        )
+        if database_adapter != CANONICAL_DATABASE_ADAPTER:
+            raise ConfigError("database.adapter_contract is not the canonical Seven port")
+
         return cls(
             schema_version=schema_version,
             system_id=_required_text(raw, "system_id", "root"),
@@ -129,8 +142,8 @@ class SevenConfig:
             require_volume_readme=_boolean(
                 storage, "require_volume_readme", "storage", default=True
             ),
-            expected_database=_required_text(database, "expected_database", "database"),
-            database_adapter=_required_text(database, "adapter_contract", "database"),
+            expected_database=expected_database,
+            database_adapter=database_adapter,
             allow_database_writes=_boolean(
                 database, "allow_writes", "database", default=False
             ),

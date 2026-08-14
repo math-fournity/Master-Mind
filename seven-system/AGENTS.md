@@ -2,11 +2,11 @@
 
 进入本目录工作的 AI 或开发者必须遵守以下规则。
 
-1. 当前实现上限是 P1 dry-run；不得把脚手架描述成完整证据工厂。
+1. 当前实现上限是 P1 dry-run scaffold + WP-1离线Strict DB契约；不得把它描述成完整证据工厂、本站数据库能力或migration实现。
 2. 真实 Devin Solver 只能经 repo 的 `xishujuzhen/solver_harness/solver_harness.py launch`；本系统未实现 live adapter 前不得启动。
 3. Solver 必须无工具。Prompt 中写“不要用工具”只是一层约束，不构成能力证明；缺 `NoToolSolverCapabilityReport=PASS` 时 live P0 必须 BLOCKED。
 4. Seven System 不得写现有 `math:*` Redis 键，不得修改题海生产状态；未来命名空间固定以 `evidence:seven:` 开头。
-5. 任何数据库访问先确认 `ARANGO_DB=xishujuzhen_math_glm52`；禁止默认库、直接 Arango 客户端和读时自动建集合。
+5. 任何数据库访问先确认 `ARANGO_DB=xishujuzhen_math_glm52`；禁止默认库和读时自动建集合。Seven代码只能依赖`seven_system.database.StrictDatabasePort`；仅`seven_system/database/arango_port.py`可封装`ArangoClient`，其他模块不得直接使用raw client。配置中的`allow_writes`不是授权；当前生产包没有apply/DDL primitive。未来真实DDL必须等计划哈希、人工确认和站点能力Gate全部实现并满足后，才能另行增加显式migration命令。
 6. 大对象必须在批准后的 D 盘数据根；D 盘缺失、卷身份漂移或根 README 缺失时不得 fallback 到 repo、Home 或 `/tmp`。
 7. `system/` 是外部 producer，不是 Python 依赖；只能通过冻结、哈希、版本化 bundle 接入。
 8. 答案与 holdout 必须物理隔离；Solver、Selector、Renderer、Process Auditor 永久不可见。
