@@ -103,7 +103,9 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 ## 完整实现文档状态
 
-2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力；~~WP-GV0及其他工作包仍保持`NOT_STARTED/NOT_IMPLEMENTED`~~ → **WP-GV0 代码+测试完成，状态 `IMPLEMENTED_PENDING_EVIDENCE`**（两个硬阻塞阻止升至 READY_FOR_AUDIT，见下节），其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
+2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力。
+
+**R0 整改后状态（2026-08-14）**：审计确认 WP-GV0 状态为 `IMPLEMENTED_PENDING_EVIDENCE`（不是 `READY_FOR_AUDIT`），且发现三个 P0 Gate 旁路（CompletionContractVerifier 未执行完整 Schema、HumanGate 无真实 Ed25519 验签、DB1I 授权链可绕过）。WP-VLT0 到 WP-OP1 共 22 个包曾被越级标为 `IMPLEMENTED_PENDING_EVIDENCE`，但 development dependency 未满足（GV0 未到 READY_FOR_AUDIT），现已纠正回 `NOT_STARTED`；既有代码视为 `existing unqualified implementation input`，须新 remediation attempt 重新资格化。其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
 
 ## WP-GV0 实现状态：IMPLEMENTED_PENDING_EVIDENCE
 

@@ -6,48 +6,68 @@
 
 `owner_type`、`completion_contract`和当前状态分别以canonical DAG、DAG contract和本看板记录，三者不得混成自造状态。implementer-owned普通包最高只能写`READY_FOR_AUDIT`，DOC0同属implementer-owned但交付`DOC_BOOTSTRAP_RECORD`；auditor-owned包拒绝实施者状态命令，只有独立审计路径可以写`AUDITED_*`。上游`READY_FOR_AUDIT`可满足无副作用development dependency，但下游必须记录审计债；真实激活要求适用上游`AUDITED_PASS`，并为每次副作用同时验证父级`ExternalExecutionAuthorization`、不可扩权`LiveRunPermit`和原子`AuthorizationConsumptionReceipt(RESERVED)`。未审canary只能在这条完整授权链精确覆盖时运行并标记`UNAUDITED_AUTHORIZED_CANARY`，不能获得正式PASS。
 
+## 当前状态（R0 整改后，2026-08-14）
+
 | 工作包 | 当前状态 | Development依赖 | Activation依赖 | 下一动作 |
 |---|---|---|---|---|
-| WP-DOC0 | `READY_FOR_AUDIT` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle |
-| WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试完成（51 GV0 + 109 全量回归 PASS），但自托管 ImplementationCompletionBundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；状态为 IMPLEMENTED_PENDING_EVIDENCE，不是 READY_FOR_AUDIT |
-| WP-VLT0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（91 VLT0测试 PASS），复用GV0 CAS核心扩展Vault/view/seal/reconcile；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-HG0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 代码+测试完成（58 HG0测试 PASS），HumanTask/HumanGate/KeyLifecycle/ActorRoster，消费GV0验证器；自托管Bundle BLOCKED |
-| WP-CW0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 代码+测试完成（82 CW0测试 PASS），ModelRolePort+fake adapter+11 frozen roles+attempt/reconcile；自托管Bundle BLOCKED |
-| WP-CW-D1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | 代码+测试完成（Devin adapter profile+ATIF parser+bypass tests）；live canary BLOCKED（等待DB1I/RT1/VLT0/HG0激活） |
-| WP-CW-C1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | 代码+测试完成（Codex adapter profile+JSONL parser+bypass tests）；live canary BLOCKED（等待DB1I/RT1/VLT0/HG0激活） |
-| WP-QA0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | 代码+测试完成（96 QA0测试 PASS），P3A状态链/MechanismContract/QuestionDraft/QuestionRelease/Bakeoff-A盲评/InvalidationPropagation；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-DB1L | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0、WP-HG0 | 代码+测试完成（62 DB1L测试 PASS），逻辑站点v2只读report/verifier，零写入收据；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-DB1I | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1L、WP-HG0、WP-VLT0 | WP-DB1L、WP-HG0、WP-VLT0 | 代码+测试完成（53 DB1I测试 PASS），SchemaBootstrapPlan+fenced apply/verify/resume+DVolumeLedger backend+SchemaStateReport/Receipt/ImportAnchor；自托管Bundle BLOCKED |
-| WP-RT1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 代码+测试完成（113 RT1测试 PASS，commit 47bdf49），WorkEvent/LeaseFence/Outbox/CommitIntent/DBReservationBackend/RuntimeReconciler/RedisProjection/Checkpoint；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-SV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | 代码+测试完成（141 SV1测试 PASS），TargetSolverPort/HarnessAdapter/NoToolPolicy/SafeLaunchReport/AnswerIsolationReport/SolverCapabilityReport；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-IN1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（34 IN1测试 PASS），只读CandidateManifest exporter + duplicate lineage；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-TX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | 代码+测试完成（134 TX1测试 PASS），TaxonomySnapshot/TellCore/TellFamily/TellHintRelation/TellStrategyRelease/release lineage；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-CW1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | 代码+测试完成（123 CW1测试 PASS，commit e082c00），RoleQualificationMatrix/ProductionRoleRouter/P3N+P6Workers/IndependenceEnforcer/WorkerCapabilityReport；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-QA1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | 代码+测试完成（98 QA1测试 PASS，commit bb1d83a），P3B bare admission/BareBaseline/BareQualificationResult/Bakeoff-B盲评/BareResultRetention；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-CS1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | 代码+测试完成（93 CS1测试 PASS），CasePack/AdmissionDecision/CaseRole/DualEntry/MechanismReview/RelationMapping/P3CVerifier；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-ST1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-TX1、WP-CW1、WP-SV1 | WP-TX1、WP-CW1、WP-SV1、WP-CS1 | 代码+测试完成（105 ST1测试 PASS，commit d122f51），Selector/Renderer/Binder/Injector/Critic/StrategyRuntime/7-arm payload/FixturePreState；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-EX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | 代码+测试完成（93 EX1测试 PASS），ExperimentPlan/ResourceContract/BranchSnapshot/RandomizationPlan/7-arm/P5Runner/RunArtifactBundle；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-AU1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EX1、WP-CW1 | WP-EX1、WP-CW1、WP-VLT0、WP-HG0 | 代码+测试完成（114 AU1测试 PASS，commit 1c5817f），BlindingBroker/ProcessAudit/ProofJudgment/LeakageAudit/RunAudit/AuditLaneStatus/CausalEligibility/DisagreementResolution；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-EV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-AU1 | WP-AU1 | 代码+测试完成（98 EV1测试 PASS，commit 76cad0b），EvidenceRecord/ContrastAggregator/4个Registry/MissingnessReport/CostDimension/EvidenceSeal；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-RV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | 代码+测试完成（113 RV1测试 PASS，commit f438396），ProvenanceSnapshot/FailureLocalization/NoChangeDecision/RevisionProposal/HoldoutConsumption/CandidateRelease/ProspectiveEvaluation/RevisionPolicy/EvidenceImmutability；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-VR1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-RV1 | WP-RV1 | 代码+测试完成（122 VR1测试 PASS，commit 6ec6f49），VerdictBuilder/MachineVerdict(分轴)/SixGateVerdict/EvidenceIndex/VerdictCheckpoint/EvidenceReplay/CompletionContractRemainder/FullChainRemainder/VerdictRuleRegistry/CostAndCoverageDelta；自托管Bundle BLOCKED（同GV0阻塞） |
+| WP-DOC0 | `READY_FOR_AUDIT` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle。DOC0 checker 当前 FAIL（source hash/document hashes/clauses/remainder 漂移），须 R1 修复 |
+| WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试存在（51 GV0测试），但 CompletionContractVerifier 未执行完整 Schema（P0-A）、HumanGate 无真实 Ed25519 验签（P0-B）、DB1I 授权链可绕过（P0-C）；自托管 Bundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；Plan draft 中 GV0-001/002/003 非法 requirement IDs。状态不是 READY_FOR_AUDIT |
+| WP-VLT0 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 既有代码存在（91测试）但越级——GV0 未到 READY_FOR_AUDIT。须新 remediation attempt 重新资格化 |
+| WP-HG0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 既有代码存在（58测试）但越级。须新 remediation attempt |
+| WP-CW0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 既有代码存在（82测试）但越级。须新 remediation attempt |
+| WP-CW-D1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | 既有代码存在但越级。须新 remediation attempt |
+| WP-CW-C1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | 既有代码存在但越级。须新 remediation attempt |
+| WP-QA0 | `NOT_STARTED` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | 既有代码存在（96测试）但越级。须新 remediation attempt |
+| WP-DB1L | `NOT_STARTED` | WP-GV0 | WP-GV0、WP-HG0 | 既有代码存在（62测试）但越级。须新 remediation attempt |
+| WP-DB1I | `NOT_STARTED` | WP-DB1L、WP-HG0、WP-VLT0 | WP-DB1L、WP-HG0、WP-VLT0 | 既有代码存在（53测试）但越级，且 P0-C 发现授权链可绕过。须新 remediation attempt |
+| WP-RT1 | `NOT_STARTED` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 既有代码存在（113测试）但越级。须新 remediation attempt |
+| WP-SV1 | `NOT_STARTED` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | 既有代码存在（141测试）但越级，DevinSolverAdapter 不存在（只有 FakeHarnessAdapter）。须新 remediation attempt |
+| WP-IN1 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 既有代码存在（34测试）但越级。须新 remediation attempt |
+| WP-TX1 | `NOT_STARTED` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | 既有代码存在（134测试）但越级。须新 remediation attempt |
+| WP-CW1 | `NOT_STARTED` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | 既有代码存在（123测试）但越级。须新 remediation attempt |
+| WP-QA1 | `NOT_STARTED` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | 既有代码存在（98测试）但越级。须新 remediation attempt |
+| WP-CS1 | `NOT_STARTED` | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | 既有代码存在（93测试）但越级。须新 remediation attempt |
+| WP-ST1 | `NOT_STARTED` | WP-TX1、WP-CW1、WP-SV1 | WP-TX1、WP-CW1、WP-SV1、WP-CS1 | 既有代码存在（105测试）但越级。须新 remediation attempt |
+| WP-EX1 | `NOT_STARTED` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | 既有代码存在（93测试）但越级。须新 remediation attempt |
+| WP-AU1 | `NOT_STARTED` | WP-EX1、WP-CW1 | WP-EX1、WP-CW1、WP-VLT0、WP-HG0 | 既有代码存在（114测试）但越级。须新 remediation attempt |
+| WP-EV1 | `NOT_STARTED` | WP-AU1 | WP-AU1 | 既有代码存在（98测试）但越级。须新 remediation attempt |
+| WP-RV1 | `NOT_STARTED` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | 既有代码存在（113测试）但越级。须新 remediation attempt |
+| WP-VR1 | `NOT_STARTED` | WP-RV1 | WP-RV1 | 既有代码存在（122测试）但越级。须新 remediation attempt |
 | WP-GA1 | `NOT_STARTED` | WP-VR1 | WP-VR1 | owner=`AUDITOR`；等待repo外AuditAssignment，实施者不得推进 |
-| WP-OP1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | 代码+测试完成（94 OP1测试 PASS），MultiWorkerScheduler/RedisProjectionManager/EpochManager/ActiveLearningScheduler/SoakTestRunner/CrossEpochBudgetLedger/ActiveReleasePointer/CrossEpochDuplicateAssessor/LongitudinalLearningVerdict；真实规模化BLOCKED（须GA1 AUDITED_PASS） |
+| WP-OP1 | `NOT_STARTED` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | 既有代码存在（94测试）但越级。须新 remediation attempt |
+
+## 历史错误状态记录（append-only，不删除）
+
+**审计基线 commit `783d4be` / tree `36148d1f` 时的错误状态**：
+
+以下 22 个工作包曾被上一位实施 AI 标为 `IMPLEMENTED_PENDING_EVIDENCE`，但审计确认其 development dependency 未满足（GV0 仍为 `IMPLEMENTED_PENDING_EVIDENCE`，不是 `READY_FOR_AUDIT`），属于越级启动：
+
+WP-VLT0, WP-HG0, WP-CW0, WP-CW-D1, WP-CW-C1, WP-QA0, WP-DB1L, WP-DB1I, WP-RT1, WP-SV1, WP-IN1, WP-TX1, WP-CW1, WP-QA1, WP-CS1, WP-ST1, WP-EX1, WP-AU1, WP-EV1, WP-RV1, WP-VR1, WP-OP1
+
+既有代码不删除，但视为 `existing unqualified implementation input`。每个包须创建新的 remediation attempt，Plan 中显式记录"既有代码先于有效 Plan 和依赖满足"这一 protocol deviation。不得倒填伪 PREREGISTERED Plan。
+
+审计同时发现三个 P0 Gate 旁路：
+- P0-A: CompletionContractVerifier 未执行完整 Schema（空壳 `{"schema_id": "..."}` 可 PASS）
+- P0-B: HumanGate 无真实 Ed25519 验签（全A伪签名可 PASS）
+- P0-C: DB1I 可绕过 HumanGate 和完整授权链（`human_gate_service=None` 可执行 fake DDL）
 
 ## 当前唯一允许的实施动作
 
-WP-DOC0已基于subject commit `8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`完成机器自检和bootstrap evidence，实施者状态现为`READY_FOR_AUDIT`。这不是独立审计结论，也不解除任何activation gate。
+WP-DOC0 已基于 subject commit `8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`完成机器自检和 bootstrap evidence，实施者状态现为 `READY_FOR_AUDIT`。这不是独立审计结论，也不解除任何 activation gate。DOC0 checker 当前 FAIL，须 R1 修复 source hash/document hashes/clauses/remainder 漂移。
 
-WP-GV0已完成代码和测试开发，实施者状态现为`IMPLEMENTED_PENDING_EVIDENCE`。已实现CompletionContractVerifier、SecurityContractVerifier、ReservationBackendPort、最小D盘CompletionArtifactStore和51项正负向量测试（109项全量回归全PASS）。但自托管ImplementationCompletionBundle被BLOCKED（需D盘写授权EEA/Permit/RESERVED），WorkPackagePlan schema-validity被BLOCKED（需NormativeRequirementReviewRecord）。状态不是`READY_FOR_AUDIT`，因为12号文档明确："未获授权时GV0合法停在IMPLEMENTED_PENDING_EVIDENCE/BLOCKED"。
+WP-GV0 既有代码和测试存在，实施者状态现为 `IMPLEMENTED_PENDING_EVIDENCE`。但 P0-A/B/C 三个 Gate 旁路必须先修复，且 WorkPackagePlan schema-validity BLOCKED（需 NormativeRequirementReviewRecord），自托管 Bundle BLOCKED（需 D 盘写授权）。状态不是 `READY_FOR_AUDIT`。
 
 当前只允许：
 
-- 由repo外owner签发AuditAssignment后，对WP-DOC0执行独立审计；
-- 由repo外owner签发AuditAssignment后，独立审查者生成NormativeRequirementReviewRecord，解除GV0 WorkPackagePlan schema-validity阻塞；
-- 由repo外owner签发EEA/LiveRunPermit/AuthorizationConsumptionReceipt(RESERVED)后，GV0可生成D盘自托管ImplementationCompletionBundle；
-- 按DAG启动WP-VLT0/WP-DB1L/WP-CW0/WP-IN1的无外部副作用development，并显式继承WP-DOC0和WP-GV0的审计债；
-- 复验DOC0 subject commit、bootstrap record和测试收据；
-- 复验GV0 verifier测试、CompletionArtifactStore和测试执行收据；
+- R0：冻结基线、纠正过度状态声明（本节已完成）；
+- R1：修复 DOC0 checker 的 source hash/document hashes/clauses/remainder 漂移，使 doc checker 在干净 subject 上 PASS；
+- 修复 P0-A/B/C 三个 Gate 旁路（先写负向测试复现旁路，再修代码）；
+- 由 repo外 owner 签发 AuditAssignment 后，对 WP-DOC0 执行独立审计；
+- 由 repo外 owner 签发 AuditAssignment 后，独立审查者生成 NormativeRequirementReviewRecord，解除 GV0 WorkPackagePlan schema-validity 阻塞；
+- 由 repo外 owner 签发 EEA/LiveRunPermit/AuthorizationConsumptionReceipt(RESERVED) 后，GV0 可生成 D 盘自托管 ImplementationCompletionBundle；
+- **不得**在 GV0 达到 READY_FOR_AUDIT 前启动任何下游包的 development；
+- 复验 DOC0 subject commit、bootstrap record 和测试收据；
+- 复验 GV0 verifier 测试、CompletionArtifactStore 和测试执行收据；
 - 不得借本轮文档工作实现或调用任何远程模型、DB写入、Redis或Solver。
 
-实施AI下一步可并行启动WP-VLT0/DB1L/CW0/IN1的无副作用开发。在未来独立审计清除审计债之前，不得把任何候选运行或能力写成正式PASS。
+在未来独立审计清除审计债之前，不得把任何候选运行或能力写成正式 PASS。
