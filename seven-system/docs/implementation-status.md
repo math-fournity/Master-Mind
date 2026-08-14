@@ -107,6 +107,15 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 **R0 整改后状态（2026-08-14）**：审计确认 WP-GV0 状态为 `IMPLEMENTED_PENDING_EVIDENCE`（不是 `READY_FOR_AUDIT`），且发现三个 P0 Gate 旁路（CompletionContractVerifier 未执行完整 Schema、HumanGate 无真实 Ed25519 验签、DB1I 授权链可绕过）。WP-VLT0 到 WP-OP1 共 22 个包曾被越级标为 `IMPLEMENTED_PENDING_EVIDENCE`，但 development dependency 未满足（GV0 未到 READY_FOR_AUDIT），现已纠正回 `NOT_STARTED`；既有代码视为 `existing unqualified implementation input`，须新 remediation attempt 重新资格化。其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
 
+**R0 补全后状态（2026-08-14）**：P0-A/B/C、R5、R6 补全已完成：
+- **P0-A 补全**：CompletionContractVerifier 新增 subject commit/tree hash 跨字段绑定验证，SUBJECT_HASH_MISMATCH 错误码，3 个新测试
+- **P0-B 补全**：SignatureVerifierPort 唯一接口（Ed25519SignatureVerifier），HUMAN_PENDING+APPROVE 拒绝，KeyRegistry public_key_sha256 一致性检查，17 个新测试
+- **P0-C 补全**：SecurityContractVerifier 完整 EEA/Permit/Reservation 授权链验证，11 个新测试
+- **R5 补全**：complete/activate 命令，Plan 验证，audit debt 继承，append-only 事件日志，implementer 职责分离，15 个新测试
+- **R6 补全**：真实但默认禁用的 adapter 代码路径（VLT0/DB/RT/Solver/ModelRole），15 个新测试
+- **GV0 Plan 修复**：GV0-001/002/003 非法 requirement IDs 已修复为 AUTH-001/AUTH-002/DATA-005
+- 全量测试 2236 项 PASS（含 61 个补全新测试）
+
 ## WP-GV0 实现状态：IMPLEMENTED_PENDING_EVIDENCE
 
 2026-08-14 完成 WP-GV0 代码和测试开发，状态为 `IMPLEMENTED_PENDING_EVIDENCE`（不是 `READY_FOR_AUDIT`）。两个硬阻塞阻止升至 `READY_FOR_AUDIT`：
