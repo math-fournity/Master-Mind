@@ -4,11 +4,20 @@
 
 ## 2026-08-14
 
-### 389号Seven数据库政策纠偏：复用原逻辑数据库
+### 389号Arango物理存储链路纠正：经OrbStack已落D盘
+
+- **触发**：用户纠正“Arango数据目录在D盘”的机器现状，要求同步相关文档认知。
+- **核心事实**：Arango engine directory为容器内`/var/lib/arangodb3`，位于Docker overlay；OrbStack的宿主数据入口指向`/data/OrbStack/data`，其`data.img.raw`实际承载Docker machine，因此engine字节已物理落在D卷。
+- **精确边界**：`physical D-backing=YES`；`/data/arangodb/data -> /data`专用bind当前未被engine使用；数据仍处于容器writable layer，尚未形成独立host-visible Arango volume。
+- **语义修正**：`A-WP1-D`改为`PASS`（evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），新增`A-WP1-BIND=WARNING_NOT_DEDICATED`；不再计划为“落D盘”搬迁，未来若转专用bind只属生命周期、备份与可见性硬化。
+- **不变边界**：逻辑site verifier、Schema初始化和DDL/apply仍为`NOT_IMPLEMENTED`；本次没有连接或写入DB，没有重启容器，没有搬迁数据。
+- **修订文件**：389号§15、Tell目录README索引、根/Seven AGENTS、Seven README与稳定docs、Schema索引、`/data/README.md`。
+
+### 389号Seven数据库政策纠偏：复用原逻辑数据库（后续物理事实已由上节纠正）
 
 - **触发**：用户确认Seven不需要先迁移Arango物理数据，可以继续使用原逻辑数据库，并要求文档反映最新情况。
 - **事实保留**：Arango engine data仍在容器`/var/lib/arangodb3`，D盘bind `/data`为空；本轮没有连接、写入、重启或迁移数据库。
-- **政策修正**：将“逻辑数据库复用”“Seven Schema初始化”“物理数据搬迁”拆开；冻结复用`xishujuzhen_math_glm52`且只使用`seven_*_v1`命名空间的架构，物理D-backing降为`DEFERRED_WARNING`。
+- **政策修正**：将“逻辑数据库复用”“Seven Schema初始化”“物理数据搬迁”拆开；冻结复用`xishujuzhen_math_glm52`且只使用`seven_*_v1`命名空间的架构。本步当时将物理D-backing记为`DEFERRED_WARNING`，该不完整物理判断已由上节纠正为`PASS`。
 - **当前边界**：`G-WP1-S/C=PASS`；逻辑站点能力与Schema初始化仍`NOT_IMPLEMENTED`；不把离线contract升级为site PASS，不授权当前DDL/write。
 - **修订文件**：389号§14、Tell目录README索引、根/Seven AGENTS、Seven README与稳定docs、旧Site v1 Schema说明、`/data/README.md`。
 

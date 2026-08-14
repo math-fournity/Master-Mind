@@ -157,11 +157,11 @@ full_tests=58
 - 生产database package只有确定性只读`plan_migration`，没有operator site-plan/site-verify命令；
 - Site v1 Schema只是未被消费且已被新决策取代的前向shape，没有site report generator或semantic verifier；Schema-valid不等于capability-valid，禁止消费v1；
 - 生产package和真实Arango adapter中都不存在apply、DDL、authorization或receipt primitive；
-- Seven Schema初始化的任何DDL仍被禁止，直到逻辑站点v2核验、计划哈希、受控入口和人工授权全部完成；容器重启和物理数据搬迁是另一个独立维护事项，也必须另有方案与授权。
+- Seven Schema初始化的任何DDL仍被禁止，直到逻辑站点v2核验、计划哈希、受控入口和人工授权全部完成；若要把Arango从容器writable overlay改成专用bind/volume，这是另一个独立维护事项，也必须另有方案与授权。
 
 不得用ad hoc raw client、私有导入或临时脚本补出不存在的站点/写入入口。
 
-目标架构已经确认复用原Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用`seven_*_v1`命名空间。当前`G-WP1-L/I=NOT_IMPLEMENTED`，所以仍不能声称真实site capability或执行Schema初始化。engine未落D盘记为`A-WP1-D=DEFERRED_WARNING`，不再是逻辑接入的硬阻塞。
+目标架构已经确认复用原Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用`seven_*_v1`命名空间。当前`G-WP1-L/I=NOT_IMPLEMENTED`，所以仍不能声称真实site capability或执行Schema初始化。宿主物理字节经OrbStack `data.img.raw`落在D盘，记为`A-WP1-D=PASS`；未使用Arango专用bind、仍在容器writable overlay，记为`A-WP1-BIND=WARNING_NOT_DEDICATED`。这两个存储状态都不能解锁逻辑接入。
 
 ## 5. 初始化一个 Epoch
 
@@ -266,15 +266,16 @@ echo "$ARANGO_DB"
 
 不是 `xishujuzhen_math_glm52` 就停止。当前 v0.1.0 不会连接 DB。
 
-### WP-1 DB逻辑复用与物理存储告警
+### WP-1 DB逻辑复用、D-backing与专用bind告警
 
-当前共享ArangoDB的host bind `/data/arangodb/data -> /data`没有承载实际engine data directory `/var/lib/arangodb3`。该事实保留，但处理原则已经拆层：
+当前共享ArangoDB的host bind `/data/arangodb/data -> /data`没有承载实际engine data directory `/var/lib/arangodb3`。与此同时，OrbStack的group-container data symlink指向`/data/OrbStack/data`，实时OrbStack进程打开其中的`data.img.raw`，所以容器writable overlay的宿主物理字节确实由D盘承载。处理时必须拆成三层：
 
 1. 保持服务原状，不停止、不重启、不复制 engine 数据；
-2. 物理状态记录为`A-WP1-D=DEFERRED_WARNING`，不阻塞对原逻辑DB的未来只读identity/catalog核验；
-3. `G-WP1-L/I=NOT_IMPLEMENTED`，离线contract PASS不能冒充真实站点或Schema初始化PASS；
-4. 任何Seven DDL都必须等v2 site verifier、计划哈希、人工授权和受控入口，不能用临时raw client补齐；
-5. 若未来确需把engine迁D盘，另写维护、备份、回滚与生产影响方案并单独授权。
+2. 宿主D-backing记录为`A-WP1-D=PASS`；它只说明物理承载位置；
+3. 专用bind状态记录为`A-WP1-BIND=WARNING_NOT_DEDICATED`；它说明容器删除/重建、备份和搬运边界仍需运维硬化；
+4. `G-WP1-L/I=NOT_IMPLEMENTED`，离线contract或物理存储PASS都不能冒充真实站点或Schema初始化PASS；
+5. 任何Seven DDL都必须等v2 site verifier、计划哈希、人工授权和受控入口，不能用临时raw client补齐；
+6. 若未来确需改成专用bind/volume，另写维护、备份、回滚与生产影响方案并单独授权；不要把这个动作称为“迁到D盘”。
 
 ### 发现真实 Solver 或 Redis 被修改
 
@@ -315,7 +316,8 @@ Seven v0.1.0 没有常驻服务，所以：
 - [ ] preflight report 与实际卷/路径一致；
 - [ ] Strict DB报告重新验证PASS，subject/file hash与记录一致；
 - [ ] `G-WP1-L/I`仍为NOT_IMPLEMENTED，没有用离线PASS替代site PASS，也没有消费已废止的Site v1合同；
-- [ ] `A-WP1-D`仍按真实物理状态记录为DEFERRED_WARNING，没有被误写成逻辑接入硬阻塞；
+- [ ] `A-WP1-D`仍按宿主存储链证据记录为PASS，没有被误写成site或Schema能力PASS；
+- [ ] `A-WP1-BIND`仍记录为WARNING_NOT_DEDICATED，没有把D-backing PASS误写成已使用专用bind；
 - [ ] Epoch manifest hash 验证 PASS；
 - [ ] dry-run 三类副作用均为 0；
 - [ ] 未手改已提交文件；

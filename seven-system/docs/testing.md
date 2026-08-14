@@ -45,7 +45,7 @@ cd "$SEVEN_WORKSPACE_ROOT"
 ## 测试没有证明什么
 
 - 没证明 ArangoDB transaction/CAS；
-- 没证明Arango engine数据位于D盘；
+- 本套单元测试没有证明Arango engine数据位于D盘；当前`A-WP1-D=PASS`来自独立的宿主symlink、实时`data.img.raw`和卷设备只读核验，不能归功于测试；
 - 没证明真实集合/索引已经创建，也没证明migration durable ledger/fence/resume；
 - 没证明runtime append-only/CAS/outbox delivery，也没认证wall-clock或本地文件不可变性/WORM；
 - 没证明 Redis lease/fencing；
@@ -64,7 +64,7 @@ cd "$SEVEN_WORKSPACE_ROOT"
 
 1. 先新增逻辑站点v2合同与semantic verifier，再对原逻辑数据库做identity/current DB/principal/catalog只读核验；
 2. 对`seven_*_v1`做零写入Schema计划与冲突检查；实际Schema初始化另需人工授权、durable ledger、fence、崩溃resume/reconcile和故障注入；
-3. Arango engine迁D盘作为独立运维测试线，不阻塞前两项；
+3. 若把Arango从容器writable overlay改为专用bind/volume，作为独立运维硬化测试线验证备份、停机、回滚和容器重建；不要把它称为“迁到D盘”，也不阻塞前两项；
 4. Harness 只靠 Prompt 禁工具必须 capability FAIL；
 5. `trajectory.jsonl` 缺失/损坏必须 `invalid_observability`；
 6. 任意 tool call 对所有终态独立否决；

@@ -21,7 +21,7 @@
 | `scaffold-verdict.schema.json` | P0/P1 scaffold结论；强制科学主张NOT_TESTED |
 | `verdict.schema.json` | 多维最终 Verdict 的首版保留结构 |
 | `wp1-strict-db-contract-report.schema.json` | `StrictDbContractReport`离线契约报告；CLI已执行Schema+semantic verifier并产出PASS报告 |
-| `wp1-database-site-capability-report.schema.json` | `SUPERSEDED_NOT_EXECUTED`的Site v1前向shape；把物理D-backing误设为site PASS必需条件，禁止消费，等待逻辑站点v2替代 |
+| `wp1-database-site-capability-report.schema.json` | `SUPERSEDED_NOT_EXECUTED`的Site v1前向shape；把唯一D-backing形式写死为`/data/arangodb/data`专用bind并误设为site PASS必需条件，禁止消费，等待逻辑站点v2替代 |
 
 Schema 的存在不表示对应运行阶段已经实现；实际边界以 `docs/implementation-status.md` 为准。
 
@@ -35,6 +35,6 @@ Schema 的存在不表示对应运行阶段已经实现；实际边界以 `docs/
 轻量Schema不能独自表达全部跨字段规则，因此 **Schema-valid != capability-valid**：
 
 - `StrictDbContractReport.verdict=PASS` 时，所有checks必须PASS、所有required claim必须为true、blockers必须为空；当前semantic verifier已执行这条规则；
-- 旧`DatabaseSiteCapabilityReport v1`曾要求`G-WP1-S/C/P/M`四门全PASS；该规则只保留为历史v1语义，不再是现行设计；
+- 旧`DatabaseSiteCapabilityReport v1`曾要求`G-WP1-S/C/P/M`四门全PASS，并把专用bind误当成D-backing的唯一形式；该规则只保留为历史v1语义，不再是现行设计；
 - 离线 Strict contract PASS 不能替代 Site capability PASS；
-- 现行决策为`G-WP1-L/I=NOT_IMPLEMENTED`、`A-WP1-D=DEFERRED_WARNING`；Schema初始化不在本工作包授权范围内。后续必须新增v2，不能静默改写v1。
+- 现行决策为`G-WP1-L/I=NOT_IMPLEMENTED`、`A-WP1-D=PASS`、`A-WP1-BIND=WARNING_NOT_DEDICATED`；Schema初始化不在本工作包授权范围内。后续必须新增v2，不能静默改写v1。

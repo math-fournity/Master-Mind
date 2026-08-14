@@ -20,7 +20,7 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 
 ## WP-1 站点存储与 Strict DB 状态
 
-2026-08-14已完成D卷与Arango物理位置的只读核对，但尚未连接或核验真实逻辑数据库，也没有对共享生产数据库做任何变更：
+2026-08-14已完成D卷、OrbStack宿主数据镜像与Arango容器路径的分层只读核对，但尚未连接或核验真实逻辑数据库，也没有对共享生产数据库做任何变更：
 
 | Gate / Advisory | 当前判定 | 含义 |
 |---|---|---|
@@ -28,9 +28,10 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 | `G-WP1-C` | `PASS` | Strict DB port、离线planner、7集合/13唯一索引spec、受控测试、报告CLI和semantic verifier均已落盘并由实际报告验证 |
 | `G-WP1-L` | `NOT_IMPLEMENTED` | 目标是复用`xishujuzhen_math_glm52`；尚无真实站点身份/catalog报告生成器、semantic verifier或operator CLI |
 | `G-WP1-I` | `NOT_IMPLEMENTED` | 尚无Seven Schema初始化的受控DDL、人工授权收据、durable ledger、fence或resume |
-| `A-WP1-D` | `DEFERRED_WARNING` | engine仍在`/var/lib/arangodb3`而非D盘bind；这是独立运维告警，不阻塞逻辑DB复用 |
+| `A-WP1-D` | `PASS` | OrbStack group-container data symlink指向`/data/OrbStack/data`，实时OrbStack进程打开其中的`data.img.raw`；Docker containers由该D盘镜像承载 |
+| `A-WP1-BIND` | `WARNING_NOT_DEDICATED` | engine在容器`/var/lib/arangodb3`的writable overlay中，未使用已配置但为空的`/data/arangodb/data:/data`专用bind；这是生命周期/可搬运性告警 |
 
-当前 WP-1 总状态是 `PARTIAL/READY_FOR_LOGICAL_SITE_INTEGRATION`。它表示错误的物理前置已撤销，不表示真实site capability或写能力已经PASS。离线报告事实如下：
+当前 WP-1 总状态是 `PARTIAL/READY_FOR_LOGICAL_SITE_INTEGRATION`。`A-WP1-D=PASS`只回答“宿主物理字节是否在D盘”；`A-WP1-BIND=WARNING_NOT_DEDICATED`回答“是否使用Arango专用bind”。两者都不表示真实site capability或写能力已经PASS。离线报告事实如下：
 
 - 路径：`/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json`；
 - `verdict=PASS`，11项canonical check全部PASS，9项required claim全部为true，blockers为空；
@@ -39,7 +40,7 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 - 报告文件 SHA-256：`68c96aa4eec1fa8f7fc0e55222f6395c7b9096c683cae85f15888bc323c64b71`；
 - 隔离runner 20项、全量测试58项，全部PASS。
 
-`wp1-strict-db-contract-report.schema.json` 已由报告生成器和验证器实际执行。`wp1-database-site-capability-report.schema.json` v1仍只是未执行的旧前向shape；它把物理D-backing错误编码成site PASS必需条件，现已标记`SUPERSEDED_NOT_EXECUTED`，不得生成、接受或实现本站PASS。后续必须新增逻辑站点v2合同，把`G-WP1-L/I`与`A-WP1-D`分开。
+`wp1-strict-db-contract-report.schema.json` 已由报告生成器和验证器实际执行。`wp1-database-site-capability-report.schema.json` v1仍只是未执行的旧前向shape；它把唯一可接受的D-backing写死为`/data/arangodb/data`专用bind，并把这个物理条件错误编码成site PASS必需条件，现已标记`SUPERSEDED_NOT_EXECUTED`，不得生成、接受或实现本站PASS。后续必须新增逻辑站点v2合同，把`G-WP1-L/I`、宿主D-backing观测与专用bind告警分开。
 
 离线报告明确不主张：真实DB site capability、物理DB存储、Arango连接或migration已经发生、durable migration ledger/fence/resume、runtime append-only/CAS/outbox delivery语义或可信wall-clock/文件不可变性已经实现。9项true claim中的ledger/outbox项只冻结对应unique-index spec，不是runtime语义证明。它不能替未来`DatabaseLogicalSiteCapabilityReport v2`解锁live。
 
@@ -68,14 +69,14 @@ Seven System v0.1.0 是一个可运行、可测试的 P0 + P1 scaffold 控制面
 
 现有高并发系统的无工具规则主要靠 Prompt 和事后检查，但当前检查链存在 fail-open 风险：Harness 产出的是 `trajectory.jsonl`，历史 Collector 却查找不存在时会被当成“没有工具”的 `*.db`。此外，Harness 会二次包装 AGENTS，且 CLI 仍运行在 dangerous permission 模式。
 
-Arango engine data directory当前没有落在批准的D盘bind上，但它只形成`DEFERRED_WARNING`。本版 live preflight仍无条件增加`live_execution_implementation=BLOCK`，原因是NoTool能力、逻辑site verifier、Schema初始化、Vault和P2-P9均未完成。这不是否定现有题海数据价值，而是拒绝把“没有观测到工具”误写成“工具能力已被物理关闭”，也拒绝用一个离线DB contract PASS冒充本站DB可运行。
+Arango engine data directory没有使用专用D盘bind，但承载OrbStack overlay的宿主数据镜像确实位于D盘；因此前者是`A-WP1-BIND=WARNING_NOT_DEDICATED`，后者是`A-WP1-D=PASS`。本版 live preflight仍无条件增加`live_execution_implementation=BLOCK`，原因是NoTool能力、逻辑site verifier、Schema初始化、Vault和P2-P9均未完成。这不是否定现有题海数据价值，而是拒绝把“没有观测到工具”误写成“工具能力已被物理关闭”，也拒绝用存储位置或离线DB contract PASS冒充本站DB可运行。
 
 ## 下一批工作包
 
 1. 版本化定义逻辑站点v2 report与semantic verifier，再对原逻辑数据库执行只读identity/current DB/catalog核验。
 2. 只读生成`seven_*_v1` Schema初始化计划，检查与现有catalog的冲突；不创建集合。
 3. 在单独授权的未来写工作包中设计真实DDL入口、人工收据、durable ledger、fence、resume/reconcile和故障注入；当前生产包只有只读planner。
-4. Arango engine迁D盘另列独立运维事项，按容量、备份、停机和回滚需要决定，不阻塞前两步。
+4. 若要把Arango从容器writable overlay改成专用bind/volume，另列独立运维硬化事项，按容器生命周期、备份、停机和回滚需要决定；这不是“迁到D盘”，也不阻塞前两步。
 5. Harness adapter：单次 canonical prompt、结构化 argv、`trajectory.jsonl` fail-closed 审计、能力报告。
 6. 物理答案 Vault 与三类最小权限 view。
 7. 只读 CandidateManifest exporter；不写生产 pipe。

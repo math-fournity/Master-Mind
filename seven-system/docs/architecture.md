@@ -101,7 +101,7 @@ Solver 是叶子执行器，而不是系统管理员：
 | P8 | 独立 NO_CHANGE 或受控 Revision | 未实现 |
 | P9 | 多维 Verdict、Checkpoint 和 Evidence Index | 未实现 |
 
-WP-1不是canonical P1的别名。现行模型把三个层次分开：站点大对象存储`G-WP1-S=PASS`、离线代码契约`G-WP1-C=PASS`；复用原逻辑数据库所需的真实身份/catalog核验`G-WP1-L=NOT_IMPLEMENTED`；Seven Schema初始化`G-WP1-I=NOT_IMPLEMENTED`。Arango engine未由D盘承载保留为非阻塞告警`A-WP1-D=DEFERRED_WARNING`。生产database package只有只读planner，没有site verifier或apply/DDL入口；因此离线contract PASS不能被架构图解读为数据库控制面已经上线。
+WP-1不是canonical P1的别名。现行模型把能力门和存储观测分开：站点大对象存储`G-WP1-S=PASS`、离线代码契约`G-WP1-C=PASS`；复用原逻辑数据库所需的真实身份/catalog核验`G-WP1-L=NOT_IMPLEMENTED`；Seven Schema初始化`G-WP1-I=NOT_IMPLEMENTED`。宿主物理字节经D盘OrbStack `data.img.raw`承载，故`A-WP1-D=PASS`；Arango未使用专用`/data/arangodb/data:/data` bind、仍位于容器writable overlay，故`A-WP1-BIND=WARNING_NOT_DEDICATED`。生产database package只有只读planner，没有site verifier或apply/DDL入口；因此任何存储观测或离线contract PASS都不能被架构图解读为数据库控制面已经上线。
 
 ## 状态与真值源
 

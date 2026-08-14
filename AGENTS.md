@@ -290,7 +290,7 @@ AI数学系统运行时有两条Pipe：
 
 - scripts、运行资产、Schema、docs和tests全部在`seven-system/`；
 - 大对象、日志、Epoch和未来Vault进入经批准的D盘数据根；数据库只存元数据、事件和artifact引用；
-- Seven复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，未来只创建隔离的`seven_*_v1`集合/索引；物理engine是否已迁到D盘是独立运维状态，不是逻辑数据库复用的前置Gate；
+- Seven复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，未来只创建隔离的`seven_*_v1`集合/索引；Arango engine字节已经经OrbStack `data.img.raw`由D盘承载，但未使用`/data/arangodb/data`专用bind；物理存储形态不是逻辑数据库复用的前置Gate；
 - `/data`缺失、卷README缺失、数据根未批准或空间不足时fail-closed，不得fallback到repo/Home/`/tmp`。
 
 **硬约束**：
@@ -301,9 +301,9 @@ AI数学系统运行时有两条Pipe：
 4. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据或retry until solved；
 5. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
 
-**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_v1`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango物理数据目录未落D盘的事实保留为`DEFERRED_WARNING`，不再阻塞复用原逻辑数据库。不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
+**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_v1`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine字节已经经OrbStack image由D盘承载（`A-WP1-D=PASS`，evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），但仍在容器writable layer而非专用host bind（`A-WP1-BIND=WARNING_NOT_DEDICATED`）。不连接DB/Redis、不启动Solver。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
 
-**最新数据库决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14。它替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论，但不改写当时的只读观测事实。
+**最新数据库决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14-15。§14替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论；§15进一步纠正“OrbStack overlay即未落D盘”的不完整宿主存储判断。
 
 ---
 
@@ -339,7 +339,7 @@ AI数学系统运行时有两条Pipe：
 
 **题目录入信息抓手**：`problem_entries`集合——每道题入题一条记录，是查找该题目所有录入信息的抓手。从这条记录可以找到工作目录、会话ID、4个AI实例ID、产出路径、程序验证报告路径、合并trace路径。查找方法：`db.find_problem_entries_by_problem_id(problem_id)`。`system/`及本repo原有业务代码的数据库操作统一通过`system/db.py`模块，不直接操作ArangoDB客户端。
 
-**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。Seven复用同一Arango服务与逻辑数据库`xishujuzhen_math_glm52`，但不得复用现有业务集合；未来仅允许隔离的`seven_*_v1`命名空间。这个架构许可不构成当前写授权：真实Schema初始化仍须通过精确数据库身份、只读catalog核验、显式计划哈希、人工确认、受控DDL入口和执行收据。Arango实际data dir未落D盘只形成独立运维警告，不得再把它写成逻辑接入的硬阻塞。
+**Seven System例外（独立repo边界）**：`seven-system/`不得`import system.*`，其数据库访问只能通过Seven自身的`seven_system.database.StrictDatabasePort`；只有该端口唯一的Arango backend可以封装`ArangoClient`，其余Seven代码同样禁止直接使用raw client。Seven复用同一Arango服务与逻辑数据库`xishujuzhen_math_glm52`，但不得复用现有业务集合；未来仅允许隔离的`seven_*_v1`命名空间。这个架构许可不构成当前写授权：真实Schema初始化仍须通过精确数据库身份、只读catalog核验、显式计划哈希、人工确认、受控DDL入口和执行收据。Arango物理字节已经经OrbStack image由D盘承载，但未使用专用host bind；两者都不得被误写成逻辑site capability已PASS或Schema写入已授权。
 
 ### 硬约束 2 · Git 规则
 

@@ -46,9 +46,9 @@ cd "$SEVEN_WORKSPACE_ROOT"
 
 `seven-system/`本身只使用Python标准库；若未来独立迁出，可从其新repo根用`python3 scripts/seven.py ...`运行，无需依赖当前父repo路径。
 
-当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离的`seven_*_v1`集合/索引；当前真实逻辑站点核验和Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine data尚未落D盘是独立`DEFERRED_WARNING`，不是上述能力的前置Gate。
+当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离的`seven_*_v1`集合/索引；当前真实逻辑站点核验和Schema初始化仍为`NOT_IMPLEMENTED`。宿主层只读核验已确认OrbStack全部Docker数据由`/data/OrbStack/data/data.img.raw`承载，因此`A-WP1-D=PASS`；Arango仍把`/var/lib/arangodb3`放在容器writable overlay中，没有使用`/data/arangodb/data:/data`专用bind，因此`A-WP1-BIND=WARNING_NOT_DEDICATED`。不要把宿主D-backing PASS误读为数据库控制面或Schema能力PASS。
 
-上述固定 report ID重入时会重新校验当前实现绑定的离线报告，完全匹配才返回`ALREADY_COMMITTED`。报告位于`/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json`；其 PASS 不证明真实 DB 连接、物理落盘或 migration。
+上述固定 report ID重入时会重新校验当前实现绑定的离线报告，完全匹配才返回`ALREADY_COMMITTED`。报告位于`/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json`；其 PASS 不证明真实 DB 连接、物理落盘或 migration。`A-WP1-D=PASS`来自独立的宿主存储链核验，不是这份离线报告的主张。
 
 ## 目录
 
@@ -63,7 +63,7 @@ seven-system/
 └── tests/                   隔离单元与 dry-run 测试
 ```
 
-大对象、运行日志和 Epoch 产物不进入本目录；Seven 的批准数据根是 `/data/seven-system-data/`。ArangoDB未来只保存小型元数据、事件和artifact引用。目录存在不证明 CAS、Vault、WORM 或 DB 物理落盘能力。
+大对象、运行日志和 Epoch 产物不进入本目录；Seven 的批准数据根是 `/data/seven-system-data/`。ArangoDB未来只保存小型元数据、事件和artifact引用。目录存在本身不证明 CAS、Vault、WORM 或 DB 物理落盘能力；当前Arango的D-backing结论来自OrbStack symlink、实时打开的`data.img.raw`和容器overlay的分层核验。
 
 ## 关键文档
 
