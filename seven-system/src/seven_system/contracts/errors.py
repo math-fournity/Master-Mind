@@ -201,6 +201,67 @@ class VerificationErrorCode(str, Enum):
     RECONCILE_SENSITIVE_SINK = "RECONCILE_SENSITIVE_SINK"
     RECONCILE_ILLEGAL_STATE = "RECONCILE_ILLEGAL_STATE"
 
+    # WP-DB1I — Schema bootstrap / fenced apply / D-volume ledger
+    DB1I_MIGRATION_SPEC_HASH_DRIFT = "DB1I_MIGRATION_SPEC_HASH_DRIFT"
+    DB1I_PLAN_HASH_DRIFT = "DB1I_PLAN_HASH_DRIFT"
+    DB1I_SITE_FINGERPRINT_MISMATCH = "DB1I_SITE_FINGERPRINT_MISMATCH"
+    DB1I_DB1L_REPORT_MISSING = "DB1I_DB1L_REPORT_MISSING"
+    DB1I_HUMAN_GATE_DECISION_MISSING = "DB1I_HUMAN_GATE_DECISION_MISSING"
+    DB1I_HUMAN_GATE_DECISION_REJECTED = "DB1I_HUMAN_GATE_DECISION_REJECTED"
+    DB1I_FENCE_MISSING = "DB1I_FENCE_MISSING"
+    DB1I_FENCE_STALE = "DB1I_FENCE_STALE"
+    DB1I_FENCE_DUPLICATE = "DB1I_FENCE_DUPLICATE"
+    DB1I_DUPLICATE_APPLY = "DB1I_DUPLICATE_APPLY"
+    DB1I_APPLY_WITHOUT_FENCE = "DB1I_APPLY_WITHOUT_FENCE"
+    DB1I_UNKNOWN_OUTCOME = "DB1I_UNKNOWN_OUTCOME"
+    DB1I_RESUME_CATALOG_MISMATCH = "DB1I_RESUME_CATALOG_MISMATCH"
+    DB1I_LEDGER_TAMPERED = "DB1I_LEDGER_TAMPERED"
+    DB1I_LEDGER_PREVIOUS_HASH_MISMATCH = "DB1I_LEDGER_PREVIOUS_HASH_MISMATCH"
+    DB1I_IMPORT_ANCHOR_HASH_MISMATCH = "DB1I_IMPORT_ANCHOR_HASH_MISMATCH"
+    DB1I_BOOTSTRAP_RECEIPT_HASH_MISMATCH = "DB1I_BOOTSTRAP_RECEIPT_HASH_MISMATCH"
+    DB1I_SCHEMA_STATE_REPORT_INVALID = "DB1I_SCHEMA_STATE_REPORT_INVALID"
+    DB1I_RUNTIME_CAPABILITY_NOT_ALLOWED = "DB1I_RUNTIME_CAPABILITY_NOT_ALLOWED"
+    DB1I_RECONCILE_CAPABILITY_NOT_ALLOWED = "DB1I_RECONCILE_CAPABILITY_NOT_ALLOWED"
+    DB1I_PERMIT_MISMATCH = "DB1I_PERMIT_MISMATCH"
+    DB1I_ACTION_OUT_OF_RANGE = "DB1I_ACTION_OUT_OF_RANGE"
+
+    # WP-CW-D1 DevinCliModelRoleAdapter — profile / parser / capability
+    CWD1_MODEL_UID_MISMATCH = "CWD1_MODEL_UID_MISMATCH"
+    CWD1_EFFORT_MISMATCH = "CWD1_EFFORT_MISMATCH"
+    CWD1_EFFORT_ENCODING_INVALID = "CWD1_EFFORT_ENCODING_INVALID"
+    CWD1_PROFILE_DRIFT = "CWD1_PROFILE_DRIFT"
+    CWD1_ATIF_PARSE_FAILED = "CWD1_ATIF_PARSE_FAILED"
+    CWD1_ATIF_GENERATION_MODEL_MISSING = "CWD1_ATIF_GENERATION_MODEL_MISSING"
+    CWD1_ATIF_TOOL_EVENT_DETECTED = "CWD1_ATIF_TOOL_EVENT_DETECTED"
+    CWD1_CATALOG_SNAPSHOT_MISSING = "CWD1_CATALOG_SNAPSHOT_MISSING"
+    CWD1_REASONING_MODE_UNOBSERVABLE = "CWD1_REASONING_MODE_UNOBSERVABLE"
+
+    # WP-CW-C1 CodexExecModelRoleAdapter — profile / parser / capability
+    CWC1_MODEL_MISMATCH = "CWC1_MODEL_MISMATCH"
+    CWC1_EFFORT_MISMATCH = "CWC1_EFFORT_MISMATCH"
+    CWC1_MODE_MISMATCH = "CWC1_MODE_MISMATCH"
+    CWC1_ORCHESTRATION_MISMATCH = "CWC1_ORCHESTRATION_MISMATCH"
+    CWC1_PROFILE_DRIFT = "CWC1_PROFILE_DRIFT"
+    CWC1_JSONL_PARSE_FAILED = "CWC1_JSONL_PARSE_FAILED"
+    CWC1_JSONL_EVENT_GAP = "CWC1_JSONL_EVENT_GAP"
+    CWC1_JSONL_NO_TERMINAL = "CWC1_JSONL_NO_TERMINAL"
+    CWC1_JSONL_TOOL_EVENT_DETECTED = "CWC1_JSONL_TOOL_EVENT_DETECTED"
+    CWC1_CHILD_USAGE_MISSING = "CWC1_CHILD_USAGE_MISSING"
+    CWC1_ARGUMENT_MAPPING_MISSING = "CWC1_ARGUMENT_MAPPING_MISSING"
+
+    # Profile capability report — cross-adapter
+    PROFILE_REQUESTED_EFFECTIVE_MISMATCH = "PROFILE_REQUESTED_EFFECTIVE_MISMATCH"
+    PROFILE_UNOBSERVABLE_FIELD_NOT_DECLARED = "PROFILE_UNOBSERVABLE_FIELD_NOT_DECLARED"
+    PROFILE_REQUIRED_FIELD_MISSING = "PROFILE_REQUIRED_FIELD_MISSING"
+    PROFILE_ADAPTER_KIND_MISMATCH = "PROFILE_ADAPTER_KIND_MISMATCH"
+    PROFILE_TOOL_POLICY_VIOLATION = "PROFILE_TOOL_POLICY_VIOLATION"
+    PROFILE_VIEW_POLICY_VIOLATION = "PROFILE_VIEW_POLICY_VIOLATION"
+
+    # Bypass tests — adapter must NOT use solver_harness / repo workspace / tool events
+    BYPASS_SOLVER_HARNESS_USED = "BYPASS_SOLVER_HARNESS_USED"
+    BYPASS_REPO_WORKSPACE_USED = "BYPASS_REPO_WORKSPACE_USED"
+    BYPASS_TOOL_EVENT_DETECTED = "BYPASS_TOOL_EVENT_DETECTED"
+
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
     REQUIRED_FIELD_MISSING = "REQUIRED_FIELD_MISSING"
@@ -476,3 +537,114 @@ ATTEMPT_RECONCILE_VERDICTS: frozenset[str] = frozenset(
 # RoleTypeRegistry 常量
 ROLE_TYPE_REGISTRY_ID: str = "seven_model_role_types"
 ROLE_TYPE_REGISTRY_SCHEMA_VERSION: str = "role_type_registry.v1"
+
+# ─── WP-DB1I Schema bootstrap 常量 ──────────────────────────────────────
+
+# Schema bootstrap ledger entry 类型（D 盘 append-only ledger）
+SCHEMA_BOOTSTRAP_LEDGER_ENTRY_TYPES: frozenset[str] = frozenset(
+    {
+        "ACTION_INTENT",
+        "ACTION_VERIFIED",
+        "ACTION_FAILED",
+        "UNKNOWN_OUTCOME",
+        "FENCE_ACQUIRED",
+        "FENCE_RELEASED",
+    }
+)
+
+# Schema bootstrap action 状态
+SCHEMA_BOOTSTRAP_ACTION_STATES: frozenset[str] = frozenset(
+    {"PENDING", "INTENTED", "APPLIED", "VERIFIED", "FAILED", "UNKNOWN_OUTCOME"}
+)
+
+# Schema bootstrap fence 状态
+SCHEMA_BOOTSTRAP_FENCE_STATES: frozenset[str] = frozenset(
+    {"ACTIVE", "RELEASED", "EXPIRED", "SUPERSEDED"}
+)
+
+# DB1I 完成输出严格限定为这三类对象
+DB1I_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "SchemaBootstrapImportAnchor",
+    }
+)
+
+# DB1I 明确禁止输出的能力报告
+DB1I_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+    }
+)
+
+# ─── WP-CW-D1 / WP-CW-C1 Adapter 常量 ──────────────────────────────────────
+
+# Devin CLI 冻结 profile 字段
+DEVIN_PROFILE_FIELDS: frozenset[str] = frozenset(
+    {
+        "carrier",
+        "requested_cli_model_arg",
+        "normalized_reasoning_effort",
+        "effort_encoding",
+        "reasoning_mode_request_semantics",
+        "orchestration_request_semantics",
+        "model_catalog_snapshot_ref_and_hash",
+    }
+)
+
+# Devin CLI 冻结的 model UID（本机只读 catalog 观察）
+DEVIN_FROZEN_MODEL_UID: str = "glm-5-2"
+DEVIN_FROZEN_MODEL_DISPLAY: str = "GLM-5.2 High"
+DEVIN_FROZEN_EFFORT: str = "high"
+DEVIN_EFFORT_ENCODING: str = "model_uid"
+
+# Codex CLI 冻结 profile 字段
+CODEX_PROFILE_FIELDS: frozenset[str] = frozenset(
+    {
+        "carrier",
+        "backend_kind",
+        "requested_model",
+        "model_alias_resolution_policy",
+        "requested_reasoning_effort",
+        "requested_reasoning_mode",
+        "requested_orchestration_mode",
+        "requested_service_tier",
+        "sandbox_policy_ref_and_hash",
+        "tool_policy_ref_and_hash",
+        "network_policy_ref_and_hash",
+        "output_schema_ref_and_hash",
+        "cli_argument_mapping_ref_and_hash",
+        "model_release_or_catalog_snapshot_ref_and_hash",
+    }
+)
+
+# Codex CLI 冻结候选（NOT_TESTED，仅静态候选）
+CODEX_FROZEN_MODEL: str = "gpt-5.6-sol"
+CODEX_FROZEN_EFFORT: str = "xhigh"
+CODEX_FROZEN_MODE: str = "standard"
+CODEX_FROZEN_ORCHESTRATION: str = "single_agent"
+
+# Profile capability report 中可声明为 UNOBSERVABLE 的字段
+PROFILE_UNOBSERVABLE_FIELDS: frozenset[str] = frozenset(
+    {
+        "effective_reasoning_mode",
+        "effective_orchestration_mode",
+        "effective_effort",
+    }
+)
+
+# Bypass test 名称枚举
+BYPASS_TEST_NAMES: frozenset[str] = frozenset(
+    {
+        "direct_devin_bypass",
+        "tool_event_test",
+        "repo_workspace_test",
+    }
+)
+
+# Bypass test 结果枚举
+BYPASS_TEST_RESULTS: frozenset[str] = frozenset(
+    {"PASS", "FAIL", "NOT_APPLICABLE"}
+)
