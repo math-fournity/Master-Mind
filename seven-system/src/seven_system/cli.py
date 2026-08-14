@@ -68,6 +68,12 @@ def _parser() -> argparse.ArgumentParser:
 
     sub.add_parser("capabilities", help="列出已实现与明确未实现的能力")
 
+    # 第 10 节深度补全：registry-consistency-check 命令
+    consistency = sub.add_parser(
+        "registry-consistency-check",
+        help="检查 CLI capabilities 与 ImplementationCapabilityRegistry 的一致性",
+    )
+
     gv0_verify = sub.add_parser(
         "gv0-verify-completion-contract",
         help="WP-GV0: 验证完成合同（DAG-aware owner/contract/schema/actor）",
@@ -143,40 +149,55 @@ def _wp1_db_contract_report(config_path: Path, report_id: str) -> dict[str, Any]
 
 
 def _capabilities() -> dict[str, Any]:
+    """列出已实现与明确未实现的能力。
+
+    第 10 节深度补全：使用 ImplementationCapabilityRegistry 作为机器真值源，
+    确保 CLI capabilities 与 registry 一致。
+    """
+    from .operations.capability_registry import create_default_registry
+    registry = create_default_registry()
+    all_caps = registry.all_capabilities()
+
+    implemented = []
+    not_implemented = []
+    for cap_id, entry in all_caps.items():
+        if entry.implementation_status == "NOT_IMPLEMENTED":
+            not_implemented.append(cap_id)
+        else:
+            implemented.append(cap_id)
+
     return {
         "version": __version__,
-        "implemented": [
-            "P0_READ_ONLY_PREFLIGHT",
-            "P1_EPOCH_SCAFFOLD",
-            "P1_IDEMPOTENT_SINGLE_FILE_COMMIT",
-            "P1_CONTENT_CONFLICT_REJECTION",
-            "P1_APPEND_ONLY_GATE_CHECKPOINT_AND_SEAL",
-            "P1_LOCAL_ROOT_RECEIPT",
-            "P1_EPOCH_VALIDATION",
-            "WP1_SITE_STORAGE_PREREQUISITE",
-            "WP1_STRICT_DB_OFFLINE_CONTRACT_REPORT",
-            "WP_GV0_COMPLETION_CONTRACT_VERIFIER",
-            "WP_GV0_SECURITY_CONTRACT_VERIFIER",
-            "WP_GV0_COMPLETION_ARTIFACT_STORE",
-            "WP_GV0_RESERVATION_BACKEND_PORT",
-        ],
-        "not_implemented": [
-            "DATABASE_SITE_CAPABILITY_OR_MIGRATION_APPLY",
-            "REDIS_OR_DISTRIBUTED_WORKERS",
-            "P1_FULL_LEASE_FENCING_CRASH_RECOVERY_MATRIX",
-            "REAL_SOLVER_DISPATCH",
-            "NO_TOOL_CAPABILITY_ENFORCEMENT",
-            "ANSWER_OR_HOLDOUT_VAULT",
-            "CANDIDATE_OR_CASEPACK_IMPORT",
-            "THREE_VIEW_AUDIT",
-            "EVIDENCE_ASSEMBLY",
-            "REVISION_OR_PROMOTION",
-            "ARTIFACT_GC_OR_DELETE",
-            "REAL_ED25519_SIGNATURE_VERIFICATION",
-            "DB_V2_TRANSACTIONAL_LEDGER_BACKEND",
-            "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER_BACKEND",
-        ],
+        "implemented": sorted(implemented),
+        "not_implemented": sorted(not_implemented),
         "implementation_ceiling": "P1_DRY_RUN",
+        "registry_source": "ImplementationCapabilityRegistry",
+        "total_capabilities": len(all_caps),
+    }
+
+
+def _registry_consistency_check() -> dict[str, Any]:
+    """第 10 节深度补全：检查 CLI capabilities 与 registry 的一致性。
+
+    验证 CLI 报告的能力与 ImplementationCapabilityRegistry 完全一致。
+    """
+    from .operations.capability_registry import (
+        create_default_registry, TruthConsistencyChecker,
+    )
+    registry = create_default_registry()
+    checker = TruthConsistencyChecker(registry=registry)
+
+    caps = _capabilities()
+    cli_caps = caps.get("implemented", []) + caps.get("not_implemented", [])
+
+    result = checker.check_capabilities_consistency(cli_caps)
+
+    return {
+        "verdict": result.verdict,
+        "error_codes": [e.value for e in result.error_codes],
+        "details": result.details,
+        "cli_capabilities_count": len(cli_caps),
+        "registry_capabilities_count": len(registry.all_capabilities()),
     }
 
 
@@ -238,6 +259,10 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "capabilities":
             _emit(_capabilities())
             return 0
+        if args.command == "registry-consistency-check":
+            result = _registry_consistency_check()
+            _emit(result)
+            return 0 if result["verdict"] == "PASS" else 3
         if args.command == "preflight":
             report = run_preflight(load_config(args.config))
             _emit(report)
