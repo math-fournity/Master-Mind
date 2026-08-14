@@ -67,6 +67,28 @@ def _parser() -> argparse.ArgumentParser:
     contract.add_argument("--report-id", required=True)
 
     sub.add_parser("capabilities", help="列出已实现与明确未实现的能力")
+
+    gv0_verify = sub.add_parser(
+        "gv0-verify-completion-contract",
+        help="WP-GV0: 验证完成合同（DAG-aware owner/contract/schema/actor）",
+    )
+    gv0_verify.add_argument("--dag-path", required=True, type=Path)
+    gv0_verify.add_argument("--expected-dag-sha256", required=True)
+    gv0_verify.add_argument("--wp-id", required=True)
+    gv0_verify.add_argument("--submitted-object", required=True, type=Path)
+    gv0_verify.add_argument(
+        "--actor-type", required=True, choices=["IMPLEMENTER", "AUDITOR", "SYSTEM"]
+    )
+    gv0_verify.add_argument("--state-command", default=None)
+
+    gv0_store = sub.add_parser(
+        "gv0-store-put",
+        help="WP-GV0: 向 CompletionArtifactStore 写入 JSON 对象（content-addressed append-once）",
+    )
+    gv0_store.add_argument("--volume-root", required=True, type=Path)
+    gv0_store.add_argument("--store-root", required=True, type=Path)
+    gv0_store.add_argument("--input", required=True, type=Path)
+
     return parser
 
 
@@ -133,6 +155,10 @@ def _capabilities() -> dict[str, Any]:
             "P1_EPOCH_VALIDATION",
             "WP1_SITE_STORAGE_PREREQUISITE",
             "WP1_STRICT_DB_OFFLINE_CONTRACT_REPORT",
+            "WP_GV0_COMPLETION_CONTRACT_VERIFIER",
+            "WP_GV0_SECURITY_CONTRACT_VERIFIER",
+            "WP_GV0_COMPLETION_ARTIFACT_STORE",
+            "WP_GV0_RESERVATION_BACKEND_PORT",
         ],
         "not_implemented": [
             "DATABASE_SITE_CAPABILITY_OR_MIGRATION_APPLY",
@@ -146,8 +172,60 @@ def _capabilities() -> dict[str, Any]:
             "EVIDENCE_ASSEMBLY",
             "REVISION_OR_PROMOTION",
             "ARTIFACT_GC_OR_DELETE",
+            "REAL_ED25519_SIGNATURE_VERIFICATION",
+            "DB_V2_TRANSACTIONAL_LEDGER_BACKEND",
+            "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER_BACKEND",
         ],
         "implementation_ceiling": "P1_DRY_RUN",
+    }
+
+
+def _gv0_verify_completion_contract(
+    dag_path: Path,
+    expected_dag_sha256: str,
+    wp_id: str,
+    submitted_object_path: Path,
+    actor_type: str,
+    state_command: str | None,
+) -> dict[str, Any]:
+    from .contracts.completion_contract import verify_completion_contract
+
+    with open(submitted_object_path) as f:
+        submitted_object = json.load(f)
+    result = verify_completion_contract(
+        dag_path=dag_path,
+        expected_dag_sha256=expected_dag_sha256,
+        wp_id=wp_id,
+        submitted_object=submitted_object,
+        actor_type=actor_type,
+        state_command=state_command,
+    )
+    return {
+        "verdict": result.verdict,
+        "error_codes": [e.value for e in result.error_codes],
+        "details": result.details,
+        "dag_sha256": result.dag_sha256,
+        "wp_id": result.wp_id,
+        "owner_type": result.owner_type,
+        "completion_contract": result.completion_contract,
+        "expected_schema_id": result.expected_schema_id,
+    }
+
+
+def _gv0_store_put(
+    volume_root: Path, store_root: Path, input_path: Path
+) -> dict[str, Any]:
+    from .storage.artifact_store import CompletionArtifactStore
+
+    with open(input_path) as f:
+        payload = json.load(f)
+    store = CompletionArtifactStore(root=store_root, volume_root=volume_root)
+    ref = store.put_json(payload)
+    return {
+        "status": "PUT",
+        "ref": ref.ref,
+        "sha256": ref.sha256,
+        "size_bytes": ref.size_bytes,
     }
 
 
@@ -174,6 +252,25 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if result["verdict"] == "PASS" else 3
         if args.command == "wp1-db-contract-report":
             _emit(_wp1_db_contract_report(args.config, args.report_id))
+            return 0
+        if args.command == "gv0-verify-completion-contract":
+            result = _gv0_verify_completion_contract(
+                dag_path=args.dag_path,
+                expected_dag_sha256=args.expected_dag_sha256,
+                wp_id=args.wp_id,
+                submitted_object_path=args.submitted_object,
+                actor_type=args.actor_type,
+                state_command=args.state_command,
+            )
+            _emit(result)
+            return 0 if result["verdict"] == "PASS" else 3
+        if args.command == "gv0-store-put":
+            result = _gv0_store_put(
+                volume_root=args.volume_root,
+                store_root=args.store_root,
+                input_path=args.input,
+            )
+            _emit(result)
             return 0
         if args.command == "validate-epoch":
             result = validate_epoch(args.epoch_root)

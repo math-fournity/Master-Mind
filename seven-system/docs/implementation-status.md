@@ -84,7 +84,7 @@ Arango engine data directory没有使用专用D盘bind，但承载OrbStack overl
 
 ## 下一批工作包
 
-1. DOC0完成bootstrap record后先实现`WP-GV0`：唯一的`SecurityContractVerifier/CompletionContractVerifier`公共核心、ReservationBackendPort、固定错误码/正负向量，并复用、硬化v0.1 artifact store为只用于普通完成包的最小D盘`CompletionArtifactStore`；GV0用该store自托管自己的ImplementationCompletionBundle，在GV0前不接受任何普通工作包完成对象。
+1. ~~DOC0完成bootstrap record后先实现`WP-GV0`~~ → **WP-GV0 已实现，状态 `READY_FOR_AUDIT`**（见下节"WP-GV0 实现状态"）。GV0用该store自托管自己的ImplementationCompletionBundle，在GV0前不接受任何普通工作包完成对象。
 2. 版本化定义逻辑站点v2 report与semantic verifier，再对原逻辑数据库执行只读identity/current DB/catalog核验；catalog冲突检查覆盖全部隔离的`seven_*_vN`，不得复用题海/`system/`或无版本集合。
 3. 只读生成`seven_*_v1` scaffold及`seven_*_v2+`原子结构的版本化Schema初始化计划，检查与现有catalog的冲突；不创建集合。
 4. 在单独授权的未来写工作包中设计真实DDL入口、人工收据、durable ledger、fence、resume/reconcile和故障注入；当前生产包只有只读planner。DB1I只交付SchemaState/bootstrap三对象，RT1才交付Runtime/Reconcile两份能力报告。
@@ -103,4 +103,41 @@ Devin CLI的`glm-5-2`（本机catalog显示GLM-5.2 High）与Codex/Responses中�
 
 ## 完整实现文档状态
 
-2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力；WP-GV0及其他工作包仍保持`NOT_STARTED/NOT_IMPLEMENTED`。
+2026-08-14已建立`docs/implementation/`、`docs/audit/`和`docs/decisions/`规定性文档体系，覆盖双认知载体、P0–P9、工作包DAG、对象/Schema、存储、安全、恢复、测试与未来审计。`WP-DOC0`的subject commit固定为`8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`，干净提交上的文档合同检查和bootstrap evidence已落在[`evidence/wp-doc0/`](implementation/evidence/wp-doc0/)；其machine completion contract为`DOC_BOOTSTRAP_RECORD`，当前实施者状态是`READY_FOR_AUDIT`，不是`AUDITED_PASS`，也没有生成ImplementationCompletionBundle。文档存在和机器自检通过都不提升任何运行能力；~~WP-GV0及其他工作包仍保持`NOT_STARTED/NOT_IMPLEMENTED`~~ → **WP-GV0 已实现 `READY_FOR_AUDIT`**，其他工作包仍 `NOT_STARTED/NOT_IMPLEMENTED`。
+
+## WP-GV0 实现状态：READY_FOR_AUDIT
+
+2026-08-14 完成 WP-GV0 development，状态为 `READY_FOR_AUDIT`（实施者不能写 `AUDITED_PASS`，需独立审计者）。
+
+### 已实现
+
+| 能力 | 模块 | 说明 |
+|---|---|---|
+| CompletionContractVerifier | `src/seven_system/contracts/completion_contract.py` | DAG-aware owner/contract/schema/actor 验证，固定错误码，fail-closed |
+| SecurityContractVerifier | `src/seven_system/contracts/security_contract.py` | EEA→Permit→Receipt 链验证，签名结构、扩权拒绝、ordinal 唯一、额度守恒 |
+| ReservationBackendPort | `src/seven_system/contracts/reservation.py` | GV0 冻结的原子预留接口 + side-effect-free 参考后端 |
+| CompletionArtifactStore | `src/seven_system/storage/artifact_store.py` | 最小 D 盘 content-addressed append-once store，symlink/fallback/hash-conflict 拒绝 |
+| VerifierCapabilityReport | `src/seven_system/contracts/capability_report.py` | GV0 能力报告生成器 |
+| 固定错误码 | `src/seven_system/contracts/errors.py` | 30+ 错误码枚举，下游按码匹配 |
+| CLI 命令 | `src/seven_system/cli.py` | `gv0-verify-completion-contract` 和 `gv0-store-put`，fail-closed 默认 |
+
+### 测试覆盖
+
+- 51 项 GV0 专项测试（golden/negative/fault injection），全部 PASS
+- 109 项全量回归测试（含 25 subtests），全部 PASS
+- blocker tests 覆盖：owner/contract/schema/actor 错配、伪签名、EEA 扩权、重复 ordinal、额度不守恒、store symlink/fallback/hash-conflict
+
+### 显式不主张（nonclaims）
+
+- 不主张真实 Ed25519 签名验证能力（GV0 只做结构检查，密钥验证归 HumanGateService）
+- 不主张 DB_V2 或 SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER 后端实现（归 WP-DB1I / WP-RT1）
+- 不主张 Vault、HumanGate、模型或 Solver live capability
+- 不主张独立审计或 AUDITED_PASS
+- side-effect-free 参考后端仅用于隔离 fixture 测试，不是真实 DB 或 D 盘 ledger
+- 自托管 ImplementationCompletionBundle 需要 D 盘写授权（EEA/Permit/RESERVED），当前未获得
+
+### 继承的审计债
+
+- WP-DOC0 的 `READY_FOR_AUDIT` 审计债由 GV0 development 继承
+- 规范审查记录（`normative_requirement_review_record`）尚未生成——640 条条款全部 pending semantic review，`consumer_policy.requires_independent_review_record_before_non_doc0_plan=true`。这是 GV0 WorkPackagePlan schema-valid 的硬阻塞，但 board 明确允许按 DAG 启动无外部副作用 development 并显式继承审计债
+- GV0 的 `READY_FOR_AUDIT` 不等于 `AUDITED_PASS`——需独立审计者按四轴 verdict 审计

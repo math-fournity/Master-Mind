@@ -12,7 +12,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from .hashing import canonical_json_bytes
+from ..hashing import canonical_json_bytes
 
 
 class ContentConflictError(RuntimeError):

@@ -9,7 +9,7 @@
 | 工作包 | 当前状态 | Development依赖 | Activation依赖 | 下一动作 |
 |---|---|---|---|---|
 | WP-DOC0 | `READY_FOR_AUDIT` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle |
-| WP-GV0 | `NOT_STARTED` | WP-DOC0 | WP-DOC0 | 实现两个Verifier与最小D盘CompletionArtifactStore，自托管首个普通Bundle |
+| WP-GV0 | `READY_FOR_AUDIT` | WP-DOC0 | WP-DOC0 | 已实现两个Verifier、ReservationBackendPort、最小D盘CompletionArtifactStore和51项正负向量测试；等待repo外独立审计；不写AUDITED_PASS |
 | WP-VLT0 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 复用GV0 CAS核心扩展完整Artifact/Vault，禁止第二store |
 | WP-HG0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | HumanTask/HumanGate；消费GV0验证器 |
 | WP-CW0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | ModelRole公共运行时与fake adapter |
@@ -38,11 +38,14 @@
 
 WP-DOC0已基于subject commit `8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`完成机器自检和bootstrap evidence，实施者状态现为`READY_FOR_AUDIT`。这不是独立审计结论，也不解除任何activation gate。
 
+WP-GV0已完成development，实施者状态现为`READY_FOR_AUDIT`。已实现CompletionContractVerifier、SecurityContractVerifier、ReservationBackendPort、最小D盘CompletionArtifactStore和51项正负向量测试（109项全量回归全PASS）。这不是独立审计结论，也不解除任何activation gate。
+
 当前只允许：
 
-- 由repo外owner签发AuditAssignment后，对WP-DOC0执行独立审计；
-- 按DAG启动WP-GV0的无外部副作用development，并显式继承WP-DOC0的审计债；
+- 由repo外owner签发AuditAssignment后，对WP-DOC0和WP-GV0执行独立审计；
+- 按DAG启动WP-VLT0/WP-DB1L/WP-CW0/WP-IN1的无外部副作用development，并显式继承WP-DOC0和WP-GV0的审计债；
 - 复验DOC0 subject commit、bootstrap record和测试收据；
+- 复验GV0 verifier测试和 CompletionArtifactStore；
 - 不得借本轮文档工作实现或调用任何远程模型、DB写入、Redis或Solver。
 
-实施AI下一步先完成WP-GV0；GV0达到`READY_FOR_AUDIT`后才可继续VLT0/DB1L/CW0/IN1的无副作用开发。在未来独立审计清除审计债之前，不得把任何候选运行或能力写成正式PASS。
+实施AI下一步可并行启动WP-VLT0/DB1L/CW0/IN1的无副作用开发。在未来独立审计清除审计债之前，不得把任何候选运行或能力写成正式PASS。

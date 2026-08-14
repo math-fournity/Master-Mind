@@ -75,7 +75,15 @@ _BOUND_DEPENDENCY_PATHS = (
     "src/seven_system/hashing.py",
     "src/seven_system/preflight.py",
     "src/seven_system/schema_validation.py",
-    "src/seven_system/storage.py",
+    "src/seven_system/storage/__init__.py",
+    "src/seven_system/storage/_legacy.py",
+    "src/seven_system/storage/artifact_store.py",
+    "src/seven_system/contracts/__init__.py",
+    "src/seven_system/contracts/errors.py",
+    "src/seven_system/contracts/completion_contract.py",
+    "src/seven_system/contracts/security_contract.py",
+    "src/seven_system/contracts/reservation.py",
+    "src/seven_system/contracts/capability_report.py",
 )
 _CORE_TEST_MODULES = (
     "tests.test_database_environment",
