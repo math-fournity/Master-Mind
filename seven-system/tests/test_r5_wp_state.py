@@ -25,12 +25,14 @@ class TestWorkPackageStateService(unittest.TestCase):
     def test_wp_doc0_can_start_no_deps(self):
         """WP-DOC0 没有 development dependencies，可以直接 start。"""
         service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
         ok, errors, details = service.can_start("WP-DOC0")
         self.assertTrue(ok, f"WP-DOC0 should be startable: {details}")
 
     def test_wp_gv0_cannot_start_without_doc0(self):
         """WP-GV0 依赖 WP-DOC0，DOC0 未完成时不能 start。"""
         service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-GV0", "plan.json", "0" * 64)
         ok, errors, details = service.can_start("WP-GV0")
         self.assertFalse(ok, "WP-GV0 should not be startable without WP-DOC0")
         self.assertIn(EC.WP_DEPENDENCY_NOT_MET, errors)
@@ -38,6 +40,7 @@ class TestWorkPackageStateService(unittest.TestCase):
     def test_wp_gv0_can_start_after_doc0_ready(self):
         """WP-GV0 在 WP-DOC0 READY_FOR_AUDIT 后可以 start。"""
         service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-GV0", "plan.json", "0" * 64)
         service.wp_states["WP-DOC0"] = "READY_FOR_AUDIT"
         ok, errors, details = service.can_start("WP-GV0")
         self.assertTrue(ok, f"WP-GV0 should be startable after DOC0 READY_FOR_AUDIT: {details}")
@@ -127,6 +130,7 @@ class TestStateTransitions(unittest.TestCase):
     def test_not_started_to_in_progress_legal(self):
         """NOT_STARTED → IN_PROGRESS 是合法转换。"""
         service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
         ok, errors, details = service.transition("WP-DOC0", "IN_PROGRESS")
         self.assertTrue(ok, f"NOT_STARTED → IN_PROGRESS should be legal: {details}")
 
@@ -186,6 +190,170 @@ class TestBoardProjection(unittest.TestCase):
         ok, errors, details = service.verify_board_consistency(board)
         self.assertFalse(ok)
         self.assertIn(EC.WP_ILLEGAL_TRANSITION, errors)
+
+
+# ─── R5 补全：complete/activate/Plan/audit debt/event log 测试 ──────────
+
+class TestCompleteCommand(unittest.TestCase):
+    """R5 补全: complete 命令测试。"""
+
+    def test_complete_from_in_progress(self):
+        """IN_PROGRESS → READY_FOR_AUDIT 合法。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        ok, errors, details = service.complete(
+            "WP-DOC0", completion_contract="DOC_BOOTSTRAP_RECORD",
+        )
+        self.assertTrue(ok, f"complete should succeed: {details}")
+        self.assertEqual(service.get_state("WP-DOC0"), "READY_FOR_AUDIT")
+
+    def test_complete_from_not_started_rejected(self):
+        """NOT_STARTED → READY_FOR_AUDIT 非法。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        ok, errors, details = service.complete("WP-DOC0")
+        self.assertFalse(ok)
+        self.assertIn(EC.WP_ILLEGAL_TRANSITION, errors)
+
+    def test_complete_wrong_contract_rejected(self):
+        """completion contract 不匹配必须拒绝。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        ok, errors, details = service.complete(
+            "WP-DOC0", completion_contract="WRONG_CONTRACT",
+        )
+        self.assertFalse(ok)
+
+    def test_implementer_cannot_write_audited_pass(self):
+        """implementer 不能写 AUDITED_PASS。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        service.wp_states["WP-DOC0"] = "READY_FOR_AUDIT"
+        ok, errors, details = service.complete(
+            "WP-DOC0", actor_type="IMPLEMENTER", target_state="AUDITED_PASS",
+        )
+        self.assertFalse(ok)
+        self.assertIn(EC.WP_ILLEGAL_TRANSITION, errors)
+
+
+class TestActivateCommand(unittest.TestCase):
+    """R5 补全: activate 命令测试。"""
+
+    def test_activate_without_audited_pass_rejected(self):
+        """非 AUDITED_PASS 状态不能 activate。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        ok, errors, details = service.activate(
+            "WP-DOC0", permit_ref="permit.json", reservation_ref="res.json",
+        )
+        self.assertFalse(ok)
+
+    def test_activate_without_permit_rejected(self):
+        """没有 permit 不能 activate。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.wp_states["WP-DOC0"] = "AUDITED_PASS"
+        ok, errors, details = service.activate("WP-DOC0")
+        self.assertFalse(ok)
+
+    def test_activate_with_all_deps_rejected_if_dep_not_audited(self):
+        """activation dependency 未 AUDITED_PASS 不能 activate。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        # WP-GV0 的 activation_dependencies 是 ["WP-DOC0"]
+        service.wp_states["WP-GV0"] = "AUDITED_PASS"
+        # WP-DOC0 不是 AUDITED_PASS
+        ok, errors, details = service.activate(
+            "WP-GV0", permit_ref="permit.json", reservation_ref="res.json",
+        )
+        self.assertFalse(ok)
+        self.assertIn(EC.WP_DEPENDENCY_NOT_MET, errors)
+
+
+class TestPlanValidation(unittest.TestCase):
+    """R5 补全: Plan 验证测试。"""
+
+    def test_start_without_plan_rejected(self):
+        """没有注册 Plan 不能 start。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        # WP-DOC0 没有 dev deps，但没有 Plan
+        ok, errors, details = service.can_start("WP-DOC0")
+        self.assertFalse(ok)
+        # 应该因为缺 Plan 而失败
+        has_plan_error = any("Plan" in d for d in details)
+        self.assertTrue(has_plan_error, f"should mention missing Plan: {details}")
+
+    def test_start_with_plan_succeeds(self):
+        """有注册 Plan 时可以 start（如果 deps 满足）。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        ok, errors, details = service.can_start("WP-DOC0")
+        self.assertTrue(ok, f"WP-DOC0 with Plan should be startable: {details}")
+
+
+class TestAuditDebtInheritance(unittest.TestCase):
+    """R5 补全: audit debt 继承测试。"""
+
+    def test_inherit_audit_debt(self):
+        """可以继承 audit debt。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        debt = [{"ref": "doc0-debt.json", "sha256": "0" * 64}]
+        service.inherit_audit_debt("WP-GV0", debt)
+        self.assertEqual(service.get_audit_debt("WP-GV0"), debt)
+
+    def test_no_audit_debt_by_default(self):
+        """默认没有 audit debt。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        self.assertEqual(service.get_audit_debt("WP-GV0"), [])
+
+
+class TestEventLog(unittest.TestCase):
+    """R5 补全: append-only 事件日志测试。"""
+
+    def test_event_log_records_start(self):
+        """start 命令记录事件。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        events = service.get_event_log()
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["wp_id"], "WP-DOC0")
+        self.assertEqual(events[0]["from_state"], "NOT_STARTED")
+        self.assertEqual(events[0]["to_state"], "IN_PROGRESS")
+        self.assertEqual(events[0]["command"], "start")
+
+    def test_event_log_records_complete(self):
+        """complete 命令记录事件。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        service.complete("WP-DOC0", completion_contract="DOC_BOOTSTRAP_RECORD")
+        events = service.get_event_log()
+        self.assertEqual(len(events), 2)
+        self.assertEqual(events[0]["command"], "start")
+        self.assertEqual(events[1]["command"], "complete")
+
+    def test_event_log_append_only(self):
+        """事件日志是 append-only（不能修改）。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        events_before = service.get_event_log()
+        # 再次操作
+        service.wp_states["WP-DOC0"] = "IN_PROGRESS"  # 不通过 start
+        events_after = service.get_event_log()
+        # 事件日志不应该改变（只有通过 start/complete/activate/transition 才记录）
+        self.assertEqual(len(events_before), len(events_after))
+
+    def test_event_log_consistency(self):
+        """事件日志与当前状态一致。"""
+        service = WorkPackageStateService(dag_path=DAG_PATH)
+        service.register_plan("WP-DOC0", "plan.json", "0" * 64)
+        service.start("WP-DOC0")
+        service.complete("WP-DOC0", completion_contract="DOC_BOOTSTRAP_RECORD")
+        ok, errors, details = service.verify_event_log_consistency()
+        self.assertTrue(ok, f"event log should be consistent: {details}")
 
 
 if __name__ == "__main__":
