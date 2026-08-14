@@ -21,8 +21,8 @@
 | WP-RT1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 代码+测试完成（113 RT1测试 PASS，commit 47bdf49），WorkEvent/LeaseFence/Outbox/CommitIntent/DBReservationBackend/RuntimeReconciler/RedisProjection/Checkpoint；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-SV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | 代码+测试完成（141 SV1测试 PASS），TargetSolverPort/HarnessAdapter/NoToolPolicy/SafeLaunchReport/AnswerIsolationReport/SolverCapabilityReport；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-IN1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | 代码+测试完成（34 IN1测试 PASS），只读CandidateManifest exporter + duplicate lineage；自托管Bundle BLOCKED（同GV0阻塞） |
-| WP-TX1 | `NOT_STARTED` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | Taxonomy/Tell Registry与版本谱系 |
-| WP-CW1 | `NOT_STARTED` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | P3N/P6生产认知worker |
+| WP-TX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | 代码+测试完成（134 TX1测试 PASS），TaxonomySnapshot/TellCore/TellFamily/TellHintRelation/TellStrategyRelease/release lineage；自托管Bundle BLOCKED（同GV0阻塞） |
+| WP-CW1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | 代码+测试完成（123 CW1测试 PASS，commit e082c00），RoleQualificationMatrix/ProductionRoleRouter/P3N+P6Workers/IndependenceEnforcer/WorkerCapabilityReport；自托管Bundle BLOCKED（同GV0阻塞） |
 | WP-QA1 | `NOT_STARTED` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | 生成题bare准入与Bakeoff-B |
 | WP-CS1 | `NOT_STARTED` | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | CaseLab双入口与P3C |
 | WP-ST1 | `NOT_STARTED` | WP-TX1、WP-CW1、WP-SV1 | WP-TX1、WP-CW1、WP-SV1、WP-CS1 | Selector/Renderer/Option/Injection/Critic运行时 |
