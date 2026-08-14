@@ -11,7 +11,7 @@
 | 工作包 | 当前状态 | Development依赖 | Activation依赖 | 下一动作 |
 |---|---|---|---|---|
 | WP-DOC0 | `IN_PROGRESS` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle。R1 整改中：DOC0 checker source hash/document hashes/clauses/remainder 漂移已修复，待干净 subject 上重新验证 |
-| WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试存在（51 GV0测试），但 CompletionContractVerifier 未执行完整 Schema（P0-A）、HumanGate 无真实 Ed25519 验签（P0-B）、DB1I 授权链可绕过（P0-C）；自托管 Bundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；Plan draft 中 GV0-001/002/003 非法 requirement IDs。状态不是 READY_FOR_AUDIT |
+| WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试存在（51 GV0测试），但 CompletionContractVerifier 未执行完整 Schema（P0-A）、HumanGate 无真实 Ed25519 验签（P0-B）、DB1I 授权链可绕过（P0-C）；自托管 Bundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；Plan draft requirement IDs 已修复为合法 IDs（AUTH-001/AUTH-002/DATA-005）。状态不是 READY_FOR_AUDIT |
 | WP-VLT0 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 既有代码存在（91测试）但越级——GV0 未到 READY_FOR_AUDIT。须新 remediation attempt 重新资格化 |
 | WP-HG0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 既有代码存在（58测试）但越级。须新 remediation attempt |
 | WP-CW0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 既有代码存在（82测试）但越级。须新 remediation attempt |
