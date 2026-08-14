@@ -331,6 +331,39 @@ class VerificationErrorCode(str, Enum):
     QA_RELEASE_WITHOUT_BOTH_REVIEWS = "QA_RELEASE_WITHOUT_BOTH_REVIEWS"
     QA_OUTPUT_KIND_FORBIDDEN = "QA_OUTPUT_KIND_FORBIDDEN"
 
+    # WP-QA1 Generated Bare Admission & Bakeoff-B — P3B bare / qualification / bakeoff-B
+    QA1_TELL_HINT_SNEAKED_INTO_BARE = "QA1_TELL_HINT_SNEAKED_INTO_BARE"
+    QA1_QUESTION_MODIFIED_AFTER_BARE = "QA1_QUESTION_MODIFIED_AFTER_BARE"
+    QA1_SUCCESSFUL_QUESTION_DELETED = "QA1_SUCCESSFUL_QUESTION_DELETED"
+    QA1_RETRY_UNTIL_FAIL = "QA1_RETRY_UNTIL_FAIL"
+    QA1_BARE_RESULT_FLOWS_BACK_TO_DRAFT = "QA1_BARE_RESULT_FLOWS_BACK_TO_DRAFT"
+    QA1_CALIBRATION_ENTERING_CONFIRMATORY_EVIDENCE = "QA1_CALIBRATION_ENTERING_CONFIRMATORY_EVIDENCE"
+    QA1_QUESTION_RELEASE_REF_MISSING = "QA1_QUESTION_RELEASE_REF_MISSING"
+    QA1_P5_CLAIM_IN_BARE_REPORT = "QA1_P5_CLAIM_IN_BARE_REPORT"
+    QA1_BARE_NOT_PROBLEM_ONLY = "QA1_BARE_NOT_PROBLEM_ONLY"
+    QA1_BARELINE_HASH_MISMATCH = "QA1_BARELINE_HASH_MISMATCH"
+    QA1_QUALIFICATION_RESULT_HASH_MISMATCH = "QA1_QUALIFICATION_RESULT_HASH_MISMATCH"
+    QA1_BAKEOFF_B_PLAN_NOT_FROZEN = "QA1_BAKEOFF_B_PLAN_NOT_FROZEN"
+    QA1_BAKEOFF_B_NOT_BLINDED = "QA1_BAKEOFF_B_NOT_BLINDED"
+    QA1_BARE_RESULT_NOT_RETAINED = "QA1_BARE_RESULT_NOT_RETAINED"
+    QA1_BARE_STATUS_INVALID = "QA1_BARE_STATUS_INVALID"
+    QA1_QUALIFICATION_STATUS_INVALID = "QA1_QUALIFICATION_STATUS_INVALID"
+    QA1_BAKEOFF_B_METRIC_NOT_ALLOWED = "QA1_BAKEOFF_B_METRIC_NOT_ALLOWED"
+    QA1_BAKEOFF_B_STATE_INVALID = "QA1_BAKEOFF_B_STATE_INVALID"
+    QA1_BAKEOFF_B_PLAN_REF_MISSING = "QA1_BAKEOFF_B_PLAN_REF_MISSING"
+    QA1_BAKEOFF_A_REF_MISSING = "QA1_BAKEOFF_A_REF_MISSING"
+    QA1_BARE_RESULT_MISSING = "QA1_BARE_RESULT_MISSING"
+    QA1_BARE_ATTEMPT_REF_MISSING = "QA1_BARE_ATTEMPT_REF_MISSING"
+    QA1_OUTPUT_KIND_FORBIDDEN = "QA1_OUTPUT_KIND_FORBIDDEN"
+    QA1_NO_TELL_HINT_IN_BARE = "QA1_NO_TELL_HINT_IN_BARE"
+    QA1_BARELINE_REF_MISSING = "QA1_BARELINE_REF_MISSING"
+    QA1_QUALIFICATION_REF_MISSING = "QA1_QUALIFICATION_REF_MISSING"
+    QA1_BAKEOFF_B_REPORT_HASH_MISMATCH = "QA1_BAKEOFF_B_REPORT_HASH_MISMATCH"
+    QA1_BAKEOFF_B_PLAN_HASH_MISMATCH = "QA1_BAKEOFF_B_PLAN_HASH_MISMATCH"
+    QA1_BARE_CAPABILITY_HASH_MISMATCH = "QA1_BARE_CAPABILITY_HASH_MISMATCH"
+    QA1_BARE_ADMISSION_STATE_INVALID = "QA1_BARE_ADMISSION_STATE_INVALID"
+    QA1_BARE_SUBMISSION_EMPTY = "QA1_BARE_SUBMISSION_EMPTY"
+
     # WP-SV1 TargetSolver/Harness — bypass / trajectory / answer / policy / fence
     SV_DIRECT_DEVIN_BYPASS = "SV_DIRECT_DEVIN_BYPASS"
     SV_TOOL_EVENT_DETECTED = "SV_TOOL_EVENT_DETECTED"
@@ -473,6 +506,31 @@ class VerificationErrorCode(str, Enum):
     CW_MATRIX_SUPERSEDES_REF_INVALID = "CW_MATRIX_SUPERSEDES_REF_INVALID"
     CW_COMPLETENESS_SETS_NOT_DISJOINT = "CW_COMPLETENESS_SETS_NOT_DISJOINT"
     CW_COMPLETENESS_VERDICT_INVALID = "CW_COMPLETENESS_VERDICT_INVALID"
+
+    # WP-ST1 Strategy Runtime — selector/renderer/binding/injection/critic/arms
+    ST_FIXTURE_MASQUERADE_LIVE_CASE = "ST_FIXTURE_MASQUERADE_LIVE_CASE"
+    ST_ANSWER_BOUND_TO_HINT = "ST_ANSWER_BOUND_TO_HINT"
+    ST_CORE_TEXT_CONFUSION = "ST_CORE_TEXT_CONFUSION"
+    ST_DISTRACTOR_NOT_EQUIVALENT = "ST_DISTRACTOR_NOT_EQUIVALENT"
+    ST_COMPONENT_DRIFT = "ST_COMPONENT_DRIFT"
+    ST_TELL_STRATEGY_RELEASE_REF_MISSING = "ST_TELL_STRATEGY_RELEASE_REF_MISSING"
+    ST_INJECTION_WITHOUT_BINDING = "ST_INJECTION_WITHOUT_BINDING"
+    ST_CRITIC_WITHOUT_INJECTION = "ST_CRITIC_WITHOUT_INJECTION"
+    ST_SELECTOR_ABSTAIN_NOT_RESPECTED = "ST_SELECTOR_ABSTAIN_NOT_RESPECTED"
+    ST_RENDERER_HASH_MISMATCH = "ST_RENDERER_HASH_MISMATCH"
+    ST_BINDING_HASH_MISMATCH = "ST_BINDING_HASH_MISMATCH"
+    ST_INJECTION_HASH_MISMATCH = "ST_INJECTION_HASH_MISMATCH"
+    ST_CRITIC_HASH_MISMATCH = "ST_CRITIC_HASH_MISMATCH"
+    ST_ARM_PAYLOAD_NOT_REPLAYABLE = "ST_ARM_PAYLOAD_NOT_REPLAYABLE"
+    ST_POSITION_INVALID = "ST_POSITION_INVALID"
+    ST_TIMING_INVALID = "ST_TIMING_INVALID"
+    ST_SELECTOR_KIND_INVALID = "ST_SELECTOR_KIND_INVALID"
+    ST_RENDERER_KIND_INVALID = "ST_RENDERER_KIND_INVALID"
+    ST_BINDING_KIND_INVALID = "ST_BINDING_KIND_INVALID"
+    ST_CRITIC_VERDICT_INVALID = "ST_CRITIC_VERDICT_INVALID"
+    ST_ARM_KIND_INVALID = "ST_ARM_KIND_INVALID"
+    ST_STRATEGY_STATE_INVALID = "ST_STRATEGY_STATE_INVALID"
+    ST_OUTPUT_KIND_FORBIDDEN = "ST_OUTPUT_KIND_FORBIDDEN"
 
     # 通用
     OBJECT_HASH_MISMATCH = "OBJECT_HASH_MISMATCH"
@@ -1458,4 +1516,255 @@ CW_NONCLAIMS: tuple[str, ...] = (
     "does_not_connect_to_arangodb_in_test_suite",
     "does_not_authorize_live_canary_or_solver_dispatch",
     "does_not_prove_db_write_capability",
+)
+
+# ─── WP-ST1 Strategy Runtime 常量 ──────────────────────────────────────
+
+# Arm kind 枚举——实验对比臂（problem-only 为 baseline）
+ST_ARM_KINDS: frozenset[str] = frozenset(
+    {
+        "PROBLEM_ONLY",
+        "LINEAGE",
+        "DIRECTION",
+        "LINEAGE_DIRECTION",
+        "DISTRACTOR",
+        "OPERATION_CRITIC",
+        "POSITION_NEUTRAL",
+    }
+)
+
+# Selector decision kind 枚举（ST1 运行时层）
+ST_SELECTOR_DECISIONS: frozenset[str] = frozenset(
+    {"SELECT", "RANK", "ABSTAIN", "FALLBACK"}
+)
+
+# Renderer kind 枚举——renderer 输出种类
+ST_RENDERER_KINDS: frozenset[str] = frozenset(
+    {"HINT_INSTANCE", "LINEAGE_RENDER", "DIRECTION_RENDER", "DISTRACTOR_RENDER"}
+)
+
+# Binding kind 枚举——绑定种类
+ST_BINDING_KINDS: frozenset[str] = frozenset(
+    {"POSITION_BINDING", "TIMING_BINDING", "SCOPE_BINDING", "FULL_BINDING"}
+)
+
+# Injection position 枚举（ST1 运行时层，与 TX_INJECTION_POSITIONS 对齐）
+ST_INJECTION_POSITIONS: frozenset[str] = frozenset(
+    {"PRE_TRACE", "AT_BRANCH_POINT", "MID_TRACE", "POST_TRACE"}
+)
+
+# Critic decision 枚举——注入结果评估
+ST_CRITIC_DECISIONS: frozenset[str] = frozenset(
+    {"HELPED", "HURT", "NEUTRAL"}
+)
+
+# Strategy runtime 状态枚举（有序状态机）
+ST_STRATEGY_STATES: frozenset[str] = frozenset(
+    {
+        "IDLE",
+        "SELECTED",
+        "RENDERED",
+        "BOUND",
+        "INJECTED",
+        "CRITIQUED",
+        "ABSTAINED",
+    }
+)
+
+# ST1 完成输出严格限定为这些对象
+ST_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "SelectorReceipt",
+        "RendererReceipt",
+        "BindingReceipt",
+        "InjectionReceipt",
+        "CriticDecision",
+        "StrategyRunReceipt",
+        "ArmPayload",
+        "FixturePreState",
+        "StrategyCapabilityReport",
+    }
+)
+
+# ST1 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+ST_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "ArtifactCommitReconcileCapabilityReport",
+        "SolverLaunchReceipt",
+        "QuestionRelease",
+        "EvidenceRecord",
+        "RunAudit",
+        "TaxonomySnapshot",
+        "TellStrategyRelease",
+    }
+)
+
+# ST1 能力报告 side-effect 键（必须全为 0）
+ST_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# FixturePreState mode 枚举
+ST_FIXTURE_MODES: frozenset[str] = frozenset(
+    {"DEVELOPMENT", "ACTIVATION"}
+)
+
+# ─── WP-QA1 Generated Bare Admission & Bakeoff-B 常量 ───────────────────
+
+# P3B bare admission 状态机（有序：release_frozen→bare_submitted→bare_collected→baseline_built→qualification_judged）
+QA1_P3B_STATES: tuple[str, ...] = (
+    "RELEASE_FROZEN",
+    "BARE_SUBMITTED",
+    "BARE_COLLECTED",
+    "BASELINE_BUILT",
+    "QUALIFICATION_JUDGED",
+)
+
+# P3B 合法状态转换
+QA1_P3B_TRANSITIONS: dict[str, frozenset[str]] = {
+    "RELEASE_FROZEN": frozenset({"BARE_SUBMITTED"}),
+    "BARE_SUBMITTED": frozenset({"BARE_COLLECTED"}),
+    "BARE_COLLECTED": frozenset({"BASELINE_BUILT"}),
+    "BASELINE_BUILT": frozenset({"QUALIFICATION_JUDGED"}),
+    "QUALIFICATION_JUDGED": frozenset(),  # 终态
+}
+
+# P3B 终态
+QA1_P3B_TERMINAL_STATES: frozenset[str] = frozenset({"QUALIFICATION_JUDGED"})
+
+# Bare attempt 结果状态（per-problem bare attempt outcome）
+QA1_BARE_STATUSES: frozenset[str] = frozenset(
+    {"PASS", "FAIL", "TIMEOUT", "QUARANTINE"}
+)
+
+# Bare qualification 状态（per-problem qualification judgment）
+QA1_QUALIFICATION_STATUSES: frozenset[str] = frozenset(
+    {"QUALIFIED", "NOT_QUALIFIED", "INCONCLUSIVE", "QUARANTINED"}
+)
+
+# Bakeoff-B 评估指标全集（在 Bakeoff-A 基础上增加 bare 维度）
+QA1_BAKEOFF_B_METRICS: frozenset[str] = frozenset(
+    {
+        # Bakeoff-A 指标（继承）
+        "math_correct",
+        "mechanism_faithful",
+        "orthogonal_distance",
+        "shortcut_leakage",
+        "diversity",
+        "human_revision_amount",
+        "cost",
+        # Bakeoff-B 新增 bare 维度指标
+        "bare_correct",
+        "bare_pass",
+        "bare_baseline",
+        "bare_qualification",
+        "target_solver_result",
+    }
+)
+
+# Bakeoff-B 状态枚举
+QA1_BAKEOFF_B_STATES: frozenset[str] = frozenset(
+    {"PLANNED", "BLINDED", "SCORED", "COMPLETED", "BLOCKED"}
+)
+
+# QA1 允许的输出对象种类
+QA1_ALLOWED_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "BareBaseline",
+        "BareQualificationResult",
+        "BakeoffBPlan",
+        "BakeoffBScoringReport",
+        "BareCapabilityReport",
+        "BareResultRetentionRecord",
+        "RunArtifactBundle",
+    }
+)
+
+# QA1 明确禁止输出的对象种类（属于其他工作包，不得偷入）
+QA1_FORBIDDEN_OUTPUT_KINDS: frozenset[str] = frozenset(
+    {
+        "EvidenceRecord",
+        "ConfirmatoryEvidenceRecord",
+        "P5ClaimRecord",
+        "RunAudit",
+        "DatabaseSchemaStateReport",
+        "SchemaBootstrapReceipt",
+        "DatabaseRuntimeCapabilityReport",
+        "RedisProjection",
+    }
+)
+
+# Bare result retention 策略
+QA1_RETENTION_POLICIES: frozenset[str] = frozenset(
+    {
+        "RETAIN_ALL_RESULTS",          # 成功和失败都保留
+        "NO_QUESTION_MODIFICATION",    # 禁止改题
+        "NO_SUCCESSFUL_DELETION",      # 禁止删除成功题
+        "NO_RETRY_UNTIL_FAIL",         # 禁止 retry-until-fail
+        "NO_DRAFT_FLOWBACK",           # 禁止 bare 结果回流改 draft
+    }
+)
+
+# QA1 能力报告 side-effect 键（必须全为 0）
+QA1_SIDE_EFFECT_KEYS: tuple[str, ...] = (
+    "database_writes",
+    "redis_writes",
+    "d_volume_writes",
+    "solver_launches",
+    "model_live_calls",
+    "human_gate_commits",
+)
+
+# QA1 能力报告 check IDs
+QA1_CHECK_IDS: tuple[str, ...] = (
+    "qa1.p3b.problem_only_bare",
+    "qa1.p3b.no_tell_hint_in_bare",
+    "qa1.p3b.question_release_ref_present",
+    "qa1.p3b.all_results_retained",
+    "qa1.p3b.no_question_modification_after_bare",
+    "qa1.p3b.no_successful_question_deletion",
+    "qa1.p3b.no_retry_until_fail",
+    "qa1.p3b.no_bare_result_flowback_to_draft",
+    "qa1.bakeoff_b.blinded",
+    "qa1.bakeoff_b.plan_frozen",
+    "qa1.bakeoff_b.no_calibration_in_confirmatory_evidence",
+    "qa1.bakeoff_b.per_role_defaults",
+    "qa1.boundary.no_p5_claim",
+    "qa1.boundary.no_tell_hint",
+    "qa1.boundary.no_confirmatory_evidence",
+)
+
+# QA1 claims
+QA1_CLAIMS: tuple[str, ...] = (
+    "p3b_problem_only_bare_admission_verified",
+    "bare_baseline_frozen_with_release_ref_and_hash",
+    "bare_qualification_result_references_baseline_by_hash",
+    "all_bare_results_retained_success_and_failure",
+    "no_question_modification_after_bare",
+    "no_successful_question_deletion",
+    "no_retry_until_fail",
+    "no_bare_result_flowback_to_draft",
+    "bakeoff_b_blinded_with_bare_dimension",
+    "bakeoff_b_plan_frozen",
+    "no_calibration_entering_confirmatory_evidence",
+    "per_role_defaults_not_forced_global_single_winner",
+)
+
+# QA1 explicit nonclaims
+QA1_NONCLAIMS: tuple[str, ...] = (
+    "no_p5_claim",
+    "no_tell_hint_in_bare",
+    "no_confirmatory_evidence",
+    "no_live_model_calls",
+    "no_db_writes",
+    "no_solver_launches",
+    "status_implemented_pending_evidence",
 )
