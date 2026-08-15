@@ -45,8 +45,8 @@ else
     exit 1
 fi
 
-# ArangoDB
-if curl -s http://localhost:8529/_api/version | grep -q version; then
+# ArangoDB（返回401也算正常运行——只是需要认证）
+if curl -s http://localhost:8529/_api/version | grep -qE "version|error"; then
     echo "  ✅ ArangoDB: 运行中"
 else
     echo "  ❌ ArangoDB未运行，退出"
