@@ -3042,17 +3042,21 @@ Runner为每个题目生成`AGENTS.md`文件，明确禁止任何工具调用：
 
 `analysis-devin-failure-system/`
 
-### 架构（4组件解耦，模仿并发解题系统）
+### 架构（5组件解耦，模仿并发解题系统）
 
 ```
-data_collector.py     ← 从DB+题库+trajectory收集三类数据，构造AGENTS.md
+data_collector.py     ← 从DB+题库+trajectory收集三类数据，构造AGENTS.md，写入DB（status=prepared）
         ↓
-analysis_launcher.py  ← 并发启动devin cli（tmux session，无工具调用）
+feeder.py             ← 从DB取status=prepared的run，入Redis pending队列（水位机制）
+        ↓
+analysis_launcher.py  ← 从Redis pending队列dequeue取题，并发启动devin cli（tmux session）
         ↓
 result_collector.py   ← 从tmux_pipe.log提取XML分析结果
         ↓
 aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 ```
+
+**retry_infrastructure.py** 独立运行：扫描failed队列→基础设施失败重新入pending队列→launcher自然取到
 
 | 组件 | 文件 | 职责 |
 |---|---|---|
@@ -3096,7 +3100,7 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 | `analysis:failed` | List | 失败任务 |
 | `analysis:stats` | Hash | 实时统计（pending/running/completed/failed计数） |
 
-**降级机制**：Redis不可用时，launcher自动降级为纯内存模式，不阻塞运行。
+**降级机制**：Redis不可用时，launcher直接退出（新架构依赖Redis队列调度）。请确保Redis可用后再启动。
 
 **DB+Redis双写策略**：
 - ArangoDB：持久化存储，所有状态变更都写入DB
@@ -3256,9 +3260,9 @@ python -m monitoring.retry_infrastructure --once
 
 **重试后题目如何重新启动**：
 - 重试脚本将题目重新入`analysis:pending`队列
-- 如果launcher还在运行，下一轮poll时会从pending队列取出重新启动
-- 如果launcher已退出，需要重新启动launcher：`python run_pipeline.py --batch-id <id> --step launch`
-- launcher会从prepared.json加载所有题，但pending队列中只有重试的题——需要修改launcher使其从pending队列取题（目前是从prepared.json顺序加载，待改进）
+- 如果launcher还在运行，下一轮poll时会从pending队列dequeue取出重新启动
+- 如果launcher已退出，需要重新启动launcher：`python -m src.analysis_launcher --batch-id <id> --concurrency N`
+- launcher会从Redis pending队列取题——pending队列中只有重试的题，不会重复启动已completed的题
 
 **DB记录**：
 - 每次infra失败：`analysis_runs.status` = 失败类型，`analysis_events`记录`infra_failure`事件
@@ -3413,7 +3417,7 @@ polymath_01687（置换多项式问题）：
 
 6. **DB key冲突**：同一problem_id在同一batch_id下重复运行时，DB key会冲突。**已修复**：用`next_run_id()`原子递增生成唯一analysis_exp_id，格式`{batch_id}-r{run_id:06d}-{problem_id}`，DB _key=analysis_exp_id。
 
-7. **数据库对齐solver_harness**：错题分析系统的DB+Redis安排已完全对齐solver_harness——5个ArangoDB集合（analysis_batches/runs/events/results/counters）+5个Redis队列（analysis:pending/running/completed/failed/stats）。launcher每次状态变更时DB+Redis双写，Redis不可用时降级为纯内存模式。
+7. **数据库对齐solver_harness**：错题分析系统的DB+Redis安排已完全对齐solver_harness——5个ArangoDB集合（analysis_batches/runs/events/results/counters）+5个Redis队列（analysis:pending/running/completed/failed/stats）。launcher每次状态变更时DB+Redis双写。Redis是新架构的硬依赖（feeder→pending队列→launcher的调度链路依赖Redis）。
 
 8. **异常处理对齐solver_harness**：launcher现在检测3类基础设施错误（rate_limited/failed_connection/dead_session）+2类模型失败（timeout/stall）。基础设施失败通过`retry_infrastructure.py`自动重试（max_retries=3），模型失败不重试。关键：dead_session检测——之前tmux session退出一律算completed，现在区分有完成标记=completed vs 无完成标记=dead_session（可重试）。
 
@@ -3515,12 +3519,13 @@ python -m monitoring.query_failures --export --output full-analysis-results.json
 ```bash
 # 1. 检查残留running记录
 python -m monitoring.recover_from_crash --dry-run
-# 2. 执行恢复
+# 2. 执行恢复（清理running记录，kill僵尸session）
 python -m monitoring.recover_from_crash
-# 3. 恢复后可重新启动未完成的任务
-python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15
-# 注意：当前launcher不跳过已completed的题（待解决问题#7），会重复启动。
-# 临时方案：手动从prepared.json中删除已completed的题，或用新的batch-id重新collect+launch。
+# 3. 恢复后重新启动——feeder只入队status=prepared的run，不会重复启动已completed的题
+python -m src.feeder --batch-id full-analysis --once
+python -m src.analysis_launcher --batch-id full-analysis --concurrency 15 --max-runtime 300
+# 或一体化模式：
+python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 --max-runtime 300
 ```
 
 ### 待解决问题
