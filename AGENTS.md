@@ -3065,6 +3065,64 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 | 模板 | `templates/analysis_agents_md.md` | AGENTS.md模板（分析任务说明+XML输出格式） |
 | Pipeline | `run_pipeline.py` | 端到端串联4个组件 |
 
+### 监控脚本系统（模仿solver_harness）
+
+| 脚本 | 用途 | 对应solver_harness脚本 |
+|---|---|---|
+| `monitoring/shared_logger.py` | 共享日志基础设施（1MB分片+1GB总量+循环滚动） | `pipe/shared_logger.py` |
+| `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs） | `pipe/pipe_control.py` |
+| `monitoring/query_progress.py` | 进度查询（概览/批次/题目/实验） | `pipe/query_progress.py` |
+| `monitoring/query_failures.py` | 失败分类统计（by-verdict/turning-point/source/batch） | `pipe/query_failures.py` |
+| `monitoring/verify_completeness.py` | 数据完备性验证（ids/files/tmux/db-sync） | `pipe/verify_completeness.py` |
+| `monitoring/verify_result_integrity.py` | 结果完整性验证（8字段+合法值+XML解析+质量） | `pipe/verify_run_integrity.py` |
+| `monitoring/recover_from_crash.py` | 断电恢复+僵尸清理（running记录+孤儿session） | `pipe/recover_from_crash.py` |
+| `monitoring/audit_trace.py` | 双向追溯验证（DB↔文件，题目↔run↔result） | `pipe/audit_trace.py` |
+| `monitoring/reporter.py` | 定时报告+告警（未启动/失败率/session过多） | `pipe/reporter.py` |
+
+**日志位置**：`/data/math-agent-glm5.2-tmux-agents-trajectory/analysis-devin-failure/_logs/`
+- `analysis.log`：统一日志（所有模块）
+- `{module}.log`：模块专属日志（data_collector/launcher/result_collector/aggregator等）
+
+**监控命令速查**：
+```bash
+cd analysis-devin-failure-system
+
+# 状态查看
+python -m monitoring.analysis_control status
+python -m monitoring.analysis_control health
+
+# 进度查询
+python -m monitoring.query_progress
+python -m monitoring.query_progress --batch-id analysis-1
+python -m monitoring.query_progress --problem-id polymath_01687
+
+# 失败分类
+python -m monitoring.query_failures --summary
+python -m monitoring.query_failures --by-verdict DIRECTION_ERROR
+python -m monitoring.query_failures --by-turning-point mod_p_grouping
+
+# 验证
+python -m monitoring.verify_completeness --all --batch-id analysis-1
+python -m monitoring.verify_result_integrity --batch-id analysis-1
+python -m monitoring.audit_trace --all --batch-id analysis-1
+
+# 恢复
+python -m monitoring.recover_from_crash --dry-run
+python -m monitoring.recover_from_crash
+
+# 报告
+python -m monitoring.reporter --once
+python -m monitoring.reporter --interval 60
+
+# 停止
+python -m monitoring.analysis_control stop --batch-id analysis-1
+python -m monitoring.analysis_control stop-all
+
+# 日志
+python -m monitoring.analysis_control logs --lines 50
+python -m monitoring.analysis_control logs --module launcher --lines 100
+```
+
 ### 用法
 
 ```bash
