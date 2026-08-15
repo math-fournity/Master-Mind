@@ -3060,17 +3060,56 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 | 并发启动 | `src/analysis_launcher.py` | 并发启动devin cli（tmux），监控运行状态，检测完成（`</analysis>`标记） |
 | 结果收集 | `src/result_collector.py` | 从tmux_pipe.log去掉ANSI转义码后提取`<analysis>...</analysis>` XML块，用正则逐字段解析 |
 | 汇总 | `src/aggregator.py` | 按维度1/维度2统计，输出JSON报告+CSV |
-| DB | `src/db_schema.py` | ArangoDB集合定义（analysis_runs, analysis_events, analysis_results） |
+| DB | `src/db_schema.py` | ArangoDB 5集合+6个操作函数（见下方数据库安排） |
+| Redis | `monitoring/redis_queue.py` | Redis 5队列封装（见下方数据库安排） |
 | 配置 | `src/config.py` | 路径常量、DB连接、并发配置 |
 | 模板 | `templates/analysis_agents_md.md` | AGENTS.md模板（分析任务说明+XML输出格式） |
 | Pipeline | `run_pipeline.py` | 端到端串联4个组件 |
+
+### 数据库安排（对齐solver_harness）
+
+**ArangoDB 5集合**（模仿solver_harness的4集合+1个分析专属集合）：
+
+| 集合 | 对应solver_harness | 用途 | 索引数 |
+|---|---|---|---|
+| `analysis_batches` | `devin_batch_runs` | 批次元信息+统计（status/concurrency/status_counts等） | 2 |
+| `analysis_runs` | `devin_problem_runs` | 每道题的分析run记录（20+字段，含paths/observability/verdict） | 5 |
+| `analysis_events` | `devin_run_events` | 事件流（launch/complete/timeout/error） | 4 |
+| `analysis_results` | （新增） | XML分析结果（8个目标字段+_raw_xml） | 5 |
+| `analysis_counters` | `devin_counters` | 全局计数器（run_id原子递增） | 0 |
+
+**analysis_runs的20+字段**（模仿devin_problem_runs）：
+- 标识：`_key`(=analysis_exp_id), `problem_id`, `batch_id`, `run_id`, `source_exp_id`, `analysis_exp_id`
+- 状态：`status`, `tmux_session`, `created_at`, `updated_at`, `started_at`, `ended_at`, `launch_started_at`
+- 统计：`runtime_seconds`, `end_reason`
+- 数据：`solution_source`, `problem_text_length`, `solution_length`, `thinking_length`, `work_dir`
+- 结构化：`paths`(7个路径), `observability`(活动签名/标记/文件大小), `verdict`(auto_status/reason/confidence)
+
+**Redis 5队列**（模仿solver_harness的redis_queue.py）：
+
+| 队列 | 类型 | 用途 |
+|---|---|---|
+| `analysis:pending` | Sorted Set | 待分析任务（score=priority） |
+| `analysis:running` | Hash | 运行中任务（field=run_key, value=JSON metadata） |
+| `analysis:completed` | List | 已完成任务 |
+| `analysis:failed` | List | 失败任务 |
+| `analysis:stats` | Hash | 实时统计（pending/running/completed/failed计数） |
+
+**降级机制**：Redis不可用时，launcher自动降级为纯内存模式，不阻塞运行。
+
+**DB+Redis双写策略**：
+- ArangoDB：持久化存储，所有状态变更都写入DB
+- Redis：实时队列，用于并发管理和快速统计查询
+- launcher每次状态变更时同时更新DB和Redis
+- 监控脚本优先查Redis（快），兜底查DB（准）
 
 ### 监控脚本系统（模仿solver_harness）
 
 | 脚本 | 用途 | 对应solver_harness脚本 |
 |---|---|---|
 | `monitoring/shared_logger.py` | 共享日志基础设施（1MB分片+1GB总量+循环滚动） | `pipe/shared_logger.py` |
-| `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs） | `pipe/pipe_control.py` |
+| `monitoring/redis_queue.py` | Redis 5队列封装（pending/running/completed/failed/stats） | `pipe/redis_queue.py` |
+| `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs，7项健康检查） | `pipe/pipe_control.py` |
 | `monitoring/query_progress.py` | 进度查询（概览/批次/题目/实验） | `pipe/query_progress.py` |
 | `monitoring/query_failures.py` | 失败分类统计（by-verdict/turning-point/source/batch） | `pipe/query_failures.py` |
 | `monitoring/verify_completeness.py` | 数据完备性验证（ids/files/tmux/db-sync） | `pipe/verify_completeness.py` |
@@ -3241,7 +3280,9 @@ polymath_01687（置换多项式问题）：
 
 5. **tmux session命名**：tmux session名不能含点号（`.`），且不超过50字符。analysis_launcher中用`an-{analysis_exp_id[:48]}`命名，将点号替换为连字符。
 
-6. **DB key冲突**：同一problem_id在同一batch_id下重复运行时，DB key会冲突。data_collector中用try/except处理——先尝试insert，失败则update。
+6. **DB key冲突**：同一problem_id在同一batch_id下重复运行时，DB key会冲突。**已修复**：用`next_run_id()`原子递增生成唯一analysis_exp_id，格式`{batch_id}-r{run_id:06d}-{problem_id}`，DB _key=analysis_exp_id。
+
+7. **数据库对齐solver_harness**：错题分析系统的DB+Redis安排已完全对齐solver_harness——5个ArangoDB集合（analysis_batches/runs/events/results/counters）+5个Redis队列（analysis:pending/running/completed/failed/stats）。launcher每次状态变更时DB+Redis双写，Redis不可用时降级为纯内存模式。
 
 ### 运行前检查清单（未来session接手时执行）
 
@@ -3250,7 +3291,7 @@ cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
 
 # 1. 健康检查
 python -m monitoring.analysis_control health
-# 期望：5项全部OK（tmux/D盘/ArangoDB/日志目录/僵尸session）
+# 期望：6项全部OK（tmux/D盘/ArangoDB/Redis/日志目录/僵尸session）
 
 # 2. 查看已有状态
 python -m monitoring.analysis_control status
