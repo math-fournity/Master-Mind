@@ -3109,7 +3109,8 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 |---|---|---|
 | `monitoring/shared_logger.py` | 共享日志基础设施（1MB分片+1GB总量+循环滚动） | `pipe/shared_logger.py` |
 | `monitoring/redis_queue.py` | Redis 5队列封装（pending/running/completed/failed/stats） | `pipe/redis_queue.py` |
-| `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs，7项健康检查） | `pipe/pipe_control.py` |
+| `monitoring/retry_infrastructure.py` | 基础设施失败自动重试（扫描failed队列，重试infra失败） | `pipe/retry_infrastructure.py` |
+| `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs/set-concurrency/retry） | `pipe/pipe_control.py` |
 | `monitoring/query_progress.py` | 进度查询（概览/批次/题目/实验） | `pipe/query_progress.py` |
 | `monitoring/query_failures.py` | 失败分类统计（by-verdict/turning-point/source/batch） | `pipe/query_failures.py` |
 | `monitoring/verify_completeness.py` | 数据完备性验证（ids/files/tmux/db-sync） | `pipe/verify_completeness.py` |
@@ -3199,6 +3200,65 @@ python -m monitoring.analysis_control set-concurrency --batch-id analysis-1 --co
 - 并发数受API rate limit约束——GLM-5.2的Pro plan有并发上限，建议不超过20
 - 降低并发数不会kill正在运行的题——只是不再启动新题，等当前题完成后逐步降到目标并发数
 - 提高并发数会立即启动新题填满并发槽（如果pending队列中还有题）
+
+### 异常处理与重试（对齐solver_harness）
+
+**网络抖动、API限流、进程异常退出等基础设施失败会自动重试，题目不会丢失。**
+
+**失败分类**（对齐solver_harness的INFRA_FAILURES vs MODEL_FAILURES）：
+
+| 分类 | 失败类型 | 是否重试 | 说明 |
+|---|---|---|---|
+| **基础设施失败** | `rate_limited` | ✅ 重试 | API限流（检测到rate limit/429/Too Many Requests） |
+| **基础设施失败** | `failed_connection` | ✅ 重试 | 网络错误（检测到connection error/ECONNREFUSED/socket hang up等） |
+| **基础设施失败** | `dead_session` | ✅ 重试 | tmux session异常退出但没有完成标记 |
+| **基础设施失败** | `launch_error` | ✅ 重试 | 启动失败 |
+| **模型能力失败** | `failed_timeout` | ❌ 不重试 | 分析超时（超过max_runtime） |
+| **模型能力失败** | `failed_stall` | ❌ 不重试 | 分析卡住（超过stall_seconds无活动） |
+| **模型能力失败** | `failed_no_xml` | ❌ 不重试 | 分析完成但无XML输出 |
+| **模型能力失败** | `failed_incomplete` | ❌ 不重试 | 分析未完成 |
+
+**检测机制**（launcher轮询循环中）：
+1. 完成检测（`</analysis>`或"分析完成"）→ completed
+2. **基础设施错误检测**（在timeout之前）→ 检测rate_limit/connection_error模式 → failed(infra)
+3. tmux session退出检测 → 有完成标记=completed，无完成标记=dead_session → failed(infra)
+4. timeout检测（超过max_runtime）→ failed(model)
+5. stall检测（超过stall_seconds无活动）→ failed(model)
+
+**重试机制**（`monitoring/retry_infrastructure.py`）：
+```bash
+# 执行一次重试扫描
+python -m monitoring.analysis_control retry --once
+
+# 循环模式（每120秒扫描一次）
+python -m monitoring.analysis_control retry --interval 120
+
+# 只看不执行
+python -m monitoring.analysis_control retry --once --dry-run
+
+# 也可以直接调用
+python -m monitoring.retry_infrastructure --once
+```
+
+**重试流程**：
+1. 扫描Redis `analysis:failed`队列
+2. 识别基础设施失败（`failure_type=infra`或reason在INFRA_FAILURES中）
+3. 查DB中该run已有的infra失败次数
+4. 未达上限（max_retries=3）→ 重新入`analysis:pending`队列 + 更新DB状态为`pending_retry`
+5. 达到上限 → 跳过，保留在failed队列中
+6. 模型能力失败 → 不重试，保留在failed队列中
+
+**重试后题目如何重新启动**：
+- 重试脚本将题目重新入`analysis:pending`队列
+- 如果launcher还在运行，下一轮poll时会从pending队列取出重新启动
+- 如果launcher已退出，需要重新启动launcher：`python run_pipeline.py --batch-id <id> --step launch`
+- launcher会从prepared.json加载所有题，但pending队列中只有重试的题——需要修改launcher使其从pending队列取题（目前是从prepared.json顺序加载，待改进）
+
+**DB记录**：
+- 每次infra失败：`analysis_runs.status` = 失败类型，`analysis_events`记录`infra_failure`事件
+- 每次重试：`analysis_runs.status` = `pending_retry`，`analysis_events`记录`retry_scheduled`事件
+- 重试成功后：`analysis_runs.status` = `completed`
+- 重试次数 = DB中该run_key的infra失败次数
 
 ### 用法
 
@@ -3344,6 +3404,10 @@ polymath_01687（置换多项式问题）：
 
 7. **数据库对齐solver_harness**：错题分析系统的DB+Redis安排已完全对齐solver_harness——5个ArangoDB集合（analysis_batches/runs/events/results/counters）+5个Redis队列（analysis:pending/running/completed/failed/stats）。launcher每次状态变更时DB+Redis双写，Redis不可用时降级为纯内存模式。
 
+8. **异常处理对齐solver_harness**：launcher现在检测3类基础设施错误（rate_limited/failed_connection/dead_session）+2类模型失败（timeout/stall）。基础设施失败通过`retry_infrastructure.py`自动重试（max_retries=3），模型失败不重试。关键：dead_session检测——之前tmux session退出一律算completed，现在区分有完成标记=completed vs 无完成标记=dead_session（可重试）。
+
+9. **重试后题目重新启动的待改进点**：当前launcher从prepared.json顺序加载所有题，不从Redis pending队列取题。重试脚本将题目重新入pending队列后，如果launcher还在运行，需要修改launcher使其从pending队列取题（而不是从prepared.json顺序加载）。临时方案：重试后重新运行`--step launch`，launcher会重新加载所有题（但会重复启动已completed的题——待解决问题#7）。
+
 ### 运行前检查清单（未来session接手时执行）
 
 ```bash
@@ -3401,6 +3465,12 @@ python -c "from monitoring.redis_queue import *; r=get_redis(); print(get_stats(
 python -m monitoring.query_progress --batch-id full-analysis
 python -m monitoring.query_failures --summary
 
+# 3b. 启动重试服务（另开终端，可选但推荐）
+# 自动重试基础设施失败（rate_limit/connection_error/dead_session）
+python -m monitoring.analysis_control retry --interval 120
+# 或一次性扫描：
+python -m monitoring.analysis_control retry --once
+
 # 4. 收集结果
 python run_pipeline.py --batch-id full-analysis --step collect-results
 # 产出：collected_results.json + analysis_results记录 + analysis_runs状态更新
@@ -3447,4 +3517,4 @@ python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15
 
 6. **旧数据清理**：test-2/test-2b批次的DB记录使用旧schema（数字_key）。大规模运行前可以考虑清理这些旧记录，避免监控脚本查询时混入旧schema数据。清理方法：`FOR r IN analysis_runs FILTER IS_NUMBER(TO_NUMBER(r._key)) REMOVE r IN analysis_runs`。
 
-7. **launcher跳过已completed题的逻辑**：当前launcher不跳过已completed的题——它从prepared.json加载所有题并全部启动。如果断电恢复后重新launch，会重复启动已completed的题。需要加入跳过逻辑：launch前查DB，跳过status=completed/results_collected的题。
+7. **launcher跳过已completed题的逻辑 + 从pending队列取题**：当前launcher从prepared.json顺序加载所有题并全部启动，不从Redis pending队列取题。这有两个问题：(a) 断电恢复或重试后重新launch会重复启动已completed的题；(b) retry_infrastructure.py将题目重新入pending队列后，launcher不会从pending队列取题。需要改进：launcher启动时先查DB跳过已completed的题，运行中从Redis pending队列取题（而不是从prepared.json顺序加载）。
