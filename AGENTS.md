@@ -3029,3 +3029,122 @@ Runner为每个题目生成`AGENTS.md`文件，明确禁止任何工具调用：
 - **377号**：`Tell分类学研究过程文档/377-v0-2026-08-12-管道化解题系统设计-4服务分离+Redis队列.md`——完整系统设计（第8节核心验证原则、第9节未覆盖因素、第10节优雅停止+断电恢复）
 - **378号**：`Tell分类学研究过程文档/378-v0-2026-08-12-管道化系统测试策略-数据管理与计算流程完备性.md`——测试策略（DM/CF/E2E/RI/FC/PB/ST/LG/UC测试项）
 - **379号**：`Tell分类学研究过程文档/379-v0-2026-08-12-管道化解题系统操作手册.md`——完整操作手册
+
+---
+
+## 错题分析系统（analysis-devin-failure-system）
+
+> **用途**：用并发devin cli实例分析失败题——判定每道失败题是"方向出错"还是"token不够"，并分类卡点类型。用于Mid-Hint实验的选题阶段。
+>
+> **核心设计**：devin cli在运行时不调用任何工具，只读AGENTS.md中的内容（题目+标准答案+AI历史thinking），在TUI中输出XML格式的分析结果。程序通过tmux_pipe.log提取XML。
+
+### 代码库位置
+
+`analysis-devin-failure-system/`
+
+### 架构（4组件解耦，模仿并发解题系统）
+
+```
+data_collector.py     ← 从DB+题库+trajectory收集三类数据，构造AGENTS.md
+        ↓
+analysis_launcher.py  ← 并发启动devin cli（tmux session，无工具调用）
+        ↓
+result_collector.py   ← 从tmux_pipe.log提取XML分析结果
+        ↓
+aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
+```
+
+| 组件 | 文件 | 职责 |
+|---|---|---|
+| 数据收集 | `src/data_collector.py` | 从ArangoDB获取失败题列表，从7个题库获取标准答案，从trajectory获取thinking（4级优先级），构造AGENTS.md |
+| 并发启动 | `src/analysis_launcher.py` | 并发启动devin cli（tmux），监控运行状态，检测完成（`</analysis>`标记） |
+| 结果收集 | `src/result_collector.py` | 从tmux_pipe.log去掉ANSI转义码后提取`<analysis>...</analysis>` XML块，用正则逐字段解析 |
+| 汇总 | `src/aggregator.py` | 按维度1/维度2统计，输出JSON报告+CSV |
+| DB | `src/db_schema.py` | ArangoDB集合定义（analysis_runs, analysis_events, analysis_results） |
+| 配置 | `src/config.py` | 路径常量、DB连接、并发配置 |
+| 模板 | `templates/analysis_agents_md.md` | AGENTS.md模板（分析任务说明+XML输出格式） |
+| Pipeline | `run_pipeline.py` | 端到端串联4个组件 |
+
+### 用法
+
+```bash
+cd ~/master-mind-glm5.2-worktree
+
+# 端到端（全部步骤）
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --limit 100 --concurrency 10
+
+# 分步执行
+# 1. 收集数据，构造AGENTS.md
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step collect --limit 100
+
+# 2. 并发启动分析
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step launch --concurrency 10
+
+# 3. 收集结果
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step collect-results
+
+# 4. 汇总报告
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step aggregate
+
+# 查看状态
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step status
+
+# 停止所有
+python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step stop
+
+# 指定题号分析
+python analysis-devin-failure-system/run_pipeline.py --batch-id test --step collect --problem-ids polymath_01687,deepmath_103k_00021551
+```
+
+### 分析维度
+
+**维度1：失败类型**
+- `DIRECTION_ERROR`：AI走了错误方向，没使用标准解答的关键方法
+- `TOKEN_LIMIT`：AI方向正确但token用尽
+- `CONNECTION_ERROR`：AI没有真正尝试（连接错误、秒退）
+- `PARTIAL_PROGRESS`：AI部分走对但在关键转折点走错
+
+**维度2：卡点类型**（仅DIRECTION_ERROR和PARTIAL_PROGRESS）
+- `mod_p_grouping` / `mod_p_non_obvious` / `quadratic_residue_euler` / `lte_lemma` / `p_adic_valuation` / `multi_step_mod_p` / `crt` / `permutation_polynomial` / `finite_field_structure` / `other`
+
+### 输出格式
+
+devin cli在TUI中输出XML：
+
+```xml
+<analysis>
+  <problem_id>polymath_01687</problem_id>
+  <dimension1_verdict>PARTIAL_PROGRESS</dimension1_verdict>
+  <dimension1_explanation>AI identified permutation polynomial but derailed into interpretation debates</dimension1_explanation>
+  <dimension2_turning_point_type>permutation_polynomial</dimension2_turning_point_type>
+  <dimension2_explanation>Standard solution uses gcd(k,p-1)=1 criterion</dimension2_explanation>
+  <ai_direction_summary>AI correctly framed problem but went in circles</ai_direction_summary>
+  <standard_solution_key_technique>gcd(k,p-1)=1 for monomial permutation polynomials</standard_solution_key_technique>
+  <confidence>high</confidence>
+</analysis>
+```
+
+### 数据源
+
+详见 `eight-system/runs/midhint/data_source_map.md`
+
+三类数据的获取：
+1. **题目文本**：solver工作目录的AGENTS.md（`/data/math-agent-glm5.2-tmux-agents-dir/{exp_id}/`）
+2. **标准答案**：7个题库的原始数据文件（parquet/jsonl/lean/json），按problem_id前缀匹配
+3. **AI解题过程**：trajectory目录的4级优先级数据源（mitm > sessions_db > exports > collector）
+
+### 已知问题
+
+1. **PolyMath 1564道not_found**：id映射规则可能不是简单整数对应，待调查
+2. **DeepMath/ODA-Math解答质量**：AI生成的解答（r1_solution_1/response），不是人类专家解答
+3. **compfiles的lean proof**：Lean形式化证明，不是人类可读推理
+4. **fate无人类解答**：只有Lean formal statement，不适合分析
+5. **XML解析**：devin cli输出中数学公式的`<>`可能导致标准XML解析失败，已用正则逐字段提取兜底
+
+### 端到端测试结果（2026-08-15）
+
+polymath_01687（置换多项式问题）：
+- 维度1：PARTIAL_PROGRESS（AI识别了置换多项式但纠结于"集合"的解释）
+- 维度2：permutation_polynomial
+- 信心度：high
+- 分析质量高——devin cli准确理解了标准解答的关键技巧和AI的失败原因
