@@ -99,40 +99,97 @@ def find_trajectory_dirs(problem_id):
 
 
 def get_thinking_text(exp_id):
-    """从trajectory目录获取thinking文本"""
+    """从trajectory目录获取thinking文本
+
+    数据源优先级：
+    1. mitm/thinking_readable.txt — MITM采集的完整thinking（最完整）
+    2. sessions_db/trajectory.jsonl — trajectory数据库中的thinking字段
+    3. exports/conversation.json — 从steps中提取agent消息（含reasoning_content或message）
+    4. collector/pane_snapshot_clean.txt — tmux pane最终快照（最后手段）
+    """
     traj_dir = os.path.join(TRAJECTORY_BASE, exp_id)
     if not os.path.exists(traj_dir):
         return None, f"trajectory目录不存在: {traj_dir}"
 
-    # 优先用mitm/thinking_readable.txt
+    # 优先级1：mitm/thinking_readable.txt
     thinking_path = os.path.join(traj_dir, "mitm", "thinking_readable.txt")
     if os.path.exists(thinking_path):
         with open(thinking_path) as f:
-            return f.read(), f"从 {thinking_path} 读取"
+            content = f.read()
+        if content.strip():
+            return content, f"从 {thinking_path} 读取"
 
-    # 备选：从exports/conversation.json提取thinking
+    # 优先级2：sessions_db/trajectory.jsonl 的thinking字段
+    traj_jsonl = os.path.join(traj_dir, "sessions_db", "trajectory.jsonl")
+    if os.path.exists(traj_jsonl):
+        thinking_parts = []
+        with open(traj_jsonl) as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                thinking = obj.get("thinking", "")
+                if isinstance(thinking, str) and thinking.strip():
+                    thinking_parts.append(thinking)
+        if thinking_parts:
+            # 去重（trajectory.jsonl可能有重复的assistant步骤）
+            unique_parts = []
+            seen = set()
+            for tp in thinking_parts:
+                if tp not in seen:
+                    seen.add(tp)
+                    unique_parts.append(tp)
+            return "\n".join(unique_parts), f"从 {traj_jsonl} 提取 (thinking字段)"
+
+    # 优先级3：exports/conversation.json
     export_path = os.path.join(traj_dir, "exports", "conversation.json")
     if os.path.exists(export_path):
         with open(export_path) as f:
             conv = json.load(f)
-        # 提取thinking内容
         thinking_parts = []
-        if isinstance(conv, list):
+        if isinstance(conv, dict):
+            steps = conv.get("steps", [])
+            for step in steps:
+                if not isinstance(step, dict):
+                    continue
+                source = step.get("source", "")
+                # 优先取reasoning_content字段
+                rc = step.get("reasoning_content", "")
+                if isinstance(rc, str) and rc.strip():
+                    thinking_parts.append(rc)
+                # agent步骤的message是最终输出文本，也作为thinking分析对象
+                if source == "agent":
+                    msg = step.get("message", "")
+                    if isinstance(msg, str) and msg.strip():
+                        thinking_parts.append(msg)
+                    elif isinstance(msg, dict):
+                        content = msg.get("content", "")
+                        if isinstance(content, str) and content.strip():
+                            thinking_parts.append(content)
+        elif isinstance(conv, list):
             for msg in conv:
-                if isinstance(msg, dict):
-                    content = msg.get("content", "")
-                    if isinstance(content, str) and "thinking" in content.lower():
-                        thinking_parts.append(content)
-        elif isinstance(conv, dict):
-            messages = conv.get("messages", [])
-            for msg in messages:
-                if isinstance(msg, dict):
-                    content = msg.get("content", "")
-                    if isinstance(content, str):
-                        thinking_parts.append(content)
+                if not isinstance(msg, dict):
+                    continue
+                rc = msg.get("reasoning_content", "")
+                if isinstance(rc, str) and rc.strip():
+                    thinking_parts.append(rc)
+                content = msg.get("content", "")
+                if isinstance(content, str) and content.strip():
+                    thinking_parts.append(content)
         if thinking_parts:
-            return "\n".join(thinking_parts), f"从 {export_path} 提取"
-        return None, f"无法从 {export_path} 提取thinking"
+            return "\n".join(thinking_parts), f"从 {export_path} 提取 (agent消息+reasoning_content)"
+
+    # 优先级4：collector/pane_snapshot_clean.txt（最后手段）
+    pane_path = os.path.join(traj_dir, "collector", "pane_snapshot_clean.txt")
+    if os.path.exists(pane_path):
+        with open(pane_path) as f:
+            content = f.read()
+        if content.strip():
+            return content, f"从 {pane_path} 读取 (pane快照)"
 
     return None, f"找不到thinking文件: {traj_dir}"
 
