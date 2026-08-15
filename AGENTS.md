@@ -3113,8 +3113,9 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 | `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs/set-concurrency/retry） | `pipe/pipe_control.py` |
 | `monitoring/query_progress.py` | 进度查询（概览/批次/题目/实验） | `pipe/query_progress.py` |
 | `monitoring/query_failures.py` | 失败分类统计（by-verdict/turning-point/source/batch） | `pipe/query_failures.py` |
-| `monitoring/verify_completeness.py` | 数据完备性验证（ids/files/tmux/db-sync） | `pipe/verify_completeness.py` |
+| `monitoring/verify_completeness.py` | 数据完备性验证（ids/files/tmux/db-sync/redis-sync） | `pipe/verify_completeness.py` |
 | `monitoring/verify_result_integrity.py` | 结果完整性验证（8字段+合法值+XML解析+质量） | `pipe/verify_run_integrity.py` |
+| `monitoring/runtime_health_check.py` | 运行时健康检查（10维度A-J：并发安全+DB-Redis一致性+网络+落盘+日志） | `pipe/scripts/concurrency_safety_check.py` |
 | `monitoring/recover_from_crash.py` | 断电恢复+僵尸清理（running记录+孤儿session） | `pipe/recover_from_crash.py` |
 | `monitoring/audit_trace.py` | 双向追溯验证（DB↔文件，题目↔run↔result） | `pipe/audit_trace.py` |
 | `monitoring/reporter.py` | 定时报告+告警（未启动/失败率/session过多） | `pipe/reporter.py` |
@@ -3145,6 +3146,10 @@ python -m monitoring.query_failures --by-turning-point mod_p_grouping
 python -m monitoring.verify_completeness --all --batch-id analysis-1
 python -m monitoring.verify_result_integrity --batch-id analysis-1
 python -m monitoring.audit_trace --all --batch-id analysis-1
+
+# 运行时健康检查（系统运行中执行，10维度A-J）
+python -m monitoring.runtime_health_check
+# 检查并发安全、DB-Redis一致性、网络健康、落盘完整性、日志健康等
 
 # 恢复
 python -m monitoring.recover_from_crash --dry-run
@@ -3458,7 +3463,8 @@ python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 -
 # 3. 运行中监控（另开终端）
 python -m monitoring.reporter --interval 60          # 定时报告+告警
 python -m monitoring.analysis_control status         # 批次状态
-python -m monitoring.analysis_control health         # 健康检查
+python -m monitoring.analysis_control health         # 基础设施健康检查
+python -m monitoring.runtime_health_check            # 运行时健康检查（10维度A-J）
 # Redis队列查看（可选）：
 python -c "from monitoring.redis_queue import *; r=get_redis(); print(get_stats(r))"
 # 运行中可查DB：
