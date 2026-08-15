@@ -3056,8 +3056,9 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 
 | 组件 | 文件 | 职责 |
 |---|---|---|
-| 数据收集 | `src/data_collector.py` | 从ArangoDB获取失败题列表，从7个题库获取标准答案，从trajectory获取thinking（4级优先级），构造AGENTS.md，写入prepared.json+DB（analysis_batches+analysis_runs） |
-| 并发启动 | `src/analysis_launcher.py` | 从prepared.json加载题目→入Redis pending队列→并发启动devin cli（tmux），监控运行状态，检测完成/基础设施错误/timeout/stall，DB+Redis双写 |
+| 数据收集 | `src/data_collector.py` | 从ArangoDB获取失败题列表，从7个题库获取标准答案，从trajectory获取thinking（4级优先级），构造AGENTS.md，写入prepared.json+DB（analysis_batches+analysis_runs，status=prepared） |
+| 选题入队 | `src/feeder.py` | 独立进程，从DB取status=prepared的run，写入Redis pending队列，水位机制自动补充，更新DB为queued（对应solver_harness的feeder.py） |
+| 并发启动 | `src/analysis_launcher.py` | 从Redis pending队列dequeue取题→从DB查run记录获取work_dir→并发启动devin cli（tmux），监控运行状态，检测完成/基础设施错误/timeout/stall，DB+Redis双写 |
 | 结果收集 | `src/result_collector.py` | 从tmux_pipe.log去掉ANSI转义码后提取`<analysis>...</analysis>` XML块，用正则逐字段解析 |
 | 汇总 | `src/aggregator.py` | 按维度1/维度2统计，输出JSON报告+CSV |
 | DB | `src/db_schema.py` | ArangoDB 5集合+6个操作函数（见下方数据库安排） |
@@ -3277,8 +3278,13 @@ python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --lim
 # 1. 收集数据，构造AGENTS.md
 python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step collect --limit 100
 
-# 2. 并发启动分析
+# 2. 并发启动分析（feeder入队+launcher启动）
 python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step launch --concurrency 10
+# 或分离模式：feeder入队 + launcher从队列取题
+python -m src.feeder --batch-id analysis-1 --once
+python -m src.analysis_launcher --batch-id analysis-1 --concurrency 10
+# 或launcher的--auto-feed模式（一次性入队+启动）
+python -m src.analysis_launcher --batch-id analysis-1 --concurrency 10 --auto-feed
 
 # 3. 收集结果
 python analysis-devin-failure-system/run_pipeline.py --batch-id analysis-1 --step collect-results
@@ -3411,7 +3417,7 @@ polymath_01687（置换多项式问题）：
 
 8. **异常处理对齐solver_harness**：launcher现在检测3类基础设施错误（rate_limited/failed_connection/dead_session）+2类模型失败（timeout/stall）。基础设施失败通过`retry_infrastructure.py`自动重试（max_retries=3），模型失败不重试。关键：dead_session检测——之前tmux session退出一律算completed，现在区分有完成标记=completed vs 无完成标记=dead_session（可重试）。
 
-9. **重试后题目重新启动的待改进点**：当前launcher从prepared.json顺序加载所有题，不从Redis pending队列取题。重试脚本将题目重新入pending队列后，如果launcher还在运行，需要修改launcher使其从pending队列取题（而不是从prepared.json顺序加载）。临时方案：重试后重新运行`--step launch`，launcher会重新加载所有题（但会重复启动已completed的题——待解决问题#7）。
+9. **feeder+launcher分离架构**：错题分析系统现在对齐solver_harness的feeder+runner分离架构——feeder从DB取prepared的run入Redis pending队列，launcher从pending队列dequeue取题启动。retry_infrastructure重新入pending队列的题，launcher能自然取到（解决了之前重试后题目无法重新启动的问题）。run_pipeline.py的launch步骤会先feeder入队再launcher启动。
 
 ### 运行前检查清单（未来session接手时执行）
 
@@ -3455,10 +3461,18 @@ python -m monitoring.analysis_control health  # 6项全部OK
 python run_pipeline.py --batch-id full-analysis --step collect
 # 产出：prepared.json + analysis_batches记录 + analysis_runs记录（20+字段，新schema）
 
-# 2. 分批启动（避免一次性启动太多）
-# 建议并发数10-20，每批500-1000题
+# 2. 启动分析（feeder+launcher分离架构）
+# 方式A：一体化模式（run_pipeline自动feeder入队+launcher启动）
 python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 --max-runtime 300
 # 产出：launch_results.json + Redis队列实时统计 + analysis_runs状态更新（DB+Redis双写）
+
+# 方式B：分离模式（推荐大规模运行，feeder和launcher各一个tmux session）
+# tmux 1: feeder持续运行，保持pending水位
+tmux new-session -d -s analysis-feeder "python -m src.feeder --batch-id full-analysis --low-water-mark 100 --poll-interval 5"
+# tmux 2: launcher从pending队列取题启动
+tmux new-session -d -s analysis-launcher "python -m src.analysis_launcher --batch-id full-analysis --concurrency 15 --max-runtime 300"
+# 方式C：launcher的--auto-feed模式（一次性入队+启动）
+python -m src.analysis_launcher --batch-id full-analysis --concurrency 15 --max-runtime 300 --auto-feed
 
 # 3. 运行中监控（另开终端）
 python -m monitoring.reporter --interval 60          # 定时报告+告警
@@ -3523,4 +3537,4 @@ python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15
 
 6. **旧数据清理**：test-2/test-2b批次的DB记录使用旧schema（数字_key）。大规模运行前可以考虑清理这些旧记录，避免监控脚本查询时混入旧schema数据。清理方法：`FOR r IN analysis_runs FILTER IS_NUMBER(TO_NUMBER(r._key)) REMOVE r IN analysis_runs`。
 
-7. **launcher跳过已completed题的逻辑 + 从pending队列取题**：当前launcher从prepared.json顺序加载所有题并全部启动，不从Redis pending队列取题。这有两个问题：(a) 断电恢复或重试后重新launch会重复启动已completed的题；(b) retry_infrastructure.py将题目重新入pending队列后，launcher不会从pending队列取题。需要改进：launcher启动时先查DB跳过已completed的题，运行中从Redis pending队列取题（而不是从prepared.json顺序加载）。
+7. ~~**launcher跳过已completed题的逻辑 + 从pending队列取题**~~（已解决）：launcher现在从Redis pending队列dequeue取题（不再从prepared.json顺序加载）。feeder只入队status=prepared的run，已completed的题不会重复入队。retry_infrastructure重新入pending队列的题，launcher能从pending队列取到。
