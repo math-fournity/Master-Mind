@@ -3153,6 +3153,10 @@ python -m monitoring.recover_from_crash
 python -m monitoring.reporter --once
 python -m monitoring.reporter --interval 60
 
+# 动态并发调整（运行中可调）
+python -m monitoring.analysis_control set-concurrency --batch-id analysis-1 --concurrency 20
+# launcher下一轮poll时自动生效，无需重启
+
 # 停止
 python -m monitoring.analysis_control stop --batch-id analysis-1
 python -m monitoring.analysis_control stop-all
@@ -3161,6 +3165,40 @@ python -m monitoring.analysis_control stop-all
 python -m monitoring.analysis_control logs --lines 50
 python -m monitoring.analysis_control logs --module launcher --lines 100
 ```
+
+### 动态并发管理（对齐solver_harness）
+
+**并发数可以运行中动态调整，无需重启launcher。**
+
+**机制**（模仿solver_harness）：
+1. launcher轮询循环每轮从DB读取`analysis_batches.concurrency`字段
+2. 用`set-concurrency`命令修改DB中的值
+3. launcher下一轮poll时自动生效（通常poll_seconds=5秒内生效）
+4. 每次变更记录`concurrency_changed`事件到`analysis_events`
+
+**设置方法**：
+```bash
+# 启动时指定初始并发数
+python run_pipeline.py --batch-id analysis-1 --step launch --concurrency 10
+
+# 运行中动态调整（另开终端）
+python -m monitoring.analysis_control set-concurrency --batch-id analysis-1 --concurrency 20
+# ↑ launcher自动从10并发提升到20并发
+
+# 也可以降低并发数（让正在运行的题完成后不再启动新题）
+python -m monitoring.analysis_control set-concurrency --batch-id analysis-1 --concurrency 5
+```
+
+**并发数配置位置**：
+- 默认值：`src/config.py`中`DEFAULT_CONCURRENCY = 10`
+- 启动时覆盖：`--concurrency N`命令行参数
+- 运行中覆盖：`set-concurrency`命令修改DB中`analysis_batches.concurrency`
+- 优先级：DB值 > 命令行参数 > config.py默认值
+
+**注意事项**：
+- 并发数受API rate limit约束——GLM-5.2的Pro plan有并发上限，建议不超过20
+- 降低并发数不会kill正在运行的题——只是不再启动新题，等当前题完成后逐步降到目标并发数
+- 提高并发数会立即启动新题填满并发槽（如果pending队列中还有题）
 
 ### 用法
 
