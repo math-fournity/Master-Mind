@@ -3206,3 +3206,109 @@ polymath_01687（置换多项式问题）：
 - 维度2：permutation_polynomial
 - 信心度：high
 - 分析质量高——devin cli准确理解了标准解答的关键技巧和AI的失败原因
+
+### 当前状态（2026-08-15）
+
+**系统状态**：已建立、已测试、已验证，但**尚未大规模运行**。
+
+| 项目 | 状态 |
+|---|---|
+| 代码库（4组件+9监控脚本） | ✅ 完成 |
+| shared_logger集成 | ✅ 完成 |
+| 端到端测试（1道题） | ✅ 通过 |
+| 监控脚本验证 | ✅ 全部通过 |
+| 大规模分析（6181道失败题） | ❌ 未开始 |
+| PolyMath 1564道not_found | ❌ 未解决 |
+| 分析结果用于Mid-Hint选题 | ❌ 未开始 |
+
+**已有数据**：
+- test-2批次：2道题（polymath_01687, polymath_05451），launch完成但result收集失败（早期bug，XML提取逻辑已修复）
+- test-2b批次：1道题（polymath_01687），完整跑通collect→launch→collect-results→aggregate，结果已入DB
+
+### 关键经验教训（未来session必读）
+
+1. **完成检测陷阱**：devin cli的prompt中包含"结尾输出 ### ANALYSIS COMPLETE"文本，launcher会误检测为完成。**修复方法**：只检测"请按AGENTS.md"之后的agent输出区域中的`</analysis>`标记，不检测prompt区域。
+
+2. **XML解析陷阱**：devin cli输出的XML中可能包含数学公式的`<`和`>`符号（如`F_{p^k}`、`x < p`），导致标准`xml.etree.ElementTree`解析失败。**修复方法**：标准解析失败时，用正则`r"<{tag}>(.*?)</{tag}>"`逐字段提取8个目标字段。
+
+3. **devin cli的行为特点**：
+   - devin cli会自动调用`read`工具读AGENTS.md（即使prompt要求不调用工具）——这是预期行为，不影响分析
+   - devin cli的输出在TUI中显示，tmux_pipe.log会记录但充满ANSI转义码——需要去掉ANSI后再提取XML
+   - devin cli可能不严格按照模板格式输出XML——它可能用更复杂的嵌套结构，但8个目标字段通常都有
+   - devin cli完成分析后会显示"Ask Devin to build features"（等待新输入），不会自动退出
+
+4. **--export不生成文件**：`devin --export`参数在TUI模式下可能不生成conversation.json（原因待查）。**当前方案**：用tmux_pipe.log作为主要数据源，去掉ANSI转义码后提取XML。
+
+5. **tmux session命名**：tmux session名不能含点号（`.`），且不超过50字符。analysis_launcher中用`an-{analysis_exp_id[:48]}`命名，将点号替换为连字符。
+
+6. **DB key冲突**：同一problem_id在同一batch_id下重复运行时，DB key会冲突。data_collector中用try/except处理——先尝试insert，失败则update。
+
+### 运行前检查清单（未来session接手时执行）
+
+```bash
+cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
+
+# 1. 健康检查
+python -m monitoring.analysis_control health
+# 期望：5项全部OK（tmux/D盘/ArangoDB/日志目录/僵尸session）
+
+# 2. 查看已有状态
+python -m monitoring.analysis_control status
+# 看有哪些批次、各批次进度
+
+# 3. 检查是否有残留的running记录（断电恢复）
+python -m monitoring.recover_from_crash --dry-run
+# 如果有running记录，执行 python -m monitoring.recover_from_crash 恢复
+
+# 4. 检查日志
+python -m monitoring.analysis_control logs --lines 20
+# 看最后一次操作的日志
+
+# 5. 如果要大规模运行，先小规模测试
+python run_pipeline.py --batch-id smoke-test --step collect --limit 5
+python run_pipeline.py --batch-id smoke-test --step launch --concurrency 2 --max-runtime 300
+python run_pipeline.py --batch-id smoke-test --step collect-results
+python run_pipeline.py --batch-id smoke-test --step aggregate
+# 确认smoke-test通过后再大规模运行
+```
+
+### 大规模运行指南
+
+**目标**：分析所有6181道失败题（其中约4325道有标准答案+thinking，可分析）。
+
+**推荐步骤**：
+```bash
+# 1. 收集所有可分析的题（约10分钟，主要是加载题库）
+python run_pipeline.py --batch-id full-analysis --step collect
+
+# 2. 分批启动（避免一次性启动太多）
+# 建议并发数10-20，每批500-1000题
+python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 --max-runtime 300
+
+# 3. 运行中监控（另开终端）
+python -m monitoring.reporter --interval 60
+python -m monitoring.analysis_control status
+
+# 4. 收集结果
+python run_pipeline.py --batch-id full-analysis --step collect-results
+
+# 5. 验证结果完整性
+python -m monitoring.verify_result_integrity --batch-id full-analysis
+
+# 6. 汇总报告
+python run_pipeline.py --batch-id full-analysis --step aggregate
+```
+
+**预估**：每道题分析约1-3分钟，15并发约3000题/小时，4325道约需1.5小时。
+
+### 待解决问题
+
+1. **PolyMath 1564道not_found**：`polymath_{id:05d}`的id映射可能不是简单整数对应。需要调查problem_extraction_progress集合或原始录入脚本确认正确的映射规则。这会导致约25%的PolyMath题无法匹配标准答案。
+
+2. **--export不生成文件**：devin cli的`--export`参数在TUI模式下可能不生成conversation.json。当前用tmux_pipe.log兜底，但如果需要更可靠的数据源，需要调查devin cli的export机制。
+
+3. **DeepMath/ODA-Math解答质量**：这两个题库的解答是AI生成的（r1_solution_1/response），不是人类专家解答。分析结果中"标准解答的关键技巧"可能不准确——需要交叉验证或只用于提取关键技巧名。
+
+4. **compfiles的lean proof**：Lean形式化证明不是人类可读推理。当前data_collector跳过了compfiles题（返回"compfiles_lean"）。如果需要分析compfiles题，需要先将lean proof翻译成自然语言推理。
+
+5. **分析结果用于Mid-Hint选题**：分析完成后，需要根据维度1/维度2的分布，选择适合Mid-Hint实验的题目（DIRECTION_ERROR+PARTIAL_PROGRESS的题，覆盖不同卡点类型）。
