@@ -3241,11 +3241,26 @@ devin cli在TUI中输出XML：
 
 ### 端到端测试结果（2026-08-15）
 
+**smoke-v3批次**（新schema，DB+Redis对齐solver_harness后）：
+
 polymath_01687（置换多项式问题）：
+- collect：✅ analysis_batches记录+analysis_runs记录（20+字段，_key=analysis_exp_id）
+- launch：✅ 52秒完成，DB+Redis双写，runtime_seconds=52，tmux_session记录
+- collect-results：✅ parsed=1，XML提取成功
+- aggregate：✅ PARTIAL_PROGRESS × permutation_polynomial，confidence=high
+- 6项健康检查：全部OK
+- 结果完整性验证：8字段+合法值全部通过
+- DB→文件追溯：完整
+
+分析结果：
 - 维度1：PARTIAL_PROGRESS（AI识别了置换多项式但纠结于"集合"的解释）
 - 维度2：permutation_polynomial
 - 信心度：high
 - 分析质量高——devin cli准确理解了标准解答的关键技巧和AI的失败原因
+
+**旧测试**（test-2b批次，旧schema，已过时）：
+- test-2b用旧schema跑通（数字_key、缺paths/observability/verdict字段）
+- smoke-v2因完成检测bug失败（prompt中的"### ANALYSIS COMPLETE"被误判为完成）
 
 ### 当前状态（2026-08-15）
 
@@ -3264,14 +3279,16 @@ polymath_01687（置换多项式问题）：
 | PolyMath 1564道not_found | ❌ 未解决 |
 | 分析结果用于Mid-Hint选题 | ❌ 未开始 |
 
-**已有数据**（注意：test-2/test-2b是DB对齐前的旧数据，使用旧schema——数字_key、缺paths/observability/verdict字段。大规模运行时会用新schema）：
-- test-2批次：2道题（polymath_01687, polymath_05451），launch完成但result收集失败（早期bug，XML提取逻辑已修复）
-- test-2b批次：1道题（polymath_01687），完整跑通collect→launch→collect-results→aggregate，结果已入DB
-- DB中analysis_counters.run_id已递增到2（test-3批次会从r000003开始）
+**已有数据**（注意：test-2/test-2b是DB对齐前的旧数据，使用旧schema——数字_key、缺paths/observability/verdict字段。smoke-v2因完成检测bug失败。smoke-v3是新schema下完整跑通的验证批次）：
+- test-2批次：2道题，launch完成但result收集失败（早期bug，XML提取逻辑已修复）
+- test-2b批次：1道题，旧schema完整跑通，结果已入DB
+- smoke-v2批次：1道题，因完成检测bug失败（12秒误判完成，已修复）
+- smoke-v3批次：1道题，新schema完整跑通（52秒完成），DB+Redis双写验证通过
+- DB中analysis_counters.run_id已递增到5（下一批次从r000006开始）
 
 ### 关键经验教训（未来session必读）
 
-1. **完成检测陷阱**：devin cli的prompt中包含"结尾输出 ### ANALYSIS COMPLETE"文本，launcher会误检测为完成。**修复方法**：只检测"请按AGENTS.md"之后的agent输出区域中的`</analysis>`标记，不检测prompt区域。
+1. **完成检测陷阱**（已修复）：devin cli的prompt中包含"结尾输出 ### ANALYSIS COMPLETE"文本。当tmux的ANSI转义码打断prompt行时，"### ANALYSIS COMPLETE"会出现在"请按AGENTS.md"之后的agent输出区域中，被误判为分析完成（smoke-v2因此失败，12秒就"完成"了）。**修复方法**：完成检测只依赖`</analysis>`标记和"分析完成"中文标记，不再依赖ANALYSIS_COMPLETE_MARKER。smoke-v3用修复后的逻辑成功跑通（52秒完成）。
 
 2. **XML解析陷阱**：devin cli输出的XML中可能包含数学公式的`<`和`>`符号（如`F_{p^k}`、`x < p`），导致标准`xml.etree.ElementTree`解析失败。**修复方法**：标准解析失败时，用正则`r"<{tag}>(.*?)</{tag}>"`逐字段提取8个目标字段。
 
