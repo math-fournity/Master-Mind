@@ -3237,6 +3237,7 @@ devin cli在TUI中输出XML：
 3. **compfiles的lean proof**：Lean形式化证明，不是人类可读推理
 4. **fate无人类解答**：只有Lean formal statement，不适合分析
 5. **XML解析**：devin cli输出中数学公式的`<>`可能导致标准XML解析失败，已用正则逐字段提取兜底
+6. **旧schema兼容性**：test-2/test-2b批次的DB记录使用旧schema（数字_key、缺paths/observability/verdict字段）。新批次会使用新schema（analysis_exp_id做_key、20+字段）。监控脚本同时兼容两种schema。如果需要清理旧数据，可以删除analysis_runs中_key为纯数字的记录。
 
 ### 端到端测试结果（2026-08-15）
 
@@ -3248,21 +3249,25 @@ polymath_01687（置换多项式问题）：
 
 ### 当前状态（2026-08-15）
 
-**系统状态**：已建立、已测试、已验证，但**尚未大规模运行**。
+**系统状态**：已建立、已测试、已验证，数据库+Redis已对齐solver_harness，但**尚未大规模运行**。
 
 | 项目 | 状态 |
 |---|---|
-| 代码库（4组件+9监控脚本） | ✅ 完成 |
+| 代码库（4组件+10监控脚本） | ✅ 完成 |
 | shared_logger集成 | ✅ 完成 |
+| ArangoDB 5集合+索引 | ✅ 完成（对齐solver_harness） |
+| Redis 5队列封装 | ✅ 完成（对齐solver_harness） |
+| DB+Redis双写 | ✅ 完成（launcher每次状态变更双写） |
 | 端到端测试（1道题） | ✅ 通过 |
-| 监控脚本验证 | ✅ 全部通过 |
+| 监控脚本验证（6项健康检查） | ✅ 全部通过 |
 | 大规模分析（6181道失败题） | ❌ 未开始 |
 | PolyMath 1564道not_found | ❌ 未解决 |
 | 分析结果用于Mid-Hint选题 | ❌ 未开始 |
 
-**已有数据**：
+**已有数据**（注意：test-2/test-2b是DB对齐前的旧数据，使用旧schema——数字_key、缺paths/observability/verdict字段。大规模运行时会用新schema）：
 - test-2批次：2道题（polymath_01687, polymath_05451），launch完成但result收集失败（早期bug，XML提取逻辑已修复）
 - test-2b批次：1道题（polymath_01687），完整跑通collect→launch→collect-results→aggregate，结果已入DB
+- DB中analysis_counters.run_id已递增到2（test-3批次会从r000003开始）
 
 ### 关键经验教训（未来session必读）
 
@@ -3319,28 +3324,59 @@ python run_pipeline.py --batch-id smoke-test --step aggregate
 
 **推荐步骤**：
 ```bash
+# 0. 运行前检查（见上方"运行前检查清单"）
+python -m monitoring.analysis_control health  # 6项全部OK
+
 # 1. 收集所有可分析的题（约10分钟，主要是加载题库）
 python run_pipeline.py --batch-id full-analysis --step collect
+# 产出：prepared.json + analysis_batches记录 + analysis_runs记录（20+字段，新schema）
 
 # 2. 分批启动（避免一次性启动太多）
 # 建议并发数10-20，每批500-1000题
 python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 --max-runtime 300
+# 产出：launch_results.json + Redis队列实时统计 + analysis_runs状态更新（DB+Redis双写）
 
 # 3. 运行中监控（另开终端）
-python -m monitoring.reporter --interval 60
-python -m monitoring.analysis_control status
+python -m monitoring.reporter --interval 60          # 定时报告+告警
+python -m monitoring.analysis_control status         # 批次状态
+python -m monitoring.analysis_control health         # 健康检查
+# Redis队列查看（可选）：
+python -c "from monitoring.redis_queue import *; r=get_redis(); print(get_stats(r))"
+# 运行中可查DB：
+python -m monitoring.query_progress --batch-id full-analysis
+python -m monitoring.query_failures --summary
 
 # 4. 收集结果
 python run_pipeline.py --batch-id full-analysis --step collect-results
+# 产出：collected_results.json + analysis_results记录 + analysis_runs状态更新
 
 # 5. 验证结果完整性
 python -m monitoring.verify_result_integrity --batch-id full-analysis
+python -m monitoring.verify_completeness --all --batch-id full-analysis
+python -m monitoring.audit_trace --all --batch-id full-analysis
 
 # 6. 汇总报告
 python run_pipeline.py --batch-id full-analysis --step aggregate
+# 产出：aggregated_report.json + aggregated_report.csv
+
+# 7. 最终验证
+python -m monitoring.query_failures --summary
+python -m monitoring.query_failures --export --output full-analysis-results.json
 ```
 
 **预估**：每道题分析约1-3分钟，15并发约3000题/小时，4325道约需1.5小时。
+
+**断电恢复**：如果运行中断电或launcher异常退出：
+```bash
+# 1. 检查残留running记录
+python -m monitoring.recover_from_crash --dry-run
+# 2. 执行恢复
+python -m monitoring.recover_from_crash
+# 3. 恢复后可重新启动未完成的任务
+python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15
+# 注意：当前launcher不跳过已completed的题（待解决问题#7），会重复启动。
+# 临时方案：手动从prepared.json中删除已completed的题，或用新的batch-id重新collect+launch。
+```
 
 ### 待解决问题
 
@@ -3353,3 +3389,7 @@ python run_pipeline.py --batch-id full-analysis --step aggregate
 4. **compfiles的lean proof**：Lean形式化证明不是人类可读推理。当前data_collector跳过了compfiles题（返回"compfiles_lean"）。如果需要分析compfiles题，需要先将lean proof翻译成自然语言推理。
 
 5. **分析结果用于Mid-Hint选题**：分析完成后，需要根据维度1/维度2的分布，选择适合Mid-Hint实验的题目（DIRECTION_ERROR+PARTIAL_PROGRESS的题，覆盖不同卡点类型）。
+
+6. **旧数据清理**：test-2/test-2b批次的DB记录使用旧schema（数字_key）。大规模运行前可以考虑清理这些旧记录，避免监控脚本查询时混入旧schema数据。清理方法：`FOR r IN analysis_runs FILTER IS_NUMBER(TO_NUMBER(r._key)) REMOVE r IN analysis_runs`。
+
+7. **launcher跳过已completed题的逻辑**：当前launcher不跳过已completed的题——它从prepared.json加载所有题并全部启动。如果断电恢复后重新launch，会重复启动已completed的题。需要加入跳过逻辑：launch前查DB，跳过status=completed/results_collected的题。
