@@ -3056,8 +3056,8 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 
 | 组件 | 文件 | 职责 |
 |---|---|---|
-| 数据收集 | `src/data_collector.py` | 从ArangoDB获取失败题列表，从7个题库获取标准答案，从trajectory获取thinking（4级优先级），构造AGENTS.md |
-| 并发启动 | `src/analysis_launcher.py` | 并发启动devin cli（tmux），监控运行状态，检测完成（`</analysis>`标记） |
+| 数据收集 | `src/data_collector.py` | 从ArangoDB获取失败题列表，从7个题库获取标准答案，从trajectory获取thinking（4级优先级），构造AGENTS.md，写入prepared.json+DB（analysis_batches+analysis_runs） |
+| 并发启动 | `src/analysis_launcher.py` | 从prepared.json加载题目→入Redis pending队列→并发启动devin cli（tmux），监控运行状态，检测完成/基础设施错误/timeout/stall，DB+Redis双写 |
 | 结果收集 | `src/result_collector.py` | 从tmux_pipe.log去掉ANSI转义码后提取`<analysis>...</analysis>` XML块，用正则逐字段解析 |
 | 汇总 | `src/aggregator.py` | 按维度1/维度2统计，输出JSON报告+CSV |
 | DB | `src/db_schema.py` | ArangoDB 5集合+6个操作函数（见下方数据库安排） |
