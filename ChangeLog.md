@@ -2,7 +2,82 @@
 
 本文件记录项目正式编号文档及其索引的新增与修订。从 2026-08-05 开始维护；更早的变更以 Git 历史和各编号文档为准。
 
+## 2026-08-16
+
+### 390号：解题侧脉络分析线工作评审（过度设计自查文档）
+
+- **触发**：用户对另一AI在`system/solve_vein_analysis/`的工作（VMS-31至VMS-43，344-387号文档，约45,000行）提出过度设计疑虑，要求落盘一份分析供负责AI自查。
+- **核心发现**：核心分析能力（VMS-31确定性核心、VMS-40五层真值、VMS-42/43状态归一与结构审计）真实有价值；但VMS-41（唯一一次真实资格实验，4/4机械FAIL）之后的增量约三分之二投向零模型资格化证据链（22个资格链脚本8,582行占测试代码50.5%、16份同构协议2,348行、816处sha256、状态四重镜像），live模型调用自此为0。
+- **文档内容**：全貌清单+演进还原+四组过度设计证据+六项值得保留清单+12条自查问题（要求负责AI在推进Trace Auditor qualification pack前逐条回答落盘到363号）+分层处理建议（保留/精简候选/需用户决策）。决定权明确留给用户。
+- **另记录**：该线全部产物（模块/测试/344-387号文档/docs/assets）当前均为git untracked未提交状态。
+- **编号说明**：388/389号已被`Tell分类学研究过程文档/`占用，本评审取390号避免跨目录冲突。
+
 ## 2026-08-14
+
+### Seven首轮完整实现声明审计后的整改实施技术说明
+
+- **触发**：实现AI声称24个implementer-owned工作包均已完成SIDE_EFFECT_FREE开发、2117 tests + 28 subtests全PASS且未跳过依赖；用户要求由Codex亲自审查，并把后续需完善内容写成给下一位实施AI的详细技术说明。
+- **审计校准**：测试计数与未执行真实副作用属实；但DOC0检查器FAIL，22个下游包越过development dependency，除DOC0/GV0外缺逐包Plan/CompletionBundle，machine capabilities仍只到`P1_DRY_RUN`。
+- **三个P0反例**：空壳CompletionBundle被CompletionContractVerifier判PASS；全A Base64伪签名、全0公钥hash且`HUMAN_PENDING`被HumanGate接受；DB1I在`human_gate_service=None`和最小Permit字典下执行20个fake DDL action。
+- **新增文档**：`seven-system非特化证据工厂研发过程文档/001-v0-2026-08-14-首轮完整实现声明审计后的整改实施技术说明.md`，冻结R0—R9整改顺序、Schema/Ed25519/授权链修复规格、依赖状态服务、真实但默认禁用adapter路径、攻击矩阵、逐包物证和独立复审准入条件。
+- **边界**：001号是阶段整改委托，不覆盖`seven-system/docs/implementation/`canonical契约，不构成AuditAssignment、D盘/DB/Redis/模型/Solver授权，也不产生任何`AUDITED_*`或科学PASS。
+
+### 363号升级为解题侧完整Goal路线图与证据总索引
+
+- 用户通过Codex `/goal`要求持续完成解题侧脉络理论、技术、文档、代码与运行资产，并进一步实现Trace/Tell/Hint积累、推理树、引导树、Grove三推动闭环、Seven冻结接口模拟、数据库准备和Seven前全链路golden slice。
+- 363号从原S1—S8模块路线升级为`SV-R0/S/K/T/X/G`总追踪器；VMS-39封存后完成S1多视图真值，主指针转为S2 Event Extractor资格化，K1/K2文件registry与分片合同允许并行离线设计。
+- 用户所述“16K上限”最初被标为`UNVERIFIED_USER_HYPOTHESIS`；官方文档未给数值，但VMS-39随后在冻结CLI/profile中实测16,384 bytes full、16,385 bytes开始显式截断。该值只限定短控制面，不是Tell/Trace容量常量。
+- 用户进一步决定：Trace/Tell积累不再依赖`AGENTS.md`；权威registry导出独立、内容寻址的分片文件，AI逐项产生结构化报告，机械verifier对账`expected_item_ids == reported_item_ids`并要求missing/duplicate/unknown全为0。`AGENTS.md`只保留短遍历协议、权限和Schema指针，VMS-39只研究该控制面的物理安全余量。
+- 新增`system/tests/solve_vein_analysis/README.md`作为自动测试与POC唯一证据索引；VMS-41 live与事后诊断链刚封存时基线为121项回归，VMS-41R1离线核心落盘后增至158项，不可变开发校准包及资源门闭合后增至174项。索引覆盖VMS-31—41历史物证/不可重跑边界、VMS-41R1修订资格化和VMS-42—52路线预留；今后未登记结果不得用于阶段晋级。
+- Trace/Tell文件分片进一步冻结为“不可变输入items文件 + append-only逐项分析文件 + cursor + coverage + completion”五件套；AI可以在分片内顺序遍历，但完成性只由输入/输出item集合、hash、ordinal和attempt lineage的机械对账证明，不能由AI自报。
+- **370号技术方案**：把用户提出的“一分片一个文件、AI逐项轮询并汇报”冻结为可实现合同：`items.jsonl`是唯一权威项集，AI不得改写；分析、cursor、coverage、completion物理分离。明确Trace事实账本、Tell版本/证据账本、Hint实例账本的不同身份，定义exact-set完成等式、失败恢复、D盘/CAS与DB分工、Seven冻结bundle边界及VMS-47最小POC矩阵。
+- **VMS-39静态Stage A**：新增零模型静态runner与7项回归；隔离HOME/XDG下，七个`AGENTS.md`从16,383到262,144 bytes均被`devin rules show`完整显示，故静态显示路径不存在16 KiB硬截断。CLI仍生成隔离日志/telemetry/config并尝试未认证remote-config重校验；首版receipt遗漏49个辅助文件且保留pre-rename绝对路径，原bundle不改，另建audit bundle哈希全部101文件。primary integrity PASS、整体`PARTIAL_UNINDEXED_AUXILIARY`。
+- **VMS-39 live Stage B**：按预注册顺序仅运行A16、A16P1、A32，并在观察到截断后补A16M1；四次均为`glm-5-2`、一次调用/零重试、唯一记账退出、exit 0。A16M1/A16 full exact，A16P1/A32显式报告16,384-byte truncation，A32严格前缀为16,384。A64/A128/A256按停止规则未运行。跨cell aggregate逐文件复核PASS，receipt file SHA=`b77b97e1…2dc1b`。
+- **VMS-40多视图真值**：366号先冻结五层真值、五种relation view、七个state axis、不可拆分alternative和MV1—MV6矩阵；随后实现`semantic_truth.py`并封存D盘一次性bundle。6 case/26 candidate与预注册Verdict全部一致，16项专项/91项全量测试PASS，独立verifier重算artifact为PASS，相同run ID重启被append-only门拒绝；该结论只关闭确定性真值合同，不资格化任何模型角色。
+- **VMS-41冻结前实现**：368号先行冻结资格化原则；随后实现四个未见case、隐藏acceptable set、严格Event Extractor grader、`0.4.0`角色资产、全新session/零重试runner、延迟gold、append-only seal及只读verifier。fake-Devin四case全链和封存后篡改拒绝通过，解题侧全量112项测试PASS，入题侧161文件基线不变。当前尚未生成preexecution freeze、真实模型调用为0，阶段仍为`FREEZE_READY / LIVE_NOT_STARTED`。
+- **VMS-41预注册**：首次freeze在零写入/零模型处暴露Python 3.14测试发现参数错误并fail-closed；修复、重跑112项测试后生成首次有效freeze。manifest SHA=`2ae350c6…b59e`，绑定90个文件、四case、四个exact attempt ID、Devin `glm-5-2` High、binary/catalog、用户级AGENTS控制面、唯一D盘结果根和零DB/Redis/Solver合同；零模型preflight PASS，当前为`PREREGISTERED_NOT_STARTED`、0 attempt consumed。
+- **VMS-41 live与事后诊断**：四个冻结one-shot attempt严格串行、fresh、exact `glm-5-2`、exit 0、零retry并全部封存；27/27 coarse anchors有映射，但四题均因exact count/direct edge/kind-status/MERGE等合同未通过，冻结机械0/4，协议`INCONCLUSIVE_PROTOCOL`，profile=`NOT_QUALIFIED`。工具审计确认false-merge与spiral有真实越界，battery只有旧slash正则伪阳性。因Master先看到机械结果，人工判断永久标`BREACHED_BEFORE_MANUAL_AUDIT / FAILURE_LOCALIZATION_ONLY / confirmation_eligible=false`；独立D盘诊断bundle receipt SHA=`c46c4d5f…1f0c`，121项测试及只读重放PASS。后续只能新建VMS-41R1合同、未见样本、freeze与attempt lineage。
+- **371号VMS-41R1设计、离线核心与开发校准**：保留历史v1不变，定义独立Candidate V2与AcceptableSet V2；取消唯一event count，以anchor quotient和结构化typed-path接受来源忠实的细粒度事件；拆分`status_at_occurrence/later_resolution`；MERGE需贡献对象、injective origin assignment和可选pairwise-incomparable frontier，并为candidate bytes/event/edge/path search设置fail-closed资源上限。离线V2 evaluator与联合file-effect auditor已落盘：后者以pre/post inventory发现残留变化、以结构化provider events发现create-then-delete/越界瞬态动作，不再扫描数学文本中的slash。新增不可变calibration pack与受限JSON Pointer mutation runner，13个candidate+6个file-effect场景逐轴零mismatch；expected漂移、成员篡改、额外文件、symlink与非法mutation均有反例。53项专项、174项全量回归PASS；calibration永久`DEVELOPMENT_ONLY`，当时全新未见qualification pack仍待完成，已由372号冻结补齐，live仍未授权。
+- **372号VMS-41R1未见qualification pack冻结**：冻结6个全新case、attempt IDs、阈值和盲审rubric；5个synthetic case覆盖legal extra path、temporal correction、true merge、reuse-not-merge与false-merge guard，1个真实Solver raw case来自`p48cc0b3636be4b9990a9`的GF(2)+pagoda折返融合片段，不复用VMS-41 source IDs。新增`build_vms41r1_qualification_pack.py`、`qualification_fixtures/vms41r1/`和9项回归；hidden acceptable set/reference candidates/negative checks不进入public case manifests。Reference self-check 6/6机械PASS且最高仍为`PENDING_BLIND_MANUAL_AUDIT`，4/4负向mutation按预期FAIL/INVALID；pack manifest SHA=`ac270b0a6aadceae18c141200a8fd7abbbbfb4c2272b4b6e92c43350ffee020b`；62项V2专项、183项全量回归PASS。模型、DB、Solver调用仍为0，live资格实验仍未授权。
+- **VMS-41R1零模型preexecution freeze**：新增`system/assets/solve_vein_analysis/releases/0.4.1/`作为V2 Event Extractor角色资产，candidate-visible shape改为`reasoning-trajectory-candidate-v2.json`，明确occurrence、typed forward relations、发生时status/后来resolution和MERGE contribution合同；新增`freeze_vms41r1_event_extractor_preexecution.py`与`live_fixtures/poc_vms_41r1.freeze.json`，绑定0.4.1资产、6个attempt IDs、qualification pack、hidden grader物证和盲审rubric，freeze SHA=`37a9fa407be5341305fe61fe63e5a26894d98271c7d7bd3480e6413d0d7295ad`。新增5项prefreeze回归，V2专项增至67项、全量增至188项PASS；该freeze仍授权0次模型/Devin session/DB/Solver调用，live runner与盲审封存协议仍待设计且需新授权。
+- **VMS-41R1 live runner shell零模型门**：新增373号live runner与盲审封存协议，落地`run_vms41r1_event_extractor_qualification.py`零模型runner shell；默认preflight停在`READY_FOR_AUTHORIZATION / NOT_AUTHORIZED`，检查6个attempt workspace计划、public/hidden分离、freeze绑定和零副作用，`--execute`在无授权时exit 2并报`LIVE_NOT_AUTHORIZED`。新增6项runner回归，V2专项增至73项、全量增至194项PASS；模型/Devin session/DB/Solver调用仍为0，下一步只能设计LiveRunPermit、盲审包与人工授权接口。
+- **VMS-41R1 LiveRunPermit/盲审包零模型计划**：新增374号计划协议和`build_vms41r1_live_permit_review_plan.py`；从freeze+runner preflight确定性派生不可消费plan，强制`permit_consumable=false`、`authorized_live_attempts=0`，并锁定Reviewer可见文件集、hidden acceptable/reference/threshold/rubric隔离和“sealed manual judgment后才能hidden join”的顺序。新增6项permit/review plan回归，V2专项增至79项、全量增至200项PASS；模型/Devin session/DB/Solver调用仍为0，live仍未授权。
+- **VMS-41R1 sealed manual judgment合同**：新增375号协议和`vms41r1_manual_judgment_contract.py`；冻结未来人工盲审结果的case/attempt绑定、blinding attestation、六轴Verdict、`MANUAL_PASS`全轴PASS约束和CLI验证入口。新增7项manual judgment contract回归，V2专项增至86项、全量增至207项PASS；仍不导入真实review、不运行hidden grader、不资格化模型，live仍未授权。
+- **VMS-41R1 hidden join simulator**：新增376号协议和`vms41r1_hidden_join_simulator.py`；用synthetic sealed manual judgment与hidden reference candidate跑通“先人工合同验证、后hidden mechanical join”的development-only链，negative mutation不能join PASS。新增5项hidden join simulator回归，V2专项增至91项、全量增至212项PASS；仍不使用真实live输出、不导入真实review、不授权live。
+- **VMS-41R1 fake live bundle / blind review package materializer**：新增377号协议和`vms41r1_fake_live_bundle_materializer.py`；从reference candidates派生非live candidate-output manifest、DONE hash和Reviewer可见包hash集合，证明hidden acceptable/reference/threshold/rubric不进入Reviewer包。新增4项fake materializer回归，V2专项增至95项、全量增至216项PASS；仍不写真实bundle、不使用真实Devin输出、不授权live。
+- **VMS-41R1 final qualification join receipt**：新增378号协议和`vms41r1_final_qualification_join_receipt.py`；把fake materializer与hidden join simulator按case/attempt/candidate hash合并，证明candidate hash mismatch、非零副作用和negative mutation均不能资格化profile。新增5项final join receipt回归，V2专项增至100项、全量增至221项PASS；最终仍为`NOT_QUALIFIED_LIVE_NOT_AUTHORIZED`，live仍需新的明确人签LiveRunPermit。
+- **VMS-41R1 fake bundle append-only dry-run**：新增379号协议和`vms41r1_fake_bundle_append_only_dry_run.py`；在显式临时输出根真实写出Reviewer可见文件和bundle manifest，拒绝重复写、repo输出根与symlink输出根，证明hidden文件不落包。新增5项fake bundle dry-run回归，V2专项增至105项、全量增至226项PASS；仍不使用真实Devin输出、不导入真实review、不授权live。
+- **VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final receipt、unseen extension与DAG sidecar**：新增380号预注册协议和`system/solve_vein_analysis/state_normalization.py`；把VMS-35/VMS-40暴露的“单一canonical state吞掉问题义务、策略、表示、知识状态、生命周期”等缺口改为多轴状态绑定，保留legacy projection但禁止用投影替代轴级约束。冻结`vms42_cases.json`两例四候选，覆盖同problem不同strategy/knowledge、同projection不同representation/lifecycle、must-link/cannot-link/exact-value与unknown-alias fail-closed；新增8项core回归。随后新增381号和`build_vms42_state_normalizer_pack.py`，从同一冻结fixture派生public manifest、hidden manifest、2个reference、2个negative check rows和零副作用receipt，证明public/hidden分离、expected verdict drift和public hash drift都会fail-closed；新增7项pack回归。再新增382号和`vms42_state_normalizer_hidden_join.py`，只接收candidate bundle并在hidden端读取dictionary/acceptable set评分，拒绝public hash mismatch、candidate hash mismatch和hidden key leak；reference bundle PASS但development-only，negative bundle FAIL并保留；新增8项hidden join回归。383号和`vms42_state_normalizer_manual_judgment_contract.py`冻结未来sealed reviewer judgment对象，要求绑定public manifest、candidate bundle和reviewed candidate rows，强制Reviewer未见dictionary/acceptable/reference/hidden join result，并检查六轴Verdict一致性；新增10项reviewer judgment回归。384号和`vms42_state_normalizer_final_join_receipt.py`进一步合并manual reviewer judgment与hidden join receipt，证明任一侧FAIL必须保留为final FAIL，双PASS也只能得到development-only非资格化receipt；新增8项final join回归。385号和`build_vms42_state_normalizer_unseen_pack.py`新增2个未见case/4个candidate，强制与原fixture case/candidate ID不重叠，证明expected verdict漂移、ID重叠和public/hidden泄漏都会fail-closed；新增8项unseen extension回归。386号和`state_normalized_dag.py`新增DAG writeback sidecar，要求PASS normalized bundle hash绑定到PASS evaluation，所有occurrence必须存在于ReasoningDag，并按DAG topological order生成annotation bundle且不改写DAG本体；新增8项DAG sidecar回归，全量解题侧测试增至283项PASS。该结论只证明确定性state normalizer、资格包、hidden join、reviewer judgment、final receipt、unseen extension与DAG sidecar合同形状，不调用模型/DB/Solver，不执行真实review，不资格化任何抽取角色；随后已进入VMS-43 Trace Auditor结构审计。
+- **VMS-43 Trace Auditor结构审计零模型合同**：新增387号协议和`system/solve_vein_analysis/trace_auditor.py`；在已结构化ReasoningDag上机械观察`LINEAR_PROGRESS / BRANCH_EXPLORATION / FAILED_BRANCH / REVISIT_WITH_NEW_INFORMATION / CROSS_BRANCH_REUSE / TRUE_MERGE / RECOVERY_AFTER_CONTRADICTION`七类trace family，并在提供State Normalizer sidecar时验证DAG hash、annotated occurrence集合与topological order兼容。新增synthetic complex DAG demo覆盖branch、failure、revisit、merge与recovery；缺少必需family时输出科学FAIL，未知family、DAG edge端点缺失、edge ID重复、sidecar hash/order漂移均fail-closed。新增10项Trace Auditor回归，全量解题侧测试增至293项PASS。该结论只证明结构审计合同，不从自然语言抽取event，不判断证明正确性，不调用模型/DB/Solver，不资格化任何抽取或审计角色；下一步是Trace Auditor qualification pack或VMS-42/43角色资产preexecution freeze。
+- 既有入题侧代码、运行资产和历史物证继续冻结；本轮只启动了VMS-39四个隔离Devin认知canary，没有启动目标Solver，没有连接或写入DB/Redis。
+
+### 348-357号与解题侧Devin认知前端：来源合同复现和tmux交互调试档
+
+- **触发**：用户要求先回源入题侧如何使用Devin CLI，不得从头猜测；随后指出入题侧还有tmux交互运行方式，可实时观察thinking spin和输出，适合POC与调试，并要求运行期间不要前台空等，应继续更新文档再检查状态。
+- **回源结论**：入题侧先物化独立工作目录与`AGENTS.md`，以Devin直接写阶段文件和`DONE.md`；tmux便于观察，但旧实现存在prompt shell插值与DONE后过早kill导致export缺失的竞态。解题侧不复制旧实现，只吸收其已验证的工作目录/直接写文件/交互观察经验。
+- **POC-VMS-35**：预注册后仅移除Devin sandbox，使用`glm-5-2`/High、dangerous、三角色各一次、无重试、角色间75秒冷却。三次进程均exit 0、均写出严格JSON、均有可解析export和exact model；总判仍为`INCONCLUSIVE_PROTOCOL`，因为normalizer的DONE语法不精确且gold/聚合策略出现语义反例。该结果只支持文件写入合同，不资格化角色。
+- **tmux运行档**：新增`tmux_runtime.py`，以私有tmux socket/session、结构化argv、独立workspace/config/export启动交互Devin；支持append-only pane/health snapshot、allowlist按键干预、dead-pane后finalize和显式ABORT封存。交互档永久为`DEVELOPMENT_ONLY`。
+- **测试与资产**：新增真实tmux+fake Devin的正常退出、重载handle、abort和sandbox错档测试；解题侧全量47项PASS。运行资产发布文档型`0.1.1`，三个角色prompt与0.1.0字节相同；manifest本身仍不声明live资格。
+- **POC-VMS-36**：唯一一次tmux实机捕获到Thinking、GLM-5.2 High、上下文用量、工具调用与权限错误，exact model/export可观察；但live workspace位于repo内，被专用config的repo deny规则拒绝读取自身输入，故无输出/DONE，未发送不合规`/exit`，最终显式ABORT并保留5组snapshot/capture。局部可观测性受支持，总体`INCONCLUSIVE_PROTOCOL`。
+- **POC-VMS-37**：唯一一次D盘外置workspace实跑证明D卷preflight、private tmux、dangerous/bypass、GLM-5.2 High和exact export可用；但专用config中的`Read(/Volumes/**)`又拒绝自身workspace，且runner历史默认值使receipt误记VMS-36 attempt ID。未产生输出/DONE，未发送`/exit`，显式ABORT，总体`INCONCLUSIVE_PROTOCOL`。
+- **用户权限裁决落地**：解题侧Devin认知角色继续使用no-sandbox + `dangerous`/YOLO，可读/可写/禁止动作写入每个workspace的冻结`AGENTS.md`并用tool events审计。删除会阻断自身工作区的repo/Volumes广泛Read deny，保留网络、递归AI、git和破坏性执行deny；资产集升为候选`0.3.0`，live资格仍`NOT_TESTED`。
+- **tmux runner身份硬化**：`--attempt-id`改为必填且必须精确绑定POC ID，禁止再沿用历史默认值污染receipt。
+- **POC-VMS-38预注册与启动**：冻结新资产集`0.3.0`、D盘workspace、no-sandbox + dangerous/bypass、`glm-5-2` High、AGENTS工作区权限、精确attempt ID、一次调用/零重试和DONE后唯一退出动作。freeze的10个文件与48项回归通过后，已于`2026-08-14T14:50:02Z`消费唯一start权利；禁止原ID重试。
+- **POC-VMS-38最终结果**：唯一attempt生成严格`reasoning-trajectory.json`与有效DONE，effective model为`glm-5-2`/GLM-5.2 High；原始ATIF的7次tool call全部在本次D盘workspace内，唯一有记录的`/exit`后exit 0并原子封存。总判`SUPPORTED_WITHIN_DEBUG_CANARY / DEVELOPMENT_ONLY`，不资格化角色。
+- **VMS-38事后科学投影**：既有冻结evaluator给出strict/source/span PASS、occurrence 10/10、真合流2/2、误合流0，但typed-edge recall为9/13且旧gold所要求的revisit边未满足，故仅记探索性`PARTIAL`。差异进入acceptable-set/多视图gold设计，不围绕已见输出改成PASS。
+- **ATIF摘要反例与修复**：VMS-38历史final receipt把13个ATIF-v1.7 step误记为0，并把7次tool call双计为15。历史bundle保持不可变；运行后`inspect_export()`改为识别顶层steps且只计实际tool集合，新增ATIF-v1.7精确计数回归，现行基线增至49项。
+- **D盘运行根**：核对D卷README、APFS/UUID/device/空间后，新增`/data/master-mind-solve-vein-data/`及其README、`poc-results/`、`quarantine/`。它不属于Seven、题海或入题侧；tmux live/final bundle同设备，禁止fallback。
+- **文档**：新增348-362号研发链，更新`system/docs/solve_vein_analysis.md`、runbook、`system/README.md`、docs索引与references。VMS-36/37/38都已封存且不得重跑；362号分开记录调试执行合同SUPPORTED、角色资格NOT TESTED与历史摘要计数CONTRADICTED。
+- **后续任务追踪**：新增363号作为解题侧非线性脉络主线的唯一任务追踪真值源，冻结S1多视图真值、S2—S4角色资格、S5 batch组合、S6 streaming、S7动态FCA/RCA及后续Registry/双树/Seven接入的依赖与阶段门；VMS-39—40已完成，VMS-41已进入冻结前收口，VMS-42—52仍为待预注册路线。建立时指针为`SV-S2.2`，最新指针以363号和`363-route-lock.json`为准。
+
+### 344-347号与system解题侧非线性脉络分析：独立DAG/FCA/RCA-style POC
+
+- **触发**：用户指出入题侧只处理线性成品解答，而真实Solver会分叉、失败、折返、跨分支复用和多父合流；同时明确禁止修改入题侧代码及其各管线`AGENTS.md`运行资产，要求借鉴经验后独立搭建解题侧代码、资产、测试、理论、技术与POC文档。
+- **理论决策**：将“推理事件DAG”“观察/分区层”“FCA概念格”分成三个不可互相覆盖的对象；occurrence identity与canonical mathematical-state identity分离；FCA负责属性闭包，显式有类型边负责时序/因果/折返/合流；首版只称RCA-style存在量词关系尺度，不冒充完整RCA/Multi-FCA。
+- **独立实现**：新增`system/solve_vein_analysis/`、`system/assets/solve_vein_analysis/`、`system/tests/solve_vein_analysis/`，没有导入或修改`system/vein_analysis.py`、`process_absorb.py`、`enter.py`及`system/assets/vein_analysis/`。提供严格事件合同、typed DAG、状态/转移FCA、Next Closure+独立oracle、关系属性provenance、七类trace、批/增量等价参考与原子CLI封存。
+- **POC结果**：五个预注册fixture全部exact graph/trace/FCA/批增量PASS，31项自动测试PASS；线性压平在4/4非线性案例损失至少75%精确类型边，单父树在折返/合流3例损失20%—25%。入题侧冻结161文件聚合哈希前后均为`9bb4fd2551d13f196610ddf8e203ad96b0855f3337f6c4e6502f6c764eafd6b3`，逐文件清单已保存到解题侧测试目录。
+- **严格边界**：`POC_VMS_31_OFFLINE_STRUCTURE=PASS`；`SOLVE_SIDE_NONLINEAR_VEIN_PIPELINE_END_TO_END=PARTIAL`；raw thinking抽取、Devin/Codex live角色、Solver/DB接入和规模性能均`NOT_TESTED`。
+- **文档与入口**：新增第六代研发文档344-347号；新增`system/docs/solve_vein_analysis.md`与`solve_vein_analysis_runbook.md`；同步`system/README.md`、`system/docs/README.md`和`system/docs/references.md`。
 
 ### 387/389号与Seven实现手册：目标Solver专用执行面 + Devin/Codex双认知载体
 
