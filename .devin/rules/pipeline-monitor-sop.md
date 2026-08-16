@@ -27,9 +27,23 @@
 1. 启动Pipe（launcher在tmux中运行）
 2. 启动Monitor Pipe（在tmux中运行，interval=300s）
 3. Monitor Pipe每5分钟自动检查，发现问题→写alert到monitor_alerts集合
-4. AI定期查看alerts（`python -m src.monitor_pipe --batch-id X --check-alerts`）
+4. **AI定期用标准化脚本检查**（`./scripts/monitor_check.sh <batch_id>`）——禁止inline编写检查命令
 5. AI recheck flagged items，修复问题，标记alert为fixed
 6. Pipe完成后，Monitor Pipe自动退出
+
+## 标准化检查脚本
+
+**脚本路径**：`analysis-devin-failure-system/scripts/monitor_check.sh`
+
+**用法**：`./scripts/monitor_check.sh <batch_id> [monitor_tmux_session]`
+
+**输出4项检查**：
+1. **Monitor Pipe pane输出**——最近5轮的轮次、ALERT、AI_REVIEW抽样结果、状态报告
+2. **alerts集合**——新alert（通过`--check-alerts`）
+3. **进程状态**——launcher和monitor_pipe进程是否在运行、CPU/ELAPSED/STAT、tmux au-sessions数量
+4. **进度**——DB状态分布、总完成数、失败数、失败率（>10%自动WARNING）
+
+**为什么标准化**：避免每次监控时inline编写检查命令——inline编写容易遗漏检查项（如只看alerts不看pane输出、只看进度不看进程状态），标准化后每次检查都包含全部4项。
 
 ## 反模式
 - 启动Pipe后只看数量不看内容（completed=N就认为正常）
