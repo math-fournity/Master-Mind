@@ -776,6 +776,15 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 
 > 本节是**临时性**的，用于跨压缩边界保持当前活跃任务的完整工作意识。任务完成后清空，把需要长期保持的认知迁移到TODO或Memory Section。
 
+### 当前任务：错题分析系统selfrun载体接替（2026-08-16起·活跃）
+
+devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）的分析/审计AI由ZCode主会话+subagent顶替，现有流水线零改动。进度：1579/3180题完成，剩余polymath 1433可放量、deepmath/oda 168待修data_collector题文错位缺陷。
+
+- **主交接文档**：`任务追踪/08-错题分析系统selfrun载体接替.md`（进度游标/坑清单/恢复命令）
+- **操作手册**：`analysis-devin-failure-system/docs/selfrun-workflow.md`（机制/验证记录/交接与恢复节）
+- **核心机制**：`selfrun_driver.py plan`生成任务文件→每波派3个subagent→`sweep --ingest`入库；每~100题`recheck`双盲复测（d1一致率≥80%阈值）
+- **两个必须知道的坑**：①insert_result纯insert，禁止全量重跑collect（结果翻倍），增量只走collect-delta；②devin时代audit-launcher僵尸服务若仍在跑需先停（failed_stall任务可被selfrun回收）
+
 ### 当前任务：第六代系统研发
 
 **任务背景**：第五代系统技术说明书50个文件已全部完成。当前进入第六代系统研发阶段——围绕非局部tell、FCA数学基础、并发Telling AI、Pipe 0简化+Pipe 2并行化等方向展开。

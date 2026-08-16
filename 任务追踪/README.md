@@ -19,6 +19,9 @@
        │         │
        │         ├──→ 02-trajectory采集与solver-harness（实验基础设施）
        │         │    任务追踪/02-trajectory采集与solver-harness.md
+       │         │         │
+       │         │         └──→ 08-错题分析系统selfrun载体接替（分析题海失败题）
+       │         │              任务追踪/08-错题分析系统selfrun载体接替.md
        │         │
        │         └──→ 05-题目侧写Profiling系统（效率工具·低优先级）
        │              任务追踪/05-题目侧写Profiling系统.md
@@ -56,6 +59,7 @@
 | 起源工作线 | 派生工作线 | 说明 |
 |---|---|---|
 | 03-VMS-POC验证 | 05-题目侧写Profiling系统 | 03的POC-VMS-7g找题时逐个阅读675道题效率极低→启动05建设侧写系统 |
+| 02-trajectory采集与solver-harness | 08-错题分析系统selfrun载体接替 | 题海Solver批量运行产生大量失败题及trajectory→启动08分析失败原因；2026-08-16 devin cli载体失效，转为ZCode selfrun载体接替 |
 
 ## 工作线详情
 
@@ -118,6 +122,15 @@
 - **关键文档**：08号先验Tell分类学、09号IMO2024P5对比、336/337号认知跃迁、340号当前最前沿
 - **认知跃迁**：分类学不是"把东西放进盒子"（加速机制），而是"排除机制"——高Level概念是坐标轴，始终在场，不是被分类的点
 - **起源**：第六代系统研发——313号启动文档（forest-olive创建），本工作线在此基础上做分类学理论建设
+
+### 08-错题分析系统selfrun载体接替
+
+- **任务追踪**：`任务追踪/08-错题分析系统selfrun载体接替.md`
+- **目标**：完成3180道失败题的方向/卡点分析（Pipe 1）+质量审计（Pipe 2）；devin cli载体失效后由ZCode主会话+subagent顶替，现有流水线零改动
+- **状态**：1579/3180完成；流程已固化并验证（格式100%、双盲一致率80%）；剩余polymath 1433可放量，deepmath/oda 168待修数据缺陷
+- **代码**：`analysis-devin-failure-system/src/selfrun_intake.py`（intake）+ `src/selfrun_driver.py`（波次调度）+ `templates/selfrun_subagent_task.md` v3（判定规则）
+- **关键发现**：data_collector的deepmath/oda题文查找错位（solver侧数据完好）；audit僵尸服务仍在运转
+- **起源**：02工作线的题海Solver批量运行产生失败题→启动本线分析失败原因
 
 ## 起源链
 
