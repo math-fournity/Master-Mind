@@ -3406,12 +3406,11 @@ polymath_01687（置换多项式问题）：
 2. **XML解析陷阱**：devin cli输出的XML中可能包含数学公式的`<`和`>`符号（如`F_{p^k}`、`x < p`），导致标准`xml.etree.ElementTree`解析失败。**修复方法**：标准解析失败时，用正则`r"<{tag}>(.*?)</{tag}>"`逐字段提取8个目标字段。
 
 3. **devin cli的行为特点**：
-   - devin cli会自动调用`read`工具读AGENTS.md（即使prompt要求不调用工具）——这是预期行为，不影响分析
    - devin cli的输出在TUI中显示，tmux_pipe.log会记录但充满ANSI转义码——需要去掉ANSI后再提取XML
    - devin cli可能不严格按照模板格式输出XML——它可能用更复杂的嵌套结构，但8个目标字段通常都有
-   - devin cli完成分析后会显示"Ask Devin to build features"（等待新输入），不会自动退出
+   - 用`-p`单轮模式时，devin cli完成后自动退出（不需要等待新输入）；pane中有`DEVIN_CLI_EXITED code=0`标记
 
-4. **--export不生成文件**：`devin --export`参数在TUI模式下可能不生成conversation.json（原因待查）。**当前方案**：用tmux_pipe.log作为主要数据源，去掉ANSI转义码后提取XML。
+4. **--prompt-file注入大prompt文件**（重要）：当AGENTS.md > 15KB时，超出devin cli的rules注入token限制，devin cli会显示"could not be injected due to token limits. Read them using the read_file tool"，然后AI调用read工具读AGENTS.md。这会导致：(a) 每个run多1-2次API请求（read工具调用）；(b) AGENTS.md内容累积到prompt中，后续请求prompt体积翻2-4倍（从~20K tokens涨到42-75K tokens）；(c) 30并发同时read → rate limit。**修复方法**：用`devin -p --prompt-file <AGENTS.md>`代替`devin -p 'prompt'`，直接把AGENTS.md内容作为初始prompt注入，绕过rules机制，devin cli不需要read工具。单例测试验证：72KB的AGENTS.md用`--prompt-file`注入，0 tool_calls，10秒内输出完整XML。
 
 5. **tmux session命名**：tmux session名不能含点号（`.`），且不超过50字符。analysis_launcher中用`an-{analysis_exp_id[:48]}`命名，将点号替换为连字符。
 
