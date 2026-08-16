@@ -3062,7 +3062,7 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 |---|---|---|
 | 数据收集 | `src/data_collector.py` | 从ArangoDB获取失败题列表，从7个题库获取标准答案，从trajectory获取thinking（4级优先级），构造AGENTS.md，写入prepared.json+DB（analysis_batches+analysis_runs，status=prepared） |
 | 选题入队 | `src/feeder.py` | 独立进程，从DB取status=prepared的run，写入Redis pending队列，水位机制自动补充，更新DB为queued（对应solver_harness的feeder.py） |
-| 并发启动 | `src/analysis_launcher.py` | 从Redis pending队列dequeue取题→从DB查run记录获取work_dir→并发启动devin cli（tmux），监控运行状态，检测完成/基础设施错误/timeout/stall，DB+Redis双写 |
+| 并发启动 | `src/analysis_launcher.py` | 从Redis pending队列dequeue取题→从DB查run记录获取work_dir→并发启动devin cli（tmux，用`--prompt-file`注入AGENTS.md避免read工具调用），3秒启动间隔避免rate limit，监控运行状态，检测完成/基础设施错误/timeout/stall，DB+Redis双写 |
 | 结果收集 | `src/result_collector.py` | 从tmux_pipe.log去掉ANSI转义码后提取`<analysis>...</analysis>` XML块，用正则逐字段解析 |
 | 汇总 | `src/aggregator.py` | 按维度1/维度2统计，输出JSON报告+CSV |
 | DB | `src/db_schema.py` | ArangoDB 5集合+6个操作函数（见下方数据库安排） |
@@ -3115,7 +3115,7 @@ aggregator.py         ← 汇总所有分析结果，按维度1/维度2统计
 | `monitoring/shared_logger.py` | 共享日志基础设施（1MB分片+1GB总量+循环滚动） | `pipe/shared_logger.py` |
 | `monitoring/redis_queue.py` | Redis 5队列封装（pending/running/completed/failed/stats） | `pipe/redis_queue.py` |
 | `monitoring/retry_infrastructure.py` | 基础设施失败自动重试（扫描failed队列，重试infra失败） | `pipe/retry_infrastructure.py` |
-| `monitoring/analysis_control.py` | 控制工具（status/health/stop/stop-all/logs/set-concurrency/retry） | `pipe/pipe_control.py` |
+| `monitoring/analysis_control.py` | 控制工具（start/stop/status/health/logs/set-concurrency/retry） | `pipe/pipe_control.py` |
 | `monitoring/query_progress.py` | 进度查询（概览/批次/题目/实验） | `pipe/query_progress.py` |
 | `monitoring/query_failures.py` | 失败分类统计（by-verdict/turning-point/source/batch） | `pipe/query_failures.py` |
 | `monitoring/verify_completeness.py` | 数据完备性验证（ids/files/tmux/db-sync/redis-sync） | `pipe/verify_completeness.py` |
@@ -3168,9 +3168,17 @@ python -m monitoring.reporter --interval 60
 python -m monitoring.analysis_control set-concurrency --batch-id analysis-1 --concurrency 20
 # launcher下一轮poll时自动生效，无需重启
 
-# 停止
-python -m monitoring.analysis_control stop --batch-id analysis-1
-python -m monitoring.analysis_control stop-all
+# 启动（一键：feeder入队+launcher启动+retry服务启动）
+python -m monitoring.analysis_control start --batch-id analysis-1 --concurrency 30
+python -m monitoring.analysis_control start --batch-id analysis-1 --concurrency 30 --clear  # 清空Redis后启动
+python -m monitoring.analysis_control start --batch-id analysis-1 --concurrency 30 --no-feed  # 不自动feeder
+
+# 停止（默认优雅退出服务，保留an-分析session等自然完成）
+python -m monitoring.analysis_control stop
+python -m monitoring.analysis_control stop --force              # 强制kill服务
+python -m monitoring.analysis_control stop --kill-sessions      # 同时kill an-分析session
+python -m monitoring.analysis_control stop --force --kill-sessions  # 全部强制停止
+python -m monitoring.analysis_control stop-all                  # 兼容旧命令（强制kill全部）
 
 # 日志
 python -m monitoring.analysis_control logs --lines 50
@@ -3420,7 +3428,11 @@ polymath_01687（置换多项式问题）：
 
 8. **异常处理对齐solver_harness**：launcher现在检测3类基础设施错误（rate_limited/failed_connection/dead_session）+2类模型失败（timeout/stall）。基础设施失败通过`retry_infrastructure.py`自动重试（max_retries=3），模型失败不重试。关键：dead_session检测——之前tmux session退出一律算completed，现在区分有完成标记=completed vs 无完成标记=dead_session（可重试）。
 
-9. **feeder+launcher分离架构**：错题分析系统现在对齐solver_harness的feeder+runner分离架构——feeder从DB取prepared的run入Redis pending队列，launcher从pending队列dequeue取题启动。retry_infrastructure重新入pending队列的题，launcher能自然取到（解决了之前重试后题目无法重新启动的问题）。run_pipeline.py的launch步骤会先feeder入队再launcher启动。
+9. **feeder+launcher分离架构**：错题分析系统现在对齐solver_harness的feeder+runner分离架构——feeder从DB取prepared的run入Redis pending队列，launcher从pending队列dequeue取题启动。retry_infrastructure重新入pending队列的题，launcher能自然取到（解决了之前重试后题目无法重新启动的问题）。`analysis_control start`一键启动feeder+launcher+retry，`stop`一键优雅停止。
+
+10. **一键启停对齐solver_harness**（重要）：`analysis_control.py`现在对齐solver_harness的`pipe_control.py`——`start`一键启动feeder入队+launcher（tmux session）+retry服务（auto-restart tmux session），`stop`发SIGINT优雅退出launcher/retry（等10秒，超时才kill），默认保留an-分析session等自然完成（`--kill-sessions`才kill）。launcher不auto-restart（批处理任务处理完退出），retry auto-restart（长期运行自动重试基础设施失败）。
+
+11. **--prompt-file注入大prompt**（重要，见经验教训第4条）：launcher用`devin -p --prompt-file AGENTS.md`代替`devin -p 'prompt'`，直接把AGENTS.md作为初始prompt注入，绕过rules注入token限制，避免devin cli调用read工具读AGENTS.md导致prompt体积翻倍和rate limit。3秒启动间隔避免API rate limit（对齐solver_harness runner.py）。
 
 ### 运行前检查清单（未来session接手时执行）
 
@@ -3445,7 +3457,9 @@ python -m monitoring.analysis_control logs --lines 20
 
 # 5. 如果要大规模运行，先小规模测试
 python run_pipeline.py --batch-id smoke-test --step collect --limit 5
-python run_pipeline.py --batch-id smoke-test --step launch --concurrency 2 --max-runtime 300
+python -m monitoring.analysis_control start --batch-id smoke-test --concurrency 2 --clear
+# 等launcher处理完（tmux session退出后表示完成）
+python -m monitoring.analysis_control stop  # 停止retry服务
 python run_pipeline.py --batch-id smoke-test --step collect-results
 python run_pipeline.py --batch-id smoke-test --step aggregate
 # 确认smoke-test通过后再大规模运行
@@ -3464,18 +3478,11 @@ python -m monitoring.analysis_control health  # 6项全部OK
 python run_pipeline.py --batch-id full-analysis --step collect
 # 产出：prepared.json + analysis_batches记录 + analysis_runs记录（20+字段，新schema）
 
-# 2. 启动分析（feeder+launcher分离架构）
-# 方式A：一体化模式（run_pipeline自动feeder入队+launcher启动）
-python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 --max-runtime 300
-# 产出：launch_results.json + Redis队列实时统计 + analysis_runs状态更新（DB+Redis双写）
-
-# 方式B：分离模式（推荐大规模运行，feeder和launcher各一个tmux session）
-# tmux 1: feeder持续运行，保持pending水位
-tmux new-session -d -s analysis-feeder "python -m src.feeder --batch-id full-analysis --low-water-mark 100 --poll-interval 5"
-# tmux 2: launcher从pending队列取题启动
-tmux new-session -d -s analysis-launcher "python -m src.analysis_launcher --batch-id full-analysis --concurrency 15 --max-runtime 300"
-# 方式C：launcher的--auto-feed模式（一次性入队+启动）
-python -m src.analysis_launcher --batch-id full-analysis --concurrency 15 --max-runtime 300 --auto-feed
+# 2. 一键启动分析系统（feeder入队+launcher启动+retry服务启动）
+python -m monitoring.analysis_control start --batch-id full-analysis --concurrency 30 --clear
+# 启动后launcher在tmux session中运行，处理完所有题后自动退出
+# retry服务auto-restart，长期运行自动重试基础设施失败
+# 3秒启动间隔避免rate limit（对齐solver_harness）
 
 # 3. 运行中监控（另开终端）
 python -m monitoring.reporter --interval 60          # 定时报告+告警
@@ -3488,31 +3495,33 @@ python -c "from monitoring.redis_queue import *; r=get_redis(); print(get_stats(
 python -m monitoring.query_progress --batch-id full-analysis
 python -m monitoring.query_failures --summary
 
-# 3b. 启动重试服务（另开终端，可选但推荐）
-# 自动重试基础设施失败（rate_limit/connection_error/dead_session）
-python -m monitoring.analysis_control retry --interval 120
-# 或一次性扫描：
-python -m monitoring.analysis_control retry --once
+# 3b. 动态调整并发（运行中可调，无需重启launcher）
+python -m monitoring.analysis_control set-concurrency --batch-id full-analysis --concurrency 20
 
-# 4. 收集结果
+# 4. 优雅停止（默认保留an-分析session等自然完成）
+python -m monitoring.analysis_control stop
+# 强制停止所有（包括an-分析session）：
+python -m monitoring.analysis_control stop --force --kill-sessions
+
+# 5. 收集结果
 python run_pipeline.py --batch-id full-analysis --step collect-results
 # 产出：collected_results.json + analysis_results记录 + analysis_runs状态更新
 
-# 5. 验证结果完整性
+# 6. 验证结果完整性
 python -m monitoring.verify_result_integrity --batch-id full-analysis
 python -m monitoring.verify_completeness --all --batch-id full-analysis
 python -m monitoring.audit_trace --all --batch-id full-analysis
 
-# 6. 汇总报告
+# 7. 汇总报告
 python run_pipeline.py --batch-id full-analysis --step aggregate
 # 产出：aggregated_report.json + aggregated_report.csv
 
-# 7. 最终验证
+# 8. 最终验证
 python -m monitoring.query_failures --summary
 python -m monitoring.query_failures --export --output full-analysis-results.json
 ```
 
-**预估**：每道题分析约1-3分钟，15并发约3000题/小时，4325道约需1.5小时。
+**预估**：每道题分析约1-3分钟，30并发约6000题/小时，4325道约需45分钟。
 
 **断电恢复**：如果运行中断电或launcher异常退出：
 ```bash
@@ -3521,10 +3530,7 @@ python -m monitoring.recover_from_crash --dry-run
 # 2. 执行恢复（清理running记录，kill僵尸session）
 python -m monitoring.recover_from_crash
 # 3. 恢复后重新启动——feeder只入队status=prepared的run，不会重复启动已completed的题
-python -m src.feeder --batch-id full-analysis --once
-python -m src.analysis_launcher --batch-id full-analysis --concurrency 15 --max-runtime 300
-# 或一体化模式：
-python run_pipeline.py --batch-id full-analysis --step launch --concurrency 15 --max-runtime 300
+python -m monitoring.analysis_control start --batch-id full-analysis --concurrency 30
 ```
 
 ### 待解决问题
