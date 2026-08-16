@@ -3696,6 +3696,7 @@ else:
 | 轮6 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。覆盖4题库，d1分布：3 DIRECTION_ERROR + 1 PARTIAL_PROGRESS + 1 TOKEN_LIMIT。 | — |
 | 轮7 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。d1分布：3 DIRECTION_ERROR + 2 PARTIAL_PROGRESS。 | — |
 | 轮8 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。d1分布：4 DIRECTION_ERROR + 1 TOKEN_LIMIT。 | — |
+| 轮9 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。d1分布：4 DIRECTION_ERROR + 1 TOKEN_LIMIT。首次出现d2=p_adic_valuation。 | — |
 
 ### 待解决问题
 
