@@ -20,8 +20,11 @@
        │         ├──→ 02-trajectory采集与solver-harness（实验基础设施）
        │         │    任务追踪/02-trajectory采集与solver-harness.md
        │         │         │
-       │         │         └──→ 08-错题分析系统selfrun载体接替（分析题海失败题）
-       │         │              任务追踪/08-错题分析系统selfrun载体接替.md
+       │         │         ├──→ 08-错题分析系统selfrun载体接替（分析题海失败题）
+       │         │         │    任务追踪/08-错题分析系统selfrun载体接替.md
+       │         │         │
+       │         │         └──→ 09-解题侧脉络分析新方案执行（消费D盘历史trajectory做golden slice）
+       │         │              任务追踪/09-解题侧脉络分析新方案执行.md
        │         │
        │         └──→ 05-题目侧写Profiling系统（效率工具·低优先级）
        │              任务追踪/05-题目侧写Profiling系统.md
@@ -60,6 +63,7 @@
 |---|---|---|
 | 03-VMS-POC验证 | 05-题目侧写Profiling系统 | 03的POC-VMS-7g找题时逐个阅读675道题效率极低→启动05建设侧写系统 |
 | 02-trajectory采集与solver-harness | 08-错题分析系统selfrun载体接替 | 题海Solver批量运行产生大量失败题及trajectory→启动08分析失败原因；2026-08-16 devin cli载体失效，转为ZCode selfrun载体接替 |
+| 第六代系统研发（入题侧脉络分析成熟） | 09-解题侧脉络分析新方案执行 | 入题侧vein_analysis三阶段架构完备后开解题侧对应线；2026-08-16经390号评审（过度设计）重构为391号新方案，P1消费02工作线沉淀的D盘23,918份历史trajectory |
 
 ## 工作线详情
 
@@ -131,6 +135,16 @@
 - **代码**：`analysis-devin-failure-system/src/selfrun_intake.py`（intake）+ `src/selfrun_driver.py`（波次调度）+ `templates/selfrun_subagent_task.md` v3（判定规则）
 - **关键发现**：data_collector的deepmath/oda题文查找错位（solver侧数据完好）；audit僵尸服务仍在运转
 - **起源**：02工作线的题海Solver批量运行产生失败题→启动本线分析失败原因
+
+### 09-解题侧脉络分析新方案执行（当前活跃）
+
+- **任务追踪**：`任务追踪/09-解题侧脉络分析新方案执行.md`
+- **目标**：执行391号新方案——P0清偿与冻结→P1真实数据golden slice（2-3条历史轨迹人工结构化+跑通DAG→FCA→trace全链）→P2 trace→tell对接→P3 Grove闭环接入
+- **状态**：390/391/392号已落盘；**整线45K行产物未commit，P0待执行**
+- **方案入口**：`第六代系统研发过程文档/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`（§8为唯一阶段状态源）；常备参考=392号（入题侧31条经验对照）
+- **执行载体**：ZCode主会话+subagent+确定性代码（devin cli退出，391号§3.5）
+- **关键认知**：363号/route-lock已SUPERSEDED勿再跟进；资格链22脚本冻结；P1用真实历史轨迹不用fake data
+- **起源**：第六代入题侧脉络分析成熟后开解题侧线；P1消费02工作线沉淀的D盘历史trajectory
 
 ## 起源链
 
