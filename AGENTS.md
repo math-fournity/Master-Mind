@@ -3533,6 +3533,166 @@ python -m monitoring.recover_from_crash
 python -m monitoring.analysis_control start --batch-id full-analysis --concurrency 30
 ```
 
+### 连续打磨SOP（5题一组手动运行 + 质量检查）
+
+> **铁律**：错题分析系统必须以5题一组手动运行，每轮运行后必须按质量检查SOP逐项检查。禁止跳过质量检查直接扩大规模。
+
+#### 运行流程（每轮）
+
+```bash
+cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
+
+# 1. 选题——5题一组，优先选后期批次（无MITM，验证真实数据）
+#    写题号到 output/polish5_ids.txt
+#    选题原则：覆盖不同题库（polymath/deepmath/oda_math/omni_math/aime）
+#    优先选 mitm_enabled=False 的题（当前和未来数据的真实情况）
+
+# 2. collect
+.venv/bin/python3 -m src.data_collector --batch-id polish-N --problem-ids-file output/polish5_ids.txt
+# 验证：prepared=5, skipped=0
+
+# 3. 启动分析（5并发）
+.venv/bin/python3 -m monitoring.analysis_control start --batch-id polish-N --concurrency 5 --clear
+
+# 4. 等待完成（约2-3分钟）
+sleep 120
+.venv/bin/python3 -c "from monitoring.redis_queue import *; r=get_redis(); print(get_stats(r))"
+# 期望：pending=0 running=0 completed=5 failed=0
+
+# 5. 收集结果
+.venv/bin/python3 -m src.result_collector --batch-id polish-N
+# 验证：parsed=5, no_xml=0, no_output=0, incomplete=0
+
+# 6. 停止服务
+.venv/bin/python3 -m monitoring.analysis_control stop --force --kill-sessions
+
+# 7. 质量检查（见下方SOP）——必须执行，不可跳过
+```
+
+#### 质量检查SOP（每轮必须执行）
+
+**检查1：技术指标**
+- parsed / no_xml / no_output / incomplete / failed 的数量
+- 标准：parsed=5, 其余全=0
+- 不达标时：检查no_xml题的conversation.json是否有analysis XML块
+
+**检查2：CONNECTION_ERROR误判**
+- 查d1=CONNECTION_ERROR的题
+- 标准：CONNECTION_ERROR只用于thinking<500 chars且无数学内容的技术失败
+- 如果d1=CONNECTION_ERROR但thinking>500 chars或有数学内容 → 误判，记录问题
+- 如果AI解了不同的题 → 应该是DIRECTION_ERROR不是CONNECTION_ERROR
+
+**检查3：模板占位符泄漏**
+- 检查d1_explanation/d2_explanation中是否含"1-3 sentences"或"ONE_OF:"或"Your 1-3 sentence"
+- 注意：`|` 不是占位符——数学公式中合法使用绝对值符号如`|f(x)|`。只检查明确的模板占位符文本。
+- 标准：0个泄漏
+- 不达标时：检查模板中的占位符格式，加强"Output exactly ONE value"指令
+
+**检查4：d2_explanation完整性**
+- 查d2_explanation是否为空、"?"、或过短（<20 chars）
+- 标准：0个空/问号/过短
+- 不达标时：检查XML解析是否正确提取了d2_explanation标签
+
+**检查5：d1/d2一致性**
+- d1=DIRECTION_ERROR或PARTIAL_PROGRESS时，d2不应为空
+- d1=TOKEN_LIMIT或CONNECTION_ERROR时，d2可以是"other"或空
+- 不达标时：检查模板中对d2的触发条件描述
+
+**检查6：内容质量抽查**
+- 逐题读d1_explanation的前120 chars，判断是否合理
+- 逐题读d2_explanation的前120 chars，判断是否合理
+- 关注：d1_exp是否准确描述了AI的方向（vs标准解答的方向）
+- 关注：d2_exp是否准确描述了标准解答的关键技巧
+
+**检查7：跨批次一致性（可选）**
+- 如果某题在之前的轮次中运行过，比较两次结果是否一致
+- d1/d2应该一致（同一题同一AI的thinking不变，分析结果应该稳定）
+
+#### 质量检查执行方式
+
+用一段Python脚本一次性检查所有7项，输出汇总表：
+
+```python
+# 模板：每轮运行后执行
+import sys; sys.path.insert(0, '.')
+from src.db_schema import connect_db, ANALYSIS_RESULTS_COLLECTION, ANALYSIS_RUNS_COLLECTION
+
+db = connect_db()
+aql = "FOR r IN analysis_results FILTER r.run_key LIKE 'polish-N%' RETURN r"
+results = list(db.aql.execute(aql, ttl=60))
+
+print(f"=== 质量检查（{len(results)}题）===")
+
+# 检查1: 技术指标（从result_collector输出获取）
+# 检查2: CONNECTION_ERROR误判
+ce_results = [r for r in results if r.get('dimension1_verdict') == 'CONNECTION_ERROR']
+print(f"\n检查2: CONNECTION_ERROR={len(ce_results)}题")
+for r in ce_results:
+    run = db.collection(ANALYSIS_RUNS_COLLECTION).get(r.get('run_key', ''))
+    thinking_len = run.get('thinking_length', 0)
+    if thinking_len > 500:
+        print(f"  *** 误判: {run.get('problem_id')} thinking={thinking_len} chars > 500")
+
+# 检查3: 模板占位符泄漏（注意：|不是占位符，数学公式中合法）
+placeholder_count = 0
+for r in results:
+    for field in ['dimension1_explanation', 'dimension2_explanation']:
+        val = str(r.get(field, ''))
+        if '1-3 sentences' in val or 'ONE_OF:' in val or 'Your 1-3 sentence' in val:
+            placeholder_count += 1
+            print(f"  *** 占位符泄漏: {r.get('run_key')} {field}")
+print(f"\n检查3: 占位符泄漏={placeholder_count}")
+
+# 检查4: d2_explanation完整性
+empty_d2 = 0
+for r in results:
+    d2_exp = str(r.get('dimension2_explanation', ''))
+    if not d2_exp or d2_exp == '?' or len(d2_exp) < 20:
+        empty_d2 += 1
+        print(f"  *** d2_exp不完整: {r.get('run_key')} d2_exp='{d2_exp[:30]}'")
+print(f"\n检查4: d2_exp不完整={empty_d2}")
+
+# 检查5: d1/d2一致性
+inconsistent = 0
+for r in results:
+    d1 = r.get('dimension1_verdict', '')
+    d2 = r.get('dimension2_turning_point_type', '')
+    if d1 in ('DIRECTION_ERROR', 'PARTIAL_PROGRESS') and (not d2 or d2 == '?'):
+        inconsistent += 1
+        print(f"  *** d1/d2不一致: {r.get('run_key')} d1={d1} d2={d2}")
+print(f"\n检查5: d1/d2不一致={inconsistent}")
+
+# 检查6: 内容质量抽查（逐题）
+print(f"\n检查6: 内容质量抽查")
+for r in results:
+    run = db.collection(ANALYSIS_RUNS_COLLECTION).get(r.get('run_key', ''))
+    pid = run.get('problem_id', '?')
+    d1 = r.get('dimension1_verdict', '?')
+    d2 = r.get('dimension2_turning_point_type', '?')
+    d1_exp = str(r.get('dimension1_explanation', ''))[:120]
+    d2_exp = str(r.get('dimension2_explanation', ''))[:120]
+    print(f"  {pid}: d1={d1} d2={d2}")
+    print(f"    d1_exp: {d1_exp}")
+    print(f"    d2_exp: {d2_exp}")
+
+# 汇总
+total_issues = len(ce_results) + placeholder_count + empty_d2 + inconsistent
+print(f"\n=== 汇总: {total_issues}个问题 ===")
+if total_issues == 0:
+    print("  ✅ 全部通过，可以进入下一轮")
+else:
+    print("  ❌ 有问题，需要修复后再运行下一轮")
+```
+
+#### 打磨记录
+
+| 轮次 | 题数 | 批次类型 | 发现的问题 | 修复 |
+|---|---|---|---|---|
+| 轮1 | 5 | 早期(有MITM) | XML标签闭合错误+模板格式+thinking缺tool_results | 修复3个问题 |
+| 轮2 | 5 | 早期(有MITM) | 无新问题，质量全部通过 | — |
+| 轮3b | 5 | 后期(无MITM) | 无新问题，thinking提取正常工作 | — |
+| 轮4 | 5 | 后期(无MITM,4题库) | 检查3误报(\|是数学符号)+TOKEN_LIMIT/PARTIAL_PROGRESS边界模糊 | 修正检查3条件+模板加tiebreaker规则 |
+
 ### 待解决问题
 
 1. **PolyMath 1564道not_found**：`polymath_{id:05d}`的id映射可能不是简单整数对应。需要调查problem_extraction_progress集合或原始录入脚本确认正确的映射规则。这会导致约25%的PolyMath题无法匹配标准答案。
