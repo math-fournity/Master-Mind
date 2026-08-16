@@ -1,0 +1,37 @@
+{
+  "schema_version": "solve-vein/poc-vms-32-expected/v1",
+  "event_extractor": {
+    "gold_file": "gold.reasoning-trajectory.json",
+    "required_source_span_starts": [0, 82, 176, 336, 441, 584, 717, 839, 984, 1093],
+    "required_relations": [
+      ["e0", "e1", "BRANCH_FROM"],
+      ["e1", "e2", "ABANDON"],
+      ["e0", "e3", "BRANCH_FROM"],
+      ["e2", "e3", "REVISIT"],
+      ["e3", "e4", "CONTINUE"],
+      ["e2", "e4", "REUSE"],
+      ["e4", "e5", "REFINE"],
+      ["e0", "e6", "BRANCH_FROM"],
+      ["e6", "e7", "CONTINUE"],
+      ["e2", "e7", "REUSE"],
+      ["e5", "e8", "MERGE"],
+      ["e7", "e8", "MERGE"],
+      ["e8", "e9", "CONCLUDE"]
+    ],
+    "revisit_source_spans": [[0, 336]],
+    "merge_target_source_span_start": 984
+  },
+  "state_normalizer": {
+    "gold_file": "gold.reasoning-trajectory.json",
+    "expected_corrections": [
+      "events[e2].status",
+      "events[e3].canonical_math_state_id",
+      "events[e7].incoming_edges[e2].relation"
+    ]
+  },
+  "trace_auditor": {
+    "accepted_trace_ids": ["candidate-valid-revisit"],
+    "rejected_trace_ids": ["candidate-invalid-single-parent-merge"],
+    "expected_overall_verdict": "FAIL"
+  }
+}

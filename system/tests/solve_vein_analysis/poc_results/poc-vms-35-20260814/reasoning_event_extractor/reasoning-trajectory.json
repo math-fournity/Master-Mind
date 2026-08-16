@@ -1,0 +1,191 @@
+{
+  "schema_version": "solve-vein/reasoning-trajectory/v1",
+  "trajectory_id": "poc-vms-32-calibration",
+  "problem_id": "poc-vms-32-fibonacci-gcd",
+  "source": {
+    "carrier": "fixture",
+    "source_artifact_ref": "raw_solver_trajectory.txt",
+    "source_artifact_sha256": "5e329a8f8de884ba19c6f539dafc2578fb705e8275835a7a4d355d39a4002515"
+  },
+  "events": [
+    {
+      "event_id": "e0",
+      "sequence_index": 0,
+      "event_kind": "STATE",
+      "text": "States the goal: prove gcd(F_m,F_n)=F_gcd(m,n) for all nonnegative m,n not both zero.",
+      "canonical_math_state_id": "state:goal-fib-gcd-formula",
+      "attributes": ["branch:main"],
+      "status": "ACTIVE",
+      "source_span": {"start": 0, "end": 81, "sha256": "8dd532f4db1ea1347e53fc7b52b41dd12f82397a423bf044e6c12c6e4993a96e"},
+      "incoming_edges": []
+    },
+    {
+      "event_id": "e1",
+      "sequence_index": 1,
+      "event_kind": "DECISION",
+      "text": "Decides to attempt Binet's formula, hoping common divisors can be read from powers of phi.",
+      "canonical_math_state_id": "state:binet-approach",
+      "attributes": ["branch:binet", "method:binet-closed-form"],
+      "status": "ABANDONED",
+      "source_span": {"start": 82, "end": 175, "sha256": "4284fa64a92bd63c76a9e829ca7d1b3e0e89bc8d0a4a74a8cd87722b65d0d0e0"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e0",
+          "relation": "BRANCH_FROM",
+          "evidence": "From the stated goal, branches into a Binet/closed-form attempt: 'First I try Binet's formula'."
+        }
+      ]
+    },
+    {
+      "event_id": "e2",
+      "sequence_index": 2,
+      "event_kind": "FAILURE",
+      "text": "Binet route becomes unusable modulo an arbitrary divisor, so it is abandoned; as a byproduct the addition identity F_(a+b)=F_(a-1)F_b+F_a F_(b+1) is noted.",
+      "canonical_math_state_id": "state:binet-unusable-addition-identity",
+      "attributes": ["branch:binet", "outcome:abandoned", "byproduct:addition-identity"],
+      "status": "ABANDONED",
+      "source_span": {"start": 176, "end": 335, "sha256": "f0c313ccd14f5335ca5f83620467f1b581bbc808bd981bd74d9c6e513540fdf7"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e1",
+          "relation": "ABANDON",
+          "evidence": "'This becomes unusable modulo an arbitrary divisor, so I abandon the Binet route.' The Binet attempt from e1 is given up."
+        }
+      ]
+    },
+    {
+      "event_id": "e3",
+      "sequence_index": 3,
+      "event_kind": "RETURN",
+      "text": "Returns to the original gcd goal, now seeking a Euclidean reduction instead of a closed form.",
+      "canonical_math_state_id": "state:euclidean-reduction-goal",
+      "attributes": ["branch:euclidean", "method:euclidean-reduction"],
+      "status": "ACTIVE",
+      "source_span": {"start": 336, "end": 440, "sha256": "89ee8ab455508f8770645d84a7c0ab2bd33191260b48511ec340f3e3f4578e55"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e0",
+          "relation": "REVISIT",
+          "evidence": "'I return to the original gcd goal' — revisits the initial goal stated in e0 after the Binet branch failed."
+        }
+      ]
+    },
+    {
+      "event_id": "e4",
+      "sequence_index": 4,
+      "event_kind": "STATE",
+      "text": "Assuming m>n, the addition identity gives F_m congruent (up to a unit/sign factor) to F_(m-n) mod F_n, hence gcd(F_m,F_n)=gcd(F_n,F_(m-n)).",
+      "canonical_math_state_id": "state:euclidean-reduction-step",
+      "attributes": ["branch:euclidean", "method:congruence-mod-fn"],
+      "status": "ACTIVE",
+      "source_span": {"start": 441, "end": 583, "sha256": "a6f02c343ac6d4540d5f46ccfa8d3209eb814fa4fa9edb91f68395b1a37c9f55"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e3",
+          "relation": "CONTINUE",
+          "evidence": "Develops the Euclidean-reduction plan of e3 into a concrete congruence reduction step."
+        },
+        {
+          "source_event_id": "e2",
+          "relation": "REUSE",
+          "evidence": "'The addition identity makes F_m congruent...' reuses F_(a+b)=F_(a-1)F_b+F_a F_(b+1) recovered as a byproduct in e2."
+        }
+      ]
+    },
+    {
+      "event_id": "e5",
+      "sequence_index": 5,
+      "event_kind": "STATE",
+      "text": "Iterating the reduction runs the Euclidean algorithm on the index pair until it reaches (d,0) with d=gcd(m,n).",
+      "canonical_math_state_id": "state:euclidean-termination-d-0",
+      "attributes": ["branch:euclidean", "method:euclidean-algorithm-indices"],
+      "status": "ACTIVE",
+      "source_span": {"start": 584, "end": 716, "sha256": "df6575ca9a7900cbd9434ee61634af056ae3eb988a7c2ad102d6fd5c2a7d3e62"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e4",
+          "relation": "CONTINUE",
+          "evidence": "'Repeating this reduction follows the Euclidean algorithm' — repeats the reduction step established in e4."
+        }
+      ]
+    },
+    {
+      "event_id": "e6",
+      "sequence_index": 6,
+      "event_kind": "STATE",
+      "text": "Separately checks terminal and symmetry cases: F_0=0, gcd(F_d,0)=F_d, and swapping m,n leaves the gcd unchanged.",
+      "canonical_math_state_id": "state:terminal-symmetry-cases",
+      "attributes": ["branch:terminal-symmetry"],
+      "status": "ACTIVE",
+      "source_span": {"start": 717, "end": 838, "sha256": "94897959ad3cbd477af9f3200c410ae5b5d3b6b7052ef491a65d23f140d0bf68"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e5",
+          "relation": "BRANCH_FROM",
+          "evidence": "'Separately I check the terminal and symmetry cases' — branches off from the Euclidean reduction, whose termination at (d,0) in e5 motivates checking the terminal case gcd(F_d,0)=F_d."
+        }
+      ]
+    },
+    {
+      "event_id": "e7",
+      "sequence_index": 7,
+      "event_kind": "STATE",
+      "text": "The terminal-case branch also uses the addition identity left over from the failed Binet branch to justify each subtraction step uniformly.",
+      "canonical_math_state_id": "state:addition-identity-justifies-subtraction",
+      "attributes": ["branch:terminal-symmetry", "method:addition-identity-justification"],
+      "status": "ACTIVE",
+      "source_span": {"start": 839, "end": 983, "sha256": "84196ac065d71ec4385d5666ada76a62d6216ef8459fa9d4d52c65cb4abb0446"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e6",
+          "relation": "CONTINUE",
+          "evidence": "'The terminal-case branch also uses...' continues the terminal-case branch opened in e6."
+        },
+        {
+          "source_event_id": "e2",
+          "relation": "REUSE",
+          "evidence": "'uses the addition identity left over from the failed Binet branch' reuses the addition identity recovered in e2."
+        }
+      ]
+    },
+    {
+      "event_id": "e8",
+      "sequence_index": 8,
+      "event_kind": "SYNTHESIS",
+      "text": "Combines the Euclidean reduction with the independently checked terminal cases to obtain gcd(F_m,F_n)=F_d.",
+      "canonical_math_state_id": "state:fib-gcd-formula-established",
+      "attributes": ["branch:main", "outcome:synthesis"],
+      "status": "SOLVED",
+      "source_span": {"start": 984, "end": 1092, "sha256": "3690307492163c14908151f5c1b1f0584981668ae96985369b180ee849dd1e84"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e5",
+          "relation": "MERGE",
+          "evidence": "'Combining the Euclidean reduction with...' mathematically uses the Euclidean reduction result of e5 as one of two combined sources."
+        },
+        {
+          "source_event_id": "e7",
+          "relation": "MERGE",
+          "evidence": "'...with the independently checked terminal cases' uses the terminal-case branch (justified via the addition identity in e7) as the second combined source."
+        }
+      ]
+    },
+    {
+      "event_id": "e9",
+      "sequence_index": 9,
+      "event_kind": "CONCLUSION",
+      "text": "Since d=gcd(m,n), the combined result gcd(F_m,F_n)=F_d is exactly the desired formula gcd(F_m,F_n)=F_gcd(m,n).",
+      "canonical_math_state_id": "state:fib-gcd-formula-established",
+      "attributes": ["branch:main", "outcome:conclusion"],
+      "status": "SOLVED",
+      "source_span": {"start": 1093, "end": 1152, "sha256": "4da50018bcde5809e96c5ee2c5f84709aa052cafdbd95027bd0556038b3a111e"},
+      "incoming_edges": [
+        {
+          "source_event_id": "e8",
+          "relation": "CONCLUDE",
+          "evidence": "'Since d=gcd(m,n), this is exactly the desired formula' — concludes the target formula from the synthesized result of e8."
+        }
+      ]
+    }
+  ]
+}

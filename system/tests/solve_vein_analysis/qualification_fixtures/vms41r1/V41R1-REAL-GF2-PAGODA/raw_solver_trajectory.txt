@@ -1,0 +1,72 @@
+Let me reconsider. Actually, there's a cleaner approach. Let me think about what positions are reachable.
+
+Alternative: Consider the invariant modulo something. The Fibonacci weighting mod 2, or the "Zeckendorf" representation.
+
+Actually, let me think about this differently. The well-known result for this exact problem (1D peg solitaire, single empty hole, reduce to single peg):
+
+The invariant is the sum S = Σ (peg at position k) × F_k where F is Fibonacci, but we need both directions. Let me reconsider whether both directions preserve it.
+
+Move right: `CC.` → `..C` at (i,i+1,i+2): ΔS = w_{i+2} - w_i - w_{i+1} = 0 if Fibonacci. ✓
+Move left: `.CC` → `C..` at (i,i+1,i+2): ΔS = w_i - w_{i+1} - w_{i+2}. With Fibonacci w_{i+2} = w_{i+1} + w_i, so w_i - w_{i+1} - w_{i+2} = w_i - w_{i+1} - w_{i+1} - w_i = -2w_{i+1}. Not zero.
+
+So S is not invariant under left moves. Hmm.
+
+But wait — maybe we should use a different weighting. Consider using the Fibonacci numbers but the game only allows... no, both directions allowed.
+
+Let me think again. Actually the classic invariant for 1D solitaire uses the golden ratio φ. Assign weight φ^k to position k. Then φ^i + φ^{i+1} = φ^{i+2} (since φ^2 = φ+1). And φ^{i+1}+φ^{i+2} = φ^i? No: φ^{i+1}+φ^{i+2} = φ^{i+1}(1+φ) = φ^{i+1}·φ^2 = φ^{i+3} ≠ φ^i.
+
+So same issue. The golden ratio weighting is invariant only for rightward moves.
+
+Hmm, so what's the actual invariant? Let me think about this more carefully. Maybe we need to consider it as a problem over GF(2) or use a different structure.
+
+Actually, I recall now: the key insight for 1D peg solitaire is to work over GF(2) (the field with 2 elements). Over GF(2), a move `CC.` → `..C` changes the state vector by adding (1,1,1) at positions (i,i+1,i+2) (since over GF(2), removing = adding). Both `CC.→..C` and `.CC→C..` correspond to adding the vector (1,1,1) at three consecutive positions (mod 2). So the state evolves by adding triples (1,1,1) mod 2.
+
+Wait let me verify. State is a vector in GF(2)^n, where 1 = peg present. Move `CC.`→`..C`: positions i,i+1,i+2 go from (1,1,0) to (0,0,1). The difference (XOR) is (1,1,1). Move `.CC`→`C..`: (0,1,1)→(1,0,0), difference (1,1,1). Yes! Both moves XOR the vector (1,1,1) at three consecutive positions.
+
+So over GF(2), the state changes by adding e_i + e_{i+1} + e_{i+2} for some i. The reachable states from an initial state s are s + span{e_i+e_{i+1}+e_{i+2} : i=1..n-2}.
+
+If f is the Fibonacci weighting f(k) = F_k (increasing), then f(i+2) = f(i+1)+f(i) ✓ (equality), but f(i) ≤ f(i+1)+f(i+2) is trivially true (LHS smaller). So the Fibonacci weighting is a pagoda function with equality for rightward moves. This means rightward moves preserve the Fibonacci sum, leftward moves decrease it (or keep equal). Actually for leftward: f(i) ≤ f(i+1)+f(i+2), and since Fibonacci increasing, f(i+1)+f(i+2) > f(i), so leftward moves strictly decrease the sum (unless... they always decrease since f(i+1) ≥ f(i) and f(i+2) > 0).
+
+So the Fibonacci sum S = Σ_{peg at k} F_k is non-increasing, and strictly decreasing for leftward moves, invariant for rightward moves.
+
+Similarly, we could use a reverse Fibonacci (decreasing) weighting for the other direction.
+
+This is getting complex. Let me look at this from the perspective of the known result.
+
+I recall that this is a known competition problem (the 2008/2009 suggests it might be from a 2008 or 2009 olympiad). The answer involves the Fibonacci representation / Zeckendorf.
+
+Let me think about it more carefully using the structure.
+
+Let me define the problem cleanly. We have positions 1..n. Initial: pegs everywhere except t. Goal: single peg.
+
+Key idea: Use the Fibonacci invariant. Let F_1 = 1, F_2 = 1, F_3 = 2, F_4 = 3, F_5 = 5, ...
+
+Rightward move (i,i+1,i+2): `CC.→..C`. Fibonacci sum invariant: F_i + F_{i+1} = F_{i+2}. ✓
+
+Leftward move: `.CC→C..`. Fibonacci sum changes by F_i - F_{i+1} - F_{i+2} = F_i - F_{i+1} - (F_i + F_{i+1}) = -2F_{i+1} < 0. So leftward moves decrease the sum.
+
+So if we only use rightward moves, the Fibonacci sum is invariant. Each rightward move shifts a peg two positions to the right and removes one.
+
+Let me reconsider the Fibonacci invariant approach. The key insight:
+
+For rightward-only play, the Fibonacci sum is invariant. For the game to reduce to one peg, consider the "Fibonacci value" of the initial configuration.
+
+Actually, let me think about this more carefully using the theory. I'll consider the problem as follows.
+
+Let me reconsider. There's a classical result about 1D peg solitaire. Let me recall it.
+
+The positions that work are related to the Zeckendorf representation. Specifically, I think the result is:
+
+S_n consists of positions t such that t is "Fibonacci-related" to n.
+
+Let me think about it via the GF(2) invariant plus the pagoda function.
+
+Actually, let me reconsider the GF(2) approach but more carefully, combined with reachability.
+
+Over GF(2), the state evolves by adding (1,1,1) at consecutive triples. The initial state is J + e_t (J = all ones). We want to reach e_j. So we need J + e_t + e_j ∈ V (the span of triples). I.e., J + e_t + e_j is in the span of {e_i + e_{i+1} + e_{i+2}}.
+
+Let me figure out V. The vectors v_i = e_i + e_{i+1} + e_{i+2} for i=1..n-2. What's the span?
+
+Consider the linear map. Over GF(2), v_i has 1s at positions i, i+1, i+2.
+
+Let me find the dimension and structure of V. Consider the dual: a vector w = (w_1,...,w_n) is in V^⊥ iff w·v_i = 0 for all i, i.e., w_i + w_{i+1} + w_{i+2} = 0 for all i=1..n-2. This is the recurrence w_{i+2} = w_i + w_{i+1} over GF(2), i.e., the Fibonacci recurrence mod 2.

@@ -1,0 +1,91 @@
+{
+  "schema_version": "solve-vein/reasoning-trajectory/v1",
+  "trajectory_id": "vms31-c5-composite",
+  "problem_id": "vms31-c5",
+  "source": {
+    "carrier": "fixture",
+    "source_artifact_ref": "fixture://vms31/c5/raw",
+    "source_artifact_sha256": "82bcf645647b803ffa511c8c2feebf4654dd316ae19205dbb660972df0f90e4d"
+  },
+  "events": [
+    {
+      "event_id": "e0", "sequence_index": 0, "event_kind": "STATE",
+      "text": "Start from the common root.", "canonical_math_state_id": "state:root-goal",
+      "attributes": ["goal:prove"], "status": "ACTIVE",
+      "source_span": {"start": 0, "end": 27, "sha256": "9b71a3b17d7b9ee6f68289748405a3bf7f3326606b56ba77b20bc32a76ec45f1"},
+      "incoming_edges": []
+    },
+    {
+      "event_id": "e1", "sequence_index": 1, "event_kind": "DECISION",
+      "text": "Open a first exploratory branch.", "canonical_math_state_id": "state:first-branch",
+      "attributes": ["branch:a", "method:exploratory"], "status": "ACTIVE",
+      "source_span": {"start": 100, "end": 132, "sha256": "f37890e881d14fd9e8aa7971dc8ba71a0b78ea5f7da3748105edcd723d7de288"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "first branch from root"}]
+    },
+    {
+      "event_id": "e2", "sequence_index": 2, "event_kind": "FAILURE",
+      "text": "The branch fails but yields a residue lemma.", "canonical_math_state_id": "state:failed-with-lemma",
+      "attributes": ["branch:a", "artifact:residue-lemma", "guard:contradiction"], "status": "CONTRADICTED",
+      "source_span": {"start": 200, "end": 244, "sha256": "dcbf2692730ee977bd3c8c6df4b98f0897286f594d5437294feeda23fc1306b7"},
+      "incoming_edges": [{"source_event_id": "e1", "relation": "CONTRADICT", "evidence": "the route fails although a local lemma survives"}]
+    },
+    {
+      "event_id": "e3", "sequence_index": 3, "event_kind": "RETURN",
+      "text": "Revisit the root with a new guard.", "canonical_math_state_id": "state:root-goal",
+      "attributes": ["goal:prove", "guard:residue-aware"], "status": "ACTIVE",
+      "source_span": {"start": 300, "end": 335, "sha256": "af875bad2aa70888246db4119490276c9c690944f82a0e2c8c0c7e57c01a8820"},
+      "incoming_edges": [
+        {"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "guarded second branch begins at root"},
+        {"source_event_id": "e2", "relation": "REVISIT", "evidence": "failure sends reasoning back to the root situation"}
+      ]
+    },
+    {
+      "event_id": "e4", "sequence_index": 4, "event_kind": "DECISION",
+      "text": "Develop the guarded second branch.", "canonical_math_state_id": "state:second-branch",
+      "attributes": ["branch:b", "guard:residue-aware"], "status": "ACTIVE",
+      "source_span": {"start": 400, "end": 435, "sha256": "04e73e1c723521c96131553b2a8be5b0201893ef812e36f5bae10343bcdf6bad"},
+      "incoming_edges": [{"source_event_id": "e3", "relation": "CONTINUE", "evidence": "the revisited state starts a guarded branch"}]
+    },
+    {
+      "event_id": "e5", "sequence_index": 5, "event_kind": "STATE",
+      "text": "The second branch establishes bound B.", "canonical_math_state_id": "state:bound-b",
+      "attributes": ["branch:b", "artifact:bound"], "status": "ACTIVE",
+      "source_span": {"start": 500, "end": 538, "sha256": "85e6c2ea0d84cf64f3e23f1dbfb2f46b717c6443d4fc25c410157e403db676d0"},
+      "incoming_edges": [{"source_event_id": "e4", "relation": "CONTINUE", "evidence": "the guarded route yields bound B"}]
+    },
+    {
+      "event_id": "e6", "sequence_index": 6, "event_kind": "DECISION",
+      "text": "Open an independent construction branch.", "canonical_math_state_id": "state:third-branch",
+      "attributes": ["branch:c", "method:construction"], "status": "ACTIVE",
+      "source_span": {"start": 600, "end": 640, "sha256": "a5cb4c706fead95787ecd0b664f408f9e40d9377d3a9217f9d6c186b2c7894fc"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "independent third branch from root"}]
+    },
+    {
+      "event_id": "e7", "sequence_index": 7, "event_kind": "STATE",
+      "text": "Build construction C and reuse the residue lemma.", "canonical_math_state_id": "state:construction-c",
+      "attributes": ["branch:c", "artifact:construction", "artifact:residue-lemma"], "status": "ACTIVE",
+      "source_span": {"start": 700, "end": 749, "sha256": "12d700cd042f5a31f664a05a0b01f8beb0fba47d629e087d90f97da06ac76d65"},
+      "incoming_edges": [
+        {"source_event_id": "e6", "relation": "CONTINUE", "evidence": "branch C constructs the object"},
+        {"source_event_id": "e2", "relation": "REUSE", "evidence": "construction C explicitly reuses the surviving residue lemma"}
+      ]
+    },
+    {
+      "event_id": "e8", "sequence_index": 8, "event_kind": "SYNTHESIS",
+      "text": "Merge bound B with construction C.", "canonical_math_state_id": "state:merged-certificate",
+      "attributes": ["artifact:bound", "artifact:construction", "method:synthesis"], "status": "ACTIVE",
+      "source_span": {"start": 800, "end": 835, "sha256": "8dcd1c583f7bc292c1cba1c3aad350b90739b8aa8081bd519f7edeeb308dacc6"},
+      "incoming_edges": [
+        {"source_event_id": "e5", "relation": "MERGE", "evidence": "bound B is a necessary input"},
+        {"source_event_id": "e7", "relation": "MERGE", "evidence": "construction C is a necessary input"}
+      ]
+    },
+    {
+      "event_id": "e9", "sequence_index": 9, "event_kind": "CONCLUSION",
+      "text": "Finish the proof from the merged certificate.", "canonical_math_state_id": "state:proof-complete",
+      "attributes": ["method:synthesis", "progress:conclusion"], "status": "SOLVED",
+      "source_span": {"start": 900, "end": 945, "sha256": "d6480602a7d6aa501502e6c10c90d32011c80e2f42b5dbb215e1a3f2636e0367"},
+      "incoming_edges": [{"source_event_id": "e8", "relation": "CONCLUDE", "evidence": "the merged certificate completes the proof"}]
+    }
+  ]
+}

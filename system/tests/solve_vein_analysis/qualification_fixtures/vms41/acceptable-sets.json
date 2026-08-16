@@ -1,0 +1,506 @@
+{
+  "schema_version": "solve-vein/event-extraction-acceptable-set-pack/v1",
+  "pack_id": "poc-vms-41-event-extractor-qualification-pack-20260814",
+  "cases": [
+    {
+      "schema_version": "solve-vein/event-extraction-acceptable-set/v1",
+      "acceptable_set_id": "v41-syn-false-merge-acceptable-v1",
+      "case_id": "V41-SYN-FALSE-MERGE",
+      "problem_id": "v41-syn-false-merge",
+      "trajectory_id": "v41-syn-false-merge-event-extraction",
+      "source": {
+        "carrier": "imported",
+        "source_artifact_ref": "raw_solver_trajectory.txt",
+        "source_artifact_sha256": "58b34c977df9e618031aab5bff8901c23d26de924f93bbe6855c70a8c45b01cb"
+      },
+      "expected_event_count": 4,
+      "anchors": [
+        {
+          "anchor_id": "F0",
+          "unique_witness_text": "I will first complete the square.",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "F1",
+          "unique_witness_text": "That conclusion is contradicted by direct substitution",
+          "allowed_event_kinds": ["FAILURE", "RETURN"],
+          "allowed_statuses": ["ABANDONED", "CONTRADICTED"]
+        },
+        {
+          "anchor_id": "F2",
+          "unique_witness_text": "I will start over independently by factoring",
+          "allowed_event_kinds": ["DECISION", "RETURN"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "F3",
+          "unique_witness_text": "A direct substitution verifies both roots",
+          "allowed_event_kinds": ["CONCLUSION"],
+          "allowed_statuses": ["SOLVED"]
+        }
+      ],
+      "edge_clauses": [
+        {
+          "clause_id": "F-E01",
+          "source_anchor_id": "F0",
+          "target_anchor_id": "F1",
+          "allowed_relations": ["ABANDON", "CONTRADICT"],
+          "required": true
+        },
+        {
+          "clause_id": "F-E02",
+          "source_anchor_id": "F1",
+          "target_anchor_id": "F2",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE", "REVISIT"],
+          "required": true
+        },
+        {
+          "clause_id": "F-E03",
+          "source_anchor_id": "F2",
+          "target_anchor_id": "F3",
+          "allowed_relations": ["CONCLUDE", "CONTINUE", "DEPENDS_ON"],
+          "required": true
+        },
+        {
+          "clause_id": "F-E04",
+          "source_anchor_id": "F0",
+          "target_anchor_id": "F2",
+          "allowed_relations": ["ABANDON", "BRANCH_FROM", "CONTRADICT"],
+          "required": false
+        },
+        {
+          "clause_id": "F-E05",
+          "source_anchor_id": "F0",
+          "target_anchor_id": "F3",
+          "allowed_relations": ["ABANDON", "CONTRADICT"],
+          "required": false
+        },
+        {
+          "clause_id": "F-E06",
+          "source_anchor_id": "F1",
+          "target_anchor_id": "F3",
+          "allowed_relations": ["ABANDON", "CONTRADICT"],
+          "required": false
+        }
+      ],
+      "forbidden_relations": ["MERGE"],
+      "forbidden_edges": [],
+      "merge_constraints": []
+    },
+    {
+      "schema_version": "solve-vein/event-extraction-acceptable-set/v1",
+      "acceptable_set_id": "v41-syn-true-merge-acceptable-v1",
+      "case_id": "V41-SYN-TRUE-MERGE",
+      "problem_id": "v41-syn-true-merge",
+      "trajectory_id": "v41-syn-true-merge-event-extraction",
+      "source": {
+        "carrier": "imported",
+        "source_artifact_ref": "raw_solver_trajectory.txt",
+        "source_artifact_sha256": "05c8f8e4007c2c00b5fac51ae9b5bc2413f7a3d3a6f3523c53285b27e590d838"
+      },
+      "expected_event_count": 5,
+      "anchors": [
+        {
+          "anchor_id": "T0",
+          "unique_witness_text": "I first isolate a parity lemma.",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "T1",
+          "unique_witness_text": "This parity lemma gives a closed trail",
+          "allowed_event_kinds": ["FAILURE", "STATE"],
+          "allowed_statuses": ["ABANDONED", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "T2",
+          "unique_witness_text": "Independently, take a closed trail",
+          "allowed_event_kinds": ["DECISION", "RETURN"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "T3",
+          "unique_witness_text": "Now reuse the parity lemma from the first line of attack",
+          "allowed_event_kinds": ["SYNTHESIS"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "T4",
+          "unique_witness_text": "Therefore no unused edge remains.",
+          "allowed_event_kinds": ["CONCLUSION"],
+          "allowed_statuses": ["SOLVED"]
+        }
+      ],
+      "edge_clauses": [
+        {
+          "clause_id": "T-E01",
+          "source_anchor_id": "T0",
+          "target_anchor_id": "T1",
+          "allowed_relations": ["CONTINUE", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "T-E02",
+          "source_anchor_id": "T1",
+          "target_anchor_id": "T2",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE"],
+          "required": true
+        },
+        {
+          "clause_id": "T-E03",
+          "source_anchor_id": "T0",
+          "target_anchor_id": "T3",
+          "allowed_relations": ["MERGE"],
+          "required": true
+        },
+        {
+          "clause_id": "T-E04",
+          "source_anchor_id": "T2",
+          "target_anchor_id": "T3",
+          "allowed_relations": ["MERGE"],
+          "required": true
+        },
+        {
+          "clause_id": "T-E05",
+          "source_anchor_id": "T3",
+          "target_anchor_id": "T4",
+          "allowed_relations": ["CONCLUDE", "DEPENDS_ON"],
+          "required": true
+        },
+        {
+          "clause_id": "T-E06",
+          "source_anchor_id": "T1",
+          "target_anchor_id": "T3",
+          "allowed_relations": ["DEPENDS_ON", "REUSE"],
+          "required": false
+        }
+      ],
+      "forbidden_relations": [],
+      "forbidden_edges": [],
+      "merge_constraints": [
+        {
+          "target_anchor_id": "T3",
+          "minimum_distinct_parent_anchors": 2,
+          "required_parent_anchor_ids": ["T0", "T2"]
+        }
+      ]
+    },
+    {
+      "schema_version": "solve-vein/event-extraction-acceptable-set/v1",
+      "acceptable_set_id": "v41-real-spiral-acceptable-v1",
+      "case_id": "V41-REAL-SPIRAL",
+      "problem_id": "v41-real-spiral",
+      "trajectory_id": "v41-real-spiral-event-extraction",
+      "source": {
+        "carrier": "imported",
+        "source_artifact_ref": "raw_solver_trajectory.txt",
+        "source_artifact_sha256": "2d59c145fa2923326767e011bea8620734a29c48ef5e134f60ea48f97110ca97"
+      },
+      "expected_event_count": 8,
+      "anchors": [
+        {
+          "anchor_id": "R0",
+          "unique_witness_text": "Suppose for contradiction that there exists",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "R1",
+          "unique_witness_text": "The question is: can the \"curving\" happen at arbitrarily small scales?",
+          "allowed_event_kinds": ["FAILURE", "RETURN", "STATE"],
+          "allowed_statuses": ["ABANDONED", "ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "R2",
+          "unique_witness_text": "Let $X = \\mathbb{R}^2$ (Euclidean) and $Y = \\mathbb{R}^3$",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ABANDONED", "ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "R3",
+          "unique_witness_text": "So the question is: can we construct a unit-speed curve where the distance ratio fails",
+          "allowed_event_kinds": ["DECISION", "RETURN", "STATE"],
+          "allowed_statuses": ["ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "R4",
+          "unique_witness_text": "Consider a curve $\\gamma: \\mathbb{R} \\to \\mathbb{R}^2$ that is unit-speed and has a \"spiral\"",
+          "allowed_event_kinds": ["DECISION", "FAILURE"],
+          "allowed_statuses": ["ABANDONED", "ACTIVE", "CONTRADICTED"]
+        },
+        {
+          "anchor_id": "R5",
+          "unique_witness_text": "What about a slower spiral?",
+          "allowed_event_kinds": ["DECISION", "SYNTHESIS"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "R6",
+          "unique_witness_text": "Now I need to extend $\\tilde{\\gamma}$ to all of $\\mathbb{R}$.",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "R7",
+          "unique_witness_text": "So the two-sided limit doesn't exist",
+          "allowed_event_kinds": ["CONCLUSION"],
+          "allowed_statuses": ["SOLVED"]
+        }
+      ],
+      "edge_clauses": [
+        {
+          "clause_id": "R-E01",
+          "source_anchor_id": "R0",
+          "target_anchor_id": "R1",
+          "allowed_relations": ["CONTINUE", "CONTRADICT", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E02",
+          "source_anchor_id": "R1",
+          "target_anchor_id": "R2",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E03",
+          "source_anchor_id": "R2",
+          "target_anchor_id": "R3",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E04",
+          "source_anchor_id": "R3",
+          "target_anchor_id": "R4",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E05",
+          "source_anchor_id": "R4",
+          "target_anchor_id": "R5",
+          "allowed_relations": ["BRANCH_FROM", "REFINE", "REVISIT"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E06",
+          "source_anchor_id": "R5",
+          "target_anchor_id": "R6",
+          "allowed_relations": ["CONTINUE", "DEPENDS_ON", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E07",
+          "source_anchor_id": "R6",
+          "target_anchor_id": "R7",
+          "allowed_relations": ["CONCLUDE", "CONTINUE", "DEPENDS_ON"],
+          "required": true
+        },
+        {
+          "clause_id": "R-E08",
+          "source_anchor_id": "R1",
+          "target_anchor_id": "R5",
+          "allowed_relations": ["DEPENDS_ON", "REUSE"],
+          "required": false
+        },
+        {
+          "clause_id": "R-E09",
+          "source_anchor_id": "R3",
+          "target_anchor_id": "R5",
+          "allowed_relations": ["DEPENDS_ON", "REUSE"],
+          "required": false
+        },
+        {
+          "clause_id": "R-E10",
+          "source_anchor_id": "R4",
+          "target_anchor_id": "R6",
+          "allowed_relations": ["DEPENDS_ON", "REUSE"],
+          "required": false
+        },
+        {
+          "clause_id": "R-E11",
+          "source_anchor_id": "R5",
+          "target_anchor_id": "R7",
+          "allowed_relations": ["CONCLUDE", "DEPENDS_ON"],
+          "required": false
+        }
+      ],
+      "forbidden_relations": [],
+      "forbidden_edges": [],
+      "merge_constraints": []
+    },
+    {
+      "schema_version": "solve-vein/event-extraction-acceptable-set/v1",
+      "acceptable_set_id": "v41-real-battery-acceptable-v1",
+      "case_id": "V41-REAL-BATTERY",
+      "problem_id": "v41-real-battery",
+      "trajectory_id": "v41-real-battery-event-extraction",
+      "source": {
+        "carrier": "imported",
+        "source_artifact_ref": "raw_solver_trajectory.txt",
+        "source_artifact_sha256": "5caf55466b83489134b64c0d04a855e47895fe394b073236681946776b222123"
+      },
+      "expected_event_count": 10,
+      "anchors": [
+        {
+          "anchor_id": "B0",
+          "unique_witness_text": "Actually, wait. Let me reconsider the overall problem.",
+          "allowed_event_kinds": ["DECISION", "RETURN"],
+          "allowed_statuses": ["ABANDONED", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "B1",
+          "unique_witness_text": "**Better strategy:**",
+          "allowed_event_kinds": ["DECISION", "RETURN"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "B2",
+          "unique_witness_text": "Non-adaptive: we need a graph G on 8 vertices",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "B3",
+          "unique_witness_text": "But can adaptive do better?",
+          "allowed_event_kinds": ["DECISION", "STATE"],
+          "allowed_statuses": ["ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "B4",
+          "unique_witness_text": "Wait, that's exactly the non-adaptive condition!",
+          "allowed_event_kinds": ["STATE", "SYNTHESIS"],
+          "allowed_statuses": ["ACTIVE", "UNKNOWN"]
+        },
+        {
+          "anchor_id": "B5",
+          "unique_witness_text": "This is equivalent to: there's no 4-subset avoiding",
+          "allowed_event_kinds": ["RETURN", "STATE"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "B6",
+          "unique_witness_text": "Claim: Any strategy (adaptive or not) needs at least 7 attempts",
+          "allowed_event_kinds": ["STATE", "SYNTHESIS"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "B7",
+          "unique_witness_text": "Actually, I should verify that Turán's theorem gives the exact answer.",
+          "allowed_event_kinds": ["RETURN", "STATE"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "B8",
+          "unique_witness_text": "The key insight is that the adversary's optimal strategy is to always say",
+          "allowed_event_kinds": ["STATE", "SYNTHESIS"],
+          "allowed_statuses": ["ACTIVE"]
+        },
+        {
+          "anchor_id": "B9",
+          "unique_witness_text": "Proof structure:",
+          "allowed_event_kinds": ["CONCLUSION", "SYNTHESIS"],
+          "allowed_statuses": ["ACTIVE", "SOLVED", "UNKNOWN"]
+        }
+      ],
+      "edge_clauses": [
+        {
+          "clause_id": "B-E01",
+          "source_anchor_id": "B0",
+          "target_anchor_id": "B1",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE", "REVISIT"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E02",
+          "source_anchor_id": "B1",
+          "target_anchor_id": "B2",
+          "allowed_relations": ["CONTINUE", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E03",
+          "source_anchor_id": "B2",
+          "target_anchor_id": "B3",
+          "allowed_relations": ["BRANCH_FROM", "CONTINUE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E04",
+          "source_anchor_id": "B3",
+          "target_anchor_id": "B4",
+          "allowed_relations": ["CONTINUE", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E05",
+          "source_anchor_id": "B4",
+          "target_anchor_id": "B5",
+          "allowed_relations": ["CONTINUE", "REFINE", "REVISIT"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E06",
+          "source_anchor_id": "B5",
+          "target_anchor_id": "B6",
+          "allowed_relations": ["CONCLUDE", "CONTINUE", "REFINE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E07",
+          "source_anchor_id": "B6",
+          "target_anchor_id": "B7",
+          "allowed_relations": ["CONTINUE", "REFINE", "REVISIT"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E08",
+          "source_anchor_id": "B6",
+          "target_anchor_id": "B8",
+          "allowed_relations": ["DEPENDS_ON", "MERGE", "REUSE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E09",
+          "source_anchor_id": "B7",
+          "target_anchor_id": "B8",
+          "allowed_relations": ["DEPENDS_ON", "MERGE", "REUSE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E10",
+          "source_anchor_id": "B8",
+          "target_anchor_id": "B9",
+          "allowed_relations": ["CONCLUDE", "CONTINUE"],
+          "required": true
+        },
+        {
+          "clause_id": "B-E11",
+          "source_anchor_id": "B2",
+          "target_anchor_id": "B6",
+          "allowed_relations": ["DEPENDS_ON", "REUSE"],
+          "required": false
+        },
+        {
+          "clause_id": "B-E12",
+          "source_anchor_id": "B2",
+          "target_anchor_id": "B7",
+          "allowed_relations": ["DEPENDS_ON", "REVISIT"],
+          "required": false
+        },
+        {
+          "clause_id": "B-E13",
+          "source_anchor_id": "B5",
+          "target_anchor_id": "B8",
+          "allowed_relations": ["DEPENDS_ON", "REUSE"],
+          "required": false
+        }
+      ],
+      "forbidden_relations": [],
+      "forbidden_edges": [],
+      "merge_constraints": []
+    }
+  ]
+}

@@ -1,0 +1,170 @@
+{
+  "schema_version": "solve-vein/state-normalization-pack/v1",
+  "pack_id": "vms42-state-normalizer-unseen-qualification-extension-20260814",
+  "cases": [
+    {
+      "case_id": "V42-UNSEEN-REPRESENTATION-REUSE",
+      "dictionary": {
+        "schema_version": "solve-vein/state-normalization-dictionary/v1",
+        "dictionary_id": "dict-v42-unseen-representation-reuse",
+        "case_id": "V42-UNSEEN-REPRESENTATION-REUSE",
+        "entries": [
+          {"axis": "PROBLEM_OBLIGATION", "value_id": "bound-invariant", "aliases": ["bound invariant", "same invariant goal"]},
+          {"axis": "STRATEGY_METHOD", "value_id": "direct-estimate", "aliases": ["direct estimate"]},
+          {"axis": "STRATEGY_METHOD", "value_id": "parity-lift", "aliases": ["parity lift"]},
+          {"axis": "REPRESENTATION", "value_id": "global-sum", "aliases": ["global sum view"]},
+          {"axis": "REPRESENTATION", "value_id": "parity-quotient", "aliases": ["parity quotient view"]},
+          {"axis": "KNOWLEDGE_STATE", "value_id": "before-certificate", "aliases": ["before certificate"]},
+          {"axis": "KNOWLEDGE_STATE", "value_id": "after-certificate", "aliases": ["after certificate"]}
+        ]
+      },
+      "acceptable_set": {
+        "schema_version": "solve-vein/state-normalization-acceptable-set/v1",
+        "acceptable_set_id": "acc-v42-unseen-representation-reuse",
+        "case_id": "V42-UNSEEN-REPRESENTATION-REUSE",
+        "expected_occurrence_ids": ["s0", "s1", "s2"],
+        "required_axes": ["PROBLEM_OBLIGATION", "STRATEGY_METHOD", "REPRESENTATION", "KNOWLEDGE_STATE"],
+        "state_constraints": [
+          {"constraint_id": "same-obligation-all", "kind": "MUST_LINK", "axis": "PROBLEM_OBLIGATION", "occurrence_ids": ["s0", "s1", "s2"], "value_id": null},
+          {"constraint_id": "representation-changes-after-certificate", "kind": "CANNOT_LINK", "axis": "REPRESENTATION", "occurrence_ids": ["s0", "s1"], "value_id": null},
+          {"constraint_id": "certificate-reused-after-switch", "kind": "MUST_LINK", "axis": "KNOWLEDGE_STATE", "occurrence_ids": ["s1", "s2"], "value_id": null},
+          {"constraint_id": "later-strategy-is-parity", "kind": "EXACT_VALUE", "axis": "STRATEGY_METHOD", "occurrence_ids": ["s2"], "value_id": "parity-lift"}
+        ],
+        "legacy_projection_axes": ["PROBLEM_OBLIGATION"]
+      },
+      "candidates": [
+        {
+          "label": "representation-reuse-pass",
+          "expected_verdict": "PASS",
+          "input": {
+            "schema_version": "solve-vein/state-normalization-input/v1",
+            "case_id": "V42-UNSEEN-REPRESENTATION-REUSE",
+            "candidate_id": "v42-unseen-representation-reuse-pass",
+            "occurrence_ids": ["s0", "s1", "s2"],
+            "raw_axis_claims": [
+              {"occurrence_id": "s0", "axis": "PROBLEM_OBLIGATION", "raw_value": "bound invariant"},
+              {"occurrence_id": "s0", "axis": "STRATEGY_METHOD", "raw_value": "direct estimate"},
+              {"occurrence_id": "s0", "axis": "REPRESENTATION", "raw_value": "global sum view"},
+              {"occurrence_id": "s0", "axis": "KNOWLEDGE_STATE", "raw_value": "before certificate"},
+              {"occurrence_id": "s1", "axis": "PROBLEM_OBLIGATION", "raw_value": "same invariant goal"},
+              {"occurrence_id": "s1", "axis": "STRATEGY_METHOD", "raw_value": "direct estimate"},
+              {"occurrence_id": "s1", "axis": "REPRESENTATION", "raw_value": "parity quotient view"},
+              {"occurrence_id": "s1", "axis": "KNOWLEDGE_STATE", "raw_value": "after certificate"},
+              {"occurrence_id": "s2", "axis": "PROBLEM_OBLIGATION", "raw_value": "same invariant goal"},
+              {"occurrence_id": "s2", "axis": "STRATEGY_METHOD", "raw_value": "parity lift"},
+              {"occurrence_id": "s2", "axis": "REPRESENTATION", "raw_value": "parity quotient view"},
+              {"occurrence_id": "s2", "axis": "KNOWLEDGE_STATE", "raw_value": "after certificate"}
+            ]
+          }
+        },
+        {
+          "label": "representation-collapsed-fail",
+          "expected_verdict": "FAIL",
+          "input": {
+            "schema_version": "solve-vein/state-normalization-input/v1",
+            "case_id": "V42-UNSEEN-REPRESENTATION-REUSE",
+            "candidate_id": "v42-unseen-representation-collapsed-fail",
+            "occurrence_ids": ["s0", "s1", "s2"],
+            "raw_axis_claims": [
+              {"occurrence_id": "s0", "axis": "PROBLEM_OBLIGATION", "raw_value": "bound invariant"},
+              {"occurrence_id": "s0", "axis": "STRATEGY_METHOD", "raw_value": "direct estimate"},
+              {"occurrence_id": "s0", "axis": "REPRESENTATION", "raw_value": "global sum view"},
+              {"occurrence_id": "s0", "axis": "KNOWLEDGE_STATE", "raw_value": "before certificate"},
+              {"occurrence_id": "s1", "axis": "PROBLEM_OBLIGATION", "raw_value": "same invariant goal"},
+              {"occurrence_id": "s1", "axis": "STRATEGY_METHOD", "raw_value": "direct estimate"},
+              {"occurrence_id": "s1", "axis": "REPRESENTATION", "raw_value": "global sum view"},
+              {"occurrence_id": "s1", "axis": "KNOWLEDGE_STATE", "raw_value": "after certificate"},
+              {"occurrence_id": "s2", "axis": "PROBLEM_OBLIGATION", "raw_value": "same invariant goal"},
+              {"occurrence_id": "s2", "axis": "STRATEGY_METHOD", "raw_value": "parity lift"},
+              {"occurrence_id": "s2", "axis": "REPRESENTATION", "raw_value": "global sum view"},
+              {"occurrence_id": "s2", "axis": "KNOWLEDGE_STATE", "raw_value": "after certificate"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "V42-UNSEEN-BRANCH-REVISION",
+      "dictionary": {
+        "schema_version": "solve-vein/state-normalization-dictionary/v1",
+        "dictionary_id": "dict-v42-unseen-branch-revision",
+        "case_id": "V42-UNSEEN-BRANCH-REVISION",
+        "entries": [
+          {"axis": "PROBLEM_OBLIGATION", "value_id": "classify-counterexample", "aliases": ["classify counterexample"]},
+          {"axis": "STRATEGY_METHOD", "value_id": "search-small-model", "aliases": ["small model search"]},
+          {"axis": "STRATEGY_METHOD", "value_id": "repair-certificate", "aliases": ["repair certificate"]},
+          {"axis": "BRANCH_LIFECYCLE", "value_id": "hypothesis", "aliases": ["hypothesis branch"]},
+          {"axis": "BRANCH_LIFECYCLE", "value_id": "refuted", "aliases": ["refuted branch"]},
+          {"axis": "BRANCH_LIFECYCLE", "value_id": "repaired", "aliases": ["repaired branch"]},
+          {"axis": "EPISTEMIC_VALIDITY", "value_id": "unsupported", "aliases": ["unsupported"]},
+          {"axis": "EPISTEMIC_VALIDITY", "value_id": "contradicted", "aliases": ["contradicted"]},
+          {"axis": "EPISTEMIC_VALIDITY", "value_id": "validated", "aliases": ["validated"]}
+        ]
+      },
+      "acceptable_set": {
+        "schema_version": "solve-vein/state-normalization-acceptable-set/v1",
+        "acceptable_set_id": "acc-v42-unseen-branch-revision",
+        "case_id": "V42-UNSEEN-BRANCH-REVISION",
+        "expected_occurrence_ids": ["h0", "h1", "h2"],
+        "required_axes": ["PROBLEM_OBLIGATION", "STRATEGY_METHOD", "BRANCH_LIFECYCLE", "EPISTEMIC_VALIDITY"],
+        "state_constraints": [
+          {"constraint_id": "same-classification-obligation", "kind": "MUST_LINK", "axis": "PROBLEM_OBLIGATION", "occurrence_ids": ["h0", "h1", "h2"], "value_id": null},
+          {"constraint_id": "hypothesis-becomes-refuted", "kind": "CANNOT_LINK", "axis": "BRANCH_LIFECYCLE", "occurrence_ids": ["h0", "h1"], "value_id": null},
+          {"constraint_id": "final-is-repaired", "kind": "EXACT_VALUE", "axis": "BRANCH_LIFECYCLE", "occurrence_ids": ["h2"], "value_id": "repaired"},
+          {"constraint_id": "final-is-validated", "kind": "EXACT_VALUE", "axis": "EPISTEMIC_VALIDITY", "occurrence_ids": ["h2"], "value_id": "validated"}
+        ],
+        "legacy_projection_axes": ["PROBLEM_OBLIGATION"]
+      },
+      "candidates": [
+        {
+          "label": "branch-revision-pass",
+          "expected_verdict": "PASS",
+          "input": {
+            "schema_version": "solve-vein/state-normalization-input/v1",
+            "case_id": "V42-UNSEEN-BRANCH-REVISION",
+            "candidate_id": "v42-unseen-branch-revision-pass",
+            "occurrence_ids": ["h0", "h1", "h2"],
+            "raw_axis_claims": [
+              {"occurrence_id": "h0", "axis": "PROBLEM_OBLIGATION", "raw_value": "classify counterexample"},
+              {"occurrence_id": "h0", "axis": "STRATEGY_METHOD", "raw_value": "small model search"},
+              {"occurrence_id": "h0", "axis": "BRANCH_LIFECYCLE", "raw_value": "hypothesis branch"},
+              {"occurrence_id": "h0", "axis": "EPISTEMIC_VALIDITY", "raw_value": "unsupported"},
+              {"occurrence_id": "h1", "axis": "PROBLEM_OBLIGATION", "raw_value": "classify counterexample"},
+              {"occurrence_id": "h1", "axis": "STRATEGY_METHOD", "raw_value": "small model search"},
+              {"occurrence_id": "h1", "axis": "BRANCH_LIFECYCLE", "raw_value": "refuted branch"},
+              {"occurrence_id": "h1", "axis": "EPISTEMIC_VALIDITY", "raw_value": "contradicted"},
+              {"occurrence_id": "h2", "axis": "PROBLEM_OBLIGATION", "raw_value": "classify counterexample"},
+              {"occurrence_id": "h2", "axis": "STRATEGY_METHOD", "raw_value": "repair certificate"},
+              {"occurrence_id": "h2", "axis": "BRANCH_LIFECYCLE", "raw_value": "repaired branch"},
+              {"occurrence_id": "h2", "axis": "EPISTEMIC_VALIDITY", "raw_value": "validated"}
+            ]
+          }
+        },
+        {
+          "label": "branch-revision-unknown-alias-invalid",
+          "expected_verdict": "INVALID",
+          "input": {
+            "schema_version": "solve-vein/state-normalization-input/v1",
+            "case_id": "V42-UNSEEN-BRANCH-REVISION",
+            "candidate_id": "v42-unseen-branch-revision-invalid",
+            "occurrence_ids": ["h0", "h1", "h2"],
+            "raw_axis_claims": [
+              {"occurrence_id": "h0", "axis": "PROBLEM_OBLIGATION", "raw_value": "classify counterexample"},
+              {"occurrence_id": "h0", "axis": "STRATEGY_METHOD", "raw_value": "small model search"},
+              {"occurrence_id": "h0", "axis": "BRANCH_LIFECYCLE", "raw_value": "hypothesis branch"},
+              {"occurrence_id": "h0", "axis": "EPISTEMIC_VALIDITY", "raw_value": "unsupported"},
+              {"occurrence_id": "h1", "axis": "PROBLEM_OBLIGATION", "raw_value": "classify counterexample"},
+              {"occurrence_id": "h1", "axis": "STRATEGY_METHOD", "raw_value": "small model search"},
+              {"occurrence_id": "h1", "axis": "BRANCH_LIFECYCLE", "raw_value": "obsolete branch"},
+              {"occurrence_id": "h1", "axis": "EPISTEMIC_VALIDITY", "raw_value": "contradicted"},
+              {"occurrence_id": "h2", "axis": "PROBLEM_OBLIGATION", "raw_value": "classify counterexample"},
+              {"occurrence_id": "h2", "axis": "STRATEGY_METHOD", "raw_value": "repair certificate"},
+              {"occurrence_id": "h2", "axis": "BRANCH_LIFECYCLE", "raw_value": "repaired branch"},
+              {"occurrence_id": "h2", "axis": "EPISTEMIC_VALIDITY", "raw_value": "validated"}
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

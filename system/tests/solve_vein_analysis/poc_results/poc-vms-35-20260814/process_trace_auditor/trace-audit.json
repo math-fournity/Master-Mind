@@ -1,0 +1,53 @@
+{
+  "schema_version": "solve-vein/trace-audit/v1",
+  "artifact_hashes": {
+    "candidate-traces.json": "7574b2440d9bf2e59762e25bd9c8bf8188011b49431f06085a1ea583e70ceb67",
+    "problem.md": "7f97333897110894503b4325449e0f83eb1b0c402603aee461ab225fe0e4e875",
+    "reasoning-dag.json": "265347bb0f83f93359f6da2d5958e3e02081352987c197024990a6a88305ef7a",
+    "relational-scaling.json": "da8447a4bf9edbf5b8de660b646973ec56019707463e2f362a790baa057dd355",
+    "state-concepts.json": "c0da8f1364f3d067a5a4ea419ecb0157a0c1cb850c36191e938f7d648fa8a737",
+    "state-context.json": "898739c5efb21273cc46ed76dfc39f632dae4c92958faa30174d382e367904ca",
+    "trace-rules.md": "155462867671076c9509f88a3586863dd0e2cd6db80048b9a613d4df89f67bd5",
+    "transition-concepts.json": "b90b016b91b8b217b1e8c8cf18c8f44e4beefca16bbe15ab54b988fd0bc656c8",
+    "transition-context.json": "8c836a15f0d1571256f2d3f2d97f8fb162c93d328b6ba935f60a67dbf94ca663"
+  },
+  "trace_verdicts": [
+    {
+      "trace_id": "candidate-valid-revisit",
+      "verdict": "PASS",
+      "reasons": [
+        "e0 and e3 share canonical_math_state_id 'state:fibonacci-gcd-goal' in reasoning-dag.json, giving two distinct occurrences of the same canonical state as required by TRACE-REVISIT-001",
+        "edge_f75db69bda8f4387 is a REVISIT edge (source e2, target e3) present in reasoning-dag.json edges and in transition-context.json incidence with relation:revisit",
+        "e3 carries the strictly new attribute 'method:euclidean-reduction' (absent from e0 whose attributes are only goal:gcd-identity and object:fibonacci), satisfying the new-attribute requirement of TRACE-REVISIT-001",
+        "shared_intent {goal:gcd-identity, object:fibonacci, status:active} is present in the state-context.json incidence of both e0 and e3, so the intent is common to every cited event",
+        "the abandoned Binet branch e2 is retained in the DAG with status CONTRADICTED and an ABANDON edge (edge_bf9232c54f04d8f6), so no contradiction or abandoned branch was silently removed",
+        "the revisit is backed by an explicit REVISIT edge in the graph, not merely by an FCA commonality, so no FCA commonality is misreported as temporal or causal evidence"
+      ],
+      "evidence_refs": [
+        "e0",
+        "e3",
+        "edge_f75db69bda8f4387"
+      ]
+    },
+    {
+      "trace_id": "candidate-invalid-single-parent-merge",
+      "verdict": "FAIL",
+      "reasons": [
+        "edge_30e90287411de9e1 is relation:refine (source e4, target e5) in reasoning-dag.json and transition-context.json, not a MERGE edge; TRACE-MERGE-001 requires evidence-bearing MERGE parents",
+        "target e5 is event_kind STATE (kind:state in state-context.json), not kind:synthesis; TRACE-MERGE-001 requires a SYNTHESIS target, which in this DAG is e8 (explicit_merge_events)",
+        "e5 has exactly one incoming edge in reasoning-dag.json (the REFINE from e4), not two MERGE parents from distinguishable branches or two explicit evidence-bearing merge inputs",
+        "the candidate evidence text itself admits the step 'flows into its iteration', which is ordinary linear continuation that TRACE-MERGE-001 explicitly excludes: 'Ordinary linear continuation is not a merge'",
+        "shared_intent 'method:euclidean-algorithm' is not common to e4; e4's state-context.json incidence carries 'method:euclidean-reduction' while only e5 carries 'method:euclidean-algorithm', so the shared intent is not common to every cited event"
+      ],
+      "evidence_refs": [
+        "e4",
+        "e5",
+        "edge_30e90287411de9e1"
+      ]
+    }
+  ],
+  "protocol_violations": [
+    "Candidate trace 'candidate-invalid-single-parent-merge' misreports a REFINE edge (ordinary linear continuation e4->e5) as a TRUE_MERGE, directly violating TRACE-MERGE-001's explicit exclusion: 'Ordinary linear continuation is not a merge.'"
+  ],
+  "overall_verdict": "PARTIAL"
+}

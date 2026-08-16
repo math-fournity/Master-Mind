@@ -1,0 +1,25 @@
+Let me verify the SHA-256 hashes and span boundaries against the raw file. I'll write a verification script.Whole-file SHA-256 matches. Now let me verify each event's source_span against the raw file.All spans and SHA-256 values match the raw file. Now let me analyze the normalization against the raw text and the AGENTS.md invariants.
+
+Let me document my analysis. I'll review each event for evidence-supported normalization mistakes:My analysis is complete. I found 5 evidence-supported normalization mistakes:
+
+1. **e2 status** `ACTIVE`→`ABANDONED`: [02] explicitly says "I abandon the Binet route."
+2. **e3 canonical_math_state_id** `state:new-euclidean-goal`→`state:fibonacci-gcd-goal`: [03] says "I return to the original gcd goal" — a semantic revisit must share the canonical state with e0 (invariant §3).
+3. **e3 edge e0→e3** `BRANCH_FROM`→`REVISIT`: e3 revisits e0's goal state, not a new branch.
+4. **e3 edge e2→e3** `REVISIT`→`ABANDON`: e3 does not revisit e2's (Binet-failure) state; the failed route is abandoned and reasoning departs from it.
+5. **e7 edge e2→e7** `CONTINUE`→`REUSE`: evidence itself says "reuses the identity"; e7 reuses e2's retained addition-identity artifact (consistent with e4's `REUSE` from e2), it does not continue e2's abandoned route.
+
+Now writing the normalized output:Now let me verify the output: validate JSON, confirm no unknown keys, confirm event count/IDs/spans preserved, and recompute the output SHA-256.All checks pass. The semantic-revisit invariant is now satisfied (e0 and e3 share `state:fibonacci-gcd-goal`), all edges go forward, the MERGE retains two evidence-bearing parents, no unknown keys, and all spans/SHA-256 match the raw file. Now writing `DONE.md`:Done. I produced `normalized-reasoning-trajectory.json` and `DONE.md`.
+
+## Summary
+
+I verified the whole-file SHA-256 and every event's `source_span` (start/end/sha256) against `raw_solver_trajectory.txt` — all 10 spans matched exactly. Then I reviewed the normalization against the AGENTS.md invariants and the raw text, finding 5 evidence-supported mistakes:
+
+| # | Field | Before | After | Evidence |
+|---|-------|--------|-------|----------|
+| 1 | e2 `status` | `ACTIVE` | `ABANDONED` | [02] "I abandon the Binet route" |
+| 2 | e3 `canonical_math_state_id` | `state:new-euclidean-goal` | `state:fibonacci-gcd-goal` | [03] "I return to the original gcd goal" — semantic revisit must share e0's canonical state |
+| 3 | e3 edge e0→e3 | `BRANCH_FROM` | `REVISIT` | e3 revisits e0's goal, not a new branch |
+| 4 | e3 edge e2→e3 | `REVISIT` | `ABANDON` | e3 doesn't revisit e2's failure state; the failed route is left behind |
+| 5 | e7 edge e2→e7 | `CONTINUE` | `REUSE` | [07] "uses the addition identity left over" = reuse of e2's retained artifact (matches e4's `REUSE` from e2) |
+
+All immutable fields (event count, IDs, sequence indexes, source spans, raw text) were preserved. The output passes: no unknown keys, all spans/SHA-256 match the raw file, all edges go forward in time, the e8 `MERGE` retains two evidence-bearing parents, and the e0/e3 semantic-revisit pair now shares one canonical state.

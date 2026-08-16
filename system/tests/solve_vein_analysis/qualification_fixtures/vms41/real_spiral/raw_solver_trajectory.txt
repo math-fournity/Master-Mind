@@ -1,0 +1,226 @@
+Let me try a different approach. Let me try to directly prove or disprove the limit statement.
+
+Approach 1: Try to prove the limit is 1.
+
+We know $d_Y(f(x), f(y)) \le d_X(x, y)$, so $\limsup_{y \to x} \frac{d_Y(f(x), f(y))}{d_X(x, y)} \le 1$.
+
+We need $\liminf_{y \to x} \frac{d_Y(f(x), f(y))}{d_X(x, y)} \ge 1$.
+
+Suppose for contradiction that there exists $x \in X$ and a sequence $y_n \to x$ with $\frac{d_Y(f(x), f(y_n))}{d_X(x, y_n)} \to c < 1$.
+
+Let $r_n = d_X(x, y_n) \to 0$. Let $\gamma_n$ be a minimizing geodesic from $x$ to $y_n$ (parametrized by arc length, so $\gamma_n: [0, r_n] \to X$, $\gamma_n(0) = x$, $\gamma_n(r_n) = y_n$).
+
+Then $f \circ \gamma_n: [0, r_n] \to Y$ is a path from $f(x)$ to $f(y_n)$ with $L(f \circ \gamma_n) = r_n$.
+
+But $d_Y(f(x), f(y_n)) \to c \cdot r_n < r_n$ (asymptotically). So $f \circ \gamma_n$ is not minimizing; there's a shorter path in $Y$ from $f(x)$ to $f(y_n)$.
+
+The geodesic in $Y$ from $f(x)$ to $f(y_n)$ has length $d_Y(f(x), f(y_n)) \approx c \cdot r_n$.
+
+Now, consider the geodesic $\sigma_n: [0, d_Y(f(x), f(y_n))] \to Y$ from $f(x)$ to $f(y_n)$. Its length is $\approx c \cdot r_n < r_n = L(f \circ \gamma_n)$.
+
+So $f \circ \gamma_n$ is a path of length $r_n$ but the geodesic has length $\approx c \cdot r_n$. The path $f \circ \gamma_n$ is about $\frac{1}{c}$ times longer than the geodesic.
+
+Now, the path $f \circ \gamma_n$ starts at $f(x)$ and ends at $f(y_n)$, and has length $r_n$. The geodesic $\sigma_n$ has length $\approx c \cdot r_n$.
+
+Since $f$ is an arcwise isometry, any path in $X$ from $x$ to $y_n$ maps to a path in $Y$ of the same length. The shortest path in $X$ from $x$ to $y_n$ is $\gamma_n$ with length $r_n$. So any path in $Y$ that is the image of a path in $X$ from $x$ to $y_n$ has length $\ge r_n$.
+
+But the geodesic $\sigma_n$ in $Y$ has length $< r_n$. So $\sigma_n$ is NOT the image of any path in $X$ from $x$ to $y_n$. This is fine—$f$ need not be surjective, and even if it is, $\sigma_n$ might not be in the image of $f$.
+
+So there's no contradiction yet. The issue is that $f$ can map $X$ into $Y$ in a way that the image is "curved" in $Y$, so that geodesics in $Y$ between image points are shorter than the image paths.
+
+But wait, this is exactly the circle example: $f: \mathbb{R} \to S^1$, $f(t) = e^{it}$. For large $|x - y|$, $d_Y(f(x), f(y)) < |x - y| = d_X(x, y)$. But for small $|x - y| < \pi$, $d_Y(f(x), f(y)) = |x - y|$. So the limit is still 1.
+
+The question is: can the "curving" happen at arbitrarily small scales?
+
+For the circle example, the curving happens at scale $\pi$ (the injectivity radius). For smaller distances, the map is an isometry.
+
+In general, for a local isometry, the injectivity radius gives the scale below which distances are preserved. But for a general arcwise isometry that's not a local isometry...
+
+Let me think about whether an arcwise isometry must be a local isometry.
+
+Actually, I think the key theorem is:
+
+**Theorem**: Let $f: X \to Y$ be an arcwise isometry between Riemannian manifolds. Then $f$ is a local isometry, i.e., for every $x \in X$, there exists a neighborhood $U$ of $x$ such that $f|_U$ is an isometry (in the Riemannian sense) onto $f(U)$.
+
+If this is true, then for $y$ close enough to $x$, $d_Y(f(x), f(y)) = d_X(x, y)$ (since a local isometry preserves distances locally), and the limit is trivially 1.
+
+But is this theorem true? The fold map $f(t) = |t|$ is a counterexample to $f$ being a local isometry at $t = 0$ (it's not injective near $0$). But it still preserves distances locally ($d_Y(f(0), f(y)) = |y| = d_X(0, y)$).
+
+So maybe the theorem should be: $f$ is a "local distance isometry" (preserves distances locally) even if not a local Riemannian isometry (not injective).
+
+Hmm, let me think about this more carefully.
+
+Actually, I think the correct statement is:
+
+**Theorem**: An arcwise isometry $f: X \to Y$ between connected Riemannian manifolds is a local isometry in the metric sense: for every $x \in X$, there exists $\epsilon > 0$ such that $d_Y(f(x), f(y)) = d_X(x, y)$ for all $y$ with $d_X(x, y) < \epsilon$.
+
+If this is true, the limit in the problem is 1.
+
+But I'm not sure this is true in general. Let me try to construct a counterexample.
+
+Consider a map that wraps $\mathbb{R}^2$ around a cylinder in a weird way. Actually, let me think about a more concrete example.
+
+Let $X = \mathbb{R}^2$ (Euclidean) and $Y = \mathbb{R}^3$ (Euclidean). Let $f: \mathbb{R}^2 \to \mathbb{R}^3$ be the map $f(u, v) = (\cos u, \sin u, v)$. This maps $\mathbb{R}^2$ to a cylinder. Is this an arcwise isometry?
+
+For a path $\gamma(t) = (u(t), v(t))$ in $\mathbb{R}^2$, $f \circ \gamma(t) = (\cos u(t), \sin u(t), v(t))$.
+
+$L(\gamma) = \int \sqrt{u'(t)^2 + v'(t)^2} dt$.
+
+$L(f \circ \gamma) = \int \sqrt{(-\sin u(t) \cdot u'(t))^2 + (\cos u(t) \cdot u'(t))^2 + v'(t)^2} dt = \int \sqrt{u'(t)^2 + v'(t)^2} dt = L(\gamma)$.
+
+Yes! This is an arcwise isometry. The cylinder is "unrolled" isometrically.
+
+Now, $d^X((u_1, v_1), (u_2, v_2)) = \sqrt{(u_1-u_2)^2 + (v_1-v_2)^2}$.
+
+$d^Y(f(u_1, v_1), f(u_2, v_2)) = \sqrt{(\cos u_1 - \cos u_2)^2 + (\sin u_1 - \sin u_2)^2 + (v_1 - v_2)^2}$
+$= \sqrt{2 - 2\cos(u_1 - u_2) + (v_1 - v_2)^2}$
+$= \sqrt{4\sin^2((u_1-u_2)/2) + (v_1-v_2)^2}$.
+
+For $(u_2, v_2) \to (u_1, v_1)$, let $\Delta u = u_2 - u_1 \to 0$, $\Delta v = v_2 - v_1 \to 0$.
+
+$d^Y \approx \sqrt{(\Delta u)^2 + (\Delta v)^2} = d^X$.
+
+More precisely, $\frac{d^Y}{d^X} = \frac{\sqrt{4\sin^2(\Delta u/2) + (\Delta v)^2}}{\sqrt{(\Delta u)^2 + (\Delta v)^2}} \to \frac{\sqrt{(\Delta u)^2 + (\Delta v)^2}}{\sqrt{(\Delta u)^2 + (\Delta v)^2}} = 1$ as $(\Delta u, \Delta v) \to 0$.
+
+So the limit is 1. Again.
+
+Let me try to think of a case where the limit might not be 1. The key is to find an arcwise isometry where $f$ "curves" the image at arbitrarily small scales.
+
+What if $f$ is an arcwise isometry that is NOT differentiable? Can such a thing exist between Riemannian manifolds?
+
+Consider $f: \mathbb{R} \to \mathbb{R}^2$ defined by a space-filling-like curve... no, that can't be an arcwise isometry because it would have to preserve lengths.
+
+What about $f: \mathbb{R} \to \mathbb{R}^2$ that is a fractal curve parametrized by arc length? For example, the Koch snowflake curve. But the Koch curve has infinite length, so it can't be parametrized by arc length on a finite interval. And on $\mathbb{R}$, we'd need... hmm.
+
+Actually, let me think about this. A curve $\gamma: \mathbb{R} \to \mathbb{R}^2$ that is parametrized by arc length (i.e., $|\gamma'(t)| = 1$ a.e.) is an arcwise isometry from $\mathbb{R}$ to $\mathbb{R}^2$. The question is whether such a curve can have $d_{\mathbb{R}^2}(\gamma(s), \gamma(t)) / |s - t| \not\to 1$ as $t \to s$ for some $s$.
+
+If $\gamma$ is differentiable at $s$ with $|\gamma'(s)| = 1$, then $\gamma(t) \approx \gamma(s) + \gamma'(s)(t - s)$, so $d(\gamma(s), \gamma(t)) \approx |t - s|$, and the limit is 1.
+
+But what if $\gamma$ is not differentiable at $s$? Can a unit-speed curve fail to be differentiable?
+
+A unit-speed curve $\gamma: \mathbb{R} \to \mathbb{R}^2$ has $|\gamma'(t)| = 1$ a.e. (since it's absolutely continuous and $L(\gamma|_{[a,b]}) = |b - a|$). But it could fail to be differentiable at some points.
+
+However, even if $\gamma$ is not differentiable at a specific point $s$, we need to check whether the distance ratio still goes to 1.
+
+Consider a curve that has a "corner" at $s = 0$. For example:
+$\gamma(t) = (t, 0)$ for $t \ge 0$ and $\gamma(t) = (t \cos\theta, t \sin\theta)$ for $t < 0$, where $\theta \ne 0$.
+
+This is a unit-speed curve with a corner at $t = 0$. Is it an arcwise isometry from $\mathbb{R}$ to $\mathbb{R}^2$?
+
+For any path in $\mathbb{R}$... wait, $f = \gamma$ is a map from $\mathbb{R}$ to $\mathbb{R}^2$. For any path $\alpha: [a, b] \to \mathbb{R}$, $L(\gamma \circ \alpha) = L(\alpha)$?
+
+$\gamma$ is unit-speed, so $|\gamma'(t)| = 1$ for $t \ne 0$. So $L(\gamma \circ \alpha) = \int |\gamma'(\alpha(t))| \cdot |\alpha'(t)| dt = \int |\alpha'(t)| dt = L(\alpha)$ (the change of variables works, and the corner at $0$ doesn't affect the integral since it's a single point).
+
+Yes, this is an arcwise isometry!
+
+Now, $d^X(s, t) = |s - t|$ (distance in $\mathbb{R}$).
+$d^Y(\gamma(s), \gamma(t)) = \|\gamma(s) - \gamma(t)\|$ (Euclidean distance in $\mathbb{R}^2$).
+
+At $s = 0$: $d^Y(\gamma(0), \gamma(t)) = \|\gamma(t)\| = |t|$ (since $\gamma(t) = (t, 0)$ for $t > 0$ and $\gamma(t) = (t\cos\theta, t\sin\theta)$ for $t < 0$, and $\|\gamma(t)\| = |t|$ in both cases).
+
+So $\frac{d^Y(\gamma(0), \gamma(t))}{d^X(0, t)} = \frac{|t|}{|t|} = 1$. The limit is 1!
+
+Hmm, even with the corner, the distance from the corner point is preserved. That's because both branches start at the origin and go out radially.
+
+But what about the limit at a point near the corner? Say $s = \epsilon > 0$ (small) and $t \to s$.
+
+For $t > 0$ (same branch): $\gamma(s) = (s, 0)$, $\gamma(t) = (t, 0)$. $d^Y = |s - t| = d^X$. Ratio is 1.
+
+For $t < 0$ (other branch): $\gamma(s) = (s, 0)$, $\gamma(t) = (t\cos\theta, t\sin\theta)$. $d^Y = \sqrt{(s - t\cos\theta)^2 + (t\sin\theta)^2} = \sqrt{s^2 - 2st\cos\theta + t^2}$. And $d^X = |s - t| = s - t$ (since $s > 0, t < 0$).
+
+As $t \to s$ with $t < 0$... wait, if $s = \epsilon > 0$ and $t \to s$, then for $t$ close to $s > 0$, $t > 0$, so we're on the same branch. The limit is 1.
+
+What if we approach $s = 0$ from the perspective of the limit at $s = 0$? We already checked: the ratio is always 1 at $s = 0$.
+
+What about at a point $s > 0$ and $t < 0$ with $t \to 0$ (not $t \to s$)? That's not $y \to x$, so it doesn't matter.
+
+OK so the corner doesn't create a problem. Let me think about why.
+
+The key insight is: even at a corner, the curve $\gamma$ is locally like two rays emanating from a point. The distance from the corner point to any nearby point on either ray is just the parameter difference (because both rays start at the origin). So the ratio is 1 at the corner.
+
+But what about the distance between two points on different branches, both near the corner? That's not the limit we're taking—we're taking $y \to x$ for a fixed $x$, so one point is fixed.
+
+Hmm wait, actually, let me reconsider. The limit is $\lim_{y \to x} \frac{d^Y(f(x), f(y))}{d^X(x, y)}$. So $x$ is fixed and $y$ varies. At the corner $x = 0$, we've shown the ratio is always 1. At any other point, the curve is smooth (locally a straight line), so the ratio is 1.
+
+So even with corners, the limit is 1.
+
+Let me try to think of a more pathological example. What if the curve has a corner at every point? Like a fractal curve?
+
+A unit-speed curve $\gamma: \mathbb{R} \to \mathbb{R}^2$ with $|\gamma'(t)| = 1$ a.e. but $\gamma$ is nowhere differentiable. Does such a thing exist?
+
+Actually, if $|\gamma'(t)| = 1$ a.e., then $\gamma$ is absolutely continuous (since $L(\gamma|_{[a,b]}) = |b - a| < \infty$ for all $a, b$), and $\gamma'(t)$ exists a.e. with $|\gamma'(t)| = 1$. But $\gamma$ could still fail to be differentiable on a set of measure zero.
+
+But can $\gamma$ fail to be differentiable on a dense set? If $\gamma$ is absolutely continuous, it's differentiable a.e., so the non-differentiable set has measure zero. But it could be dense.
+
+However, even if $\gamma$ is not differentiable at a point $s$, the distance ratio $\frac{\|\gamma(s) - \gamma(t)\|}{|s - t|}$ might still go to 1.
+
+Hmm, actually, let me think about a curve that spirals. Consider $\gamma: \mathbb{R} \to \mathbb{R}^2$ defined by... actually, any unit-speed curve has $|\gamma'(t)| = 1$ a.e., and for such a curve, $\gamma(t) = \gamma(s) + \int_s^t \gamma'(u) du$, so $\|\gamma(t) - \gamma(s)\| \le |t - s|$ (since $|\gamma'(u)| = 1$). And $\|\gamma(t) - \gamma(s)\| / |t - s| \le 1$.
+
+For the limit to be less than 1, we'd need $\gamma(t) - \gamma(s) = \int_s^t \gamma'(u) du$ to be significantly shorter than $|t - s|$, which happens when $\gamma'$ changes direction a lot on $[s, t]$. But as $t \to s$, the interval $[s, t]$ shrinks, and if $\gamma'$ is approximately constant on small intervals (i.e., $\gamma$ is approximately differentiable at $s$), then the integral is approximately $\gamma'(s) \cdot (t - s)$ and the ratio goes to 1.
+
+The question is: can $\gamma'$ oscillate so much on small intervals that the integral is significantly shorter than $|t - s|$ even as $t \to s$?
+
+If $\gamma$ is absolutely continuous with $|\gamma'| = 1$ a.e., then by the Lebesgue differentiation theorem, $\gamma'(s)$ exists for a.e. $s$ and $\frac{1}{t-s}\int_s^t \gamma'(u) du \to \gamma'(s)$ for a.e. $s$. So for a.e. $s$, the limit is $|\gamma'(s)| = 1$.
+
+But for the exceptional set (measure zero), the limit might not be 1. However, the problem asks about ALL $x \in X$.
+
+So the question is: can we construct a unit-speed curve where the distance ratio fails to go to 1 at some point?
+
+Let me think about this. Consider a curve $\gamma: \mathbb{R} \to \mathbb{R}^2$ that is unit-speed and has a "spiral" at $t = 0$. For example, near $t = 0$, the curve spirals around $\gamma(0)$ many times.
+
+Specifically, let's try to construct $\gamma$ such that near $t = 0$, $\gamma$ spirals: $\gamma(t) = (t \cos(1/t), t \sin(1/t))$ for $t$ near $0$... but this isn't unit speed.
+
+Let me compute: $\gamma(t) = (t \cos(1/t), t \sin(1/t))$. $\gamma'(t) = (\cos(1/t) + \frac{1}{t}\sin(1/t), \sin(1/t) - \frac{1}{t}\cos(1/t))$. $|\gamma'(t)|^2 = \cos^2(1/t) + \frac{2}{t}\cos(1/t)\sin(1/t) + \frac{1}{t^2}\sin^2(1/t) + \sin^2(1/t) - \frac{2}{t}\sin(1/t)\cos(1/t) + \frac{1}{t^2}\cos^2(1/t) = 1 + \frac{1}{t^2}$. So $|\gamma'(t)| = \sqrt{1 + 1/t^2}$, which is not 1. So this isn't unit speed.
+
+To make a unit-speed spiral, I'd need to reparametrize. But the spiral $\gamma(t) = (t \cos(1/t), t \sin(1/t))$ has length $\int \sqrt{1 + 1/t^2} dt$ which diverges near $0$. So the arc length from $0$ to any point is infinite, and we can't parametrize it by arc length on a finite interval containing $0$.
+
+What about a slower spiral? $\gamma(t) = (t \cos(\log|t|), t \sin(\log|t|))$ for $t$ near $0$. $\gamma'(t) = (\cos(\log|t|) - \sin(\log|t|), \sin(\log|t|) + \cos(\log|t|))$ (for $t > 0$, using $d/dt \log t = 1/t$ and $d/dt(t\cos(\log t)) = \cos(\log t) - \sin(\log t)$). $|\gamma'(t)|^2 = 2$. So $|\gamma'(t)| = \sqrt{2}$. Not unit speed, but we can reparametrize: $\tilde{\gamma}(s) = \gamma(s/\sqrt{2})$, then $|\tilde{\gamma}'(s)| = 1$.
+
+So $\tilde{\gamma}(s) = ((s/\sqrt{2}) \cos(\log(s/\sqrt{2})), (s/\sqrt{2}) \sin(\log(s/\sqrt{2})))$ for $s > 0$ near $0$.
+
+This is a unit-speed curve. And $\tilde{\gamma}(s) = (s/\sqrt{2}) \cdot (\cos(\log(s/\sqrt{2})), \sin(\log(s/\sqrt{2})))$.
+
+$\|\tilde{\gamma}(s)\| = s/\sqrt{2}$.
+
+So $d^Y(\tilde{\gamma}(0), \tilde{\gamma}(s)) = \|\tilde{\gamma}(0) - \tilde{\gamma}(s)\| = \|\tilde{\gamma}(s)\| = s/\sqrt{2}$ (assuming $\tilde{\gamma}(0) = (0, 0)$).
+
+And $d^X(0, s) = s$.
+
+So $\frac{d^Y(\tilde{\gamma}(0), \tilde{\gamma}(s))}{d^X(0, s)} = \frac{s/\sqrt{2}}{s} = \frac{1}{\sqrt{2}} < 1$.
+
+The limit as $s \to 0$ is $\frac{1}{\sqrt{2}} \ne 1$!
+
+Wait, but I need to check that $\tilde{\gamma}$ is actually an arcwise isometry. The curve $\tilde{\gamma}: \mathbb{R} \to \mathbb{R}^2$ is unit-speed ($|\tilde{\gamma}'(s)| = 1$ a.e. for $s > 0$). But I need to define it on all of $\mathbb{R}$, and I need it to be an arcwise isometry, meaning $L(\tilde{\gamma} \circ \alpha) = L(\alpha)$ for ALL paths $\alpha$ in $\mathbb{R}$.
+
+If $\tilde{\gamma}$ is unit-speed and absolutely continuous, then for any absolutely continuous path $\alpha: [a, b] \to \mathbb{R}$, $L(\tilde{\gamma} \circ \alpha) = \int |\tilde{\gamma}'(\alpha(t))| \cdot |\alpha'(t)| dt = \int |\alpha'(t)| dt = L(\alpha)$.
+
+But wait, this requires $\tilde{\gamma}$ to be absolutely continuous and $|\tilde{\gamma}'| = 1$ a.e. Let me check.
+
+$\tilde{\gamma}(s) = ((s/\sqrt{2}) \cos(\log(s/\sqrt{2})), (s/\sqrt{2}) \sin(\log(s/\sqrt{2})))$ for $s > 0$.
+
+As $s \to 0^+$, $\tilde{\gamma}(s) \to (0, 0)$. So we can define $\tilde{\gamma}(0) = (0, 0)$.
+
+Is $\tilde{\gamma}$ absolutely continuous on $[0, 1]$? $\tilde{\gamma}(s) = (s/\sqrt{2})(\cos(\log(s/\sqrt{2})), \sin(\log(s/\sqrt{2})))$. The derivative is bounded (we computed $|\tilde{\gamma}'(s)| = 1$), so yes, $\tilde{\gamma}$ is Lipschitz on $[0, 1]$ (since $|\tilde{\gamma}'| = 1$ a.e. implies $\tilde{\gamma}$ is 1-Lipschitz). So it's absolutely continuous.
+
+Now I need to extend $\tilde{\gamma}$ to all of $\mathbb{R}$. For $s < 0$, I can define $\tilde{\gamma}(s) = ((-s/\sqrt{2}) \cos(\log(-s/\sqrt{2})), (-s/\sqrt{2}) \sin(\log(-s/\sqrt{2})))$ or something similar. Or I can just define $\tilde{\gamma}(s) = (s, 0)$ for $s < 0$ (a straight line). But then at $s = 0$, the curve would have a corner, and I need to check that $|\tilde{\gamma}'| = 1$ a.e.
+
+Actually, let me just define $\tilde{\gamma}$ on $[0, \infty)$ as the spiral, and on $(-\infty, 0]$ as $\tilde{\gamma}(s) = (s, 0)$. Then $|\tilde{\gamma}'(s)| = 1$ for $s \ne 0$ (for $s < 0$, $|\tilde{\gamma}'| = |(1, 0)| = 1$; for $s > 0$, $|\tilde{\gamma}'| = 1$ as computed). At $s = 0$, $\tilde{\gamma}$ might not be differentiable, but that's a single point (measure zero).
+
+So $\tilde{\gamma}$ is absolutely continuous on any bounded interval, $|\tilde{\gamma}'| = 1$ a.e., and hence $L(\tilde{\gamma} \circ \alpha) = L(\alpha)$ for any absolutely continuous $\alpha$.
+
+But wait, is this really an arcwise isometry in the sense of the problem? The problem says $f: X \to Y$ is an arcwise isometry, meaning it preserves lengths of paths. A "path" in a Riemannian manifold is typically a piecewise smooth curve, or more generally, an absolutely continuous curve. If we use the absolutely continuous definition, then $\tilde{\gamma}$ is an arcwise isometry.
+
+But actually, I need to be more careful. The problem says $X$ and $Y$ are connected Riemannian manifolds. $X = \mathbb{R}$ and $Y = \mathbb{R}^2$ are both connected Riemannian manifolds. And $\tilde{\gamma}: \mathbb{R} \to \mathbb{R}^2$ is an arcwise isometry (preserves lengths of all absolutely continuous paths).
+
+Now, at $x = 0$:
+$$\lim_{y \to 0^+} \frac{d^Y(\tilde{\gamma}(0), \tilde{\gamma}(y))}{d^X(0, y)} = \lim_{y \to 0^+} \frac{\|\tilde{\gamma}(y)\|}{y} = \lim_{y \to 0^+} \frac{y/\sqrt{2}}{y} = \frac{1}{\sqrt{2}} \ne 1.$$
+
+So the limit does NOT equal 1! The statement is FALSE.
+
+Wait, let me double-check. $\tilde{\gamma}(y) = (y/\sqrt{2})(\cos(\log(y/\sqrt{2})), \sin(\log(y/\sqrt{2})))$. $\|\tilde{\gamma}(y)\| = y/\sqrt{2}$. And $d^X(0, y) = |y| = y$ (for $y > 0$). So the ratio is $\frac{y/\sqrt{2}}{y} = \frac{1}{\sqrt{2}}$.
+
+Yes! The limit is $\frac{1}{\sqrt{2}} \ne 1$.
+
+But wait, I need to also check the limit from the left ($y \to 0^-$). For $y < 0$, $\tilde{\gamma}(y) = (y, 0)$, so $d^Y(\tilde{\gamma}(0), \tilde{\gamma}(y)) = |y| = -y$. And $d^X(0, y) = |y| = -y$. So the ratio is 1 from the left.
+
+So the two-sided limit doesn't exist (left limit is 1, right limit is $1/\sqrt{2}$). In particular, the limit is NOT 1.

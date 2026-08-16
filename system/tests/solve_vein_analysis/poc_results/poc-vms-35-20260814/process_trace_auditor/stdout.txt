@@ -1,0 +1,43 @@
+I'll start by reading the project AGENTS.md and exploring the workspace contents.Let me read all the relevant input files in parallel.Now let me read the DAG and concept files.Let me read the relational-scaling.json file as well.I now have all the sealed artifacts. Let me analyze the two candidate traces against the frozen rules and graph evidence.
+
+**Analysis of Trace 1 `candidate-valid-revisit` (rule TRACE-REVISIT-001):**
+- e0 and e3 both have `canonical_math_state_id: "state:fibonacci-gcd-goal"` → two distinct occurrences of the same canonical state ✓
+- `edge_f75db69bda8f4387` is relation REVISIT (e2→e3), present in DAG and transition-context ✓
+- e3 has new attribute `method:euclidean-reduction` absent from e0 → strictly new attributes ✓
+- shared_intent `{goal:gcd-identity, object:fibonacci, status:active}` present in both e0 and e3 state-context incidence ✓
+- e2 (abandoned Binet branch) is retained with CONTRADICTED status, not silently removed ✓
+- Revisit is backed by an actual REVISIT edge, not just FCA commonality ✓
+- **Verdict: PASS**
+
+**Analysis of Trace 2 `candidate-invalid-single-parent-merge` (rule TRACE-MERGE-001):**
+- `edge_30e90287411de9e1` is relation REFINE (e4→e5), NOT a MERGE edge ✗
+- Target e5 is `kind:state`, not `kind:synthesis` (actual synthesis is e8) ✗
+- e5 has only one incoming edge (the REFINE from e4), not two MERGE parents ✗
+- Evidence text itself admits "flows into its iteration" = ordinary linear continuation, which TRACE-MERGE-001 explicitly excludes ✗
+- shared_intent `method:euclidean-algorithm` is NOT common to e4 (e4 has `method:euclidean-reduction`) ✗
+- **Verdict: FAIL**
+
+Overall: one PASS + one FAIL = PARTIAL.
+
+Let me write the audit file.Now let me compute the SHA256 and verify the JSON is valid.JSON is valid with exactly the 5 required top-level keys and 2 verdicts. Now writing DONE.md.Audit complete. Here's the summary:
+
+## Results
+
+**`trace-audit.json`** written with exactly the 5 required top-level keys: `schema_version`, `artifact_hashes`, `trace_verdicts`, `protocol_violations`, `overall_verdict`.
+
+### Trace verdicts
+
+| trace_id | verdict | key structural reasons |
+|---|---|---|
+| `candidate-valid-revisit` | **PASS** | e0 and e3 share canonical state `state:fibonacci-gcd-goal`; `edge_f75db69bda8f4387` is a real REVISIT edge; e3 has strictly new attribute `method:euclidean-reduction`; shared intent common to both events; abandoned branch e2 retained (not silently removed) |
+| `candidate-invalid-single-parent-merge` | **FAIL** | Cited edge is REFINE not MERGE; target e5 is STATE not SYNTHESIS; only 1 incoming edge not 2 MERGE parents; evidence admits it's linear iteration (explicitly excluded by rule); shared intent `method:euclidean-algorithm` absent from e4 (which has `method:euclidean-reduction`) |
+
+### Overall verdict: **PARTIAL** (1 PASS + 1 FAIL)
+
+### Protocol violation
+The second candidate trace misreports an ordinary linear continuation (REFINE e4→e5) as a TRUE_MERGE, directly violating TRACE-MERGE-001's explicit exclusion.
+
+**`DONE.md`** written with:
+```
+trace-audit.json SHA256=657e7b66e7d2d71d23e5de5434b398c8bf4d2afa0ecafcedc043273ca8e4afab
+```

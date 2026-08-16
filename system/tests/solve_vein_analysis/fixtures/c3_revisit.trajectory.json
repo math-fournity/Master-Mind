@@ -1,0 +1,50 @@
+{
+  "schema_version": "solve-vein/reasoning-trajectory/v1",
+  "trajectory_id": "vms31-c3-revisit",
+  "problem_id": "vms31-c3",
+  "source": {
+    "carrier": "fixture",
+    "source_artifact_ref": "fixture://vms31/c3/raw",
+    "source_artifact_sha256": "dbf2b2d6f54f7d0004375b74ba0e2c7edfc079d4abca31d1b99855e83ad2f22b"
+  },
+  "events": [
+    {
+      "event_id": "e0", "sequence_index": 0, "event_kind": "STATE",
+      "text": "Restate the proof goal.", "canonical_math_state_id": "state:root-goal",
+      "attributes": ["goal:prove"], "status": "ACTIVE",
+      "source_span": {"start": 0, "end": 23, "sha256": "066cc05b182c9ef2f3d9a00b53976c13620ec83c1066f1f13cf6db5da2e23a9a"},
+      "incoming_edges": []
+    },
+    {
+      "event_id": "e1", "sequence_index": 1, "event_kind": "DECISION",
+      "text": "Try the unrestricted direct route.", "canonical_math_state_id": "state:direct-route",
+      "attributes": ["method:direct"], "status": "ACTIVE",
+      "source_span": {"start": 100, "end": 134, "sha256": "d050436e0c9ce504f251c4d1b0f74d2729dd25e879f4a402d145c4249e679f9e"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "the direct route is explored from the root"}]
+    },
+    {
+      "event_id": "e2", "sequence_index": 2, "event_kind": "FAILURE",
+      "text": "The direct route fails at the zero case.", "canonical_math_state_id": "state:zero-case-failure",
+      "attributes": ["method:direct", "guard:zero-case"], "status": "CONTRADICTED",
+      "source_span": {"start": 200, "end": 241, "sha256": "78c36c91cbd6d955ed53d57aeba9dc53fa0fb70b28cf860d043d2bba7f297f9d"},
+      "incoming_edges": [{"source_event_id": "e1", "relation": "CONTRADICT", "evidence": "the zero case invalidates the unrestricted route"}]
+    },
+    {
+      "event_id": "e3", "sequence_index": 3, "event_kind": "RETURN",
+      "text": "Revisit the original goal with the zero case excluded.", "canonical_math_state_id": "state:root-goal",
+      "attributes": ["goal:prove", "guard:exclude-zero"], "status": "ACTIVE",
+      "source_span": {"start": 300, "end": 353, "sha256": "509f29209fbc836701ab442ca8b1541d264c5c96b75ac66929e3b6646641ab6b"},
+      "incoming_edges": [
+        {"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "a guarded branch starts from the original goal"},
+        {"source_event_id": "e2", "relation": "REVISIT", "evidence": "the failure causes a return to the original goal"}
+      ]
+    },
+    {
+      "event_id": "e4", "sequence_index": 4, "event_kind": "STATE",
+      "text": "Continue with a case-sensitive route.", "canonical_math_state_id": "state:guarded-progress",
+      "attributes": ["guard:exclude-zero", "progress:valid"], "status": "ACTIVE",
+      "source_span": {"start": 400, "end": 437, "sha256": "8d0ac8f8421796ae779b9a8ecc324dbe164dcc5b6d2b6d10df0ebddfaca73991"},
+      "incoming_edges": [{"source_event_id": "e3", "relation": "CONTINUE", "evidence": "the new guard enables a valid route"}]
+    }
+  ]
+}

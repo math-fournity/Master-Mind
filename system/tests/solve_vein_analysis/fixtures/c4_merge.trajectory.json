@@ -1,0 +1,67 @@
+{
+  "schema_version": "solve-vein/reasoning-trajectory/v1",
+  "trajectory_id": "vms31-c4-merge",
+  "problem_id": "vms31-c4",
+  "source": {
+    "carrier": "fixture",
+    "source_artifact_ref": "fixture://vms31/c4/raw",
+    "source_artifact_sha256": "94eb03eb49783f54a1ea055c1561a481101f6bc58ac381fb1d036272395e9405"
+  },
+  "events": [
+    {
+      "event_id": "e0", "sequence_index": 0, "event_kind": "STATE",
+      "text": "Start from the common root.", "canonical_math_state_id": "state:root-goal",
+      "attributes": ["goal:prove"], "status": "ACTIVE",
+      "source_span": {"start": 0, "end": 27, "sha256": "9b71a3b17d7b9ee6f68289748405a3bf7f3326606b56ba77b20bc32a76ec45f1"},
+      "incoming_edges": []
+    },
+    {
+      "event_id": "e1", "sequence_index": 1, "event_kind": "DECISION",
+      "text": "Open branch A.", "canonical_math_state_id": "state:branch-a",
+      "attributes": ["branch:a", "method:structural"], "status": "ACTIVE",
+      "source_span": {"start": 100, "end": 114, "sha256": "e9323dea98797181703a0a1be24e20f4dfc6d12efe37d0ac0ae91126074a9b99"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "A is the first root branch"}]
+    },
+    {
+      "event_id": "e2", "sequence_index": 2, "event_kind": "STATE",
+      "text": "Derive lemma A.", "canonical_math_state_id": "state:lemma-a",
+      "attributes": ["branch:a", "artifact:lemma"], "status": "ACTIVE",
+      "source_span": {"start": 200, "end": 215, "sha256": "51ad37c87e3dd82d51c7cb39a77bbcd6a9768e0d0e786bf5da00e5183eb5730a"},
+      "incoming_edges": [{"source_event_id": "e1", "relation": "CONTINUE", "evidence": "branch A yields lemma A"}]
+    },
+    {
+      "event_id": "e3", "sequence_index": 3, "event_kind": "DECISION",
+      "text": "Open branch B.", "canonical_math_state_id": "state:branch-b",
+      "attributes": ["branch:b", "method:construction"], "status": "ACTIVE",
+      "source_span": {"start": 300, "end": 314, "sha256": "b07fb7fc407ad0d38cd1efbd34c8739b4a610fd370425d566c99714e189230a6"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "B is the second root branch"}]
+    },
+    {
+      "event_id": "e4", "sequence_index": 4, "event_kind": "STATE",
+      "text": "Build construction B using lemma A.", "canonical_math_state_id": "state:construction-b",
+      "attributes": ["branch:b", "artifact:construction", "artifact:lemma"], "status": "ACTIVE",
+      "source_span": {"start": 400, "end": 436, "sha256": "2a0cf72b9ca9213f3c2bca7972e238caf43a857e81ba250186b7db2267155d4d"},
+      "incoming_edges": [
+        {"source_event_id": "e3", "relation": "CONTINUE", "evidence": "branch B constructs the object"},
+        {"source_event_id": "e2", "relation": "REUSE", "evidence": "construction B explicitly uses lemma A"}
+      ]
+    },
+    {
+      "event_id": "e5", "sequence_index": 5, "event_kind": "SYNTHESIS",
+      "text": "Merge lemma A with construction B.", "canonical_math_state_id": "state:merged-certificate",
+      "attributes": ["artifact:lemma", "artifact:construction", "method:synthesis"], "status": "ACTIVE",
+      "source_span": {"start": 500, "end": 535, "sha256": "9ab0777f5a8ba5c90f547954f5aac83988b810af62a00807f12f32ca01087378"},
+      "incoming_edges": [
+        {"source_event_id": "e2", "relation": "MERGE", "evidence": "lemma A is one necessary merge input"},
+        {"source_event_id": "e4", "relation": "MERGE", "evidence": "construction B is the other necessary merge input"}
+      ]
+    },
+    {
+      "event_id": "e6", "sequence_index": 6, "event_kind": "CONCLUSION",
+      "text": "Conclude from the merged state.", "canonical_math_state_id": "state:proof-complete",
+      "attributes": ["method:synthesis", "progress:conclusion"], "status": "SOLVED",
+      "source_span": {"start": 600, "end": 631, "sha256": "1dca45f4da08dc188231247d3cc7111c35419d47ca734812fe5aea3ce3d562ca"},
+      "incoming_edges": [{"source_event_id": "e5", "relation": "CONCLUDE", "evidence": "the merged certificate closes the target"}]
+    }
+  ]
+}

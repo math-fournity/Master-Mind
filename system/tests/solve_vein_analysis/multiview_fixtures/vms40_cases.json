@@ -1,0 +1,770 @@
+{
+  "schema_version": "solve-vein/multiview-fixture-pack/v1",
+  "poc_id": "POC-VMS-40",
+  "protocol_sha256": "8d045365b5cd14d8d98d617ddec7c6607d96aeb1e2a871216fa1c631ca1b6857",
+  "cases": [
+    {
+      "case_id": "MV1",
+      "claim": "legacy status is a constrained acceptable set",
+      "acceptable_set": {
+        "schema_version": "solve-vein/semantic-acceptable-set/v1",
+        "acceptable_set_id": "as-mv1",
+        "case_id": "MV1",
+        "expected_occurrence_ids": ["s0"],
+        "required_relations": [],
+        "relation_clauses": [],
+        "optional_relations": [],
+        "forbidden_relations": [],
+        "required_state_axes": ["PROBLEM_OBLIGATION"],
+        "state_constraints": [
+          {
+            "constraint_id": "mv1-problem",
+            "kind": "EXACT_VALUE",
+            "axis": "PROBLEM_OBLIGATION",
+            "occurrence_ids": ["s0"],
+            "value_id": "prove-main"
+          }
+        ],
+        "legacy_status_constraints": [
+          {
+            "occurrence_id": "s0",
+            "allowed_statuses": ["ABANDONED", "CONTRADICTED"]
+          }
+        ],
+        "structural_constraints": []
+      },
+      "candidates": [
+        {
+          "label": "abandoned-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv1-abandoned",
+            "case_id": "MV1",
+            "occurrence_ids": ["s0"],
+            "relations": [],
+            "state_bindings": [
+              {
+                "occurrence_id": "s0",
+                "axis": "PROBLEM_OBLIGATION",
+                "value_id": "prove-main"
+              }
+            ],
+            "legacy_statuses": [
+              {"occurrence_id": "s0", "status": "ABANDONED"}
+            ]
+          }
+        },
+        {
+          "label": "contradicted-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv1-contradicted",
+            "case_id": "MV1",
+            "occurrence_ids": ["s0"],
+            "relations": [],
+            "state_bindings": [
+              {
+                "occurrence_id": "s0",
+                "axis": "PROBLEM_OBLIGATION",
+                "value_id": "prove-main"
+              }
+            ],
+            "legacy_statuses": [
+              {"occurrence_id": "s0", "status": "CONTRADICTED"}
+            ]
+          }
+        },
+        {
+          "label": "active-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv1-active",
+            "case_id": "MV1",
+            "occurrence_ids": ["s0"],
+            "relations": [],
+            "state_bindings": [
+              {
+                "occurrence_id": "s0",
+                "axis": "PROBLEM_OBLIGATION",
+                "value_id": "prove-main"
+              }
+            ],
+            "legacy_statuses": [
+              {"occurrence_id": "s0", "status": "ACTIVE"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "MV2",
+      "claim": "problem, method, representation, and knowledge are separate axes",
+      "acceptable_set": {
+        "schema_version": "solve-vein/semantic-acceptable-set/v1",
+        "acceptable_set_id": "as-mv2",
+        "case_id": "MV2",
+        "expected_occurrence_ids": ["e0", "e1"],
+        "required_relations": [],
+        "relation_clauses": [],
+        "optional_relations": [],
+        "forbidden_relations": [],
+        "required_state_axes": [
+          "PROBLEM_OBLIGATION",
+          "STRATEGY_METHOD",
+          "REPRESENTATION",
+          "KNOWLEDGE_STATE"
+        ],
+        "state_constraints": [
+          {
+            "constraint_id": "mv2-problem-same",
+            "kind": "MUST_LINK",
+            "axis": "PROBLEM_OBLIGATION",
+            "occurrence_ids": ["e0", "e1"]
+          },
+          {
+            "constraint_id": "mv2-method-different",
+            "kind": "CANNOT_LINK",
+            "axis": "STRATEGY_METHOD",
+            "occurrence_ids": ["e0", "e1"]
+          },
+          {
+            "constraint_id": "mv2-representation-different",
+            "kind": "CANNOT_LINK",
+            "axis": "REPRESENTATION",
+            "occurrence_ids": ["e0", "e1"]
+          },
+          {
+            "constraint_id": "mv2-knowledge-different",
+            "kind": "CANNOT_LINK",
+            "axis": "KNOWLEDGE_STATE",
+            "occurrence_ids": ["e0", "e1"]
+          }
+        ],
+        "legacy_status_constraints": [],
+        "structural_constraints": []
+      },
+      "candidates": [
+        {
+          "label": "separated-axes-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv2-separated",
+            "case_id": "MV2",
+            "occurrence_ids": ["e0", "e1"],
+            "relations": [],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e1", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e0", "axis": "STRATEGY_METHOD", "value_id": "direct"},
+              {"occurrence_id": "e1", "axis": "STRATEGY_METHOD", "value_id": "localize"},
+              {"occurrence_id": "e0", "axis": "REPRESENTATION", "value_id": "global"},
+              {"occurrence_id": "e1", "axis": "REPRESENTATION", "value_id": "local"},
+              {"occurrence_id": "e0", "axis": "KNOWLEDGE_STATE", "value_id": "k0"},
+              {"occurrence_id": "e1", "axis": "KNOWLEDGE_STATE", "value_id": "k1"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "collapsed-canonical-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv2-collapsed",
+            "case_id": "MV2",
+            "occurrence_ids": ["e0", "e1"],
+            "relations": [],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "same"},
+              {"occurrence_id": "e1", "axis": "PROBLEM_OBLIGATION", "value_id": "same"},
+              {"occurrence_id": "e0", "axis": "STRATEGY_METHOD", "value_id": "same"},
+              {"occurrence_id": "e1", "axis": "STRATEGY_METHOD", "value_id": "same"},
+              {"occurrence_id": "e0", "axis": "REPRESENTATION", "value_id": "same"},
+              {"occurrence_id": "e1", "axis": "REPRESENTATION", "value_id": "same"},
+              {"occurrence_id": "e0", "axis": "KNOWLEDGE_STATE", "value_id": "same"},
+              {"occurrence_id": "e1", "axis": "KNOWLEDGE_STATE", "value_id": "same"}
+            ],
+            "legacy_statuses": []
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "MV3",
+      "claim": "two complete branch-revisit projections are valid but mixtures are not",
+      "acceptable_set": {
+        "schema_version": "solve-vein/semantic-acceptable-set/v1",
+        "acceptable_set_id": "as-mv3",
+        "case_id": "MV3",
+        "expected_occurrence_ids": ["e0", "e2", "e3"],
+        "required_relations": [],
+        "relation_clauses": [
+          {
+            "clause_id": "mv3-projection",
+            "selection": "EXACTLY_ONE",
+            "alternatives": [
+              {
+                "alternative_id": "projection-a",
+                "complete_relation_set": [
+                  {
+                    "source_occurrence_id": "e0",
+                    "target_occurrence_id": "e3",
+                    "view": "CONTROL_FLOW",
+                    "relation": "BRANCH_FROM"
+                  },
+                  {
+                    "source_occurrence_id": "e2",
+                    "target_occurrence_id": "e3",
+                    "view": "STATE_IDENTITY",
+                    "relation": "REVISITS"
+                  }
+                ]
+              },
+              {
+                "alternative_id": "projection-b",
+                "complete_relation_set": [
+                  {
+                    "source_occurrence_id": "e0",
+                    "target_occurrence_id": "e3",
+                    "view": "STATE_IDENTITY",
+                    "relation": "REVISITS"
+                  },
+                  {
+                    "source_occurrence_id": "e2",
+                    "target_occurrence_id": "e3",
+                    "view": "CONTROL_FLOW",
+                    "relation": "RETURN_TO"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "optional_relations": [],
+        "forbidden_relations": [],
+        "required_state_axes": ["PROBLEM_OBLIGATION"],
+        "state_constraints": [
+          {
+            "constraint_id": "mv3-problem",
+            "kind": "EXACT_VALUE",
+            "axis": "PROBLEM_OBLIGATION",
+            "occurrence_ids": ["e0", "e2", "e3"],
+            "value_id": "p-main"
+          }
+        ],
+        "legacy_status_constraints": [],
+        "structural_constraints": []
+      },
+      "candidates": [
+        {
+          "label": "projection-a-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv3-a",
+            "case_id": "MV3",
+            "occurrence_ids": ["e0", "e2", "e3"],
+            "relations": [
+              {"source_occurrence_id": "e0", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "BRANCH_FROM"},
+              {"source_occurrence_id": "e2", "target_occurrence_id": "e3", "view": "STATE_IDENTITY", "relation": "REVISITS"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e2", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e3", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "projection-b-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv3-b",
+            "case_id": "MV3",
+            "occurrence_ids": ["e0", "e2", "e3"],
+            "relations": [
+              {"source_occurrence_id": "e0", "target_occurrence_id": "e3", "view": "STATE_IDENTITY", "relation": "REVISITS"},
+              {"source_occurrence_id": "e2", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "RETURN_TO"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e2", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e3", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "mixed-alternatives-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv3-mixed",
+            "case_id": "MV3",
+            "occurrence_ids": ["e0", "e2", "e3"],
+            "relations": [
+              {"source_occurrence_id": "e0", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "BRANCH_FROM"},
+              {"source_occurrence_id": "e2", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "RETURN_TO"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e2", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e3", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "both-alternatives-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv3-both",
+            "case_id": "MV3",
+            "occurrence_ids": ["e0", "e2", "e3"],
+            "relations": [
+              {"source_occurrence_id": "e0", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "BRANCH_FROM"},
+              {"source_occurrence_id": "e2", "target_occurrence_id": "e3", "view": "STATE_IDENTITY", "relation": "REVISITS"},
+              {"source_occurrence_id": "e0", "target_occurrence_id": "e3", "view": "STATE_IDENTITY", "relation": "REVISITS"},
+              {"source_occurrence_id": "e2", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "RETURN_TO"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e2", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e3", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "half-alternative-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv3-half",
+            "case_id": "MV3",
+            "occurrence_ids": ["e0", "e2", "e3"],
+            "relations": [
+              {"source_occurrence_id": "e0", "target_occurrence_id": "e3", "view": "CONTROL_FLOW", "relation": "BRANCH_FROM"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "e0", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e2", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "e3", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "MV4",
+      "claim": "a true merge requires distinct parent occurrences",
+      "acceptable_set": {
+        "schema_version": "solve-vein/semantic-acceptable-set/v1",
+        "acceptable_set_id": "as-mv4",
+        "case_id": "MV4",
+        "expected_occurrence_ids": ["a", "b", "m"],
+        "required_relations": [
+          {"source_occurrence_id": "a", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"},
+          {"source_occurrence_id": "b", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"}
+        ],
+        "relation_clauses": [],
+        "optional_relations": [],
+        "forbidden_relations": [],
+        "required_state_axes": ["PROBLEM_OBLIGATION"],
+        "state_constraints": [
+          {
+            "constraint_id": "mv4-problem",
+            "kind": "EXACT_VALUE",
+            "axis": "PROBLEM_OBLIGATION",
+            "occurrence_ids": ["a", "b", "m"],
+            "value_id": "p-main"
+          }
+        ],
+        "legacy_status_constraints": [],
+        "structural_constraints": [
+          {
+            "constraint_id": "mv4-two-parents",
+            "kind": "MIN_DISTINCT_PARENTS",
+            "target_occurrence_id": "m",
+            "view": "SYNTHESIS",
+            "relation": "MERGES",
+            "minimum": 2
+          }
+        ]
+      },
+      "candidates": [
+        {
+          "label": "two-parent-merge-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv4-two-parent",
+            "case_id": "MV4",
+            "occurrence_ids": ["a", "b", "m"],
+            "relations": [
+              {"source_occurrence_id": "a", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"},
+              {"source_occurrence_id": "b", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "a", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "b", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "m", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "single-parent-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv4-single-parent",
+            "case_id": "MV4",
+            "occurrence_ids": ["a", "b", "m"],
+            "relations": [
+              {"source_occurrence_id": "a", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "a", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "b", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "m", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "repeated-parent-invalid",
+          "expected_verdict": "INVALID",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv4-repeated-parent",
+            "case_id": "MV4",
+            "occurrence_ids": ["a", "b", "m"],
+            "relations": [
+              {"source_occurrence_id": "a", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"},
+              {"source_occurrence_id": "a", "target_occurrence_id": "m", "view": "SYNTHESIS", "relation": "MERGES"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "a", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "b", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "m", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "mention-only-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv4-mention",
+            "case_id": "MV4",
+            "occurrence_ids": ["a", "b", "m"],
+            "relations": [
+              {"source_occurrence_id": "a", "target_occurrence_id": "m", "view": "EPISTEMIC_DEPENDENCY", "relation": "REUSES"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "a", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "b", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "m", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "MV5",
+      "claim": "required optional forbidden and unmatched relations are separate",
+      "acceptable_set": {
+        "schema_version": "solve-vein/semantic-acceptable-set/v1",
+        "acceptable_set_id": "as-mv5",
+        "case_id": "MV5",
+        "expected_occurrence_ids": ["p", "q", "r"],
+        "required_relations": [
+          {"source_occurrence_id": "p", "target_occurrence_id": "q", "view": "TEMPORAL_OCCURRENCE", "relation": "NEXT"}
+        ],
+        "relation_clauses": [],
+        "optional_relations": [
+          {"source_occurrence_id": "p", "target_occurrence_id": "r", "view": "EPISTEMIC_DEPENDENCY", "relation": "REUSES"}
+        ],
+        "forbidden_relations": [
+          {"source_occurrence_id": "q", "target_occurrence_id": "r", "view": "CONTROL_FLOW", "relation": "BRANCH_FROM"}
+        ],
+        "required_state_axes": ["PROBLEM_OBLIGATION"],
+        "state_constraints": [
+          {
+            "constraint_id": "mv5-problem",
+            "kind": "EXACT_VALUE",
+            "axis": "PROBLEM_OBLIGATION",
+            "occurrence_ids": ["p", "q", "r"],
+            "value_id": "p-main"
+          }
+        ],
+        "legacy_status_constraints": [],
+        "structural_constraints": []
+      },
+      "candidates": [
+        {
+          "label": "required-only-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv5-required",
+            "case_id": "MV5",
+            "occurrence_ids": ["p", "q", "r"],
+            "relations": [
+              {"source_occurrence_id": "p", "target_occurrence_id": "q", "view": "TEMPORAL_OCCURRENCE", "relation": "NEXT"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "p", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "q", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "r", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "optional-present-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv5-optional",
+            "case_id": "MV5",
+            "occurrence_ids": ["p", "q", "r"],
+            "relations": [
+              {"source_occurrence_id": "p", "target_occurrence_id": "q", "view": "TEMPORAL_OCCURRENCE", "relation": "NEXT"},
+              {"source_occurrence_id": "p", "target_occurrence_id": "r", "view": "EPISTEMIC_DEPENDENCY", "relation": "REUSES"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "p", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "q", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "r", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "missing-required-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv5-missing",
+            "case_id": "MV5",
+            "occurrence_ids": ["p", "q", "r"],
+            "relations": [],
+            "state_bindings": [
+              {"occurrence_id": "p", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "q", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "r", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "forbidden-present-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv5-forbidden",
+            "case_id": "MV5",
+            "occurrence_ids": ["p", "q", "r"],
+            "relations": [
+              {"source_occurrence_id": "p", "target_occurrence_id": "q", "view": "TEMPORAL_OCCURRENCE", "relation": "NEXT"},
+              {"source_occurrence_id": "q", "target_occurrence_id": "r", "view": "CONTROL_FLOW", "relation": "BRANCH_FROM"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "p", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "q", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "r", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "unmatched-extra-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv5-unmatched",
+            "case_id": "MV5",
+            "occurrence_ids": ["p", "q", "r"],
+            "relations": [
+              {"source_occurrence_id": "p", "target_occurrence_id": "q", "view": "TEMPORAL_OCCURRENCE", "relation": "NEXT"},
+              {"source_occurrence_id": "q", "target_occurrence_id": "r", "view": "EPISTEMIC_DEPENDENCY", "relation": "DEPENDS_ON"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "p", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "q", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "r", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "MV6",
+      "claim": "schema identity and canonicalization are fail closed",
+      "acceptable_set": {
+        "schema_version": "solve-vein/semantic-acceptable-set/v1",
+        "acceptable_set_id": "as-mv6",
+        "case_id": "MV6",
+        "expected_occurrence_ids": ["x", "y"],
+        "required_relations": [
+          {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+        ],
+        "relation_clauses": [],
+        "optional_relations": [],
+        "forbidden_relations": [],
+        "required_state_axes": ["PROBLEM_OBLIGATION"],
+        "state_constraints": [
+          {
+            "constraint_id": "mv6-problem",
+            "kind": "EXACT_VALUE",
+            "axis": "PROBLEM_OBLIGATION",
+            "occurrence_ids": ["x", "y"],
+            "value_id": "p-main"
+          }
+        ],
+        "legacy_status_constraints": [],
+        "structural_constraints": []
+      },
+      "candidates": [
+        {
+          "label": "canonical-pass",
+          "expected_verdict": "PASS",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-canonical",
+            "case_id": "MV6",
+            "occurrence_ids": ["x", "y"],
+            "relations": [
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "y", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "unknown-field-invalid",
+          "expected_verdict": "INVALID",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-unknown",
+            "case_id": "MV6",
+            "occurrence_ids": ["x", "y"],
+            "relations": [
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "y", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": [],
+            "unexpected": true
+          }
+        },
+        {
+          "label": "duplicate-relation-invalid",
+          "expected_verdict": "INVALID",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-duplicate",
+            "case_id": "MV6",
+            "occurrence_ids": ["x", "y"],
+            "relations": [
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"},
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "y", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "case-mismatch-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-wrong-case",
+            "case_id": "OTHER",
+            "occurrence_ids": ["x", "y"],
+            "relations": [
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "y", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "occurrence-missing-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-missing-occurrence",
+            "case_id": "MV6",
+            "occurrence_ids": ["x"],
+            "relations": [],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "occurrence-extra-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-extra-occurrence",
+            "case_id": "MV6",
+            "occurrence_ids": ["x", "y", "z"],
+            "relations": [
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "y", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"},
+              {"occurrence_id": "z", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        },
+        {
+          "label": "required-axis-missing-fail",
+          "expected_verdict": "FAIL",
+          "candidate": {
+            "schema_version": "solve-vein/semantic-candidate/v1",
+            "candidate_id": "mv6-missing-axis",
+            "case_id": "MV6",
+            "occurrence_ids": ["x", "y"],
+            "relations": [
+              {"source_occurrence_id": "x", "target_occurrence_id": "y", "view": "CONTROL_FLOW", "relation": "CONTINUE"}
+            ],
+            "state_bindings": [
+              {"occurrence_id": "x", "axis": "PROBLEM_OBLIGATION", "value_id": "p-main"}
+            ],
+            "legacy_statuses": []
+          }
+        }
+      ]
+    }
+  ]
+}

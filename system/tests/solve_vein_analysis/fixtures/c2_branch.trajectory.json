@@ -1,0 +1,47 @@
+{
+  "schema_version": "solve-vein/reasoning-trajectory/v1",
+  "trajectory_id": "vms31-c2-branch",
+  "problem_id": "vms31-c2",
+  "source": {
+    "carrier": "fixture",
+    "source_artifact_ref": "fixture://vms31/c2/raw",
+    "source_artifact_sha256": "c9ebc9898c842d6d7e7b0f636ec0feb42a0b2aff565325a4cb129a4ddf3cf6c9"
+  },
+  "events": [
+    {
+      "event_id": "e0", "sequence_index": 0, "event_kind": "STATE",
+      "text": "Start from the common root.", "canonical_math_state_id": "state:root-goal",
+      "attributes": ["goal:prove"], "status": "ACTIVE",
+      "source_span": {"start": 0, "end": 27, "sha256": "9b71a3b17d7b9ee6f68289748405a3bf7f3326606b56ba77b20bc32a76ec45f1"},
+      "incoming_edges": []
+    },
+    {
+      "event_id": "e1", "sequence_index": 1, "event_kind": "DECISION",
+      "text": "Try a parity argument.", "canonical_math_state_id": "state:parity-route",
+      "attributes": ["method:parity"], "status": "ACTIVE",
+      "source_span": {"start": 100, "end": 122, "sha256": "c94ec2abbfe1f44b864705b18954af91cfc0eb977d8db88de2660842984482a5"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "parity is the first explicit branch"}]
+    },
+    {
+      "event_id": "e2", "sequence_index": 2, "event_kind": "FAILURE",
+      "text": "The parity argument contradicts the target.", "canonical_math_state_id": "state:parity-failed",
+      "attributes": ["method:parity", "guard:contradiction"], "status": "CONTRADICTED",
+      "source_span": {"start": 200, "end": 244, "sha256": "ea7f95509ea6c40d2d4cbb93d661cf6ced005af7cd4882950cf610718d15bf80"},
+      "incoming_edges": [{"source_event_id": "e1", "relation": "CONTRADICT", "evidence": "the derived parity conflicts with the target"}]
+    },
+    {
+      "event_id": "e3", "sequence_index": 3, "event_kind": "DECISION",
+      "text": "Try a constructive argument instead.", "canonical_math_state_id": "state:construction-route",
+      "attributes": ["method:construction"], "status": "ACTIVE",
+      "source_span": {"start": 300, "end": 336, "sha256": "8ae95dae8c96b3834c6ba88e6cbce283a4624c6f825ce3f22928ff250586b233"},
+      "incoming_edges": [{"source_event_id": "e0", "relation": "BRANCH_FROM", "evidence": "construction is a second branch from the root"}]
+    },
+    {
+      "event_id": "e4", "sequence_index": 4, "event_kind": "STATE",
+      "text": "The construction gives measurable progress.", "canonical_math_state_id": "state:construction-progress",
+      "attributes": ["method:construction", "progress:valid"], "status": "ACTIVE",
+      "source_span": {"start": 400, "end": 444, "sha256": "9bedbcb52f667b5de99b282e7a530ed71afc1efb38d40ef251a23cb545995472"},
+      "incoming_edges": [{"source_event_id": "e3", "relation": "CONTINUE", "evidence": "the construction produces a new bound"}]
+    }
+  ]
+}
