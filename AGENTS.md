@@ -3608,6 +3608,12 @@ sleep 120
 - 如果某题在之前的轮次中运行过，比较两次结果是否一致
 - d1/d2应该一致（同一题同一AI的thinking不变，分析结果应该稳定）
 
+**检查8：d2_exp XML标签泄漏**
+- 检查d1_explanation/d2_explanation中是否含`</dimension`或`<dimension`
+- 标准：0个泄漏
+- 根因：devin cli有时输出标签闭合错误（如`<dimension2_explanation>内容</dimension2_turning_point_type>`），导致正则跨标签提取
+- 不达标时：parse_xml已修复（截断到第一个错误闭合标签之前），但需重新收集结果
+
 #### 质量检查执行方式
 
 用一段Python脚本一次性检查所有7项，输出汇总表：
@@ -3675,8 +3681,18 @@ for r in results:
     print(f"    d1_exp: {d1_exp}")
     print(f"    d2_exp: {d2_exp}")
 
+# 检查8: d2_exp XML标签泄漏
+xml_leak = 0
+for r in results:
+    for field in ['dimension1_explanation', 'dimension2_explanation']:
+        val = str(r.get(field, ''))
+        if '</dimension' in val or '<dimension' in val:
+            xml_leak += 1
+            print(f"  *** XML标签泄漏: {r.get('run_key')} {field}")
+print(f"\n检查8: XML标签泄漏={xml_leak}")
+
 # 汇总
-total_issues = len(ce_results) + placeholder_count + empty_d2 + inconsistent
+total_issues = len(ce_results) + placeholder_count + empty_d2 + inconsistent + xml_leak
 print(f"\n=== 汇总: {total_issues}个问题 ===")
 if total_issues == 0:
     print("  ✅ 全部通过，可以进入下一轮")
@@ -3698,6 +3714,7 @@ else:
 | 轮8 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。d1分布：4 DIRECTION_ERROR + 1 TOKEN_LIMIT。 | — |
 | 轮9 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。d1分布：4 DIRECTION_ERROR + 1 TOKEN_LIMIT。首次出现d2=p_adic_valuation。 | — |
 | 轮10 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。d1分布：5 DIRECTION_ERROR。 | — |
+| 深度验证 | 3 | 抽查 | 检查8：d2_exp XML标签泄漏（10%命中）——devin cli标签闭合错误导致正则跨标签提取 | parse_xml加截断逻辑+重新收集所有批次+SOP加检查8 |
 
 ### 待解决问题
 
