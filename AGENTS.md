@@ -3693,6 +3693,7 @@ else:
 | 轮3b | 5 | 后期(无MITM) | 无新问题，thinking提取正常工作 | — |
 | 轮4 | 5 | 后期(无MITM,4题库) | 检查3误报(\|是数学符号)+TOKEN_LIMIT/PARTIAL_PROGRESS边界模糊 | 修正检查3条件+模板加tiebreaker规则 |
 | 轮5 | 5 | 后期(无MITM,同题验证) | tiebreaker使分析AI显式推理"是否收敛"，polymath_01152仍为TOKEN_LIMIT但有理由（递归方法valid但慢）。5题跨批次全部一致。 | — |
+| 轮6 | 5 | 后期(无MITM,全新题) | 无新问题，5题全部通过。覆盖4题库，d1分布：3 DIRECTION_ERROR + 1 PARTIAL_PROGRESS + 1 TOKEN_LIMIT。 | — |
 
 ### 待解决问题
 
