@@ -48,6 +48,29 @@
 - D1-D4操作性格检查通过（解释含动作动词+数学术语）
 - 适合用于提取tell信号和构建选题池
 
+### 2.3 PASS_SELECTABLE的d2分布与选题路径
+
+721个PASS_SELECTABLE的d2分布：
+
+| d2类型 | 数量 | Mid-Hint批次 | 需要devin cli选题吗 |
+|---|---|---|---|
+| **other** | **667** | 需再分类 | **需要**（Pipe 3语义再分类） |
+| mod_p_grouping | 16 | 批次1（低难度） | 不需要 |
+| finite_field_structure | 13 | 可扩展 | 不需要 |
+| crt | 7 | 批次3（高难度） | 不需要 |
+| p_adic_valuation | 5 | 批次2（中难度） | 不需要 |
+| multi_step_mod_p | 4 | 批次2 | 不需要 |
+| mod_p_non_obvious | 3 | 批次2 | 不需要 |
+| quadratic_residue_euler | 2 | 批次3 | 不需要 |
+| permutation_polynomial | 1 | 可扩展 | 不需要 |
+| **已分类合计** | **51** | **7种类型全覆盖** | **不需要** |
+
+**选题路径**：
+- **51个已分类d2**：脚本直接选题（d1=DIRECTION_ERROR + d2∈局部-全局切换类型 → suitable），不需要Pipe 3，可立即用于Mid-Hint实验
+- **667个d2=other**：需要Pipe 3用devin cli做语义再分类——判断标准解答是否涉及局部-全局切换。可选扩展，可用关键词预筛缩减到~150-300个再跑
+
+**并发约束**：Pipe 3选题受rate limit约束（账户级，跨所有CLI实例共享）。并发1-3，配合自动暂停机制。详见 `.devin/rules/audit-pipeline-rate-limit.md`。
+
 ---
 
 ## 3. 已处理/未处理边界
