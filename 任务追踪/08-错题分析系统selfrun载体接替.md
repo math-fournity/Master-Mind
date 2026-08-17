@@ -58,6 +58,14 @@
 
 ## §3 关键决策与发现
 
+### 3.0 AI服务器降级事件与手动降级模式（2026-08-16午后）
+
+- **现象**：放量wave003时，6个subagent全部"Subagent was inactive for 600000ms"超时（其中2个完成了各自第1题后在第2题长思考中挂起，4个零产出）；同日ArangoDB也重启过一次。判断为AI服务器/后端降级——主会话链路正常，subagent的模型调用挂起。
+- **降级模式（已验证）**：主会话亲自分析——读AGENTS.md全文→按v3规范判定→Write写selfrun_output.xml→`sweep --ingest`照常收口。产出质量与subagent同源同规（实测2题：polymath_04224 Grundy游戏论题、polymath_04038四次方程因式分解题，均为TOKEN_LIMIT，均含人工数学核验——如验证G(5)=G(8)=2推出13可被先手必胜、验证正确因式分解(15x²−92x+125)(3x²−20x+29)恰是AI没试到的系数组合）。
+- **吞吐对比**：subagent模式约40-60题/小时（3并发）；手动模式约2-4题/小时且受主会话上下文限制（每题读入约25K token）。手动模式适合保持工作线活着+小批量，不适合全量。
+- **恢复判据**：先用1个微型canary subagent测试（读小文件+写小文件），正常后再切回波次模式。超时agent的部分产出（第1题已写盘）由sweep正常回收，无损失。
+- **期间发现（顺手记录）**：polymath_04224的标准解答可疑——其宣称"B胜当且仅当n≡1 (mod 3)"，但AI的Grundy表（经人工抽查验证正确）显示20,23,26,50,53（均≡2 mod 3）才是零点，且13(≡1)可被先手拆(5,8)必胜。PolyMath题库解答可靠性问题在polymath中也存在，不只在deepmath/oda的题文错位。
+
 ### 3.1 题文/thinking错位污染（最重要的数据发现）
 
 - **现象**：AGENTS.md中Problem/Standard Solution与AI thinking是两道完全不同的题。Step2抽样中24个DIRECTION_ERROR里至少14个（口径18-21个）源于此，集中在 deepmath_103k 和 oda_math_460k；polymath抽样27题零错位。
