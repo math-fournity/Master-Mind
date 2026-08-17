@@ -17,7 +17,9 @@
 
 from __future__ import annotations
 
+import base64
 import copy
+import hashlib
 import sys
 import unittest
 from pathlib import Path
@@ -26,6 +28,14 @@ SYSTEM_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SYSTEM_ROOT / "src"))
 
 from seven_system.contracts.errors import VerificationErrorCode as EC  # noqa: E402
+from seven_system.contracts.security_contract_verifier import (  # noqa: E402
+    DB_SCHEMA_APPLY_ACTION_KIND,
+    DB_SCHEMA_APPLY_WP_ID,
+    SecurityContractVerifier,
+    action_scope_hash,
+    database_identity_hash,
+    schema_bootstrap_target_binding_hash,
+)
 from seven_system.database.environment import EXPECTED_DATABASE  # noqa: E402
 from seven_system.database.migration_spec import (  # noqa: E402
     DDLAction,
@@ -77,6 +87,19 @@ from seven_system.database.spec import (  # noqa: E402
     CANONICAL_MIGRATION_SPEC,
     CANONICAL_MIGRATION_SPEC_HASH,
 )
+from seven_system.hashing import canonical_json_bytes  # noqa: E402
+from seven_system.human.actor_roster import ActorRecord, ActorRoster  # noqa: E402
+from seven_system.human.gate_decision import (  # noqa: E402
+    build_gate_decision_dict,
+    verify_and_stamp_gate_decision,
+    _get_signed_bytes_for_verification,
+)
+from seven_system.human.gate_type_registry import GateTypeRegistry, GateTypeSpec  # noqa: E402
+from seven_system.human.human_gate import HumanGateService  # noqa: E402
+from seven_system.human.human_task import FakeHumanTaskPort  # noqa: E402
+from seven_system.human.key_lifecycle import KeyRecord, KeyRegistry  # noqa: E402
+from seven_system.human.signature_verifier import compute_signed_bytes  # noqa: E402
+from seven_system.human.signed_object_verifier import _PROFILES  # noqa: E402
 
 
 # ---------------------------------------------------------------------------
@@ -104,46 +127,406 @@ def _golden_adapter() -> FakeLogicalSiteAdapter:
     )
 
 
-def _make_permit(plan_hash: str = "") -> dict:
-    return {
-        "permit_id": "schema-bootstrap-permit-001",
-        "wp_id": "G-DB-SCHEMA-APPLY",
-        "plan_hash": plan_hash,
-        "max_actions": 100,
-        "expiry": "2026-08-15T12:00:00Z",
-        "nonce": "permit-nonce-aaaaaaaaaaaa",
-    }
+def _db1i_private_key(key_id: str):
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    seed = hashlib.sha256(f"seven-db1i-test-key:{key_id}".encode("utf-8")).digest()
+    return Ed25519PrivateKey.from_private_bytes(seed)
+
+
+def _db1i_public_key_bytes(key_id: str) -> bytes:
+    from cryptography.hazmat.primitives import serialization
+
+    return _db1i_private_key(key_id).public_key().public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
 
 
 def _make_gate_decision(*, decision: str = "APPROVE") -> dict:
+    key_id = "key-db1i-human-001"
+    actor_id = "human-reviewer-001"
+    dec = build_gate_decision_dict(
+        decision_id="gate-dec-schema-001",
+        task_id="task-db1i-001",
+        gate_type="DB_SCHEMA_APPLY_APPROVAL",
+        payload_ref="schema-bootstrap-plan.json",
+        payload_hash="e" * 64,
+        actor_id=actor_id,
+        actor_role="PROOF_JUDGE",
+        decision=decision,
+        reason_codes=["DB1I_REVIEW_PASS"],
+        nonce="db1i-gate-nonce-001",
+        issued_at="2026-08-14T12:00:00Z",
+        expires_at="2026-08-15T12:00:00Z",
+        key_id=key_id,
+        signer_principal_id=actor_id,
+        signature_b64="A" * 86 + "==",
+        separation_evidence_refs=["db1i-separation-evidence"],
+    )
+    signature = _db1i_private_key(key_id).sign(_get_signed_bytes_for_verification(dec))
+    dec["signature_envelope"]["signature_b64"] = base64.b64encode(signature).decode("ascii")
+    dec, receipt = verify_and_stamp_gate_decision(
+        dec, public_key_bytes=_db1i_public_key_bytes(key_id)
+    )
+    assert receipt.verified
+    return dec
+
+
+def _make_gate_service() -> HumanGateService:
+    roster = ActorRoster()
+    roster.register(ActorRecord(
+        actor_id="human-reviewer-001",
+        actor_type="HUMAN",
+        roles=frozenset({"PROOF_JUDGE"}),
+        active=True,
+    ))
+    gate_types = GateTypeRegistry()
+    gate_types.register(GateTypeSpec(
+        gate_type="DB_SCHEMA_APPLY_APPROVAL",
+        required_roles=frozenset({"PROOF_JUDGE"}),
+        required_signatures=1,
+        allow_model_role=False,
+        separation_policy="CREATOR_CANNOT_APPROVE",
+    ))
+    keys = KeyRegistry()
+    public_key = _db1i_public_key_bytes("key-db1i-human-001")
+    keys.provision(
+        key_id="key-db1i-human-001",
+        actor_id="human-reviewer-001",
+        public_key_sha256=hashlib.sha256(public_key).hexdigest(),
+        eligible_roles=frozenset({"PROOF_JUDGE"}),
+        valid_from="2026-08-14T00:00:00Z",
+        valid_to="2026-08-20T00:00:00Z",
+        provisioning_ref="db1i-test-provisioning",
+    )
+    keys.store_public_key("key-db1i-human-001", public_key)
+    task_port = FakeHumanTaskPort()
+    task_port.create_task(
+        task_id="task-db1i-001",
+        gate_type="DB_SCHEMA_APPLY_APPROVAL",
+        payload_ref="schema-bootstrap-plan.json",
+        payload_hash="e" * 64,
+        allowed_view="DB_SCHEMA_BOOTSTRAP_VIEW",
+        deadline="2026-08-15T20:00:00Z",
+        eligible_roles=frozenset({"PROOF_JUDGE"}),
+        separation_policy="CREATOR_CANNOT_APPROVE",
+        required_signatures=1,
+        nonce="task-db1i-nonce-001",
+        creator_actor_id="human-architect-001",
+    )
+    return HumanGateService(
+        actor_roster=roster,
+        gate_type_registry=gate_types,
+        key_registry=keys,
+        task_port=task_port,
+    )
+
+
+def _hash(char: str = "0") -> str:
+    return char * 64
+
+
+def _ref(name: str, char: str = "1") -> dict:
+    return {"ref": name, "sha256": _hash(char)}
+
+
+def _named(name: str, char: str = "2") -> dict:
+    return {"object_id": name, "sha256": _hash(char)}
+
+
+def _allowance(**overrides) -> dict:
+    base = {
+        "invocations": 0,
+        "solver_launches": 0,
+        "database_writes": 0,
+        "redis_writes": 0,
+        "d_volume_writes": 0,
+        "human_gate_commits": 0,
+        "active_release_changes": 0,
+        "tokens": 0,
+        "cost_microunits": 0,
+        "currency": "USD",
+    }
+    base.update(overrides)
+    return base
+
+
+def _unit_budget(**overrides) -> dict:
+    base = {
+        "max_invocations": 0,
+        "max_solver_launches": 0,
+        "max_database_writes": 0,
+        "max_redis_writes": 0,
+        "max_d_volume_writes": 0,
+        "max_human_gate_commits": 0,
+        "max_active_release_changes": 0,
+        "max_tokens": 0,
+        "max_cost_microunits": 0,
+        "currency": "USD",
+    }
+    base.update(overrides)
+    return base
+
+
+def _sign_object(obj: dict, schema_id: str, key_id: str) -> dict:
+    profile = _PROFILES[schema_id]
+    private_key = _db1i_private_key(key_id)
+    signed_bytes = compute_signed_bytes(
+        obj,
+        profile.domain.encode("utf-8"),
+        signature_field_path=profile.signature_field_path,
+        envelope_hash_field_path=profile.envelope_hash_field_path,
+        top_hash_field=profile.top_hash_field,
+        self_hash_field=profile.self_hash_field,
+    )
+    signed_hash = hashlib.sha256(signed_bytes).hexdigest()
+
+    def set_path(path: str, value) -> None:
+        current = obj
+        parts = path.split(".")
+        for part in parts[:-1]:
+            current = current[part]
+        current[parts[-1]] = value
+
+    set_path(profile.signature_field_path, base64.b64encode(private_key.sign(signed_bytes)).decode("ascii"))
+    set_path(profile.envelope_hash_field_path, signed_hash)
+    if profile.top_hash_field is not None:
+        obj[profile.top_hash_field] = signed_hash
+    if profile.self_hash_field is not None:
+        unsigned = copy.deepcopy(obj)
+        unsigned[profile.self_hash_field] = None
+        obj[profile.self_hash_field] = hashlib.sha256(
+            canonical_json_bytes(unsigned)
+        ).hexdigest()
+    return obj
+
+
+def _make_authorization_kwargs_for_plan(
+    plan: SchemaBootstrapPlan,
+    *,
+    permit_mutator=None,
+    action_registry_id: str = "db-schema-apply-registry",
+) -> dict:
+    site_hash = plan.site_fingerprint_hash
+    action_registry_entry_ref_and_hash = _ref("db-schema-apply-entry.json", "8")
+    target_binding_hash = schema_bootstrap_target_binding_hash(
+        plan_hash=plan.plan_hash,
+        site_fingerprint_hash=site_hash,
+        database_name=EXPECTED_DATABASE,
+    )
+    scope = {
+        "scope_id": "db1i-schema-apply",
+        "scope_hash_algorithm": "sha256(RFC8785-JCS-action-scope-with-scope_hash-null)",
+        "scope_hash": None,
+        "action_kind": DB_SCHEMA_APPLY_ACTION_KIND,
+        "authorization_action_registry_entry_ref_and_hash": action_registry_entry_ref_and_hash,
+        "target_site_hash_if_any": site_hash,
+        "target_database_identity_hash_if_any": database_identity_hash(EXPECTED_DATABASE),
+        "target_redis_namespace_hash_if_any": None,
+        "target_release_or_pointer_hash_if_any": None,
+        "allowed_carrier_profile_hashes": [],
+        "allowed_role_or_solver_contract_hashes": [],
+        "allowed_inputs": [{"input_hash": plan.plan_hash, "sensitivity": "public"}],
+        "required_output_sink_and_acl_hash_if_any": None,
+        "budget": _unit_budget(max_database_writes=100),
+    }
+    scope["scope_hash"] = action_scope_hash(scope)
+    eea = {
+        "schema_id": "seven/external-execution-authorization",
+        "schema_version": 1,
+        "authorization_id": "db1i-eea-001",
+        "authorization_mode": "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP",
+        "subject_work_package_ids": [DB_SCHEMA_APPLY_WP_ID],
+        "subject_completion_bundle_refs_and_hashes": [_ref("db1i-bootstrap-bundle.json")],
+        "activation_audit_record_refs_and_hashes": [],
+        "unaudited_dependency_bundle_refs_and_hashes": [_ref("doc0-bootstrap.json")],
+        "epoch_id_if_any": None,
+        "run_id_if_any": None,
+        "authorization_action_registry_ref_and_hash": {"ref": action_registry_id, "sha256": _hash("8")},
+        "action_scopes": [scope],
+        "externally_pinned_trust_root": _named("db1i-trust-root"),
+        "actor_roster_ref_and_hash": _ref("actor-roster.json"),
+        "human_gate_policy_ref_and_hash": _ref("human-gate-policy.json"),
+        "signature_algorithm_registry_ref_and_hash": _ref("signature-registry.json"),
+        "revocation_policy_ref_and_hash": _ref("revocation-policy.md"),
+        "stop_conditions": ["unit budget exhausted"],
+        "issuer_actor_id": "owner-001",
+        "issuer_key_id": "key-db1i-owner-001",
+        "issued_at": "2026-08-14T10:00:00Z",
+        "not_before": "2026-08-14T10:00:00Z",
+        "expires_at": "2026-08-15T10:00:00Z",
+        "nonce": "db1i-eea-nonce-001",
+        "canonicalizer_profile": "RFC8785_JCS_UTF8",
+        "signature_domain": "seven-external-execution-authorization/v1\0",
+        "signed_bytes_hash": None,
+        "signature_envelope": {
+            "algorithm": "Ed25519",
+            "key_id": "key-db1i-owner-001",
+            "signer_actor_id": "owner-001",
+            "signature_encoding": "base64",
+            "signature_b64": None,
+            "signed_bytes_hash": None,
+            "trust_root_hash": _hash("2"),
+            "actor_roster_hash": _hash("3"),
+            "policy_hash": _hash("4"),
+            "signature_algorithm_registry_hash": _hash("5"),
+        },
+        "authorization_hash_algorithm": "sha256(RFC8785-JCS-object-with-authorization_hash-null)",
+        "authorization_hash": None,
+    }
+    _sign_object(eea, "seven/external-execution-authorization", "key-db1i-owner-001")
+    unit = {
+        "consumption_ordinal": 0,
+        "parent_action_scope_id": scope["scope_id"],
+        "parent_action_scope_hash": scope["scope_hash"],
+        "action_kind": DB_SCHEMA_APPLY_ACTION_KIND,
+        "authorization_action_registry_entry_ref_and_hash": action_registry_entry_ref_and_hash,
+        "job_id": "db1i-job-001",
+        "attempt_id": "db1i-attempt-001",
+        "input_hash": plan.plan_hash,
+        "carrier_profile_or_solver_contract_hash_if_any": None,
+        "target_binding_hash": target_binding_hash,
+        "required_output_sink_and_acl_hash_if_any": None,
+        "idempotency_key": "db1i-idempotency-001",
+        "unit_budget": _unit_budget(max_database_writes=100),
+    }
+    permit = {
+        "schema_id": "seven/live-run-permit",
+        "schema_version": 1,
+        "permit_id": "db1i-permit-001",
+        "parent_authorization_id": eea["authorization_id"],
+        "parent_authorization_ref_and_hash": {"ref": "db1i-eea.json", "sha256": eea["authorization_hash"]},
+        "parent_authorization_signed_bytes_hash": eea["signed_bytes_hash"],
+        "parent_subset_verification_contract_ref_and_hash": _ref("parent-subset-contract.md"),
+        "authorization_mode": eea["authorization_mode"],
+        "wp_id": DB_SCHEMA_APPLY_WP_ID,
+        "epoch_id_if_any": None,
+        "run_id_if_any": None,
+        "action_units": [unit],
+        "required_reservation_backend": "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER",
+        "externally_pinned_trust_root": eea["externally_pinned_trust_root"],
+        "actor_roster_ref_and_hash": eea["actor_roster_ref_and_hash"],
+        "human_gate_policy_ref_and_hash": eea["human_gate_policy_ref_and_hash"],
+        "signature_algorithm_registry_ref_and_hash": eea["signature_algorithm_registry_ref_and_hash"],
+        "revocation_policy_ref_and_hash": eea["revocation_policy_ref_and_hash"],
+        "issuer_actor_id": "owner-001",
+        "issuer_key_id": "key-db1i-owner-001",
+        "issued_at": "2026-08-14T10:00:00Z",
+        "not_before": "2026-08-14T10:00:00Z",
+        "expires_at": "2026-08-15T10:00:00Z",
+        "nonce": "db1i-permit-nonce-001",
+        "canonicalizer_profile": "RFC8785_JCS_UTF8",
+        "signature_domain": "seven-live-run-permit/v1\0",
+        "signed_bytes_hash": None,
+        "signature_envelope": {
+            "algorithm": "Ed25519",
+            "key_id": "key-db1i-owner-001",
+            "signer_actor_id": "owner-001",
+            "signature_encoding": "base64",
+            "signature_b64": None,
+            "signed_bytes_hash": None,
+            "trust_root_hash": _hash("2"),
+            "actor_roster_hash": _hash("3"),
+            "policy_hash": _hash("4"),
+            "signature_algorithm_registry_hash": _hash("5"),
+        },
+        "permit_hash_algorithm": "sha256(RFC8785-JCS-object-with-permit_hash-null)",
+        "permit_hash": None,
+    }
+    if permit_mutator is not None:
+        permit_mutator(permit)
+    _sign_object(permit, "seven/live-run-permit", "key-db1i-owner-001")
+    reserved = _allowance(database_writes=100)
+    zero = _allowance()
+    reservation = {
+        "schema_id": "seven/authorization-consumption-receipt",
+        "schema_version": 1,
+        "receipt_id": "db1i-reservation-001",
+        "logical_consumption_id": "db1i-consumption-001",
+        "state_revision": 0,
+        "previous_receipt_ref_and_hash_if_any": None,
+        "parent_authorization_id": eea["authorization_id"],
+        "parent_authorization_ref_and_hash": {"ref": "db1i-eea.json", "sha256": eea["authorization_hash"]},
+        "permit_id": permit["permit_id"],
+        "permit_ref_and_hash": {"ref": "db1i-permit.json", "sha256": permit["permit_hash"]},
+        "consumption_ordinal": unit["consumption_ordinal"],
+        "parent_action_scope_id": unit["parent_action_scope_id"],
+        "parent_action_scope_hash": unit["parent_action_scope_hash"],
+        "action_kind": unit["action_kind"],
+        "authorization_action_registry_entry_ref_and_hash": unit["authorization_action_registry_entry_ref_and_hash"],
+        "job_id": unit["job_id"],
+        "attempt_id": unit["attempt_id"],
+        "input_hash": unit["input_hash"],
+        "carrier_profile_or_solver_contract_hash_if_any": unit["carrier_profile_or_solver_contract_hash_if_any"],
+        "target_binding_hash": unit["target_binding_hash"],
+        "required_output_sink_and_acl_hash_if_any": unit["required_output_sink_and_acl_hash_if_any"],
+        "idempotency_key": unit["idempotency_key"],
+        "aggregate_id": "db1i-aggregate-001",
+        "expected_aggregate_revision": 0,
+        "fence_token": 1,
+        "reservation_backend": "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER",
+        "status": "RESERVED",
+        "reserved_at": "2026-08-14T10:00:00Z",
+        "status_recorded_at": "2026-08-14T10:00:01Z",
+        "terminal_at_if_any": None,
+        "external_start_observation": "NOT_OBSERVED",
+        "start_observation_evidence_refs": [],
+        "proof_not_started_refs": [],
+        "reservation_transaction_receipt_ref_and_hash": _ref("reservation-tx.json"),
+        "reserved_unit_budget": reserved,
+        "actual_side_effects": zero,
+        "held_allowance": reserved,
+        "released_allowance": zero,
+        "remaining_allowance": zero,
+        "recovery_decision_ref_and_hash_if_any": None,
+        "externally_pinned_trust_root": eea["externally_pinned_trust_root"],
+        "service_attestation_key_registry_ref_and_hash": _ref("service-keys.json"),
+        "canonicalizer_profile": "RFC8785_JCS_UTF8",
+        "attestation_domain": "seven-authorization-consumption-receipt/v1\0",
+        "attested_bytes_hash": None,
+        "service_attestation": {
+            "algorithm": "Ed25519",
+            "key_id": "key-db1i-service-001",
+            "service_principal_id": "seven-runtime",
+            "signature_encoding": "base64",
+            "signature_b64": None,
+            "attested_bytes_hash": None,
+            "trust_root_hash": _hash("2"),
+            "service_attestation_key_registry_hash": _hash("6"),
+        },
+        "receipt_hash_algorithm": "sha256(RFC8785-JCS-object-with-receipt_hash-null)",
+        "receipt_hash": None,
+    }
+    _sign_object(reservation, "seven/authorization-consumption-receipt", "key-db1i-service-001")
     return {
-        "decision_id": "gate-dec-schema-001",
-        "decision": decision,
-        "actor_id": "human-reviewer-001",
-        "gate_type": "PROOF_REVIEW",
+        "permit": permit,
+        "eea": eea,
+        "reservation": reservation,
+        "security_contract_verifier": SecurityContractVerifier(),
+        "eea_public_key_bytes": _db1i_public_key_bytes("key-db1i-owner-001"),
+        "permit_public_key_bytes": _db1i_public_key_bytes("key-db1i-owner-001"),
+        "receipt_public_key_bytes": _db1i_public_key_bytes("key-db1i-service-001"),
+        "action_registry_id": action_registry_id,
+        "action_registry_entry_ref_and_hash": action_registry_entry_ref_and_hash,
     }
 
 
-class _MockHumanGateService:
-    """P0-C: mock HumanGateService for DB1I tests."""
-
-    def __init__(self, *, reject: bool = False) -> None:
-        self._reject = reject
-
-    def accept_gate_decision(self, decision: dict, *, evaluation_time: str = ""):
-        from seven_system.contracts.completion_contract import VerificationResult
-        from seven_system.contracts.errors import VerificationErrorCode as EC
-        if self._reject or decision.get("decision") != "APPROVE":
-            return VerificationResult(
-                verdict="FAIL",
-                error_codes=[EC.DB1I_HUMAN_GATE_DECISION_REJECTED],
-                details=["mock gate rejection"],
-            )
-        return VerificationResult(verdict="PASS")
-
-
-def _make_gate_service(*, reject: bool = False) -> _MockHumanGateService:
-    return _MockHumanGateService(reject=reject)
+def _prepare_protocol(
+    protocol: SchemaBootstrapProtocol,
+    plan: SchemaBootstrapPlan,
+    *,
+    gate_decision: dict | None = None,
+    gate_service: HumanGateService | None = None,
+    permit_mutator=None,
+) -> None:
+    kwargs = _make_authorization_kwargs_for_plan(plan, permit_mutator=permit_mutator)
+    protocol.prepare(
+        gate_decision=gate_decision or _make_gate_decision(),
+        human_gate_service=gate_service or _make_gate_service(),
+        evaluation_time="2026-08-14T12:00:00Z",
+        **kwargs,
+    )
 
 
 def _make_protocol(
@@ -163,8 +546,8 @@ def _prepare_and_apply(
     protocol: SchemaBootstrapProtocol | None = None,
     *,
     gate_decision: dict | None = None,
-    permit: dict | None = None,
-    gate_service: _MockHumanGateService | None = None,
+    permit_mutator=None,
+    gate_service: HumanGateService | None = None,
 ) -> SchemaBootstrapProtocol:
     """完整的 prepare → apply 流程，返回已完成的 protocol。"""
     if protocol is None:
@@ -175,10 +558,15 @@ def _prepare_and_apply(
     plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
     protocol.site_adapter.connected = False  # reset for prepare
 
-    p = permit or _make_permit(plan_hash=plan.plan_hash)
     gd = gate_decision or _make_gate_decision()
     gs = gate_service or _make_gate_service()
-    protocol.prepare(permit=p, gate_decision=gd, human_gate_service=gs)
+    _prepare_protocol(
+        protocol,
+        plan,
+        gate_decision=gd,
+        gate_service=gs,
+        permit_mutator=permit_mutator,
+    )
     protocol.apply()
     return protocol
 
@@ -459,9 +847,7 @@ class TestFencedApplyVerify(unittest.TestCase):
 
         bad_decision = _make_gate_decision(decision="REJECT")
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
-            protocol.prepare(
-                permit=_make_permit(plan_hash=plan.plan_hash),
-                gate_decision=bad_decision, human_gate_service=_make_gate_service())
+            _prepare_protocol(protocol, plan, gate_decision=bad_decision)
         self.assertEqual(ctx.exception.code, EC.DB1I_HUMAN_GATE_DECISION_REJECTED)
 
     def test_negative_apply_without_fence(self):
@@ -485,22 +871,26 @@ class TestFencedApplyVerify(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
-            protocol.prepare(
-                permit=_make_permit(plan_hash=plan.plan_hash),
-                gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+            _prepare_protocol(protocol, plan)
         self.assertEqual(ctx.exception.code, EC.DB1I_DUPLICATE_APPLY)
 
     def test_negative_permit_plan_hash_mismatch(self):
         """Negative: permit plan_hash 与 plan 不匹配被拒绝。"""
         protocol = _make_protocol()
+        protocol.site_adapter.connect_readonly()
+        fp = protocol.site_adapter.site_fingerprint()
+        plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
+        protocol.site_adapter.connected = False
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
-            protocol.prepare(
-                permit=_make_permit(plan_hash="wrong"),
-                gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+            _prepare_protocol(
+                protocol,
+                plan,
+                permit_mutator=lambda permit: permit["action_units"][0].update(
+                    {"input_hash": "f" * 64}
+                ),
+            )
         self.assertEqual(ctx.exception.code, EC.DB1I_PERMIT_MISMATCH)
 
     def test_negative_permit_wrong_wp_id(self):
@@ -510,20 +900,23 @@ class TestFencedApplyVerify(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        permit = _make_permit(plan_hash=plan.plan_hash)
-        permit["wp_id"] = "WRONG"
         with self.assertRaises(SchemaBootstrapProtocolError) as ctx:
-            protocol.prepare(permit=permit, gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+            _prepare_protocol(
+                protocol,
+                plan,
+                permit_mutator=lambda permit: permit.update({"wp_id": "WP-WRONG"}),
+            )
         self.assertEqual(ctx.exception.code, EC.DB1I_PERMIT_MISMATCH)
 
     def test_negative_site_fingerprint_mismatch(self):
         """Negative: site fingerprint mismatch — adapter 连接失败被拒绝。"""
         adapter = FakeLogicalSiteAdapter(connect_should_fail=True)
         protocol = _make_protocol(adapter=adapter)
+        plan = build_schema_bootstrap_plan(
+            site_fingerprint_hash=_golden_fingerprint().fingerprint_hash
+        )
         with self.assertRaises(Exception):
-            protocol.prepare(
-                permit=_make_permit(),
-                gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+            _prepare_protocol(protocol, plan)
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -560,9 +953,7 @@ class TestSchemaBootstrapReceipt(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         with self.assertRaises(SchemaBootstrapReceiptError):
             build_schema_bootstrap_receipt(protocol)
 
@@ -771,9 +1162,7 @@ class TestFaultInjection(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         # 在第一个 action 的 DDL 前崩溃
         receipts = protocol.apply(crash_before_ordinal=0)
         self.assertFalse(protocol.applied)
@@ -791,9 +1180,7 @@ class TestFaultInjection(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         # 在第一个 action 的 DDL 后崩溃
         receipts = protocol.apply(crash_after_ordinal=0)
         self.assertFalse(protocol.applied)
@@ -809,9 +1196,7 @@ class TestFaultInjection(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         # 在第一个 action 后崩溃
         protocol.apply(crash_after_ordinal=0)
         # resume — 第一个 action 的 DDL 已生效，应 reconcile 为 VERIFIED
@@ -827,9 +1212,7 @@ class TestFaultInjection(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         # 在第一个 action 的 DDL 前崩溃
         protocol.apply(crash_before_ordinal=0)
         # resume — DDL 未生效，应标记 FAILED
@@ -951,9 +1334,7 @@ class TestEndToEnd(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         # apply
         receipts = protocol.apply()
         self.assertTrue(protocol.applied)
@@ -985,9 +1366,7 @@ class TestEndToEnd(unittest.TestCase):
         fp = protocol.site_adapter.site_fingerprint()
         plan = build_schema_bootstrap_plan(site_fingerprint_hash=fp.fingerprint_hash)
         protocol.site_adapter.connected = False
-        protocol.prepare(
-            permit=_make_permit(plan_hash=plan.plan_hash),
-            gate_decision=_make_gate_decision(), human_gate_service=_make_gate_service())
+        _prepare_protocol(protocol, plan)
         # crash after first action
         protocol.apply(crash_after_ordinal=0)
         self.assertFalse(protocol.applied)

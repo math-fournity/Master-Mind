@@ -107,4 +107,4 @@
 
 机器检查同时报告：跨文档需求族未映射数、无需求族/LOCAL_ONLY理由的条款数、待独立语义复核数，以及WorkPackagePlan未消费的`requirement_ids + normative_clause_ids`数。生成器的结构remainder为0只允许`READY_FOR_AUDIT`；只有受信任AuditAssignment下的ReviewRecord逐条覆盖且审计remainder=0，工作包才可能`AUDITED_PASS`。任一适用remainder非0，最高只能`AUDITED_PARTIAL`。
 
-每份WorkPackagePlan必须绑定精确NormativeRequirementIndex ref/hash，并把该快照中`consumer_wp_ids`包含本工作包的全部clause ID逐项写入`normative_clause_ids`。checker以`expected - planned`和`planned - expected`分别计算missing/extra；任一非零都必须阻断`IN_PROGRESS`或后续receipt PASS，不能用自由文本scope代替精确集合。
+每份WorkPackagePlan必须绑定精确NormativeRequirementIndex ref/hash和已签NormativeRequirementReviewRecord ref/hash，并只从已验证review decisions中选取`consumer_wp_ids`包含本工作包的全部clause ID写入`normative_clause_ids`。checker以`review-expected - planned`和`planned - review-expected`分别计算missing/extra；任一非零都必须阻断`IN_PROGRESS`或后续receipt PASS，不能用自由文本scope或index里的临时consumer分配替代独立语义复核记录。

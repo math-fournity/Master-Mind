@@ -72,6 +72,8 @@ ModelRolePort
 | [VaultAccessCapability Schema](vault-access-capability.v1.schema.json) / [AccessDecision Schema](access-decision.v1.schema.json) / [ViewDerivation Schema](view-derivation.v1.schema.json) / [AccessEvent Schema](access-event.v1.schema.json) | deny-by-default、可撤销、带签名的Vault访问与最小view派生链；模型不得得到raw Vault路径 |
 | [ExternalExecutionAuthorization Schema](external-execution-authorization.v1.schema.json) / [LiveRunPermit Schema](live-run-permit.v1.schema.json) / [AuthorizationConsumptionReceipt Schema](authorization-consumption-receipt.v1.schema.json) | 外部副作用的父级上限、不可扩权单次许可和原子额度状态链 |
 | [AuditAssignment Schema](audit-assignment.v1.schema.json) / [AuditRecord Schema](audit-record.v1.schema.json) | repo外owner指派、独立审计者attestation、四轴结论和HumanGate验收前零状态效力 |
+| [AuditInputPack Schema](audit-input-pack.v1.schema.json) / [AuditReadinessReport Schema](audit-readiness-report.v1.schema.json) | 实施者可准备的只读审计输入候选包与覆盖报告；只机械检查候选完成物证和缺口，不签发assignment、不生成record、不改变状态 |
+| [DatabaseLogicalSiteCapabilityReport Schema](database-logical-site-capability-report.v1.schema.json) | WP-DB1L只读逻辑站点报告对象；fixture/验证器可零DB测试，真实`environment-readonly`路径仍须显式调用和只读DB确认 |
 | [ImplementationCompletionBundle Schema](implementation-completion-bundle.v1.schema.json) / [OperatorCommandRegistry Schema](operator-command-registry.v1.schema.json) | 实施物证完成包与CLI/API/worker入口的副作用、授权、幂等和receipt总登记 |
 | [DocBootstrapCompletionRecord Schema](doc-bootstrap-completion-record.v1.schema.json) / [DocBootstrapImportAnchor Schema](doc-bootstrap-import-anchor.v1.schema.json) | `WP-DOC0 → DOC_BOOTSTRAP_RECORD`的唯一机器完成对象，以及VLT0后的逐字节CAS导入锚 |
 | [DocContractVerificationReceipt Schema](doc-contract-verification-receipt.v1.schema.json) / [DOC0TestExecutionReceipt Schema](doc0-test-execution-receipt.v1.schema.json) | 文档合同检查器的自验证输出，以及绑定精确subject commit/tree与完整命令输出的DOC0测试执行收据 |
@@ -112,6 +114,7 @@ NOT_STARTED
 → 先写 blocker/negative tests
 → 实现最小闭环
 → 运行 unit/component/integration/fault tests
+→ 用build-work-package-plan绑定已签NormativeRequirementReviewRecord并机械派生普通WorkPackagePlan（DOC0/GA1除外）
 → 按DAG生成DocBootstrapCompletionRecord、ImplementationCompletionBundle或AuditRecord
 → 更新 implementation-status 与看板为 READY_FOR_AUDIT
 → 显式路径提交

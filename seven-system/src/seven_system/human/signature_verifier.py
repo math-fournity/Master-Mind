@@ -13,6 +13,7 @@ SIDE_EFFECT_FREE：纯内存实现。
 from __future__ import annotations
 
 import base64 as _b64
+import copy
 import hashlib
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -55,6 +56,11 @@ class SignatureVerifierPort(Protocol):
         public_key_bytes: bytes,
         signature_domain: bytes,
         signature_field_path: str = "signature_envelope.signature_b64",
+        envelope_hash_field_path: str = "signature_envelope.signed_bytes_hash",
+        top_hash_field: str | None = "signed_bytes_hash",
+        self_hash_field: str | None = None,
+        signer_field_path: str = "signature_envelope.signer_principal_id",
+        key_id_field_path: str = "signature_envelope.key_id",
     ) -> SignatureVerificationReceipt:
         """验证签名对象的 Ed25519 签名。
 
@@ -85,6 +91,11 @@ class Ed25519SignatureVerifier:
         public_key_bytes: bytes,
         signature_domain: bytes,
         signature_field_path: str = "signature_envelope.signature_b64",
+        envelope_hash_field_path: str = "signature_envelope.signed_bytes_hash",
+        top_hash_field: str | None = "signed_bytes_hash",
+        self_hash_field: str | None = None,
+        signer_field_path: str = "signature_envelope.signer_principal_id",
+        key_id_field_path: str = "signature_envelope.key_id",
     ) -> SignatureVerificationReceipt:
         """执行真实 Ed25519 验签。"""
         try:
@@ -125,13 +136,29 @@ class Ed25519SignatureVerifier:
             )
 
         # 计算 signed bytes
-        signed_bytes = _compute_signed_bytes(signed_object, signature_domain)
+        try:
+            signed_bytes = compute_signed_bytes(
+                signed_object,
+                signature_domain,
+                signature_field_path=signature_field_path,
+                envelope_hash_field_path=envelope_hash_field_path,
+                top_hash_field=top_hash_field,
+                self_hash_field=self_hash_field,
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            return SignatureVerificationReceipt(
+                verified=False,
+                algorithm="Ed25519",
+                key_id="",
+                signer_principal_id="",
+                signed_bytes_hash="",
+                verification_error=f"signed object profile mismatch: {exc}",
+            )
         signed_bytes_hash = hashlib.sha256(signed_bytes).hexdigest()
 
         # 提取 key_id 和 signer
-        key_id = str(signed_object.get("key_id", ""))
-        envelope = signed_object.get("signature_envelope", {})
-        signer = str(envelope.get("signer_principal_id", "")) if isinstance(envelope, dict) else ""
+        key_id = str(_extract_field(signed_object, key_id_field_path) or "")
+        signer = str(_extract_field(signed_object, signer_field_path) or "")
 
         # 执行真实验签
         try:
@@ -176,32 +203,63 @@ def _extract_field(obj: dict[str, Any], path: str) -> Any:
     return current
 
 
-def _compute_signed_bytes(signed_object: dict[str, Any], signature_domain: bytes) -> bytes:
-    """计算 signed bytes = domain || canonical_json(unsigned_object)。
+def _set_path(obj: dict[str, Any], path: str, value: Any) -> None:
+    """在已存在的嵌套对象路径上写值；路径缺失时 fail-closed。"""
+    parts = path.split(".")
+    current: Any = obj
+    for part in parts[:-1]:
+        if not isinstance(current, dict) or part not in current:
+            raise KeyError(path)
+        current = current[part]
+    if not isinstance(current, dict) or parts[-1] not in current:
+        raise KeyError(path)
+    current[parts[-1]] = value
 
-    unsigned_object = signed_object 移除 signature_envelope.signature_b64、
-    signature_envelope.signed_bytes_hash、顶层 signed_bytes_hash、
-    顶层自引用 hash（decision_hash 或 self_hash）、顶层 verification_status。
 
-    注意：字段设为 None（不是 pop），与 gate_decision._compute_signed_bytes_hash 一致，
-    确保 canonical_json 中字段顺序和值完全一致。
+def compute_signed_bytes(
+    signed_object: dict[str, Any],
+    signature_domain: bytes,
+    *,
+    signature_field_path: str = "signature_envelope.signature_b64",
+    envelope_hash_field_path: str = "signature_envelope.signed_bytes_hash",
+    top_hash_field: str | None = "signed_bytes_hash",
+    self_hash_field: str | None = None,
+) -> bytes:
+    """按对象 profile 重建唯一的签名字节。
+
+    规范要求把签名、envelope hash、顶层 signed/attested hash 和对象自引用
+    hash 置为 ``null``，而不是删除字段。不同安全对象使用不同字段名；调用者
+    必须显式提供 profile，不能把 GateDecision 的形状套到 EEA/Receipt 上。
     """
-    unsigned = dict(signed_object)
-    envelope = dict(unsigned.get("signature_envelope", {}))
-    envelope["signature_b64"] = None
-    envelope["signed_bytes_hash"] = None
-    unsigned["signature_envelope"] = envelope
-    # 设为 None（与 gate_decision 一致，不是 pop）
-    unsigned["signed_bytes_hash"] = None
-    # 支持不同对象类型的自引用 hash 字段
-    if "decision_hash" in unsigned:
-        unsigned["decision_hash"] = None
-    if "self_hash" in unsigned:
-        unsigned["self_hash"] = None
-    unsigned["verification_status"] = None
+    unsigned = copy.deepcopy(signed_object)
+    _set_path(unsigned, signature_field_path, None)
+    _set_path(unsigned, envelope_hash_field_path, None)
+    if top_hash_field is not None:
+        if top_hash_field not in unsigned:
+            raise KeyError(top_hash_field)
+        unsigned[top_hash_field] = None
 
-    payload_bytes = canonical_json_bytes(unsigned)
-    return signature_domain + payload_bytes
+    if self_hash_field is None:
+        for candidate in ("decision_hash", "self_hash"):
+            if candidate in unsigned:
+                unsigned[candidate] = None
+                break
+    else:
+        if self_hash_field not in unsigned:
+            raise KeyError(self_hash_field)
+        unsigned[self_hash_field] = None
+
+    # GateDecision 的 verification_status 是验签结果，不属于签名输入；其他
+    # 对象没有该字段，绝不能凭空添加一个 null 字段改变payload。
+    if "verification_status" in unsigned:
+        unsigned["verification_status"] = None
+
+    return signature_domain + canonical_json_bytes(unsigned)
+
+
+# 旧内部名称保留给现有调用者；语义现在使用按字段存在性自动选择的 profile。
+def _compute_signed_bytes(signed_object: dict[str, Any], signature_domain: bytes) -> bytes:
+    return compute_signed_bytes(signed_object, signature_domain)
 
 
 # 全局单例——所有模块共享同一个 verifier 实例
@@ -222,6 +280,11 @@ def verify_signature(
     public_key_bytes: bytes,
     signature_domain: bytes,
     signature_field_path: str = "signature_envelope.signature_b64",
+    envelope_hash_field_path: str = "signature_envelope.signed_bytes_hash",
+    top_hash_field: str | None = "signed_bytes_hash",
+    self_hash_field: str | None = None,
+    signer_field_path: str = "signature_envelope.signer_principal_id",
+    key_id_field_path: str = "signature_envelope.key_id",
 ) -> SignatureVerificationReceipt:
     """便捷函数——通过全局唯一 verifier 验证签名。"""
     return get_signature_verifier().verify(
@@ -229,4 +292,9 @@ def verify_signature(
         public_key_bytes=public_key_bytes,
         signature_domain=signature_domain,
         signature_field_path=signature_field_path,
+        envelope_hash_field_path=envelope_hash_field_path,
+        top_hash_field=top_hash_field,
+        self_hash_field=self_hash_field,
+        signer_field_path=signer_field_path,
+        key_id_field_path=key_id_field_path,
     )

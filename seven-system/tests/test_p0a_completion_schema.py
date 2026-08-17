@@ -36,11 +36,7 @@ SCHEMA_PATH = SYSTEM_ROOT / "docs" / "implementation" / "implementation-completi
 
 
 def _dag_sha256() -> str:
-    raw = DAG_PATH.read_bytes()
-    canonical = json.dumps(
-        json.loads(raw), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
+    return hashlib.sha256(DAG_PATH.read_bytes()).hexdigest()
 
 
 def _valid_bundle_hash(bundle: dict) -> str:

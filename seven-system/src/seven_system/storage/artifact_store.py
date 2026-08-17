@@ -63,8 +63,17 @@ class CompletionArtifactStore:
         obj = store.get(ref.sha256)
     """
 
-    def __init__(self, *, root: Path, volume_root: Path) -> None:
-        self._volume_root = self._validate_volume_root(volume_root)
+    def __init__(
+        self,
+        *,
+        root: Path,
+        volume_root: Path,
+        test_only_allow_non_d_volume: bool = False,
+    ) -> None:
+        self._volume_root = self._validate_volume_root(
+            volume_root,
+            test_only_allow_non_d_volume=test_only_allow_non_d_volume,
+        )
         self._root = self._validate_root(root, self._volume_root)
 
     @property
@@ -76,7 +85,11 @@ class CompletionArtifactStore:
         return self._volume_root
 
     @staticmethod
-    def _validate_volume_root(volume_root: Path) -> Path:
+    def _validate_volume_root(
+        volume_root: Path,
+        *,
+        test_only_allow_non_d_volume: bool = False,
+    ) -> Path:
         """验证 volume_root 不是 symlink、不是 fallback 路径。"""
         absolute = volume_root.absolute()
         if absolute.is_symlink():
@@ -85,16 +98,33 @@ class CompletionArtifactStore:
                 f"volume_root is a symlink: {absolute}",
             )
         resolved = absolute.resolve()
-        for prefix in _FORBIDDEN_FALLBACK_PREFIXES:
-            if str(resolved).startswith(prefix) and str(resolved) != prefix:
-                # 允许 volume_root 本身是 /tmp 下的测试路径（测试场景）
-                # 但不允许生产 store fallback 到这些位置
-                pass
         if not resolved.exists():
             raise _StoreError(
                 EC.STORE_VOLUME_ROOT_INVALID,
                 f"volume_root does not exist: {resolved}",
             )
+        if not resolved.is_dir():
+            raise _StoreError(
+                EC.STORE_VOLUME_ROOT_INVALID,
+                f"volume_root is not a directory: {resolved}",
+            )
+
+        # 生产 store 的批准物理卷固定为 /data。测试必须显式选择
+        # test_only_allow_non_d_volume；该开关不得由任何CLI/API暴露。
+        approved_d_root = Path("/data").resolve()
+        if not test_only_allow_non_d_volume and resolved != approved_d_root:
+            raise _StoreError(
+                EC.STORE_FALLBACK_REJECTED,
+                f"production volume_root must be {approved_d_root}, got {resolved}",
+            )
+
+        if not test_only_allow_non_d_volume:
+            for prefix in _FORBIDDEN_FALLBACK_PREFIXES:
+                if str(resolved).startswith(prefix):
+                    raise _StoreError(
+                        EC.STORE_FALLBACK_REJECTED,
+                        f"production volume_root uses forbidden fallback prefix {prefix}: {resolved}",
+                    )
         return resolved
 
     @staticmethod

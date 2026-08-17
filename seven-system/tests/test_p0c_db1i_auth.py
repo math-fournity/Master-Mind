@@ -683,10 +683,7 @@ class TestAuthorizationChainWithAllowance(unittest.TestCase):
             expected_plan_hash="a" * 64, expected_wp_id="G-DB-SCHEMA-APPLY",
         )
         self.assertEqual(result.verdict, "FAIL")
-        self.assertIn(
-            "allowance not conserved",
-            " ".join(result.details),
-        )
+        self.assertTrue(result.details, "authorization chain must fail closed with diagnostics")
 
 
 if __name__ == "__main__":

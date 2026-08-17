@@ -9,7 +9,7 @@
 1. 确认工作目录、分支和`git status`；保留不属于本工作的用户改动。
 2. 完整读取根/Seven `AGENTS.md`、实现入口、当前状态、工作包DAG和对应审计文档。
 3. 从`work-package-board.md`选择第一个READY项。无副作用开发依赖在上游`READY_FOR_AUDIT`后可满足，但必须记录`inherited_audit_debt`；任何激活动作仍要求适用上游`AUDITED_PASS`。若是未审canary，不能用一句“用户同意”替代机器授权对象：还必须由父级`ExternalExecutionAuthorization`、其不可扩权`LiveRunPermit`和原子`AuthorizationConsumptionReceipt(RESERVED)`共同精确覆盖，并标记`UNAUDITED_AUTHORIZED_CANARY`。
-4. 按`work-package-plan.v1.schema.json`生成并验证`WorkPackagePlan`，冻结baseline commit/tree、canonical DAG、需求/clause scope、spec/Schema/input hashes、允许文件、测试、站点配置和授权边界；除历史DOC0 bootstrap plan外，每个新Plan必须显式选择`SIDE_EFFECT_FREE`或`AUTHORIZED_LIVE_CANARY`。前者授权refs为null且预算全零，后者三个授权refs完整且至少一项预算为正；没有Plan不得写`IN_PROGRESS`。
+4. 普通implementer-owned包优先用`seven.py build-work-package-plan`或同名工具从canonical DAG、`NormativeRequirementIndex`和已签`NormativeRequirementReviewRecord`机械派生`WorkPackagePlan`，再按`work-package-plan.v1.schema.json`验证，冻结baseline commit/tree、需求/clause scope、spec/Schema/input hashes、允许文件、测试、站点配置和授权边界；除历史DOC0 bootstrap plan外，每个新Plan必须显式选择`SIDE_EFFECT_FREE`或`AUTHORIZED_LIVE_CANARY`。前者授权refs为null且预算全零，后者三个授权refs完整且至少一项预算为正；没有Plan不得写`IN_PROGRESS`。该工具只验证并消费已签复核记录，不生成或签署`NormativeRequirementReviewRecord`，正式审计链仍必须绑定真实复核记录。
 5. 在看板写`IN_PROGRESS`、实施者、开始时间、attempt ID和stop condition。
 6. 若需要新权限、真实写库、付费模型调用、生产Solver或HumanGate，Plan必须是`AUTHORIZED_LIVE_CANARY`，并同时验证父级EEA、不可扩权LiveRunPermit和原子`AuthorizationConsumptionReceipt(RESERVED)`；缺任一项就写BLOCKED并停止。Devin/Codex认知adapter的首个真实canary还必须等待DB1I v2/等价SchemaState、RT1 DatabaseRuntime/Artifact Reconcile以及VLT0/HG0激活条件，禁止以“QA0离线”名义走file-only调用旁路。
 7. 若本包会修改规定性文档，先记录旧`NormativeRequirementIndex` hash；完成时重跑生成器并验证新source hashes与remainder，禁止手改生成JSON。

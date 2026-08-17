@@ -87,7 +87,9 @@ class HumanGateService:
         # ─── Step 1: 结构验证 + P0-B 真实 Ed25519 验签 ───
         # 先提取 key_id 用于公钥查找
         key_id = decision.get("key_id", "")
-        # P0-B: 如果 key_registry 中有此 key_id 的公钥，执行真实 Ed25519 验签
+        # P0-B: HumanGate 是产生状态效力的边界，公钥不是可选增强。
+        # 结构合法但没有已注册公钥的对象必须 fail-closed，不能退化为
+        # “Base64 看起来像签名”就通过。
         public_key_bytes = self.key_registry.get_public_key(key_id) if key_id else None
         struct_result = verify_gate_decision(
             decision,
@@ -98,6 +100,15 @@ class HumanGateService:
             details.extend(struct_result.details)
             return VerificationResult(
                 verdict="FAIL", error_codes=errors, details=details
+            )
+        if public_key_bytes is None:
+            return VerificationResult(
+                verdict="FAIL",
+                error_codes=[EC.SIGNATURE_INVALID],
+                details=[
+                    f"no registered Ed25519 public key bytes for key_id={key_id!r}; "
+                    "HumanGate cannot accept a structurally-only signature"
+                ],
             )
 
         decision_id = decision.get("decision_id", "")

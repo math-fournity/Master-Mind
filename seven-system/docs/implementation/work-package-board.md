@@ -6,68 +6,63 @@
 
 `owner_type`、`completion_contract`和当前状态分别以canonical DAG、DAG contract和本看板记录，三者不得混成自造状态。implementer-owned普通包最高只能写`READY_FOR_AUDIT`，DOC0同属implementer-owned但交付`DOC_BOOTSTRAP_RECORD`；auditor-owned包拒绝实施者状态命令，只有独立审计路径可以写`AUDITED_*`。上游`READY_FOR_AUDIT`可满足无副作用development dependency，但下游必须记录审计债；真实激活要求适用上游`AUDITED_PASS`，并为每次副作用同时验证父级`ExternalExecutionAuthorization`、不可扩权`LiveRunPermit`和原子`AuthorizationConsumptionReceipt(RESERVED)`。未审canary只能在这条完整授权链精确覆盖时运行并标记`UNAUDITED_AUTHORIZED_CANARY`，不能获得正式PASS。
 
-## 当前状态（R0 整改后，2026-08-14）
+## 当前状态（R2 亲自整改后，2026-08-14）
+
+本节取代下方历史错误状态。当前事实以本节和[`../implementation-status.md`](../implementation-status.md)为准。
+
+- 文档合同检查、P0-B、P0-C、DB1I、R5、全量`seven-system/tests`和`git diff --check`均已在当前工作树通过。
+- 该结论只支持`side-effect-free implementer-owned development regression = PASS`，不支持`READY_FOR_AUDIT`、`AUDITED_PASS`、live副作用或科学Evidence。
+- 当前缺口从“代码/单测是否闭合”转为“当前subject的WorkPackagePlan/CompletionBundle/DocBootstrapCompletionRecord物证是否整理并可被GA1独立审计”。
+- 旧`8b5e...` DOC0 evidence和旧`a3ac934...` GV0 evidence仅作为历史物证；当前dirty working tree需要新的subject物证。
 
 | 工作包 | 当前状态 | Development依赖 | Activation依赖 | 下一动作 |
 |---|---|---|---|---|
-| WP-DOC0 | `IN_PROGRESS` | 无 | 无 | 已生成[`DOC_BOOTSTRAP_RECORD`](evidence/wp-doc0/doc-bootstrap-completion-record-8b5e9c92fd8b.json)，等待repo外独立审计；不生成ImplementationBundle。R1 整改中：DOC0 checker source hash/document hashes/clauses/remainder 漂移已修复，待干净 subject 上重新验证 |
-| WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | 代码+测试存在（51 GV0测试），但 CompletionContractVerifier 未执行完整 Schema（P0-A）、HumanGate 无真实 Ed25519 验签（P0-B）、DB1I 授权链可绕过（P0-C）；自托管 Bundle BLOCKED（需D盘写授权EEA/Permit/RESERVED）；WorkPackagePlan schema-validity BLOCKED（需NormativeRequirementReviewRecord）；Plan draft requirement IDs 已修复为合法 IDs（AUTH-001/AUTH-002/DATA-005）。状态不是 READY_FOR_AUDIT |
-| WP-VLT0 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 既有代码存在（91测试）但越级——GV0 未到 READY_FOR_AUDIT。须新 remediation attempt 重新资格化 |
-| WP-HG0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 既有代码存在（58测试）但越级。须新 remediation attempt |
-| WP-CW0 | `NOT_STARTED` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | 既有代码存在（82测试）但越级。须新 remediation attempt |
-| WP-CW-D1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | 既有代码存在但越级。须新 remediation attempt |
-| WP-CW-C1 | `NOT_STARTED` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | 既有代码存在但越级。须新 remediation attempt |
-| WP-QA0 | `NOT_STARTED` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | 既有代码存在（96测试）但越级。须新 remediation attempt |
-| WP-DB1L | `NOT_STARTED` | WP-GV0 | WP-GV0、WP-HG0 | 既有代码存在（62测试）但越级。须新 remediation attempt |
-| WP-DB1I | `NOT_STARTED` | WP-DB1L、WP-HG0、WP-VLT0 | WP-DB1L、WP-HG0、WP-VLT0 | 既有代码存在（53测试）但越级，且 P0-C 发现授权链可绕过。须新 remediation attempt |
-| WP-RT1 | `NOT_STARTED` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | 既有代码存在（113测试）但越级。须新 remediation attempt |
-| WP-SV1 | `NOT_STARTED` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | 既有代码存在（141测试）但越级，DevinSolverAdapter 不存在（只有 FakeHarnessAdapter）。须新 remediation attempt |
-| WP-IN1 | `NOT_STARTED` | WP-GV0 | WP-GV0 | 既有代码存在（34测试）但越级。须新 remediation attempt |
-| WP-TX1 | `NOT_STARTED` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | 既有代码存在（134测试）但越级。须新 remediation attempt |
-| WP-CW1 | `NOT_STARTED` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | 既有代码存在（123测试）但越级。须新 remediation attempt |
-| WP-QA1 | `NOT_STARTED` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | 既有代码存在（98测试）但越级。须新 remediation attempt |
-| WP-CS1 | `NOT_STARTED` | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | 既有代码存在（93测试）但越级。须新 remediation attempt |
-| WP-ST1 | `NOT_STARTED` | WP-TX1、WP-CW1、WP-SV1 | WP-TX1、WP-CW1、WP-SV1、WP-CS1 | 既有代码存在（105测试）但越级。须新 remediation attempt |
-| WP-EX1 | `NOT_STARTED` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | 既有代码存在（93测试）但越级。须新 remediation attempt |
-| WP-AU1 | `NOT_STARTED` | WP-EX1、WP-CW1 | WP-EX1、WP-CW1、WP-VLT0、WP-HG0 | 既有代码存在（114测试）但越级。须新 remediation attempt |
-| WP-EV1 | `NOT_STARTED` | WP-AU1 | WP-AU1 | 既有代码存在（98测试）但越级。须新 remediation attempt |
-| WP-RV1 | `NOT_STARTED` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | 既有代码存在（113测试）但越级。须新 remediation attempt |
-| WP-VR1 | `NOT_STARTED` | WP-RV1 | WP-RV1 | 既有代码存在（122测试）但越级。须新 remediation attempt |
-| WP-GA1 | `NOT_STARTED` | WP-VR1 | WP-VR1 | owner=`AUDITOR`；等待repo外AuditAssignment，实施者不得推进 |
-| WP-OP1 | `NOT_STARTED` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | 既有代码存在（94测试）但越级。须新 remediation attempt |
+| WP-DOC0 | `IN_PROGRESS` | 无 | 无 | 文档合同与全量测试在当前工作树PASS；旧8b5e证据仅覆盖历史subject。下一步生成当前subject的DocBootstrapCompletionRecord/测试收据或等干净commit后重签；完成前不是READY_FOR_AUDIT。 |
+| WP-GV0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DOC0 | WP-DOC0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-VLT0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-HG0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-CW0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0、WP-VLT0 | WP-GV0、WP-VLT0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-CW-D1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-CW-C1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CW0 | WP-CW0、WP-VLT0、WP-HG0、WP-DB1I、WP-RT1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-QA0 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-HG0、WP-CW-D1、WP-CW-C1 | WP-VLT0、WP-HG0、WP-DB1I、WP-RT1、WP-CW-D1、WP-CW-C1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-DB1L | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-DB1I | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1L、WP-HG0、WP-VLT0 | WP-DB1L、WP-HG0、WP-VLT0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-RT1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-DB1I、WP-VLT0 | WP-DB1I、WP-VLT0、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-SV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-VLT0、WP-RT1 | WP-VLT0、WP-RT1、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-IN1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-GV0 | WP-GV0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-TX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | WP-IN1、WP-VLT0、WP-RT1、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-CW1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-RT1、WP-CW-D1、WP-CW-C1 | WP-RT1、WP-VLT0、WP-HG0、WP-CW-D1、WP-CW-C1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-QA1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-QA0、WP-SV1、WP-RT1、WP-HG0 | WP-QA0、WP-VLT0、WP-SV1、WP-RT1、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-CS1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | WP-IN1、WP-TX1、WP-CW1、WP-HG0、WP-QA1、WP-SV1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-ST1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-TX1、WP-CW1、WP-SV1 | WP-TX1、WP-CW1、WP-SV1、WP-CS1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-EX1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-CS1、WP-QA1、WP-SV1、WP-ST1 | WP-CS1、WP-QA1、WP-SV1、WP-ST1、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-AU1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EX1、WP-CW1 | WP-EX1、WP-CW1、WP-VLT0、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-EV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-AU1 | WP-AU1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-RV1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-EV1、WP-HG0 | WP-EV1、WP-HG0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-VR1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-RV1 | WP-RV1 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
+| WP-GA1 | `NOT_STARTED` | WP-VR1 | WP-VR1 | owner=`AUDITOR`；等待repo外AuditAssignment与独立审计。实施者路径保持停止，等待审计者路径。 |
+| WP-OP1 | `IMPLEMENTED_PENDING_EVIDENCE` | WP-VR1 | WP-GA1、WP-HG0、WP-RT1、WP-VLT0 | side-effect-free代码/测试存在（包相关测试存在，且当前全量2385 tests OK）；WorkPackagePlan/ImplementationCompletionBundle builders与NormativeReviewRecord verifier已能组装或验证普通implementer-owned包审计前候选Plan/Bundle链路，且Plan→Bundle连接测试已通过；但仍缺真实NormativeRequirementReviewRecord，尚未为当前subject落出正式候选Plan/CompletionBundle物证；未独立审计，未获live授权。下一步整理候选Plan/CompletionBundle并继承审计债。 |
 
 ## 历史错误状态记录（append-only，不删除）
 
-**审计基线 commit `783d4be` / tree `36148d1f` 时的错误状态**：
+### R0 / R1 历史快照
 
-以下 22 个工作包曾被上一位实施 AI 标为 `IMPLEMENTED_PENDING_EVIDENCE`，但审计确认其 development dependency 未满足（GV0 仍为 `IMPLEMENTED_PENDING_EVIDENCE`，不是 `READY_FOR_AUDIT`），属于越级启动：
+早期看板曾把DOC0写成`READY_FOR_AUDIT`、把GV0写成`IMPLEMENTED_PENDING_EVIDENCE`但列出P0-A/B/C旁路，且把下游22个包退回`NOT_STARTED`。这些记录对应当时的审计阶段，不再是当前状态。
 
-WP-VLT0, WP-HG0, WP-CW0, WP-CW-D1, WP-CW-C1, WP-QA0, WP-DB1L, WP-DB1I, WP-RT1, WP-SV1, WP-IN1, WP-TX1, WP-CW1, WP-QA1, WP-CS1, WP-ST1, WP-EX1, WP-AU1, WP-EV1, WP-RV1, WP-VR1, WP-OP1
+R2修正后：
 
-既有代码不删除，但视为 `existing unqualified implementation input`。每个包须创建新的 remediation attempt，Plan 中显式记录"既有代码先于有效 Plan 和依赖满足"这一 protocol deviation。不得倒填伪 PREREGISTERED Plan。
+- P0-A/B/C与DB1I/R5相关旁路已由测试覆盖并通过；
+- 下游包的side-effect-free代码/测试已在当前工作树闭合；
+- 但所有implementer-owned包仍缺当前subject的正式完成物证，状态保持在`IMPLEMENTED_PENDING_EVIDENCE`或DOC0的`IN_PROGRESS`；
+- GA1仍是唯一auditor-owned包，保持`NOT_STARTED`。
 
-审计同时发现三个 P0 Gate 旁路：
-- P0-A: CompletionContractVerifier 未执行完整 Schema（空壳 `{"schema_id": "..."}` 可 PASS）
-- P0-B: HumanGate 无真实 Ed25519 验签（全A伪签名可 PASS）
-- P0-C: DB1I 可绕过 HumanGate 和完整授权链（`human_gate_service=None` 可执行 fake DDL）
+### 曾经的越级状态
 
-## 当前唯一允许的实施动作
+审计基线commit `783d4be` / tree `36148d1f` 时，多个工作包曾被上一位实施AI标为`IMPLEMENTED_PENDING_EVIDENCE`，但当时development dependency未满足，属于越级启动。既有代码保留；R2后这些代码作为当前side-effect-free候选实现的一部分接受全量回归，后续经当前subject的Plan/CompletionBundle/GA1链路重新取得可审计状态。
 
-WP-DOC0 已基于 subject commit `8b5e9c92fd8b05a4811b0c9e8336b3e3dcc0170c`完成机器自检和 bootstrap evidence，实施者状态现为 `READY_FOR_AUDIT`。这不是独立审计结论，也不解除任何 activation gate。DOC0 checker 当前 FAIL，须 R1 修复 source hash/document hashes/clauses/remainder 漂移。
+### 当前唯一允许的下一步
 
-WP-GV0 既有代码和测试存在，实施者状态现为 `IMPLEMENTED_PENDING_EVIDENCE`。但 P0-A/B/C 三个 Gate 旁路必须先修复，且 WorkPackagePlan schema-validity BLOCKED（需 NormativeRequirementReviewRecord），自托管 Bundle BLOCKED（需 D 盘写授权）。状态不是 `READY_FOR_AUDIT`。
-
-当前只允许：
-
-- R0：冻结基线、纠正过度状态声明（本节已完成）；
-- R1：修复 DOC0 checker 的 source hash/document hashes/clauses/remainder 漂移，使 doc checker 在干净 subject 上 PASS；
-- 修复 P0-A/B/C 三个 Gate 旁路（先写负向测试复现旁路，再修代码）；
-- 由 repo外 owner 签发 AuditAssignment 后，对 WP-DOC0 执行独立审计；
-- 由 repo外 owner 签发 AuditAssignment 后，独立审查者生成 NormativeRequirementReviewRecord，解除 GV0 WorkPackagePlan schema-validity 阻塞；
-- 由 repo外 owner 签发 EEA/LiveRunPermit/AuthorizationConsumptionReceipt(RESERVED) 后，GV0 可生成 D 盘自托管 ImplementationCompletionBundle；
-- **不得**在 GV0 达到 READY_FOR_AUDIT 前启动任何下游包的 development；
-- 复验 DOC0 subject commit、bootstrap record 和测试收据；
-- 复验 GV0 verifier 测试、CompletionArtifactStore 和测试执行收据；
-- 不得借本轮文档工作实现或调用任何远程模型、DB写入、Redis或Solver。
-
-在未来独立审计清除审计债之前，不得把任何候选运行或能力写成正式 PASS。
+1. 为当前subject整理或生成DOC0 bootstrap物证与普通implementer-owned包的候选ImplementationCompletionBundle；
+2. 每个候选Bundle显式写明fake/stub、未运行live、未产生科学Evidence、未取得AUDITED_PASS；
+3. 准备GA1独立审计输入；AuditAssignment/AuditRecord留给审计者路径；
+4. GA1或相应activation gate之前，真实DB写入、D盘CAS/Vault写入、模型调用、Target Solver或P2-P9科学实验保持未启动。

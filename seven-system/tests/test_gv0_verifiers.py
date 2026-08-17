@@ -49,11 +49,7 @@ DAG_PATH = SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json"
 
 
 def _dag_sha256() -> str:
-    raw = DAG_PATH.read_bytes()
-    canonical = json.dumps(
-        json.loads(raw), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
+    return hashlib.sha256(DAG_PATH.read_bytes()).hexdigest()
 
 
 def _self_hash(obj: dict, hash_field: str) -> str:
@@ -1004,7 +1000,8 @@ class ArtifactStoreGoldenVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             payload = {"schema_id": "seven/implementation-completion-bundle", "wp_id": "WP-GV0"}
             ref = store.put_json(payload)
@@ -1018,7 +1015,8 @@ class ArtifactStoreGoldenVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             payload = {"key": "value"}
             ref1 = store.put_json(payload)
@@ -1030,7 +1028,8 @@ class ArtifactStoreGoldenVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             ref = store.put_json({"data": 42})
             self.assertTrue(store.verify(ref.sha256))
@@ -1040,7 +1039,8 @@ class ArtifactStoreGoldenVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             content = b"raw bytes content"
             ref = store.put_bytes(content)
@@ -1051,13 +1051,35 @@ class ArtifactStoreGoldenVectors(unittest.TestCase):
 
 class ArtifactStoreNegativeVectors(unittest.TestCase):
 
+    def test_non_d_volume_rejected_without_explicit_test_override(self) -> None:
+        """P0 blocker: production store 不得把临时目录冒充批准的D盘卷。"""
+        with tempfile.TemporaryDirectory() as tmp:
+            vol = Path(tmp) / "vol"
+            vol.mkdir()
+            with self.assertRaises(_StoreError) as ctx:
+                CompletionArtifactStore(root=vol / "store", volume_root=vol)
+            self.assertEqual(ctx.exception.code, EC.STORE_FALLBACK_REJECTED)
+
+    def test_unauthorized_store_put_cli_is_not_exposed(self) -> None:
+        """P0 blocker: 未接授权链前不得暴露直接写CAS的CLI。"""
+        from seven_system.cli import _parser
+
+        parser = _parser()
+        subparser_action = next(
+            action
+            for action in parser._actions
+            if hasattr(action, "choices") and isinstance(action.choices, dict)
+        )
+        self.assertNotIn("gv0-store-put", subparser_action.choices)
+
     def test_symlink_leaf_rejected(self) -> None:
         """叶 symlink → STORE_SYMLINK_REJECTED"""
         with tempfile.TemporaryDirectory() as tmp:
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             ref = store.put_json({"x": 1})
             path = store._content_path(ref.sha256)
@@ -1079,7 +1101,10 @@ class ArtifactStoreNegativeVectors(unittest.TestCase):
             outside = Path(tmp) / "outside"
             outside.mkdir()
             with self.assertRaises(_StoreError) as ctx:
-                CompletionArtifactStore(root=outside / "store", volume_root=vol)
+                CompletionArtifactStore(
+                    root=outside / "store", volume_root=vol,
+                    test_only_allow_non_d_volume=True,
+                )
             self.assertEqual(ctx.exception.code, EC.STORE_FALLBACK_REJECTED)
 
     def test_hash_mismatch_on_read_rejected(self) -> None:
@@ -1088,7 +1113,8 @@ class ArtifactStoreNegativeVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             ref = store.put_json({"x": 1})
             path = store._content_path(ref.sha256)
@@ -1104,7 +1130,8 @@ class ArtifactStoreNegativeVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             ref = store.put_json({"x": 1})
             path = store._content_path(ref.sha256)
@@ -1131,7 +1158,8 @@ class ArtifactStoreNegativeVectors(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             with self.assertRaises(_StoreError) as ctx:
                 store.get("0" * 64)
@@ -1148,7 +1176,8 @@ class ArtifactStoreFaultInjection(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             payload = {"concurrent": True}
             ref1 = store.put_json(payload)
@@ -1162,7 +1191,8 @@ class ArtifactStoreFaultInjection(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             ref = store.put_json({"stable": True})
             # simulate a partial write by creating a .partial file
@@ -1181,7 +1211,8 @@ class ArtifactStoreFaultInjection(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             ref1 = store.put_json({"a": 1})
             ref2 = store.put_json({"a": 2})
@@ -1195,7 +1226,8 @@ class ArtifactStoreFaultInjection(unittest.TestCase):
             vol = Path(tmp) / "vol"
             vol.mkdir()
             store = CompletionArtifactStore(
-                root=vol / "store", volume_root=vol
+                root=vol / "store", volume_root=vol,
+                test_only_allow_non_d_volume=True,
             )
             refs = []
             for i in range(50):

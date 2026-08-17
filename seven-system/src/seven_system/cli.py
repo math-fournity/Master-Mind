@@ -87,13 +87,132 @@ def _parser() -> argparse.ArgumentParser:
     )
     gv0_verify.add_argument("--state-command", default=None)
 
-    gv0_store = sub.add_parser(
-        "gv0-store-put",
-        help="WP-GV0: 向 CompletionArtifactStore 写入 JSON 对象（content-addressed append-once）",
+    bundle = sub.add_parser(
+        "build-implementation-completion-bundle",
+        help="组装side-effect-free普通ImplementationCompletionBundle候选JSON到stdout",
     )
-    gv0_store.add_argument("--volume-root", required=True, type=Path)
-    gv0_store.add_argument("--store-root", required=True, type=Path)
-    gv0_store.add_argument("--input", required=True, type=Path)
+    bundle.add_argument("--bundle-input", required=True, type=Path)
+    bundle.add_argument("--plan", required=True, type=Path)
+    bundle.add_argument("--plan-sha256", required=True)
+    bundle.add_argument(
+        "--dag",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json",
+        type=Path,
+    )
+
+    plan = sub.add_parser(
+        "build-work-package-plan",
+        help="从canonical DAG、规范索引和已签规范复核记录组装side-effect-free普通WorkPackagePlan到stdout",
+    )
+    plan.add_argument("--plan-input", required=True, type=Path)
+    plan.add_argument(
+        "--dag",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json",
+        type=Path,
+    )
+    plan.add_argument(
+        "--normative-index",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "normative-requirement-index.v1.json",
+        type=Path,
+    )
+    plan.add_argument("--normative-review-record", required=True, type=Path)
+    plan.add_argument("--normative-review-public-key-hex", required=True)
+
+    review = sub.add_parser(
+        "verify-normative-review-record",
+        help="语义验证已签名NormativeRequirementReviewRecord；不签名、不改状态",
+    )
+    review.add_argument("--record", required=True, type=Path)
+    review.add_argument(
+        "--normative-index",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "normative-requirement-index.v1.json",
+        type=Path,
+    )
+    review.add_argument("--public-key-hex", required=True)
+    review.add_argument("--expected-index-sha256", default=None)
+    review.add_argument("--expected-record-sha256", default=None)
+
+    audit_input = sub.add_parser(
+        "validate-audit-input-pack",
+        help="只读验证交给独立GA1审计者的机械输入包；不签审计、不改状态",
+    )
+    audit_input.add_argument("--pack", required=True, type=Path)
+    audit_input.add_argument(
+        "--schema",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "audit-input-pack.v1.schema.json",
+        type=Path,
+    )
+    audit_input.add_argument(
+        "--dag",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json",
+        type=Path,
+    )
+
+    build_audit_input = sub.add_parser(
+        "build-audit-input-pack",
+        help="从候选完成对象refs组装GA1机械输入包到stdout；不签审计、不改状态",
+    )
+    build_audit_input.add_argument("--pack-input", required=True, type=Path)
+    build_audit_input.add_argument(
+        "--schema",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "audit-input-pack.v1.schema.json",
+        type=Path,
+    )
+    build_audit_input.add_argument(
+        "--dag",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json",
+        type=Path,
+    )
+
+    audit_report = sub.add_parser(
+        "audit-input-pack-report",
+        help="只读生成GA1机械输入覆盖报告；不签审计、不改状态",
+    )
+    audit_report.add_argument("--pack", required=True, type=Path)
+    audit_report.add_argument("--report-id", required=True)
+    audit_report.add_argument(
+        "--expected-scope",
+        choices=["PACK_TARGETS_ONLY", "GA1_DEVELOPMENT_CLOSURE"],
+        default="GA1_DEVELOPMENT_CLOSURE",
+    )
+    audit_report.add_argument("--created-at", required=True)
+    audit_report.add_argument("--creator", required=True)
+    audit_report.add_argument(
+        "--schema",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "audit-input-pack.v1.schema.json",
+        type=Path,
+    )
+    audit_report.add_argument(
+        "--dag",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json",
+        type=Path,
+    )
+
+    db1l_report = sub.add_parser(
+        "db1l-logical-site-report",
+        help="生成DB1L只读逻辑站点报告；fixture零DB，environment-readonly只读连接Arango",
+    )
+    db1l_report.add_argument(
+        "--source",
+        required=True,
+        choices=["fixture", "environment-readonly"],
+    )
+    db1l_report.add_argument(
+        "--ack-readonly-db",
+        action="store_true",
+        help="source=environment-readonly 时必须显式确认将进行只读DB连接",
+    )
+
+    db1l_verify = sub.add_parser(
+        "db1l-verify-logical-site-report",
+        help="语义验证DB1L只读逻辑站点报告；不连接DB、不改状态",
+    )
+    db1l_verify.add_argument("--report", required=True, type=Path)
+    db1l_verify.add_argument(
+        "--schema",
+        default=SYSTEM_ROOT / "docs" / "implementation" / "database-logical-site-capability-report.v1.schema.json",
+        type=Path,
+    )
 
     return parser
 
@@ -233,20 +352,170 @@ def _gv0_verify_completion_contract(
     }
 
 
-def _gv0_store_put(
-    volume_root: Path, store_root: Path, input_path: Path
+def _build_implementation_completion_bundle(
+    bundle_input_path: Path,
+    plan_path: Path,
+    plan_sha256: str,
+    dag_path: Path,
 ) -> dict[str, Any]:
-    from .storage.artifact_store import CompletionArtifactStore
+    from .operations.implementation_bundle_evidence import (
+        build_side_effect_free_implementation_completion_bundle,
+    )
 
-    with open(input_path) as f:
-        payload = json.load(f)
-    store = CompletionArtifactStore(root=store_root, volume_root=volume_root)
-    ref = store.put_json(payload)
+    bundle_input = read_json(bundle_input_path)
+    if not isinstance(bundle_input, dict):
+        raise ValueError("bundle input must be a JSON object")
+    return build_side_effect_free_implementation_completion_bundle(
+        bundle_input=bundle_input,
+        plan_path=plan_path,
+        expected_plan_sha256=plan_sha256,
+        dag_path=dag_path,
+    )
+
+
+def _build_work_package_plan(
+    plan_input_path: Path,
+    dag_path: Path,
+    normative_index_path: Path,
+    normative_review_record_path: Path,
+    normative_review_public_key_hex: str,
+) -> dict[str, Any]:
+    from .operations.work_package_plan_builder import (
+        build_side_effect_free_work_package_plan,
+    )
+
+    try:
+        public_key_bytes = bytes.fromhex(normative_review_public_key_hex)
+    except ValueError as exc:
+        raise ValueError("normative-review-public-key-hex must be hexadecimal Ed25519 raw public key bytes") from exc
+    if len(public_key_bytes) != 32:
+        raise ValueError("normative-review-public-key-hex must encode exactly 32 Ed25519 raw public key bytes")
+
+    plan_input = read_json(plan_input_path)
+    if not isinstance(plan_input, dict):
+        raise ValueError("plan input must be a JSON object")
+    return build_side_effect_free_work_package_plan(
+        plan_input=plan_input,
+        dag_path=dag_path,
+        normative_index_path=normative_index_path,
+        normative_review_record_path=normative_review_record_path,
+        normative_review_public_key_bytes=public_key_bytes,
+    )
+
+
+def _verify_normative_review_record(
+    *,
+    record_path: Path,
+    normative_index_path: Path,
+    public_key_hex: str,
+    expected_index_sha256: str | None,
+    expected_record_sha256: str | None,
+) -> dict[str, Any]:
+    from .contracts.normative_review_record import (
+        verify_normative_requirement_review_record_file,
+    )
+
+    try:
+        public_key_bytes = bytes.fromhex(public_key_hex)
+    except ValueError as exc:
+        raise ValueError("public-key-hex must be lowercase hexadecimal Ed25519 raw public key bytes") from exc
+    if len(public_key_bytes) != 32:
+        raise ValueError("public-key-hex must encode exactly 32 Ed25519 public key bytes")
+
+    return verify_normative_requirement_review_record_file(
+        record_path=record_path,
+        normative_index_path=normative_index_path,
+        public_key_bytes=public_key_bytes,
+        expected_index_sha256=expected_index_sha256,
+        expected_record_sha256=expected_record_sha256,
+    ).to_dict()
+
+
+def _validate_audit_input_pack(pack_path: Path, schema_path: Path, dag_path: Path) -> dict[str, Any]:
+    from .audit.audit_input_pack import load_and_validate_audit_input_pack
+
+    result = load_and_validate_audit_input_pack(
+        pack_path=pack_path,
+        schema_path=schema_path,
+        dag_path=dag_path,
+    )
+    return result.to_dict()
+
+
+def _build_audit_input_pack(pack_input_path: Path, schema_path: Path, dag_path: Path) -> dict[str, Any]:
+    from .audit.audit_input_pack import build_audit_input_pack_from_refs
+
+    pack_input = read_json(pack_input_path)
+    if not isinstance(pack_input, dict):
+        raise ValueError("pack input must be a JSON object")
+    return build_audit_input_pack_from_refs(
+        pack_input=pack_input,
+        pack_base_dir=pack_input_path.parent,
+        schema_path=schema_path,
+        dag_path=dag_path,
+    )
+
+
+def _audit_input_pack_report(
+    *,
+    pack_path: Path,
+    report_id: str,
+    expected_scope: str,
+    created_at: str,
+    creator: str,
+    schema_path: Path,
+    dag_path: Path,
+) -> dict[str, Any]:
+    from .audit.audit_input_pack import build_audit_readiness_report
+
+    return build_audit_readiness_report(
+        report_id=report_id,
+        pack_path=pack_path,
+        input_pack_schema_path=schema_path,
+        dag_path=dag_path,
+        expected_scope=expected_scope,
+        created_at=created_at,
+        creator=creator,
+    )
+
+
+def _db1l_logical_site_report(*, source: str, ack_readonly_db: bool) -> dict[str, Any]:
+    from .database.logical_site_report import build_logical_site_report
+    from .database.site_adapter import FakeLogicalSiteAdapter
+
+    if source == "fixture":
+        return build_logical_site_report(FakeLogicalSiteAdapter())
+    if source == "environment-readonly":
+        if not ack_readonly_db:
+            raise DatabaseContractError(
+                "source=environment-readonly requires --ack-readonly-db"
+            )
+        from .database.arango_port import ArangoDatabasePort
+
+        return build_logical_site_report(ArangoDatabasePort.from_environment())
+    raise DatabaseContractError(f"unsupported DB1L report source: {source}")
+
+
+def _db1l_verify_logical_site_report(report_path: Path, schema_path: Path) -> dict[str, Any]:
+    from .database.logical_site_report import verify_logical_site_report
+    from .schema_validation import validate_schema
+
+    report = read_json(report_path)
+    schema = read_json(schema_path)
+    schema_errors = (
+        validate_schema(report, schema)
+        if isinstance(schema, dict)
+        else ["schema root must be an object"]
+    )
+    semantic_errors = verify_logical_site_report(report)
     return {
-        "status": "PUT",
-        "ref": ref.ref,
-        "sha256": ref.sha256,
-        "size_bytes": ref.size_bytes,
+        "verdict": "PASS" if not schema_errors and not semantic_errors else "FAIL",
+        "schema_errors": schema_errors,
+        "semantic_errors": [
+            {"code": code.value, "detail": detail}
+            for code, detail in semantic_errors
+        ],
+        "report_ref": str(report_path),
     }
 
 
@@ -289,14 +558,154 @@ def main(argv: list[str] | None = None) -> int:
             )
             _emit(result)
             return 0 if result["verdict"] == "PASS" else 3
-        if args.command == "gv0-store-put":
-            result = _gv0_store_put(
-                volume_root=args.volume_root,
-                store_root=args.store_root,
-                input_path=args.input,
-            )
+        if args.command == "build-implementation-completion-bundle":
+            try:
+                result = _build_implementation_completion_bundle(
+                    bundle_input_path=args.bundle_input,
+                    plan_path=args.plan,
+                    plan_sha256=args.plan_sha256,
+                    dag_path=args.dag,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
             _emit(result)
             return 0
+        if args.command == "build-work-package-plan":
+            try:
+                result = _build_work_package_plan(
+                    plan_input_path=args.plan_input,
+                    dag_path=args.dag,
+                    normative_index_path=args.normative_index,
+                    normative_review_record_path=args.normative_review_record,
+                    normative_review_public_key_hex=args.normative_review_public_key_hex,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
+            _emit(result)
+            return 0
+        if args.command == "verify-normative-review-record":
+            try:
+                result = _verify_normative_review_record(
+                    record_path=args.record,
+                    normative_index_path=args.normative_index,
+                    public_key_hex=args.public_key_hex,
+                    expected_index_sha256=args.expected_index_sha256,
+                    expected_record_sha256=args.expected_record_sha256,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
+            _emit(result)
+            return 0 if result["verdict"] == "PASS" else 3
+        if args.command == "validate-audit-input-pack":
+            result = _validate_audit_input_pack(
+                pack_path=args.pack,
+                schema_path=args.schema,
+                dag_path=args.dag,
+            )
+            _emit(result)
+            return 0 if result["verdict"] == "PASS" else 3
+        if args.command == "build-audit-input-pack":
+            try:
+                result = _build_audit_input_pack(
+                    pack_input_path=args.pack_input,
+                    schema_path=args.schema,
+                    dag_path=args.dag,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
+            _emit(result)
+            return 0
+        if args.command == "audit-input-pack-report":
+            try:
+                result = _audit_input_pack_report(
+                    pack_path=args.pack,
+                    report_id=args.report_id,
+                    expected_scope=args.expected_scope,
+                    created_at=args.created_at,
+                    creator=args.creator,
+                    schema_path=args.schema,
+                    dag_path=args.dag,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
+            _emit(result)
+            return 0 if result["mechanical_handoff_status"] == "COMPLETE" else 3
+        if args.command == "db1l-logical-site-report":
+            try:
+                result = _db1l_logical_site_report(
+                    source=args.source,
+                    ack_readonly_db=args.ack_readonly_db,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
+            _emit(result)
+            return 0
+        if args.command == "db1l-verify-logical-site-report":
+            try:
+                result = _db1l_verify_logical_site_report(
+                    report_path=args.report,
+                    schema_path=args.schema,
+                )
+            except (ValueError, OSError, json.JSONDecodeError) as exc:
+                _emit(
+                    {
+                        "status": "ERROR",
+                        "error_type": type(exc).__name__,
+                        "message": str(exc),
+                    },
+                    stream=sys.stderr,
+                )
+                return 3
+            _emit(result)
+            return 0 if result["verdict"] == "PASS" else 3
         if args.command == "validate-epoch":
             result = validate_epoch(args.epoch_root)
             _emit(result)

@@ -19,6 +19,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import sys
@@ -36,6 +37,7 @@ from seven_system.human.key_lifecycle import KeyRegistry
 from seven_system.human.gate_decision import (
     build_gate_decision_dict,
     verify_gate_decision,
+    verify_and_stamp_gate_decision,
 )
 from seven_system.human.human_task import FakeHumanTaskPort
 from seven_system.human.human_gate import HumanGateService
@@ -50,11 +52,7 @@ DAG_PATH = SYSTEM_ROOT / "docs" / "implementation" / "work-package-dag.v1.json"
 
 
 def _dag_sha256() -> str:
-    raw = DAG_PATH.read_bytes()
-    canonical = json.dumps(
-        json.loads(raw), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    return hashlib.sha256(canonical).hexdigest()
+    return hashlib.sha256(DAG_PATH.read_bytes()).hexdigest()
 
 
 def _self_hash(obj: dict, hash_field: str) -> str:
@@ -177,10 +175,12 @@ def _make_gate_type_registry() -> GateTypeRegistry:
 def _make_key_registry() -> KeyRegistry:
     """构建测试用 KeyRegistry：一个活跃的人类签名密钥。"""
     registry = KeyRegistry()
+    reviewer_public = _test_public_key_bytes("key-human-001")
+    architect_public = _test_public_key_bytes("key-architect-001")
     registry.provision(
         key_id="key-human-001",
         actor_id="human-reviewer-001",
-        public_key_sha256=_ZERO_HASH,
+        public_key_sha256=hashlib.sha256(reviewer_public).hexdigest(),
         eligible_roles=frozenset({"MATH_VERIFIER", "PROOF_JUDGE"}),
         valid_from="2026-08-14T00:00:00Z",
         valid_to="2026-08-20T00:00:00Z",
@@ -189,13 +189,32 @@ def _make_key_registry() -> KeyRegistry:
     registry.provision(
         key_id="key-architect-001",
         actor_id="human-architect-001",
-        public_key_sha256=_ZERO_HASH,
+        public_key_sha256=hashlib.sha256(architect_public).hexdigest(),
         eligible_roles=frozenset({"QUESTION_ARCHITECT"}),
         valid_from="2026-08-14T00:00:00Z",
         valid_to="2026-08-20T00:00:00Z",
         provisioning_ref="prov-ceremony-001",
     )
+    registry.store_public_key("key-human-001", reviewer_public)
+    registry.store_public_key("key-architect-001", architect_public)
     return registry
+
+
+def _test_private_key(key_id: str):
+    """返回仅用于测试的确定性 Ed25519 私钥。"""
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+
+    seed = hashlib.sha256(f"seven-test-key:{key_id}".encode("utf-8")).digest()
+    return Ed25519PrivateKey.from_private_bytes(seed)
+
+
+def _test_public_key_bytes(key_id: str) -> bytes:
+    from cryptography.hazmat.primitives import serialization
+
+    return _test_private_key(key_id).public_key().public_bytes(
+        encoding=serialization.Encoding.Raw,
+        format=serialization.PublicFormat.Raw,
+    )
 
 
 def _make_gate_service() -> HumanGateService:
@@ -248,10 +267,26 @@ def _make_valid_decision(
         signature_b64=_SIG_B64,
         separation_evidence_refs=["sep-evidence-001"],
     )
+    # 用真实测试私钥签名；HumanGate golden path 不得依赖全 A 伪签名。
+    from seven_system.human.gate_decision import (
+        _compute_decision_hash,
+        _get_signed_bytes_for_verification,
+    )
+
+    signature = _test_private_key(key_id).sign(
+        _get_signed_bytes_for_verification(dec)
+    )
+    dec["signature_envelope"]["signature_b64"] = base64.b64encode(signature).decode("ascii")
+    dec["decision_hash"] = _compute_decision_hash(dec)
     if verification_status is not None:
-        from seven_system.human.gate_decision import _compute_decision_hash
-        dec["verification_status"] = verification_status
-        dec["decision_hash"] = _compute_decision_hash(dec)
+        dec, receipt = verify_and_stamp_gate_decision(
+            dec,
+            public_key_bytes=_test_public_key_bytes(key_id),
+        )
+        assert receipt.verified
+        if verification_status != "VERIFIED":
+            dec["verification_status"] = verification_status
+            dec["decision_hash"] = _compute_decision_hash(dec)
     return dec
 
 
@@ -931,6 +966,22 @@ class TestHumanGateServiceGolden(unittest.TestCase):
 class TestHumanGateServiceNegative(unittest.TestCase):
     """Negative: 各种违规场景。"""
 
+    def test_registered_key_without_public_bytes_is_rejected(self):
+        """P0 blocker: 只有key metadata而没有公钥字节时不得降级为结构验签。"""
+        service = _make_gate_service()
+        decision = _make_valid_decision()
+        _create_task_for_decision(service, decision)
+        service.key_registry._public_keys.pop(decision["key_id"])
+
+        result = service.accept_gate_decision(
+            decision,
+            evaluation_time="2026-08-14T12:30:00Z",
+        )
+
+        self.assertFalse(result.passed)
+        self.assertIn(EC.SIGNATURE_INVALID, result.error_codes)
+        self.assertEqual(service.accepted_count, 0)
+
     def test_model_role_self_approval_rejected(self):
         """Negative: ModelRole 不能自我批准。"""
         service = _make_gate_service()
@@ -1001,30 +1052,10 @@ class TestHumanGateServiceNegative(unittest.TestCase):
         # 用同一 key 的新 decision 被拒绝
         decision2 = _make_valid_decision(
             decision_id="dec-002",
+            task_id="task-002",
             nonce="nonce-bbbbbbbbbbbbbbbb",
         )
         _create_task_for_decision(service, decision2, creator_actor_id="human-architect-001")
-        # 需要新 task
-        service.task_port.create_task(
-            task_id="task-002",
-            gate_type="PROOF_REVIEW",
-            payload_ref="payload-ref-001",
-            payload_hash=decision2["payload_hash"],
-            allowed_view="PROOF_VIEW",
-            deadline="2026-08-16T00:00:00Z",
-            eligible_roles=frozenset({"PROOF_JUDGE"}),
-            separation_policy="CREATOR_CANNOT_APPROVE",
-            required_signatures=1,
-            nonce="task-nonce-bbbbbbbbbbbb",
-            creator_actor_id="human-architect-001",
-        )
-        decision2["task_id"] = "task-002"
-        from seven_system.human.gate_decision import (
-            _compute_signed_bytes_hash, _compute_decision_hash,
-        )
-        decision2["signed_bytes_hash"] = _compute_signed_bytes_hash(decision2)
-        decision2["signature_envelope"]["signed_bytes_hash"] = decision2["signed_bytes_hash"]
-        decision2["decision_hash"] = _compute_decision_hash(decision2)
 
         result2 = service.accept_gate_decision(
             decision2,

@@ -2,7 +2,7 @@
 
 ## 一句话结论
 
-当前 Seven System 能安全运行 P0/P1 scaffold，以及 WP-1 Strict DB 的离线契约报告：这些命令都不连接真实数据库、不写 Redis、不启动 Solver，也不调用Devin/Codex认知Worker。它不是387号完整P1；没有`start`命令是刻意的安全边界。
+当前 Seven System 能安全运行 P0/P1 scaffold、WP-1 Strict DB 的离线契约报告，以及少量只读/stdout-only的实现物证整理预检命令：这些命令都不连接真实数据库、不写 Redis、不启动 Solver，也不调用Devin/Codex认知Worker。它不是387号完整P1；没有`start`命令是刻意的安全边界。
 
 ## 0. 操作者先确认自己在做什么
 
@@ -44,10 +44,11 @@ Seven源码仅使用Python标准库。若`seven-system/`未来迁为独立repo�
 - `implementation_ceiling = P1_DRY_RUN`；
 - P0/P1 scaffold、`WP1_SITE_STORAGE_PREREQUISITE`和`WP1_STRICT_DB_OFFLINE_CONTRACT_REPORT`在 `implemented`；
 - `DATABASE_SITE_CAPABILITY_OR_MIGRATION_APPLY`、Redis、真实 Solver、Vault、三审和 Evidence 在 `not_implemented`。
+- `TargetSolverPort`、`ModelRolePort`、Devin/Codex认知adapter、Human Task/Gate、QuestionRelease、WP-QA0/QA1和Bakeoff对应能力也在 `not_implemented`。
 
 当前`capabilities`若声称`TargetSolverPort`、`ModelRolePort`、Devin/Codex认知adapter、QuestionRelease或AuthoringBakeoff已经实现，立即停止并审计代码。完整实现方向已经落盘，不等于本版已有任何模型调用入口。
 
-当前v0.1机器枚举尚未逐项列出这些新对象；遗漏不是PASS，而是`NOT_IMPLEMENTED`。不要为补显示文字直接改动绑定WP-1 Strict Contract hash的CLI代码；该同步必须在后续代码工作包中连同测试和新版离线报告一起完成。
+当前v0.1机器枚举已经把这些新对象显式列为`NOT_IMPLEMENTED`。新增沉默仍不是PASS；任何未列但被文档提及的live能力，在独立能力报告、测试和审计前也按`NOT_IMPLEMENTED`处理。
 
 如果输出声称真实 Solver 已实现，而代码版本仍是 `0.1.0`，停止并审计代码；不能继续运行。
 
@@ -159,16 +160,19 @@ full_tests=58
 
 ### 4.2 仍不存在或禁止的 DB 操作
 
-当前CLI只有离线`wp1-db-contract-report`，不要把文档里的能力名称猜成子命令：
+当前DB相关CLI有离线`wp1-db-contract-report`，以及DB1L只读报告命令`db1l-logical-site-report`/`db1l-verify-logical-site-report`。另有`build-work-package-plan`、`verify-normative-review-record`、`build-implementation-completion-bundle`、`build-audit-input-pack`、`validate-audit-input-pack`和`audit-input-pack-report`这类只读/stdout-only物证整理命令。不要把文档里的能力名称猜成DB写入或live子命令：
 
 - 生产database package只有确定性只读`plan_migration`，没有operator site-plan/site-verify命令；
-- Site v1 Schema只是未被消费且已被新决策取代的前向shape，没有site report generator或semantic verifier；Schema-valid不等于capability-valid，禁止消费v1；
+- 旧Site v1 Schema只是未被消费且已被新决策取代的前向shape，禁止消费v1；当前可用的是DB1L `DatabaseLogicalSiteCapabilityReport`对象和验证器；
+- `db1l-logical-site-report --source fixture`不连接DB；`--source environment-readonly --ack-readonly-db`会进行显式真实DB只读连接，只读取身份、`CURRENT_DATABASE()`和catalog，仍不写库、不初始化Schema、不授权live；
+- `build-work-package-plan`会要求并验证已签`NormativeRequirementReviewRecord`、record文件hash和Ed25519 public key；它只消费既有复核记录，不生成或签署复核记录；
+- `verify-normative-review-record`只验证一份已经存在且已签名的`NormativeRequirementReviewRecord`是否绑定当前index并覆盖全部clause；它不生成复核记录、不签名、不替代独立审计；
 - 生产package和真实Arango adapter中都不存在apply、DDL、authorization或receipt primitive；
 - Seven Schema初始化的任何DDL仍被禁止，直到逻辑站点v2核验、计划哈希、受控入口和人工授权全部完成；若要把Arango从容器writable overlay改成专用bind/volume，这是另一个独立维护事项，也必须另有方案与授权。
 
 不得用ad hoc raw client、私有导入或临时脚本补出不存在的站点/写入入口。
 
-目标架构已经确认复用原Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用`seven_*_v1`命名空间。当前`G-WP1-L/I=NOT_IMPLEMENTED`，所以仍不能声称真实site capability或执行Schema初始化。宿主物理字节经OrbStack `data.img.raw`落在D盘，记为`A-WP1-D=PASS`；未使用Arango专用bind、仍在容器writable overlay，记为`A-WP1-BIND=WARNING_NOT_DEDICATED`。这两个存储状态都不能解锁逻辑接入。
+目标架构已经确认复用原Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用`seven_*_vN`隔离命名空间。当前`G-WP1-L`已有side-effect-free对象/fixture/验证器和显式真实只读代码路径；本轮真实只读运行已观察`verdict=PASS`、0个未版本化`seven_`集合、0冲突、0写入，但报告尚未封存为D盘CAS/能力目录artifact。`G-WP1-I=NOT_IMPLEMENTED`，所以仍不能执行Schema初始化。宿主物理字节经OrbStack `data.img.raw`落在D盘，记为`A-WP1-D=PASS`；未使用Arango专用bind、仍在容器writable overlay，记为`A-WP1-BIND=WARNING_NOT_DEDICATED`。这两个存储状态都不能解锁Schema写入。
 
 ## 5. 初始化一个 Epoch
 
@@ -280,7 +284,7 @@ echo "$ARANGO_DB"
 1. 保持服务原状，不停止、不重启、不复制 engine 数据；
 2. 宿主D-backing记录为`A-WP1-D=PASS`；它只说明物理承载位置；
 3. 专用bind状态记录为`A-WP1-BIND=WARNING_NOT_DEDICATED`；它说明容器删除/重建、备份和搬运边界仍需运维硬化；
-4. `G-WP1-L/I=NOT_IMPLEMENTED`，离线contract或物理存储PASS都不能冒充真实站点或Schema初始化PASS；
+4. `G-WP1-L=PASS_OBSERVED_UNSEALED`只表示显式只读identity/current DB/catalog核验已观察PASS且未写库；`G-WP1-I=NOT_IMPLEMENTED`，离线contract、未封存的只读观察或物理存储PASS都不能冒充Schema初始化PASS；
 5. 任何Seven DDL都必须等v2 site verifier、计划哈希、人工授权和受控入口，不能用临时raw client补齐；
 6. 若未来确需改成专用bind/volume，另写维护、备份、回滚与生产影响方案并单独授权；不要把这个动作称为“迁到D盘”。
 
@@ -324,7 +328,7 @@ Seven v0.1.0 没有常驻服务，所以：
 - [ ] `capabilities` 仍明确 P1 上限；
 - [ ] preflight report 与实际卷/路径一致；
 - [ ] Strict DB报告重新验证PASS，subject/file hash与记录一致；
-- [ ] `G-WP1-L/I`仍为NOT_IMPLEMENTED，没有用离线PASS替代site PASS，也没有消费已废止的Site v1合同；
+- [ ] `G-WP1-L`若引用本轮观察，仍标为`PASS_OBSERVED_UNSEALED`而不是sealed capability；`G-WP1-I`仍为`NOT_IMPLEMENTED`，没有用离线PASS或只读观察替代Schema初始化PASS，也没有消费已废止的Site v1合同；
 - [ ] `A-WP1-D`仍按宿主存储链证据记录为PASS，没有被误写成site或Schema能力PASS；
 - [ ] `A-WP1-BIND`仍记录为WARNING_NOT_DEDICATED，没有把D-backing PASS误写成已使用专用bind；
 - [ ] Epoch manifest hash 验证 PASS；

@@ -411,7 +411,11 @@ def _make_store() -> CompletionArtifactStore:
     volume_root = Path(tmpdir) / "volume"
     volume_root.mkdir(parents=True, exist_ok=True)
     root = volume_root / "cas"  # root must be under volume_root
-    return CompletionArtifactStore(root=root, volume_root=volume_root)
+    return CompletionArtifactStore(
+        root=root,
+        volume_root=volume_root,
+        test_only_allow_non_d_volume=True,
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════

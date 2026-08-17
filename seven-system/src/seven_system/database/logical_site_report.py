@@ -6,7 +6,8 @@
 - endpoint/server/driver/principal 指纹一致
 - 只读权限（write_count == 0）
 - catalog 快照存在且与枚举一致
-- 所有 seven_*_vN 集合已版本化，无 math/system 复用
+- 所有 Seven 自有集合使用 seven_*_vN 版本化命名；既有题海/system
+  集合只作为共库awareness列出，不构成DB1L冲突
 - 零写入收据存在
 
 报告不证明物理存储、不证明 runtime 事务语义、不替代 DB1I 写入能力。
@@ -79,6 +80,16 @@ DB1L_NONCLAIMS = (
 
 class LogicalSiteReportError(ValueError):
     """报告输入或语义验证不满足 WP-DB1L。"""
+
+
+def logical_site_report_hash(report: dict[str, Any]) -> str:
+    """计算 report_hash = sha256(canonical-json-with-report_hash-null)。"""
+
+    candidate = dict(report)
+    candidate["report_hash"] = None
+    import hashlib
+
+    return hashlib.sha256(canonical_json_bytes(candidate)).hexdigest()
 
 
 def _valid_generated_at(value: object) -> bool:
@@ -170,7 +181,10 @@ def build_logical_site_report(
         "side_effects": {key: 0 for key in DB1L_SIDE_EFFECT_KEYS},
         "blockers": [],
         "explicit_nonclaims": list(DB1L_NONCLAIMS),
+        "report_hash_algorithm": "sha256(canonical-json-with-report_hash-null)",
+        "report_hash": None,
     }
+    report["report_hash"] = logical_site_report_hash(report)
 
     errors = verify_logical_site_report(report)
     if errors:
@@ -350,6 +364,15 @@ def verify_logical_site_report(
     ):
         errors.append((EC.REQUIRED_FIELD_MISSING, "explicit nonclaims must preserve the readonly/site boundary"))
 
+    # --- report self hash ---
+    if report.get("report_hash_algorithm") != "sha256(canonical-json-with-report_hash-null)":
+        errors.append((EC.REQUIRED_FIELD_MISSING, "report_hash_algorithm mismatch"))
+    report_hash = report.get("report_hash")
+    if not isinstance(report_hash, str) or not _sha256_hex(report_hash):
+        errors.append((EC.REQUIRED_FIELD_MISSING, "report_hash must be a lowercase sha256 hex"))
+    elif report_hash != logical_site_report_hash(report):
+        errors.append((EC.CATALOG_DRIFT, "report_hash mismatch"))
+
     # --- semantic cross-checks ---
     # If catalog and enumeration are both present, cross-check consistency
     if isinstance(catalog, dict) and isinstance(enum, dict):
@@ -377,12 +400,6 @@ def verify_logical_site_report(
             for name in enum_forbidden:
                 if name not in catalog_names:
                     errors.append((EC.CATALOG_DRIFT, f"forbidden collection {name} in enumeration but not in catalog"))
-
-            # Check for math/system collection reuse in catalog
-            for name in catalog_names:
-                category = classify_collection(name)
-                if category == "forbidden":
-                    errors.append((EC.CATALOG_MATH_SYSTEM_COLLECTION_REUSE, f"forbidden collection {name} found in catalog"))
 
             # Check for unversioned seven collections in catalog
             for name in catalog_names:

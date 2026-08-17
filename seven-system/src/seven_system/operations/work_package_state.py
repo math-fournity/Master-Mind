@@ -29,6 +29,12 @@ from pathlib import Path
 from typing import Any
 
 from ..contracts.errors import VALID_STATES, VerificationErrorCode as EC
+from ..contracts.completion_contract import verify_completion_contract
+from ..contracts.work_package_plan import (
+    VerifiedWorkPackagePlan,
+    verify_work_package_plan_file,
+)
+from ..hashing import file_sha256
 
 
 # 合法的状态转换
@@ -87,7 +93,7 @@ class WorkPackageStateService:
     持有：
     - dag_path: canonical DAG 路径
     - wp_states: wp_id → 当前状态
-    - wp_plans: wp_id → Plan ref/hash（可选）
+    - wp_plans: wp_id → 已执行Schema/self-hash/DAG绑定验证的冻结Plan
     - wp_audit_debt: wp_id → inherited audit debt list
     - event_log: append-only 状态变更事件
     - _dag: 加载的 DAG（lazy）
@@ -95,7 +101,9 @@ class WorkPackageStateService:
 
     dag_path: Path
     wp_states: dict[str, str] = field(default_factory=dict)
-    wp_plans: dict[str, dict[str, str]] = field(default_factory=dict)  # wp_id → {"ref": ..., "hash": ...}
+    wp_plans: dict[str, VerifiedWorkPackagePlan] = field(default_factory=dict)
+    wp_completion_objects: dict[str, dict[str, Any]] = field(default_factory=dict)
+    wp_audit_objects: dict[str, dict[str, Any]] = field(default_factory=dict)
     wp_audit_debt: dict[str, list[dict[str, str]]] = field(default_factory=dict)
     event_log: list[StateEvent] = field(default_factory=list)
     _dag: dict[str, Any] | None = None
@@ -140,13 +148,84 @@ class WorkPackageStateService:
         """获取 WP 当前状态。默认 NOT_STARTED。"""
         return self.wp_states.get(wp_id, "NOT_STARTED")
 
-    def register_plan(self, wp_id: str, plan_ref: str, plan_hash: str) -> None:
-        """注册 WP 的 Plan ref/hash。"""
-        self.wp_plans[wp_id] = {"ref": plan_ref, "hash": plan_hash}
+    def register_plan(
+        self, wp_id: str, plan_ref: str | Path, expected_file_sha256: str,
+    ) -> tuple[bool, list[EC], list[str]]:
+        """读取并注册一个经过完整验证的冻结Plan。
+
+        调用者给出的path/hash pair不是证据。这里会读取实际文件、执行
+        WorkPackagePlan Schema、重算plan self-hash、绑定canonical DAG，并
+        保存不可变snapshot。相同WP不能静默替换为另一个Plan。
+        """
+        result = verify_work_package_plan_file(
+            plan_path=Path(plan_ref),
+            dag_path=self.dag_path,
+            expected_wp_id=wp_id,
+            expected_file_sha256=expected_file_sha256,
+        )
+        if not result.passed or result.verified_plan is None:
+            return False, list(result.error_codes), list(result.details)
+
+        existing = self.wp_plans.get(wp_id)
+        if existing is not None and (
+            existing.file_sha256 != result.verified_plan.file_sha256
+            or existing.plan_hash != result.verified_plan.plan_hash
+        ):
+            return (
+                False,
+                [EC.SUBJECT_HASH_MISMATCH],
+                [f"wp {wp_id} already has a different frozen Plan"],
+            )
+        self.wp_plans[wp_id] = result.verified_plan
+        return True, [], []
 
     def has_plan(self, wp_id: str) -> bool:
-        """检查 WP 是否有注册的 Plan。"""
+        """检查 WP 是否有已验证的冻结Plan。"""
         return wp_id in self.wp_plans
+
+    def _reverify_plan(self, wp_id: str) -> tuple[bool, list[EC], list[str]]:
+        verified = self.wp_plans.get(wp_id)
+        if verified is None:
+            return (
+                False,
+                [EC.WP_DEPENDENCY_NOT_MET],
+                [f"wp {wp_id} has no verified frozen Plan"],
+            )
+        result = verify_work_package_plan_file(
+            plan_path=verified.plan_path,
+            dag_path=self.dag_path,
+            expected_wp_id=wp_id,
+            expected_file_sha256=verified.file_sha256,
+        )
+        if not result.passed or result.verified_plan is None:
+            return False, list(result.error_codes), list(result.details)
+        if result.verified_plan.plan_hash != verified.plan_hash:
+            return (
+                False,
+                [EC.SUBJECT_HASH_MISMATCH],
+                [f"wp {wp_id} Plan changed after registration"],
+            )
+        return True, [], []
+
+    @staticmethod
+    def _load_frozen_json(
+        path: str | Path, expected_file_sha256: str, *, label: str,
+    ) -> tuple[dict[str, Any] | None, list[EC], list[str]]:
+        candidate = Path(path)
+        if candidate.is_symlink() or not candidate.is_file():
+            return None, [EC.SCHEMA_FILE_NOT_FOUND], [f"{label} is not a regular non-symlink file: {candidate}"]
+        actual_hash = file_sha256(candidate)
+        if actual_hash != expected_file_sha256:
+            return None, [EC.SUBJECT_HASH_MISMATCH], [
+                f"{label} file hash mismatch: expected {expected_file_sha256}, got {actual_hash}"
+            ]
+        try:
+            obj = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return None, [EC.SCHEMA_VALIDATION_FAILED], [f"cannot read {label}: {exc}"]
+        if not isinstance(obj, dict):
+            return None, [EC.SCHEMA_VALIDATION_FAILED], [f"{label} must be a JSON object"]
+        return obj, [], []
 
     def inherit_audit_debt(self, wp_id: str, debt: list[dict[str, str]]) -> None:
         """继承 audit debt。"""
@@ -193,10 +272,11 @@ class WorkPackageStateService:
                     f"must be READY_FOR_AUDIT or AUDITED_PASS"
                 )
 
-        # 4. R5 补全: Plan 验证
-        if not self.has_plan(wp_id):
-            errors.append(EC.WP_DEPENDENCY_NOT_MET)
-            details.append(f"wp {wp_id} has no registered Plan — cannot start without valid Plan")
+        # 4. Plan必须存在，且在start时重新执行验证以捕获注册后的漂移。
+        plan_ok, plan_errors, plan_details = self._reverify_plan(wp_id)
+        if not plan_ok:
+            errors.extend(plan_errors)
+            details.extend(plan_details)
 
         return len(errors) == 0, errors, details
 
@@ -216,7 +296,7 @@ class WorkPackageStateService:
 
     def can_complete(
         self, wp_id: str, *, actor_type: str = "IMPLEMENTER",
-        completion_contract: str = "", target_state: str = "READY_FOR_AUDIT",
+        target_state: str = "READY_FOR_AUDIT",
     ) -> tuple[bool, list[EC], list[str]]:
         """检查 WP 是否可以完成（IN_PROGRESS → READY_FOR_AUDIT）。
 
@@ -244,12 +324,15 @@ class WorkPackageStateService:
             errors.append(EC.WP_ILLEGAL_TRANSITION)
             details.append(f"wp {wp_id} in state {current}, must be IN_PROGRESS or IMPLEMENTED_PENDING_EVIDENCE to complete")
 
-        # 3. completion contract 与 owner 匹配
+        # 3. 只有implementer-owned包走complete；auditor-owned必须走audit。
         expected_contract = spec.get("completion_contract", "")
-        if completion_contract and completion_contract != expected_contract:
+        if spec.get("owner_type") != "IMPLEMENTER" or expected_contract not in {
+            "DOC_BOOTSTRAP_RECORD", "IMPLEMENTATION_BUNDLE"
+        }:
             errors.append(EC.WP_ILLEGAL_TRANSITION)
             details.append(
-                f"completion contract mismatch: expected {expected_contract}, got {completion_contract}"
+                f"wp {wp_id} must not use implementer complete; "
+                f"owner={spec.get('owner_type')}, contract={expected_contract}"
             )
 
         # 4. implementer 不能写 AUDITED_* 状态
@@ -266,28 +349,75 @@ class WorkPackageStateService:
         return len(errors) == 0, errors, details
 
     def complete(
-        self, wp_id: str, *, actor_type: str = "IMPLEMENTER",
-        completion_contract: str = "", target_state: str = "READY_FOR_AUDIT",
+        self,
+        wp_id: str,
+        *,
+        completion_path: str | Path | None = None,
+        expected_file_sha256: str = "",
+        completion_contract: str | None = None,
+        actor_type: str = "IMPLEMENTER",
+        target_state: str = "READY_FOR_AUDIT",
+        expected_subject_commit: str | None = None,
+        expected_subject_tree: str | None = None,
     ) -> tuple[bool, list[EC], list[str]]:
         """完成一个 WP（IN_PROGRESS → READY_FOR_AUDIT）。
 
         R5 补全: complete 命令。
         """
         ok, errors, details = self.can_complete(
-            wp_id, actor_type=actor_type,
-            completion_contract=completion_contract, target_state=target_state,
+            wp_id, actor_type=actor_type, target_state=target_state,
         )
         if not ok:
             return False, errors, details
 
+        expected_contract = self._get_wp_spec(wp_id).get("completion_contract")
+        if completion_contract is not None and completion_contract != expected_contract:
+            return False, [EC.WP_ILLEGAL_TRANSITION], [
+                f"completion contract mismatch: expected {expected_contract}, got {completion_contract}"
+            ]
+        if completion_path is None or not expected_file_sha256:
+            return False, [EC.WP_DEPENDENCY_NOT_MET], [
+                "complete requires a frozen completion object path and file sha256"
+            ]
+
+        submitted_object, load_errors, load_details = self._load_frozen_json(
+            completion_path, expected_file_sha256, label="completion object"
+        )
+        if submitted_object is None:
+            return False, load_errors, load_details
+
+        verification = verify_completion_contract(
+            dag_path=self.dag_path,
+            expected_dag_sha256=file_sha256(self.dag_path),
+            wp_id=wp_id,
+            submitted_object=submitted_object,
+            actor_type=actor_type,
+            state_command=target_state,
+            expected_subject_commit=expected_subject_commit,
+            expected_subject_tree=expected_subject_tree,
+        )
+        if not verification.passed:
+            return False, list(verification.error_codes), list(verification.details)
+
         from_state = self.get_state(wp_id)
         self.wp_states[wp_id] = target_state
-        self._record_event(wp_id, from_state, target_state, actor_type, "complete", details)
+        self.wp_completion_objects[wp_id] = {
+            "ref": str(Path(completion_path).resolve()),
+            "sha256": expected_file_sha256,
+            "object": submitted_object,
+        }
+        self._record_event(
+            wp_id,
+            from_state,
+            target_state,
+            actor_type,
+            "complete",
+            [f"completion_sha256={expected_file_sha256}"],
+        )
         return True, [], []
 
     def can_activate(
-        self, wp_id: str, *,
-        permit_ref: str = "", reservation_ref: str = "",
+        self, wp_id: str,
     ) -> tuple[bool, list[EC], list[str]]:
         """检查 WP 是否可以激活（READY_FOR_AUDIT → live action）。
 
@@ -295,7 +425,8 @@ class WorkPackageStateService:
         1. WP 存在
         2. 当前状态为 AUDITED_PASS（或精确未审 canary 例外）
         3. 所有 activation_dependencies 处于 AUDITED_PASS
-        4. 有不可扩权 Permit 与原子 RESERVED receipt
+        授权对象本身由``activate``中的SecurityContractVerifier验证；本方法
+        只计算状态与DAG依赖，不能单独授权任何副作用。
         """
         errors: list[EC] = []
         details: list[str] = []
@@ -325,19 +456,31 @@ class WorkPackageStateService:
                     f"must be AUDITED_PASS"
                 )
 
-        # 4. Permit 和 Reservation
-        if not permit_ref:
-            errors.append(EC.WP_DEPENDENCY_NOT_MET)
-            details.append(f"wp {wp_id} activate requires permit_ref")
-        if not reservation_ref:
-            errors.append(EC.WP_DEPENDENCY_NOT_MET)
-            details.append(f"wp {wp_id} activate requires reservation_ref")
-
         return len(errors) == 0, errors, details
 
     def activate(
-        self, wp_id: str, *,
-        permit_ref: str = "", reservation_ref: str = "",
+        self,
+        wp_id: str,
+        *,
+        eea_path: str | Path | None = None,
+        eea_file_sha256: str = "",
+        permit_path: str | Path | None = None,
+        permit_file_sha256: str = "",
+        reservation_path: str | Path | None = None,
+        reservation_file_sha256: str = "",
+        security_contract_verifier: Any = None,
+        eea_public_key_bytes: bytes | None = None,
+        permit_public_key_bytes: bytes | None = None,
+        receipt_public_key_bytes: bytes | None = None,
+        evaluation_time: str = "",
+        expected_plan_hash: str = "",
+        expected_site_fingerprint: str = "",
+        expected_db_name: str = "",
+        expected_action_registry_id: str = "",
+        expected_action_registry_entry_ref_and_hash: dict[str, str] | None = None,
+        expected_action_kind: str = "",
+        permit_ref: str | None = None,
+        reservation_ref: str | None = None,
         actor_type: str = "IMPLEMENTER",
     ) -> tuple[bool, list[EC], list[str]]:
         """激活一个 WP（AUDITED_PASS → live action）。
@@ -346,16 +489,226 @@ class WorkPackageStateService:
         注意：activate 不改变 WP 状态（AUDITED_PASS 是 terminal），
         但记录激活事件。
         """
-        ok, errors, details = self.can_activate(
-            wp_id, permit_ref=permit_ref, reservation_ref=reservation_ref,
-        )
+        ok, errors, details = self.can_activate(wp_id)
         if not ok:
             return False, errors, details
 
-        self._record_event(wp_id, "AUDITED_PASS", "AUDITED_PASS", actor_type, "activate", details)
+        if permit_ref is not None or reservation_ref is not None:
+            return False, [EC.WP_DEPENDENCY_NOT_MET], [
+                "opaque permit_ref/reservation_ref activation is forbidden"
+            ]
+        if any(path is None for path in (eea_path, permit_path, reservation_path)):
+            return False, [EC.WP_DEPENDENCY_NOT_MET], [
+                "activate requires frozen EEA, Permit and RESERVED receipt files"
+            ]
+        if not all(
+            (
+                eea_file_sha256,
+                permit_file_sha256,
+                reservation_file_sha256,
+                evaluation_time,
+                expected_plan_hash,
+                expected_action_registry_id,
+                expected_action_kind,
+            )
+        ) or expected_action_registry_entry_ref_and_hash is None:
+            return False, [EC.WP_DEPENDENCY_NOT_MET], [
+                "activate is missing mandatory authorization bindings"
+            ]
+
+        from ..contracts.security_contract_verifier import SecurityContractVerifier
+
+        if not isinstance(security_contract_verifier, SecurityContractVerifier):
+            return (
+                False,
+                [EC.WP_DEPENDENCY_NOT_MET],
+                ["activate requires the canonical SecurityContractVerifier"],
+            )
+
+        frozen_inputs: list[dict[str, Any]] = []
+        for path, digest, label in (
+            (eea_path, eea_file_sha256, "ExternalExecutionAuthorization"),
+            (permit_path, permit_file_sha256, "LiveRunPermit"),
+            (reservation_path, reservation_file_sha256, "AuthorizationConsumptionReceipt"),
+        ):
+            obj, input_errors, input_details = self._load_frozen_json(
+                path, digest, label=label
+            )
+            if obj is None:
+                return False, input_errors, input_details
+            frozen_inputs.append(obj)
+        eea, permit, reservation = frozen_inputs
+
+        authorization = security_contract_verifier.verify_authorization_chain(
+            eea=eea,
+            permit=permit,
+            reservation=reservation,
+            expected_plan_hash=expected_plan_hash,
+            expected_site_fingerprint=expected_site_fingerprint,
+            expected_db_name=expected_db_name,
+            expected_action_registry_id=expected_action_registry_id,
+            expected_action_registry_entry_ref_and_hash=(
+                expected_action_registry_entry_ref_and_hash
+            ),
+            expected_action_kind=expected_action_kind,
+            expected_wp_id=wp_id,
+            evaluation_time=evaluation_time,
+            eea_public_key_bytes=eea_public_key_bytes,
+            permit_public_key_bytes=permit_public_key_bytes,
+            receipt_public_key_bytes=receipt_public_key_bytes,
+        )
+        if not authorization.passed:
+            return False, list(authorization.error_codes), list(authorization.details)
+
+        self._record_event(
+            wp_id,
+            "AUDITED_PASS",
+            "AUDITED_PASS",
+            actor_type,
+            "activate",
+            [
+                f"eea_sha256={eea_file_sha256}",
+                f"permit_sha256={permit_file_sha256}",
+                f"reservation_sha256={reservation_file_sha256}",
+            ],
+        )
         return True, [], []
 
-    def transition(self, wp_id: str, new_state: str, *, actor_type: str = "SYSTEM") -> tuple[bool, list[EC], list[str]]:
+    def accept_audit(
+        self,
+        wp_id: str,
+        *,
+        assignment_path: str | Path,
+        assignment_file_sha256: str,
+        assignment_public_key_bytes: bytes,
+        audit_record_path: str | Path,
+        audit_record_file_sha256: str,
+        audit_record_public_key_bytes: bytes,
+        human_gate_service: Any,
+        gate_decision: dict[str, Any],
+        evaluation_time: str,
+        target_state: str,
+    ) -> tuple[bool, list[EC], list[str]]:
+        """Apply an independent audit only after every signed binding passes.
+
+        This is the sole upward path into ``AUDITED_*``.  A valid signature is
+        necessary but not sufficient: assignment, record, frozen completion
+        object and the HumanGate payload must all bind to the same work package
+        and bytes.
+        """
+        from ..human.human_gate import HumanGateService
+        from ..human.signed_object_verifier import (
+            verify_audit_assignment,
+            verify_audit_record,
+        )
+
+        if target_state not in {"AUDITED_PASS", "AUDITED_PARTIAL", "AUDITED_FAIL", "BLOCKED"}:
+            return False, [EC.WP_ILLEGAL_TRANSITION], [f"invalid audit target state: {target_state}"]
+        if self.get_state(wp_id) != "READY_FOR_AUDIT":
+            return False, [EC.WP_ILLEGAL_TRANSITION], [
+                f"wp {wp_id} must be READY_FOR_AUDIT before independent audit acceptance"
+            ]
+        if not isinstance(human_gate_service, HumanGateService):
+            return False, [EC.ACTOR_NOT_AUTHORIZED], [
+                "audit acceptance requires the canonical HumanGateService"
+            ]
+        completion = self.wp_completion_objects.get(wp_id)
+        if completion is None:
+            return False, [EC.WP_DEPENDENCY_NOT_MET], [
+                f"wp {wp_id} has no verified completion object"
+            ]
+
+        assignment, errors, details = self._load_frozen_json(
+            assignment_path, assignment_file_sha256, label="AuditAssignment"
+        )
+        if assignment is None:
+            return False, errors, details
+        record, errors, details = self._load_frozen_json(
+            audit_record_path, audit_record_file_sha256, label="AuditRecord"
+        )
+        if record is None:
+            return False, errors, details
+
+        assignment_result = verify_audit_assignment(
+            assignment, public_key_bytes=assignment_public_key_bytes
+        )
+        record_result = verify_audit_record(
+            record, public_key_bytes=audit_record_public_key_bytes
+        )
+        signed_errors: list[EC] = []
+        signed_details: list[str] = []
+        if assignment_result.verdict != "PASS":
+            signed_errors.append(EC.SIGNATURE_INVALID)
+            signed_details.extend(f"assignment: {item}" for item in assignment_result.details)
+        if record_result.verdict != "PASS":
+            signed_errors.append(EC.SIGNATURE_INVALID)
+            signed_details.extend(f"audit record: {item}" for item in record_result.details)
+        if signed_errors:
+            return False, signed_errors, signed_details
+
+        assignment_bundle = assignment.get("completion_bundle_ref_and_hash", {})
+        record_assignment = record.get("audit_assignment_ref_and_hash", {})
+        record_bundle = record.get("audited_bundle_ref_and_hash", {})
+        binding_failures: list[str] = []
+        if assignment.get("target_work_package_id") != wp_id:
+            binding_failures.append("AuditAssignment target_work_package_id mismatch")
+        if assignment_bundle.get("sha256") != completion["sha256"]:
+            binding_failures.append("AuditAssignment completion bundle hash mismatch")
+        if record.get("wp_id") != wp_id:
+            binding_failures.append("AuditRecord wp_id mismatch")
+        if record_assignment.get("sha256") != assignment_file_sha256:
+            binding_failures.append("AuditRecord assignment hash mismatch")
+        if record_bundle.get("sha256") != completion["sha256"]:
+            binding_failures.append("AuditRecord audited bundle hash mismatch")
+        if record.get("auditor_principal_id") != assignment.get("auditor_principal_id"):
+            binding_failures.append("auditor principal mismatch")
+        if gate_decision.get("payload_hash") != audit_record_file_sha256:
+            binding_failures.append("HumanGate payload hash does not bind AuditRecord bytes")
+
+        implementation_axis = record.get("axis_verdicts", {}).get("implementation", {})
+        axis_verdict = implementation_axis.get("verdict")
+        expected_state = {
+            "AUDITED_PASS": "AUDITED_PASS",
+            "AUDITED_PARTIAL": "AUDITED_PARTIAL",
+            "AUDITED_FAIL": "AUDITED_FAIL",
+            "BLOCKED": "BLOCKED",
+        }.get(axis_verdict)
+        if expected_state != target_state:
+            binding_failures.append(
+                f"target state {target_state} does not match implementation axis {axis_verdict}"
+            )
+        if binding_failures:
+            return False, [EC.SUBJECT_HASH_MISMATCH], binding_failures
+
+        gate_result = human_gate_service.accept_gate_decision(
+            gate_decision, evaluation_time=evaluation_time,
+            creator_actor_id=record.get("auditor_principal_id"),
+        )
+        if not gate_result.passed:
+            return False, list(gate_result.error_codes), list(gate_result.details)
+
+        from_state = self.get_state(wp_id)
+        self.wp_states[wp_id] = target_state
+        self.wp_audit_objects[wp_id] = {
+            "assignment_ref": str(Path(assignment_path).resolve()),
+            "assignment_sha256": assignment_file_sha256,
+            "audit_record_ref": str(Path(audit_record_path).resolve()),
+            "audit_record_sha256": audit_record_file_sha256,
+        }
+        self._record_event(
+            wp_id,
+            from_state,
+            target_state,
+            "HUMAN_GATE_SERVICE",
+            "accept_audit",
+            [
+                f"assignment_sha256={assignment_file_sha256}",
+                f"audit_record_sha256={audit_record_file_sha256}",
+            ],
+        )
+        return True, [], []
+
+    def transition(self, wp_id: str, new_state: str, *, actor_type: str = "IMPLEMENTER") -> tuple[bool, list[EC], list[str]]:
         """转换 WP 状态。
 
         检查：
@@ -391,16 +744,14 @@ class WorkPackageStateService:
             details.append(f"illegal transition: {current} → {new_state}")
             return False, errors, details
 
-        # 4. 如果进入 IN_PROGRESS，检查 dependencies
-        if new_state == "IN_PROGRESS":
-            ok, dep_errors, dep_details = self.can_start(wp_id)
-            if not ok:
-                return False, dep_errors, dep_details
-
-        # 5. R5 补全: implementer 不能写 AUDITED_*
-        if actor_type == "IMPLEMENTER" and new_state in _IMPLEMENTER_FORBIDDEN_STATES:
+        # Upward privileged transitions have dedicated consumers.  A generic
+        # transition must never stand in for a Plan, CompletionBundle,
+        # independent AuditRecord or signed authorization chain.
+        if new_state in {"IN_PROGRESS", "READY_FOR_AUDIT", "AUDITED_PASS", "AUDITED_PARTIAL", "AUDITED_FAIL"}:
             errors.append(EC.WP_ILLEGAL_TRANSITION)
-            details.append(f"implementer cannot write {new_state} for {wp_id}")
+            details.append(
+                f"generic transition cannot enter {new_state}; use start/complete/accept_audit"
+            )
             return False, errors, details
 
         from_state = current

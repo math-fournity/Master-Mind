@@ -941,39 +941,421 @@ class TestSignedObjectVerifier(unittest.TestCase):
     """P0-B 深度补全：统一签名验证核心接入所有签名对象。"""
 
     def _make_signed_object(self, schema_id: str, domain: str, private_key) -> dict:
-        """构建并签名一个通用签名对象。"""
+        """构建并签名一个符合对应 JSON Schema 的最小对象。"""
         from seven_system.hashing import canonical_json_bytes
+        from seven_system.human.signature_verifier import compute_signed_bytes
+        from seven_system.human.signed_object_verifier import _PROFILES
         from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+        profile = _PROFILES[schema_id]
         raw_pub = private_key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+        import base64
 
-        obj = {
-            "schema_id": schema_id,
-            "key_id": "key-001",
-            "signature_envelope": {
+        def h(char: str = "0") -> str:
+            return char * 64
+
+        def ref(name: str, char: str = "1") -> dict:
+            return {"ref": name, "sha256": h(char)}
+
+        def named(name: str, char: str = "2") -> dict:
+            return {"object_id": name, "sha256": h(char)}
+
+        def commit(char: str = "a") -> dict:
+            return {"commit": char * 40, "tree": char * 40}
+
+        def allowance(**overrides) -> dict:
+            base = {
+                "invocations": 0,
+                "solver_launches": 0,
+                "database_writes": 0,
+                "redis_writes": 0,
+                "d_volume_writes": 0,
+                "human_gate_commits": 0,
+                "active_release_changes": 0,
+                "tokens": 0,
+                "cost_microunits": 0,
+                "currency": "USD",
+            }
+            base.update(overrides)
+            return base
+
+        def unit_budget(**overrides) -> dict:
+            base = {
+                "max_invocations": 0,
+                "max_solver_launches": 0,
+                "max_database_writes": 0,
+                "max_redis_writes": 0,
+                "max_d_volume_writes": 0,
+                "max_human_gate_commits": 0,
+                "max_active_release_changes": 0,
+                "max_tokens": 0,
+                "max_cost_microunits": 0,
+                "currency": "USD",
+            }
+            base.update(overrides)
+            return base
+
+        def signature_envelope(signer_field: str, hash_field: str) -> dict:
+            base = {
                 "algorithm": "Ed25519",
                 "key_id": "key-001",
-                "signer_principal_id": "owner-001",
+                signer_field: "owner-001",
                 "signature_encoding": "base64",
                 "signature_b64": None,
-                "signed_bytes_hash": None,
-            },
-            "signed_bytes_hash": None,
-            "self_hash": None,
-            "verification_status": None,
-        }
-        unsigned = dict(obj)
-        env = dict(unsigned["signature_envelope"])
-        env["signature_b64"] = None
-        env["signed_bytes_hash"] = None
-        unsigned["signature_envelope"] = env
-        unsigned["signed_bytes_hash"] = None
-        unsigned["self_hash"] = None
-        unsigned["verification_status"] = None
+                hash_field: None,
+            }
+            if signer_field == "signer_actor_id":
+                base.update({
+                    "trust_root_hash": h("3"),
+                    "actor_roster_hash": h("4"),
+                    "policy_hash": h("5"),
+                    "signature_algorithm_registry_hash": h("6"),
+                })
+            return base
 
-        signed_bytes = domain.encode("utf-8") + canonical_json_bytes(unsigned)
+        raw_pub_b64 = base64.b64encode(raw_pub).decode()
+        raw_pub_hash = hashlib.sha256(raw_pub).hexdigest()
+        common_signed = {
+            "issued_at": "2026-08-14T10:00:00Z",
+            "not_before": "2026-08-14T10:00:00Z",
+            "expires_at": "2026-08-14T20:00:00Z",
+            "nonce": "nonce-abcdefghijkl",
+            "canonicalizer_profile": "RFC8785_JCS_UTF8",
+        }
+
+        action_budget = {
+            "max_invocations": 0,
+            "max_solver_launches": 0,
+            "max_database_writes": 0,
+            "max_redis_writes": 0,
+            "max_d_volume_writes": 1,
+            "max_human_gate_commits": 0,
+            "max_active_release_changes": 0,
+            "max_tokens": 0,
+            "max_cost_microunits": 0,
+            "currency": "USD",
+        }
+        action_scope = {
+            "scope_id": "scope-001",
+            "scope_hash_algorithm": "sha256(RFC8785-JCS-action-scope-with-scope_hash-null)",
+            "scope_hash": h("7"),
+            "action_kind": "D_VOLUME_WRITE",
+            "authorization_action_registry_entry_ref_and_hash": ref("action-registry.json", "8"),
+            "target_site_hash_if_any": None,
+            "target_database_identity_hash_if_any": None,
+            "target_redis_namespace_hash_if_any": None,
+            "target_release_or_pointer_hash_if_any": None,
+            "allowed_carrier_profile_hashes": [],
+            "allowed_role_or_solver_contract_hashes": [],
+            "allowed_inputs": [{"input_hash": h("9"), "sensitivity": "public"}],
+            "required_output_sink_and_acl_hash_if_any": None,
+            "budget": action_budget,
+        }
+        action_unit = {
+            "consumption_ordinal": 0,
+            "parent_action_scope_id": "scope-001",
+            "parent_action_scope_hash": h("7"),
+            "action_kind": "D_VOLUME_WRITE",
+            "authorization_action_registry_entry_ref_and_hash": ref("action-registry.json", "8"),
+            "job_id": "job-001",
+            "attempt_id": "attempt-001",
+            "input_hash": h("9"),
+            "carrier_profile_or_solver_contract_hash_if_any": None,
+            "target_binding_hash": h("a"),
+            "required_output_sink_and_acl_hash_if_any": None,
+            "idempotency_key": "idempotency-key-001",
+            "unit_budget": unit_budget(max_d_volume_writes=1),
+        }
+
+        if schema_id == "seven/audit-assignment":
+            obj = {
+                "schema_id": schema_id,
+                "schema_version": 1,
+                "assignment_id": "assign-001",
+                "owner_actor_id": "owner-001",
+                "owner_repo_external_channel": {
+                    "channel_id": "owner-channel",
+                    "channel_kind": "HUMAN_VERIFIED_OUT_OF_BAND",
+                    "observation_instructions_ref_and_hash": ref("observe-owner.md"),
+                },
+                "externally_pinned_trust_root": named("trust-root"),
+                "actor_roster_ref_and_hash": ref("actor-roster.json"),
+                "human_gate_policy_ref_and_hash": ref("human-gate-policy.json"),
+                "signature_algorithm_registry_ref_and_hash": ref("signature-registry.json"),
+                "auditor_principal_id": "auditor-001",
+                "auditor_attestation_public_key": {
+                    "key_id": "key-001",
+                    "algorithm": "Ed25519",
+                    "public_key_encoding": "raw-32-byte-base64",
+                    "public_key_b64": raw_pub_b64,
+                    "public_key_sha256": raw_pub_hash,
+                },
+                "target_work_package_id": "WP-DOC0",
+                "subject_commit_and_tree": commit(),
+                "completion_bundle_ref_and_hash": ref("completion.json"),
+                "evidence_index_commit_if_any": None,
+                "independence_and_separation_policy_ref_and_hash": ref("independence.md"),
+                "allowed_audit_scope": {
+                    "allowed_audit_axes": ["implementation"],
+                    "allowed_audit_actions": ["READ_ONLY_REVIEW"],
+                    "allowed_external_side_effects": [],
+                    "requires_separate_external_execution_authorization": True,
+                },
+                "required_audit_plan_and_spec_refs_and_hashes": [ref("audit-plan.md")],
+                **common_signed,
+                "signature_domain": domain,
+                "signed_bytes_hash": None,
+                "signature_envelope": signature_envelope("signer_actor_id", "signed_bytes_hash"),
+                "assignment_hash_algorithm": "sha256(RFC8785-JCS-object-with-assignment_hash-null)",
+                "assignment_hash": None,
+            }
+        elif schema_id == "seven/audit-record":
+            axis = {
+                "verdict": "NOT_TESTED",
+                "finding_ids": [],
+                "evidence_refs": [],
+                "scope_reason_if_not_tested": "unit fixture",
+            }
+            obj = {
+                "schema_id": schema_id,
+                "schema_version": 1,
+                "audit_id": "audit-001",
+                "wp_id": "WP-DOC0",
+                "audit_assignment_ref_and_hash": ref("assignment.json"),
+                "assignment_verification_receipt_ref_and_hash": ref("assignment-receipt.json"),
+                "audited_bundle_ref_and_hash": ref("bundle.json"),
+                "audited_subject": commit(),
+                "evidence_index_commit_if_any": None,
+                "externally_observed_pinned_trust_root": {
+                    "trust_root_hash": h("3"),
+                    "source_channel_id": "owner-channel",
+                    "observed_at": "2026-08-14T10:00:00Z",
+                    "observation_receipt_ref_and_hash": ref("root-observation.json"),
+                },
+                "runtime_manifest_trust_root_hash": h("3"),
+                "audit_plan_and_spec_refs_and_hashes": [ref("audit-plan.md")],
+                "auditor_principal_id": "owner-001",
+                "auditor_attestation_key_id": "key-001",
+                "auditor_attestation_public_key_hash": raw_pub_hash,
+                "auditor_session_attestation_ref_and_hash": ref("session.json"),
+                "independence_evidence": [ref("independence.json")],
+                "findings": [],
+                "replayed_test_receipts": [],
+                "external_execution_receipts": [],
+                "traceability_remainder": 0,
+                "orphan_remainder": 0,
+                "claims_confirmed": [],
+                "claims_rejected": [],
+                "nonclaims_checked": ["unit fixture"],
+                "axis_verdicts": {
+                    "implementation": axis,
+                    "factory": axis,
+                    "scientific": {
+                        "verdict": "NOT_TESTED",
+                        "finding_ids": [],
+                        "evidence_refs": [],
+                        "scope_reason_if_not_tested": "unit fixture",
+                    },
+                    "production_scale": axis,
+                },
+                "scope_limits": ["unit fixture"],
+                "followups": [],
+                "state_transition_effect": "NONE_UNTIL_HUMAN_GATE_SERVICE_ACCEPTS",
+                "created_at": "2026-08-14T10:00:00Z",
+                "canonicalizer_profile": "RFC8785_JCS_UTF8",
+                "signature_domain": domain,
+                "signed_bytes_hash": None,
+                "signature_envelope": signature_envelope("signer_principal_id", "signed_bytes_hash"),
+                "audit_record_hash_algorithm": "sha256(RFC8785-JCS-object-with-audit_record_hash-null)",
+                "audit_record_hash": None,
+            }
+        elif schema_id == "seven/external-execution-authorization":
+            obj = {
+                "schema_id": schema_id,
+                "schema_version": 1,
+                "authorization_id": "auth-001",
+                "authorization_mode": "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP",
+                "subject_work_package_ids": ["WP-DOC0"],
+                "subject_completion_bundle_refs_and_hashes": [ref("bundle.json")],
+                "activation_audit_record_refs_and_hashes": [],
+                "unaudited_dependency_bundle_refs_and_hashes": [ref("bootstrap.json")],
+                "epoch_id_if_any": None,
+                "run_id_if_any": None,
+                "authorization_action_registry_ref_and_hash": ref("action-registry.json", "8"),
+                "action_scopes": [action_scope],
+                "externally_pinned_trust_root": named("trust-root"),
+                "actor_roster_ref_and_hash": ref("actor-roster.json"),
+                "human_gate_policy_ref_and_hash": ref("human-gate-policy.json"),
+                "signature_algorithm_registry_ref_and_hash": ref("signature-registry.json"),
+                "revocation_policy_ref_and_hash": ref("revocation.md"),
+                "stop_conditions": ["unit fixture"],
+                "issuer_actor_id": "owner-001",
+                "issuer_key_id": "key-001",
+                **common_signed,
+                "signature_domain": domain,
+                "signed_bytes_hash": None,
+                "signature_envelope": signature_envelope("signer_actor_id", "signed_bytes_hash"),
+                "authorization_hash_algorithm": "sha256(RFC8785-JCS-object-with-authorization_hash-null)",
+                "authorization_hash": None,
+            }
+        elif schema_id == "seven/live-run-permit":
+            obj = {
+                "schema_id": schema_id,
+                "schema_version": 1,
+                "permit_id": "permit-001",
+                "parent_authorization_id": "auth-001",
+                "parent_authorization_ref_and_hash": ref("authorization.json"),
+                "parent_authorization_signed_bytes_hash": h("b"),
+                "parent_subset_verification_contract_ref_and_hash": ref("subset.md"),
+                "authorization_mode": "TRUST_ROOT_OR_SCHEMA_BOOTSTRAP",
+                "wp_id": "WP-DOC0",
+                "epoch_id_if_any": None,
+                "run_id_if_any": None,
+                "action_units": [action_unit],
+                "required_reservation_backend": "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER",
+                "externally_pinned_trust_root": named("trust-root"),
+                "actor_roster_ref_and_hash": ref("actor-roster.json"),
+                "human_gate_policy_ref_and_hash": ref("human-gate-policy.json"),
+                "signature_algorithm_registry_ref_and_hash": ref("signature-registry.json"),
+                "revocation_policy_ref_and_hash": ref("revocation.md"),
+                "issuer_actor_id": "owner-001",
+                "issuer_key_id": "key-001",
+                **common_signed,
+                "signature_domain": domain,
+                "signed_bytes_hash": None,
+                "signature_envelope": signature_envelope("signer_actor_id", "signed_bytes_hash"),
+                "permit_hash_algorithm": "sha256(RFC8785-JCS-object-with-permit_hash-null)",
+                "permit_hash": None,
+            }
+        elif schema_id == "seven/authorization-consumption-receipt":
+            obj = {
+                "schema_id": schema_id,
+                "schema_version": 1,
+                "receipt_id": "receipt-001",
+                "logical_consumption_id": "consumption-001",
+                "state_revision": 0,
+                "previous_receipt_ref_and_hash_if_any": None,
+                "parent_authorization_id": "auth-001",
+                "parent_authorization_ref_and_hash": ref("authorization.json"),
+                "permit_id": "permit-001",
+                "permit_ref_and_hash": ref("permit.json"),
+                **{key: action_unit[key] for key in [
+                    "consumption_ordinal",
+                    "parent_action_scope_id",
+                    "parent_action_scope_hash",
+                    "action_kind",
+                    "authorization_action_registry_entry_ref_and_hash",
+                    "job_id",
+                    "attempt_id",
+                    "input_hash",
+                    "carrier_profile_or_solver_contract_hash_if_any",
+                    "target_binding_hash",
+                    "required_output_sink_and_acl_hash_if_any",
+                    "idempotency_key",
+                ]},
+                "aggregate_id": "aggregate-001",
+                "expected_aggregate_revision": 0,
+                "fence_token": 1,
+                "reservation_backend": "SCHEMA_BOOTSTRAP_D_VOLUME_LEDGER",
+                "status": "RESERVED",
+                "reserved_at": "2026-08-14T10:00:00Z",
+                "status_recorded_at": "2026-08-14T10:00:00Z",
+                "terminal_at_if_any": None,
+                "external_start_observation": "NOT_OBSERVED",
+                "start_observation_evidence_refs": [],
+                "proof_not_started_refs": [],
+                "reservation_transaction_receipt_ref_and_hash": ref("transaction.json"),
+                "reserved_unit_budget": allowance(d_volume_writes=1),
+                "actual_side_effects": allowance(),
+                "held_allowance": allowance(d_volume_writes=1),
+                "released_allowance": allowance(),
+                "remaining_allowance": allowance(),
+                "recovery_decision_ref_and_hash_if_any": None,
+                "externally_pinned_trust_root": named("trust-root"),
+                "service_attestation_key_registry_ref_and_hash": ref("service-keys.json"),
+                "canonicalizer_profile": "RFC8785_JCS_UTF8",
+                "attestation_domain": domain,
+                "attested_bytes_hash": None,
+                "service_attestation": {
+                    "algorithm": "Ed25519",
+                    "key_id": "key-001",
+                    "service_principal_id": "owner-001",
+                    "signature_encoding": "base64",
+                    "signature_b64": None,
+                    "attested_bytes_hash": None,
+                    "trust_root_hash": h("3"),
+                    "service_attestation_key_registry_hash": h("4"),
+                },
+                "receipt_hash_algorithm": "sha256(RFC8785-JCS-object-with-receipt_hash-null)",
+                "receipt_hash": None,
+            }
+        elif schema_id == "seven/docs/normative-requirement-review-record":
+            obj = {
+                "schema_id": schema_id,
+                "schema_version": 1,
+                "index_ref_and_hash": ref("normative-index.json"),
+                "audit_assignment_ref_and_hash": ref("assignment.json"),
+                "reviewer_actor_id": "owner-001",
+                "reviewed_consumer_policy_id": "LOCAL_ONLY_DOC0_TEMPORARY_CATCH_ALL_V1",
+                "temporary_doc0_consumer_nonclaim_acknowledged": True,
+                "decisions": [
+                    {
+                        "clause_id": "NORM-unit-001",
+                        "decision": "CONFIRMED_LOCAL_ONLY",
+                        "requirement_ids": [],
+                        "applicable_wp_ids": ["WP-DOC0"],
+                        "consumer_wp_ids": ["WP-DOC0"],
+                        "consumer_assignment_basis": "INDEPENDENT_SEMANTIC_REVIEW",
+                        "reason": "unit fixture",
+                    }
+                ],
+                "remainder": {
+                    "unreviewed_clause_count": 0,
+                    "duplicate_clause_decision_count": 0,
+                    "unknown_requirement_count": 0,
+                    "unknown_work_package_count": 0,
+                    "consumer_unassigned_count": 0,
+                    "unconsumed_clause_count": 0,
+                    "reclassification_required_count": 0,
+                    "invalid_clause_count": 0,
+                },
+                "signature_envelope": {
+                    "algorithm": "Ed25519",
+                    "domain_separator": domain,
+                    "signer_actor_id": "owner-001",
+                    "key_id": "key-001",
+                    "signed_payload_sha256": None,
+                    "signature_base64": None,
+                },
+            }
+        else:
+            raise AssertionError(f"unhandled signed object fixture: {schema_id}")
+
+        signed_bytes = compute_signed_bytes(
+            obj,
+            domain.encode("utf-8"),
+            signature_field_path=profile.signature_field_path,
+            envelope_hash_field_path=profile.envelope_hash_field_path,
+            top_hash_field=profile.top_hash_field,
+            self_hash_field=profile.self_hash_field,
+        )
+        signed_hash = hashlib.sha256(signed_bytes).hexdigest()
         sig = private_key.sign(signed_bytes)
-        import base64
-        obj["signature_envelope"]["signature_b64"] = base64.b64encode(sig).decode()
+
+        def set_path(path: str, value) -> None:
+            current = obj
+            parts = path.split(".")
+            for part in parts[:-1]:
+                current = current[part]
+            current[parts[-1]] = value
+
+        set_path(profile.signature_field_path, base64.b64encode(sig).decode())
+        set_path(profile.envelope_hash_field_path, signed_hash)
+        if profile.top_hash_field is not None:
+            obj[profile.top_hash_field] = signed_hash
+        if profile.self_hash_field is not None:
+            unsigned = dict(obj)
+            unsigned[profile.self_hash_field] = None
+            obj[profile.self_hash_field] = hashlib.sha256(canonical_json_bytes(unsigned)).hexdigest()
         return obj
 
     def test_all_signed_object_domains_defined(self):
@@ -986,7 +1368,7 @@ class TestSignedObjectVerifier(unittest.TestCase):
             "seven/external-execution-authorization",
             "seven/live-run-permit",
             "seven/authorization-consumption-receipt",
-            "seven/normative-requirement-review-record",
+            "seven/docs/normative-requirement-review-record",
         }
         for key in expected:
             self.assertIn(key, SIGNED_OBJECT_DOMAINS, f"missing domain for {key}")
@@ -1062,8 +1444,8 @@ class TestSignedObjectVerifier(unittest.TestCase):
         from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
         raw_pub = private_key.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
 
-        domain = SIGNED_OBJECT_DOMAINS["seven/normative-requirement-review-record"]
-        obj = self._make_signed_object("seven/normative-requirement-review-record", domain, private_key)
+        domain = SIGNED_OBJECT_DOMAINS["seven/docs/normative-requirement-review-record"]
+        obj = self._make_signed_object("seven/docs/normative-requirement-review-record", domain, private_key)
         result = verify_normative_requirement_review_record(obj, public_key_bytes=raw_pub)
         self.assertEqual(result.verdict, "PASS")
 
@@ -1085,7 +1467,7 @@ class TestSignedObjectVerifier(unittest.TestCase):
             ("seven/external-execution-authorization", verify_eea),
             ("seven/live-run-permit", verify_live_run_permit),
             ("seven/authorization-consumption-receipt", verify_authorization_consumption_receipt),
-            ("seven/normative-requirement-review-record", verify_normative_requirement_review_record),
+            ("seven/docs/normative-requirement-review-record", verify_normative_requirement_review_record),
         ]:
             domain = SIGNED_OBJECT_DOMAINS[schema_id]
             obj = self._make_signed_object(schema_id, domain, private_key)

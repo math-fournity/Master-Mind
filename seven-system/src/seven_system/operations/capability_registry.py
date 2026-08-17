@@ -146,6 +146,75 @@ def create_default_registry() -> ImplementationCapabilityRegistry:
     ))
 
     registry.register(CapabilityEntry(
+        capability_id="GA1_AUDIT_INPUT_PACK_PRECHECK",
+        capability_version="v1",
+        implementation_status="IMPLEMENTED_PENDING_EVIDENCE",
+        entry_point_reachable=True,
+        effect_class="SIDE_EFFECT_FREE",
+        required_gate="无",
+        explicit_nonclaims=[
+            "只整理和机械预检审计输入；不创建 AuditAssignment/AuditRecord",
+            "不构成 GA1 独立审计或 AUDITED_PASS",
+        ],
+    ))
+
+    registry.register(CapabilityEntry(
+        capability_id="GA1_AUDIT_READINESS_REPORT",
+        capability_version="v1",
+        implementation_status="IMPLEMENTED_PENDING_EVIDENCE",
+        entry_point_reachable=True,
+        effect_class="SIDE_EFFECT_FREE",
+        required_gate="无",
+        explicit_nonclaims=[
+            "只计算审计输入覆盖缺口；不创建 AuditAssignment/AuditRecord",
+            "COMPLETE 只表示机械交接覆盖完整，不构成 GA1 独立审计",
+        ],
+    ))
+
+    registry.register(CapabilityEntry(
+        capability_id="DB1L_LOGICAL_SITE_REPORT_PRECHECK",
+        capability_version="v1",
+        implementation_status="IMPLEMENTED_PENDING_EVIDENCE",
+        entry_point_reachable=True,
+        effect_class="SIDE_EFFECT_FREE",
+        required_gate="无",
+        explicit_nonclaims=[
+            "fixture/验证器路径不连接真实Arango",
+            "environment-readonly路径需要显式调用与只读DB确认",
+            "不构成DB写入、Schema初始化、runtime事务或outbox能力",
+        ],
+    ))
+
+    registry.register(CapabilityEntry(
+        capability_id="WORK_PACKAGE_PLAN_BUILDER",
+        capability_version="v1",
+        implementation_status="IMPLEMENTED_PENDING_EVIDENCE",
+        entry_point_reachable=True,
+        effect_class="SIDE_EFFECT_FREE",
+        required_gate="无",
+        explicit_nonclaims=[
+            "只组装SIDE_EFFECT_FREE普通implementer-owned WorkPackagePlan",
+            "必须验证调用者提供的已签NormativeRequirementReviewRecord与public key；不生成或签署该记录",
+            "不创建CompletionBundle、AuditRecord或AUDITED_PASS",
+            "不授权live副作用",
+        ],
+    ))
+
+    registry.register(CapabilityEntry(
+        capability_id="NORMATIVE_REVIEW_RECORD_VERIFIER",
+        capability_version="v1",
+        implementation_status="IMPLEMENTED_PENDING_EVIDENCE",
+        entry_point_reachable=True,
+        effect_class="SIDE_EFFECT_FREE",
+        required_gate="无",
+        explicit_nonclaims=[
+            "只验证已签名NormativeRequirementReviewRecord的Schema、签名与index覆盖语义",
+            "不创建NormativeRequirementReviewRecord、不签名、不执行独立语义审查",
+            "不构成GA1独立审计或AUDITED_PASS",
+        ],
+    ))
+
+    registry.register(CapabilityEntry(
         capability_id="ADAPTER_REGISTRY",
         capability_version="v1",
         implementation_status="IMPLEMENTED_PENDING_EVIDENCE",
@@ -160,9 +229,17 @@ def create_default_registry() -> ImplementationCapabilityRegistry:
         "VLT0_D_CAS", "DB_ARANGO_LIVE", "RT_REDIS_LIVE",
         "SOLVER_HARNESS_LIVE", "MODEL_ROLE_CODEX_LIVE", "MODEL_ROLE_DEVIN_LIVE",
         "TARGET_SOLVER_PORT", "DEVIN_SOLVER_ADAPTER",
+        "HARNESS_RESOURCE_CAPABILITY_REPORT", "NO_TOOL_SOLVER_CAPABILITY_REPORT",
+        "SAFE_LAUNCH_CAPABILITY_REPORT", "ANSWER_ISOLATION_CAPABILITY_REPORT",
+        "MODEL_ROLE_PORT", "COGNITIVE_WORKER_RUNTIME",
+        "DEVIN_CLI_MODEL_ROLE_ADAPTER", "CODEX_EXEC_MODEL_ROLE_ADAPTER",
+        "HUMAN_TASK_PORT", "HUMAN_GATE_SERVICE",
+        "QUESTION_RELEASE_PIPELINE",
         "CASE_PACK", "EXPERIMENT_PLAN", "RUN_AUDIT", "EVIDENCE_RECORD",
         "REVISION_PROPOSAL", "PROMOTION", "ACTIVE_LEARNING",
-        "AUTHORING_BAKEOFF", "WP_QA0", "WP_QA1",
+        "AUTHORING_BAKEOFF", "AUTHORING_BAKEOFF_A", "AUTHORING_BAKEOFF_B",
+        "WP_QA0", "WP_QA1",
+        "QA0_CONTROLLED_AUTHORING_LAB", "QA1_QUESTION_ADMISSION",
     ]:
         registry.register(CapabilityEntry(
             capability_id=cap_id,

@@ -21,7 +21,8 @@ _SEVEN_VERSIONED_RE = re.compile(r"^seven_[a-z0-9_]+_v[1-9][0-9]*$")
 # 匹配 seven_ 前缀但可能未版本化的集合名
 _SEVEN_PREFIX_RE = re.compile(r"^seven_")
 
-# 题海 / system 集合前缀，DB1L 禁止复用
+# 题海 / system 集合前缀。DB1L允许同一逻辑数据库内存在这些既有集合，
+# 但Seven自己的schema plan不得复用这些集合名。
 _FORBIDDEN_PREFIXES = ("math_", "system_", "题", "question_", "problem_")
 
 
@@ -185,7 +186,6 @@ def enumerate_collections_from_catalog(
             conflicts.append(f"unversioned:{name}")
         elif category == "forbidden":
             forbidden.append(name)
-            conflicts.append(f"forbidden:{name}")
 
     return SevenCollectionEnumeration(
         versioned_collections=tuple(versioned),

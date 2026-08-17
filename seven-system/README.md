@@ -46,9 +46,10 @@ HumanGateService → signed GateDecision
 - D 盘 README、Seven 数据根与真实 dry-run preflight；
 - Strict DB 固定数据库身份、集合白名单、只读 planner、7集合/13唯一索引的 canonical Schema初始化spec（代码历史名为migration spec）；
 - `wp1-db-contract-report` 离线受控测试、Schema+语义验证和 append-once 本地报告；
+- `build-work-package-plan`、`verify-normative-review-record`、`build-implementation-completion-bundle`、`build-audit-input-pack`、`validate-audit-input-pack`、`audit-input-pack-report`、`db1l-logical-site-report`与`db1l-verify-logical-site-report`这类stdout/read-only辅助命令，用于机械派生普通工作包Plan、验证并绑定已签规范复核记录、整理候选完成物证、GA1审计前机械输入预检和DB1L只读报告预检；它们都不签审计、不改状态、不授权live；
 - 明确列出 P2-P9 `NOT_IMPLEMENTED`。
 
-当前没有任何 CLI 命令能连接或修改真实数据库、写 Redis、启动 Devin CLI或调用Codex/其他远程认知Worker。真实逻辑DB site capability、Seven Schema初始化、TargetSolverPort、ModelRolePort、Devin/Codex认知adapter、角色能力/调用收据、QuestionRelease、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
+当前没有任何默认/示例 CLI 命令会连接真实数据库、修改真实数据库、写 Redis、启动 Devin CLI或调用Codex/其他远程认知Worker。`db1l-logical-site-report --source environment-readonly --ack-readonly-db`是唯一显式真实DB只读路径：只读取身份、`CURRENT_DATABASE()`和catalog，不写库、不初始化Schema、不授权live。Seven Schema初始化、TargetSolverPort、ModelRolePort、Devin/Codex认知adapter、角色能力/调用收据、QuestionRelease、答案 Vault、CandidateManifest 导入、三审、EvidenceRecord，以及 387 号要求的崩溃/lease/fencing/reconcile 完整 P1 矩阵仍未实现。
 
 ## 第一次使用
 
@@ -67,7 +68,7 @@ cd "$SEVEN_WORKSPACE_ROOT"
 
 `seven-system/`本身只使用Python标准库；若未来独立迁出，可从其新repo根用`python3 scripts/seven.py ...`运行，无需依赖当前父repo路径。
 
-当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离、显式版本化的`seven_*_vN`集合/索引；v1仅为现有scaffold，未来经批准的原子结构使用v2或更高版本。当前真实逻辑站点核验和Schema初始化仍为`NOT_IMPLEMENTED`。宿主层只读核验已确认OrbStack全部Docker数据由`/data/OrbStack/data/data.img.raw`承载，因此`A-WP1-D=PASS`；Arango仍把`/var/lib/arangodb3`放在容器writable overlay中，没有使用`/data/arangodb/data:/data`专用bind，因此`A-WP1-BIND=WARNING_NOT_DEDICATED`。不要把宿主D-backing PASS误读为数据库控制面或Schema能力PASS。
+当前示例 preflight 应当退出 `0` 且 `overall_verdict=PASS`。这只证明 dry-run 站点目录前置。Seven的目标架构是复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，但只使用隔离、显式版本化的`seven_*_vN`集合/索引；v1仅为现有scaffold，未来经批准的原子结构使用v2或更高版本。当前已具备DB1L只读逻辑站点报告对象、fixture验证器和显式`environment-readonly`代码路径；本轮真实只读运行已观察到`verdict=PASS`、50个用户集合、0个未版本化`seven_`集合、0冲突、0写入，但该报告尚未封存为D盘CAS/能力目录artifact，且仍不等于Schema初始化或DB写能力。宿主层只读核验已确认OrbStack全部Docker数据由`/data/OrbStack/data/data.img.raw`承载，因此`A-WP1-D=PASS`；Arango仍把`/var/lib/arangodb3`放在容器writable overlay中，没有使用`/data/arangodb/data:/data`专用bind，因此`A-WP1-BIND=WARNING_NOT_DEDICATED`。不要把宿主D-backing PASS误读为数据库控制面或Schema能力PASS。
 
 上述固定 report ID重入时会重新校验当前实现绑定的离线报告，完全匹配才返回`ALREADY_COMMITTED`。报告位于`/data/seven-system-data/capabilities/strict-db-contract/wp1-contract-20260814-002.json`；其 PASS 不证明真实 DB 连接、物理落盘或 migration。`A-WP1-D=PASS`来自独立的宿主存储链核验，不是这份离线报告的主张。
 

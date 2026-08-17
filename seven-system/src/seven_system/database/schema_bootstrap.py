@@ -193,6 +193,9 @@ class SchemaBootstrapContext:
     permit: dict[str, Any]
     gate_decision: dict[str, Any]
     gate_decision_verified: bool
+    authorization_chain_verified: bool
+    eea_hash: str
+    reservation_receipt_hash: str
     maintenance_window: str
     fence_token: int
     acquired_at: str
@@ -205,6 +208,9 @@ class SchemaBootstrapContext:
             "permit_id": self.permit.get("permit_id", ""),
             "gate_decision_id": self.gate_decision.get("decision_id", ""),
             "gate_decision_verified": self.gate_decision_verified,
+            "authorization_chain_verified": self.authorization_chain_verified,
+            "eea_hash": self.eea_hash,
+            "reservation_receipt_hash": self.reservation_receipt_hash,
             "maintenance_window": self.maintenance_window,
             "fence_token": self.fence_token,
             "acquired_at": self.acquired_at,
@@ -249,6 +255,11 @@ class SchemaBootstrapProtocol:
         eea: dict[str, Any] | None = None,
         reservation: dict[str, Any] | None = None,
         security_contract_verifier: Any | None = None,
+        eea_public_key_bytes: bytes | None = None,
+        permit_public_key_bytes: bytes | None = None,
+        receipt_public_key_bytes: bytes | None = None,
+        action_registry_id: str = "",
+        action_registry_entry_ref_and_hash: dict[str, str] | None = None,
     ) -> SchemaBootstrapContext:
         """冻结 apply 输入：site fingerprint、plan、permit、gate decision。
 
@@ -270,31 +281,17 @@ class SchemaBootstrapProtocol:
                 EC.DB1I_DUPLICATE_APPLY, "protocol already prepared"
             )
 
-        # 1. site fingerprint
-        self.site_adapter.connect_readonly()
-        fingerprint = self.site_adapter.site_fingerprint()
-
-        # 2. build plan
-        plan = build_schema_bootstrap_plan(
-            site_fingerprint_hash=fingerprint.fingerprint_hash
-        )
-
-        # 3. verify plan
-        plan_errors = verify_schema_bootstrap_plan(plan)
-        if plan_errors:
-            raise SchemaBootstrapProtocolError(
-                EC.DB1I_PLAN_HASH_DRIFT,
-                f"plan verification failed: {plan_errors[0][1]}",
-            )
-
-        # 4. verify gate_decision — P0-C: human_gate_service is MANDATORY
+        # 1. verify gate_decision before any site observation.  Even readonly
+        # catalog access is an external action in the bootstrap lane.
         # 审计发现：human_gate_service=None 时弱 dict 检查可绕过。
         # 修复：human_gate_service 必须非 None，且必须通过完整 HumanGateService 验证。
-        if human_gate_service is None:
+        from ..human.human_gate import HumanGateService
+
+        if not isinstance(human_gate_service, HumanGateService):
             raise SchemaBootstrapProtocolError(
                 EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
-                "human_gate_service is mandatory for schema apply — "
-                "cannot proceed without real HumanGateService verification",
+                "canonical human_gate_service is mandatory for schema apply; "
+                "duck-typed or missing gate services are not accepted",
             )
         result = human_gate_service.accept_gate_decision(
             gate_decision, evaluation_time=evaluation_time
@@ -304,36 +301,86 @@ class SchemaBootstrapProtocol:
                 EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
                 f"gate decision rejected: {result.details}",
             )
+        if gate_decision.get("decision") != "APPROVE":
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_HUMAN_GATE_DECISION_REJECTED,
+                "DB1I schema apply requires an APPROVE gate decision",
+            )
         gate_verified = True
 
-        # 5. permit 绑定 plan_hash
-        permit_plan_hash = permit.get("plan_hash", "")
-        if permit_plan_hash != plan.plan_hash:
+        # 2. site fingerprint
+        self.site_adapter.connect_readonly()
+        fingerprint = self.site_adapter.site_fingerprint()
+
+        # 3. build plan
+        plan = build_schema_bootstrap_plan(
+            site_fingerprint_hash=fingerprint.fingerprint_hash
+        )
+
+        # 4. verify plan
+        plan_errors = verify_schema_bootstrap_plan(plan)
+        if plan_errors:
             raise SchemaBootstrapProtocolError(
-                EC.DB1I_PERMIT_MISMATCH,
-                f"permit plan_hash {permit_plan_hash} != plan plan_hash",
-            )
-        if permit.get("wp_id") != "G-DB-SCHEMA-APPLY":
-            raise SchemaBootstrapProtocolError(
-                EC.DB1I_PERMIT_MISMATCH,
-                "permit wp_id must be G-DB-SCHEMA-APPLY",
+                EC.DB1I_PLAN_HASH_DRIFT,
+                f"plan verification failed: {plan_errors[0][1]}",
             )
 
-        # 6. P0-C 补全: 完整授权链验证（EEA → Permit → Reservation）
-        if security_contract_verifier is not None and eea is not None:
-            auth_result = security_contract_verifier.verify_authorization_chain(
-                eea=eea,
-                permit=permit,
-                reservation=reservation,
-                expected_plan_hash=plan.plan_hash,
-                expected_site_fingerprint=fingerprint.fingerprint_hash,
-                expected_wp_id="G-DB-SCHEMA-APPLY",
+        # 5/6. P0-C: full authorization is mandatory, not an optional
+        # enhancement.  The consumer calls the canonical verifier itself so a
+        # caller cannot submit a self-declared PASS receipt.
+        from ..contracts.security_contract_verifier import SecurityContractVerifier
+
+        if not isinstance(security_contract_verifier, SecurityContractVerifier):
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_PERMIT_MISMATCH,
+                "canonical SecurityContractVerifier is mandatory for schema apply",
             )
-            if not auth_result.passed:
-                raise SchemaBootstrapProtocolError(
-                    EC.DB1I_PERMIT_MISMATCH,
-                    f"authorization chain verification failed: {auth_result.details}",
-                )
+        if eea is None or reservation is None:
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_PERMIT_MISMATCH,
+                "EEA, LiveRunPermit and RESERVED receipt are all mandatory",
+            )
+        if not all(
+            value is not None
+            for value in (
+                eea_public_key_bytes,
+                permit_public_key_bytes,
+                receipt_public_key_bytes,
+            )
+        ):
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_PERMIT_MISMATCH,
+                "public keys for EEA, Permit and receipt are mandatory",
+            )
+        if not action_registry_id or action_registry_entry_ref_and_hash is None:
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_PERMIT_MISMATCH,
+                "a frozen OperatorCommandRegistry ID and entry ref/hash are mandatory",
+            )
+
+        auth_result = security_contract_verifier.verify_authorization_chain(
+            eea=eea,
+            permit=permit,
+            reservation=reservation,
+            expected_plan_hash=plan.plan_hash,
+            expected_site_fingerprint=fingerprint.fingerprint_hash,
+            expected_db_name=plan.expected_database,
+            expected_action_registry_id=action_registry_id,
+            expected_action_registry_entry_ref_and_hash=(
+                action_registry_entry_ref_and_hash
+            ),
+            expected_action_kind="DB_SCHEMA_APPLY",
+            expected_wp_id="WP-DB1I",
+            evaluation_time=evaluation_time,
+            eea_public_key_bytes=eea_public_key_bytes,
+            permit_public_key_bytes=permit_public_key_bytes,
+            receipt_public_key_bytes=receipt_public_key_bytes,
+        )
+        if not auth_result.passed:
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_PERMIT_MISMATCH,
+                f"authorization chain verification failed: {auth_result.details}",
+            )
 
         context = SchemaBootstrapContext(
             plan=plan,
@@ -341,6 +388,9 @@ class SchemaBootstrapProtocol:
             permit=permit,
             gate_decision=gate_decision,
             gate_decision_verified=gate_verified,
+            authorization_chain_verified=True,
+            eea_hash=str(eea.get("authorization_hash", "")),
+            reservation_receipt_hash=str(reservation.get("receipt_hash", "")),
             maintenance_window=maintenance_window,
             fence_token=fence_token,
             acquired_at=acquired_at,
@@ -384,6 +434,12 @@ class SchemaBootstrapProtocol:
 
         ctx = self.context
         plan = ctx.plan
+
+        if not ctx.gate_decision_verified or not ctx.authorization_chain_verified:
+            raise SchemaBootstrapProtocolError(
+                EC.DB1I_APPLY_WITHOUT_FENCE,
+                "apply requires verified HumanGate and complete authorization chain",
+            )
 
         # acquire fence (D-volume atomic create)
         self.fence = self.backend.acquire_fence(

@@ -74,6 +74,9 @@ Schema只检查单对象形状。WP-GV0是`SecurityContractVerifier`和`Completi
 | TrustRootBootstrapReceipt / KeyRevocationRecord / GateTimePolicy | 锚定初始信任仪式、密钥撤销语义与过期时间边界 |
 | HumanGateReadinessReport | 证明trust root、algorithm registry、roster、separation、time policy与replay store可用 |
 | ProtocolRegistrySnapshot | 冻结GateType、WorkEventType、CapabilityKind、AlertAction、EvidenceStatus等动态全集 |
+| [AuditInputPack](audit-input-pack.v1.schema.json) | 只读汇总候选完成物证，供未来GA1独立审计前机械预检；不创建`AuditAssignment`、不生成`AuditRecord`、不改变状态、不声明`AUDITED_*` |
+| [AuditReadinessReport](audit-readiness-report.v1.schema.json) | 只读比较`AuditInputPack`与声明scope的覆盖差异，列出missing/unexpected/invalid工作包；`COMPLETE`也只表示机械交接覆盖完整，不表示GA1审计通过 |
+| [DatabaseLogicalSiteCapabilityReport](database-logical-site-capability-report.v1.schema.json) | WP-DB1L只读逻辑站点报告；冻结精确数据库身份、CURRENT_DATABASE、site fingerprint、catalog snapshot、seven集合枚举、零写入收据和自哈希；不授权DDL、migration、runtime事务或outbox |
 
 ## 题目与Case对象
 
@@ -125,7 +128,7 @@ Schema只检查单对象形状。WP-GV0是`SecurityContractVerifier`和`Completi
 | EvidenceIndex | 从Verdict反查全部物证的DAG索引 |
 | ProvenanceSnapshot | P8开始前对sealed P7 EvidenceRecord集合及其谱系的只读快照；不是最终EvidenceIndex |
 | ImplementationCompletionBundle / AuditRecord | 分别对应DAG的`IMPLEMENTATION_BUNDLE / AUDIT_RECORD`；AuditRecord必须绑定外部AuditAssignment和四轴Verdict |
-| WorkPackagePlan / NormativeRequirementIndex | 冻结每个实现包的输入、边界和验收，并机械枚举规定性条款到需求族或`LOCAL_ONLY` |
+| WorkPackagePlan / NormativeRequirementIndex / NormativeRequirementReviewRecord | 冻结每个实现包的输入、边界和验收，并机械枚举规定性条款到需求族或`LOCAL_ONLY`；普通implementer-owned包可由stdout-only `build-work-package-plan`从DAG、索引和已签规范复核记录派生脆弱字段，且必须先验证真实规范复核记录 |
 | DocBootstrapCompletionRecord / DocBootstrapImportAnchor | DAG的`DOC_BOOTSTRAP_RECORD`只适用于WP-DOC0：在VLT0尚未实现时，以Git侧第二提交锚定DOC0物证；VLT0完成后原样导入CAS并建立不可改写的导入锚 |
 | DocContractVerificationReceipt / DOC0TestExecutionReceipt | 分别保存文档合同检查器的Schema-valid结果，以及绑定精确subject commit/tree、命令输出与零副作用计数的DOC0测试收据 |
 | OperatorCommandRegistry | 冻结CLI/API/worker入口、读写级别、Port、授权、幂等/fence、receipt和退出码 |

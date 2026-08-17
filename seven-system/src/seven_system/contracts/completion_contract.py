@@ -64,10 +64,10 @@ def _load_dag(dag_path: Path) -> tuple[dict[str, Any], str]:
         dag = json.loads(raw)
     except (OSError, json.JSONDecodeError) as exc:
         raise _DagLoadError(str(exc)) from exc
-    canonical = json.dumps(
-        json.loads(raw), ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    ).encode("utf-8")
-    dag_hash = hashlib.sha256(canonical).hexdigest()
+    # The canonical DAG is an immutable file artifact.  Every Plan and the
+    # machine DAG source-of-truth bind its byte digest, not a second,
+    # undocumented JSON reserialization digest.
+    dag_hash = hashlib.sha256(raw).hexdigest()
     return dag, dag_hash
 
 
@@ -168,7 +168,9 @@ def _validate_rfc3339_fields(
             return
         # Verify it's a real date
         try:
-            datetime.strptime(value.replace("Z", "+00:00"), "%Y-%m-%dT%H:%M:%S%z")
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                raise ValueError("timezone missing")
         except ValueError:
             errors.append(EC.RFC3339_INVALID)
             details.append(f"RFC3339 invalid date at {field_path}: '{value}'")

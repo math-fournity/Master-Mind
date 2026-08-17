@@ -6,14 +6,22 @@
 from __future__ import annotations
 
 import copy
+import contextlib
+import io
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+
+import jsonschema
 
 SYSTEM_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SYSTEM_ROOT / "src"))
 
+from seven_system.cli import main as seven_main  # noqa: E402
 from seven_system.contracts.errors import VerificationErrorCode as EC  # noqa: E402
+from seven_system.database.arango_port import ArangoDatabasePort  # noqa: E402
 from seven_system.database.environment import EXPECTED_DATABASE  # noqa: E402
 from seven_system.database.errors import DatabaseConnectionError  # noqa: E402
 from seven_system.database.logical_site_report import (  # noqa: E402
@@ -24,6 +32,7 @@ from seven_system.database.logical_site_report import (  # noqa: E402
     LogicalSiteReportError,
     REPORT_SCHEMA_VERSION,
     build_logical_site_report,
+    logical_site_report_hash,
     verify_logical_site_report,
 )
 from seven_system.database.port import CollectionSnapshot, IndexSnapshot  # noqa: E402
@@ -34,6 +43,9 @@ from seven_system.database.site_adapter import (  # noqa: E402
     classify_collection,
     enumerate_collections_from_catalog,
 )
+
+
+SCHEMA_PATH = SYSTEM_ROOT / "docs" / "implementation" / "database-logical-site-capability-report.v1.schema.json"
 
 
 # ---------------------------------------------------------------------------
@@ -104,6 +116,17 @@ class GoldenLogicalSiteReportTests(unittest.TestCase):
         self.assertEqual(report["current_database"], EXPECTED_DATABASE)
         self.assertEqual(report["write_count"], 0)
         self.assertEqual(report["blockers"], [])
+        self.assertEqual(report["report_hash"], logical_site_report_hash(report))
+
+    def test_golden_report_is_schema_valid(self) -> None:
+        report = _build_golden_report()
+        schema = json.loads(SCHEMA_PATH.read_text())
+        errors = list(
+            jsonschema.Draft202012Validator(
+                schema, format_checker=jsonschema.FormatChecker()
+            ).iter_errors(report)
+        )
+        self.assertEqual(errors, [])
 
     def test_golden_report_has_all_check_ids_in_canonical_order(self) -> None:
         report = _build_golden_report()
@@ -143,7 +166,7 @@ class GoldenLogicalSiteReportTests(unittest.TestCase):
         report = _build_golden_report()
         import re
         sha256_re = re.compile(r"^[0-9a-f]{64}$")
-        for key in ("database_identity_hash", "site_fingerprint_hash", "catalog_hash", "zero_write_receipt"):
+        for key in ("database_identity_hash", "site_fingerprint_hash", "catalog_hash", "zero_write_receipt", "report_hash"):
             self.assertIsNotNone(
                 sha256_re.match(report[key]),
                 f"{key} is not a valid sha256 hex: {report[key]}",
@@ -182,6 +205,13 @@ class NegativeDatabaseIdentityTests(unittest.TestCase):
         codes = {e[0] for e in errors}
         self.assertIn(EC.SITE_DATABASE_NAME_MISMATCH, codes)
 
+    def test_report_hash_tampering_fails_verification(self) -> None:
+        report = _build_golden_report()
+        report["catalog_snapshot"]["collections"] = []
+        errors = verify_logical_site_report(report)
+        codes = {e[0] for e in errors}
+        self.assertIn(EC.CATALOG_DRIFT, codes)
+
     def test_wrong_expected_database_fails_verification(self) -> None:
         report = _build_golden_report()
         report["expected_database"] = "some-other-db"
@@ -219,29 +249,31 @@ class NegativeDatabaseIdentityTests(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Negative tests — collection conflicts
+# Collection conflict and coexistence tests
 # ---------------------------------------------------------------------------
 
 class NegativeCollectionConflictTests(unittest.TestCase):
-    def test_math_collection_reuse_detected(self) -> None:
+    def test_math_collection_coexistence_is_reported_but_not_blocked(self) -> None:
         cols = _seven_v1_collections()
         bad_col = CollectionSnapshot(name="math_problems", collection_type="document", indexes=())
         catalog = CatalogSnapshot(collections=cols + (bad_col,))
         adapter = _golden_adapter()
         adapter.catalog = catalog
-        with self.assertRaises(LogicalSiteReportError) as raised:
-            build_logical_site_report(adapter)
-        self.assertIn("CATALOG_MATH_SYSTEM_COLLECTION_REUSE", str(raised.exception))
+        report = build_logical_site_report(adapter)
+        self.assertEqual(verify_logical_site_report(report), ())
+        self.assertIn("math_problems", report["seven_collection_enumeration"]["forbidden_collections"])
+        self.assertFalse(report["conflict_check"]["has_conflicts"])
 
-    def test_system_collection_reuse_detected(self) -> None:
+    def test_system_collection_coexistence_is_reported_but_not_blocked(self) -> None:
         cols = _seven_v1_collections()
         bad_col = CollectionSnapshot(name="system_users", collection_type="document", indexes=())
         catalog = CatalogSnapshot(collections=cols + (bad_col,))
         adapter = _golden_adapter()
         adapter.catalog = catalog
-        with self.assertRaises(LogicalSiteReportError) as raised:
-            build_logical_site_report(adapter)
-        self.assertIn("CATALOG_MATH_SYSTEM_COLLECTION_REUSE", str(raised.exception))
+        report = build_logical_site_report(adapter)
+        self.assertEqual(verify_logical_site_report(report), ())
+        self.assertIn("system_users", report["seven_collection_enumeration"]["forbidden_collections"])
+        self.assertFalse(report["conflict_check"]["has_conflicts"])
 
     def test_unversioned_seven_collection_detected(self) -> None:
         cols = _seven_v1_collections()
@@ -253,16 +285,17 @@ class NegativeCollectionConflictTests(unittest.TestCase):
             build_logical_site_report(adapter)
         self.assertIn("CATALOG_COLLECTION_NOT_VERSIONED", str(raised.exception))
 
-    def test_verifier_detects_math_collection_in_catalog(self) -> None:
+    def test_verifier_allows_math_collection_when_enumerated_as_awareness(self) -> None:
         report = _build_golden_report()
         report["catalog_snapshot"]["collections"].append({
             "name": "math_questions",
             "collection_type": "document",
             "indexes": [],
         })
+        report["seven_collection_enumeration"]["forbidden_collections"].append("math_questions")
+        report["report_hash"] = logical_site_report_hash(report)
         errors = verify_logical_site_report(report)
-        codes = {e[0] for e in errors}
-        self.assertIn(EC.CATALOG_MATH_SYSTEM_COLLECTION_REUSE, codes)
+        self.assertEqual(errors, ())
 
     def test_verifier_detects_unversioned_seven_collection(self) -> None:
         report = _build_golden_report()
@@ -539,7 +572,7 @@ class SiteAdapterHelperTests(unittest.TestCase):
         self.assertIn("seven_bad", enum.unversioned_seven_collections)
         self.assertIn("math_problems", enum.forbidden_collections)
         self.assertIn("unversioned:seven_bad", enum.conflicts)
-        self.assertIn("forbidden:math_problems", enum.conflicts)
+        self.assertNotIn("forbidden:math_problems", enum.conflicts)
 
     def test_site_fingerprint_hash_is_deterministic(self) -> None:
         fp1 = _golden_fingerprint()
@@ -601,6 +634,159 @@ class ReportIntegrityTests(unittest.TestCase):
         self.assertNotIn("password", serialized.lower())
         self.assertNotIn("secret", serialized.lower())
         self.assertNotIn("credential", serialized.lower())
+
+
+# ---------------------------------------------------------------------------
+# Real readonly adapter contract, exercised with an in-memory driver fixture
+# ---------------------------------------------------------------------------
+
+class _FakeAql:
+    def execute(self, query: str):
+        if query != "RETURN CURRENT_DATABASE()":
+            raise AssertionError(f"unexpected query: {query}")
+        return [EXPECTED_DATABASE]
+
+
+class _FakeArangoCollection:
+    def __init__(self, *, name: str, collection_type: int = 2, indexes: list[dict] | None = None) -> None:
+        self.name = name
+        self.collection_type = collection_type
+        self._indexes = indexes or [{"type": "primary", "name": "primary", "fields": ["_key"]}]
+
+    def properties(self) -> dict:
+        return {"name": self.name, "type": self.collection_type}
+
+    def indexes(self) -> list[dict]:
+        return list(self._indexes)
+
+
+class _FakeArangoDatabase:
+    def __init__(self) -> None:
+        self.aql = _FakeAql()
+        self._collections = {
+            "seven_records_v1": _FakeArangoCollection(
+                name="seven_records_v1",
+                indexes=[
+                    {"type": "primary", "name": "primary", "fields": ["_key"]},
+                    {
+                        "type": "persistent",
+                        "name": "ux_records_type_logical_revision",
+                        "fields": ["record_type", "logical_id", "revision"],
+                        "unique": True,
+                        "sparse": False,
+                    },
+                ],
+            ),
+            "other_collection": _FakeArangoCollection(name="other_collection"),
+            "_graphs": _FakeArangoCollection(name="_graphs"),
+        }
+
+    def version(self) -> str:
+        return "3.12.4"
+
+    def collections(self) -> list[dict]:
+        return [
+            {"name": "seven_records_v1", "system": False, "type": 2},
+            {"name": "other_collection", "system": False, "type": 2},
+            {"name": "_graphs", "system": True, "type": 2},
+        ]
+
+    def has_collection(self, name: str) -> bool:
+        return name in self._collections
+
+    def collection(self, name: str) -> _FakeArangoCollection:
+        return self._collections[name]
+
+
+class _FakeArangoClient:
+    def __init__(self, *, hosts: str) -> None:
+        self.hosts = hosts
+
+    def db(self, name: str, *, username: str, password: str, verify: bool) -> _FakeArangoDatabase:
+        self.request = {
+            "name": name,
+            "username": username,
+            "password": password,
+            "verify": verify,
+        }
+        return _FakeArangoDatabase()
+
+
+class ArangoLogicalSiteAdapterTests(unittest.TestCase):
+    def _env(self, *, database: str = EXPECTED_DATABASE) -> dict[str, str]:
+        return {
+            "ARANGO_HOST": "http://localhost:8529",
+            "ARANGO_DB": database,
+            "ARANGO_USER": "seven-readonly-user",
+            "ARANGO_PASS": "not-printed",
+        }
+
+    def test_arango_port_builds_logical_site_report_without_writes(self) -> None:
+        port = ArangoDatabasePort.from_environment(
+            self._env(),
+            client_factory=_FakeArangoClient,
+        )
+        report = build_logical_site_report(port)
+        self.assertEqual(verify_logical_site_report(report), ())
+        names = {
+            collection["name"]
+            for collection in report["catalog_snapshot"]["collections"]
+        }
+        self.assertEqual(names, {"seven_records_v1", "other_collection"})
+        self.assertNotIn("_graphs", names)
+        self.assertEqual(report["write_count"], 0)
+        self.assertEqual(report["site_fingerprint"]["server_version"], "3.12.4")
+
+    def test_wrong_env_database_blocks_before_client_factory(self) -> None:
+        calls: list[str] = []
+
+        def factory(**kwargs):
+            calls.append("called")
+            return _FakeArangoClient(**kwargs)
+
+        with self.assertRaises(Exception):
+            ArangoDatabasePort.from_environment(
+                self._env(database="wrong_database"),
+                client_factory=factory,
+            )
+        self.assertEqual(calls, [])
+
+
+class LogicalSiteReportCliTests(unittest.TestCase):
+    def test_fixture_cli_emits_verifiable_report(self) -> None:
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            rc = seven_main(["db1l-logical-site-report", "--source", "fixture"])
+        self.assertEqual(rc, 0)
+        report = json.loads(out.getvalue())
+        self.assertEqual(verify_logical_site_report(report), ())
+
+    def test_verify_cli_accepts_fixture_report(self) -> None:
+        report = _build_golden_report()
+        with tempfile.TemporaryDirectory() as directory:
+            report_path = Path(directory) / "db1l-report.json"
+            report_path.write_text(json.dumps(report), encoding="utf-8")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                rc = seven_main([
+                    "db1l-verify-logical-site-report",
+                    "--report",
+                    str(report_path),
+                ])
+        self.assertEqual(rc, 0)
+        verdict = json.loads(out.getvalue())
+        self.assertEqual(verdict["verdict"], "PASS")
+
+    def test_environment_readonly_requires_explicit_ack(self) -> None:
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            rc = seven_main([
+                "db1l-logical-site-report",
+                "--source",
+                "environment-readonly",
+            ])
+        self.assertNotEqual(rc, 0)
+        self.assertIn("ack-readonly-db", err.getvalue())
 
 
 if __name__ == "__main__":

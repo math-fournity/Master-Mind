@@ -474,7 +474,11 @@ def main() -> None:
         except (json.JSONDecodeError, OSError):
             current = None
     if current and current.get("generator_contract_version") == GENERATOR_CONTRACT_VERSION:
-        if current.get("source_set_sha256") == data["source_set_sha256"] and current.get("generator_sha256") == data["generator_sha256"]:
+        if (
+            current.get("source_set_sha256") == data["source_set_sha256"]
+            and current.get("generator_sha256") == data["generator_sha256"]
+            and current.get("migration_map_sha256") == data["migration_map_sha256"]
+        ):
             print(json.dumps({"status": "ALREADY_CURRENT", "output": str(OUTPUT), "clauses": len(current["clauses"]), "remainder": current["remainder"]}, ensure_ascii=False, sort_keys=True))
             return
     if current and int(current.get("generator_contract_version", 0)) >= 2:
@@ -507,14 +511,33 @@ def main() -> None:
             # one canonical index snapshot rather than an archive of every
             # same-version generator refresh. A mechanical generator refresh
             # must not erase the already adjudicated v2->v3 provenance.
-            prior_clause_migrations = {
-                str(item["old_clause_id"]): item
+            prior_clause_ids = {
+                str(item["old_clause_id"])
                 for item in current.get("applied_migrations", [])
             }
+            missing_prior_clause_ids = sorted(prior_clause_ids - set(migration_map))
+            if missing_prior_clause_ids:
+                raise RuntimeError(f"previously applied migrations missing from current migration map: {missing_prior_clause_ids}")
+            # If the migration map itself was corrected, refresh cumulative
+            # entries from the current map. Otherwise the canonical index can
+            # preserve stale targets even after the review record supersedes
+            # them.
+            prior_clause_migrations = {
+                old_clause_id: migration_map[old_clause_id]
+                for old_clause_id in prior_clause_ids
+            }
             prior_clause_migrations.update({str(item["old_clause_id"]): item for item in applied})
-            prior_policy_migrations = {
-                str(item["migration_id"]): item
+            policy_migration_map = {str(item["migration_id"]): item for item in policy_migrations}
+            prior_policy_ids = {
+                str(item["migration_id"])
                 for item in current.get("applied_policy_migrations", [])
+            }
+            missing_prior_policy_ids = sorted(prior_policy_ids - set(policy_migration_map))
+            if missing_prior_policy_ids:
+                raise RuntimeError(f"previously applied policy migrations missing from current migration map: {missing_prior_policy_ids}")
+            prior_policy_migrations = {
+                migration_id: policy_migration_map[migration_id]
+                for migration_id in prior_policy_ids
             }
             prior_policy_migrations.update({str(item["migration_id"]): item for item in applied_policy})
             data["previous_index_sha256"] = current.get("previous_index_sha256") or current_index_sha256
