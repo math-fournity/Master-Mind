@@ -1,0 +1,153 @@
+# POC-1 候选TellCore——3个候选用于Pareto前沿分析
+
+**资产编号**：POC-1-Asset-1
+**服务POC**：POC-1因果取商增强版（Pareto前沿分析部分）
+**依赖**：383号TellCore v0候选C（✅已完成12字段消融，7字段最小充分集）
+**状态**：就绪
+
+---
+
+## 候选B（Baseline）= 383号TellCore v0候选C
+
+7字段最小充分集（383号已确定）：
+
+```yaml
+tellcore_id: B-baseline
+name: 局部-全局表示切换
+invariant_claim: |
+  问题的全局困难在局部表示（Z/pZ或Q_p）下可被化简。
+  具体来说，在自然表示下不可见的整除性、周期性或符号结构，
+  在局部表示下变为可见并可操作。
+trigger_boundary: |
+  在自然表示（整数/多项式/实数）下反复尝试无法推进时。
+  具体信号：AI反复试同一类方法失败、自然表示下的直接攻击无进展、
+  问题涉及整除性/符号/周期性但在自然表示下难以利用。
+negative_boundary: |
+  问题本身不含整除性/周期性/符号结构时不适用。
+  具体排除：构造性问题（需要构造-分析-排除）、几何问题（需要几何工具）、
+  分析估计问题（需要分析工具）、已在局部表示下的问题。
+parameter_slots:
+  - slot_name: original_representation
+    description: 当前受阻的自然表示（整数/多项式/实数）
+  - slot_name: local_representation
+    description: 要切换到的局部表示（Z/pZ或Q_p）
+  - slot_name: hidden_structure
+    description: 在局部表示下寻找的隐藏结构（整除性/周期性/符号结构）
+internal_policy: |
+  1. 识别当前在自然表示下受阻
+  2. 选择合适的局部表示（Z/pZ用于整除性/周期性，Q_p用于p-adic结构）
+  3. 在局部表示下寻找隐藏的整除性、周期性或符号结构
+  4. 将局部发现提升回全局表示，解决原问题
+progress_model: |
+  预期进展信号：
+  - AI引入了模p分析或p-adic赋值
+  - AI在局部表示下找到了整除性/周期性/符号结构
+  - AI将局部发现与全局条件建立了联系
+  - AI产生了可验证的中间lemma（如"模p下只有k个解"）
+termination: |
+  终止条件：
+  - 成功：局部表示下的发现已足以解决全局问题
+  - 无进展：局部表示下未发现隐藏结构（回退，考虑其他局部表示或放弃）
+  - 边界冲突：negative_boundary出现（问题不含整除性/周期性/符号结构）
+```
+
+## 候选A（精简版）= 删除negative_boundary
+
+测试negative_boundary的必要性——如果删掉negative_boundary后TellCore仍然有效，说明negative_boundary不是必要字段。
+
+```yaml
+tellcore_id: A-compact
+name: 局部-全局表示切换（精简版——无负边界）
+invariant_claim: |
+  同候选B
+trigger_boundary: |
+  同候选B
+negative_boundary: |
+  [已删除——测试无负边界时TellCore是否仍有效]
+  预期效果：没有negative_boundary，TellCore可能在不应触发的题上误触发
+parameter_slots:
+  - 同候选B
+internal_policy: |
+  同候选B（但步骤中不包含"检查negative_boundary"的判断）
+progress_model: |
+  同候选B
+termination: |
+  同候选B（但不含"边界冲突"终止条件）
+```
+
+**设计意图**：候选A与候选B的唯一差异是negative_boundary的有无。如果POC-1的Pareto前沿分析显示候选A在"触发准确率"维度上显著低于候选B（因为误触发），但在"操作可执行性"维度上与候选B相当（因为核心操作相同），则negative_boundary在Pareto前沿上贡献了"触发准确率"维度。
+
+## 候选C（扩展版）= 增加binding_rules + critic
+
+测试binding_rules和critic的增益——383号确定这两个字段为"重要补充"（非最小充分集），测试加上后是否在Pareto前沿上有增益。
+
+```yaml
+tellcore_id: C-extended
+name: 局部-全局表示切换（扩展版——含绑定规则和critic）
+invariant_claim: |
+  同候选B
+trigger_boundary: |
+  同候选B
+negative_boundary: |
+  同候选B
+parameter_slots:
+  - 同候选B
+binding_rules: |
+  绑定规则：
+  - original_representation绑定到题目中AI当前使用的表示（从thinking中识别）
+  - local_representation根据问题中的整数结构选择：
+    * 如果问题涉及整除性→优先Z/pZ（p从问题中的素数确定）
+    * 如果问题涉及p-adic结构→优先Q_p
+    * 如果问题涉及多模数→优先CRT组合
+  - hidden_structure根据问题类型选择：
+    * 整除性问题→找整除关系
+    * 周期性问题→找周期
+    * 符号问题→找符号模式
+internal_policy: |
+  同候选B
+progress_model: |
+  同候选B
+termination: |
+  同候选B
+critic: |
+  常见失败模式与诊断：
+  - 误触发（在不含整除性/周期性/符号结构的题上触发）：
+    * 诊断：检查negative_boundary是否被忽略
+    * 修复：加强negative_boundary的trigger条件
+  - 绑定错误（选错了局部表示）：
+    * 诊断：检查binding_rules是否正确识别了问题的整数结构
+    * 修复：调整binding_rules的选择逻辑
+  - 执行但无进展（切换到局部表示后没找到隐藏结构）：
+    * 诊断：检查local_representation选择是否正确，或问题确实不含隐藏结构
+    * 修复：尝试其他局部表示，或回退
+  - 局部成功但全局失败（局部发现无法提升回全局）：
+    * 诊断：检查progress_model中的"局部发现与全局条件建立联系"是否实现
+    * 修复：检查是否需要额外的提升步骤
+```
+
+**设计意图**：候选C与候选B的差异是增加了binding_rules和critic。如果POC-1的Pareto前沿分析显示候选C在"操作可执行性"维度上高于候选B（因为binding_rules让AI更容易正确绑定参数），且在"可持续学习"维度上高于候选B（因为critic让失败可诊断可修复），则binding_rules+critic在Pareto前沿上贡献了这两个维度。
+
+---
+
+## 8维度Pareto前沿评分表
+
+对3个候选TellCore按以下8维度评分（0-2分）：
+
+| 维度 | 0分 | 1分 | 2分 | 候选A | 候选B | 候选C |
+|---|---|---|---|---|---|---|
+| 触发准确率 | 经常误触发 | 偶尔误触发 | 精确触发/拒绝 | ? | ? | ? |
+| 操作可执行性 | AI不知道做什么 | AI知道大致方向 | AI知道具体步骤 | ? | ? | ? |
+| 近迁移效用 | 同类型题无效 | 同类型题部分有效 | 同类型题有效 | ? | ? | ? |
+| 远迁移效用 | 不同类型题无效 | 不同类型题部分有效 | 不同类型题有效 | ? | ? | ? |
+| 负迁移率（越低越好） | 经常误导 | 偶尔误导 | 从不误导 | ? | ? | ? |
+| 提示成本（越低越好） | 很长很复杂 | 中等长度 | 简洁 | ? | ? | ? |
+| 泄漏风险（越低越好） | 高泄漏 | 中泄漏 | 低泄漏 | ? | ? | ? |
+| 可持续学习 | 无法从反例学习 | 可粗略归因 | 可精确诊断+修复 | ? | ? | ? |
+
+评分在POC-1执行时填写。Pareto前沿分析：保留在所有维度上不被其他候选支配的候选集合。
+
+**预期结果**：
+- 候选A（无负边界）：触发准确率低（0分），但其他维度与B相当→被B在触发准确率维度上支配
+- 候选B（7字段baseline）：触发准确率中（1分，有负边界但无critic完善）、操作可执行性中（1分，有internal_policy但无binding_rules）、可持续学习低（0分，无critic）
+- 候选C（扩展版）：触发准确率中-高（1-2分，有负边界+critic诊断误触发）、操作可执行性高（2分，有binding_rules）、可持续学习高（2分，有critic）
+- **预期Pareto前沿**：候选B和候选C都在前沿上——B在"提示成本"和"简洁性"上占优，C在"操作可执行性"和"可持续学习"上占优。候选A被B支配。
