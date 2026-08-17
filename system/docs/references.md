@@ -70,6 +70,55 @@
 | 342 | 系统时间意识方案——全管线全子管线运行时间记录（3层时间记录+数据库timing字段+耗时摘要） |
 | 343 | six/合并到system/方案——system成为自包含的第六代系统（代码层+文档层+运行时层，终止six/维护） |
 
+### 2026-08-14新增（解题侧非线性脉络分析）
+
+| 编号 | 内容 |
+|---|---|
+| 344 | 解题侧非线性脉络分析理论——事件DAG、观察/分区层、FCA概念格三者分离，RCA-style关系尺度 |
+| 345 | 独立实施方案——入题侧保护清单、严格轨迹合同、阶段门和独立代码/资产/测试命名空间 |
+| 346 | POC-VMS-31预注册协议——线性、分叉、折返、真合流、复合五案例与F/T/D对照 |
+| 347 | POC-VMS-31实验结果——离线结构PASS，raw thinking抽取与live接入NOT_TESTED |
+| 348 | POC-VMS-32协议——三个认知角色、冻结fixture、GLM-5.2 High单次实跑与盲化评分 |
+| 349 | POC-VMS-32结果——sandbox/权限/载体限流导致协议不可判，不外推角色无效 |
+| 350 | POC-VMS-33协议——独立角色启动器、模型/环境/export/原子封存修订验证 |
+| 351 | POC-VMS-33结果——sandbox自主模式仍拒绝文件写入，启动器修订不足 |
+| 352 | POC-VMS-34协议——只读认知角色+机械响应封存备选；live调用暂停 |
+| 353 | 入题侧Devin CLI回源——tmux/Popen、工作目录、模型写文件、DONE/export竞态与解题侧吸收边界 |
+| 354 | POC-VMS-35协议——仅移除sandbox，复现来源侧文件写入合同的单因素实验 |
+| 355 | Devin双运行档——sealed noninteractive与interactive tmux debug的证据分流 |
+| 356 | POC-VMS-35结果——文件写入合同恢复，但总判INCONCLUSIVE且形成gold语义反例 |
+| 357 | POC-VMS-36协议——tmux实时可观测、一次正常退出动作、export完整性Canary |
+| 358 | POC-VMS-36结果——tmux可观测成功，但repo内workspace被自身deny规则拒绝，ABORTED/INCONCLUSIVE |
+| 359 | POC-VMS-37协议——D盘专属外置workspace、同设备live/final bundle与正常完成验证 |
+| 360 | POC-VMS-37结果——D盘/tmux/dangerous/exact model可用，但`Read(/Volumes/**)`自拒绝且attempt ID漂移，总体INCONCLUSIVE/ABORTED |
+| 361 | POC-VMS-38协议——no-sandbox + dangerous/YOLO + 冻结AGENTS工作区权限与精确attempt身份的一次性tmux验证 |
+| 362 | POC-VMS-38结果——调试执行合同SUPPORTED；严格输出/DONE/exact model/tool boundary/正常退出PASS，角色资格仍NOT TESTED；发现历史ATIF摘要0/15计数缺陷 |
+| 363 | 解题侧总路线图与任务追踪——Devin AGENTS物理边界、S1—S7脉络核心、Trace/Tell/Hint积累、推理树/引导树、Grove闭环、Seven模拟/DB与golden slice |
+| 364 | POC-VMS-39冻结协议——Devin `AGENTS.md`短控制面的官方回源、精确尺寸sentinel与ATIF effective visibility隔离实测 |
+| 365 | POC-VMS-39最终结果——静态`rules show`完整到256 KiB；live 16,384 bytes full、16,385 bytes开始截断；四cell全树aggregate integrity PASS |
+| 366 | POC-VMS-40冻结协议——五层真值、多视图关系、多轴State、不可拆分alternative与机械Evaluator |
+| 367 | POC-VMS-40结果——MV1—MV6共26个candidate全部匹配预注册Verdict；离线确定性范围PASS |
+| 368 | POC-VMS-41协议——四case未见样本、隐藏acceptable set、一次性Devin Event Extractor资格化与延迟评分 |
+| 369 | POC-VMS-41结果——artifact/replay PASS但机械0/4、协议INCONCLUSIVE、profile NOT_QUALIFIED；事后诊断只作failure localization |
+| 370 | Trace/Tell/Hint文件分片与逐项遍历——一个不可变items真值源、append-only分析/cursor、机械coverage与completion |
+| 371 | POC-VMS-41R1修订协议——Candidate V2、occurrence/projection、typed path、时序状态、MERGE贡献与file-effect审计 |
+| 372 | POC-VMS-41R1未见qualification pack冻结协议——6个未见case、阈值、盲审rubric、hidden acceptable set/reference/negative checks与零模型preexecution边界 |
+| 373 | POC-VMS-41R1 live runner与盲审封存协议——零模型runner shell、workspace/public-hidden split、`--execute` fail-closed与授权前停止点 |
+| 374 | POC-VMS-41R1 LiveRunPermit与盲审包计划——不可消费permit、Reviewer可见文件集、hidden join顺序与零副作用计划对象 |
+| 375 | POC-VMS-41R1 sealed manual judgment合同——case/attempt绑定、盲审attestation、六轴Verdict与人工判断Schema |
+| 376 | POC-VMS-41R1 hidden join simulator——synthetic manual judgment、fake/reference candidate、hidden mechanical join和development-only final verdict |
+| 377 | POC-VMS-41R1 fake live bundle与盲审包materializer——Reviewer可见文件hash manifest、hidden隔离和非live输出声明 |
+| 378 | POC-VMS-41R1 final qualification join receipt——materializer与hidden join按case/attempt/candidate hash合并，development-only final receipt和非资格化边界 |
+| 379 | POC-VMS-41R1 fake bundle append-only dry-run——临时输出根真实写Reviewer可见文件、拒绝覆盖/repo根/symlink根和hidden泄露 |
+| 380 | POC-VMS-42 State Normalizer预注册协议——多轴状态绑定、dictionary alias归一化、legacy projection与fail-closed反例 |
+| 381 | POC-VMS-42 State Normalizer资格包冻结——public/hidden分离、reference/negative重放与零模型receipt |
+| 382 | POC-VMS-42 State Normalizer hidden join——candidate bundle与hidden dictionary/acceptable set评分边界、negative保留和非资格化receipt |
+| 383 | POC-VMS-42 State Normalizer reviewer judgment合同——public/candidate bundle盲审对象、hidden未见attestation与六轴Verdict |
+| 384 | POC-VMS-42 State Normalizer final reviewer+hidden join——manual/hidden双面裁决合并、FAIL保留与非资格化final receipt |
+| 385 | POC-VMS-42 State Normalizer unseen qualification extension——全新fixture扩展、新旧case/candidate ID不重叠、public/hidden隔离和非资格化extension receipt |
+| 386 | POC-VMS-42 State Normalizer DAG writeback sidecar——PASS normalized bundle按DAG event_id/topological order生成不可变annotation bundle，不改写DAG本体 |
+| 387 | POC-VMS-43 Trace Auditor结构审计——结构化DAG上的branch/failure/revisit/reuse/merge/recovery family观测与可选state sidecar一致性验证 |
+
 ---
 
 ## 2. 代码元素到研发文档的映射
@@ -112,6 +161,34 @@
 | `vein_analysis.py` → `_phase1_grading()` | 333号——4并发格化 | VMS-28/28b/28c/28d/28e |
 | `vein_analysis.py` → `_phase1_5_enumerate()` | 333号——程序枚举闭元素 | verify_lattice_completeness.py |
 | `vein_analysis.py` → `_phase2_synthesis()` | 336号——综合分析4阶段拆分 | 0010-0013验证 |
+
+### 解题侧非线性脉络（system/solve_vein_analysis/）
+
+| 代码位置 | 定义来源 | 当前验证 |
+|---|---|---|
+| `models.py` → `ReasoningTrajectory/ReasoningDag` | 344号§3、345号数据合同 | POC-VMS-31五例+负向合同 |
+| `fca.py` → `FormalContext/Next Closure` | 344号§4、346号§4.3 | Next Closure=对象子集穷举oracle |
+| `pipeline.py` → graph/context/relational/trace | 344号§5、345号阶段设计 | 五例exact edge/trace/批增量PASS |
+| `integrity.py` → implementation receipt | 345号artifact合同 | 单次run与POC均绑定精确实现树 |
+| `cli.py` | 345号artifact与隔离门 | 原子封存、拒绝覆盖、零model/DB/Solver |
+| `role_runtime.py` | 348、350、353、354、356号 | sandbox/no-sandbox分档；VMS-35三角色文件/export成功但未资格化 |
+| `tmux_runtime.py` | 353、355、357、358号 | 私有socket/session、pane/health快照与abort已验证；repo外workspace待新版本 |
+| `assets/solve_vein_analysis/` | 345、348、353-362号 | 0.3.0哈希PASS；VMS-38只支持interactive debug执行合同，prompt/manifest本身不声明角色live capability |
+| `semantic_truth.py` | 344、345、356、362、366-367号 | 五层真值、多视图relation、多轴state、完整alternative和机械Verdict |
+| `event_extraction_projection.py` | 369、371号 | V2 occurrence/projection、typed path、双时间状态、MERGE贡献frontier与路径搜索资源上限；26项离线回归PASS，未资格化模型 |
+| `file_effect_audit.py` | 369、371号 | pre/post inventory+结构化provider events联合审计；15项离线回归PASS，真实CLI事件完备性未资格化 |
+| `state_normalization.py` | 356、366、367、380号 | 多轴State Normalizer离线核心；2 case/4 candidate、8项core测试PASS，模型角色未资格化 |
+| `tests/solve_vein_analysis/build_vms42_state_normalizer_pack.py` | 380、381号 | VMS-42零模型资格包构建器；public/hidden分离、2 reference/2 negative、7项pack测试PASS |
+| `tests/solve_vein_analysis/vms42_state_normalizer_hidden_join.py` | 380-382号 | VMS-42 hidden join模拟器；reference bundle PASS但development-only，negative bundle FAIL并保留，8项测试PASS |
+| `tests/solve_vein_analysis/vms42_state_normalizer_manual_judgment_contract.py` | 380-383号 | VMS-42 sealed reviewer judgment合同；绑定candidate bundle、hidden未见attestation、六轴Verdict，10项测试PASS |
+| `tests/solve_vein_analysis/vms42_state_normalizer_final_join_receipt.py` | 380-384号 | VMS-42 final reviewer+hidden join receipt；manual/hidden任一FAIL则final FAIL，双PASS仍development-only，8项测试PASS |
+| `tests/solve_vein_analysis/build_vms42_state_normalizer_unseen_pack.py` | 380-385号 | VMS-42 unseen qualification extension；2个全新case/4 candidate、新旧ID不重叠、public/hidden隔离、8项测试PASS |
+| `state_normalized_dag.py` | 380、385、386号 | VMS-42 DAG writeback sidecar；PASS State Normalizer evaluation绑定DAG event，保持DAG不变并按拓扑输出annotation bundle，8项测试PASS |
+| `trace_auditor.py` | 386、387号 | VMS-43 Trace Auditor结构审计；在已结构化DAG上观察非线性trace family，验证可选state sidecar hash/order兼容，10项测试PASS |
+| `run_event_extractor_calibration.py` + `qualification_fixtures/vms41r1_calibration/` | 371号 | 13 candidate+6 file-effect开发场景逐轴零mismatch；manifest、受限mutation、tamper与symlink拒绝；永久`DEVELOPMENT_ONLY` |
+| `build_vms41r1_qualification_pack.py` + `qualification_fixtures/vms41r1/` | 372号 | 6个未见qualification case、6个hidden reference candidate、4个negative mutation自检；public manifests不含答案/acceptable set；机械上限`PENDING_BLIND_MANUAL_AUDIT` |
+| `freeze_vms41r1_event_extractor_preexecution.py` + `live_fixtures/poc_vms_41r1.freeze.json` | 371-372号 | 0.4.1角色资产、6个attempt IDs、qualification pack和hidden grader物证的零模型preexecution freeze；外部副作用授权全为0，live仍需新授权 |
+| `tests/solve_vein_analysis/` | 346-387号 | `README.md`是全部测试/POC证据总索引；293 tests；VMS-39冻结profile cap=16,384 bytes；VMS-40离线6 case/26 candidate PASS；VMS-41封存为NOT_QUALIFIED；VMS-41R1 zero-model chain闭合但live未授权；VMS-42 State Normalizer链PASS；VMS-43 Trace Auditor结构审计PASS；VMS-44—52仍待预注册 |
 
 ### Pipe 2: Telling AI（待实现）
 
@@ -170,6 +247,22 @@
 | VMS-18 | 引导树妖娆生长 | 引导树能否在不同Level上快速生出更多探索方向 | 315/316号 | VMS-17 |
 | VMS-19 | tell库持续增长闭环 | 解题引导→解答吸收→解题引导闭环 | 315/316号 | VMS-16+VMS-17 |
 | VMS-26 | 两棵树Level问题 | 非局部trace引入后的Level问题 | 315/316号 | VMS-17 |
+
+### 解题侧新增POC
+
+| POC | 名称 | 验证什么 | 结果 | 非主张 |
+|---|---|---|---|---|
+| VMS-31 | 非线性脉络FCA/RCA对照 | 结构化轨迹上的事件DAG、FCA闭包、关系尺度、trace与F/T/D投影损失 | 347号：离线结构PASS | raw thinking抽取、live载体、数据库、规模性能均未测试 |
+| VMS-32 | Devin认知角色首次实跑 | 三角色能否按冻结资产写出可评分输出 | 349号：INCONCLUSIVE_PROTOCOL | 不证明角色无效 |
+| VMS-33 | 角色启动器修订 | 独立config/model/export/sandbox能否恢复写入 | 351号：INCONCLUSIVE_PROTOCOL | 不证明sandbox是唯一原因 |
+| VMS-34 | 机械响应封存备选 | 无写工具的marker响应方案 | 352号：PAUSED_BEFORE_LIVE_CALLS | 不含live证据 |
+| VMS-35 | 来源侧文件写入合同复现 | no-sandbox单因素下三个角色写文件、DONE与export | 356号：文件合同受支持；总体INCONCLUSIVE | 不资格化角色，不证明强隔离 |
+| VMS-36 | tmux交互调试Canary | 实时pane可观测、DONE后正常退出、export完整封存 | 358号：可观测PASS；自身workspace访问失败；总体INCONCLUSIVE/ABORTED | 永久DEVELOPMENT_ONLY；不资格化角色 |
+| VMS-37 | D盘外置workspace tmux Canary | 修复VMS-36路径/deny冲突，验证输出、DONE、export和正常退出 | 360号：D盘与tmux可用，但全卷deny再次自拒绝，attempt ID也漂移；INCONCLUSIVE/ABORTED | 永久DEVELOPMENT_ONLY；不资格化角色 |
+| VMS-38 | dangerous + AGENTS工作区权限 tmux Canary | 删除会自拒绝的广泛Read deny，用角色AGENTS约束workspace权限并机械绑定attempt ID | 362号：`SUPPORTED_WITHIN_DEBUG_CANARY`；D盘严格输出/DONE、exact model、13-step/7-call原始边界审计、唯一退出和exit 0全部成立 | 永久DEVELOPMENT_ONLY；不资格化角色；历史receipt的0/15摘要不可用 |
+| VMS-39 | Devin `AGENTS.md`有效装载边界 | 静态loader与live ATIF是否一致、16 KiB附近精确截断位置 | 365号：冻结profile中16,384 bytes完整、16,385开始截断；aggregate integrity PASS | 不外推其他CLI/profile；不支持把AGENTS用作Tell/Trace数据仓库 |
+| VMS-40 | 多视图脉络真值与AcceptableSet | occurrence、relation view、多轴state、alternative与机械Verdict | 367号：6 case/26 candidate零mismatch，离线确定性PASS | 不资格化任何模型角色 |
+| VMS-41 | Event Extractor未见资格化 | 四case、隐藏acceptable set、一次性Devin one-shot与延迟评分 | 369号：artifact/replay PASS、机械0/4、INCONCLUSIVE_PROTOCOL、profile NOT_QUALIFIED；事后诊断已封存 | 人工非盲，只用于failure localization；原attempt不可重跑；不裁决模型全局能力 |
 
 ---
 
