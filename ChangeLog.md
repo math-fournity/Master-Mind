@@ -12,6 +12,15 @@
 - **另记录**：该线全部产物（模块/测试/344-387号文档/docs/assets）当前均为git untracked未提交状态。
 - **编号说明**：388/389号已被`Tell分类学研究过程文档/`占用，本评审取390号避免跨目录冲突。
 
+### 解题侧P0清偿与冻结完成（391号§4 P0表全部执行）
+
+- **P0.1五层分层commit**：模块16件套（`cbdcd58`）→测试目录58脚本+fixtures+poc_results（`bebec4c`）→研发文档344-387号+363-route-lock.json共45文件9,225行（`4788bab`）→system/docs+runbook+索引并把system/README.md过时的363号指针修正为391号（`6f9e29f`）→运行资产4个release（`5496835`）。整线约45K行产物从untracked状态全部落盘。
+- **P0.2**：363号头部+route-lock.json顶层`_superseded`字段标记SUPERSEDED_BY_391（内容字段原样保留为物证；route-lock因JSON不支持注释采用新增顶层字段方式，合法性已验证）。
+- **P0.3**：测试证据索引README头部降级声明——真值源变更391号、资格链标记FROZEN、原293项索引降级为历史物证索引。
+- **P0.4**：首次复跑291/293——根因是VMS-41R1 freeze payload把`platform.platform()`纳入append-once字节校验，宿主macOS从26.4.1升级到26.6.1后必然DRIFT。差分验证确认除platform外全部字段（含实现树/资产/夹具哈希）逐字节一致。处置：仅修改test_event_extractor_vms41r1_prefreeze.py对platform解耦（断言DRIFT路径不改写文件+零授权），冻结JSON和freeze脚本一字未动（`66b5165`）。复跑293项OK。
+- **P0.5未执行**：390号§7自查回答原指定由原负责AI回答，保持开放不阻塞。
+- 391号§8看板P0→DONE；任务追踪09同步更新（含新坑记录：freeze环境钉死、rebase需stash）。
+
 ### 解题侧交接文档落盘（391号§3.5执行载体+任务追踪09+AGENTS.md当前任务节）
 
 - **执行载体决定**：391号新增§3.5——devin cli不再作为解题侧P0-P2执行载体，改为ZCode主会话（流程管理者+验证者）+subagent（分析执行者）+确定性代码。分工映射表+三条载体纪律（提示词模板落盘/每任务manifest/失败记失败不重试）+决策点2载体更新（subagent替代devin做抽取重考，资格化方法论保留）+边界（不碰题海队列、并发≤4）。

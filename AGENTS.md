@@ -787,7 +787,7 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
 
 ### 当前任务：解题侧脉络分析新方案执行（2026-08-16起·活跃）
 
-解题侧脉络分析线（`system/solve_vein_analysis/`，VMS-31~43）经390号评审后重构：363号路线图及route-lock已SUPERSEDED（不再是真相源，勿按其指针推进资格链），22个资格链脚本冻结。现行唯一方案=391号：P0清偿与冻结→P1真实数据golden slice→P2 trace→tell对接→P3 Grove闭环接入。执行载体=ZCode主会话+subagent+确定性代码（devin cli不再参与，391号§3.5）。**当前状态：整线约45K行产物（模块/测试/344-387号文档/assets）全部未commit，P0未执行——新session接手第一件事是做P0分层提交。**
+解题侧脉络分析线（`system/solve_vein_analysis/`，VMS-31~43）经390号评审后重构：363号路线图及route-lock已SUPERSEDED（不再是真相源，勿按其指针推进资格链），22个资格链脚本冻结。现行唯一方案=391号：P0清偿与冻结→P1真实数据golden slice→P2 trace→tell对接→P3 Grove闭环接入。执行载体=ZCode主会话+subagent+确定性代码（devin cli不再参与，391号§3.5）。**当前状态：P0已完成（2026-08-16，五层commit+SUPERSEDED标记+293项复跑绿，含freeze测试platform环境钉死修复）——下一对象是P1。**
 
 - **方案入口（含§8唯一状态源看板）**：`第六代系统研发过程文档/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`
 - **常备参考**：392号（入题侧脉络分析31条经验全量提取与解题侧对照）、390号（过度设计评审）
