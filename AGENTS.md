@@ -733,6 +733,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ Mid-Hint实验。721个中51个已有明确d2子类型（脚本直接选题，覆盖7种卡点类型），667个d2=other需Pipe 3语义再分类（可选扩展）。详见 `eight-system/HANDOFF.md`。产出统计见 `analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
 - **Pipe 3选题系统**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`。单例测试通过（13秒完成，XML解析成功，判定正确）。分类逻辑审查见`dev-docs/387号`§九（子类型完备性OK、PARTIAL_PROGRESS处理合理、批次难度需经验验证、判断信号充分性是核心局限但风险可控）。
 - **MH第一圈(00995)已完成**：交互模式运行13分钟，AI用doubling construction解决n≡2(mod 4)卡点，答案5048。**重大发现：标准答案3800有误**——穷举代码`mean_int_search.py`的`row_options`只生成排序行，漏掉非排序行解空间，n=6错误判定IMPOSSIBLE。n=6构造已程序验证正确（1-36每个出现一次，所有行/列均值整数）。正确答案5048（S={1,...,100}\{2}）。详见`eight-system/runs/midhint/realtrack/00995/experiment_report.md`和`verification/README.md`。
+- **题目纠错记录**：`dev-docs/389号`——集中记录所有发现标准答案有误的题目。**选题前必须先查本文档**。当前记录：polymath_00995（标准答案3800→5048）。ArangoDB `problem_profiles`集合中已更新正确答案。
 
 ---
 
