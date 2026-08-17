@@ -42,6 +42,8 @@ eight-system/
 
 ## 文档索引
 
+> **交接与当前状态**：[HANDOFF.md](HANDOFF.md)——工作线全景、第一圈staged状态与重启命令、待决策事项（2026-08-16）。
+
 ### 第一阶段：调查与分析
 
 | 文档 | 行数 | 内容 |
@@ -71,6 +73,12 @@ eight-system/
 | S4 TellCore+CaseCard（382+383+388） | [精简文档](docs/筛选产出/S4-TellCore与CaseCard-精简文档.md)（1103行） | [审计表](docs/筛选产出/S4-TellCore与CaseCard-筛选审计表.md)（55行） |
 | S5 合理设计决策（387+389） | [精简文档](docs/筛选产出/S5-合理设计决策-精简文档.md)（357行） | [审计表](docs/筛选产出/S5-合理设计决策-筛选审计表.md)（49行） |
 
+### 决策记录（治理决策，持续追加）
+
+| 文档 | 行数 | 内容 |
+|---|---|---|
+| [两棵树实现时机与基本实践方式](docs/两棵树实现时机与基本实践方式.md) | 130 | 2026-08-16两次问答完整落盘：①非特化研究阶段不实现两棵树（树缓建+记录树形化可回填+四条毕业条件）；②每轮研究必须是核心循环的一次真实旋转（五个真实动作亲手完整执行）。用户确认，新AI必读。 |
+
 ### 第三阶段：Phase 0 实验验证
 
 | 文档/文件 | 行数 | 内容 |
@@ -96,6 +104,18 @@ eight-system/
 | 文档/文件 | 行数 | 内容 |
 |---|---|---|
 | [Mid-Hint行动方案](runs/midhint/preregistration.md) | 446 | **完备的行动方案文档**。从Phase 0/1的"前缀Hint"修正为"半路Hint注入"——AI先跑到出错→系统识别中间节点→给非特化Hint→AI从中间继续。理念部分完整记录：核心命题、用户设计意图、与283号tree组的关系、277号"99%不相识"命题、非特化Hint层次结构、与第五代三个推动关系的对应、正交出题核心理念、bare失败题来源。 |
+
+#### 选题数据来源（Mid-Hint实验输入）
+
+Mid-Hint实验需要"标准解答用了局部-全局切换，但AI没走这个方向"的题。选题数据来自错题分析系统的三Pipe流程：
+
+| Pipe | 产出文件 | 状态 | 说明 |
+|---|---|---|---|
+| Pipe 1（分析） | [analysis_summary.md](../analysis-devin-failure-system/output/analysis_summary.md) | ✅ 完成 | 2050条分析结果，1589个唯一题目，1096个DIRECTION_ERROR |
+| Pipe 2（审计） | [audit_summary.md](../analysis-devin-failure-system/output/audit-full1/audit_summary.md) | ✅ 90%完成 | 1385个审计完成，721个PASS_SELECTABLE可选题，135个重跑中 |
+| Pipe 3（选题） | — | ⏳ 未开始 | 从721个PASS_SELECTABLE中按Mid-Hint标准选题，对d2=other做语义再分类 |
+
+**选题方案**：详见 [dev-docs/387号](../dev-docs/387-v0-2026-08-16-错题分析系统审计与选题方案.md)（三Pipe方案，FROZEN）
 
 ## 文档关系
 
