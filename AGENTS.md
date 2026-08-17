@@ -731,6 +731,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **Pipe监控SOP**：运行任何Pipe（分析/审计/选题）时，必须启动Monitor Pipe并行监控。**检查时用标准化脚本** `analysis-devin-failure-system/scripts/monitor_check.sh <batch_id>`，禁止inline编写检查命令。脚本输出4项检查：Monitor Pipe pane输出 / alerts集合 / 进程状态 / 进度。详见 `.devin/rules/pipeline-monitor-sop.md`。
 - **审计Pipeline Rate Limit防护**：运行audit_launcher前必须检查当前devin cli进程数并据此设置并发（>8个进程时并发=1）。rate limit是账户级的，跨所有CLI实例共享。选题只用status=completed的审计结果。详见 `.devin/rules/audit-pipeline-rate-limit.md`。根因分析见 `dev-docs/388号`。
 - **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ Mid-Hint实验。721个中51个已有明确d2子类型（脚本直接选题，覆盖7种卡点类型），667个d2=other需Pipe 3语义再分类（可选扩展）。当前状态：2圈已staged（00995+00128），配额已恢复，可启动。详见 `eight-system/HANDOFF.md`。产出统计见 `analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
+- **Pipe 3选题系统**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`。单例测试通过（13秒完成，XML解析成功，判定正确）。分类逻辑审查见`dev-docs/387号`§九（子类型完备性OK、PARTIAL_PROGRESS处理合理、批次难度需经验验证、判断信号充分性是核心局限但风险可控）。
 
 ---
 
