@@ -15,7 +15,7 @@
 | POC-2 | 可选择 | 待执行 | 402号 | `poc_assets/poc_2/` | — | — |
 | POC-2.5 | 基础因果效应验证 | ⚠️执行中 | 398号 | `poc_assets/poc_2.5_round1/` + `poc_2.6/` | sessions.db | 2份(见下) |
 | POC-2.6 | 续传机制验证 | ✅完成 | 399号(2.6) | `poc_assets/poc_2.6/` | sessions.db | 2份(见下) |
-| POC-2.7 | 截断vs思维错误 | ⚠️执行中 | 415号 | `poc_assets/poc_2.6/` | sessions.db | — |
+| POC-2.7 | 截断vs思维错误 | ⚠️执行中 | 415号 | `poc_assets/poc_2.7/` | ArangoDB | — |
 | POC-3.5 | Hint非特化程度验证 | 待执行 | 403号 | `poc_assets/poc_3.5/` | — | — |
 | POC-3 | 可执行 | 待执行 | 404号 | — | — | — |
 | POC-4 | 可终止 | 待执行 | 405号 | — | — | — |
@@ -110,6 +110,45 @@
 
 ---
 
+## POC-2.7 截断vs思维错误（⚠️执行中）
+
+**方案文档**：`Tell分类学研究过程文档/415-v0-2026-08-18-POC-2.7-截断vs思维错误.md`
+**数据资产目录**：`Tell分类学研究过程文档/poc_assets/poc_2.7/`
+**批量续传脚本**：`poc_assets/poc_2.7/batch_continue_948.py`
+**数据库**：ArangoDB（`analysis_results` + `devin_problem_runs`）
+
+### 核心发现
+
+POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, msg=0, tc=0）。Pipe 1判定948道题为DIRECTION_ERROR，但96%实际上是failed_token_limit——thinking被截断，AI从未进入working阶段。
+
+### 阶段1验证结果（✅完成）
+
+| 题目 | 答案 | 轮次 | 说明 |
+|---|---|---|---|
+| CC-101_bare | boxed{4} | 2轮 | R1截断→R2完成 |
+| CC-103_bare | boxed{3} | 3轮 | v2交接文档 |
+| CC-104_bare | boxed{200} | 2轮 | R1截断→R2完成 |
+| CC-105_bare | boxed{793} | 2轮 | R1截断→R2完成 |
+| mathnet_001631 | boxed{k=2} | 3轮 | R1截断→R2截断→R3完成 |
+
+**5/5成功，0/5是真正的思维错误。**
+
+### 阶段2：948道DIRECTION_ERROR题全量续传（⚠️执行中）
+
+- 919道有export的题已从ArangoDB导出
+- 前缀分布：deepmath(382) + oda(304) + polymath(207) + omni(23) + amo(2) + mathnet(1)
+- 小批量测试(10题/并发5)执行中
+- 估算：919题×3轮×10分钟/5并发 ≈ 4天
+
+### 执行路径
+
+1. **阶段1** ✅已完成——4道bare题+1道DIRECTION_ERROR题全部成功
+2. **阶段2** ⚠️执行中——948道DIRECTION_ERROR全量续传
+3. **阶段3** 待定——6400道failed_token_limit全量续传（948道之外的5452道）
+4. **阶段4** POC-2.5b——续传后仍然失败的题上测试Hint因果效应
+
+---
+
 ## POC-2.5 基础因果效应验证（⚠️执行中）
 
 **方案文档**：`Tell分类学研究过程文档/398-v0-2026-08-17-POC-2.5-基础因果效应验证-自包含方案文档.md`
@@ -126,17 +165,19 @@
 | vein_hint | 题目+参考路径+Hint | 展开+抽象 | 是 |
 | hint | 题目+Hint | 抽象（一句话） | 否 |
 
-### 运行状态（2026-08-18）
+### 运行状态（2026-08-18更新）
 
 | 题目 | bare | vein | vein_hint | hint |
 |---|---|---|---|---|
-| CC-101 | ✅完成(boxed{4}) | ✅完成(boxed{4}) | v2续传中 | ✅完成(boxed{4}) |
-| CC-103 | ✅完成(boxed{3}) | v2续传中 | ✅完成(boxed{3}) | v1运行中 |
-| CC-104 | v1运行中 | 待启动 | 待启动 | 待启动 |
-| CC-105 | 待启动 | 待启动 | 待启动 | 待启动 |
+| CC-101 | ✅boxed{4} | ✅boxed{4} | ✅boxed{n=4} | ✅boxed{4} |
+| CC-103 | ✅boxed{3} | v2续传中 | ✅boxed{3} | v1运行中 |
+| CC-104 | ✅boxed{200} | ✅boxed{200} | ✅boxed{200} | v1运行中 |
+| CC-105 | ✅boxed{793} | 待启动 | 待启动 | 待启动 |
 
 **运行方式**：5并发，每个在独立tmux session中，不受对话窗口影响
 **定位方法**：见AGENTS.md"POC-2.5批量续传实例"节
+
+**POC-2.7发现**：4道bare题续传全部成功 → 这些题是截断错误不是思维错误 → POC-2.5的Hint因果实验需要重新选题（在续传后仍然失败的题上做）。详见415号POC-2.7方案。
 
 ### 判定逻辑（398号§5.3）
 
