@@ -32,6 +32,10 @@ else
 fi
 echo ""
 echo "  >> 需要检查："
+echo "     - ★ 逐轮分析每个ALERT——不只是看有没有新ALERT，还要分析每轮ALERT的根因和处理结果"
+echo "     - ★ 检查最新轮的内容——monitor_check.sh只取最近300行pane，最新轮可能被截断"
+echo "     -   必要时直接运行: tmux capture-pane -t pipe-monitor -p -S -100"
+echo "     - ★ 对比趋势——本轮vs上轮的alert数变化，判断根因修复是否生效"
 echo "     - 每轮是否有新ALERT？alert类型是什么（critical/warning/info）？"
 echo "     - AI_REVIEW抽样的2条结果——proof是否正确？是否有幻觉或答案泄漏？"
 echo "     - throughput是否在推进？如果停滞，检查runner/collector日志"
