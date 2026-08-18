@@ -1,91 +1,84 @@
 ---
 name: thinking-extraction
 description: >
-  从devin cli提取完整推理过程（thinking）。两种方式：
-  1. MITM流式实时截获——Solver思考过程中每个token实时落盘（mitmproxy responseheaders+stream callable）
-  2. sessions.db事后提取——session结束后完整提取（thinking_extractor.py）
-  WHEN to use: 需要分析AI为什么做不出某道题、需要理解AI的推理过程、需要提取挑战类型时、需要实时监控AI thinking时。
+  从devin cli提取完整推理过程（thinking）。两个数据源：
+  1. --export的conversation.json（优先）——reasoning_content字段包含完整thinking
+  2. sessions.db事后提取——thinking_extractor.py从thinking.thinking字段提取
+  mitmproxy已废弃（2026-08-18），不再用于thinking采集。
+  WHEN to use: 需要分析AI为什么做不出某道题、需要理解AI的推理过程、需要提取挑战类型时。
   WHEN NOT to use: 只需要AI的最终答案而不关心过程。
 ---
 
 # thinking-extraction skill
 
-## 两种获取方式
+## 两个数据源
 
-| 方式 | 工具 | 实时性 | 数据完整性 | 适用场景 |
+| 数据源 | 获取方式 | 实时性 | 数据完整性 | 用途 |
 |---|---|---|---|---|
-| **MITM流式实时截获** | mitmproxy（自动，solver-harness启动时） | **token级实时**（思考过程中每个token立即落盘） | token级thinking + tool_calls | 实时监控、流式分析、RealtimePipeline |
-| **sessions.db事后提取** | `thinking_extractor.py` | session结束后 | thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
+| **--export的conversation.json（优先）** | `devin -p --export <path>` | 每轮对话后实时写入 | reasoning_content（thinking）+ tool_calls + observation | 生产实验的标准数据源 |
+| **sessions.db事后提取** | `thinking_extractor.py` | session结束后 | thinking.thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
 
-两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式在Solver思考过程中实时落盘；sessions.db方式在session结束后提供完整数据（含tool_results）。
+**两个数据源的thinking内容一致**。--export方式更简单（不需要额外脚本）；sessions.db方式额外包含tool_results的完整输出。
 
-## 方式1：MITM流式实时截获（自动，无需手动操作）
+**mitmproxy已废弃（2026-08-18）**——不再用于thinking采集。`--export`的conversation.json已包含`reasoning_content`（完整thinking），不需要MITM截获。
 
-solver-harness启动Solver时自动启用mitmproxy代理。核心机制：
+## 方式1：从--export的conversation.json提取（优先）
 
-1. mitmproxy的`responseheaders` hook在响应头到达时（body之前）触发
-2. 设置`flow.response.stream = callable`
-3. 每个HTTP chunk到达时callable被调用，`StreamingThinkingParser`实时解析Connect streaming protobuf
-4. 每解析出一个thinking chunk（field 9）立即写入4个位置
+### 前置条件
 
-### 实时查看thinking
+- devin cli session已用`--export`运行，conversation.json已生成
 
-```bash
-# 查看人可阅读的连续文本（推荐——像读文章一样实时看AI思考）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_readable.txt
+### 工作流
 
-# 查看所有实验的thinking流（token级碎片格式）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/thinking_live.txt
+#### 步骤1：读取conversation.json
 
-# 查看特定实验的thinking流（token级碎片格式）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.txt
+```python
+import json
 
-# 程序化读取（JSONL格式，每个chunk一行）
-cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
+with open("<export_path>/conversation.json") as f:
+    data = json.load(f)
+
+steps = data.get("steps", [])
+agent_steps = [s for s in steps if s.get("source") == "agent"]
+
+# 检查数据完整性
+for i, step in enumerate(agent_steps):
+    rc = step.get("reasoning_content", "")
+    tc = step.get("tool_calls", [])
+    obs = step.get("observation", "")
+    msg = step.get("message", "")
+    print(f"step[{i}]: reasoning={len(str(rc))}chars, "
+          f"tool_calls={len(tc)}items, "
+          f"observation={len(str(obs))}chars, "
+          f"message={len(str(msg))}chars")
 ```
 
-### 四路落盘格式
+#### 步骤2：提取thinking
 
-| 文件 | 格式 | 用途 |
-|---|---|---|
-| `thinking_readable.txt` | **人可阅读的连续文本** | `tail -f`读文章——thinking实时拼接追加，tool_call用分隔符标记，每轮有START/END |
-| `thinking_live.txt` | token级碎片（每token一行带时间戳） | `tail -f`看token流——适合调试和精确时间分析 |
-| `thinking_live.jsonl` | JSONL（每chunk一行JSON） | 程序读取——含timestamp/chunk_index/content |
-| `_shared/.../thinking_live.txt` | token级碎片（全局） | `tail -f`看所有实验 |
-
-### thinking_readable.txt格式示例
-
-```
-============================================================
-[04:50:39] === Thinking Round 3 START ===
-============================================================
-Let me analyze this problem carefully.
-
-We have $a_1, a_2, \ldots, a_n$ real numbers with:
-- $\sum a_i = n$
-- $\sum a_i^2 = 2n$
-...（连续文本，实时增长）
-
---- [Tool Call: read] [04:50:37] ---
-args: {"file_path": "/data/..."}
----
-
-============================================================
-[04:50:38] === Thinking Round 3 END ===
-  thinking: 6261 chars, 1200 chunks
-  tool_calls: 1
-  elapsed: 28.5s
-============================================================
+```python
+for step in agent_steps:
+    rc = step.get("reasoning_content", "")  # thinking
+    # rc就是AI的完整推理过程
 ```
 
-### 验证数据（2026-08-08）
+#### 步骤3：分析thinking
 
-- 120秒内11,397行txt + 10,971行jsonl
-- chunk粒度1-7字符/token（如`+T`、`+(k`、`+approx`）
-- 毫秒级时间戳（04:22:13.250 → 04:22:13.447）
-- 第二轮thinking：12,865个chunks在2分钟内实时落盘
+读`reasoning_content`字段，关注以下维度：
 
-## 方式2：sessions.db事后提取
+**AI的数学识别**：
+- AI识别了什么数学结构？
+- AI是否识别了正确的数学领域？
+
+**AI的方法尝试**：
+- AI尝试了什么方法？
+- AI尝试了几个不同的方法？
+
+**AI的卡点**：
+- AI在哪里停下来？
+- AI的thinking中是否提到"不知道下一步该做什么"？
+- AI是否意识到自己卡住了？
+
+## 方式2：从sessions.db提取（需要tool_results时）
 
 ### 前置条件
 
@@ -135,7 +128,7 @@ sqlite3 ~/.local/share/devin/cli/sessions.db "SELECT id, title, working_director
 读thinking.md或thinking.json，关注以下维度：
 
 **AI的数学识别**：
-- AI识别了什么数学结构？（如"这是关于badly approximable数的问题"）
+- AI识别了什么数学结构？
 - AI是否识别了正确的数学领域？
 
 **AI的方法尝试**：
@@ -143,7 +136,7 @@ sqlite3 ~/.local/share/devin/cli/sessions.db "SELECT id, title, working_director
 - AI尝试了几个不同的方法？
 
 **AI的卡点**：
-- AI在哪里停下来？（如"PSLQ找不到关系"、"精度不够"）
+- AI在哪里停下来？
 - AI的thinking中是否提到"不知道下一步该做什么"？
 - AI是否意识到自己卡住了？
 
@@ -176,22 +169,23 @@ sqlite3 ~/.local/share/devin/cli/sessions.db "SELECT id, title, working_director
 1. **thinking是英文的**：GLM-5.2的thinking用英文，content用中文——分析时注意语言差异
 2. **node去重**：sessions.db中每个node出现两次（渲染重复），SDK已自动去重
 3. **thinking可能为空**：不是每个assistant step都有thinking（如纯tool_call的step可能没有thinking）
-4. **session必须已结束**：session还在跑时sessions.db数据不完整，但MITM流式数据是实时的
+4. **session必须已结束**：session还在跑时sessions.db数据不完整
 5. **tool_results有截断**：SDK截断长tool结果到5000字符，完整结果在sessions.db中
-6. **MITM数据无tool_results**：MITM只截获thinking+tool_calls，tool_results在sessions.db中
+6. **字段位置因数据源而异**：--export用`reasoning_content`，sessions.db用`thinking.thinking`
+
+## 与noninteractive-solver-run元组的关系
+
+```
+noninteractive-solver-run启动Solver（devin -p --export）
+    ↓
+    ├─ --export的conversation.json（reasoning_content=thinking，优先）
+    └─ sessions.db事后提取 → thinking.json/md（含tool_results）
+    ↓
+thinking-extraction → 分析thinking，判断挑战类型
+    ↓
+POC-VMS虚拟挑战构造 → 用挑战类型指导虚拟群论挑战生成
+```
 
 ## 与258号挑战类型分析的关系
 
 258号方案要求分析25道题的AI response，判断AI为什么做不出。本skill提供提取AI完整推理过程的手段——258号分析的输入数据由本skill生成。
-
-流程：
-```
-solver-tmux-launch启动Solver → Solver做题产生thinking数据
-    ↓
-    ├─ MITM流式实时截获 → thinking_live.jsonl（实时落盘，可tail -f）
-    └─ sessions.db事后提取 → thinking.json/md（完整数据，含tool_results）
-    ↓
-258号挑战类型分析 → 分析thinking，判断挑战类型
-    ↓
-POC-VMS虚拟挑战构造 → 用挑战类型指导虚拟群论挑战生成
-```

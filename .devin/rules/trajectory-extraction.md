@@ -1,11 +1,12 @@
 ---
 description: >
-  需要获取tmux中devin cli的完整trajectory时，必须用trajectory_extractor.py从sessions.db提取。
+  需要获取devin cli的完整trajectory时，优先用--export的conversation.json（含reasoning_content=thinking），
+  或用trajectory_extractor.py从sessions.db提取（含tool_results + 树结构）。
   trajectory = AI从头到尾的完整工作过程，包含thinking + content + tool_calls + tool_results。
-  数据在sessions.db的message_nodes.chat_message JSON的thinking.thinking字段 + tool_call_state表。
-  支持JSONL/Markdown/JSON三种格式 + 增量更新。
+  --export的conversation.json中thinking在reasoning_content字段；sessions.db中thinking在thinking.thinking字段。
+  mitmproxy已废弃（2026-08-18），不再用于trajectory采集。
   WHEN to use: 需要完整重建AI工作过程、检索系统需要trajectory数据、分析AI推理链、session还在跑需要持续更新trajectory。
-  WHEN NOT to use: 只需要AI的最终答案、只需要thinking不需要tool_results（用thinking_extractor.py即可）。
+  WHEN NOT to use: 只需要AI的最终答案、只需要thinking不需要tool_results（用--export的conversation.json即可）。
 trigger: model_decision
 ---
 
@@ -13,16 +14,19 @@ trigger: model_decision
 
 ## 硬约束
 
-**需要获取tmux中devin cli的完整trajectory时，必须使用 `xishujuzhen/trajectory_extractor.py`。**
+**需要获取devin cli的完整trajectory时，有两个数据源，按优先级选择：**
 
-trajectory = AI从头到尾的完整工作过程——thinking（推理） + content（输出） + tool_calls（工具调用） + tool_results（工具结果），按时间排序，带树结构。
+1. **--export的conversation.json（优先）**——`devin -p --export <path>`生成，agent step的`reasoning_content`字段包含完整thinking，`tool_calls`和`observation`包含工具调用和结果。简单、clean、不需要额外脚本。
+2. **sessions.db提取（需要tool_results和树结构时）**——用`xishujuzhen/trajectory_extractor.py`从sessions.db提取，thinking在`thinking.thinking`字段中，额外包含tool_results的完整输出和parent-child树结构。
+
+**mitmproxy已废弃（2026-08-18）**——不使用mitmproxy采集trajectory。`--export`的conversation.json已包含`reasoning_content`（完整thinking），不需要MITM截获。
 
 ## 与thinking-extraction元组的关系
 
-| 元组 | 脚本 | 数据范围 | 用途 |
+| 元组 | 数据源 | 数据范围 | 用途 |
 |---|---|---|---|
-| thinking-extraction | thinking_extractor.py | thinking + content + tool_calls | 分析AI为什么做不出（关注推理过程） |
-| trajectory-extraction | trajectory_extractor.py | **完整trajectory**（含tool_results + 树结构 + 增量更新） | 检索系统的基础数据、完整重建AI工作过程 |
+| thinking-extraction | --export的conversation.json（优先）/ sessions.db | thinking + content + tool_calls | 分析AI为什么做不出（关注推理过程） |
+| trajectory-extraction | --export的conversation.json（优先）/ sessions.db | **完整trajectory**（含tool_results + 树结构 + 增量更新） | 检索系统的基础数据、完整重建AI工作过程 |
 
 trajectory-extraction是thinking-extraction的超集：trajectory包含thinking的所有内容，还额外包含tool_results的完整输出、parent-child树结构、增量更新能力。
 
@@ -70,26 +74,14 @@ trajectory-extraction是thinking-extraction的超集：trajectory包含thinking�
 
 ## 数据源速查
 
-trajectory有两个数据源，互补使用：
+trajectory有两个数据源，按优先级选择：
 
 | 数据源 | 获取方式 | 实时性 | 数据完整性 | 用途 |
 |---|---|---|---|---|
-| **MITM流式实时截获** | mitmproxy responseheaders+stream callable | **token级实时**（思考过程中每个token立即落盘） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
-| **sessions.db** | `trajectory_extractor.py` / `trajectory_monitor.py` | session结束后完整（或3秒轮询接近实时） | thinking + content + tool_calls + tool_results + 树结构 | 完整重建AI工作过程、检索系统索引 |
+| **--export的conversation.json（优先）** | `devin -p --export <path>` | 每轮对话后实时写入 | reasoning_content（thinking）+ tool_calls + observation | 生产实验的标准数据源 |
+| **sessions.db** | `trajectory_extractor.py` / `trajectory_monitor.py` | session结束后完整（或3秒轮询接近实时） | thinking.thinking + content + tool_calls + tool_results + 树结构 | 完整重建AI工作过程、检索系统索引 |
 
-### MITM流式实时数据源
-
-| 数据 | 位置 | 获取方式 | 说明 |
-|---|---|---|---|
-| **thinking_readable.txt** | `<exp_id>/mitm/thinking_readable.txt` | mitmproxy自动写入 | **人可阅读的连续文本**——thinking实时拼接追加，tool_call用分隔符标记，每轮有START/END。可`tail -f`读文章 |
-| thinking chunks（碎片） | `<exp_id>/mitm/thinking_live.txt` | mitmproxy自动写入 | token级碎片（每token一行带时间戳），可`tail -f` |
-| thinking chunks（全局） | `_shared/mitm_raw/thinking_live.txt` | mitmproxy自动写入 | 所有实验的thinking流（token级碎片），可`tail -f` |
-| thinking chunks（JSONL） | `<exp_id>/mitm/thinking_live.jsonl` | mitmproxy自动写入 | 每个token一行JSON（含timestamp/chunk_index/content） |
-| thinking汇总 | `<exp_id>/mitm/thinking_live.jsonl`的`stream_complete`记录 | mitmproxy自动写入 | 每轮thinking完成后的完整文本+tool_calls列表 |
-| tool_call chunks | `<exp_id>/mitm/thinking_live.jsonl`的`tool_call_chunk`记录 | mitmproxy自动写入 | tool_call的name和args也是流式落盘 |
-| raw protobuf | `_shared/mitm_raw/chatmsg_NNN_*.bin` | mitmproxy自动保存 | 事后可用`decode_connect_proto.py`重新解码 |
-| API调用日志 | `_shared/mitm_raw/api_log.txt` | mitmproxy自动记录 | 所有API的URL/状态/大小/时间 |
-| flow文件 | `_shared/mitm_flows.mitm` | mitmproxy `-w`保存 | 可用`mitmdump -r`回放 |
+**mitmproxy已废弃（2026-08-18）**——不再用于trajectory采集。历史MITM数据（`<exp_id>/mitm/`目录）仍可查阅，但不再产生新数据。
 
 ### sessions.db数据源（事后完整提取）
 
@@ -108,6 +100,6 @@ trajectory有两个数据源，互补使用：
 
 1. **Node去重**：sessions.db中每个assistant node出现两次（devin cli渲染机制），SDK自动去重保留第一个
 2. **tool_call_id关联**：assistant的tool_calls[].id = tool node的tool_call_id = tool_call_state.tool_call_id
-3. **thinking在thinking.thinking字段**：不是reasoning_content（那个是空的）
+3. **thinking的字段位置因数据源而异**：--export的conversation.json中thinking在`reasoning_content`字段；sessions.db中thinking在`thinking.thinking`字段。两个数据源的thinking内容一致。
 4. **tool_name推断**：SDK从rawInput字段推断工具名（exec/read/write/get_output/kill_shell/web_search等）
 5. **增量更新**：--incremental模式读取已有JSONL的最后一个node_id，只追加新steps

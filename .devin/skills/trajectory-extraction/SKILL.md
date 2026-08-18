@@ -1,22 +1,32 @@
 ---
 name: trajectory-extraction
 description: >
-  用trajectory_extractor.py从sessions.db提取devin cli的完整trajectory。
-  trajectory = AI从头到尾的完整工作过程（thinking + content + tool_calls + tool_results）。
-  支持JSONL/Markdown/JSON三种格式 + 增量更新。
+  从devin cli提取完整trajectory。两个数据源：
+  1. --export的conversation.json（优先）——reasoning_content字段包含完整thinking
+  2. sessions.db事后提取——trajectory_extractor.py从thinking.thinking字段提取（含tool_results + 树结构）
+  mitmproxy已废弃（2026-08-18），不再用于trajectory采集。
   WHEN to use: 需要完整重建AI工作过程、检索系统需要trajectory数据、分析AI推理链、session还在跑需要持续更新。
-  WHEN NOT to use: 只需要thinking不需要tool_results（用thinking_extractor.py即可）。
+  WHEN NOT to use: 只需要thinking不需要tool_results（用--export的conversation.json即可）。
 ---
 
 # trajectory-extraction skill
 
 ## 用途
 
-从sessions.db提取devin cli的完整trajectory，用于：
+从devin cli提取完整trajectory，用于：
 1. 检索系统的基础数据——检索系统需要trajectory来索引AI的工作过程
 2. 完整重建AI工作过程——从session开始到结束的每一步
 3. 分析AI推理链——thinking + tool_calls + tool_results的完整链条
 4. 持续监控——session还在跑时增量更新trajectory
+
+## 两个数据源
+
+| 数据源 | 获取方式 | 实时性 | 数据完整性 | 用途 |
+|---|---|---|---|---|
+| **--export的conversation.json（优先）** | `devin -p --export <path>` | 每轮对话后实时写入 | reasoning_content（thinking）+ tool_calls + observation | 生产实验的标准数据源 |
+| **sessions.db事后提取** | `trajectory_extractor.py` | session结束后（或3秒轮询接近实时） | thinking.thinking + content + tool_calls + tool_results + 树结构 | 完整重建AI工作过程、检索系统索引 |
+
+**mitmproxy已废弃（2026-08-18）**——不再用于trajectory采集。`--export`的conversation.json已包含`reasoning_content`（完整thinking），不需要MITM截获。
 
 ## 前置条件
 
@@ -171,91 +181,19 @@ trajectory是检索系统工作的基础数据：
 - 当AI遇到新问题时，检索系统从历史trajectory中找相似的推理模式
 - trajectory的树结构（parent_node_id）保留了AI的推理路径——不只是线性序列
 
-## 与solver-tmux-launch元组的关系
+## 与noninteractive-solver-run元组的关系
 
 ```
-solver-tmux-launch启动Solver → Solver做题产生trajectory数据
+noninteractive-solver-run启动Solver（devin -p --export）
     ↓
-    ├─ sessions.db（事后完整提取）→ trajectory_extractor.py → JSONL
-    └─ MITM（实时截获）→ decode-all → trajectory.jsonl（token级thinking）
+    ├─ --export的conversation.json（reasoning_content=thinking，优先）
+    └─ sessions.db（事后完整提取）→ trajectory_extractor.py → JSONL
     ↓
 检索系统索引trajectory → 当AI遇到新问题时检索相似推理模式
     ↓
 thinking-extraction（子集）→ 分析AI为什么做不出（关注thinking）
 ```
 
-## MITM流式实时thinking截获（2026-08-08建立）
+## 历史MITM数据（已废弃，仅供查阅）
 
-solver-harness通过mitmproxy截获devin cli的API响应，实现**token级实时**thinking采集——Solver思考过程中每个token立即落盘。
-
-### 核心机制：responseheaders + stream callable
-
-```
-devin cli → HTTPS_PROXY=localhost:18889 → mitmproxy → server.self-serve.windsurf.com
-    ↓
-responseheaders hook（响应头到达时，body之前）
-    ↓ 设置 flow.response.stream = parser.feed
-    ↓
-每个HTTP chunk到达时 → parser.feed(chunk) 被调用
-    ↓ StreamingThinkingParser实时解析Connect streaming protobuf
-    ↓ 每解析出一个field 9（thinking chunk）立即写入4个位置：
-    ├─ _shared/mitm_raw/thinking_live.txt（全局，token级碎片，可tail -f）
-    ├─ <exp_id>/mitm/thinking_live.txt（按实验，token级碎片，可tail -f）
-    ├─ <exp_id>/mitm/thinking_live.jsonl（JSONL，每个chunk一行）
-    └─ <exp_id>/mitm/thinking_readable.txt（人可阅读连续文本，可tail -f读文章）
-    ↓
-流结束时 → parser.feed(b"") 被调用 → 写stream_complete汇总记录
-```
-
-### 关键修复：NODE_EXTRA_CA_CERTS
-
-devin cli是Node.js应用，不读macOS Keychain。必须设置`NODE_EXTRA_CA_CERTS=~/.mitmproxy/mitmproxy-ca-cert.pem`环境变量，否则交互模式SSL验证失败。solver-harness已内置此修复（见solver-tmux-launch元组）。
-
-### 实时查看
-
-```bash
-# 查看人可阅读的连续文本（推荐——像读文章一样实时看AI思考）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_readable.txt
-
-# 查看所有实验的thinking流（token级碎片格式）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_shared/mitm_raw/thinking_live.txt
-
-# 查看特定实验（token级碎片格式）
-tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.txt
-
-# 程序化读取
-cat /data/math-agent-glm5.2-tmux-agents-trajectory/<exp-id>/mitm/thinking_live.jsonl
-```
-
-### 四路落盘格式
-
-| 文件 | 格式 | 用途 |
-|---|---|---|
-| `thinking_readable.txt` | **人可阅读的连续文本** | `tail -f`读文章——thinking实时拼接追加，tool_call用分隔符标记，每轮有START/END |
-| `thinking_live.txt` | token级碎片（每token一行带时间戳） | `tail -f`看token流——适合调试和精确时间分析 |
-| `thinking_live.jsonl` | JSONL（每chunk一行JSON） | 程序读取——含timestamp/chunk_index/content |
-| `_shared/.../thinking_live.txt` | token级碎片（全局） | `tail -f`看所有实验 |
-
-### JSONL记录类型
-
-- `thinking_chunk`：单个thinking token（含timestamp/counter/chunk_index/content）
-- `tool_call_chunk`：单个tool_call chunk（含tool_call_id/name/args_chunk/is_start）
-- `stream_complete`：一轮thinking完成后的汇总（含thinking_full完整文本/tool_calls列表/elapsed_seconds）
-
-### 事后解码
-
-```bash
-# 实时解码单个bin文件（事后分析）
-python3 xishujuzhen/mitm_thinking_intercept/decode_connect_proto.py <file.bin> --stream
-
-# 批量解码所有raw数据（按work_dir分发到各实验）
-python3 xishujuzhen/solver_harness/solver_harness.py decode-all
-```
-
-### 验证结果（2026-08-08）
-
-- 120秒内11,397行txt + 10,971行jsonl
-- chunk粒度1-7字符/token（如`+T`、`+(k`、`+approx`）
-- 毫秒级时间戳（04:22:13.250 → 04:22:13.447）
-- 第二轮thinking：12,865个chunks在2分钟内实时落盘
-- mitmproxy截获的thinking与sessions.db完全一致——两个数据源互补
+mitmproxy曾用于token级实时thinking截获（2026-08-08建立，2026-08-18废弃）。历史MITM数据（`<exp_id>/mitm/`目录）仍可查阅，但不再产生新数据。详见全局`noninteractive-solver-run` skill的经验3（completion_tokens限制发现）。

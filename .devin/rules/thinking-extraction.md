@@ -1,11 +1,10 @@
 ---
 description: >
-  分析AI解题过程时，必须用thinking_extractor.py从sessions.db提取完整thinking数据，
-  或用mitmproxy实时截获thinking（通过decode_connect_proto.py解码）。
-  thinking数据在chat_message JSON的thinking.thinking字段中（不是reasoning_content），
-  或在mitmproxy截获的protobuf field 9中。
-  包含AI的完整推理链：尝试了什么、为什么失败、下一步打算做什么。
-  WHEN to use: 需要分析AI为什么做不出某道题、需要理解AI的推理过程、需要提取挑战类型时、需要实时监控AI thinking时。
+  分析AI解题过程时，优先用--export的conversation.json的reasoning_content字段（完整thinking），
+  或用thinking_extractor.py从sessions.db提取（thinking在thinking.thinking字段）。
+  mitmproxy已废弃（2026-08-18），不再用于thinking采集。
+  thinking包含AI的完整推理链：尝试了什么、为什么失败、下一步打算做什么。
+  WHEN to use: 需要分析AI为什么做不出某道题、需要理解AI的推理过程、需要提取挑战类型时。
   WHEN NOT to use: 只需要AI的最终答案而不关心过程。
 trigger: model_decision
 ---
@@ -14,48 +13,53 @@ trigger: model_decision
 
 ## 硬约束
 
-**分析AI解题过程时，必须使用 `xishujuzhen/thinking_extractor.py` 提取完整thinking数据。**
+**分析AI解题过程时，必须提取完整thinking数据。** 有两个数据源，按优先级选择：
 
-**需要实时监控AI thinking时，使用mitmproxy截获+`decode_connect_proto.py`解码。**
+1. **--export的conversation.json（优先）**——`devin -p --export <path>`生成，agent step的`reasoning_content`字段包含完整thinking。简单、clean、不需要额外脚本。
+2. **sessions.db提取（需要tool_results时）**——用`xishujuzhen/thinking_extractor.py`从sessions.db提取，thinking在`thinking.thinking`字段中，额外包含tool_results。
+
+**mitmproxy已废弃（2026-08-18）**——不使用mitmproxy采集thinking。`--export`的conversation.json已包含`reasoning_content`（完整thinking），不需要MITM截获。
 
 不能只看AI的content（输出给用户的内容）——content只是thinking的摘要。thinking才是AI的真实推理过程。
 
-## 两种获取方式
+## 两个数据源
 
-| 方式 | 工具 | 实时性 | 数据完整性 | 适用场景 |
+| 数据源 | 获取方式 | 实时性 | 数据完整性 | 用途 |
 |---|---|---|---|---|
-| **MITM流式实时截获** | `mitmproxy` responseheaders+stream callable | **token级实时**（思考过程中每个token立即落盘） | token级thinking + tool_calls（无tool_results） | 实时监控、流式分析、RealtimePipeline |
-| **sessions.db提取** | `thinking_extractor.py` | session结束后 | thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
+| **--export的conversation.json（优先）** | `devin -p --export <path>` | 每轮对话后实时写入 | reasoning_content（thinking）+ tool_calls + observation | 生产实验的标准数据源 |
+| **sessions.db提取** | `thinking_extractor.py` | session结束后 | thinking.thinking + content + tool_calls + tool_results | 事后分析、挑战类型分析 |
 
-**MITM流式实时截获**是核心机制：mitmproxy的`responseheaders` hook在响应头到达时设置`flow.response.stream = callable`，每个HTTP chunk到达时callable被调用，实时解析Connect streaming protobuf，每解析出一个thinking chunk（field 9）立即写入4个位置：
-1. `_shared/mitm_raw/thinking_live.txt`（token级碎片，可`tail -f`实时查看）
-2. `<exp_id>/mitm/thinking_live.txt`（按实验隔离，token级碎片，可`tail -f`）
-3. `<exp_id>/mitm/thinking_live.jsonl`（JSONL格式，每个chunk一行）
-4. `<exp_id>/mitm/thinking_readable.txt`（**人可阅读的连续文本**——thinking实时拼接追加，tool_call用分隔符标记，可`tail -f`读文章）
-
-两种方式获取的thinking内容完全一致（已验证2026-08-08）。MITM方式在Solver思考过程中实时落盘（不需要等响应完成）；sessions.db方式在session结束后提供完整数据。
-
-### 树生长引擎的实时数据源
-
-树生长引擎（`tree_engine.py`）实时读取thinking数据时，用**thinking_live.jsonl**（按实验隔离的JSONL格式）：
-- 路径：`/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/mitm/thinking_live.jsonl`
-- 格式：每个chunk一行JSON，包含`counter`（round编号）、`chunk_index`、`type`、`content`
-- 按`counter`累积chunks得到完整round文本，用`node_extractor.py`提取节点
-
-**注意**：`thinking_readable.txt`是`solver-harness stop`时才生成的解码版本，不是实时的。实时数据源是`thinking_live.txt`/`thinking_live.jsonl`。
-
-**mitmproxy路径配置**：launchd服务`com.aurolafly.mitmproxy-devin`的环境变量`MITM_TRAJECTORY_BASE`必须指向`/data/math-agent-glm5.2-tmux-agents-trajectory`（本repo的trajectory存储）。如果指向旧路径，thinking数据不会落盘到正确位置。
+**两个数据源的thinking内容一致**。--export方式更简单（不需要额外脚本）；sessions.db方式额外包含tool_results的完整输出。
 
 ## 原因
 
 1. **thinking是AI的真实推理**：GLM-5.2的thinking字段包含AI的完整推理链（英文，平均6000+字符/步），content只是输出给用户的摘要（中文，平均50字符/步）
-2. **reasoning_content是空的**：sessions.db中`reasoning_content`字段为空，thinking数据在`thinking.thinking`字段中——用错字段会拿到空数据
+2. **thinking的字段位置因数据源而异**：--export的conversation.json中thinking在`reasoning_content`字段；sessions.db中thinking在`thinking.thinking`字段。两个数据源的thinking内容一致。
 3. **失败分析需要thinking**：AI做不出题时，thinking中记录了"尝试了什么、为什么失败、下一步打算做什么"——这是挑战类型分析的核心数据
 4. **tool_calls+tool_results是证据**：AI调用了什么工具（如Python计算）和工具返回了什么结果，是判断AI卡在哪里的关键证据
 
 ## 实施规范
 
-### 提取thinking数据
+### 从--export的conversation.json提取thinking
+
+```python
+import json
+
+with open("<export_path>/conversation.json") as f:
+    data = json.load(f)
+
+steps = data.get("steps", [])
+agent_steps = [s for s in steps if s.get("source") == "agent"]
+
+for step in agent_steps:
+    rc = step.get("reasoning_content", "")  # thinking
+    tc = step.get("tool_calls", [])
+    obs = step.get("observation", "")
+    msg = step.get("message", "")
+    # 分析rc（thinking）
+```
+
+### 从sessions.db提取thinking
 
 ```bash
 # 按session_id提取
@@ -76,13 +80,14 @@ trigger: model_decision
 每个step包含：
 - `role`: user/assistant/tool
 - `content`: AI输出给用户的内容（中文摘要）
-- `thinking`: AI的完整推理过程（英文，可能为空）
+- `thinking`: AI的完整推理过程（英文，可能为空）——sessions.db中用`thinking.thinking`字段
+- `reasoning_content`: AI的完整推理过程——--export的conversation.json中用此字段
 - `tool_calls`: AI调用的工具列表
 - `tool_results`: 工具返回的结果
 
 ### 分析流程
 
-1. 用`--summary`确认session有thinking数据（`has_thinking > 0`）
+1. 确认有thinking数据（--export检查`reasoning_content`非空；sessions.db用`--summary`检查`has_thinking > 0`）
 2. 导出为JSON或Markdown
 3. 读thinking字段，分析AI的推理链：
    - AI识别了什么数学结构？
@@ -94,26 +99,22 @@ trigger: model_decision
    - AI尝试了什么封闭形式识别（如PSLQ）？
    - 数值结果和正确答案的差距是什么？
 
-## 与solver-tmux-launch元组的关系
+## 与noninteractive-solver-run元组的关系
 
-solver-tmux-launch元组负责启动Solver的devin cli实例并记录trajectory（tmux pipe-pane + --export）。
-thinking-extraction元组负责从sessions.db提取trajectory中的thinking数据进行分析。
+noninteractive-solver-run元组负责启动解题AI（`devin -p --export`），生成conversation.json。
+thinking-extraction元组负责从conversation.json或sessions.db提取thinking数据进行分析。
 
 两个元组的关系：
-- solver-tmux-launch：**生成**数据（启动session，产生thinking数据）
-- thinking-extraction：**提取分析**数据（从sessions.db提取thinking，分析AI推理过程）
+- noninteractive-solver-run：**生成**数据（启动session，产生conversation.json含reasoning_content）
+- thinking-extraction：**提取分析**数据（从conversation.json提取reasoning_content，分析AI推理过程）
 
 ## 数据位置速查
 
 | 数据 | 位置 | 字段 |
 |---|---|---|
+| thinking（--export） | conversation.json → steps[] → agent step | `reasoning_content` |
 | thinking（sessions.db） | sessions.db → message_nodes → chat_message JSON | `thinking.thinking` |
-| thinking（MITM实时） | `_shared/mitm_raw/chatmsg_NNN_*.bin` → decode后 | protobuf field 9（content_thinking） |
 | content | sessions.db → message_nodes → chat_message JSON | `content` |
 | tool_calls | sessions.db → message_nodes → chat_message JSON | `tool_calls` |
-| tool_calls（MITM实时） | `_shared/mitm_raw/chatmsg_NNN_*.bin` → decode后 | protobuf field 6 |
 | tool_results | sessions.db → tool_call_state | `tool_call_update_json` |
 | session元信息 | sessions.db → sessions | `id, title, working_directory, model, created_at` |
-| --export JSON | 运行时指定路径 | `steps[].reasoning_content`（导出时映射了thinking→reasoning_content） |
-| API调用日志 | `_shared/mitm_raw/api_log.txt` | URL/状态/大小/时间 |
-| flow文件 | `_shared/mitm_flows.mitm` | 可用`mitmdump -r`回放 |

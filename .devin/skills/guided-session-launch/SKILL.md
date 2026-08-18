@@ -2,9 +2,10 @@
 name: guided-session-launch
 description: >
   引导式数学解题元组群·Skill 2：启动session。
-  准备work_dir、problem.txt，启动tmux+devin cli+--export。
+  准备work_dir、problem.txt，启动tmux+devin cli+--export（交互模式）。
+  引导式实验用交互模式（不带-p），因为需要实时干预AI推理过程——这是noninteractive-solver-run元组的例外。
   WHEN to use: 元组群guided-math-solving的第二步，预演完成后需要启动做题AI时。
-  WHEN NOT to use: 非引导模式、session已在运行中。
+  WHEN NOT to use: 非引导模式（用noninteractive-solver-run）、session已在运行中。
 ---
 
 # guided-session-launch skill
@@ -12,6 +13,14 @@ description: >
 ## 用途
 
 元组群 `guided-math-solving` 的 Skill 2。预演完成后，准备做题AI的运行环境并启动交互式session。
+
+## 为什么用交互模式（与noninteractive-solver-run的关系）
+
+**noninteractive-solver-run元组是生产标准**——用`devin -p --export`（非交互模式）运行解题AI，conversation.json的`reasoning_content`包含完整thinking。
+
+**引导式实验是例外**——需要实时干预AI推理过程（连续发问引导），所以用交互模式（`devin --export`，不带`-p`）。交互模式下AI不会自动退出，引导者可以多轮发问。
+
+**关键约束**：即使交互模式也必须带`--export`——conversation.json的`reasoning_content`仍然是thinking的数据源。不依赖tmux_pipe.log做thinking分析（有ANSI码污染，不可靠）。
 
 ## 前置条件
 
