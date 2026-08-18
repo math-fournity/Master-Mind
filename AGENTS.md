@@ -2724,12 +2724,19 @@ bash xishujuzhen/solver_harness/pipe/pipe_start.sh 60
 **一键停止**：
 
 ```bash
-# 优雅停止（保留harness session，它们会自然完成）
+# 优雅停止（保留harness session，它们会自然完成当前正在做的题）
 bash xishujuzhen/solver_harness/pipe/pipe_stop.sh
 
-# 停止并kill所有harness session
+# 停止并kill所有harness session（强制停止所有正在做的题）
 bash xishujuzhen/solver_harness/pipe/pipe_stop.sh --kill
 ```
+
+`pipe_stop.sh`自动完成3步：
+1. 停止launchd watchdog（防止自动重启）
+2. 停止6个pipe-*服务（feeder/runner/collector/reporter/retry/monitor，发SIGINT等10秒优雅退出）
+3. 保留或kill harness session（`--kill`才kill）
+
+**优雅停止的含义**：停止6个pipe服务后，已启动的harness-xxx session会继续运行直到自然完成当前正在做的题。不会有新题启动（runner已停）。Collector已停，所以已完成的题不会被判定终态——下次启动时recover_from_crash.py会处理。
 
 **手动启动（不推荐，缺少前置检查和watchdog）**：
 
