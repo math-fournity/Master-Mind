@@ -24,10 +24,10 @@ PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
 launchctl unload $PLIST 2>/dev/null || true
 echo "  ✅ watchdog已停止"
 
-# === 2. 停5个pipe-*服务 ===
+# === 2. 停6个pipe-*服务（含Monitor Pipe）===
 echo ""
-echo "[2/3] 停止5个pipe-*服务..."
-for svc in pipe-feeder pipe-runner pipe-collector pipe-reporter pipe-retry; do
+echo "[2/3] 停止6个pipe-*服务（含Monitor Pipe）..."
+for svc in pipe-feeder pipe-runner pipe-collector pipe-reporter pipe-retry pipe-monitor; do
     if tmux has-session -t $svc 2>/dev/null; then
         tmux send-keys -t $svc C-c ""
         sleep 2

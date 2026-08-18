@@ -5,12 +5,13 @@
 #   bash pipe_start.sh              # 默认30并发
 #   bash pipe_start.sh 60           # 60并发
 #
-# 这个脚本做5件事:
+# 这个脚本做6件事:
 # 1. 前置检查（Redis/ArangoDB/D盘）
 # 2. 恢复crash（清理zombie + 修复DB）
 # 3. 设置并发数
 # 4. 启动5个pipe-*服务（auto-restart模式）
-# 5. 启动launchd watchdog（守护服务+定期清理zombie）
+# 5. 启动Monitor Pipe（持续监控+alert+AI review抽样）
+# 6. 启动launchd watchdog（守护服务+定期清理zombie）
 #
 # 停止系统: bash pipe_stop.sh
 
@@ -93,7 +94,7 @@ echo ""
 echo "[4/5] 启动5个pipe-*服务..."
 
 # 先杀掉可能残留的pipe-* session
-for svc in pipe-feeder pipe-runner pipe-collector pipe-reporter pipe-retry; do
+for svc in pipe-feeder pipe-runner pipe-collector pipe-reporter pipe-retry pipe-monitor; do
     tmux kill-session -t $svc 2>/dev/null || true
 done
 
@@ -117,9 +118,17 @@ tmux new-session -d -s pipe-retry \
     "while true; do PYTHONPATH=$PYTHONPATH $PY $REPO/xishujuzhen/solver_harness/pipe/retry_infrastructure.py --max-retries 3 --interval 60 2>&1; echo '[auto-restart] retry退出, 5秒后重启...'; sleep 5; done"
 echo "  ✅ pipe-retry (--max-retries 3)"
 
-# === 5. 启动watchdog ===
+# === 5. 启动Monitor Pipe ===
 echo ""
-echo "[5/5] 启动launchd watchdog..."
+echo "[5/6] 启动Monitor Pipe..."
+tmux new-session -d -s pipe-monitor \
+    "while true; do PYTHONPATH=$PYTHONPATH $PY $REPO/xishujuzhen/solver_harness/pipe/monitor_pipe.py --interval 300 --concurrency $CONCURRENCY 2>&1; echo '[auto-restart] monitor退出, 5秒后重启...'; sleep 5; done"
+echo "  ✅ pipe-monitor (interval=300s, concurrency=$CONCURRENCY)"
+echo "     检查脚本: bash $REPO/xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh"
+
+# === 6. 启动watchdog ===
+echo ""
+echo "[6/6] 启动launchd watchdog..."
 PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
 launchctl unload $PLIST 2>/dev/null || true
 launchctl load $PLIST
@@ -138,8 +147,10 @@ echo "=========================================="
 echo ""
 echo "  并发: $CONCURRENCY"
 echo "  feeder: --tier 1,2,3 (246万题全自动)"
+echo "  monitor: Monitor Pipe持续监控（8项自动检查+AI review抽样）"
 echo "  watchdog: 守护5个服务 + 定期清理zombie"
 echo ""
 echo "  检查健康: PYTHONPATH=$PYTHONPATH $PY $REPO/xishujuzhen/solver_harness/pipe/pipe_control.py health"
+echo "  Monitor检查: bash $REPO/xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh"
 echo "  停止系统: bash $REPO/xishujuzhen/solver_harness/pipe/pipe_stop.sh"
 echo ""

@@ -34,6 +34,7 @@ SESSIONS = {
     "runner": {"script": "runner.py", "args": ["--concurrency"]},
     "collector": {"script": "collector.py", "args": []},
     "reporter": {"script": "reporter.py", "args": []},
+    "monitor": {"script": "monitor_pipe.py", "args": ["--interval"]},
 }
 
 LOG_DIR = "/data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs"
@@ -154,12 +155,18 @@ def cmd_start(args):
     retry_args = ["--max-retries", "3", "--interval", "120"]
     start_service("retry", "retry_infrastructure.py", retry_args, dry_run=args.dry_run, auto_restart=True)
 
+    # Monitor Pipe（可选，--no-monitor跳过）
+    if not args.no_monitor:
+        time.sleep(1)
+        monitor_args = ["--interval", str(args.monitor_interval), "--concurrency", str(args.concurrency)]
+        start_service("monitor", "monitor_pipe.py", monitor_args, dry_run=args.dry_run, auto_restart=True)
+
     print("\n所有服务已启动。用 'python pipe_control.py status' 查看状态。")
 
 
 def cmd_stop(args):
     print("停止管道化系统:")
-    for name in ["feeder", "runner", "collector", "reporter", "retry"]:
+    for name in ["feeder", "runner", "collector", "reporter", "retry", "monitor"]:
         stop_service(name, graceful=not args.force, timeout=args.timeout)
 
     if not args.keep_harness:
@@ -229,7 +236,7 @@ def cmd_status(args):
     print()
 
     # tmux session状态
-    for name in ["feeder", "runner", "collector", "reporter", "retry"]:
+    for name in ["feeder", "runner", "collector", "reporter", "retry", "monitor"]:
         session_name = f"pipe-{name}"
         running = tmux_running(session_name)
         status = "✅ 运行中" if running else "❌ 未运行"
@@ -590,6 +597,33 @@ def cmd_clear(args):
     print("  ✅ 已清空所有队列")
 
 
+def cmd_monitor(args):
+    """单独启动/停止/查看Monitor Pipe"""
+    if args.action == "start":
+        monitor_args = ["--interval", str(args.interval), "--concurrency", str(args.concurrency)]
+        start_service("monitor", "monitor_pipe.py", monitor_args, auto_restart=True)
+        print(f"\nMonitor Pipe已启动（interval={args.interval}s, concurrency={args.concurrency}）")
+        print(f"检查脚本: bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh")
+    elif args.action == "stop":
+        stop_service("monitor", graceful=True, timeout=10)
+        print("Monitor Pipe已停止")
+    elif args.action == "status":
+        if tmux_running("pipe-monitor"):
+            print("Monitor Pipe: ✅ 运行中")
+            # 显示最近几轮输出
+            result = subprocess.run(
+                ["tmux", "capture-pane", "-t", "pipe-monitor", "-p", "-S", "-50"],
+                capture_output=True, text=True, timeout=5
+            )
+            lines = [l for l in result.stdout.split("\n") if l.strip()]
+            print("\n最近输出:")
+            for line in lines[-15:]:
+                print(f"  {line}")
+        else:
+            print("Monitor Pipe: ❌ 未运行")
+            print("  启动: python pipe_control.py monitor start --interval 300 --concurrency 20")
+
+
 def main():
     parser = argparse.ArgumentParser(description="管道化系统控制工具")
     sub = parser.add_subparsers(dest="command")
@@ -604,6 +638,8 @@ def main():
     p_start.add_argument("--report-interval", type=int, default=60)
     p_start.add_argument("--clear", action="store_true", help="启动前清空Redis队列")
     p_start.add_argument("--dry-run", action="store_true", help="dry-run模式")
+    p_start.add_argument("--no-monitor", action="store_true", help="不启动Monitor Pipe（默认启动）")
+    p_start.add_argument("--monitor-interval", type=int, default=300, help="Monitor Pipe检查间隔秒数（默认300）")
     p_start.set_defaults(func=cmd_start)
 
     p_stop = sub.add_parser("stop", help="停止所有服务")
@@ -635,6 +671,12 @@ def main():
     p_poll = sub.add_parser("poll-interval", help="实时调整poll间隔")
     p_poll.add_argument("value", type=int, help="新的poll间隔秒数")
     p_poll.set_defaults(func=cmd_poll_interval)
+
+    p_monitor = sub.add_parser("monitor", help="单独启动/停止Monitor Pipe")
+    p_monitor.add_argument("action", choices=["start", "stop", "status"], help="start/stop/status")
+    p_monitor.add_argument("--interval", type=int, default=300, help="检查间隔秒数")
+    p_monitor.add_argument("--concurrency", type=int, default=20, help="预期并发数")
+    p_monitor.set_defaults(func=cmd_monitor)
 
     args = parser.parse_args()
     if not args.command:

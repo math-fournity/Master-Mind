@@ -729,8 +729,9 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **K维度多层知识结构（L1-L4）**：详见 `dev-docs/201号`系列。
 - **AI在运行过程中的角色**：经典计算给候选，AI做最终判断。详见 `dev-docs/202号`。
 - **Pipe监控SOP**：运行任何Pipe（分析/审计/选题）时，必须启动Monitor Pipe并行监控。**检查时用标准化脚本** `analysis-devin-failure-system/scripts/monitor_check.sh <batch_id>`，禁止inline编写检查命令。脚本输出4项检查：Monitor Pipe pane输出 / alerts集合 / 进程状态 / 进度。详见 `.devin/rules/pipeline-monitor-sop.md`。
+- **解题系统Monitor Pipe**（2026-08-17新增）：解题系统（pipe/5服务）现在有独立的Monitor Pipe——`xishujuzhen/solver_harness/pipe/monitor_pipe.py`，8项自动检查（session_health/queue_progress/rate_limit/zombie_sessions/export_landing/solve_time_credibility/failure_rate/throughput_trend）+ AI review抽样（每3轮抽样2条candidate_solved检查proof质量）。alert写入ArangoDB `pipe_monitor_alerts`集合。**检查脚本**：`bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh`（5项检查+对AI的核心提醒：检查Monitor Pipe的系统深度审查结果）。**启动**：`pipe_start.sh`自动启动Monitor Pipe，或`pipe_control.py monitor start --interval 300 --concurrency 20`单独启动。详见 `dev-docs/391号`。
 - **审计Pipeline Rate Limit防护**：运行audit_launcher前必须检查当前devin cli进程数并据此设置并发（>8个进程时并发=1）。rate limit是账户级的，跨所有CLI实例共享。选题只用status=completed的审计结果。详见 `.devin/rules/audit-pipeline-rate-limit.md`。根因分析见 `dev-docs/388号`。
-- **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ **Pipe 3（选题708条，产出47道YES候选+69道假朋友+30道边界）** → POC-0 CasePack精筛。Pipe 3规模化运行已完成（2026-08-17），产出统计见 `analysis-devin-failure-system/output/selection-full1/selection_results_summary.json`。详见 `eight-system/HANDOFF.md`和`analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
+- **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ **Pipe 3（选题708条，产出47道YES候选+69道假朋友+30道边界）** → POC-0 CasePack精筛（✅v1已冻结·2026-08-17，6正迁移+4假朋友+2边界从Pipe 3精筛）。Pipe 3规模化运行已完成（2026-08-17），产出统计见 `analysis-devin-failure-system/output/selection-full1/selection_results_summary.json`。详见 `eight-system/HANDOFF.md`和`analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
 - **Pipe 3选题系统（已扩展·2026-08-17·规模化运行完成）**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`+`src/monitor_selection.py`+`scripts/monitor_check_selection.sh`。**已按412号方案扩展**——提示词模板增加POC Preparation Metadata节（6项POC准备数据字段），解析器增加6个新标签的解析和DB写入，collect加跨batch去重，monitor_selection.py提供POC字段质量监控。**规模化运行完成（2026-08-17）**：708/708题全部完成，0失败，0 XML解析失败，耗时约85分钟（5并发）。产出47道suitable=YES候选题+69道假朋友候选+30道边界候选，6字段填写率100%，逻辑一致性0问题（1个初始问题已修正）。YES题batch分布均匀（batch1:15/batch2:10/batch3:10/extended:12）。分类逻辑审查见`dev-docs/387号`§九。扩展方案见`Tell分类学研究过程文档/412号`。运行SOP见下方"### Pipe 3扩展运行SOP"小节。
 - **MH第一圈(00995)已完成**：交互模式运行13分钟，AI用doubling construction解决n≡2(mod 4)卡点，答案5048。**重大发现：标准答案3800有误**——穷举代码`mean_int_search.py`的`row_options`只生成排序行，漏掉非排序行解空间，n=6错误判定IMPOSSIBLE。n=6构造已程序验证正确（1-36每个出现一次，所有行/列均值整数）。正确答案5048（S={1,...,100}\{2}）。详见`eight-system/runs/midhint/realtrack/00995/experiment_report.md`和`verification/README.md`。
 - **题目纠错记录**：`dev-docs/389号`——集中记录所有发现标准答案有误的题目。**选题前必须先查本文档**。当前记录：polymath_00995（标准答案3800→5048）。ArangoDB `problem_profiles`集合中已更新正确答案。
@@ -935,7 +936,7 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
   → 这是POC-0的前置依赖——没有Pipe 3产出，POC-0只能退回人工筛选1071条DIRECTION_ERROR题
 
 Phase A：策略对象成形
-  POC-0 CasePack冻结（✅382号已完成原始版，需按399号简化修订）——用Pipe 3产出精筛→22道CasePack
+  POC-0 CasePack冻结（✅v1已冻结·2026-08-17）——从Pipe 3产出精筛6正迁移+4假朋友+2边界，保留v0的source_trace/变形/组合→22道CasePack v1（`poc_assets/poc_0/casepack_v1.md`）
   POC-0.5 变形关系声明（新增·400号方案）
   POC-1 因果取商（✅383号已完成原始版，需按401号增强版补提取完备性检查+Pareto前沿分析）
 
@@ -957,7 +958,7 @@ Phase D：端到端
 
 POC-5可组合推迟到第二个Tell家族验证后。
 
-**首批目标Tell家族**：局部-全局表示切换（Local Representation Switch）——已有382号CasePack v0（22道题）和383号TellCore v0候选C（7字段最小充分集）。
+**首批目标Tell家族**：局部-全局表示切换（Local Representation Switch）——已有CasePack v1（22道题，`poc_assets/poc_0/casepack_v1.md`，2026-08-17冻结：6正迁移+4假朋友+2边界从Pipe 3精筛，4 source trace+4变形+2组合保留v0）和383号TellCore v0候选C（7字段最小充分集）。
 
 **当前状态**：理论框架和POC方案设计已完成（396-412号），7项POC资产已准备（poc_assets/）。下一步是执行——**执行编排见413号**（`Tell分类学研究过程文档/413-v0-2026-08-17-非特化研究执行编排-*.md`），413号定义了六批先后顺序、并行关系、时间估算、关键检查点，以及自包含文档加载纪律（执行任何一步前必须全文加载对应的自包含方案文档+§8清单文档）。**第一步是Pipe 3扩展代码修改（412号§5.1-5.3），完成后立即启动Pipe 3规模化运行（~40小时·瓶颈），在等待期间并行做POC-9和selfrun继续。**
 
