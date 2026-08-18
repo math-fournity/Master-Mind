@@ -940,7 +940,8 @@ Phase A：策略对象成形
 
 Phase B：基础验证
   POC-2 可选择（402号方案）
-  POC-2.5 基础因果效应验证（新增·398号方案·快速失败门）
+  POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️未完成——2026-08-18第一轮执行因completion_tokens限制失败，16个run的AI在thinking spin中被截断，需要先完成POC-2.6续传机制验证）
+  POC-2.6 续传机制验证（新增·399号方案·解决completion_tokens限制——把AI之前完成的thinking作为新prompt注入让AI继续思考）
   POC-3.5 Hint非特化程度验证（新增·403号方案·396号核心论断的验证·最关键）
   POC-3 可执行（404号方案·用POC-3.5确定的峰值HintInstance）
   POC-4 可终止（405号方案）
