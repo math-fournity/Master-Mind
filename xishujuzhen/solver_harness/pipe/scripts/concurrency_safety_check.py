@@ -106,8 +106,12 @@ def check_d_concurrency_limit(r):
     redis_running = r.hlen("math:running")
 
     result = subprocess.run(["tmux", "list-sessions"], capture_output=True, text=True)
-    harness_p = sum(1 for line in result.stdout.split("\n") if "harness-p" in line and "harness-dbmon" not in line)
-    harness_dbmon = sum(1 for line in result.stdout.split("\n") if "harness-dbmon-p" in line)
+    # 只统计解题系统的session（harness-p{uuidhex}格式），不统计其他AI的session
+    import re
+    pipe_p_pattern = re.compile(r'^harness-p[a-f0-9]{20}')
+    pipe_dbmon_pattern = re.compile(r'^harness-dbmon-p[a-f0-9]{20}')
+    harness_p = sum(1 for line in result.stdout.split("\n") if pipe_p_pattern.match(line.split(":")[0].strip()))
+    harness_dbmon = sum(1 for line in result.stdout.split("\n") if pipe_dbmon_pattern.match(line.split(":")[0].strip()))
 
     print(f"  设定并发:        {conc}")
     print(f"  Redis running:   {redis_running}")

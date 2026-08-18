@@ -70,6 +70,7 @@ FAILURE_RATE_THRESHOLD = 0.15     # 失败率>15% alert（解题系统容忍度�
 STALL_THRESHOLD_SECONDS = 900     # 15分钟无进度 alert（解题系统单题耗时更长）
 SOLVE_TIME_ANOMALY_THRESHOLD = 0.10  # solve_time>runtime比例>10% alert
 ZOMBIE_THRESHOLD = 2              # 僵尸session>=2个 alert
+ZOMBIE_GRACE_PERIOD = 120         # 启动后120秒内pane空白不算僵尸（devin cli还在启动）
 EXPORT_MISSING_THRESHOLD = 0.10   # export缺失率>10% alert
 SAMPLE_SIZE = 2                   # 每轮抽样2条需AI review
 LONG_RUNNING_THRESHOLD = 1800     # 单题运行>30分钟 alert（可能stall）
@@ -310,9 +311,14 @@ def check_zombie_sessions(db):
                              capture_output=True, text=True, timeout=5)
         pane = res.stdout
         if not pane.strip():
-            # 空pane僵尸：devin cli已退出，shell在sleep
-            zombies.append({"exp_id": eid, "problem_key": data.get("problem_key", ""),
-                           "attempt_key": attempt_key})
+            # pane空白——但可能是刚启动的session（devin cli还在启动）
+            # 只检测启动超过grace period但pane仍空的session
+            start_time = data.get("start_time", _ts())
+            elapsed = _ts() - start_time
+            if elapsed > ZOMBIE_GRACE_PERIOD:
+                # 超过grace period仍空白 = 真僵尸（devin cli已退出，shell在sleep）
+                zombies.append({"exp_id": eid, "problem_key": data.get("problem_key", ""),
+                               "attempt_key": attempt_key, "elapsed": elapsed})
 
     alerts = []
     if cleaned:

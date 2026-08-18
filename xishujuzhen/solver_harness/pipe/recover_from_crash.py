@@ -63,15 +63,17 @@ def tmux_session_exists(session_name: str) -> bool:
 
 
 def list_harness_sessions() -> list:
-    """列出所有harness-xxx tmux session"""
+    """列出解题系统的harness-xxx tmux session——只匹配harness-p{uuidhex}和harness-dbmon-p{uuidhex}"""
     try:
+        import re
         result = subprocess.run(
             ["tmux", "list-sessions", "-F", "#{session_name}"],
             capture_output=True, text=True, timeout=5
         )
         if result.returncode != 0:
             return []
-        return [s.strip() for s in result.stdout.strip().split("\n") if s.strip().startswith("harness-")]
+        pipe_pattern = re.compile(r'^harness-(dbmon-)?p[a-f0-9]{20}')
+        return [s.strip() for s in result.stdout.strip().split("\n") if pipe_pattern.match(s.strip())]
     except Exception:
         return []
 

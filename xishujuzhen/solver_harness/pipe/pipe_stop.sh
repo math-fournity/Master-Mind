@@ -53,12 +53,13 @@ if [ "$MODE" = "--kill" ]; then
     done
 
     echo ""
-    echo "[3/3] kill所有harness session..."
+    echo "[3/3] kill解题系统harness session（harness-p{uuid}格式）..."
     $PY $REPO/xishujuzhen/solver_harness/pipe/pipe_control.py stop --kill-harness 2>&1 | grep -E "killed|停止|服务" || true
-    for s in $(tmux list-sessions 2>/dev/null | grep "harness-" | awk -F: '{print $1}'); do
+    # 只kill解题系统的session（harness-p{uuidhex}格式），不kill其他AI的session
+    for s in $(tmux list-sessions 2>/dev/null | grep -E "^harness-(p|dbmon-p)[a-f0-9]{20}" | awk -F: '{print $1}'); do
         tmux kill-session -t "$s" 2>/dev/null || true
     done
-    echo "  ✅ 所有harness session已kill"
+    echo "  ✅ 解题系统harness session已kill"
 
 elif [ "$MODE" = "--finish" ]; then
     # === 收尾模式：running题都完成后，停collector等剩余服务 ===

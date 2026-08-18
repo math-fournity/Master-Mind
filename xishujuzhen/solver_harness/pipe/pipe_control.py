@@ -175,19 +175,22 @@ def cmd_stop(args):
         pass
 
     if args.kill_harness:
-        # kill所有harness-xxx session
+        # kill解题系统的harness session——只匹配harness-p{uuidhex}和harness-dbmon-p{uuidhex}
+        # 不kill其他AI的session（如harness-poc2_5-CC101-bare等）
+        import re
         result = subprocess.run(["tmux", "list-sessions", "-F", "#{session_name}"],
                                 capture_output=True, text=True, check=False)
+        pipe_pattern = re.compile(r'^harness-(dbmon-)?p[a-f0-9]{20}')
         harness_sessions = [s.strip() for s in result.stdout.strip().split("\n")
-                           if s.strip().startswith("harness-")]
+                           if pipe_pattern.match(s.strip())]
         if harness_sessions:
-            print(f"\n  发现{len(harness_sessions)}个harness session:")
+            print(f"\n  发现{len(harness_sessions)}个解题系统harness session:")
             for s in harness_sessions:
                 subprocess.run(["tmux", "kill-session", "-t", s],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
                 print(f"    killed: {s}")
         else:
-            print(f"\n  无harness session")
+            print(f"\n  无解题系统harness session")
 
     print("\n所有服务已停止。")
     if not args.kill_harness:
@@ -324,15 +327,21 @@ def cmd_health(args):
     running_count = len(running)
 
     result = subprocess.run(["tmux", "list-sessions"], capture_output=True, text=True)
+    # 只统计解题系统的session（harness-p{uuidhex}格式），不统计其他AI的session
+    import re
+    pipe_p_pattern = re.compile(r'^harness-p([a-f0-9]{20})')
+    pipe_dbmon_pattern = re.compile(r'^harness-dbmon-p([a-f0-9]{20})')
     harness_p_sessions = []
     harness_dbmon_sessions = []
     for line in result.stdout.split("\n"):
-        if "harness-dbmon-p" in line:
-            eid = line.split("harness-dbmon-")[1].split(":")[0]
-            harness_dbmon_sessions.append(eid)
-        elif "harness-p" in line:
-            eid = line.split("harness-")[1].split(":")[0]
-            harness_p_sessions.append(eid)
+        sess_name = line.split(":")[0].strip()
+        m = pipe_dbmon_pattern.match(sess_name)
+        if m:
+            harness_dbmon_sessions.append(m.group(1))
+        else:
+            m = pipe_p_pattern.match(sess_name)
+            if m:
+                harness_p_sessions.append(m.group(1))
 
     running_exp_ids = set()
     for k, v in running.items():

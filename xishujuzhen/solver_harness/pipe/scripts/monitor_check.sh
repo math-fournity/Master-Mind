@@ -81,9 +81,9 @@ else
     echo "  monitor_pipe: [NOT RUNNING] — Monitor Pipe进程不存在"
 fi
 
-# harness-p session数
-HARNESS_P_COUNT=$(tmux list-sessions 2>/dev/null | grep "harness-p" | grep -v "harness-dbmon" | wc -l | tr -d ' ')
-HARNESS_DBMON_COUNT=$(tmux list-sessions 2>/dev/null | grep "harness-dbmon" | wc -l | tr -d ' ')
+# 解题系统session数——只匹配harness-p{uuidhex}格式，不匹配其他AI的session
+HARNESS_P_COUNT=$(tmux list-sessions 2>/dev/null | grep -E "^harness-p[a-f0-9]{20}" | wc -l | tr -d ' ')
+HARNESS_DBMON_COUNT=$(tmux list-sessions 2>/dev/null | grep -E "^harness-dbmon-p[a-f0-9]{20}" | wc -l | tr -d ' ')
 echo "  tmux harness-p: $HARNESS_P_COUNT"
 echo "  tmux harness-dbmon: $HARNESS_DBMON_COUNT"
 echo ""

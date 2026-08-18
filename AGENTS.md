@@ -2777,6 +2777,8 @@ cd ~/master-mind-glm5.2-worktree
 
 **解耦保证**：停止任何服务不影响已启动的harness-xxx session。harness session独立运行，Collector重启后从Redis running队列继续处理。
 
+**tmux session边界规则**（重要）：解题系统的脚本只操作`harness-p{uuidhex}`和`harness-dbmon-p{uuidhex}`格式的session，不操作其他AI在这个repo中的session（如`harness-poc2_5-CC101-bare`等）。所有tmux session匹配用正则`^harness-(dbmon-)?p[a-f0-9]{20}`，不用`grep "harness-"`或`startswith("harness-")`。
+
 ### 并发量实时控制（无需重启Runner）
 
 Runner每次poll时从Redis读取并发配置，可以实时调整，不需要重启：
