@@ -407,6 +407,16 @@ def classify(attempt_meta: dict, pane_text: str, pipe_text: str, is_running: boo
                        f"疑似tmux server死亡(网络切换/断电)")
         return "crash_recovered", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "crash_recovered", "elapsed": elapsed}
 
+    # 6.6 failed_stall——devin cli卡在启动阶段
+    # 症状：tmux session存在（is_running=True），但pane空白+pipe.log空+elapsed>300秒
+    # devin cli进程在运行但没有任何输出——可能等待API响应、加载rules卡住、或网络问题
+    # 不等30分钟timeout，300秒就判定为failed_stall，释放并发槽位
+    if is_running and pane_len < 20 and pipe_len == 0 and elapsed > 300:
+        logger.warning(f"classify判定=failed_stall: problem_key={problem_key} exp_id={exp_id} "
+                       f"devin cli卡在启动阶段 pane_len={pane_len} pipe_len={pipe_len} elapsed={elapsed:.0f}s "
+                       f"tmux session存在但无任何输出")
+        return "failed_stall", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_stall", "elapsed": elapsed}
+
     # 7. stall——区分thinking spin和真stall
     if time.time() - last_activity > stall_time:
         stall_elapsed = time.time() - last_activity
