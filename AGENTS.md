@@ -295,7 +295,7 @@ AI数学系统运行时有两条Pipe：
 
 **硬约束**：
 
-1. Devin Solver仍只能经`xishujuzhen/solver_harness/solver_harness.py launch`；
+1. Devin Solver生产实验用全局`noninteractive-solver-run` skill（`devin -p --prompt-file ... --export ...`）；调试harness用`solver-tmux-launch` skill（`solver_harness.py launch --no-mitm`）；批量解题用pipe系统；
 2. Solver必须无工具；Prompt写“不要用工具”不等于能力PASS，缺独立NoTool能力报告时live运行必须BLOCK；
 3. 只有**目标Solver作业**可以进入`solver_harness`；Devin CLI并不专属于Solver。出题、数学核验、对抗审稿和Judge统一经provider-neutral `ModelRolePort`（Cognitive Worker是子系统名），同时允许物理隔离的`DevinCliModelRoleAdapter`与`CodexExecModelRoleAdapter`。Devin认知worker不得复用Solver port/workspace/session/AGENTS/capability/receipt/resource pool；人工复核/人门另走`HumanTaskPort/HumanGateService`；
 4. Devin认知角色的首个精确候选为`glm-5-2`（本机catalog显示`GLM-5.2 High`，effort由model UID编码），Codex/Responses中的`gpt-5.6-sol`高推理配置为并列候选；两者都必须按角色与精确profile探测requested/effective模型、effort、mode、orchestration、权限、事件和成本。盲化AuthoringBakeoff只选择角色默认profile，不取消其他已合格载体；同模型新会话只能算上下文独立，不能冒充异模型审查；
@@ -373,21 +373,19 @@ AI数学系统运行时有两条Pipe：
 > **并发约束Rule**：`.devin/rules/solver-concurrency.md`——3秒启动间隔铁律（runner.py第333行不可改）+ 并发经验表（40/50/60/80/100实测数据）+ Redis实时调整命令。
 > **检查工具**：`xishujuzhen/solver_harness/batch_status.py`（8个命令：status/active/errors/solved/feed/leak/dead/all，dead支持--cleanup自动清理僵尸session）。
 
-### 硬约束 4 · Solver启动必须通过solver-harness（最重要）
+### 硬约束 4 · Solver启动方式（2026-08-18更新）
 
-**启动数学大师Solver的devin cli实例，必须通过`xishujuzhen/solver_harness/solver_harness.py launch`，禁止任何其他方式。**
+**生产实验运行解题AI，用全局 `noninteractive-solver-run` skill**（`devin -p --prompt-file ... --export ...`）。conversation.json的`reasoning_content`包含完整thinking，不需要mitmproxy，不需要solver-harness。
 
-**禁止的方式**：手动tmux、exec后台、nohup、subprocess直接调用、任何绕过solver-harness的脚本。
+**调试solver-harness本身时，用 `solver-tmux-launch` skill**（项目级，仅调试用）。通过solver-harness启动，用tmux实时观察devin cli行为，加`--no-mitm`。
 
-**适用所有场景**（无一例外）：裸跑测试、GuidedLoop引导、批量测试、DFS回溯实验、MathArena测试、FATE测试、A/B对照实验。
+**mitmproxy已废弃**（2026-08-18）：不再用于生产trajectory采集。`--export`的conversation.json已包含`reasoning_content`（完整thinking），不需要MITM截获。mitmproxy在多AI并发时造成端口冲突，已正式废弃。
 
-**为什么是硬约束**：solver-harness自动完成tmux启动+pipe-pane记录+sessions.db轮询+export保存，并修复了`--no-http2`多轮交互Connection failed问题和`NODE_EXTRA_CA_CERTS` SSL验证问题。
+**批量解题用pipe系统**（`xishujuzhen/solver_harness/pipe/`），不走solver-harness的`launch`命令。
 
-**mitmproxy已禁用**（2026-08-12）：mitmproxy代理曾用于捕获token级thinking+tool_calls，但实测发现mitmproxy进程虽活着但代理不通（curl返回000），所有solver API调用走坏代理导致秒退。已设`mitm_enabled: False`默认值，launch时加`--no-mitm`。devin cli自身的`thinking_readable_path`和`--export`已提供完整thinking数据，不需要mitmproxy。
-
-**例外**：`realtime/devin_cli_parser.py`中的`DevinCliParserProvider`用`devin -p`做LLM parser（不是Solver，不采集trajectory），可以保留直接调用。
-
-**具体启动规范见** `.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`。
+**具体规范见**：
+- 生产实验：全局 `~/.config/devin/skills/noninteractive-solver-run/SKILL.md` + 全局AGENTS.md中的对应元组
+- 调试harness：`.devin/rules/solver-tmux-launch.md` 和 `.devin/skills/solver-tmux-launch/SKILL.md`
 
 ### 硬约束 5 · Solver批次系统架构认知（已归档）
 
