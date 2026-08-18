@@ -941,7 +941,7 @@ Phase A：策略对象成形
 Phase B：基础验证
   POC-2 可选择（402号方案）
   POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️未完成——2026-08-18第一轮执行因completion_tokens限制失败，16个run的AI在thinking spin中被截断，需要先完成POC-2.6续传机制验证）
-  POC-2.6 续传机制验证（新增·399号方案·解决completion_tokens限制——把AI之前完成的thinking作为新prompt注入让AI继续思考）
+  POC-2.6 续传机制验证（新增·399号方案·✅已完成·2026-08-18·单题测试CC-101_bare通过——Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续，19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`，支持find/kill命令基于cwd精确管理devin进程）
   POC-3.5 Hint非特化程度验证（新增·403号方案·396号核心论断的验证·最关键）
   POC-3 可执行（404号方案·用POC-3.5确定的峰值HintInstance）
   POC-4 可终止（405号方案）
@@ -956,6 +956,12 @@ Phase D：端到端
 ```
 
 POC-5可组合推迟到第二个Tell家族验证后。
+
+#### POC-2.6 续传机制经验沉淀（2026-08-18）
+
+**completion_tokens限制与续传机制**：glm-5-2单次API调用的completion_tokens上限是25000（thinking+content+tool_calls都算在内）。竞赛数学题的thinking spin可能需要超过25000 tokens，导致AI在thinking中被截断（reasoning_content有46-73K字符，但message=0、tool_calls=0），无法进入working阶段。**续传机制**：把AI之前完成的reasoning_content作为新prompt的上下文注入，让AI在新的API调用中继续思考。每轮25000 completion_tokens推进一部分，多轮累积完成。续传prompt中只传reasoning_content（thinking），不传tool_calls/observation——因为被截断的run没有tool_calls。之前的reasoning_content作为input tokens传入新轮次，不算completion_tokens，新轮次的25000全部用于新的thinking+working。**验证结果**：CC-101_bare单题测试，Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续（第一步就说"我将从上次思考中断的地方继续"），19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`。
+
+**基于cwd的devin进程管理**：当系统中有多个devin实例并行运行（如Grove harness系统在`/data/math-agent-glm5.2-tmux-agents-dir/`下跑多个agent），需要精确识别哪些进程属于当前业务。方法：用`lsof -p <pid> | grep cwd`查进程的工作目录——每个run在独有的work_dir中启动，cwd就是进程身份标识。本脚本的进程cwd都在`poc_assets/poc_2.6/workdirs/p26-*`下，别的系统的进程cwd在别处，不会混淆。**不设超时限制**——devin自然运行到完成（输出message后自动退出）。需要中断时跟用户确认后用kill命令（基于cwd匹配杀进程），不要用超时自动杀。续传脚本的`find`命令查进程、`kill`命令杀进程，都基于cwd识别。
 
 **首批目标Tell家族**：局部-全局表示切换（Local Representation Switch）——已有CasePack v1（22道题，`poc_assets/poc_0/casepack_v1.md`，2026-08-17冻结：6正迁移+4假朋友+2边界从Pipe 3精筛，4 source trace+4变形+2组合保留v0）和383号TellCore v0候选C（7字段最小充分集）。
 
