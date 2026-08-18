@@ -1067,36 +1067,55 @@ ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xar
 
 **★ 错题分析系统总索引**：`AnalysisSystemDesign.md`（项目repo根目录）——任何AI涉足错题分析系统时从该文件开始，索引所有文档、规范、代码资产。
 
-**背景**：POC-2.7把续传机制应用到948道DIRECTION_ERROR题上，验证续传能否大规模解决截断问题。系统已实现为错题分析系统的Pipe 4（独立自包含模式）+ Monitor Pipe设计范式（详见`MonitorPipe.md`）。完整运行和检查指南见`POC-2.7/README.md`。
+**背景**：POC-2.7把续传机制应用到919道DIRECTION_ERROR题上，验证续传能否大规模解决截断问题。系统已实现为错题分析系统的Pipe 4（独立自包含模式）+ Monitor Pipe设计范式（详见`MonitorPipe.md`）。完整运行和检查指南见`POC-2.7/README.md`。
+
+**当前运行状态**（2026-08-18 12:47启动）：▶️运行中——3个服务（launcher+monitor+watchdog）全部运行中，concurrency=5, max_rounds=5, method=v2。通过标准COMPLETED≥50%。
 
 **三层架构**：
 - **规范层**：`analysis-devin-failure-system/specs/p27_monitor_spec.md` (242行)——检查规范（A类自动检查9项/B类续传质量检查7项/C类AI review抽样5项）
 - **执行层**：`analysis-devin-failure-system/src/monitor_continuation.py` (748行)——Monitor Pipe守护进程，按规范执行16项检查，写alert到ArangoDB `p27_monitor_alerts`集合
 - **查询层**：`analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (241行)——检查脚本，Master AI每次检查都调用，输出6项检查+8步行动清单
 
-**Pipe 4核心文件**（8个，独立自包含，不修改现有Pipe 1/2/3的代码）：
-- `src/continuation_config.py`——配置常量（Redis前缀`p27:`/tmux前缀`p27-`/DB集合`p27_continuation_*`）
+**Pipe 4核心文件**（独立自包含，不修改现有Pipe 1/2/3的代码）：
+- `src/continuation_config.py`——配置常量（Redis前缀`p27:`/tmux前缀`p27-`/DB集合`p27_continuation_*`/INFRA_FAILURES/MODEL_FAILURES）
 - `src/continuation_db_schema.py`——ArangoDB集合定义+索引
 - `src/continuation_redis_queue.py`——Redis队列操作
-- `src/continuation_collector.py`——数据收集（从problem_list.json加载919道题）
+- `src/continuation_collector.py`——数据收集（从problem_list.json加载919道题+创建batch记录）
 - `src/continuation_feeder.py`——入Redis队列
-- `src/continuation_launcher.py`——**核心**，并发启动devin cli+stall/rate_limit/zombie检测+多轮续传
+- `src/continuation_launcher.py`——**核心**，并发启动devin cli+stall/rate_limit/zombie检测+多轮续传+优雅停止+classify_failure(infra/model)
 - `src/continuation_result_collector.py`——结果收集+通过率判定
+- `monitoring/continuation_control.py`——**统一控制工具**（start/stop/status/health/set-concurrency+stop_watchdog）
+- `scripts/continuation_watchdog.sh`——watchdog脚本（每30秒检查服务存活+每5分钟一致性检查）
 - `run_continuation_pipeline.py`——端到端入口（collect→feed→launch→collect-results）
 
-**如何启动全量续传**：
+**★ 如何启动全量续传**（推荐——自动启动launcher+monitor到tmux，带auto-restart）：
 ```bash
 cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
-# 端到端启动（并发5，v2方案）
-.venv/bin/python3 run_continuation_pipeline.py --batch-id p27-full --step all --concurrency 5 --max-rounds 5 --method v2
+.venv/bin/python3 -m monitoring.continuation_control start --batch-id p27-full --concurrency 5 --max-rounds 5 --method v2
 ```
 
-**如何启动Monitor Pipe**：
+**★ 如何启动watchdog**（守护launcher+monitor，崩溃自动重启）：
 ```bash
-tmux new-session -d -s monitor-p27 \
-  "cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system && \
-   ~/master-mind-glm5.2-worktree/.venv/bin/python3 -m src.monitor_continuation \
-     --batch-id p27-full --interval 120 --concurrency 5"
+cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
+tmux new-session -d -s p27-watchdog "bash scripts/continuation_watchdog.sh --batch-id p27-full"
+```
+
+**如何查看状态**：
+```bash
+cd analysis-devin-failure-system
+.venv/bin/python3 -m monitoring.continuation_control status --batch-id p27-full
+```
+
+**如何健康检查**（4项检查：服务存活/并发量/DB进度/alert）：
+```bash
+cd analysis-devin-failure-system
+.venv/bin/python3 -m monitoring.continuation_control health --batch-id p27-full
+```
+
+**如何动态调整并发数**（launcher下次poll时自动生效，不影响running）：
+```bash
+cd analysis-devin-failure-system
+.venv/bin/python3 -m monitoring.continuation_control set-concurrency --batch-id p27-full --concurrency 10
 ```
 
 **如何检查（Master AI每次检查都调用）**：
@@ -1119,15 +1138,17 @@ cd analysis-devin-failure-system && .venv/bin/python3 -m src.monitor_continuatio
 - B类续传质量检查（7项）：proof_missing/proof_no_boxed/proof_too_small/handover_missing/handover_too_small/all_rounds_truncated/status_anomaly
 - C类AI review抽样（5项，需Master AI判断）：proof_quality/proof_hallucination/answer_leak/handover_quality/continuation_direction
 
-**通过标准**（415号§7.1）：948道题中COMPLETED≥50% → POC-2.7通过。
+**通过标准**（415号§7.1）：919道题中COMPLETED≥50% → POC-2.7通过。
 
-**如何停止系统**：
+**★ 如何停止系统**（推荐——自动处理watchdog+launcher+monitor）：
 ```bash
 cd analysis-devin-failure-system
-.venv/bin/python3 run_continuation_pipeline.py --batch-id p27-full --step stop
-tmux kill-session -t monitor-p27
-tmux list-sessions | grep "^p27-" | cut -d: -f1 | xargs -I{} tmux kill-session -t {}
+# 优雅停止（不kill devin实例，等running自然完成）
+.venv/bin/python3 -m monitoring.continuation_control stop
+# 强制停止（kill所有session+清空Redis队列）
+.venv/bin/python3 -m monitoring.continuation_control stop --force
 ```
+**注意**：stop命令的第一步是stop_watchdog()——launchctl unload+disable plist + kill tmux session，防止watchdog重启已停掉的服务。
 
 ### 当前任务：第六代系统研发
 
