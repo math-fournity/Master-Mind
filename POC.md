@@ -54,16 +54,25 @@
 
 | 版本 | 方案 | 验证结果 | 问题 |
 |---|---|---|---|
-| v1 | 机械拼接reasoning_content | CC-101_bare/vein成功 | CC-103_bare失败——6个agent step只传了最后一个的reasoning(30%)，丢失了web search结果和前5步thinking |
-| v2 | 交接文档(HANDOFF.md) | CC-103_bare成功——AI 2分钟写出z3验证脚本，7分钟跑出关键结果 | 交接文档整理目前手动做，后续可自动化 |
+| v1 | 机械拼接reasoning_content | CC-101_bare/vein/hint成功，CC-103_vein_hint成功 | CC-103_bare失败——6个agent step只传了最后一个的reasoning(30%)，丢失了web search结果和前5步thinking。CC-103_vein更严重——5轮全部失败 |
+| v2 | 交接文档(HANDOFF.md) | CC-103_bare成功——AI 2分钟写出z3验证脚本，7分钟跑出关键结果，32分钟完成证明 | 交接文档整理目前手动做，后续可自动化 |
 
 ### 成功运行记录
 
-| Run | 条件 | 答案 | 耗时 | 续传方案 | Round 1 | Round 2 | 证据文档 |
-|---|---|---|---|---|---|---|---|
-| CC-101_bare | bare | $\boxed{4}$ ✅ | ~13min | v1 | 截断(rc=54K,comp=25000) | 完成(19步,comp=785) | `EVIDENCE-CC-101_bare-续传机制验证.md` |
-| CC-101_vein | vein | $\boxed{4}$ ✅ | ~45min | v1 | 截断(rc=47K,comp=25000) | 完成(30步,comp=450) | `EVIDENCE-CC-101_vein-vein策略验证.md` |
-| CC-103_bare | bare | 执行中 | — | v2交接文档 | R1截断(6步,rc=137K)+R2截断(rc=81K) | R3交接文档续传中 | — |
+| Run | 条件 | 答案 | 耗时 | 续传方案 | Round详情 | 证据文档 |
+|---|---|---|---|---|---|---|
+| CC-101_bare | bare | $\boxed{4}$ ✅ | ~13min | v1 | R1截断→R2完成(19步) | `EVIDENCE-CC-101_bare-续传机制验证.md` |
+| CC-101_vein | vein | $\boxed{4}$ ✅ | ~45min | v1 | R1截断→R2完成(30步) | `EVIDENCE-CC-101_vein-vein策略验证.md` |
+| CC-101_hint | hint | $\boxed{4}$ ✅ | ~9min | v1 | R1截断→R2完成 | — |
+| CC-103_bare | bare | $\boxed{3}$ ✅ | ~32min | v2交接文档 | R1截断(6步)+R2截断→R3交接文档续传完成(10个脚本) | — |
+| CC-103_vein_hint | vein_hint | $\boxed{3}$ ✅ | ~18min | v1 | R1-3截断→R4完成 | — |
+
+### v1方案失败的run（需v2交接文档续传）
+
+| Run | 条件 | v1轮次 | 失败原因 | v2续传状态 |
+|---|---|---|---|---|
+| CC-101_vein_hint | vein_hint | 2轮 | R2最后一步截断(54K thinking)，丢失了前11步的tool calls和SAT solver结果 | v2续传中 |
+| CC-103_vein | vein | 5轮 | 5轮全部纯thinking spin，v1只传最后一个step的reasoning(30%)，丢失了R2的18步web search结果 | v2续传中 |
 
 ### 资产清单（每个run）
 
@@ -81,11 +90,22 @@
 - 最终证明: `workdirs/p26-CC-101_vein/proof.md`（7KB）
 - AI写的脚本: `workdirs/p26-CC-101_vein/`下7个Python脚本
 
+**CC-103_bare**（v2交接文档续传）：
+- Round 1 export: `trajectories/p26-CC-103_bare/round1/exports/conversation.json`（353KB，6个agent step含web search）
+- Round 2 export: `trajectories/p26-CC-103_bare/round2/exports/conversation.json`（260KB，纯thinking spin被截断）
+- 交接文档: `workdirs/p26-CC-103_bare/HANDOFF.md`（7.5KB，整理Round 1-2的完整探索历程）
+- Round 3 export: `trajectories/p26-CC-103_bare/round3_handoff/exports/conversation.json`
+- 最终证明: `workdirs/p26-CC-103_bare/proof.md`（9KB）
+- AI写的脚本: `workdirs/p26-CC-103_bare/`下10个Python脚本（verify_area3.py, find_minimal.py, cross_verify.py, debug_verify.py, backtrack_fixed.py, find_small_config.py, proof_helpers.py, analyze_27.py等）
+
 ### 关键发现
 
 1. **续传机制成功**：裸AI模型在completion_tokens限制下无法单轮完成的竞赛数学推理，通过续传机制完成了
-2. **vein可能增加成本**：CC-101_vein比CC-101_bare多11步、多32分钟，vein注入的p-adic方向不是最优路径（bare走Rado定理更简洁）
-3. **vein与hint是同一策略的不同Level表述**：vein是展开版（四步+具体方法示范），hint是压缩版（一句话），但vein混入了特化方法引导的混淆变量（见398号§2.5）
+2. **v1方案在简单情况下够用**：CC-101的bare/vein/hint条件Round 1只有1个agent step（纯thinking），v1只传reasoning_content刚好够用
+3. **v1方案在复杂情况下失败**：CC-103_bare Round 1有6个agent step（web search+多轮thinking），v1只传了最后一个step的reasoning(30%)，丢失了web search结果和前5步thinking。CC-103_vein更严重——5轮全部失败
+4. **v2交接文档方案显著优于v1**：CC-103_bare用v2交接文档续传，AI 2分钟内写出z3验证脚本，7分钟跑出关键结果(7×5网格UNSAT)，32分钟完成证明。对比v1方案CC-103_vein 5轮全部在thinking中打转，0个脚本
+5. **vein可能增加成本**：CC-101_vein比CC-101_bare多11步、多32分钟，vein注入的p-adic方向不是最优路径（bare走Rado定理更简洁）
+6. **vein与hint是同一策略的不同Level表述**：vein是展开版（四步+具体方法示范），hint是压缩版（一句话），但vein混入了特化方法引导的混淆变量（见398号§2.5）
 
 ---
 
@@ -109,9 +129,9 @@
 
 | 题目 | bare | vein | vein_hint | hint |
 |---|---|---|---|---|
-| CC-101 | ✅完成(boxed{4}) | ✅完成(boxed{4}) | 执行中 | 执行中 |
-| CC-103 | 执行中 | 执行中 | 执行中 | 待启动 |
-| CC-104 | 待启动 | 待启动 | 待启动 | 待启动 |
+| CC-101 | ✅完成(boxed{4}) | ✅完成(boxed{4}) | v2续传中 | ✅完成(boxed{4}) |
+| CC-103 | ✅完成(boxed{3}) | v2续传中 | ✅完成(boxed{3}) | v1运行中 |
+| CC-104 | v1运行中 | 待启动 | 待启动 | 待启动 |
 | CC-105 | 待启动 | 待启动 | 待启动 | 待启动 |
 
 **运行方式**：5并发，每个在独立tmux session中，不受对话窗口影响
@@ -155,3 +175,4 @@
 | 408号 | `Tell分类学研究过程文档/408-v0-2026-08-17-POC-8-端到端闭环-*.md` | POC-8 |
 | 409号 | `Tell分类学研究过程文档/409-v0-2026-08-17-POC-9-识别端验证-*.md` | POC-9 |
 | 413号 | `Tell分类学研究过程文档/413-v0-2026-08-17-非特化研究执行编排-*.md` | 执行编排 |
+| 414号 | `Tell分类学研究过程文档/414-v0-2026-08-18-交接文档续传方案-HANDOFF标准.md` | 交接文档标准 |
