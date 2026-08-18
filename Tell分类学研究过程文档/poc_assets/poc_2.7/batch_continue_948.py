@@ -221,7 +221,7 @@ def is_completed(export_path):
 
 
 def extract_reasoning(export_path):
-    """从export提取所有agent step的reasoning_content。"""
+    """从export提取所有agent step的reasoning_content（v1方案）。"""
     with open(export_path) as f:
         d = json.load(f)
     parts = []
@@ -231,6 +231,176 @@ def extract_reasoning(export_path):
             if rc:
                 parts.append(rc)
     return "\n\n".join(parts)
+
+
+# =============================================================================
+# §3.5 v2方案：面包屑地图 + HANDOVER.md
+# =============================================================================
+
+# 项目根目录（用于定位scripts/conversation_mapper.py）
+PROJECT_ROOT = Path(__file__).resolve().parents[3]  # batch_continue_948.py在Tell.../poc_assets/poc_2.7/下
+MAPPER_SCRIPT = PROJECT_ROOT / "scripts" / "conversation_mapper.py"
+CONTINUE_SPEC = PROJECT_ROOT / "续传规范文档.md"
+
+HANDOVER_PROMPT_TEMPLATE = """你的任务：为{pid}的round{round_num} conversation.json编写HANDOVER.md交接文档。
+
+## 背景
+
+这道题的round{round_num}思考过程被截断了，需要编写交接文档供下一轮AI继续。
+
+## 你需要读取的文件
+
+1. **面包屑地图**：{map_path}
+   - 这是conversation.json的结构化导航索引，包含所有节点的JSON path、类型、大小、预览
+   - 大字段标记为"需read"——你需要用python脚本从conversation.json提取完整内容
+
+2. **conversation.json**：{export_path}
+   - 当地图中某个字段标记为"需read"时，用python脚本从这个JSON文件中提取对应path的内容
+
+3. **续传规范文档**：{spec_path}
+   - 定义了HANDOVER.md的标准结构（8个章节）
+
+4. **题目文本**：
+{problem_text}
+
+## 工作流程
+
+1. 先读取面包屑地图，了解conversation.json的整体结构
+2. 读取续传规范文档，了解HANDOVER.md的8个章节要求
+3. 按地图的面包屑，逐个agent step处理：
+   - 对小字段（< 200c）：直接使用地图中的值
+   - 对中字段（200-5000c）：使用地图预览，或用python脚本从conversation.json提取完整内容
+   - 对大字段（> 5000c）：用python脚本从conversation.json提取完整内容，重点关注结论性内容
+4. 按HANDOVER.md的8个章节整理提取的内容
+5. 将HANDOVER.md写入：{handover_path}
+
+## HANDOVER.md的8个章节（参考续传规范文档）
+
+1. **题目**：完整的数学题目
+2. **当前状态**：已完成/截断/错误
+3. **已确认的结论**：AI在thinking中得出的数学结论
+4. **已排除的方向**：AI尝试过但失败的方向
+5. **关键文献/参考**：AI引用的文献或定理
+6. **已有的中间产物**：AI创建的文件、计算结果
+7. **当前卡在哪里**：如果是截断，AI在思考什么时被截断
+8. **下一步建议**：如何继续
+
+## 重要约束
+
+- **不要编造内容**——所有内容必须来自conversation.json
+- **保留数学公式**——LaTeX格式保留
+- **标注来源**：每个结论标注来自哪个step
+- **区分thinking和message**：reasoning_content是AI内部思考，message是TUI输出
+- **包含工具调用结果**：exec的observation（计算结果）必须包含在HANDOVER.md中
+"""
+
+
+def generate_handover(export_path, pid, round_num, problem_text, work_dir, model="glm-5-2"):
+    """
+    v2方案Pipe A：生成面包屑地图 + 用devin -p编写HANDOVER.md。
+
+    返回HANDOVER.md的路径，或None（失败时）。
+    """
+    export_path = str(export_path)
+    round_dir = Path(export_path).parent.parent  # .../roundN/
+    map_path = round_dir / "conversation_map.md"
+    handover_path = round_dir / "HANDOVER.md"
+    handover_run_dir = round_dir / "handover_run"
+    handover_run_dir.mkdir(parents=True, exist_ok=True)
+    handover_export = handover_run_dir / "conversation.json"
+
+    # Step 1: 生成面包屑地图
+    if not MAPPER_SCRIPT.exists():
+        print(f"[{pid}] 错误：conversation_mapper.py不存在: {MAPPER_SCRIPT}")
+        return None
+
+    mapper_cmd = [sys.executable, str(MAPPER_SCRIPT), export_path, "-o", str(map_path)]
+    result = subprocess.run(mapper_cmd, capture_output=True, text=True, timeout=30)
+    if result.returncode != 0:
+        print(f"[{pid}] 地图生成失败: {result.stderr[:200]}")
+        return None
+
+    if not map_path.exists():
+        print(f"[{pid}] 地图文件未生成: {map_path}")
+        return None
+
+    # Step 2: 构造Pipe A的prompt
+    prompt_text = HANDOVER_PROMPT_TEMPLATE.format(
+        pid=pid,
+        round_num=round_num,
+        map_path=map_path,
+        export_path=export_path,
+        spec_path=CONTINUE_SPEC,
+        problem_text=problem_text[:2000],  # 题目文本限制在2000字符内
+        handover_path=handover_path,
+    )
+
+    prompt_file = work_dir / f"round{round_num}_handover_prompt.txt"
+    prompt_file.write_text(prompt_text)
+
+    # Step 3: 启动devin -p编写HANDOVER.md（Pipe A）
+    tmux_session = f"p27-{pid}-r{round_num}-handover"
+    subprocess.run(
+        ["tmux", "kill-session", "-t", tmux_session],
+        capture_output=True, timeout=5,
+    )
+
+    cmd = [
+        "devin", "-p",
+        "--prompt-file", str(prompt_file),
+        "--model", model,
+        "--respect-workspace-trust", "false",
+        "--permission-mode", "dangerous",
+        "--export", str(handover_export),
+    ]
+    tmux_cmd = " ".join(cmd)
+    subprocess.run(
+        ["tmux", "new-session", "-d", "-s", tmux_session,
+         f"cd {work_dir} && {tmux_cmd}"],
+        capture_output=True, timeout=10,
+    )
+
+    # 等待Pipe A完成
+    while True:
+        result = subprocess.run(
+            ["tmux", "has-session", "-t", tmux_session],
+            capture_output=True, timeout=5,
+        )
+        if result.returncode != 0:
+            break
+        time.sleep(10)
+
+    if not handover_path.exists():
+        print(f"[{pid}] Pipe A完成但HANDOVER.md未生成")
+        return None
+
+    return str(handover_path)
+
+
+def build_v2_continue_prompt(original_problem, handover_path, prev_round):
+    """v2方案：用HANDOVER.md作为续传prompt。"""
+    handover_content = Path(handover_path).read_text()
+
+    return f"""{original_problem}
+
+=== 你之前的探索历程（Round 1-{prev_round}，交接文档）===
+
+你已经在之前的{prev_round}轮中开始了这道题的探索。以下是前一轮AI编写的交接文档，
+总结了之前的思考过程、已确认的结论、已排除的方向和当前卡点。请仔细阅读，在此基础上**继续**完成解答。
+
+{handover_content}
+
+=== 请继续思考并完成解答 ===
+
+根据交接文档中的"下一步建议"，继续完成这道题的解答。
+
+要求：
+1. **在之前的探索基础上继续**，不要重复已经做过的分析
+2. 给出完整的解答过程
+3. 最终答案用 \\boxed{{答案}} 格式给出
+4. 数学公式用LaTeX
+5. 把证明写到proof.md文件中，不要在对话里输出完整证明
+"""
 
 
 # =============================================================================
@@ -282,11 +452,12 @@ def build_continue_prompt(original_problem, previous_reasoning, prev_round):
 # §5 单题续传
 # =============================================================================
 
-def solve_single(problem_entry, max_rounds=5, model="glm-5-2", verbose=True):
+def solve_single(problem_entry, max_rounds=5, model="glm-5-2", verbose=True, method="v2"):
     """
     对一道题运行多轮续传。
 
     problem_entry: {problem_id, exp_id, seed_export, problem_path, agents_md_path}
+    method: "v1"（机械拼接reasoning_content）或"v2"（面包屑地图+HANDOVER.md）
     """
     pid = problem_entry["problem_id"]
     run_name = f"p27-{pid}"
@@ -331,8 +502,30 @@ def solve_single(problem_entry, max_rounds=5, model="glm-5-2", verbose=True):
         if not truncated:
             break
 
-        prev_reasoning = "\n\n".join(all_reasoning)
-        prompt_text = build_continue_prompt(problem_text, prev_reasoning, round_num - 1)
+        if method == "v2":
+            # v2方案：先生成HANDOVER.md（Pipe A），再用HANDOVER.md作为续传prompt（Pipe B）
+            if verbose:
+                print(f"[{pid}] R{round_num}: v2方案，生成HANDOVER.md（Pipe A）...")
+            handover_path = generate_handover(
+                str(round1_export) if round_num == 2 else str(export_path),
+                pid, round_num - 1, problem_text, work_dir, model,
+            )
+            if handover_path:
+                prompt_text = build_v2_continue_prompt(problem_text, handover_path, round_num - 1)
+                if verbose:
+                    handover_size = len(Path(handover_path).read_text())
+                    print(f"[{pid}] R{round_num}: HANDOVER.md={handover_size}c，启动Pipe B...")
+            else:
+                # v2失败，回退到v1
+                if verbose:
+                    print(f"[{pid}] R{round_num}: v2 Pipe A失败，回退到v1")
+                prev_reasoning = "\n\n".join(all_reasoning)
+                prompt_text = build_continue_prompt(problem_text, prev_reasoning, round_num - 1)
+        else:
+            # v1方案：机械拼接reasoning_content
+            prev_reasoning = "\n\n".join(all_reasoning)
+            prompt_text = build_continue_prompt(problem_text, prev_reasoning, round_num - 1)
+
         prompt_file = work_dir / f"round{round_num}_prompt.txt"
         prompt_file.write_text(prompt_text)
 
@@ -403,7 +596,7 @@ def solve_single(problem_entry, max_rounds=5, model="glm-5-2", verbose=True):
 # §6 并发批量续传
 # =============================================================================
 
-def run_batch(problems, max_rounds=5, concurrency=5, model="glm-5-2"):
+def run_batch(problems, max_rounds=5, concurrency=5, model="glm-5-2", method="v2"):
     """并发批量续传。"""
     results = {}
     # 加载已有结果（支持断点续传）
@@ -427,7 +620,7 @@ def run_batch(problems, max_rounds=5, concurrency=5, model="glm-5-2"):
     with ThreadPoolExecutor(max_workers=concurrency) as executor:
         futures = {}
         for p in todo:
-            future = executor.submit(solve_single, p, max_rounds, model, verbose=True)
+            future = executor.submit(solve_single, p, max_rounds, model, True, method)
             futures[future] = p["problem_id"]
 
         for future in as_completed(futures):
@@ -525,6 +718,8 @@ def main():
     p_batch.add_argument("--concurrency", type=int, default=5)
     p_batch.add_argument("--max-rounds", type=int, default=5)
     p_batch.add_argument("--model", default="glm-5-2")
+    p_batch.add_argument("--method", default="v2", choices=["v1", "v2"],
+                         help="v1=机械拼接reasoning_content, v2=面包屑地图+HANDOVER.md")
     p_batch.add_argument("--filter-prefix", default=None,
                          help="只跑problem_id以指定前缀开头的题")
     p_batch.add_argument("--limit", type=int, default=None,
@@ -535,6 +730,8 @@ def main():
     p_single.add_argument("--problem-id", required=True)
     p_single.add_argument("--max-rounds", type=int, default=5)
     p_single.add_argument("--model", default="glm-5-2")
+    p_single.add_argument("--method", default="v2", choices=["v1", "v2"],
+                         help="v1=机械拼接reasoning_content, v2=面包屑地图+HANDOVER.md")
 
     # status
     sub.add_parser("status", help="检查进度")
@@ -551,7 +748,7 @@ def main():
         if args.limit:
             problems = problems[:args.limit]
         run_batch(problems, max_rounds=args.max_rounds,
-                  concurrency=args.concurrency, model=args.model)
+                  concurrency=args.concurrency, model=args.model, method=args.method)
 
     elif args.command == "single":
         problems = load_problem_list()
@@ -559,7 +756,7 @@ def main():
         if not entry:
             print(f"未找到: {args.problem_id}")
             sys.exit(1)
-        result = solve_single(entry, max_rounds=args.max_rounds, model=args.model)
+        result = solve_single(entry, max_rounds=args.max_rounds, model=args.model, method=args.method)
         print(json.dumps(result, ensure_ascii=False, indent=2))
 
     elif args.command == "status":

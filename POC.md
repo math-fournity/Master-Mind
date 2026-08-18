@@ -134,17 +134,34 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 
 **5/5成功，0/5是真正的思维错误。**
 
-### 阶段2：948道DIRECTION_ERROR题全量续传（⚠️执行中）
+### 阶段2：948道DIRECTION_ERROR题全量续传（⚠️v1小批量完成，v2集成完成，全量待启动）
 
 - 919道有export的题已从ArangoDB导出
 - 前缀分布：deepmath(382) + oda(304) + polymath(207) + omni(23) + amo(2) + mathnet(1)
-- 小批量测试(10题/并发5)执行中
-- 估算：919题×3轮×10分钟/5并发 ≈ 4天
+
+**v1方案小批量测试结果（10题/并发5，已完成）**：
+
+| 状态 | 题数 | 占比 |
+|---|---|---|
+| COMPLETED | 9 | 90% |
+| TRUNCATED_AT_MAX | 1 | 10% |
+| ERROR | 0 | 0% |
+
+- 9/10题通过续传完成，证明绝大多数DIRECTION_ERROR是截断错误而非思维错误
+- omni_math_004104是v1方案中唯一5轮全截断的题（真思维错误候选）
+- v1方案缺陷：只提取reasoning_content拼接，丢失tool_calls和observation
+
+**v2方案集成完成（面包屑地图+HANDOVER.md）**：
+
+- `batch_continue_948.py`已支持`--method v1|v2`参数切换
+- v2流程：每轮续传先Pipe A（生成地图+编写HANDOVER.md），再Pipe B（用HANDOVER.md作为续传prompt）
+- v2单题测试（omni_math_004104）：round2也截断（comp=25000），该题很可能是真正的思维错误
+- v2方案优势：HANDOVER.md包含v1丢失的observation/proof.md内容，prompt从128KB原始thinking缩减到12KB结构化文档
 
 ### 执行路径
 
 1. **阶段1** ✅已完成——4道bare题+1道DIRECTION_ERROR题全部成功
-2. **阶段2** ⚠️执行中——948道DIRECTION_ERROR全量续传
+2. **阶段2** ⚠️执行中——v1小批量完成(9/10)，v2集成完成，全量续传待启动
 3. **阶段3** 待定——6400道failed_token_limit全量续传（948道之外的5452道）
 4. **阶段4** POC-2.5b——续传后仍然失败的题上测试Hint因果效应
 
