@@ -1,0 +1,361 @@
+# POC-1 增强版 · EvidenceRecord 汇总
+
+**日期**：2026-08-18
+**POC编号**：POC-1-enhanced（因果取商增强版）
+**目标组件**：TellCore v0 Candidate C（局部-全局表示切换）——增强版验证
+
+---
+
+```yaml
+EvidenceRecord_POC1_enhanced:
+  poc_id: POC-1-enhanced
+  target_type: TellCore
+  target_component: TellCore v0 Candidate C (局部-全局表示切换)——增强版验证
+  execution_date: 2026-08-18
+  executor: GLM-5.2 High（主执行者）+ GLM-5.2 High subagent（独立审查者）
+
+  # ============================================================
+  # Part 1：12字段消融分析（383号已完成，引用）
+  # ============================================================
+  part_1_field_ablation:
+    status: completed_by_383
+    result: |
+      7字段最小充分集（invariant_claim/trigger_boundary/negative_boundary/
+      parameter_slots/internal_policy(step2-5)/progress_model/termination）
+      + 5字段重要补充（binding_rules/internal_policy(step1+step6)/critic/
+      composition_contract/parameter_slots(target_structure)）
+      + 2字段元数据/输入（name/source_branch_events）
+    reference: 383号§2~§3
+    7_pass_standards:
+      - standard_1_no_leakage: PASS
+      - standard_2_trigger_negative: PASS
+      - standard_3_parameter_binding: PASS（有条件——p绑定需binding_rules辅助）
+      - standard_4_not_slogan: PASS（待经验验证——需POC-3）
+      - standard_5_progress_observable: PASS
+      - standard_6_termination: PASS
+      - standard_7_false_friend_reject: PASS（有条件——2/5需critic协同）
+
+  # ============================================================
+  # Part 2：提取完备性检查（本增强版新增）
+  # ============================================================
+  part_2_extraction_completeness:
+    independent_reviewer:
+      model: GLM-5.2 High（subagent_general profile）
+      independence_confirmed: true  # 未加载383号，不知道TellCore v0内容
+      loaded_documents:
+        - POC-1-Asset-2（独立审查者指南）
+        - 4道source trace题的正确答题过程（1631/1843/1709/1962）
+      extraction_record: Tell分类学研究过程文档/poc_assets/poc_1/independent_reviewer_extraction_record.md
+
+    source_trace_problems: [1631, 1843, 1709, 1962]
+
+    reviewer_extraction_summary:
+      per_problem_thoughts:
+        1631: 4条（模8定向探测→二次剩余、目标转移y₃→y₂、代数恒等式桥接、小case验证）
+        1843: 4条（IVT建立|A|=|B|、放弃符号分析转mod4、分区方案选择、逐点符号替代全局）
+        1709: 4条（小case验证候选{1,3,5}、t(k) mod 4二元降维、v₂赋值作主工具、v₂约束收紧）
+        1962: 5条（排除平凡case、识别2的幂的v₂本质、a=b vs a<b<c分case、乘积2-adic分解、失败教训：方向正确≠操作路径明确）
+      cross_problem_consolidated: 10条（思维A-J）
+      total_raw: 17条
+      total_consolidated: 10条
+
+    completeness:  # 有没有遗漏
+      reviewer_thoughts_to_tellcore_mapping:
+        - thought: 思维A（小case验证确立边界）
+          maps_to: 无直接对应
+          severity: low
+          reason: 通用解题基本功，不属于局部-全局切换的因果结构
+          classification: 合理遗漏
+        - thought: 思维B（模降维）
+          maps_to: invariant_claim + internal_policy step3
+          severity: N/A
+          classification: 有对应
+        - thought: 思维C（结构信号定向探测——模数选择由已知定理决定）
+          maps_to: binding_rules（重要补充，非7字段最小充分集）部分覆盖
+          severity: medium
+          reason: binding_rules给出"问题类型→模数"映射，但审查者描述的是"定理→模数"映射
+          classification: 部分遗漏
+        - thought: 思维D（目标转移——攻击理论工具能直接给出的结论指向的目标）
+          maps_to: internal_policy step4隐含但未显式
+          severity: medium
+          reason: step4"寻找隐藏结构"隐含目标转移可能性，但未显式描述
+          classification: 部分遗漏
+        - thought: 思维E（代数恒等式桥接）
+          maps_to: internal_policy step5
+          severity: N/A
+          classification: 有对应（部分）
+        - thought: 思维F（case分裂——按关键变量相等/不等关系分case）
+          maps_to: 无直接对应
+          severity: medium
+          reason: internal_policy step2-5未显式提到case分裂；1962失败部分因为case分裂指引缺失
+          classification: 部分遗漏
+        - thought: 思维G（乘积的2-adic分解）
+          maps_to: 无直接对应（合理不包含——具体数学工具，泄漏风险考量）
+          severity: N/A
+          classification: 合理不包含
+        - thought: 思维H（逐点条件替代全局条件）
+          maps_to: internal_policy step5
+          severity: N/A
+          classification: 有对应（部分）
+        - thought: 思维I（方向正确≠操作路径明确）
+          maps_to: internal_policy step2-5 + progress_model
+          severity: N/A
+          classification: 有对应（核心对应——与383号核心发现一致）
+        - thought: 思维J（IVT/次数论证建立必要约束）
+          maps_to: 无直接对应
+          severity: low
+          reason: 1843特有的前置约束建立，不具有跨题共性
+          classification: 合理遗漏
+
+      omissions_found:
+        total_omissions: 5
+        reasonable_omissions: 2  # 思维A, 思维J
+        partial_omissions: 3    # 思维C, 思维D, 思维F
+        high_severity_omissions: 0
+        partial_omissions_detail:
+          - thought: 思维C（定向探测）
+            recommendation: 扩展binding_rules，增加"定理→模数"映射
+            target_poc: POC-7
+          - thought: 思维D（目标转移）
+            recommendation: 在internal_policy step4中增加目标转移显式描述
+            target_poc: POC-3验证+POC-7修订
+          - thought: 思维F（case分裂）
+            recommendation: 在internal_policy中增加case分裂步骤
+            target_poc: POC-3验证+POC-7修订
+
+      verdict:
+        extraction_is_complete: partial
+        omissions_count: 5（2合理+3部分）
+        high_severity_count: 0
+        standard_8_1_check: "partial——部分遗漏37.5%>20%，但无high severity遗漏"
+
+    accuracy:  # 有没有噪声
+      tellcore_fields_checked_against_1962_bare_failure_trace:
+        - field: invariant_claim
+          appears_in_failure_trace: true
+          causal_sufficiency: candidate_noise
+          evidence: bare AI也意识到"需要用局部表示"（v_2分析），但方向意识不导致成功
+          non_causal_function: 提供"为什么局部化有效"的解释（迁移解释功能）
+          true_noise: false
+        - field: trigger_boundary
+          appears_in_failure_trace: true
+          causal_sufficiency: candidate_noise
+          evidence: bare AI也触发了"困境识别"，困境识别是通用能力
+          non_causal_function: 让selector知道"何时选这个Tell"（选择功能）
+          true_noise: false
+        - field: negative_boundary
+          appears_in_failure_trace: false
+          causal_sufficiency: causally_sufficient
+          evidence: 1962含整除性，negative_boundary不触发（正确）；在假朋友题中是拒绝关键
+        - field: parameter_slots
+          appears_in_failure_trace: partial
+          causal_sufficiency: candidate_noise
+          evidence: bare AI选择了v_2（level=p-adic），p=2的选择是trivial的（由"2的幂"直接给出）
+          non_causal_function: 在其他题中（CC-009/010）p绑定不是trivial的
+          true_noise: false
+        - field: internal_policy (step2-5)
+          appears_in_failure_trace: partial（step2-3出现，step4-5未出现）
+          causal_sufficiency: causally_sufficient
+          evidence: bare AI做了step2-3但未完成step4-5，特别是case分裂未系统执行
+          key_finding: 与383号核心发现一致——"方向Tell不够，需要操作路径Tell"
+        - field: progress_model
+          appears_in_failure_trace: partial（信号1出现，信号2-4未出现）
+          causal_sufficiency: causally_sufficient
+          evidence: bare AI讨论了v_2（信号1）但未发现隐藏结构/建立联系/提升全局
+        - field: termination
+          appears_in_failure_trace: false
+          causal_sufficiency: causally_sufficient
+          evidence: bare AI不知道何时退出2-adic计算，陷入无限循环
+
+      noise_found:
+        candidate_noise_count: 3  # invariant_claim, trigger_boundary, parameter_slots
+        true_noise_count: 0       # 3个候选噪声都有合理的非因果功能
+        causally_sufficient_count: 4  # negative_boundary, internal_policy step4-5, progress_model信号2-4, termination
+        standard_8_2_check: "partial——候选噪声3>2，但真正噪声0；因果充分4<5，但候选噪声非真正噪声"
+
+    bias:  # 有没有偏差
+      extraction_distribution:
+        from_1631: 4  # 模p层面
+        from_1843: 4  # 模p层面
+        from_1709: 4  # p-adic层面
+        from_1962: 5  # p-adic层面
+        mod_p_total: 8       # 1631+1843
+        p_adic_total: 9      # 1709+1962
+        cross_problem_mod_p: 7    # 贡献跨题思维数
+        cross_problem_p_adic: 8   # 贡献跨题思维数
+
+      bias_found:
+        - bias_type: 无偏差
+          evidence: p-adic层面（8条）≥ 模p层面（7条）的50%
+          standard_8_3_check: "通过——8 ≥ 3.5"
+        - bias_type: 轻微抽象层次偏差（非严重）
+          evidence: 审查者提取略低于TellCore——审查者停留在"模降维""目标转移"等具体策略层面，TellCore提升到"局部-全局表示切换"更高层抽象
+          reason: 独立提取的自然结果——审查者不知道TellCore的更高层抽象，倾向于更具体的策略描述
+
+      verdict:
+        extraction_is_unbiased: true
+        bias_count: 0  # 严重偏差
+        standard_8_3_check: "通过"
+
+    metamorphic_coverage:  # 变形关系覆盖
+      allowed_transformations_coverage:
+        total: 6
+        with_problem_verification: 2  # A2, A5
+        covered: 2  # A2✅, A5✅
+        gaps: 4  # A1, A3, A4, A6
+        coverage_rate_with_verification: "2/2 = 100%"
+      forbidden_transformations_rejection:
+        total: 5
+        with_problem_verification: 3  # F1, F2, F4
+        rejected: 3  # F1✅(需critic), F2✅, F4✅
+        gaps: 2  # F3, F5
+        rejection_rate_with_verification: "3/3 = 100%"
+      boundary_transformations:
+        total: 3
+        with_problem_verification: 2  # B2, B3
+        correctly_marked_boundary: 2  # B2✅, B3✅
+        gaps: 1  # B1
+      total_transformations: 14
+      total_with_verification: 7
+      total_covered: 7  # 100%
+      total_gaps: 7
+      standard_8_4_check: "通过——有题目验证的2个允许变换（A2/A5）均被覆盖"
+
+      cc_203_204_trigger_design_insight: |
+        CC-203（鸽巢+子集计数）和CC-204（概率方法）的AI实际尝试了Z/dZ上的Fourier分析/CRT分解，
+        比标准解答更接近局部-全局切换但仍不是。
+        TellCore的trigger_boundary没有显式区分"在Z/pZ上工作"和"通过Z/pZ切换表示来揭示隐藏结构"。
+        建议：在trigger_boundary或critic中增加"局部发现的可提升性"检查。
+
+    part_2_overall_verdict:
+      completeness: partial
+      accuracy: partial
+      bias: pass
+      metamorphic_coverage: pass
+      overall: partial
+      key_finding: |
+        partial的原因都指向同一个方向——binding_rules和internal_policy的粒度不足。
+        3条部分遗漏（定向探测/目标转移/case分裂）都需要更细粒度的操作路径描述。
+        这与383号的核心发现（"方向Tell不够，需要操作路径Tell"）完全一致——
+        操作路径的粒度可能还需要更细，包括case分裂和目标转移的显式指引。
+
+  # ============================================================
+  # Part 3：Pareto前沿分析（本增强版新增）
+  # ============================================================
+  part_3_pareto_frontier:
+    candidates:
+      - id: A_compact
+        name: 候选A（精简版=7字段-negative_boundary）
+        fields: 7字段最小充分集 - negative_boundary
+        scores:
+          trigger_accuracy: 0
+          executability: 1
+          near_transfer: 1
+          far_transfer: 1
+          negative_transfer: 0
+          cost: 1
+          leakage: 2
+          sustainable_learning: 0
+        total: 6
+      - id: B_baseline
+        name: 候选B（baseline=383号7字段最小充分集）
+        fields: invariant_claim + trigger_boundary + negative_boundary + parameter_slots + internal_policy(step2-5) + progress_model + termination
+        scores:
+          trigger_accuracy: 1
+          executability: 1
+          near_transfer: 1
+          far_transfer: 1
+          negative_transfer: 1
+          cost: 1
+          leakage: 2
+          sustainable_learning: 0
+        total: 8
+      - id: C_extended
+        name: 候选C（扩展版=7字段+binding_rules+critic）
+        fields: 7字段最小充分集 + binding_rules + critic
+        scores:
+          trigger_accuracy: 2
+          executability: 2
+          near_transfer: 2
+          far_transfer: 1
+          negative_transfer: 2
+          cost: 0
+          leakage: 2
+          sustainable_learning: 2
+        total: 13
+
+    pareto_frontier: [B_baseline, C_extended]
+    dominated: [A_compact]  # A被B支配
+
+    domination_analysis:
+      B_dominates_A: true   # B≥A在所有8维度，B>A在触发准确率和负迁移率
+      B_vs_C: non_dominated # C>B在5维度，B>C在提示成本1维度
+      A_vs_C: non_dominated # 但A已被B支配，不在前沿
+
+    pareto_frontier_graph: Tell分类学研究过程文档/poc_assets/poc_1/poc_1_enhanced_pareto_frontier.md
+    graph_description: |
+      关键维度散点图（触发准确率×提示成本）：
+      - 候选C（★）在触发准确率上最优（2分），但提示成本最低（0分=最长）
+      - 候选B（●）在提示成本上最优（1分=中等），触发准确率中等（1分）
+      - 候选A（○）被B支配——提示成本与B相同，触发准确率更差
+      - B和C互不支配——B在提示成本上更好，C在触发准确率上更好
+
+    analysis: |
+      Pareto前沿={候选B（baseline），候选C（扩展版）}。候选A（精简版）被B支配。
+      关键发现：
+      1. negative_boundary是必要的——删除它（候选A）只减少1个字段但失去假朋友拒绝能力
+      2. binding_rules+critic是Pareto前沿上的增量价值——C在5维度上优于B，仅提示成本劣于B
+      3. 提示成本是B vs C的核心trade-off
+      4. 远迁移效用是所有候选的弱项（都只有1分）——A3/A4是gap无题目验证
+      5. 可持续学习是B的弱项（0分）——只有C有critic能从失败中诊断和修复
+
+    standard_9_check:
+      all_candidates_scored: true      # 3候选×8维度全部评分
+      pareto_frontier_determined: true # {B, C}
+      graph_produced: true             # 触发准确率×提示成本散点图
+      analysis_recorded: true          # §5分析结论
+
+  # ============================================================
+  # 总体判定
+  # ============================================================
+  overall_verdict:
+    field_ablation_pass: true  # 383号已完成，7项标准全部PASS（部分有条件）
+    extraction_completeness_pass: partial  # 完备性partial+准确性partial+偏差性pass+变形关系pass
+    pareto_frontier_analysis_done: true    # 3候选评分+Pareto前沿判定+图+结论
+
+    confidence: medium-high
+    scope_limit: |
+      POC-1（增强版）仍是分析性POC——不跑Solver，不验证经验有效性。
+      提取完备性检查基于结构分析和独立审查者对照，不基于运行时实验。
+      Pareto前沿分析的8维度评分基于结构分析，不基于经验数据。
+      经验有效性需要POC-2~POC-8在Solver上验证。
+
+    key_findings:
+      - finding_1: |
+          提取完备性检查总体partial——无high severity遗漏，但3条medium severity部分遗漏
+          （定向探测/目标转移/case分裂）指向binding_rules和internal_policy粒度不足。
+          这与383号核心发现（"方向Tell不够，需要操作路径Tell"）一致——操作路径粒度需更细。
+      - finding_2: |
+          准确性检查发现3个候选噪声（invariant_claim/trigger_boundary/parameter_slots）
+          但都不是真正噪声——它们有合理的非因果功能（解释/选择）。
+          4个因果充分字段（negative_boundary/internal_policy step4-5/progress_model信号2-4/termination）
+          与383号核心发现一致。
+      - finding_3: |
+          Pareto前沿={候选B, 候选C}。候选A（删除negative_boundary）被B支配——
+          negative_boundary是必要的，删除它只减少1个字段但失去假朋友拒绝能力。
+          B和C互不支配——B在提示成本上占优，C在5个维度上占优。
+      - finding_4: |
+          CC-203/204启示：trigger_boundary需要增加"局部发现的可提升性"检查——
+          区分"在Z/pZ上工作"和"通过Z/pZ切换表示来揭示隐藏结构"。
+      - finding_5: |
+          变形关系覆盖：14个变换中7个有题目验证，7个gap无题目验证。
+          有题目验证的7个变换100%被TellCore覆盖/拒绝/标为boundary。
+
+    follow_up:
+      - POC-2: 用候选B作为baseline测试trigger/negative_boundary的区分能力；如果假朋友拒绝率不足，升级到候选C
+      - POC-2.5: 测试"只给方向意识"vs"给操作路径"的因果效应差异——预期"只给方向"无效（与1962 bare失败一致）
+      - POC-3: 用候选C测试internal_policy操作路径充分性——重点验证case分裂和目标转移是否需要显式指引（用1962测试）
+      - POC-3.5: 用Pareto前沿上的B和C分别渲染不同非特化程度HintInstance，验证钟形曲线/Pareto前沿
+      - POC-7: 3条部分遗漏（思维C/D/F）作为修订候选记录输入；trigger_boundary增加"可提升性"检查
+      - 未来题包扩展: 补充A3/A4（对象换壳/领域迁移）变形题，验证远迁移效用
+```

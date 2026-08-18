@@ -13,8 +13,8 @@
 | 1 | POC-0-Asset-1 | CasePack v1冻结版（10字段+5否决项审查） | POC-0 | `poc_0/casepack_v1.md` | 828 | ✅已冻结（2026-08-17） |
 | 1b | POC-0-Asset-1-v0 | CasePack v0简化版（10字段+5否决项审查，已被v1取代） | POC-0 | `poc_0/casepack_simplified.md` | 955 | ⚠️已被v1取代（保留作历史参考） |
 | 2 | POC-0.5-Asset-1 | 变形关系声明表（6允许+5禁止+3边界） | POC-0.5 | `poc_0.5/metamorphic_relation_declaration.yaml` | 114 | ✅已冻结（2026-08-18，变换→题目映射审查完成） |
-| 3 | POC-1-Asset-1 | 3个候选TellCore（A精简/B baseline/C扩展）+8维度Pareto评分表 | POC-1 | `poc_1/tellcore_candidates.yaml` | 153 | ✅就绪 |
-| 4 | POC-1-Asset-2 | 独立审查者解题思维提取指南 | POC-1 | `poc_1/independent_reviewer_guide.md` | 254 | ✅就绪 |
+| 3 | POC-1-Asset-1 | 3个候选TellCore（A精简/B baseline/C扩展）+8维度Pareto评分表 | POC-1 | `poc_1/tellcore_candidates.yaml` | 153 | ✅已使用（2026-08-18，Pareto前沿分析完成） |
+| 4 | POC-1-Asset-2 | 独立审查者解题思维提取指南 | POC-1 | `poc_1/independent_reviewer_guide.md` | 254 | ✅已使用（2026-08-18，独立审查者提取完成） |
 | 5 | POC-2-Asset-1 | 小型Tell库（1目标+3近邻+2错配+1通用反思） | POC-2 | `poc_2/small_tell_library.yaml` | 324 | ✅就绪 |
 | 6 | POC-3.5-Asset-1 | 5个HintInstance完整文本（L1极低→L5极高） | POC-3.5 | `poc_3.5/hint_instances_l1_l5.yaml` | 151 | ✅就绪 |
 | 7 | POC-9-Asset-1 | 失败trace选题（382号4道+387号14道按d2子类型分布） | POC-9 | `poc_9/failure_trace_selection.md` | 317 | ✅就绪（有限制） |
@@ -97,7 +97,7 @@ Pipe 3选题产出（✅2026-08-17规模化运行完成）
 Phase A：策略对象成形 ← POC-0+POC-0.5已完成，POC-1可立即执行
   POC-0 CasePack冻结 ← ✅v1已冻结（2026-08-17）
   POC-0.5 变形关系声明 ← ✅已完成（2026-08-18，变换→题目映射审查完成，声明表已冻结）
-  POC-1 因果取商增强版 ← 资产3+4就绪 ✅（source trace题CC-001~004保留v0不变）
+  POC-1 因果取商增强版 ← ✅已完成（2026-08-18，提取完备性检查+Pareto前沿分析完成，partial通过）
 
 Phase B：基础验证 ← 部分资产就绪，部分需等Phase A完成
   POC-2 可选择 ← 资产5就绪 ✅，POC-0已完成（v1: 6正迁移+4假朋友+2边界=12道题）
