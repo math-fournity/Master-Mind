@@ -150,6 +150,39 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 
 ---
 
+## POC-2.7.6 面包屑地图方案验证（⏳待执行）
+
+**方案文档**：`conversation-map.md`（项目根目录）
+**遍历程序**：`scripts/conversation_mapper.py`（待实现）
+**普查程序**：`scripts/conversation_field_census.py`（已实现）
+
+### 核心问题
+
+基于先验schema的conversation.json提取方式有根本缺陷——919道DIRECTION_ERROR题的原始prompt禁止工具调用，导致conversation.json结构单一，基于此建立的schema不能代表AI正常使用工具时的真实结构。续传后AI正常调工具，conversation.json中出现大量tool_calls/observation和多轮thinking spin。
+
+需要一个不假设schema的遍历方案：递归遍历conversation.json生成面包屑地图（带JSON path的导航索引），交给编写HANDOVER.md的AI按地图逐条遍历，不依赖先验schema。
+
+### 验证内容
+
+1. **遍历完备性**：conversation_mapper.py对多个conversation.json生成地图，验证不遗漏任何节点
+2. **地图可用性**：编写HANDOVER.md的AI能根据地图正确定位和读取所有需要的内容
+3. **HANDOVER.md质量**：对比v1方案（机械拼接reasoning_content）和v2方案（面包屑地图+HANDOVER.md）的续传效果
+4. **结构适应性**：地图能正确处理原始做题（受限prompt，结构简单）和续传后（不受限，结构复杂）的conversation.json
+
+### 测试样本
+
+- 原始做题的conversation.json（受限prompt，如omni_math_004100的round1）
+- 续传后的conversation.json（不受限prompt，如omni_math_004133的round2，7个agent step，6个有工具调用）
+- 有中间截断的conversation.json（如omni_math_000120，7个agent step，step0和step6都截断）
+
+### 通过标准
+
+- 遍历程序对所有测试样本生成完整地图，不遗漏节点
+- 编写AI根据地图生成的HANDOVER.md包含v1方案丢失的observation内容
+- v2方案续传成功率≥v1方案
+
+---
+
 ## POC-2.7.5 续传发现对前置POC的影响评估（⚠️执行中）
 
 **方案文档**：`Tell分类学研究过程文档/416-v0-2026-08-18-POC-2.7.5-续传发现对前置POC的影响评估.md`
@@ -259,3 +292,6 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 | 415号 | `Tell分类学研究过程文档/415-v0-2026-08-18-POC-2.7-截断vs思维错误.md` | POC-2.7 |
 | 416号 | `Tell分类学研究过程文档/416-v0-2026-08-18-POC-2.7.5-续传发现对前置POC的影响评估.md` | POC-2.7.5 |
 | 续传规范文档 | `续传规范文档.md`（项目根目录） | 交接文档标准 |
+| 面包屑地图方案 | `conversation-map.md`（项目根目录） | POC-2.7.6 |
+| conversation.json Schema | `devin-cli-export-conversation.md`（项目根目录） | POC-2.7.6 |
+| trajectory.jsonl Schema | `trajectory-schema.md`（项目根目录） | POC-2.7.6 |
