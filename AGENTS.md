@@ -1069,12 +1069,12 @@ ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xar
 
 **背景**：POC-2.7把续传机制应用到919道DIRECTION_ERROR题上，验证续传能否大规模解决截断问题。系统已实现为错题分析系统的Pipe 4（独立自包含模式）+ Monitor Pipe设计范式（详见`MonitorPipe.md`）。完整运行和检查指南见`POC-2.7/README.md`。
 
-**当前运行状态**（2026-08-18 12:47启动）：▶️运行中——3个服务（launcher+monitor+watchdog）全部运行中，concurrency=5, max_rounds=5, method=v2。通过标准COMPLETED≥50%。
+**当前运行状态**（2026-08-18 14:13重启，异步handover架构）：▶️运行中——launcher+monitor运行中，concurrency=5, max_rounds=5, method=v2。通过标准COMPLETED≥50%。**架构改进**：handover生成已改为异步（start_handover+check_handover），不再阻塞主循环——多个handover可并行生成，完成后自动启动解题devin cli填满并发槽。
 
 **三层架构**：
 - **规范层**：`analysis-devin-failure-system/specs/p27_monitor_spec.md` (259行)——检查规范（A类自动检查9项/B类续传质量检查9项/C类AI review抽样5项）
 - **执行层**：`analysis-devin-failure-system/src/monitor_continuation.py` (915行)——Monitor Pipe守护进程，按规范执行18项检查，写alert到ArangoDB `p27_monitor_alerts`集合
-- **查询层**：`analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (241行)——检查脚本，Master AI每次检查都调用，输出6项检查+8步行动清单
+- **查询层**：`analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (285行)——检查脚本，Master AI每次检查都调用，输出7项检查（含系统健康）+8步行动清单+循环监控指令
 
 **Pipe 4核心文件**（独立自包含，不修改现有Pipe 1/2/3的代码）：
 - `src/continuation_config.py`——配置常量（Redis前缀`p27:`/tmux前缀`p27-`/DB集合`p27_continuation_*`/INFRA_FAILURES/MODEL_FAILURES）
@@ -1123,7 +1123,20 @@ cd analysis-devin-failure-system
 cd ~/master-mind-glm5.2-worktree
 bash analysis-devin-failure-system/scripts/monitor_check_continuation.sh p27-full
 ```
-输出6项检查（Monitor pane/alerts/进程状态/进度/续传质量/通过率判定）+ 8步行动清单。
+输出7项检查（Monitor pane/alerts/进程状态/进度/续传质量/通过率判定/**系统健康**）+ 8步行动清单 + **循环监控指令**。
+
+**★ 循环监控SOP**（Master AI的核心职责——反复执行直到所有题完成）：
+1. 运行检查脚本，阅读7项检查结果
+2. 按行动清单逐项处理（重启挂掉的服务、处理alert、重新入队失败的题）
+3. 等待60-120秒，让devin cli继续工作
+4. 再次运行检查脚本——如此循环，直到第4项进度显示所有题completed或failed
+5. 如果发现系统问题（代码bug/架构问题），修复代码后重启系统，然后继续循环监控
+6. **如果session被中断**，下一个session的AI只需运行检查脚本即可恢复全部上下文——脚本的输出会告诉你系统当前状态和需要做什么
+
+**系统健康判断标准**：
+- ✅ 健康 = launcher+monitor运行中 + devin cli活跃（pane有内容）+ 进度在推进
+- ⚠️ 需关注 = 有新alert + 失败率>15% + handover生成慢
+- ❌ 修复 = launcher/monitor挂了 + devin cli全卡住 + 进度停滞
 
 **如何查看和处理alerts**：
 ```bash
