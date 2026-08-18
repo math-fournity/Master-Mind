@@ -465,6 +465,8 @@ exp_id格式：`{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{problem_
 
 **关键差异**：conversation.json的`observation`字段存tool_results（58%存在率，优先用）；trajectory.jsonl的`role="tool"`行存tool_results（82%存在率，兜底用）。
 
+**面包屑地图方案**（不假设schema的遍历→地图→HANDOVER.md）：见 `conversation-map.md`（项目根目录）。当conversation.json结构未知或可能变化时，用 `scripts/conversation_mapper.py` 生成面包屑地图，交给编写HANDOVER.md的AI按地图逐条遍历，不依赖先验schema。
+
 **从DB查运行时目录和文件位置**：
 ```bash
 # 从problem_id查所有attempt及其文件路径
