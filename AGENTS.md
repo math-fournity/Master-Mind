@@ -731,7 +731,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **Pipe监控SOP**：运行任何Pipe（分析/审计/选题）时，必须启动Monitor Pipe并行监控。**检查时用标准化脚本** `analysis-devin-failure-system/scripts/monitor_check.sh <batch_id>`，禁止inline编写检查命令。脚本输出4项检查：Monitor Pipe pane输出 / alerts集合 / 进程状态 / 进度。详见 `.devin/rules/pipeline-monitor-sop.md`。
 - **审计Pipeline Rate Limit防护**：运行audit_launcher前必须检查当前devin cli进程数并据此设置并发（>8个进程时并发=1）。rate limit是账户级的，跨所有CLI实例共享。选题只用status=completed的审计结果。详见 `.devin/rules/audit-pipeline-rate-limit.md`。根因分析见 `dev-docs/388号`。
 - **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ Mid-Hint实验。721个中51个已有明确d2子类型（脚本直接选题，覆盖7种卡点类型），667个d2=other需Pipe 3语义再分类（可选扩展）。详见 `eight-system/HANDOFF.md`。产出统计见 `analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
-- **Pipe 3选题系统**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`。单例测试通过（13秒完成，XML解析成功，判定正确）。分类逻辑审查见`dev-docs/387号`§九（子类型完备性OK、PARTIAL_PROGRESS处理合理、批次难度需经验验证、判断信号充分性是核心局限但风险可控）。
+- **Pipe 3选题系统（已扩展·2026-08-17）**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`。**已按412号方案扩展**——提示词模板增加POC Preparation Metadata节（6项POC准备数据字段），解析器增加6个新标签的解析和DB写入。单例测试通过（13秒完成，0 tool_calls，6个新字段全部正确写入DB）。5题分组测试通过（5/5完成，0失败，6字段填写率100%）。分类逻辑审查见`dev-docs/387号`§九。扩展方案见`Tell分类学研究过程文档/412号`。运行SOP见下方"### Pipe 3扩展运行SOP"小节。
 - **MH第一圈(00995)已完成**：交互模式运行13分钟，AI用doubling construction解决n≡2(mod 4)卡点，答案5048。**重大发现：标准答案3800有误**——穷举代码`mean_int_search.py`的`row_options`只生成排序行，漏掉非排序行解空间，n=6错误判定IMPOSSIBLE。n=6构造已程序验证正确（1-36每个出现一次，所有行/列均值整数）。正确答案5048（S={1,...,100}\{2}）。详见`eight-system/runs/midhint/realtrack/00995/experiment_report.md`和`verification/README.md`。
 - **题目纠错记录**：`dev-docs/389号`——集中记录所有发现标准答案有误的题目。**选题前必须先查本文档**。当前记录：polymath_00995（标准答案3800→5048）。ArangoDB `problem_profiles`集合中已更新正确答案。
 - **两套Pipe命名体系统一说明（2026-08-17厘清）**：项目中存在两套Pipe命名体系，用了相同的编号但指不同的东西，必须区分：
@@ -742,6 +742,88 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **非特化理论综合文档（396号）**：`Tell分类学研究过程文档/396-v0-2026-08-17-非特化理论综合-从钟形曲线最高点到认知Option与Pareto前沿.md`——把用户的Tell/Hint概念厘清（钟形曲线绑在Hint上不是Tell上）与GPT在371/372号看到的三层深化（Pareto前沿/认知Option/因果贡献证明）统一成一份完整认知。包含：GPT框架里两个不同的"从trace中读"（识别端从失败trace读分叉vs学习端从成功trace提取认知技能）、错题分析系统是识别端工程化实现、Pipe 3和POC-0的接力关系、GPT设计的POC系列状态（373号9个POC，POC-0/1已完成，POC-2~8未执行）。
 - **POC系列审视文档（397号）**：`Tell分类学研究过程文档/397-v0-2026-08-17-GPT373号POC套装的逐个审视-完备性合理性与缺失项.md`——逐个审视373号9个POC的完备性和合理性，识别过度设计部分（POC-5首批过早/POC-7版本修订过重/CaseCard 30字段过多/评分表10维度过重）和GPT未考虑到的8项缺失（最关键：Hint非特化程度钟形曲线验证/识别端验证/基础因果效应验证）。建议修订后首批POC系列为11个POC。
 - **POC自包含方案文档（398-409号）**：`Tell分类学研究过程文档/`下12份自包含POC方案文档（398号POC-2.5基础因果效应验证/399号POC-0 CasePack冻结/400号POC-0.5变形关系声明/401号POC-1因果取商增强版/402号POC-2可选择/403号POC-3.5 Hint非特化程度验证/404号POC-3可执行/405号POC-4可终止/406号POC-6可归责/407号POC-7可持续学习简化版/408号POC-8端到端闭环/409号POC-9识别端验证）。每份遵循398号样板的10节结构（§0规范/§1定位/§2理论背景/§3前置状态/§4输入/§5方法/§6输出/§7通过标准/§8被索引文档全文加载清单/§9执行约束/§10与其他POC关系），§8列出3-7份需全文加载的核心文档。**未来20万上下文的AI只加载某份POC方案+它§8清单的文档，就能完整执行这个POC，不需要用户另外指点。**
+
+### Pipe 3扩展运行SOP（5题分组+检查标准·2026-08-17建立）
+
+> 本小节是Pipe 3扩展后的**永久性运行SOP**。任何Session的AI运行Pipe 3规模化选题时，必须按本SOP执行。
+
+#### 运行思想
+
+**不直接全量并发，而是5题一组、5并发处理、每组完成后检查。** 原因：
+
+1. **早发现质量问题**——如果6个新字段的填写率或值分布有系统性问题（如全部填unclear、全部填hard），5题就能发现，不需要跑完726题再发现
+2. **早发现rate limit问题**——5并发是小规模验证，确认rate limit安全后再继续
+3. **渐进式放量**——前几组用5并发验证稳定性，后续可以根据rate limit情况调整并发数
+
+#### 操作步骤
+
+```
+# 1. collect 5题
+python3 analysis-devin-failure-system/run_selection_pipeline.py \
+  --batch-id selection-batchN --source-batch-id audit-full1 \
+  --step collect --limit 5
+
+# 2. launch 5题（5并发）
+python3 analysis-devin-failure-system/run_selection_pipeline.py \
+  --batch-id selection-batchN --step launch --concurrency 5
+
+# 3. collect-results
+python3 analysis-devin-failure-system/run_selection_pipeline.py \
+  --batch-id selection-batchN --step collect-results
+
+# 4. 检查（AI执行，见下方检查标准）
+```
+
+#### 检查标准（每组完成后AI必须执行）
+
+**A. 基础完整性检查**
+
+| 检查项 | 标准 | 不通过时的处理 |
+|---|---|---|
+| 完成率 | 5/5完成，0失败 | 失败题重跑（--step launch会自动入队未完成的） |
+| XML解析率 | 0 failed_parse | 检查tmux pane输出，看XML格式是否正确 |
+| 6字段填写率 | ≥95%（允许少量unclear，但不应该大量为空或MISSING） | 如果大量MISSING，检查模板是否正确注入 |
+
+**B. 值分布合理性检查**
+
+| 字段 | 合理分布 | 异常信号 |
+|---|---|---|
+| suitable | YES和NO都有，NO占多数（AIME题大部分不涉及局部-全局切换） | 全YES（标准过松）或全NO（标准过严） |
+| false_friend_candidate | 大部分no，少量yes或unclear | 全yes（假朋友识别过松）或全no且suitable=NO题多（可能没认真识别） |
+| boundary_case_candidate | 大部分no，少量yes或unclear | 全yes（边界识别过松） |
+| process_signal_observability | suitable=YES题应为high/medium，suitable=NO题unclear合理 | suitable=YES题全low（过程信号不可观察，POC-3用不了） |
+| leakage_risk | 大部分low/medium，少量high | 全high（泄漏风险预评过严） |
+| difficulty_estimate | 应有easy/medium/hard分布，与batch对应 | 全hard（没有区分度）或全easy（过松） |
+| branch_position_hint | root和line都应出现 | 全root或全line（没有区分度） |
+
+**C. 字段间逻辑一致性检查**
+
+- suitable=YES的题：batch不应为N/A，d2_reclassified应有具体子类型
+- suitable=NO的题：batch应为N/A
+- suitable=YES且process_signal_observability=low：标记为POC-0精筛时的降优先级题
+- suitable=YES且leakage_risk=high：标记为POC-0精筛时的降优先级题
+- false_friend_candidate=yes仅应出现在suitable=NO的题中（YES题不可能是假朋友）
+
+**D. 跨组趋势检查（从第2组开始）**
+
+- 累计suitable=YES的题数是否在合理范围（每5题约0-2道YES）
+- 6个字段的累计分布是否稳定（不是第1组全hard、第2组全easy这种突变）
+- 是否出现rate limit（如果有failed=rate_limited，降低并发数）
+
+#### 检查不通过时的处理
+
+| 问题 | 处理 |
+|---|---|
+| 6字段大量MISSING | 检查模板是否正确注入（grep 6个字段名在生成的AGENTS.md中） |
+| 6字段大量unclear | 可接受——Pipe 3是二阶判断，信息不足时unclear是诚实回答。但如果suitable=YES题的process_signal_observability全是unclear，说明d2_exp质量不够 |
+| suitable全NO | 检查这5题的d1是否都是TOKEN_LIMIT/CONNECTION_ERROR（如果是，说明collect读到了不该读的审计结果） |
+| suitable全YES | 检查选题标准是否过松（d1是否真的都是DIRECTION_ERROR） |
+| difficulty全hard | 412号模板中difficulty判定指引偏粗，AI可能对不涉及局部-全局切换的题默认标hard。这是低价值字段（410号§2说"低价值"），不影响POC-0精筛，可接受 |
+| rate limit | 降低并发到1，暂停20分钟后重试（388号§4.1机制） |
+
+#### 通过检查后继续下一组
+
+检查通过后，collect下一组5题继续运行。累计suitable=YES的题达到30-50道时可以停止（412号§7.1的完成标准）。
 
 ---
 
