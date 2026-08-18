@@ -954,6 +954,7 @@ Phase B：基础验证
   POC-2 可选择（402号方案）
   POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️执行中——2026-08-18批量续传运行中，15个run串行，CC-101_bare已完成(POC-2.6)，CC-101_vein执行中。详见下方"POC-2.5批量续传实例"定位方法）
   POC-2.6 续传机制验证（新增·399号方案·✅已完成·2026-08-18·单题测试CC-101_bare通过——Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续，19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`，支持find/kill命令基于cwd精确管理devin进程）
+  POC-2.7 截断vs思维错误（新增·415号方案·⚠️待运行——948道DIRECTION_ERROR题全量续传，验证续传能否大规模解决截断问题。通过标准COMPLETED≥50%。**系统已实现为Pipe 4+Monitor Pipe**——详见下方"POC-2.7系统运行与检查"节）
   POC-3.5 Hint非特化程度验证（新增·403号方案·396号核心论断的验证·最关键）
   POC-3 可执行（404号方案·用POC-3.5确定的峰值HintInstance）
   POC-4 可终止（405号方案）
@@ -1061,6 +1062,70 @@ ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xar
 **当前状态**：理论框架和POC方案设计已完成（396-412号），7项POC资产已准备（poc_assets/）。下一步是执行——**执行编排见413号**（`Tell分类学研究过程文档/413-v0-2026-08-17-非特化研究执行编排-*.md`），413号定义了六批先后顺序、并行关系、时间估算、关键检查点，以及自包含文档加载纪律（执行任何一步前必须全文加载对应的自包含方案文档+§8清单文档）。**第一步是Pipe 3扩展代码修改（412号§5.1-5.3），完成后立即启动Pipe 3规模化运行（~40小时·瓶颈），在等待期间并行做POC-9和selfrun继续。**
 
 **与解题侧脉络分析线的关系**：解题侧（391号P1-P3）和非特化研究（398-409号POC系列）是两条不同的线——解题侧验证"trace识别能否在真实轨迹上产出可用trace"（VMS-31核心+trace_auditor），非特化研究验证"Tell/Hint能否有效指导AI"。两者在P2/Grove闭环接入时汇合——trace→tell匹配需要TellCore，而TellCore由非特化研究产出。
+
+#### POC-2.7系统运行与检查（2026-08-18实现·Pipe 4+Monitor Pipe）
+
+**背景**：POC-2.7把续传机制应用到948道DIRECTION_ERROR题上，验证续传能否大规模解决截断问题。系统已实现为错题分析系统的Pipe 4（独立自包含模式）+ Monitor Pipe设计范式（详见`MonitorPipe.md`）。完整运行和检查指南见`POC-2.7/README.md`。
+
+**三层架构**：
+- **规范层**：`analysis-devin-failure-system/specs/p27_monitor_spec.md` (242行)——检查规范（A类自动检查9项/B类续传质量检查7项/C类AI review抽样5项）
+- **执行层**：`analysis-devin-failure-system/src/monitor_continuation.py` (748行)——Monitor Pipe守护进程，按规范执行16项检查，写alert到ArangoDB `p27_monitor_alerts`集合
+- **查询层**：`analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (241行)——检查脚本，Master AI每次检查都调用，输出6项检查+8步行动清单
+
+**Pipe 4核心文件**（8个，独立自包含，不修改现有Pipe 1/2/3的代码）：
+- `src/continuation_config.py`——配置常量（Redis前缀`p27:`/tmux前缀`p27-`/DB集合`p27_continuation_*`）
+- `src/continuation_db_schema.py`——ArangoDB集合定义+索引
+- `src/continuation_redis_queue.py`——Redis队列操作
+- `src/continuation_collector.py`——数据收集（从problem_list.json加载919道题）
+- `src/continuation_feeder.py`——入Redis队列
+- `src/continuation_launcher.py`——**核心**，并发启动devin cli+stall/rate_limit/zombie检测+多轮续传
+- `src/continuation_result_collector.py`——结果收集+通过率判定
+- `run_continuation_pipeline.py`——端到端入口（collect→feed→launch→collect-results）
+
+**如何启动全量续传**：
+```bash
+cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
+# 端到端启动（并发5，v2方案）
+.venv/bin/python3 run_continuation_pipeline.py --batch-id p27-full --step all --concurrency 5 --max-rounds 5 --method v2
+```
+
+**如何启动Monitor Pipe**：
+```bash
+tmux new-session -d -s monitor-p27 \
+  "cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system && \
+   ~/master-mind-glm5.2-worktree/.venv/bin/python3 -m src.monitor_continuation \
+     --batch-id p27-full --interval 120 --concurrency 5"
+```
+
+**如何检查（Master AI每次检查都调用）**：
+```bash
+cd ~/master-mind-glm5.2-worktree
+bash analysis-devin-failure-system/scripts/monitor_check_continuation.sh p27-full
+```
+输出6项检查（Monitor pane/alerts/进程状态/进度/续传质量/通过率判定）+ 8步行动清单。
+
+**如何查看和处理alerts**：
+```bash
+# 查看新alerts
+cd analysis-devin-failure-system && .venv/bin/python3 -m src.monitor_continuation --batch-id p27-full --check-alerts
+# 标记alert为已解决
+.venv/bin/python3 -m src.monitor_continuation --batch-id p27-full --resolve-alert <alert_key>
+```
+
+**alert分类**（详见`specs/p27_monitor_spec.md`）：
+- A类自动检查（9项）：session_health/queue_stalled/rate_limit/zombie_sessions/export_missing/failure_rate/launcher_dead/long_running
+- B类续传质量检查（7项）：proof_missing/proof_no_boxed/proof_too_small/handover_missing/handover_too_small/all_rounds_truncated/status_anomaly
+- C类AI review抽样（5项，需Master AI判断）：proof_quality/proof_hallucination/answer_leak/handover_quality/continuation_direction
+
+**通过标准**（415号§7.1）：948道题中COMPLETED≥50% → POC-2.7通过。
+
+**如何停止系统**：
+```bash
+cd analysis-devin-failure-system
+.venv/bin/python3 run_continuation_pipeline.py --batch-id p27-full --step stop
+tmux kill-session -t monitor-p27
+tmux list-sessions | grep "^p27-" | cut -d: -f1 | xargs -I{} tmux kill-session -t {}
+```
 
 ### 当前任务：第六代系统研发
 
