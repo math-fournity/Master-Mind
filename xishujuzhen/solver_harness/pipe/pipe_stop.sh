@@ -39,9 +39,11 @@ if [ "$MODE" = "--kill" ]; then
     echo "[1/3] 停止launchd watchdog..."
     PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
     launchctl unload $PLIST 2>/dev/null || true
+    # 永久禁用——即使系统重启也不会自动加载
+    launchctl disable "gui/$(id -u)/com.aurolafly.pipe-watchdog" 2>/dev/null || true
     # 同时kill手动运行的watchdog进程（不是通过launchd启动的）
     pkill -f "pipe_watchdog.sh" 2>/dev/null || true
-    echo "  ✅ watchdog已停止（launchd plist + 手动进程）"
+    echo "  ✅ watchdog已停止（unload + disable + kill进程）"
 
     echo ""
     echo "[2/3] 停止6个pipe-*服务..."
@@ -88,9 +90,11 @@ print(r.hlen('math:running'))
     echo "[1/2] 停止launchd watchdog..."
     PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
     launchctl unload $PLIST 2>/dev/null || true
+    # 永久禁用——即使系统重启也不会自动加载
+    launchctl disable "gui/$(id -u)/com.aurolafly.pipe-watchdog" 2>/dev/null || true
     # 同时kill手动运行的watchdog进程
     pkill -f "pipe_watchdog.sh" 2>/dev/null || true
-    echo "  ✅ watchdog已停止（launchd plist + 手动进程）"
+    echo "  ✅ watchdog已停止（unload + disable + kill进程）"
 
     echo ""
     echo "[2/2] 停止collector等剩余服务..."
@@ -118,9 +122,11 @@ elif [ "$MODE" = "--force" ]; then
     echo "[1/3] 停止launchd watchdog..."
     PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
     launchctl unload $PLIST 2>/dev/null || true
+    # 永久禁用——即使系统重启也不会自动加载
+    launchctl disable "gui/$(id -u)/com.aurolafly.pipe-watchdog" 2>/dev/null || true
     # 同时kill手动运行的watchdog进程
     pkill -f "pipe_watchdog.sh" 2>/dev/null || true
-    echo "  ✅ watchdog已停止（launchd plist + 手动进程）"
+    echo "  ✅ watchdog已停止（unload + disable + kill进程）"
 
     echo ""
     echo "[2/3] 停止6个pipe-*服务（含collector）..."
