@@ -170,6 +170,44 @@ def is_thinking(pane_text: str) -> bool:
     return False
 
 
+def is_devin_waiting_api(exp_id: str) -> bool:
+    """检查devin cli进程是否有到代理(localhost:7897)的ESTABLISHED连接。
+
+    thinking spin时devin cli在等待API响应，有ESTABLISHED连接到代理。
+    真卡住时（API超时/断连/进程异常）没有ESTABLISHED连接。
+
+    用于区分"正在thinking"和"真卡住"——两者在pane空+pipe.log空时表面现象一样。
+    """
+    try:
+        # 找exp_id对应的devin进程PID
+        ps_res = subprocess.run(["ps", "aux"], capture_output=True, text=True, timeout=5)
+        pids = []
+        for line in ps_res.stdout.split("\n"):
+            if exp_id in line and "devin" in line and "grep" not in line:
+                parts = line.split()
+                if len(parts) >= 2:
+                    pids.append(parts[1])
+        if not pids:
+            logger.debug(f"is_devin_waiting_api: exp_id={exp_id} 未找到devin进程")
+            return False
+
+        # 检查每个PID是否有到7897代理的ESTABLISHED连接
+        for pid in pids:
+            lsof_res = subprocess.run(
+                ["lsof", "-p", pid, "-i", "-n", "-P"],
+                capture_output=True, text=True, timeout=10
+            )
+            for line in lsof_res.stdout.split("\n"):
+                if "7897" in line and "ESTABLISHED" in line:
+                    logger.debug(f"is_devin_waiting_api=True: exp_id={exp_id} pid={pid} 有到代理的ESTABLISHED连接")
+                    return True
+        logger.debug(f"is_devin_waiting_api=False: exp_id={exp_id} pids={pids} 无到代理的ESTABLISHED连接")
+        return False
+    except Exception as e:
+        logger.warning(f"is_devin_waiting_api: exp_id={exp_id} 检查异常 {e}")
+        return False
+
+
 def has_real_proof(pane_text: str) -> bool:
     """验证是否有真实的proof内容——眼见为实"""
     cleaned = clean_ansi(pane_text)
@@ -409,14 +447,19 @@ def classify(attempt_meta: dict, pane_text: str, pipe_text: str, is_running: boo
 
     # 6.6 failed_stall——devin cli卡在启动阶段
     # 症状：tmux session存在（is_running=True），但pane空白+pipe.log空+elapsed>300秒
-    # devin cli进程在运行但没有任何输出——可能等待API响应、加载rules卡住、或网络问题
-    # 不等30分钟timeout，300秒就判定为failed_stall，释放并发槽位
+    # 注意：pane空+pipe.log空有两种情况：
+    #   a) thinking spin——devin cli在等待API响应，thinking不输出到stdout，有到代理(7897)的ESTABLISHED连接
+    #   b) 真卡住——API超时/断连/进程异常，无到代理的ESTABLISHED连接
+    # 只有b)才判定为failed_stall，a)继续等待（thinking可以持续1000+秒）
     # 注意：pane_text可能包含空白行和换行符（len=24但strip后=0），用strip()判断
     if is_running and len(pane_text.strip()) < 20 and pipe_len == 0 and elapsed > 300:
-        logger.warning(f"classify判定=failed_stall: problem_key={problem_key} exp_id={exp_id} "
-                       f"devin cli卡在启动阶段 pane_len={pane_len} pane_stripped={len(pane_text.strip())} pipe_len={pipe_len} elapsed={elapsed:.0f}s "
-                       f"tmux session存在但无任何输出")
-        return "failed_stall", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_stall", "elapsed": elapsed}
+        if is_devin_waiting_api(exp_id):
+            logger.info(f"classify跳过6.6: problem_key={problem_key} exp_id={exp_id} "
+                        f"devin cli正在thinking spin（有到代理的ESTABLISHED连接）elapsed={elapsed:.0f}s 继续等待")
+        else:
+            logger.warning(f"classify判定=failed_stall: problem_key={problem_key} exp_id={exp_id} "
+                           f"devin cli真卡住（无到代理的ESTABLISHED连接）pane_len={pane_len} pipe_len={pipe_len} elapsed={elapsed:.0f}s")
+            return "failed_stall", {"problem_key": problem_key, "exp_id": exp_id, "verdict": "failed_stall", "elapsed": elapsed}
 
     # 7. stall——区分thinking spin和真stall
     if time.time() - last_activity > stall_time:
