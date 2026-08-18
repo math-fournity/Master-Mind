@@ -1072,8 +1072,8 @@ ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xar
 **当前运行状态**（2026-08-18 12:47启动）：▶️运行中——3个服务（launcher+monitor+watchdog）全部运行中，concurrency=5, max_rounds=5, method=v2。通过标准COMPLETED≥50%。
 
 **三层架构**：
-- **规范层**：`analysis-devin-failure-system/specs/p27_monitor_spec.md` (242行)——检查规范（A类自动检查9项/B类续传质量检查7项/C类AI review抽样5项）
-- **执行层**：`analysis-devin-failure-system/src/monitor_continuation.py` (748行)——Monitor Pipe守护进程，按规范执行16项检查，写alert到ArangoDB `p27_monitor_alerts`集合
+- **规范层**：`analysis-devin-failure-system/specs/p27_monitor_spec.md` (259行)——检查规范（A类自动检查9项/B类续传质量检查9项/C类AI review抽样5项）
+- **执行层**：`analysis-devin-failure-system/src/monitor_continuation.py` (915行)——Monitor Pipe守护进程，按规范执行18项检查，写alert到ArangoDB `p27_monitor_alerts`集合
 - **查询层**：`analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (241行)——检查脚本，Master AI每次检查都调用，输出6项检查+8步行动清单
 
 **Pipe 4核心文件**（独立自包含，不修改现有Pipe 1/2/3的代码）：

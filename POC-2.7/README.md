@@ -18,8 +18,8 @@ POC-2.7的批量续传采用错题分析系统的Pipe 4实现（独立自包含�
 
 | 层 | 文件 | 用途 |
 |---|---|---|
-| 规范层 | `analysis-devin-failure-system/specs/p27_monitor_spec.md` (242行) | 检查规范——A类自动检查(9项)/B类续传质量检查(7项)/C类AI review抽样(5项) |
-| 执行层 | `analysis-devin-failure-system/src/monitor_continuation.py` (748行) | Monitor Pipe守护进程——按规范执行16项检查，写alert到DB |
+| 规范层 | `analysis-devin-failure-system/specs/p27_monitor_spec.md` (259行) | 检查规范——A类自动检查(9项)/B类续传质量检查(9项)/C类AI review抽样(5项) |
+| 执行层 | `analysis-devin-failure-system/src/monitor_continuation.py` (915行) | Monitor Pipe守护进程——按规范执行18项检查，写alert到DB |
 | 查询层 | `analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (241行) | 检查脚本——Master AI每次检查都调用，输出6项检查+行动清单 |
 
 ### Pipe 4的8个核心文件
