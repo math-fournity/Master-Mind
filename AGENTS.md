@@ -2668,7 +2668,7 @@ db.aql.execute('''
 
 在2.4M道竞赛级数学题上构建GLM-5.2的数学能力边界Profile。不是让AI做题，是找能力边界——区分基础设施失败（重试，不计入Profile）和模型能力失败（Profile数据，不重试）。
 
-### 系统架构（4服务+Redis队列）
+### 系统架构（5服务+Monitor Pipe+Redis队列）
 
 ```
 ArangoDB (2.4M题) → Feeder → Redis pending队列
@@ -2682,6 +2682,8 @@ ArangoDB (2.4M题) → Feeder → Redis pending队列
                        Redis completed/failed队列
                                 ↓
                           Reporter (统计+告警) + Retry (基础设施失败重试)
+
+                          Monitor Pipe (并行监控8项检查+AI review抽样→pipe_monitor_alerts集合)
 ```
 
 **代码目录**：`xishujuzhen/solver_harness/pipe/`
@@ -2695,6 +2697,7 @@ ArangoDB (2.4M题) → Feeder → Redis pending队列
 | Collector | `collector.py` | 扫描running队列，眼见为实判定终态 |
 | Reporter | `reporter.py` | 定时统计报告+告警 |
 | Retry | `retry_infrastructure.py` | 基础设施失败自动重试 |
+| **Monitor Pipe** | **`monitor_pipe.py`** | **持续监控8项自动检查+AI review抽样，alert写入`pipe_monitor_alerts`集合** |
 
 ### 启动流程
 
@@ -2710,12 +2713,13 @@ bash xishujuzhen/solver_harness/pipe/pipe_start.sh
 bash xishujuzhen/solver_harness/pipe/pipe_start.sh 60
 ```
 
-`pipe_start.sh`自动完成5步：
+`pipe_start.sh`自动完成6步：
 1. 前置检查（Redis/ArangoDB/D盘/.env的ARANGO_DB）
 2. 恢复crash（清理zombie + 修复DB）
 3. 设置并发数
 4. 启动5个pipe-*服务（auto-restart模式）
-5. 启动launchd watchdog（守护服务+定期清理zombie）
+5. 启动Monitor Pipe（持续监控8项检查+AI review抽样，auto-restart模式）
+6. 启动launchd watchdog（守护服务+定期清理zombie）
 
 **一键停止**：
 

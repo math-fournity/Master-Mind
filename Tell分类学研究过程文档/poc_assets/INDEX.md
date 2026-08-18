@@ -10,7 +10,8 @@
 
 | 序号 | 资产编号 | 资产名称 | 服务的POC | 文件路径 | 行数 | 状态 |
 |---|---|---|---|---|---|---|
-| 1 | POC-0-Asset-1 | CasePack v0简化版（10字段+5否决项审查） | POC-0 | `poc_0/casepack_simplified.md` | 955 | ✅就绪 |
+| 1 | POC-0-Asset-1 | CasePack v1冻结版（10字段+5否决项审查） | POC-0 | `poc_0/casepack_v1.md` | 828 | ✅已冻结（2026-08-17） |
+| 1b | POC-0-Asset-1-v0 | CasePack v0简化版（10字段+5否决项审查，已被v1取代） | POC-0 | `poc_0/casepack_simplified.md` | 955 | ⚠️已被v1取代（保留作历史参考） |
 | 2 | POC-0.5-Asset-1 | 变形关系声明表（6允许+5禁止+3边界） | POC-0.5 | `poc_0.5/metamorphic_relation_declaration.yaml` | 66 | ✅就绪 |
 | 3 | POC-1-Asset-1 | 3个候选TellCore（A精简/B baseline/C扩展）+8维度Pareto评分表 | POC-1 | `poc_1/tellcore_candidates.yaml` | 153 | ✅就绪 |
 | 4 | POC-1-Asset-2 | 独立审查者解题思维提取指南 | POC-1 | `poc_1/independent_reviewer_guide.md` | 254 | ✅就绪 |
@@ -43,7 +44,7 @@
 
 | 资产 | 审计结论 | 关键质量点 |
 |---|---|---|
-| POC-0-Asset-1 | ✅合格 | 22道题全部有简化CaseCard（10字段）+5否决项审查；汇总表标注6道5否决项全通过题（CC-001/002/003/007 + CC-013/017） |
+| POC-0-Asset-1 | ✅已冻结v1 | v1从Pipe 3的47道YES精筛6正迁移+68道假朋友精筛4道+30道边界精筛2道，保留v0的4 source trace+4变形+2组合。12道新选题全部5否决项通过（假朋友/边界题的"结构成立/bare可失败"为N/A或边界）。v0简化版（casepack_simplified.md）已被v1取代，保留作历史参考 |
 | POC-0.5-Asset-1 | ✅合格 | 6允许+5禁止+3边界变换声明完整；基于383号TellCore v0候选C的7字段 |
 | POC-1-Asset-1 | ✅合格 | 3个候选（A精简/B baseline/C扩展）结构完整；8维度Pareto评分表清晰 |
 | POC-1-Asset-2 | ✅合格 | 4层提取结构正确（困境识别/方向切换/新方向操作/提升回全局）；独立性约束明确（不加载383号）；关键区分写到（"什么认知动作导致了成功" vs "成功解答里有什么"） |
@@ -61,10 +62,16 @@
 
 ```
 382号CasePack v0（✅已冻结）
-  ├─→ POC-0-Asset-1（简化CaseCard）
+  ├─→ POC-0-Asset-1-v0（简化CaseCard，已被v1取代）
   ├─→ POC-0.5-Asset-1（变形关系声明）
   ├─→ POC-1-Asset-2（独立审查者指南的source trace题）
   └─→ POC-9-Asset-1（失败trace选题的382号4道）
+
+CasePack v1（✅已冻结·2026-08-17·`poc_0/casepack_v1.md`）
+  ├─→ POC-0-Asset-1（v1冻结版，取代v0简化版）
+  ├─→ POC-0.5-Asset-1（变形关系声明——基于v1的假朋友/边界题）
+  ├─→ POC-1-Asset-2（独立审查者指南——source trace题CC-001~004保留v0）
+  └─→ POC-9-Asset-1（失败trace选题——382号4道source trace题保留v0）
 
 383号TellCore v0候选C（✅已完成）
   ├─→ POC-0.5-Asset-1（变形关系声明的TellCore字段）
@@ -77,6 +84,9 @@
 
 387号错题分析系统（✅已有1071条DIRECTION_ERROR题）
   └─→ POC-9-Asset-1（失败trace选题的387号14道）
+
+Pipe 3选题产出（✅2026-08-17规模化运行完成）
+  └─→ CasePack v1（6正迁移+4假朋友+2边界从Pipe 3精筛）
 ```
 
 ---
@@ -84,15 +94,15 @@
 ## §5 执行就绪状态（来自411号§3）
 
 ```
-Phase A：策略对象成形 ← 7项资产就绪后可立即执行
-  POC-0 CasePack冻结 ← 资产1就绪 ✅
-  POC-0.5 变形关系声明 ← 资产2就绪 ✅
-  POC-1 因果取商增强版 ← 资产3+4就绪 ✅
+Phase A：策略对象成形 ← POC-0已完成，POC-0.5/POC-1可立即执行
+  POC-0 CasePack冻结 ← ✅v1已冻结（2026-08-17）
+  POC-0.5 变形关系声明 ← 资产2就绪 ✅（需基于v1更新假朋友/边界题引用）
+  POC-1 因果取商增强版 ← 资产3+4就绪 ✅（source trace题CC-001~004保留v0不变）
 
 Phase B：基础验证 ← 部分资产就绪，部分需等Phase A完成
-  POC-2 可选择 ← 资产5就绪 ✅，需POC-0完成精筛后才有12道题
+  POC-2 可选择 ← 资产5就绪 ✅，POC-0已完成（v1: 6正迁移+4假朋友+2边界=12道题）
   POC-2.5 基础因果效应验证 ← 资产6部分就绪（Hint-L3文本），脉络需等POC-1
-  POC-3.5 Hint非特化程度验证 ← 资产6就绪 ✅，需POC-0完成精筛后有4道正迁移题
+  POC-3.5 Hint非特化程度验证 ← 资产6就绪 ✅，POC-0已完成（v1: 6道正迁移题）
   POC-3 可执行 ← ❌等POC-3.5
   POC-4 可终止 ← ❌等POC-3
 
@@ -105,7 +115,7 @@ Phase D：端到端 ← ❌需等Phase C完成
   POC-9 识别端验证 ← 资产7就绪 ✅，可并行执行
 ```
 
-**结论**：7项资产就绪后，Phase A的3个POC可以立即执行，POC-9可以并行执行。Phase B~D需等前置POC完成。
+**结论**：POC-0已完成（v1冻结），Phase A的POC-0.5和POC-1可以立即执行，POC-9可以并行执行。Phase B的POC-2和POC-3.5也可立即执行（POC-0已完成）。Phase B~D其余需等前置POC完成。
 
 ---
 
@@ -114,8 +124,10 @@ Phase D：端到端 ← ❌需等Phase C完成
 | 文档 | 对本索引的贡献 |
 |---|---|
 | 411号 | 资产准备分析——7项资产的定义、依赖、存放位置 |
-| 382号 | CasePack v0（资产1/2/4/7的来源） |
+| 382号 | CasePack v0（资产1-v0/2/4/7的来源，v1保留source trace/变形/组合） |
 | 383号 | TellCore v0候选C（资产2/3/5/6的来源） |
 | 403号 | POC-3.5方案（资产6的5个HintInstance设计来源） |
 | 387号dev-docs目录 | DIRECTION_ERROR题（资产7的来源） |
 | 399-409号 | 6个POC方案文档（资产引用位置） |
+| 412号 | Pipe 3扩展方案（CasePack v1的6正迁移+4假朋友+2边界来源） |
+| CasePack v1 | `poc_0/casepack_v1.md`（POC-0-Asset-1的v1冻结版，取代v0简化版） |

@@ -17,9 +17,9 @@ POC-9需要两类失败trace：
 
 ---
 
-## 2. 来源1：382号CasePack v0的4道source trace题（直接纳入）
+## 2. 来源1：CasePack v1的4道source trace题（CC-001~004，直接纳入）
 
-这4道题已有完整的bare失败记录和bare AI thinking。它们是000号tell端定义的原始POC例子。
+这4道题（1631/1843/1709/1962）已有完整的bare失败记录和bare AI thinking。它们是000号tell端定义的原始POC例子。v1保留了v0的source trace题不变。
 
 | 序号 | problem_id | d2子类型 | bare失败记录状态 | 标准解答状态 | thinking完整性状态 | 分叉类型 |
 |---|---|---|---|---|---|---|
