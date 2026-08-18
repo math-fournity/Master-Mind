@@ -150,10 +150,10 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 
 ---
 
-## POC-2.7.6 面包屑地图方案验证（⏳待执行）
+## POC-2.7.6 面包屑地图方案验证（✅遍历完备性验证通过）
 
 **方案文档**：`conversation-map.md`（项目根目录）
-**遍历程序**：`scripts/conversation_mapper.py`（待实现）
+**遍历程序**：`scripts/conversation_mapper.py`（已实现）
 **普查程序**：`scripts/conversation_field_census.py`（已实现）
 
 ### 核心问题
@@ -162,24 +162,33 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 
 需要一个不假设schema的遍历方案：递归遍历conversation.json生成面包屑地图（带JSON path的导航索引），交给编写HANDOVER.md的AI按地图逐条遍历，不依赖先验schema。
 
-### 验证内容
+### 验证结果
 
-1. **遍历完备性**：conversation_mapper.py对多个conversation.json生成地图，验证不遗漏任何节点
-2. **地图可用性**：编写HANDOVER.md的AI能根据地图正确定位和读取所有需要的内容
-3. **HANDOVER.md质量**：对比v1方案（机械拼接reasoning_content）和v2方案（面包屑地图+HANDOVER.md）的续传效果
-4. **结构适应性**：地图能正确处理原始做题（受限prompt，结构简单）和续传后（不受限，结构复杂）的conversation.json
+**1. 遍历完备性 ✅通过**
 
-### 测试样本
+三个测试样本，所有叶子节点都在地图中，0遗漏：
 
-- 原始做题的conversation.json（受限prompt，如omni_math_004100的round1）
-- 续传后的conversation.json（不受限prompt，如omni_math_004133的round2，7个agent step，6个有工具调用）
-- 有中间截断的conversation.json（如omni_math_000120，7个agent step，step0和step6都截断）
+| 测试样本 | 特征 | steps叶子节点数 | 地图包含 | 遗漏 |
+|---|---|---|---|---|
+| omni_math_004100 round1 | 原始做题，受限prompt，单step纯thinking spin | 54 | 54 | 0 |
+| omni_math_004133 round2 | 续传后，不受限prompt，7个agent step，6个有工具调用 | 175 | 175 | 0 |
+| omni_math_000120 | 有中间截断，7个agent step，step0和step6都截断 | — | — | 0 |
 
-### 通过标准
+**2. 结构适应性 ✅通过**
 
-- 遍历程序对所有测试样本生成完整地图，不遗漏节点
-- 编写AI根据地图生成的HANDOVER.md包含v1方案丢失的observation内容
-- v2方案续传成功率≥v1方案
+地图正确处理了三种不同结构的conversation.json：
+- 受限prompt（无工具调用，纯thinking spin）
+- 不受限prompt（多轮thinking spin + 工具调用 + observation）
+- 中间截断（step0截断后devin cli内部续传，step1-5正常工具调用，step6再截断）
+
+**3. 截断检测 ✅通过**
+
+统计摘要正确识别了中间截断（agent step 0）和最后截断（agent step 6）。
+
+### 待验证
+
+- **地图可用性**：编写HANDOVER.md的AI能根据地图正确定位和读取所有需要的内容
+- **HANDOVER.md质量**：对比v1方案（机械拼接reasoning_content）和v2方案（面包屑地图+HANDOVER.md）的续传效果
 
 ---
 
