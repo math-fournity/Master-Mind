@@ -954,7 +954,7 @@ Phase B：基础验证
   POC-2 可选择（402号方案）
   POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️执行中——2026-08-18批量续传运行中，15个run串行，CC-101_bare已完成(POC-2.6)，CC-101_vein执行中。详见下方"POC-2.5批量续传实例"定位方法）
   POC-2.6 续传机制验证（新增·399号方案·✅已完成·2026-08-18·单题测试CC-101_bare通过——Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续，19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`，支持find/kill命令基于cwd精确管理devin进程）
-  POC-2.7 截断vs思维错误（新增·415号方案·⚠️待运行——948道DIRECTION_ERROR题全量续传，验证续传能否大规模解决截断问题。通过标准COMPLETED≥50%。**系统已实现为Pipe 4+Monitor Pipe**——详见下方"POC-2.7系统运行与检查"节）
+  POC-2.7 截断vs思维错误（新增·415号方案·▶️**运行中**——919道DIRECTION_ERROR题全量续传，验证续传能否大规模解决截断问题。通过标准COMPLETED≥50%。**系统已实现为Pipe 4+Monitor Pipe**——2026-08-18 12:47启动，3个服务（launcher+monitor+watchdog）全部运行中，concurrency=5, max_rounds=5, method=v2。详见下方"POC-2.7系统运行与检查"节）
   POC-3.5 Hint非特化程度验证（新增·403号方案·396号核心论断的验证·最关键）
   POC-3 可执行（404号方案·用POC-3.5确定的峰值HintInstance）
   POC-4 可终止（405号方案）
