@@ -940,7 +940,7 @@ Phase A：策略对象成形
 
 Phase B：基础验证
   POC-2 可选择（402号方案）
-  POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️未完成——2026-08-18第一轮执行因completion_tokens限制失败，16个run的AI在thinking spin中被截断，需要先完成POC-2.6续传机制验证）
+  POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️执行中——2026-08-18批量续传运行中，15个run串行，CC-101_bare已完成(POC-2.6)，CC-101_vein执行中。详见下方"POC-2.5批量续传实例"定位方法）
   POC-2.6 续传机制验证（新增·399号方案·✅已完成·2026-08-18·单题测试CC-101_bare通过——Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续，19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`，支持find/kill命令基于cwd精确管理devin进程）
   POC-3.5 Hint非特化程度验证（新增·403号方案·396号核心论断的验证·最关键）
   POC-3 可执行（404号方案·用POC-3.5确定的峰值HintInstance）
@@ -962,6 +962,59 @@ POC-5可组合推迟到第二个Tell家族验证后。
 **completion_tokens限制与续传机制**：glm-5-2单次API调用的completion_tokens上限是25000（thinking+content+tool_calls都算在内）。竞赛数学题的thinking spin可能需要超过25000 tokens，导致AI在thinking中被截断（reasoning_content有46-73K字符，但message=0、tool_calls=0），无法进入working阶段。**续传机制**：把AI之前完成的reasoning_content作为新prompt的上下文注入，让AI在新的API调用中继续思考。每轮25000 completion_tokens推进一部分，多轮累积完成。续传prompt中只传reasoning_content（thinking），不传tool_calls/observation——因为被截断的run没有tool_calls。之前的reasoning_content作为input tokens传入新轮次，不算completion_tokens，新轮次的25000全部用于新的thinking+working。**验证结果**：CC-101_bare单题测试，Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续（第一步就说"我将从上次思考中断的地方继续"），19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`。
 
 **基于cwd的devin进程管理**：当系统中有多个devin实例并行运行（如Grove harness系统在`/data/math-agent-glm5.2-tmux-agents-dir/`下跑多个agent），需要精确识别哪些进程属于当前业务。方法：用`lsof -p <pid> | grep cwd`查进程的工作目录——每个run在独有的work_dir中启动，cwd就是进程身份标识。本脚本的进程cwd都在`poc_assets/poc_2.6/workdirs/p26-*`下，别的系统的进程cwd在别处，不会混淆。**不设超时限制**——devin自然运行到完成（输出message后自动退出）。需要中断时跟用户确认后用kill命令（基于cwd匹配杀进程），不要用超时自动杀。续传脚本的`find`命令查进程、`kill`命令杀进程，都基于cwd识别。
+
+#### POC-2.5批量续传实例（2026-08-18启动·跨session持续运行）
+
+**背景**：POC-2.6续传机制验证通过后，启动POC-2.5的16个run批量续传。这个批量运行会跨越多个session（每个run约13-45分钟，15个run串行总计可能需要数小时），后续session的AI需要能定位和管理这个运行。
+
+**如何定位正在运行的实例**：
+
+```bash
+# 1. 查当前正在跑的续传devin进程（基于cwd识别）
+cd ~/master-mind-glm5.2-worktree
+python3 "Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py" find
+
+# 2. 查批量脚本本身是否还在运行
+ps aux | grep "continue_solver.py batch" | grep -v grep
+
+# 3. 查tmux session（每个run的续传在独立tmux session中）
+tmux list-sessions 2>&1 | grep p26
+
+# 4. 查已完成run的export文件
+ls -la "Tell分类学研究过程文档/poc_assets/poc_2.6/trajectories/"*/round*/exports/conversation.json 2>/dev/null
+```
+
+**关键路径**：
+- 续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`
+- 续传数据目录：`Tell分类学研究过程文档/poc_assets/poc_2.6/`
+  - `trajectories/p26-<problem>-<condition>/roundN/exports/conversation.json`——每个run每轮的export
+  - `workdirs/p26-<problem>-<condition>/`——每个run的工作目录（AI写的脚本/proof.md在这里）
+  - `workdirs/p26-<problem>-<condition>/roundN_prompt.txt`——续传prompt（注入的reasoning_content）
+- POC-2.5第一轮原始数据：`Tell分类学研究过程文档/poc_assets/poc_2.5_round1/`
+
+**批量脚本运行参数**：
+```bash
+python3 continue_solver.py batch --max-rounds 5 --problems \
+  CC-101_vein CC-101_vein_hint CC-101_hint \
+  CC-103_bare CC-103_vein CC-103_vein_hint CC-103_hint \
+  CC-104_bare CC-104_vein CC-104_vein_hint CC-104_hint \
+  CC-105_bare CC-105_vein CC-105_vein_hint CC-105_hint
+```
+（CC-101_bare已在POC-2.6单题测试中完成，跳过）
+
+**续传策略**：
+- 13个有export的run（Round 1被截断但有reasoning_content）：从Round 2续传开始，注入Round 1的reasoning_content
+- 3个无export的run（CC-103-bare/CC-104-bare/CC-105-vein，Round 1有多轮tool call但未生成export）：从Round 1重新运行
+
+**如何中断**（需要跟用户确认后）：
+```bash
+# 杀当前正在跑的devin进程和批量脚本
+python3 "Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py" kill
+# 然后杀批量脚本本身
+ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xargs kill
+```
+
+**完成后如何分析**：16个run全部完成后，按398号§5.3判定逻辑分析因果效应。注意§2.5的澄清——vein条件混入了特化方法引导的混淆变量，分析时需区分"非特化策略的效果"和"特化方法引导的效果"。CC-101的初步观察显示vein可能误导（bare走Rado定理成功，vein走p-adic卡住），但需等全部run完成后做完整分析。
 
 **首批目标Tell家族**：局部-全局表示切换（Local Representation Switch）——已有CasePack v1（22道题，`poc_assets/poc_0/casepack_v1.md`，2026-08-17冻结：6正迁移+4假朋友+2边界从Pipe 3精筛，4 source trace+4变形+2组合保留v0）和383号TellCore v0候选C（7字段最小充分集）。
 
