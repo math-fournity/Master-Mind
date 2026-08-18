@@ -2839,8 +2839,68 @@ tmux new-session -d -s pipe-collector ".venv/bin/python3 xishujuzhen/solver_harn
 
 # 精确解题时间提取
 .venv/bin/python3 xishujuzhen/solver_harness/pipe/extract_solve_time.py --batch --update-db
+```
 
-# 日志查看
+### Monitor Pipe检查（2026-08-17新增）
+
+**Monitor Pipe**是持续运行的监控服务（`pipe-monitor` tmux session），每5分钟一轮，8项自动检查 + AI review抽样。详见`dev-docs/391号`。
+
+**8项自动检查**：
+
+| 检查项 | alert_type | 检测什么 |
+|---|---|---|
+| A. session_health | session_health | harness-p=0但Redis running>0 → runner挂了 |
+| B. queue_progress | queue_stalled/no_completions | 15分钟无变化 → stall |
+| C. rate_limit_detection | rate_limit | 最近5分钟rate_limited≥3 → 需降并发 |
+| D. zombie_sessions | zombie_sessions | 空pane僵尸session≥2 |
+| E. export_landing | export_missing | completed题无export文件>10% |
+| F. solve_time_credibility | solve_time_anomaly | solve_time>runtime>10% |
+| G. failure_rate | failure_rate | 失败率>15% |
+| H. throughput_trend | throughput_drop | 吞吐下降>50% |
+
+**AI review抽样**：每3轮抽样2条candidate_solved，标记需AI检查proof数学正确性（alert_type=ai_review_sample, severity=info）。
+
+**alert集合**：ArangoDB `pipe_monitor_alerts`（与错题分析系统的`monitor_alerts`隔离）。
+
+**标准化检查脚本**（5项检查+对AI的核心提醒）：
+
+```bash
+# Monitor Pipe标准化检查（5项：pane输出/alerts/进程状态/进度/系统深度审查结果）
+bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh
+
+# 查看新alerts
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 xishujuzhen/solver_harness/pipe/monitor_pipe.py --check-alerts
+
+# 解决alert
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 xishujuzhen/solver_harness/pipe/monitor_pipe.py --resolve-alert <alert_key>
+
+# 单轮检查（不循环）
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 xishujuzhen/solver_harness/pipe/monitor_pipe.py --once
+```
+
+**单独管理Monitor Pipe**（不重启其他服务）：
+
+```bash
+# 启动
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py monitor start --interval 300 --concurrency 20
+
+# 停止
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py monitor stop
+
+# 查看状态
+PYTHONPATH=xishujuzhen/solver_harness/pipe .venv/bin/python3 xishujuzhen/solver_harness/pipe/pipe_control.py monitor status
+```
+
+**检查脚本对AI的核心提醒**（monitor_check.sh第5节"系统深度审查结果"）：
+- ★ critical级别alert需要立即处理：pipe_service_dead/session_health critical/rate_limit critical/queue_stalled
+- ★ warning级别alert需要评估：zombie_sessions/failure_rate/throughput_drop/solve_time_anomaly
+- ★ info级别alert是AI review抽样——AI必须检查抽样的proof质量（这是AI的核心职责，不是脚本能做的）
+- ★ 处理完alert后用`monitor_pipe.py --resolve-alert <key>`标记为fixed
+- ★ 如果同一类型alert反复出现，说明根因未解决——需要切回系统开发者修复代码
+
+**日志查看**：
+
+```bash
 tail -f /data/math-agent-glm5.2-tmux-agents-trajectory/_pipe/logs/pipe.log
 ```
 
