@@ -938,7 +938,7 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
 Phase A：策略对象成形
   POC-0 CasePack冻结（✅v1已冻结·2026-08-17）——从Pipe 3产出精筛6正迁移+4假朋友+2边界，保留v0的source_trace/变形/组合→22道CasePack v1（`poc_assets/poc_0/casepack_v1.md`）
   POC-0.5 变形关系声明（✅已完成·2026-08-18·400号方案，变换→题目映射审查完成，7个gap标注留待未来题包扩展）
-  POC-1 因果取商增强版（✅已完成·2026-08-18·401号方案，提取完备性检查+Pareto前沿分析完成，partial通过——3条medium遗漏指向binding_rules/internal_policy粒度不足，Pareto前沿={候选B,C}）
+  POC-1 因果取商增强版（✅已完成·2026-08-18·401号方案，提取完备性检查+Pareto前沿分析+遗漏项裁决完成，标准8✅通过（有条件）——3条遗漏全部补入（思维C→binding_rules扩展/思维D→internal_policy step4扩展/思维F→internal_policy新增step4.5），3个候选噪声全部保留但有标记，修订候选TellCore v0.1已记录，Pareto前沿={候选B,C}不变。有条件通过的条件：POC-3验证3个补入可执行+POC-2.5验证3个候选噪声部分可删除）
 
 Phase B：基础验证
   POC-2 可选择（402号方案）
@@ -2724,19 +2724,35 @@ bash xishujuzhen/solver_harness/pipe/pipe_start.sh 60
 **一键停止**：
 
 ```bash
-# 优雅停止（保留harness session，它们会自然完成当前正在做的题）
+# 优雅停止（默认，两步流程）：
+#   第1步：停feeder/runner/reporter/retry/monitor，保留collector继续判定终态
 bash xishujuzhen/solver_harness/pipe/pipe_stop.sh
 
-# 停止并kill所有harness session（强制停止所有正在做的题）
+#   第2步：等running=0后，停collector+watchdog
+bash xishujuzhen/solver_harness/pipe/pipe_stop.sh --finish
+
+# 立即停止所有服务（保留harness session自然完成，但collector已停，终态需下次启动时recover处理）
+bash xishujuzhen/solver_harness/pipe/pipe_stop.sh --force
+
+# 停止并kill所有harness session（强制中断所有正在做的题）
 bash xishujuzhen/solver_harness/pipe/pipe_stop.sh --kill
 ```
 
-`pipe_stop.sh`自动完成3步：
-1. 停止launchd watchdog（防止自动重启）
-2. 停止6个pipe-*服务（feeder/runner/collector/reporter/retry/monitor，发SIGINT等10秒优雅退出）
-3. 保留或kill harness session（`--kill`才kill）
+**优雅停止的两步流程**（默认）：
 
-**优雅停止的含义**：停止6个pipe服务后，已启动的harness-xxx session会继续运行直到自然完成当前正在做的题。不会有新题启动（runner已停）。Collector已停，所以已完成的题不会被判定终态——下次启动时recover_from_crash.py会处理。
+- **第1步**（`pipe_stop.sh`）：停feeder/runner/reporter/retry/monitor，**保留collector继续运行**。collector会继续判定正在做的题的终态。不停watchdog（守护collector）。
+- **第2步**（`pipe_stop.sh --finish`）：等running=0后，停collector+watchdog。如果running>0会拒绝执行。
+
+**为什么不能一次性停所有服务**：collector被停后，正在做的题完成后没有服务判定终态，status卡在running，直到下次启动时recover_from_crash.py处理——这不是优雅停止。
+
+**4种停止模式对比**：
+
+| 模式 | 命令 | 行为 | 适用场景 |
+|---|---|---|---|
+| 优雅停止（默认） | `pipe_stop.sh` | 停feeder/runner等，保留collector | 正常关机，想让正在做的题被正确判定终态 |
+| 收尾 | `pipe_stop.sh --finish` | running=0后停collector+watchdog | 优雅停止后的第2步 |
+| 立即停止 | `pipe_stop.sh --force` | 停所有服务，保留harness session | 需要立即停pipe服务，harness session自然完成 |
+| 强制kill | `pipe_stop.sh --kill` | 停所有服务+kill所有harness session | 紧急情况，强制中断所有正在做的题 |
 
 **手动启动（不推荐，缺少前置检查和watchdog）**：
 
