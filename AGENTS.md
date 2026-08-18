@@ -937,7 +937,7 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
 
 Phase A：策略对象成形
   POC-0 CasePack冻结（✅v1已冻结·2026-08-17）——从Pipe 3产出精筛6正迁移+4假朋友+2边界，保留v0的source_trace/变形/组合→22道CasePack v1（`poc_assets/poc_0/casepack_v1.md`）
-  POC-0.5 变形关系声明（新增·400号方案）
+  POC-0.5 变形关系声明（✅已完成·2026-08-18·400号方案，变换→题目映射审查完成，7个gap标注留待未来题包扩展）
   POC-1 因果取商（✅383号已完成原始版，需按401号增强版补提取完备性检查+Pareto前沿分析）
 
 Phase B：基础验证

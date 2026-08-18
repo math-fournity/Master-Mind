@@ -12,7 +12,7 @@
 |---|---|---|---|---|---|---|
 | 1 | POC-0-Asset-1 | CasePack v1冻结版（10字段+5否决项审查） | POC-0 | `poc_0/casepack_v1.md` | 828 | ✅已冻结（2026-08-17） |
 | 1b | POC-0-Asset-1-v0 | CasePack v0简化版（10字段+5否决项审查，已被v1取代） | POC-0 | `poc_0/casepack_simplified.md` | 955 | ⚠️已被v1取代（保留作历史参考） |
-| 2 | POC-0.5-Asset-1 | 变形关系声明表（6允许+5禁止+3边界） | POC-0.5 | `poc_0.5/metamorphic_relation_declaration.yaml` | 66 | ✅就绪 |
+| 2 | POC-0.5-Asset-1 | 变形关系声明表（6允许+5禁止+3边界） | POC-0.5 | `poc_0.5/metamorphic_relation_declaration.yaml` | 114 | ✅已冻结（2026-08-18，变换→题目映射审查完成） |
 | 3 | POC-1-Asset-1 | 3个候选TellCore（A精简/B baseline/C扩展）+8维度Pareto评分表 | POC-1 | `poc_1/tellcore_candidates.yaml` | 153 | ✅就绪 |
 | 4 | POC-1-Asset-2 | 独立审查者解题思维提取指南 | POC-1 | `poc_1/independent_reviewer_guide.md` | 254 | ✅就绪 |
 | 5 | POC-2-Asset-1 | 小型Tell库（1目标+3近邻+2错配+1通用反思） | POC-2 | `poc_2/small_tell_library.yaml` | 324 | ✅就绪 |
@@ -94,9 +94,9 @@ Pipe 3选题产出（✅2026-08-17规模化运行完成）
 ## §5 执行就绪状态（来自411号§3）
 
 ```
-Phase A：策略对象成形 ← POC-0已完成，POC-0.5/POC-1可立即执行
+Phase A：策略对象成形 ← POC-0+POC-0.5已完成，POC-1可立即执行
   POC-0 CasePack冻结 ← ✅v1已冻结（2026-08-17）
-  POC-0.5 变形关系声明 ← 资产2就绪 ✅（需基于v1更新假朋友/边界题引用）
+  POC-0.5 变形关系声明 ← ✅已完成（2026-08-18，变换→题目映射审查完成，声明表已冻结）
   POC-1 因果取商增强版 ← 资产3+4就绪 ✅（source trace题CC-001~004保留v0不变）
 
 Phase B：基础验证 ← 部分资产就绪，部分需等Phase A完成
