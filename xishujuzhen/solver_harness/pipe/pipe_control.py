@@ -586,6 +586,27 @@ def cmd_health(args):
         print(f"判定: ✅ 全部健康")
     print("=" * 70)
 
+    # ============================================================
+    # 9. 提醒：检查Monitor Pipe的输出
+    # ============================================================
+    print()
+    print(">> ★ 提醒：还要检查Monitor Pipe的输出内容！")
+    print(">>   Monitor Pipe持续监控13项自动检查+AI review抽样，alert写入pipe_monitor_alerts集合。")
+    print(">>   标准化检查脚本：bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh")
+    print(">>   ")
+    print(">>   检查脚本输出5项：")
+    print(">>     1. Monitor Pipe pane输出（最近5轮的ALERT/AI_REVIEW/queue/throughput）")
+    print(">>     2. alerts集合（新alert详情）")
+    print(">>     3. 进程状态（5个pipe服务+monitor_pipe+harness-p/dbmon数）")
+    print(">>     4. 进度（Redis队列+最近5分钟吞吐）")
+    print(">>     5. 系统深度审查结果（alert按severity/type统计+24小时趋势）")
+    print(">>   ")
+    print(">>   ★ 第5项'系统深度审查结果'是给AI的核心提醒——AI必须逐项判断每个alert的处理方案")
+    print(">>   ★ critical级别alert需要立即处理（pipe_service_dead/session_health/rate_limit/queue_stalled）")
+    print(">>   ★ info级别alert是AI review抽样——AI必须检查抽样的proof质量（这是AI的核心职责）")
+    print(">>   ★ 处理完alert后用 monitor_pipe.py --resolve-alert <key> 标记为fixed")
+    print("=" * 70)
+
 
 def cmd_clear(args):
     print("清空Redis队列:")

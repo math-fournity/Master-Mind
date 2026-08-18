@@ -729,7 +729,7 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **K维度多层知识结构（L1-L4）**：详见 `dev-docs/201号`系列。
 - **AI在运行过程中的角色**：经典计算给候选，AI做最终判断。详见 `dev-docs/202号`。
 - **Pipe监控SOP**：运行任何Pipe（分析/审计/选题）时，必须启动Monitor Pipe并行监控。**检查时用标准化脚本** `analysis-devin-failure-system/scripts/monitor_check.sh <batch_id>`，禁止inline编写检查命令。脚本输出4项检查：Monitor Pipe pane输出 / alerts集合 / 进程状态 / 进度。详见 `.devin/rules/pipeline-monitor-sop.md`。
-- **解题系统Monitor Pipe**（2026-08-17新增）：解题系统（pipe/5服务）现在有独立的Monitor Pipe——`xishujuzhen/solver_harness/pipe/monitor_pipe.py`，8项自动检查（session_health/queue_progress/rate_limit/zombie_sessions/export_landing/solve_time_credibility/failure_rate/throughput_trend）+ AI review抽样（每3轮抽样2条candidate_solved检查proof质量）。alert写入ArangoDB `pipe_monitor_alerts`集合。**检查脚本**：`bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh`（5项检查+对AI的核心提醒：检查Monitor Pipe的系统深度审查结果）。**启动**：`pipe_start.sh`自动启动Monitor Pipe，或`pipe_control.py monitor start --interval 300 --concurrency 20`单独启动。详见 `dev-docs/391号`。
+- **解题系统Monitor Pipe**（2026-08-17新增）：解题系统（pipe/5服务）现在有独立的Monitor Pipe——`xishujuzhen/solver_harness/pipe/monitor_pipe.py`，13项自动检查（session_health/queue_progress/rate_limit/zombie_sessions/export_landing/solve_time_credibility/failure_rate/throughput_trend/long_running_tasks/proof_completeness/feeder_health/collector_health/db_redis_consistency）+ AI review抽样（每3轮抽样2条candidate_solved检查proof质量）。alert写入ArangoDB `pipe_monitor_alerts`集合。**检查脚本**：`bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh`（5项检查+对AI的核心提醒：检查Monitor Pipe的系统深度审查结果）。**启动**：`pipe_start.sh`自动启动Monitor Pipe，或`pipe_control.py monitor start --interval 300 --concurrency 20`单独启动。`pipe_control.py health`输出末尾提醒AI去检查Monitor Pipe。详见 `dev-docs/391号`。
 - **审计Pipeline Rate Limit防护**：运行audit_launcher前必须检查当前devin cli进程数并据此设置并发（>8个进程时并发=1）。rate limit是账户级的，跨所有CLI实例共享。选题只用status=completed的审计结果。详见 `.devin/rules/audit-pipeline-rate-limit.md`。根因分析见 `dev-docs/388号`。
 - **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ **Pipe 3（选题708条，产出47道YES候选+69道假朋友+30道边界）** → POC-0 CasePack精筛（✅v1已冻结·2026-08-17，6正迁移+4假朋友+2边界从Pipe 3精筛）。Pipe 3规模化运行已完成（2026-08-17），产出统计见 `analysis-devin-failure-system/output/selection-full1/selection_results_summary.json`。详见 `eight-system/HANDOFF.md`和`analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
 - **Pipe 3选题系统（已扩展·2026-08-17·规模化运行完成）**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`+`src/monitor_selection.py`+`scripts/monitor_check_selection.sh`。**已按412号方案扩展**——提示词模板增加POC Preparation Metadata节（6项POC准备数据字段），解析器增加6个新标签的解析和DB写入，collect加跨batch去重，monitor_selection.py提供POC字段质量监控。**规模化运行完成（2026-08-17）**：708/708题全部完成，0失败，0 XML解析失败，耗时约85分钟（5并发）。产出47道suitable=YES候选题+69道假朋友候选+30道边界候选，6字段填写率100%，逻辑一致性0问题（1个初始问题已修正）。YES题batch分布均匀（batch1:15/batch2:10/batch3:10/extended:12）。分类逻辑审查见`dev-docs/387号`§九。扩展方案见`Tell分类学研究过程文档/412号`。运行SOP见下方"### Pipe 3扩展运行SOP"小节。
@@ -2843,9 +2843,9 @@ tmux new-session -d -s pipe-collector ".venv/bin/python3 xishujuzhen/solver_harn
 
 ### Monitor Pipe检查（2026-08-17新增）
 
-**Monitor Pipe**是持续运行的监控服务（`pipe-monitor` tmux session），每5分钟一轮，8项自动检查 + AI review抽样。详见`dev-docs/391号`。
+**Monitor Pipe**是持续运行的监控服务（`pipe-monitor` tmux session），每5分钟一轮，13项自动检查 + AI review抽样。详见`dev-docs/391号`。
 
-**8项自动检查**：
+**13项自动检查**：
 
 | 检查项 | alert_type | 检测什么 |
 |---|---|---|
@@ -2857,6 +2857,11 @@ tmux new-session -d -s pipe-collector ".venv/bin/python3 xishujuzhen/solver_harn
 | F. solve_time_credibility | solve_time_anomaly | solve_time>runtime>10% |
 | G. failure_rate | failure_rate | 失败率>15% |
 | H. throughput_trend | throughput_drop | 吞吐下降>50% |
+| I. long_running_tasks | long_running_tasks | 单题运行>30分钟（可能stall） |
+| J. proof_completeness | proof_too_small | export文件<1KB（proof内容不完整） |
+| K. feeder_health | feeder_dead/feeder_stalled | feeder挂了或没在补充pending |
+| L. collector_health | collector_dead/collector_stalled | collector挂了或没在处理completed |
+| M. db_redis_consistency | db_redis_inconsistency | Redis running数 vs DB running数差异>5 |
 
 **AI review抽样**：每3轮抽样2条candidate_solved，标记需AI检查proof数学正确性（alert_type=ai_review_sample, severity=info）。
 

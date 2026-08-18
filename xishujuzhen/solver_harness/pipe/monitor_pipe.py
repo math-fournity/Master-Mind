@@ -13,6 +13,11 @@
      - solve_time_credibility: solve_time > runtime的比例
      - failure_rate: 失败率（按status分类）
      - throughput_trend: 吞吐趋势（对比前后轮次）
+     - long_running_tasks: 单题运行>30分钟（可能stall）
+     - proof_completeness: export文件<1KB（proof内容不完整）
+     - feeder_health: feeder是否在补充pending队列
+     - collector_health: collector是否在处理completed队列
+     - db_redis_consistency: Redis running数 vs DB running数是否一致
 
   B. AI review抽样（标记需AI判断的）：
      - 每3轮抽样2条candidate_solved，标记为needs_ai_review
@@ -67,6 +72,9 @@ SOLVE_TIME_ANOMALY_THRESHOLD = 0.10  # solve_time>runtime比例>10% alert
 ZOMBIE_THRESHOLD = 2              # 僵尸session>=2个 alert
 EXPORT_MISSING_THRESHOLD = 0.10   # export缺失率>10% alert
 SAMPLE_SIZE = 2                   # 每轮抽样2条需AI review
+LONG_RUNNING_THRESHOLD = 1800     # 单题运行>30分钟 alert（可能stall）
+PROOF_MIN_SIZE = 1024             # export文件<1KB alert（proof内容不完整）
+FEEDER_STALL_THRESHOLD = 1800     # feeder 30分钟没补充pending alert
 
 
 def _utc_now():
@@ -434,6 +442,182 @@ def check_throughput_trend(db, last_state, interval_seconds):
 
 
 # ============================================================
+# 自动检查I：长时间运行题（可能stall）
+# ============================================================
+
+def check_long_running_tasks(db):
+    """检查running中是否有运行时间过长的题（可能stall）"""
+    r = get_redis()
+    running = r.hgetall("math:running")
+    now = _ts()
+
+    long_running = []
+    for k, v in running.items():
+        data = json.loads(v)
+        start_time = data.get("start_time", now)
+        elapsed = now - start_time
+        if elapsed > LONG_RUNNING_THRESHOLD:
+            long_running.append({
+                "exp_id": data.get("exp_id", ""),
+                "problem_key": data.get("problem_key", ""),
+                "elapsed_seconds": elapsed,
+            })
+
+    alerts = []
+    if long_running:
+        alerts.append(("long_running_tasks", "warning", {
+            "summary": f"{len(long_running)}个题运行>{LONG_RUNNING_THRESHOLD//60}分钟（可能stall）",
+            "tasks": long_running[:5],
+            "count": len(long_running),
+            "threshold_seconds": LONG_RUNNING_THRESHOLD,
+        }))
+
+    return alerts
+
+
+# ============================================================
+# 自动检查J：proof完整度（export文件有内容，不只是存在）
+# ============================================================
+
+def check_proof_completeness(db):
+    """抽查completed的题的export文件大小（<1KB = proof内容不完整）"""
+    aql = (
+        f"FOR a IN {ATTEMPT_COLLECTION} "
+        f"FILTER a.status == 'candidate_solved' "
+        f"SORT a.ended_at DESC LIMIT 10 RETURN a"
+    )
+    cursor = db.aql.execute(aql, ttl=60)
+    records = list(cursor)
+
+    if not records:
+        return []
+
+    tiny = []
+    for rec in records:
+        eid = rec.get("exp_id", "")
+        if not eid:
+            continue
+        export_path = TRAJ_BASE / eid / "exports" / "conversation.json"
+        if export_path.exists():
+            size = export_path.stat().st_size
+            if size < PROOF_MIN_SIZE:
+                tiny.append({
+                    "exp_id": eid,
+                    "problem_id": rec.get("problem_id", ""),
+                    "export_size": size,
+                })
+
+    alerts = []
+    if tiny:
+        alerts.append(("proof_too_small", "warning", {
+            "summary": f"{len(tiny)}个export文件<{PROOF_MIN_SIZE}B（proof内容可能不完整）",
+            "tiny_exports": tiny[:5],
+            "count": len(tiny),
+            "threshold_bytes": PROOF_MIN_SIZE,
+        }))
+
+    return alerts
+
+
+# ============================================================
+# 自动检查K：feeder健康（pending是否在补充）
+# ============================================================
+
+def check_feeder_health(last_state):
+    """检查feeder是否在补充pending队列"""
+    r = get_redis()
+    pending = r.zcard("math:pending")
+
+    # 检查pipe-feeder是否在运行
+    result = subprocess.run(["tmux", "has-session", "-t", "pipe-feeder"],
+                            capture_output=True, timeout=5)
+    feeder_alive = result.returncode == 0
+
+    alerts = []
+    if not feeder_alive:
+        alerts.append(("feeder_dead", "critical", {
+            "summary": "pipe-feeder tmux session不存在，feeder可能挂了",
+            "pending": pending,
+        }))
+    elif last_state and pending < 100 and pending == last_state.get("pending"):
+        # pending很低且没变化——feeder可能没在补充
+        elapsed = _ts() - last_state.get("ts", _ts())
+        if elapsed > FEEDER_STALL_THRESHOLD:
+            alerts.append(("feeder_stalled", "warning", {
+                "summary": f"pending={pending}且{elapsed}秒无变化，feeder可能没在补充",
+                "pending": pending,
+                "stall_seconds": elapsed,
+            }))
+
+    return alerts, {"pending": pending, "ts": _ts()}
+
+
+# ============================================================
+# 自动检查L：collector健康（completed是否在增加）
+# ============================================================
+
+def check_collector_health(last_state):
+    """检查collector是否在处理completed队列"""
+    r = get_redis()
+    completed = r.llen("math:completed")
+    running = r.hlen("math:running")
+
+    # 检查pipe-collector是否在运行
+    result = subprocess.run(["tmux", "has-session", "-t", "pipe-collector"],
+                            capture_output=True, timeout=5)
+    collector_alive = result.returncode == 0
+
+    alerts = []
+    if not collector_alive:
+        alerts.append(("collector_dead", "critical", {
+            "summary": "pipe-collector tmux session不存在，collector可能挂了",
+            "running": running,
+        }))
+    elif last_state and running > 0 and completed == last_state.get("completed"):
+        # completed没增加但有running——collector可能没在处理
+        elapsed = _ts() - last_state.get("ts", _ts())
+        if elapsed > STALL_THRESHOLD_SECONDS:
+            alerts.append(("collector_stalled", "warning", {
+                "summary": f"completed队列{elapsed}秒无变化，collector可能没在处理",
+                "completed": completed,
+                "running": running,
+                "stall_seconds": elapsed,
+            }))
+
+    return alerts, {"completed": completed, "running": running, "ts": _ts()}
+
+
+# ============================================================
+# 自动检查M：DB-Redis一致性（running数是否一致）
+# ============================================================
+
+def check_db_redis_consistency(db):
+    """检查Redis running数 vs DB running数是否一致"""
+    r = get_redis()
+    redis_running = r.hlen("math:running")
+
+    aql = (
+        f"FOR a IN {ATTEMPT_COLLECTION} "
+        f"FILTER a.status == 'running' "
+        f"COLLECT WITH COUNT INTO c RETURN c"
+    )
+    cursor = db.aql.execute(aql, ttl=60)
+    db_running = list(cursor)[0] if cursor.batch else 0
+
+    alerts = []
+    diff = abs(redis_running - db_running)
+    if diff > 5:  # 允许5个以内的差异（时序差）
+        alerts.append(("db_redis_inconsistency", "warning", {
+            "summary": f"Redis running={redis_running} vs DB running={db_running}，差异{diff}个",
+            "redis_running": redis_running,
+            "db_running": db_running,
+            "diff": diff,
+        }))
+
+    return alerts
+
+
+# ============================================================
 # AI review抽样
 # ============================================================
 
@@ -504,6 +688,8 @@ def run_monitor_loop(interval=300, expected_concurrency=20, once=False):
 
     last_queue_state = None
     last_throughput_state = None
+    last_feeder_state = None
+    last_collector_state = None
     check_count = 0
 
     while True:
@@ -568,6 +754,41 @@ def run_monitor_loop(interval=300, expected_concurrency=20, once=False):
             all_alerts.extend(alerts)
         except Exception as e:
             logger.error(f"check_throughput_trend失败: {e}")
+
+        # I. 长时间运行题
+        try:
+            alerts = check_long_running_tasks(db)
+            all_alerts.extend(alerts)
+        except Exception as e:
+            logger.error(f"check_long_running_tasks失败: {e}")
+
+        # J. proof完整度
+        try:
+            alerts = check_proof_completeness(db)
+            all_alerts.extend(alerts)
+        except Exception as e:
+            logger.error(f"check_proof_completeness失败: {e}")
+
+        # K. feeder健康
+        try:
+            alerts, last_feeder_state = check_feeder_health(last_feeder_state)
+            all_alerts.extend(alerts)
+        except Exception as e:
+            logger.error(f"check_feeder_health失败: {e}")
+
+        # L. collector健康
+        try:
+            alerts, last_collector_state = check_collector_health(last_collector_state)
+            all_alerts.extend(alerts)
+        except Exception as e:
+            logger.error(f"check_collector_health失败: {e}")
+
+        # M. DB-Redis一致性
+        try:
+            alerts = check_db_redis_consistency(db)
+            all_alerts.extend(alerts)
+        except Exception as e:
+            logger.error(f"check_db_redis_consistency失败: {e}")
 
         # 创建alerts
         for alert_type, severity, details in all_alerts:
