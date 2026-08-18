@@ -39,7 +39,9 @@ if [ "$MODE" = "--kill" ]; then
     echo "[1/3] 停止launchd watchdog..."
     PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
     launchctl unload $PLIST 2>/dev/null || true
-    echo "  ✅ watchdog已停止"
+    # 同时kill手动运行的watchdog进程（不是通过launchd启动的）
+    pkill -f "pipe_watchdog.sh" 2>/dev/null || true
+    echo "  ✅ watchdog已停止（launchd plist + 手动进程）"
 
     echo ""
     echo "[2/3] 停止6个pipe-*服务..."
@@ -86,7 +88,9 @@ print(r.hlen('math:running'))
     echo "[1/2] 停止launchd watchdog..."
     PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
     launchctl unload $PLIST 2>/dev/null || true
-    echo "  ✅ watchdog已停止"
+    # 同时kill手动运行的watchdog进程
+    pkill -f "pipe_watchdog.sh" 2>/dev/null || true
+    echo "  ✅ watchdog已停止（launchd plist + 手动进程）"
 
     echo ""
     echo "[2/2] 停止collector等剩余服务..."
@@ -114,7 +118,9 @@ elif [ "$MODE" = "--force" ]; then
     echo "[1/3] 停止launchd watchdog..."
     PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
     launchctl unload $PLIST 2>/dev/null || true
-    echo "  ✅ watchdog已停止"
+    # 同时kill手动运行的watchdog进程
+    pkill -f "pipe_watchdog.sh" 2>/dev/null || true
+    echo "  ✅ watchdog已停止（launchd plist + 手动进程）"
 
     echo ""
     echo "[2/3] 停止6个pipe-*服务（含collector）..."
@@ -158,15 +164,20 @@ print(r.hlen('math:running'))
     echo "[2/2] collector继续运行，等running题自然完成..."
     echo "  当前running: $RUNNING"
     echo "  collector会继续判定正在做的题的终态"
+    echo "  watchdog也继续运行——守护collector"
     echo ""
-    echo "  ★ 等running=0后，执行收尾："
+    echo "  ★ 等running=0后，执行收尾（停collector+watchdog）："
     echo "    bash $REPO/xishujuzhen/solver_harness/pipe/pipe_stop.sh --finish"
     echo ""
-    echo "  ★ 如需立即停止（collector也停，终态下次启动时recover处理）："
+    echo "  ★ 如需立即停止（collector+watchdog也停，终态下次启动时recover处理）："
     echo "    bash $REPO/xishujuzhen/solver_harness/pipe/pipe_stop.sh --force"
     echo ""
     echo "  ★ 如需强制kill所有harness session："
     echo "    bash $REPO/xishujuzhen/solver_harness/pipe/pipe_stop.sh --kill"
+    echo ""
+    echo "  ⚠️ 注意：--finish和--force和--kill都会自动停止watchdog（unload plist + kill进程）"
+    echo "     如果只执行了默认模式（本模式），watchdog仍在运行——这是设计意图（守护collector）"
+    echo "     但如果不再需要collector，请务必执行--finish或--force来停watchdog"
 fi
 
 echo ""
