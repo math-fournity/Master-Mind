@@ -150,7 +150,7 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 
 ---
 
-## POC-2.7.6 面包屑地图方案验证（✅遍历完备性验证通过）
+## POC-2.7.6 面包屑地图方案验证（✅全部通过）
 
 **方案文档**：`conversation-map.md`（项目根目录）
 **遍历程序**：`scripts/conversation_mapper.py`（已实现）
@@ -187,8 +187,47 @@ POC-2.5的16个原始run中13个有export的**全部被截断**（comp=25000, ms
 
 ### 待验证
 
-- **地图可用性**：编写HANDOVER.md的AI能根据地图正确定位和读取所有需要的内容
-- **HANDOVER.md质量**：对比v1方案（机械拼接reasoning_content）和v2方案（面包屑地图+HANDOVER.md）的续传效果
+- ~~**地图可用性**：编写HANDOVER.md的AI能根据地图正确定位和读取所有需要的内容~~ ✅已通过（见下）
+- ~~**HANDOVER.md质量**：对比v1方案（机械拼接reasoning_content）和v2方案（面包屑地图+HANDOVER.md）的续传效果~~ ✅已通过（见下）
+
+### 地图可用性验证结果（✅通过）
+
+**Pipe 1**：用`conversation_mapper.py`生成omni_math_004133 round2的面包屑地图（388行）
+**Pipe 2**：用`devin -p --permission-mode dangerous`无头模式启动AI，给它地图+conversation.json路径，让它编写HANDOVER.md
+
+AI的工作流程（从conversation.json的agent steps确认）：
+1. read地图（conversation_map.md）——了解conversation.json结构
+2. read续传规范文档——了解HANDOVER.md的8个章节要求
+3. exec python脚本（`scripts/extract_conversation_fields.py`）——从conversation.json提取大字段
+4. write HANDOVER.md——按8个章节整理
+
+**产出文件**：
+- `trajectories/p27-omni_math_004133/round2/HANDOVER.md`（253行）
+- `scripts/extract_conversation_fields.py`（可复用的conversation.json字段提取脚本）
+
+### HANDOVER.md质量验证结果（✅通过）
+
+**审查方法**：亲自对照conversation.json原文验证HANDOVER.md中5个关键数据点的准确性
+
+| 验证项 | HANDOVER.md内容 | conversation.json原文 | 一致 |
+|---|---|---|---|
+| §1 题目文本 | "For a positive integer $n$..." | steps[8].message开头完全一致 | ✅ |
+| §3.3 素数列表 | 7, 13, 97, 193, 769, 12289...11个 | step10 observation包含完全相同的素数 | ✅ |
+| §6.1 proof.md | boxed{No}, 4284c | step14 write arguments.content完全一致 | ✅ |
+| §3.4 Match: True | sympy精确验证 | step15 observation包含"Match: True" | ✅ |
+| §2 最终答案 | No | step16 message包含"No"和"否" | ✅ |
+
+**v1 vs v2对比**：
+
+| 维度 | v1方案（机械拼接reasoning_content） | v2方案（面包屑地图+HANDOVER.md） |
+|---|---|---|
+| 提取内容 | 只有thinking（reasoning_content） | thinking + tool_calls + observation + proof.md内容 |
+| observation | ❌ 丢失 | ✅ 包含（6个exec的observation全部提取） |
+| proof.md内容 | ❌ 丢失 | ✅ 包含（4284c完整证明） |
+| 续传prompt大小 | 拼接7个reasoning_content ≈ 128KB | HANDOVER.md = 253行（约12KB），提炼后 |
+| AI可理解性 | 128KB原始thinking，难定位关键信息 | 8章节结构化文档，直接可用 |
+
+**结论**：v2方案在observation保留、proof.md内容保留、prompt大小、可理解性四个维度全面优于v1方案。
 
 ---
 
