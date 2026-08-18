@@ -22,8 +22,16 @@
 
 - `pipe_control.py status`——总状态（服务存活+队列+实时配置）
 - `pipe_control.py status -v`——含running attempt详情
+- `pipe_control.py health`——全面健康检查（7项+末尾提醒检查Monitor Pipe）
 - `pipe_control.py concurrency 50`——实时调并发
 - `pipe_control.py recover --dry-run`——断电恢复检查
+- `pipe_control.py monitor start/stop/status`——单独管理Monitor Pipe
+
+**Monitor Pipe检查**（`pipe_control.py health`输出末尾会提醒）：
+
+- `bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh`——标准化检查脚本（5项检查+对AI的核心提醒）
+- Monitor Pipe持续监控13项自动检查+AI review抽样，alert写入`pipe_monitor_alerts`集合
+- 详见AGENTS.md中"### Monitor Pipe检查"小节和`dev-docs/391号`
 
 新增查询需求时更新pipe_control.py，不另写脚本。
 

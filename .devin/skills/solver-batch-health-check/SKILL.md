@@ -16,9 +16,16 @@
 
 - `pipe_control.py status`——总状态（服务存活+队列+实时配置）
 - `pipe_control.py status -v`——含running attempt详情
-- `tmux list-sessions | grep pipe-`——4个服务session必须都在
+- `pipe_control.py health`——全面健康检查（7项+末尾提醒检查Monitor Pipe）
+- `tmux list-sessions | grep pipe-`——6个服务session必须都在（含pipe-monitor）
 - `tail -10 .../logs/collector.log`——看collector最近处理了什么
 - `tail -5 .../logs/reporter.log`——看reporter最近统计
+
+**Monitor Pipe检查**（`pipe_control.py health`输出末尾会提醒）：
+
+- `bash xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh`——标准化检查脚本（5项检查+对AI的核心提醒）
+- Monitor Pipe持续监控13项自动检查+AI review抽样，alert写入`pipe_monitor_alerts`集合
+- 详见AGENTS.md中"### Monitor Pipe检查"小节和`dev-docs/391号`
 
 **看完全部输出后，按AGENTS.md中"系统运行监控SOP"节的6项检查清单逐项判定。**
 

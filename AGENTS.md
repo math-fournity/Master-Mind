@@ -2683,7 +2683,7 @@ ArangoDB (2.4M题) → Feeder → Redis pending队列
                                 ↓
                           Reporter (统计+告警) + Retry (基础设施失败重试)
 
-                          Monitor Pipe (并行监控8项检查+AI review抽样→pipe_monitor_alerts集合)
+                          Monitor Pipe (并行监控13项检查+AI review抽样→pipe_monitor_alerts集合)
 ```
 
 **代码目录**：`xishujuzhen/solver_harness/pipe/`
@@ -2697,7 +2697,7 @@ ArangoDB (2.4M题) → Feeder → Redis pending队列
 | Collector | `collector.py` | 扫描running队列，眼见为实判定终态 |
 | Reporter | `reporter.py` | 定时统计报告+告警 |
 | Retry | `retry_infrastructure.py` | 基础设施失败自动重试 |
-| **Monitor Pipe** | **`monitor_pipe.py`** | **持续监控8项自动检查+AI review抽样，alert写入`pipe_monitor_alerts`集合** |
+| **Monitor Pipe** | **`monitor_pipe.py`** | **持续监控13项自动检查+AI review抽样，alert写入`pipe_monitor_alerts`集合** |
 
 ### 启动流程
 
@@ -2718,7 +2718,7 @@ bash xishujuzhen/solver_harness/pipe/pipe_start.sh 60
 2. 恢复crash（清理zombie + 修复DB）
 3. 设置并发数
 4. 启动5个pipe-*服务（auto-restart模式）
-5. 启动Monitor Pipe（持续监控8项检查+AI review抽样，auto-restart模式）
+5. 启动Monitor Pipe（持续监控13项检查+AI review抽样，auto-restart模式）
 6. 启动launchd watchdog（守护服务+定期清理zombie）
 
 **一键停止**：
