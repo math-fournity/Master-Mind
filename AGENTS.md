@@ -730,8 +730,8 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **AI在运行过程中的角色**：经典计算给候选，AI做最终判断。详见 `dev-docs/202号`。
 - **Pipe监控SOP**：运行任何Pipe（分析/审计/选题）时，必须启动Monitor Pipe并行监控。**检查时用标准化脚本** `analysis-devin-failure-system/scripts/monitor_check.sh <batch_id>`，禁止inline编写检查命令。脚本输出4项检查：Monitor Pipe pane输出 / alerts集合 / 进程状态 / 进度。详见 `.devin/rules/pipeline-monitor-sop.md`。
 - **审计Pipeline Rate Limit防护**：运行audit_launcher前必须检查当前devin cli进程数并据此设置并发（>8个进程时并发=1）。rate limit是账户级的，跨所有CLI实例共享。选题只用status=completed的审计结果。详见 `.devin/rules/audit-pipeline-rate-limit.md`。根因分析见 `dev-docs/388号`。
-- **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ Mid-Hint实验。721个中51个已有明确d2子类型（脚本直接选题，覆盖7种卡点类型），667个d2=other需Pipe 3语义再分类（可选扩展）。详见 `eight-system/HANDOFF.md`。产出统计见 `analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
-- **Pipe 3选题系统（已扩展·2026-08-17）**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`。**已按412号方案扩展**——提示词模板增加POC Preparation Metadata节（6项POC准备数据字段），解析器增加6个新标签的解析和DB写入。单例测试通过（13秒完成，0 tool_calls，6个新字段全部正确写入DB）。5题分组测试通过（5/5完成，0失败，6字段填写率100%）。分类逻辑审查见`dev-docs/387号`§九。扩展方案见`Tell分类学研究过程文档/412号`。运行SOP见下方"### Pipe 3扩展运行SOP"小节。
+- **Mid-Hint实验选题数据链**：Pipe 1（分析2050条）→ Pipe 2（审计721个PASS_SELECTABLE）→ **Pipe 3（选题708条，产出47道YES候选+69道假朋友+30道边界）** → POC-0 CasePack精筛。Pipe 3规模化运行已完成（2026-08-17），产出统计见 `analysis-devin-failure-system/output/selection-full1/selection_results_summary.json`。详见 `eight-system/HANDOFF.md`和`analysis-devin-failure-system/output/analysis_summary.md`和`audit-full1/audit_summary.md`。
+- **Pipe 3选题系统（已扩展·2026-08-17·规模化运行完成）**：复用错题分析系统框架（audit_launcher的tmux架构+Redis队列+rate limit防护），新增`src/selection_collector.py`/`selection_launcher.py`/`selection_result_collector.py`+`run_selection_pipeline.py`+`templates/selection_agents_md.md`+`src/monitor_selection.py`+`scripts/monitor_check_selection.sh`。**已按412号方案扩展**——提示词模板增加POC Preparation Metadata节（6项POC准备数据字段），解析器增加6个新标签的解析和DB写入，collect加跨batch去重，monitor_selection.py提供POC字段质量监控。**规模化运行完成（2026-08-17）**：708/708题全部完成，0失败，0 XML解析失败，耗时约85分钟（5并发）。产出47道suitable=YES候选题+69道假朋友候选+30道边界候选，6字段填写率100%，逻辑一致性0问题（1个初始问题已修正）。YES题batch分布均匀（batch1:15/batch2:10/batch3:10/extended:12）。分类逻辑审查见`dev-docs/387号`§九。扩展方案见`Tell分类学研究过程文档/412号`。运行SOP见下方"### Pipe 3扩展运行SOP"小节。
 - **MH第一圈(00995)已完成**：交互模式运行13分钟，AI用doubling construction解决n≡2(mod 4)卡点，答案5048。**重大发现：标准答案3800有误**——穷举代码`mean_int_search.py`的`row_options`只生成排序行，漏掉非排序行解空间，n=6错误判定IMPOSSIBLE。n=6构造已程序验证正确（1-36每个出现一次，所有行/列均值整数）。正确答案5048（S={1,...,100}\{2}）。详见`eight-system/runs/midhint/realtrack/00995/experiment_report.md`和`verification/README.md`。
 - **题目纠错记录**：`dev-docs/389号`——集中记录所有发现标准答案有误的题目。**选题前必须先查本文档**。当前记录：polymath_00995（标准答案3800→5048）。ArangoDB `problem_profiles`集合中已更新正确答案。
 - **两套Pipe命名体系统一说明（2026-08-17厘清）**：项目中存在两套Pipe命名体系，用了相同的编号但指不同的东西，必须区分：
@@ -901,12 +901,13 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
   → 代码：xishujuzhen/solver_harness/
 
 任务线2：错题分析系统运行（Pipe 1分析→Pipe 2审计→Pipe 3选题）
-  → 产出：d1/d2判定 + 审计通过的结果 + Pipe 3语义选题结果（含6项POC准备数据）
+  → 产出：d1/d2判定 + 审计通过的结果 + **Pipe 3语义选题结果（708条，含6项POC准备数据，47道YES候选+69道假朋友+30道边界）**
   → 代码：analysis-devin-failure-system/
-  → 文档：dev-docs/387号（方案）、388号（rate limit根因）
+  → 文档：dev-docs/387号（方案）、388号（rate limit根因）、Tell分类学研究过程文档/412号（Pipe 3扩展方案）
+  → 状态：Pipe 3规模化运行已完成（2026-08-17），产出已就绪供POC-0使用
 
 任务线3：非特化研究（POC-0~9验证Tell/Hint有效性）← 本任务
-  → 输入：错题分析系统的Pipe 3选题结果（30-50道候选题+6项POC准备数据）
+  → 输入：错题分析系统的Pipe 3选题结果（**47道候选题+69道假朋友+30道边界+6项POC准备数据，已就绪**）
   → 产出：TellCore v0 + HintRenderer + HintInstance + EvidenceRecord + 钟形曲线/Pareto前沿实验证据
   → 文档：Tell分类学研究过程文档/396-410号
   → 代码：暂无独立代码（POC阶段以方案文档驱动，执行时复用solver_harness）
