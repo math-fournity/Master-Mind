@@ -1,3 +1,11 @@
+---
+description: >
+  形式化定义同步原则。修改任何数据结构（dataclass）或Pipe函数签名时。
+  WHEN to use: 修改任何数据结构（dataclass）或Pipe函数签名时。
+  WHEN NOT to use: 不涉及数据结构或函数签名修改的操作。
+trigger: model_decision
+---
+
 # 形式化定义同步原则
 
 **触发条件**：修改任何数据结构（dataclass）或Pipe函数签名时。

@@ -1,3 +1,12 @@
+---
+description: >
+  系统资产分级与上下文预算管理。设计或修改AI Agent的AGENTS.md内容时；
+  设计或修改提示词文件时；向AI Agent发送直接提示词时；向system/添加新的资产文件时。
+  WHEN to use: always-on——任何涉及AI Agent输入内容设计的场景。
+  WHEN NOT to use: 不涉及AI Agent输入内容的操作。
+trigger: always_on
+---
+
 # 系统资产分级与上下文预算管理
 
 **触发条件**：设计或修改AI Agent的AGENTS.md内容时；设计或修改提示词文件时；向AI Agent发送直接提示词时；向system/添加新的资产文件时。always-on——任何涉及AI Agent输入内容设计的场景都必须遵守。

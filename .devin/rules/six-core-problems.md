@@ -1,3 +1,11 @@
+---
+description: >
+  三个核心问题原则。设计或修改six/中任何Pipe时。
+  WHEN to use: 设计或修改six/中任何Pipe时。
+  WHEN NOT to use: 不涉及six/中Pipe设计的操作。
+trigger: model_decision
+---
+
 # 三个核心问题原则
 
 **触发条件**：设计或修改six/中任何Pipe时。

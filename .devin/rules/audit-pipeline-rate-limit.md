@@ -1,3 +1,11 @@
+---
+description: >
+  审计Pipeline的Rate Limit防护规则。运行audit_launcher.py / run_audit_pipeline.py时。
+  WHEN to use: 运行审计Pipeline（audit_launcher.py / run_audit_pipeline.py）时。
+  WHEN NOT to use: 不运行审计Pipeline的日常操作。
+trigger: model_decision
+---
+
 # 审计Pipeline的Rate Limit防护规则
 
 > **触发条件**：运行audit_launcher.py / run_audit_pipeline.py时

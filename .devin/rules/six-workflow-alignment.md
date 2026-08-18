@@ -1,3 +1,11 @@
+---
+description: >
+  完整工作流对照原则。设计或修改任何Pipe的衔接关系时。
+  WHEN to use: 设计或修改任何Pipe的衔接关系时。
+  WHEN NOT to use: 不涉及Pipe衔接关系的操作。
+trigger: model_decision
+---
+
 # 完整工作流对照原则
 
 **触发条件**：设计或修改任何Pipe的衔接关系时。

@@ -1,3 +1,12 @@
+---
+description: >
+  代码作为研发经验载体原则。编写或修订six/目录下的代码（types.py / pipes.py / prompts.py /
+  principles.py / reflection.py / references.py等）时。
+  WHEN to use: 编写或修订six/目录下的代码时。
+  WHEN NOT to use: 不涉及six/目录代码的编辑。
+trigger: model_decision
+---
+
 # 代码作为研发经验载体原则
 
 ## 触发条件

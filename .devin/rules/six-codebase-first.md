@@ -1,3 +1,12 @@
+---
+description: >
+  代码为中心铁律。任何时候回答或响应用户提问时。AI必须永远以代码为中心，
+  从代码出发考虑如何回答和响应用户的提问。Think with the codebase, work with the codebase。
+  WHEN to use: always-on——回答用户提问前、设计方案前、讨论概念时。
+  WHEN NOT to use: 纯文档编辑任务（如格式化文档）、纯git操作。
+trigger: always_on
+---
+
 # 代码为中心铁律
 
 **触发条件**：always-on——任何时候回答或响应用户提问时。

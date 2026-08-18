@@ -1,3 +1,12 @@
+---
+description: >
+  元组群：guided-math-solving（引导式数学解题）。需要用最小知识传递引导AI做数学题时——
+  即通过连续启发式提问（而非知识堆砌）引导做题AI完成解题。包含5个Skill的元组群。
+  WHEN to use: 需要用最小知识传递引导AI做数学题时。
+  WHEN NOT to use: 直接解题（非引导模式）、非数学题。
+trigger: model_decision
+---
+
 # 元组群：guided-math-solving（引导式数学解题）
 
 ## 触发条件

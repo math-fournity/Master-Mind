@@ -1,3 +1,12 @@
+---
+description: >
+  Solver AI并发约束。runner启动devin cli时每3秒启动1个，不可改。
+  并发数通过Redis实时调整，推荐50-60。
+  WHEN to use: 启动或调整Solver并发数、runner启动devin cli时。
+  WHEN NOT to use: 非Solver的devin cli使用。
+trigger: model_decision
+---
+
 # Solver AI 并发约束
 
 **硬约束**：runner启动devin cli时**每3秒启动1个，不可改**。并发数通过Redis实时调整，推荐50-60。

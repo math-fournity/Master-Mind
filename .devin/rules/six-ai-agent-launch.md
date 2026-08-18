@@ -1,3 +1,12 @@
+---
+description: >
+  AI Agent启动规范。启动系统中任何AI Agent实例时——包括推理AI（Solver）、
+  脉络分析AI（Parser）、trace匹配AI（Telling）、引导展开AI（Guide）等。
+  WHEN to use: always-on——任何涉及AI Agent启动的操作。
+  WHEN NOT to use: 不涉及AI Agent启动的日常编码。
+trigger: always_on
+---
+
 # AI Agent启动规范
 
 **触发条件**：启动系统中任何AI Agent实例时——包括推理AI（Solver）、脉络分析AI（Parser）、trace匹配AI（Telling）、引导展开AI（Guide）等。always-on——任何涉及AI Agent启动的操作都必须遵守此规范。

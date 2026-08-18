@@ -1,3 +1,11 @@
+---
+description: >
+  POC三层组织原则。设计新POC时。
+  WHEN to use: 设计新POC时。
+  WHEN NOT to use: 不涉及POC设计的操作。
+trigger: model_decision
+---
+
 # POC三层组织原则
 
 **触发条件**：设计新POC时。

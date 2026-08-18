@@ -1,3 +1,11 @@
+---
+description: >
+  运行数字ID命名规范。任何系统运行、测试、实验、审计存档时。
+  WHEN to use: always-on——任何系统运行、测试、实验、审计存档时。
+  WHEN NOT to use: 不涉及运行/测试/实验/审计存档的日常操作。
+trigger: always_on
+---
+
 # 运行数字ID命名规范
 
 **触发条件**：always-on——任何系统运行、测试、实验、审计存档时。

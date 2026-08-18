@@ -1,3 +1,11 @@
+---
+description: >
+  解放思想原则。设计或修改six/中任何函数时。
+  WHEN to use: 设计或修改six/中任何函数时。
+  WHEN NOT to use: 不涉及six/中函数设计的操作。
+trigger: model_decision
+---
+
 # 解放思想原则
 
 **触发条件**：设计或修改six/中任何函数时。

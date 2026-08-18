@@ -1,3 +1,12 @@
+---
+description: >
+  Tell分类学研究过程文档存放规则。产生Tell分类学相关的研发过程文档时
+  （探索性、讨论性、评审性、方案演进性内容）。
+  WHEN to use: 产生Tell分类学相关的研发过程文档时。
+  WHEN NOT to use: 非Tell分类学的研究文档。
+trigger: model_decision
+---
+
 # Tell分类学研究过程文档存放规则
 
 **触发条件**：产生Tell分类学相关的研发过程文档时（探索性、讨论性、评审性、方案演进性内容）。

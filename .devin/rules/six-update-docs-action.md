@@ -1,3 +1,12 @@
+---
+description: >
+  "更新文档"动作定义——system系统研发语境。用户在system系统研发过程中说"更新文档"时。
+  本rule定义"更新文档"这个短语在system系统研发语境下的完整动作清单。
+  WHEN to use: 用户在system系统研发过程中说"更新文档"时。
+  WHEN NOT to use: 非system系统研发语境下的"更新文档"。
+trigger: model_decision
+---
+
 # "更新文档"动作定义——system系统研发语境
 
 **触发条件**：用户在system系统研发过程中说"更新文档"时。本rule定义"更新文档"这个短语在system系统研发语境下的完整动作清单。

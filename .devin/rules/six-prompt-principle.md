@@ -1,3 +1,11 @@
+---
+description: >
+  提示词原则+三处对齐同步。设计或修改six/中任何Pipe函数时；新增/改进/验证提示词时。
+  WHEN to use: 设计或修改six/中任何Pipe函数时；新增/改进/验证提示词时。
+  WHEN NOT to use: 不涉及Pipe函数或提示词的操作。
+trigger: model_decision
+---
+
 # 提示词原则+三处对齐同步
 
 **触发条件**：设计或修改six/中任何Pipe函数时；新增/改进/验证提示词时。

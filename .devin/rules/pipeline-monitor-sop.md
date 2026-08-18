@@ -1,3 +1,12 @@
+---
+description: >
+  Pipeline监控SOP。运行任何Pipe（Pipe 1分析/Pipe 2审计/Pipe 3选题）时，
+  必须启动Monitor Pipe并行监控。
+  WHEN to use: 运行任何Pipe（分析/审计/选题）时。
+  WHEN NOT to use: 不运行Pipe的日常操作。
+trigger: model_decision
+---
+
 # Rule: pipeline-monitor-sop
 
 ## 触发条件

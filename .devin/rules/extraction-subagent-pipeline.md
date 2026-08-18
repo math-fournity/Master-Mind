@@ -1,3 +1,11 @@
+---
+description: >
+  题海梳理Subagent流水线并发。题海梳理与数据基座建设中，Master Agent派发题目给subagent做QA序列分析和profile提取时。
+  WHEN to use: 题海梳理subagent派发、QA序列分析、profile提取时。
+  WHEN NOT to use: 非题海梳理的subagent使用。
+trigger: model_decision
+---
+
 # 题海梳理 Subagent 流水线并发
 
 **触发场景**：题海梳理与数据基座建设工作中，Master Agent 派发题目给 subagent 做 QA 序列分析和 profile 提取时。

@@ -1,3 +1,12 @@
+---
+description: >
+  Solver批量集群健康检查铁律。用户说"检查进度"、"看看有没有问题"、"检查链接问题"、
+  "检查并发"时；批量Solver集群运行时；新session接手批量系统时。
+  WHEN to use: 批量Solver集群运行时；用户要求检查进度/并发/链接问题时。
+  WHEN NOT to use: 非批量Solver集群场景。
+trigger: model_decision
+---
+
 # Solver批量集群健康检查铁律
 
 **触发条件**：用户说"检查进度"、"看看有没有问题"、"检查链接问题"、"检查并发"时；批量Solver集群运行时；新session接手批量系统时。

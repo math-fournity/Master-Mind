@@ -1,3 +1,12 @@
+---
+description: >
+  提示词自包含原则。创建或修订第六代系统提示词文件时
+  （pipe_1_parser/step_2_grid_vein等目录下的v*.md文件）。
+  WHEN to use: 创建或修订第六代系统提示词文件时。
+  WHEN NOT to use: 非提示词文件的编辑。
+trigger: model_decision
+---
+
 # 提示词自包含原则
 
 ## 触发条件

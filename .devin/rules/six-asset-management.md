@@ -1,3 +1,12 @@
+---
+description: >
+  研发资产管理规则。339号方案落实——从文件版本追踪的痛苦中提炼的研发资产管理规范。
+  管理run_manifest.json、提示词版本、AGENTS模板、代码版本等研发资产。
+  WHEN to use: 管理研发资产（run_manifest、提示词版本、AGENTS模板、代码版本）时。
+  WHEN NOT to use: 不涉及研发资产管理的一般编码。
+trigger: model_decision
+---
+
 # 研发资产管理规则
 
 > 339号方案落实——从文件版本追踪的痛苦中提炼的研发资产管理规范

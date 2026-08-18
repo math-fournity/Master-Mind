@@ -1,3 +1,12 @@
+---
+description: >
+  文件拆分流程控制规则。设计提示词时，当一个AI session的工作流程有多个阶段
+  且thinking可能过大时。
+  WHEN to use: always-on——设计提示词时，多阶段工作流程且thinking可能过大。
+  WHEN NOT to use: 单阶段提示词、thinking不会过大的简单提示词。
+trigger: always_on
+---
+
 # 文件拆分流程控制规则
 
 **触发条件**：always-on——设计提示词时，当一个AI session的工作流程有多个阶段且thinking可能过大时。

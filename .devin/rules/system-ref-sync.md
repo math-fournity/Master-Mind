@@ -1,3 +1,12 @@
+---
+description: >
+  system/ 代码与 .ref / .ai-check 文件同步规则。在system/目录中创建、修改、删除
+  Python代码文件时；修改了system/代码所依赖的设计文档时。
+  WHEN to use: 在system/目录中创建、修改、删除Python代码文件时；修改system/代码依赖的设计文档时。
+  WHEN NOT to use: 不涉及system/代码的操作。
+trigger: model_decision
+---
+
 # system/ 代码与 .ref / .ai-check 文件同步规则
 
 **触发条件**：在 `system/` 目录中创建、修改、删除 Python 代码文件时；修改了 `system/` 代码所依赖的设计文档时。
