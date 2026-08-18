@@ -5,7 +5,7 @@ description: >
   AGENTS.md的SOP里写了你该做什么——不是sleep，是采集/整理/检索/启动。
   WHEN to use: always-on，每次想sleep、等待、get_output干等前触发。
   WHEN NOT to use: 无例外。
-trigger: always
+trigger: always_on
 ---
 
 # sleep自检

@@ -7,7 +7,7 @@ description: >
   循环只转了半圈——必须修复，让循环完整转起来。
   WHEN to use: 启动树生长引擎、运行POC-VMS实验、任何涉及两棵树生长的场景。
   WHEN NOT to use: 单AI串行解题（非树生长模式）、非数学实验。
-trigger: always-on
+trigger: always_on
 ---
 
 # Grove核心循环rule

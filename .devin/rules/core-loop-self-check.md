@@ -5,7 +5,7 @@ description: >
   在系统有推理AI运行但你没在采集/整理/检索/启动时——停，回到核心循环。
   WHEN to use: always-on，每次行动前自检。
   WHEN NOT to use: 无例外。
-trigger: always
+trigger: always_on
 ---
 
 # 核心循环自检
