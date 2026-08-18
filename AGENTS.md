@@ -1065,6 +1065,8 @@ ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xar
 
 #### POC-2.7系统运行与检查（2026-08-18实现·Pipe 4+Monitor Pipe）
 
+**★ 错题分析系统总索引**：`AnalysisSystemDesign.md`（项目repo根目录）——任何AI涉足错题分析系统时从该文件开始，索引所有文档、规范、代码资产。
+
 **背景**：POC-2.7把续传机制应用到948道DIRECTION_ERROR题上，验证续传能否大规模解决截断问题。系统已实现为错题分析系统的Pipe 4（独立自包含模式）+ Monitor Pipe设计范式（详见`MonitorPipe.md`）。完整运行和检查指南见`POC-2.7/README.md`。
 
 **三层架构**：
