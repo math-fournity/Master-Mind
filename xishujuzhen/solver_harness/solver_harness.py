@@ -603,9 +603,11 @@ Watch for:
     else:
         # 单轮模式（-p）——完成后自动退出，不支持运行时输入
         # 注意：-p模式下devin cli退出后tmux session会自动销毁
-        # 需要在命令后加'; sleep infinity'保持tmux session存活
-        # 这样collector可以通过tmux pane检测PROOF COMPLETE，通过tmux session结束检测devin cli已退出
-        devin_cmd = f"devin -p '{prompt}' --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path}; echo DEVIN_CLI_EXITED code=$?; sleep 999999"
+        # 需要在命令后加'; sleep'保持tmux session存活一小段时间
+        # 这样collector可以通过tmux pane检测PROOF COMPLETE，通过pipe.log检测DEVIN_CLI_EXITED
+        # sleep 60秒后tmux session自动消失——避免collector处理慢时僵尸session长期残留
+        # collector默认10秒poll间隔，60秒足够它检测6轮
+        devin_cmd = f"devin -p '{prompt}' --model {model} --respect-workspace-trust false --permission-mode dangerous --export {export_path}; echo DEVIN_CLI_EXITED code=$?; sleep 60"
 
     if mitm_enabled:
         # 走mitmproxy代理

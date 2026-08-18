@@ -255,30 +255,75 @@ def check_rate_limit(db, interval_seconds):
 
 
 # ============================================================
-# 自动检查D：僵尸session（空pane）
+# 自动检查D：僵尸session（空pane或tmux session已消失但Redis/DB有记录）
 # ============================================================
 
 def check_zombie_sessions(db):
-    """检查空pane僵尸session"""
+    """检查僵尸session——空pane或tmux session已消失但Redis/DB还有记录
+
+    检测两种情况：
+    1. 空pane僵尸：tmux session存在但pane空白（devin cli已退出，shell在sleep）
+    2. 孤儿记录：tmux session已不存在但Redis running还有记录（sleep 60已过，session消失）
+
+    对两种情况都自动清理：hdel Redis running + 更新DB status为dead_session
+    这样避免DB-Redis不一致问题
+    """
     r = get_redis()
     running = r.hgetall("math:running")
 
     zombies = []
+    cleaned = []
     for k, v in running.items():
         data = json.loads(v)
         eid = data.get("exp_id", "")
+        attempt_key = data.get("attempt_key", "")
         tmux_sess = f"harness-{eid}"
+
+        # 检查tmux session是否存在
+        res = subprocess.run(["tmux", "has-session", "-t", tmux_sess],
+                             capture_output=True, timeout=5)
+        tmux_exists = res.returncode == 0
+
+        if not tmux_exists:
+            # 孤儿记录：tmux session已消失但Redis还有记录
+            # 自动清理：hdel Redis + 更新DB
+            r.hdel("math:running", k)
+            if attempt_key:
+                try:
+                    now = _utc_now()
+                    db.collection(ATTEMPT_COLLECTION).update({
+                        "_key": attempt_key,
+                        "status": "dead_session",
+                        "ended_at": now,
+                        "end_reason": "monitor_pipe: tmux session已消失，自动清理孤儿记录"
+                    })
+                except Exception as e:
+                    logger.error(f"清理孤儿记录时更新DB失败: {attempt_key} {e}")
+            # 清理dbmon session
+            subprocess.run(["tmux", "kill-session", "-t", f"harness-dbmon-{eid}"],
+                           capture_output=True, timeout=5)
+            cleaned.append({"exp_id": eid, "type": "orphan", "problem_key": data.get("problem_key", "")})
+            continue
+
+        # tmux session存在——检查pane是否空白
         res = subprocess.run(["tmux", "capture-pane", "-t", tmux_sess, "-p", "-S", "-50"],
                              capture_output=True, text=True, timeout=5)
         pane = res.stdout
-        # 空pane = 僵尸（devin cli已退出但tmux session残留）
         if not pane.strip():
-            zombies.append({"exp_id": eid, "problem_key": data.get("problem_key", "")})
+            # 空pane僵尸：devin cli已退出，shell在sleep
+            zombies.append({"exp_id": eid, "problem_key": data.get("problem_key", ""),
+                           "attempt_key": attempt_key})
 
     alerts = []
+    if cleaned:
+        alerts.append(("orphan_cleaned", "info", {
+            "summary": f"自动清理{len(cleaned)}个孤儿记录（tmux已消失但Redis有记录）",
+            "cleaned": cleaned[:5],
+            "count": len(cleaned),
+        }))
     if len(zombies) >= ZOMBIE_THRESHOLD:
         alerts.append(("zombie_sessions", "warning", {
-            "summary": f"{len(zombies)}个空pane僵尸session（阈值{ZOMBIE_THRESHOLD}）",
+            "summary": f"{len(zombies)}个空pane僵尸session（阈值{ZOMBIE_THRESHOLD}）——等collector处理或sleep 60后自动消失",
             "zombies": zombies[:5],
             "count": len(zombies),
         }))
