@@ -47,14 +47,23 @@
 **方案文档**：`Tell分类学研究过程文档/399-v0-2026-08-18-POC-2.6-续传机制验证-completion_tokens限制应对方案.md`
 **数据资产目录**：`Tell分类学研究过程文档/poc_assets/poc_2.6/`
 **续传脚本**：`poc_assets/poc_2.6/continue_solver.py`
+**交接文档标准**：`Tell分类学研究过程文档/414-v0-2026-08-18-交接文档续传方案-HANDOFF标准.md`
 **数据库**：devin cli sessions.db（`~/.local/share/devin/cli/sessions.db`），每个run的session可通过cwd关联
+
+### 续传方案演进
+
+| 版本 | 方案 | 验证结果 | 问题 |
+|---|---|---|---|
+| v1 | 机械拼接reasoning_content | CC-101_bare/vein成功 | CC-103_bare失败——6个agent step只传了最后一个的reasoning(30%)，丢失了web search结果和前5步thinking |
+| v2 | 交接文档(HANDOFF.md) | CC-103_bare成功——AI 2分钟写出z3验证脚本，7分钟跑出关键结果 | 交接文档整理目前手动做，后续可自动化 |
 
 ### 成功运行记录
 
-| Run | 条件 | 答案 | 耗时 | Round 1 | Round 2 | 证据文档 |
-|---|---|---|---|---|---|---|
-| CC-101_bare | bare | $\boxed{4}$ ✅ | ~13min | 截断(rc=54K,comp=25000) | 完成(19步,comp=785) | `EVIDENCE-CC-101_bare-续传机制验证.md` |
-| CC-101_vein | vein | $\boxed{4}$ ✅ | ~45min | 截断(rc=47K,comp=25000) | 完成(30步,comp=450) | `EVIDENCE-CC-101_vein-vein策略验证.md` |
+| Run | 条件 | 答案 | 耗时 | 续传方案 | Round 1 | Round 2 | 证据文档 |
+|---|---|---|---|---|---|---|---|
+| CC-101_bare | bare | $\boxed{4}$ ✅ | ~13min | v1 | 截断(rc=54K,comp=25000) | 完成(19步,comp=785) | `EVIDENCE-CC-101_bare-续传机制验证.md` |
+| CC-101_vein | vein | $\boxed{4}$ ✅ | ~45min | v1 | 截断(rc=47K,comp=25000) | 完成(30步,comp=450) | `EVIDENCE-CC-101_vein-vein策略验证.md` |
+| CC-103_bare | bare | 执行中 | — | v2交接文档 | R1截断(6步,rc=137K)+R2截断(rc=81K) | R3交接文档续传中 | — |
 
 ### 资产清单（每个run）
 

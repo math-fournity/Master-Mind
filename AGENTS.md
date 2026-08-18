@@ -959,7 +959,35 @@ POC-5可组合推迟到第二个Tell家族验证后。
 
 #### POC-2.6 续传机制经验沉淀（2026-08-18）
 
-**completion_tokens限制与续传机制**：glm-5-2单次API调用的completion_tokens上限是25000（thinking+content+tool_calls都算在内）。竞赛数学题的thinking spin可能需要超过25000 tokens，导致AI在thinking中被截断（reasoning_content有46-73K字符，但message=0、tool_calls=0），无法进入working阶段。**续传机制**：把AI之前完成的reasoning_content作为新prompt的上下文注入，让AI在新的API调用中继续思考。每轮25000 completion_tokens推进一部分，多轮累积完成。续传prompt中只传reasoning_content（thinking），不传tool_calls/observation——因为被截断的run没有tool_calls。之前的reasoning_content作为input tokens传入新轮次，不算completion_tokens，新轮次的25000全部用于新的thinking+working。**验证结果**：CC-101_bare单题测试，Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续（第一步就说"我将从上次思考中断的地方继续"），19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`。
+**completion_tokens限制与续传机制**：glm-5-2单次API调用的completion_tokens上限是25000（thinking+content+tool_calls都算在内）。竞赛数学题的thinking spin可能需要超过25000 tokens，导致AI在thinking中被截断（reasoning_content有46-73K字符，但message=0、tool_calls=0），无法进入working阶段。**续传机制**：让AI在新的API调用中继续思考。每轮25000 completion_tokens推进一部分，多轮累积完成。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`。
+
+**v1方案（机械拼接reasoning_content，已废弃）**：把AI之前完成的reasoning_content作为新prompt的上下文注入。只传reasoning_content（thinking），不传tool_calls/observation。**验证结果**：CC-101_bare和CC-101_vein成功（这两题Round 1只有1个agent step，全部是thinking，所以只传reasoning_content刚好够用）。**但CC-103_bare暴露了严重问题**：Round 1有6个agent step（web_search + 多轮thinking），完整内容221K字符（reasoning 137K + tool_calls 1.8K + observation 82K），v1方案只传了最后一个step的reasoning_content（66K，30%），丢失了前5步的全部上下文——AI做了什么web search、得到了什么结果、写了什么脚本全部丢失。Round 2的81K thinking全在计划写代码但从未写出，因为AI不知道自己之前已经搜索到了Dumitrescu-Jiang论文的Theorem 4。
+
+**v2方案（交接文档，当前使用）**：不是机械拼接thinking，是从完整探索历程中提取有效内容，整理成结构化的研究文档（HANDOFF.md），交给下一个AI继续。像数学家交接研究笔记——下一个AI读了就能直接接手。**验证结果**：CC-103_bare用交接文档续传，AI在2分钟内写出verify_area3.py（z3 SAT solver验证），7分钟内跑出关键结果（7×5网格UNSAT→A(3)≤3），而v1方案同样时间还在thinking中打转。对比效果极为显著。
+
+**交接文档（HANDOFF.md）的标准结构**：
+1. **题目**——原始问题
+2. **答案猜想**——当前最佳猜想及置信度
+3. **已确认的结论**——带推导概要的数学事实（不是原始thinking，是提炼后的结论）
+4. **已尝试的方向**——走了哪些路线、成功/失败/未完成
+5. **关键文献**——搜索到的论文、定理、已知结果
+6. **已有的中间产物**——脚本、计算结果、文件
+7. **当前卡在哪里**——截断时正在做什么、遇到了什么困难
+8. **建议的下一步**——从已有发现看该试什么
+
+**从每轮export中提取什么**：
+- thinking spin → 确认的数学结论、猜想、证明策略、关键计算结果、死胡同及原因（不提取：重复推理、元评论、已纠正的错误细节）
+- tool calls → web search的关键发现、写的脚本及运行结果、创建的文件（不提取：失败的搜索、无关结果）
+- observation → 论文定理、计算验证结果、搜索到的关键信息（不提取：无关的搜索结果全文）
+
+**循环操作流程**（检测截断→读取完整export→更新HANDOFF.md→启动下一轮→重复）：
+1. 检测：export是否被截断（rc>0, msg=0, tc=0, comp≥24000）
+2. 读取完整export：所有agent step的thinking + tool_calls + observation
+3. 更新HANDOFF.md：把本轮新发现加入交接文档（新确认的结论、新尝试的方向、新写的脚本及运行结果、新的卡点）
+4. 启动下一轮：用更新后的HANDOFF.md作为prompt，`devin -p --prompt-file roundN_handoff_prompt.txt`
+5. 重复：直到AI输出message（有working产出）或写出proof.md
+
+**v2方案与v1方案的关键区别**：v1是机械拼接reasoning_content（丢70%内容），v2是每轮都整理成结构化的交接文档（保留有效内容、去掉涂改和死胡同）。v2的交接文档整理目前是Master Agent手动做的——后续可自动化为脚本（让一个AI读export、提取有效内容、更新HANDOFF.md）。
 
 **基于cwd的devin进程管理**：当系统中有多个devin实例并行运行（如Grove harness系统在`/data/math-agent-glm5.2-tmux-agents-dir/`下跑多个agent），需要精确识别哪些进程属于当前业务。方法：用`lsof -p <pid> | grep cwd`查进程的工作目录——每个run在独有的work_dir中启动，cwd就是进程身份标识。本脚本的进程cwd都在`poc_assets/poc_2.6/workdirs/p26-*`下，别的系统的进程cwd在别处，不会混淆。**不设超时限制**——devin自然运行到完成（输出message后自动退出）。需要中断时跟用户确认后用kill命令（基于cwd匹配杀进程），不要用超时自动杀。续传脚本的`find`命令查进程、`kill`命令杀进程，都基于cwd识别。
 
