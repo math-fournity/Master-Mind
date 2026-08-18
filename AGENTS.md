@@ -455,6 +455,16 @@ exp_id格式：`{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{problem_
 | **DB记录**（attempt/event/batch/queue） | ArangoDB | 是 | batch_id → attempt → paths |
 | **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 是 | devin_session_id关联 |
 
+**trajectory数据Schema文档**（项目根目录）：
+
+| 文件 | 内容 | 何时读取 |
+|---|---|---|
+| `devin-cli-export-conversation.md` | `exports/conversation.json`的完整Schema（ATIF格式，含reasoning_content/tool_calls/observation） | 需要解析--export导出的conversation.json时 |
+| `trajectory-schema.md` | `sessions_db/trajectory.jsonl`的完整Schema（JSONL格式，含thinking/tool_calls/tool行） | 需要解析sessions_db导出的trajectory.jsonl时 |
+| `analysis-devin-failure-system/docs/solver-trajectory-schema.md` | harness采集的完整trajectory目录结构（9个文件，含session_info/mitm/tmux） | 需要了解完整目录结构时 |
+
+**关键差异**：conversation.json的`observation`字段存tool_results（58%存在率，优先用）；trajectory.jsonl的`role="tool"`行存tool_results（82%存在率，兜底用）。
+
 **从DB查运行时目录和文件位置**：
 ```bash
 # 从problem_id查所有attempt及其文件路径
