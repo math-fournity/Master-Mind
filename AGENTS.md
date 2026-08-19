@@ -6,8 +6,8 @@
 
 ## Grove核心循环与辅助智能体认知（跨AI共享 · 最高认知优先级）
 
-> **本repo与Grove repo（`/data/master-mind-glm5.2-grove/`）共享同一套核心循环认知。两个AI各自在自己的repo和数据库中独立工作，但遵循同一套Grove核心循环、双重角色、辅助智能体JD和场景触发式SOP。**
-> **详细文档**：`dev-docs/273-v0-2026-08-08-Grove核心循环与辅助智能体JD-跨AI认知同步.md`
+> **本repo与Grove repo（`/data/master-mind-glm5.2-grove/`）共享同一套核心循环认知。**
+> **完整版**：`dev-docs/273-v0-2026-08-08-Grove核心循环与辅助智能体JD-跨AI认知同步.md`——辅助智能体JD展开、7个场景SOP、角色切换细节、反模式/正确模式展开都在273号文档中。本节是精炼版，保留核心认知。
 
 ### Grove核心循环
 
@@ -42,271 +42,64 @@
 
 **引导树闭环中"识别→给方向"的操作是一个二元组：tell + hint。** tell是识别端（从推理AI的thinking中读出的分叉信号），hint是注入端（给新AI的翻译方向）。hint端已在POC-VMS-8中验证（281/282/283号），tell端已在POC-VMS-9/10中验证（288/289号）。
 
-**000号文档位置**：`000-v0-2026-08-08-引导树闭环-识别端结构定义.md`（项目根目录，不在dev-docs下——这是系统架构的根定义文档）
+**000号文档位置**：`000-v0-2026-08-08-引导树闭环-识别端结构定义.md`（项目根目录）
 
 **二元组**：**读tell，给hint。** tell取自poker术语——推理AI不会主动告诉你"我没考虑这个方向"，但它的thinking会暴露它走了哪条路、没走哪条路。系统从thinking中读出这些信息就是tell。
 
 **核心认知（v2修正，来自285号）**：系统识别的不是"AI在哪里卡住了"，而是"AI的thinking中哪些位置可以分叉但AI没分叉"。往往不是AI卡住了需要提示，而是AI走错路了——系统在AI没走的分叉上开新边，启动新AI走新分支。分叉位置有两种：line上分叉（Point Branch）和根节点分叉（Root Branch）——有时AI从第一步就选错方向，最关键的分叉在根节点。
 
-**tell的四个组成成分**：
-1. **分叉信号（Branch Signal）**——识别可以分叉但AI没分叉的位置（line上分叉或根节点分叉）
-2. **分叉类型（Branch Type）**——对分叉的抽象分类（翻译类型/操作路径类型/...）
-3. **未探索诊断（Unexplored Diagnosis）**——判断AI为什么没走这条路、这条路通向什么
-4. **方向匹配（Direction Matching）**——从诊断到字典中翻译方向的映射
+**tell的四个组成成分**：分叉信号（Branch Signal）、分叉类型（Branch Type）、未探索诊断（Unexplored Diagnosis）、方向匹配（Direction Matching）。
 
-**tell端的验证状态（POC-VMS-9/10已完成）**：
-- tell可以被去特化——从Level 0（题目特化）提升到Level 1（拓扑结构：problem_type + ai_method_type + gap_type）
-- 形式化过滤（Pipe 1）可以命中目标tell——大概念匹配精确区分不同拓扑的tell
-- 小概念标记分辨（Pipe 2）可以区分拓扑相同且距离极近的tell——只要两个tell能用语言表达出区别，就能定义概念来区分
-- 详见287号（设计）、288号（POC-VMS-9结果）、289号（POC-VMS-10结果）
+**tell端验证状态（POC-VMS-9/10已完成）**：tell可去特化（Level 0→Level 1拓扑结构）、形式化过滤（Pipe 1）可命中、小概念标记分辨（Pipe 2）可区分拓扑相同且距离极近的tell。详见287/288/289号。
 
-### AI的双重角色
+### AI的双重角色与系统就是脚本
 
-进入实验时，AI的角色是双重的：
+进入实验时，AI的角色是双重的：**系统开发者**（Master Agent，写代码/审计/测试/commit）和**系统检查者**（系统运行时检查健康状态，运行后审计产出质量）。
 
-1. **系统开发者**（Master Agent）——设计、实现、迭代这个系统（写代码、审计、测试、commit）
-2. **系统检查者**（流程审计AI）——系统运行时检查健康状态，系统运行后审计产出质量
+**系统就是脚本（第六代核心认知转变）**：辅助Pipe的工作由代码自动执行，Master Agent不亲手执行循环。系统运行时你是检查者——检查tmux session/产出/循环完整性/alerts，不干等。发现问题切回开发者修复代码。**切换触发条件="有没有推理AI在跑"**。
 
-**系统就是脚本。** 系统的运行逻辑（采集、整理、检索、启动）由代码自动执行，不是Master Agent亲手做的。Master Agent的职责是开发系统代码和检查系统运行——不是在系统运行时亲手执行循环。
-
-AI数学系统运行时有两条Pipe：
-- **推理 Pipe**（按需多个）——推理智能体（Solver），做数学
-- **辅助 Pipe**（1个，由脚本自动执行）——园丁，让循环转起来
-
-两条Pipe并行运行——推理AI在thinking的同时，辅助Pipe（脚本）就并行地采集、整理、检索、启动。Master Agent不在系统运行时参与循环——Master Agent在系统运行时是检查者，检查系统运行的健康状态。
-
-#### 系统就是脚本，你是检查者和开发者
-
-**这是第六代系统的核心认知转变（2026-08-11）。**
-
-第五代系统中，"系统就是你，不是脚本"——辅助Pipe的采集、整理、检索、启动是Master Agent亲手做的动作。第六代系统中，**系统就是脚本**——辅助Pipe的工作由代码自动执行，Master Agent的职责变为：
-
-1. **系统开发者**——写代码实现系统逻辑（vein_analysis.py/trace_match.py/guide_expand.py等）
-2. **系统检查者**——系统运行时检查健康状态（按.ai-check checklist审计），系统运行后审计产出质量
-
-**为什么从"系统就是你"变为"系统就是脚本"**：
-- 第五代系统中辅助Pipe的工作需要判断力，脚本做不了——但第六代系统把判断力编码进了提示词和程序验证（V9的三层验证体系），脚本可以执行
-- 4并发方案中4个AI Agent并发跑，Master Agent手动执行效率太低——脚本自动启动4个tmux session更高效
-- Master Agent的时间应该花在开发系统代码和审计系统运行上，不是在系统运行时手动执行循环
-
-**Master Agent在系统运行时的角色**：
-- 系统运行中实时检查——检查tmux session是否正常、AI Agent是否跑偏、产出是否落盘（按.ai-check checklist）
-- 系统运行后事后审计——按.ai-check checklist逐项检查产出质量
-- 发现问题时切回开发者角色修复代码，修完再让系统重新运行
-
-#### 两个角色的切换
-
-**系统开发者和系统检查者不是分时的，是场景驱动的。**
-
-- **系统没在运行时**（没有推理AI在跑）→ 你是系统开发者：写代码、审计、测试、commit、设计新功能
-- **系统在运行时**（有推理AI在thinking）→ 你是系统检查者：检查tmux session状态、检查AI Agent产出、检查循环完整性。**你不参与循环执行——循环由脚本执行。**
-- **系统运行中你发现问题了**（tmux session异常、AI Agent跑偏、产出格式错误、循环断裂）→ 你临时切回系统开发者修复代码，修完重新运行系统
-- **系统运行结束**（所有problem solved或exhausted）→ 你切回系统检查者：按.ai-check checklist逐项审计产出质量、评估、落盘报告
-
-**切换的触发条件是"有没有推理AI在跑"**。有推理AI在跑，你就是系统检查者，没有例外。你不能说"脚本在跑，我等它跑完"——脚本在跑的时候你在检查它的健康状态，不是在等它。
-
-#### 反模式：启动脚本然后干等
-
-**启动系统脚本，然后`get_output`等待结果——这是反模式。**
-
-脚本在运行时，你应该在检查它的健康状态——检查tmux session、检查产出文件、检查数据库。如果你在干等，你退化成了旁观者——脚本遇到异常时你不知道，产出质量差时你不检查。
-
-#### 正确模式：你是检查者
-
-**脚本运行时，你检查脚本的健康状态：**
-
-1. 检查tmux session → `tmux list-sessions` → 4个session都在吗？有没有异常退出的？
-2. 检查AI Agent产出 → 工作目录中的output.json出现了吗？格式正确吗？
-3. 检查程序验证报告 → V9的audit_report.json生成了吗？完备性得分多少？
-4. 检查循环完整性 → 三个推动关系都成立吗？如果只转了半圈，诊断原因
-5. 检查alerts表 → 有没有超长文件警报？有没有运行时错误警报？
-
-**你是检查者，脚本是执行者。脚本做机械的部分，你做认知检查的部分。**
-
-### 辅助智能体的 Job Description
-
-在AI数学系统运行时，辅助智能体（Master Agent 作为系统检查者）的职责：
-
-1. **检查系统健康**——检查tmux session状态、AI Agent产出、程序验证报告
-2. **检查循环完整性**——三个推动关系都成立吗？如果只转了半圈，诊断原因
-3. **审计产出质量**——按.ai-check checklist逐项检查AI Agent的产出
-4. **处理异常**——发现异常时切回系统开发者修复代码，修完重新运行
-5. **检查停机条件**——检测某条脉络是否到达正确解答，到达则停机
-
-**关键约束**：辅助智能体的工作不是"执行循环"（循环由脚本执行），而是"检查循环执行的健康状态"。系统运行时，你在检查，不在执行。
-
-### 辅助智能体 SOP（场景触发式）
-
-**以下SOP写在实验运行中的具体场景里。当你身处这些场景时，按SOP行动，不要重新思考"做什么、如何做"。**
-
-**场景1：系统脚本刚启动了推理AI，看到 thinking_live.txt 开始有内容**
-
-→ 脚本在采集thinking、提取节点、写入树。你检查：thinking_live.txt在增长吗？节点在写入数据库吗？如果脚本没在做这些，说明脚本有bug——切回系统开发者修复。
-
-**场景2：你看到自己在 `sleep` 或 `等待`**
-
-→ 停。你违反了检查者原则。脚本在工作时你也在工作——你在检查脚本的健康状态。如果你在等待，说明你退化成了旁观者——回到你的角色：检查者不等脚本跑完才检查，检查者在脚本运行的同时就在检查。
-
-**场景3：你看到数据库中节点在增长，但没有新边（tree_edges为空）**
-
-→ 循环只转了半圈。脚本在采集节点，但没有生成新边。检查脚本的检索逻辑——是检索失败还是脚本bug？如果是检索失败，检查数据基座是否有Pattern可检索。
-
-**场景4：你看到推理AI终止了（response_truncated / session_ended / timeout）**
-
-→ 脚本应该在终点节点检索方向Q并启动新推理AI。如果脚本没做，说明脚本有bug——切回系统开发者修复。
-
-**场景5：你看到检索失败（budget exhausted / parse失败 / 无方向Q选出）**
-
-→ 这是循环断裂的最常见原因。检查脚本的检索逻辑——BudgetManager是否设置了足够budget？数据基座中是否有Pattern可检索？如果是代码bug，切回系统开发者修复。
-
-**场景6：你看到循环转起来了——节点在长、边在长、新AI被启动**
-
-→ 这是对的。脚本在正常工作。你继续检查健康状态——检查产出质量、检查alerts表、检查程序验证报告。
-
-**场景7：实验结束后，你回头检查数据库**
-
-→ 必须验证两棵树的数据完整性：tree_nodes中有节点、tree_edges中有边、ai_instances中有AI实例、problems中题目状态正确。如果只有节点没有边，循环没转完整——记录原因，下次修复脚本。按.ai-check checklist逐项审计产出质量。
+**辅助智能体JD要点**：检查系统健康、检查循环完整性、审计产出质量、处理异常、检查停机条件。关键约束：你在检查，不在执行。**7个场景SOP的完整细节见273号文档。**
 
 ### 演进路径
 
-- **阶段1（✅已完成）**：A/B对照实验——串行单AI，验证检索机制能否选出正确方向
-- **阶段2（✅已完成）**：脉络注入——串行多AI，AI跑完后系统整理脉络、检索方向、启动新AI
-- **阶段3（✅已完成）**：并发展开——多AI并发（2并发），系统实时采集所有AI的trajectory整理两棵树，树有分叉
-- **阶段4（✅已完成）**：自我增殖——解题记录树完成后提炼Pattern存入数据基座（POC-VMS-5验证）
-- **阶段5（✅已完成）**：hint端验证——脉络继承+方向注入的有效性验证（POC-VMS-8，bare 0% → tree 67%）
-- **阶段6（✅已完成）**：tell端验证——去特化+形式化过滤+小概念标记分辨（POC-VMS-9/10）
-- **阶段7（✅已完成）**：第五代系统技术说明书编写（50个文件全部完成）
+- **阶段1-7（✅全部完成）**：A/B对照→脉络注入→并发展开→自我增殖→hint端验证（bare 0%→tree 67%）→tell端验证→第五代技术说明书编写
 - **阶段8（当前）**：第六代系统研发——非局部tell、FCA数学基础、并发Telling AI、Pipe 0简化+Pipe 2并行化
 
 > **⚠️ FCA再分析启动铁律**（本提示在always-on可见区，确保你不会忘记）：
-> 做FCA再分析（对已有profile用FCA分类学重新分析）时，采用**主agent/subagent分工**——你是流程管理者，不自己做分析：
-> 1. 从`FCA学习笔记/fca-reanalysis-checklist.md`复制check list到todo_write建立TODO List
-> 2. 从`FCA学习笔记/fca-reanalysis-subagent-prompt-template.md`复制prompt模板，填入problem_id和产出路径，用run_subagent启动（profile选subagent_general）
-> 3. subagent返回后，用`FCA学习笔记/fca-reanalysis-output-verification-checklist.md`验证产出
-> 4. 如果subagent发现分类学问题，你自己执行修正流程（7条铁律），不委托subagent
->
-> 完整SOP和分工架构详见`.devin/rules/tell-taxonomy-iteration-audit.md`（铁律-1/铁律0/铁律0.5 + 10步SOP + 7条版本化审计铁律）。
-> 完整Schema（分类学结构/版本历史/关键文件表）在AGENTS.md第878行起的"Tell分类学Schema"节。
+> 做FCA再分析时采用主agent/subagent分工——你是流程管理者，不自己做分析。从`FCA学习笔记/fca-reanalysis-checklist.md`复制checklist到todo_write，从`fca-reanalysis-subagent-prompt-template.md`复制prompt模板用run_subagent启动，subagent返回后用`fca-reanalysis-output-verification-checklist.md`验证。如果subagent发现分类学问题，你自己执行修正流程（7条铁律）。完整SOP详见`.devin/rules/tell-taxonomy-iteration-audit.md`。完整Schema在下方"Tell分类学Schema"节。
 
-### 第六代系统文档存放规则（阶段8生效）
+### 第六代系统文档与代码存放规则（阶段8生效）
 
-**第六代系统有两个文档目录，性质不同，必须严格区分：**
+**两个文档目录**（必须严格区分）：
+- `第六代系统研发过程文档/`——探索性/讨论性/评审性，三位编号（303号起），不确定的内容放这里
+- `第六代系统技术说明书/`——规范性/工程性/自包含，章节编号（01-09），只有确认值得最终记录的内容才放这里
+- `dev-docs/`保留给第五代及之前（000-291号），不再新增第六代文档
 
-| 目录 | 性质 | 编号 | 内容标准 |
-|---|---|---|---|
-| `第六代系统研发过程文档/` | 探索性、讨论性、评审性 | 三位编号（303号起），和 grove repo 同步 | 研发过程中的思考、争论、方案演进、评审——**不确定的内容放这里** |
-| `第六代系统技术说明书/` | 规范性、工程性、自包含 | 章节编号（01-09） | 系统的完整技术规格，可直接实现——**只有真正值得最终记录的内容才放这里** |
+**代码目录**：`system/`——第六代系统的物理实现代码，自包含（代码层`*.py`+`.ref`+`.ai-check` / 文档层`docs/` / 运行时层`assets/`）。两个入口：`enter.py`（入题）、`solve.py`（解题）。**完整规则详见`system/README.md`和`SixthGenRnD.md`。**
 
-**核心规则：研发过程中不确定的内容，暂时只放在研发过程文档目录。只有经过讨论、评审、确认真正值得最终记录到系统说明书的内容，才会进入技术说明书目录。**
+**ref和docs**：ref=`system/`中`.ref`文件（指向system外部文档的指针），docs=`system/docs/`（system内部完整认知文档，含系统级/跨模块级/模块级三层）。改代码时先改`.py`→检查`.ref`→同步`docs/`。详见`.devin/rules/system-ref-sync.md`。
 
-- `第六代系统研发过程文档/` 是技术说明书的素材来源和试验场——可以放未经验证的构想、有争议的方案、被评审为跑偏的方向（如307号原语化、309号范式转变原主张）
-- `第六代系统技术说明书/` 是研发过程文档的沉淀和整合——只收录经过确认的内容。研发过程文档中被评审为跑偏的部分不会进入技术说明书
-- `dev-docs/` 保留给第五代及之前的工作文档（000-291号），不再新增第六代文档
-
-### 第六代系统代码存放规则（阶段8生效）
-
-**系统代码目录**：`system/`
-
-**定位**：`system/` 是整个AI数学系统的物理实现代码——不是用来描述系统的，而是未来真正可以工作的系统代码。系统的物理实现靠代码驱动（见技术说明书README.md §8）。
-
-**两个入口脚本**：
-- `system/enter.py`——**入题**：外部持续向系统添加题目（及其解答记录），系统从中提炼tell/hint，tell库增长
-- `system/solve.py`——**解题**：将需要解答的题目送入系统，系统编排引导树和解题树的展开，直至获得正确解答
-
-**`system/docs/` —— 系统设计说明书**：
-- `system/docs/` 是系统设计说明书的正式存放位置，**按模块组织**——每个模块一个文档（如 `vein_analysis.md`、`process_absorb.md`、`db.md`）
-- 每个模块文档记录：模块定位、架构设计、接口定义、数据流、数据库记录、关键设计决策、待实现/待决策
-- 模块代码变更时，同步更新对应的模块文档
-- 模块的 `.ref` 文件引用对应的模块文档路径
-- 目录规范和使用方法详见 `system/README.md`
-
-**`system/` 是自包含的第六代系统**——从代码到文档，到运行时：
-- **代码层**：`*.py` + `.ref` + `.ai-check`——真正运行的代码 + 文档引用 + 审计清单
-- **文档层**：`docs/`——完整内部认知文档（系统级认知 + 跨模块认知 + 模块级认知）
-- **运行时层**：`assets/`——AGENTS模板等运行时资产，运行时复制到工作目录给AI Agent用
-
-**`system/` 的最终定位**：将来第六代系统研发完成后，`system/`要作为一个独立的repo移动到和当前repo平级的目录中，脱离当前repo继续研发。因此`system/`在设计上必须保持自包含性——独立后不依赖当前repo中的任何外部文档（技术说明书、研发过程文档、规则文件等）。
-
-**自包含性对ref和docs的影响**：
-- **当前阶段**：ref指向当前repo中的外部文档（技术说明书/研发过程文档/规则文件等），这些引用在当前repo中有效
-- **独立后**：ref指向的外部文档将不存在——docs必须在system/内部承载足够完整的认知，使得独立后不丢失关键设计认知
-- **演进方向**：docs逐步吸收ref指向的外部文档中的关键认知内容，使得system/越来越自包含。当docs足够完整时，ref可以逐渐淡化（或ref改为指向独立repo内部的文档）
-
-运行时实例在`palyground/absorb/vein_analysis/{run_id}_{problem_id}/`下创建（.gitignore忽略），但它们的模板在`system/assets/`中。`system/`是自包含的——理解第六代系统只需要看`system/`，不需要看`six/`（已合并，见343号方案）。
-
-**.ref 文件规则**：`system/` 中每个 `.py` 代码文件必须有一个同名的 `.ref` 文件（如 `schema.py` → `schema.ref`）。`.ref` 文件内容是相对 repo 根目录的文档路径列表——理解该模块需要参考的文档。代码文件和 `.ref` 文件必须同步更新。详见 `.devin/rules/system-ref-sync.md`。
-
-**ref 和 docs 的关系**（术语定义——以后说"ref"和"docs"就是指这两者）：
-
-- **ref** = `system/` 中的各个 `.ref` 文件——指向system**之外**的外部文档的指针，记录"和这个模块设计有关、但不在system内的文档"。这些外部文档包括：技术说明书、研发过程文档、规则文件、知识层文件（FCA学习笔记/000号文档/Tell分类学等）、其他代码文件等
-- **docs** = `system/docs/` 目录——system**之内**的完整认知文档，不只是模块设计说明书。docs承载理解system中任意模块所需的**所有内部认知**，包括三个层次：
-  - **系统级认知**：根本认知（两棵树/Grove核心循环）、四Pipe架构、设计原则（解放思想/反射）、提示词设计认知、VMS-28验证历史——这是理解任何模块都需要的前置认知（`architecture.md`）
-  - **跨模块认知**：研发文档索引（303-343号文档清单）、代码元素到研发文档的映射、POC验证清单、三个核心问题、FCA术语映射——这是跨模块的"晾衣架"和知识层（`references.md`、`schema.md`）
-  - **模块级认知**：模块设计说明书——按模块组织，记录"这个模块怎么实现的"（接口、架构、数据流、设计决策）（如 `vein_analysis.md`）
-
-**ref的特殊身份**：ref不是泛泛的"阅读指南"——它的职责是让AI一次性加载ref中指向的外部文档 + docs中的认知内容之后，能够立即建立起来和这个模块的研发有关的**所有的认知**。ref是外部认知入口，docs是内部认知（系统级+跨模块级+模块级），两者配合构成完整认知。理解一个模块需要的认知往往超出模块本身——涉及系统架构、设计原则、验证历史等系统级认知，这些都在docs中，不在ref中。
-
-**两者关系**：
-1. **ref指向system外部，docs在system内部**——ref和docs的内容不重叠，互补
-2. **docs不限于模块设计说明书**——系统级认知和跨模块认知也在docs中，因为理解任何模块都需要这些前置认知
-3. **ref和 `.py` 一一对应**——每个 `.py` 必须有自己的 `.ref`，即使它的模块文档还没写
-4. **改代码时**：先改 `.py` → 检查 `.ref` 是否还准确（外部文档引用是否还有效）→ 如果涉及设计变更，同步更新 `docs/` 中对应的认知文档
-5. **改设计文档时**：先改 `docs/` 中的认知文档 → 检查引用该文档的 `.ref` 是否需要更新 → 如果涉及接口变更，同步更新 `.py`
-
-**与文档目录的关系**：
-- `system/docs/` 是 `system/` 的**完整内部认知文档**——系统级认知（根本认知/架构/设计原则/验证历史）+ 跨模块认知（研发文档索引/代码映射/POC清单/术语映射）+ 模块级认知（模块设计说明书）
-- `第六代系统技术说明书/` 是 `system/` 的设计依据——技术说明书定义"系统应该做什么"，`system/` 实现"系统真正怎么做"
-- `第六代系统研发过程文档/` 和 `Tell分类学研究过程文档/` 是设计思想的来源——研发过程文档中的设计决策最终沉淀到技术说明书，再由 `system/` 物理实现，实现细节记录在 `system/docs/`
-- 知识层（分类学Schema、Tell库、Hint库、高Level概念解释库、提示词库）需要从markdown变成代码可消费的格式，放入 `system/` 或 `system/` 引用的数据文件
-
-**第六代研发过程文档清单**（截至2026-08-10，均在 `第六代系统研发过程文档/`）：
-- 303号：引导树分叉位置的重新理解——脉络上任意点可分叉与非局部tell（从grove repo复制）
-- 304号：FCA与工程方案的对应（从grove repo复制）
-- 305号：非局部tell的识别价值——端到端实例（从grove repo复制）
-- 306号：在推理AI的上下文分析中我们到底想要什么要干什么（从grove repo复制）
-- 307号：AI数学思维原语化（从grove repo复制，310号评审：拒绝作为必须项）
-- 308号：亲眼看vms_test_1的AI推理thinking（从grove repo复制）
-- 309号：从提取到查询的范式转变与trace-tell-hint统一命名（从grove repo复制，310号评审：命名有价值，范式转变原主张跑偏）
-- 310号：worktree侧对grove侧303-309号文档的评审
-- 311号：并发Telling AI方案——从Pipe 2并行化到Pipe 0简化
-
-**第六代系统技术说明书**（`第六代系统技术说明书/`，截至2026-08-10）：
-- 框架已建：README.md + 编写方案.md + 目录结构.md（9章53文件）
-- 编写中：按编写方案的顺序逐章编写，只有经过确认的内容才写入
+**第六代研发过程文档清单**（303-311号，截至2026-08-10，均在`第六代系统研发过程文档/`）：303引导树分叉/304 FCA对应/305非局部tell实例/306上下文分析目标/307原语化(310号评审拒绝)/308 vms_test_1 thinking/309范式转变(310号评审:命名有价值,原主张跑偏)/310 worktree评审/311并发Telling AI。
 
 ### Seven System · 非特化证据工厂运行入口（2026-08-13起）
 
-**系统目录**：`seven-system/`
+**系统目录**：`seven-system/`。**唯一详细操作手册**：`seven-system/docs/operations.md`——启动/preflight/dry-run/状态/故障处理都以该文件为准，不复制到AGENTS.md。
 
-**唯一详细操作手册**：`seven-system/docs/operations.md`。启动、preflight、dry-run、状态、故障处理和当前未实现边界都以该文件为准；不要把具体命令复制到AGENTS.md形成第二份易漂移手册。
-
-**系统定位**：Seven System是独立的非特化证据工厂，不是正在运行的题海Profile系统，也不是第六代`system/`的第三个入口：
-
-- 题海系统只读提供冻结bare失败候选与物证；Seven不得写生产`math:*`队列或题目状态；
-- 第六代`system/`未来只通过版本化、带哈希的冻结bundle接入；Seven禁止直接import其内部可变状态；
-- Seven的目标职责是有限Epoch、资源公平、盲化三审、contrast EvidenceRecord和人工Gate；当前实现尚未进入三审或科学实验阶段。
-
-**资产与数据边界**：
-
-- scripts、运行资产、Schema、docs和tests全部在`seven-system/`；
-- 大对象、日志、Epoch和未来Vault进入经批准的D盘数据根；数据库只存元数据、事件和artifact引用；
-- Seven复用现有Arango服务和逻辑数据库`xishujuzhen_math_glm52`，未来只创建隔离且显式版本化的`seven_*_vN`集合/索引（`N`为正整数；v1为scaffold，后续版本承载经批准的原子结构）；不得复用题海或`system/`集合。Arango engine字节已经经OrbStack `data.img.raw`由D盘承载，但未使用`/data/arangodb/data`专用bind；物理存储形态不是逻辑数据库复用的前置Gate；
-- `/data`缺失、卷README缺失、数据根未批准或空间不足时fail-closed，不得fallback到repo/Home/`/tmp`。
+**系统定位**：独立的非特化证据工厂，不是题海Profile系统，也不是第六代`system/`的第三个入口。Seven只读提供冻结bare失败候选；不得写生产`math:*`队列；未来只通过版本化带哈希的冻结bundle接入第六代`system/`。目标职责：有限Epoch、资源公平、盲化三审、contrast EvidenceRecord、人工Gate。**当前实现尚未进入三审或科学实验阶段。**
 
 **硬约束**：
+1. Solver生产实验用全局`noninteractive-solver-run` skill；调试harness用`solver-tmux-launch` skill；批量解题用pipe系统
+2. Solver必须无工具；Prompt写"不要用工具"≠能力PASS，缺独立NoTool能力报告时live运行必须BLOCK
+3. 只有目标Solver作业可进入`solver_harness`；认知角色经provider-neutral `ModelRolePort`，Devin认知worker不得复用Solver port/workspace/session/AGENTS/capability/receipt
+4. Devin认知角色首选`glm-5-2`，Codex的`gpt-5.6-sol`为并列候选；盲化AuthoringBakeoff只选角色默认profile
+5. DB访问须先确认`ARANGO_DB=xishujuzhen_math_glm52`，禁止默认库和直接raw client
+6. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据、retry until solved
+7. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS
+8. 完整实现按`seven-system/docs/implementation/README.md`双依赖推进；实施AI不得把候选系统自签为正式PASS
 
-1. Devin Solver生产实验用全局`noninteractive-solver-run` skill（`devin -p --prompt-file ... --export ...`）；调试harness用`solver-tmux-launch` skill（`solver_harness.py launch --no-mitm`）；批量解题用pipe系统；
-2. Solver必须无工具；Prompt写“不要用工具”不等于能力PASS，缺独立NoTool能力报告时live运行必须BLOCK；
-3. 只有**目标Solver作业**可以进入`solver_harness`；Devin CLI并不专属于Solver。出题、数学核验、对抗审稿和Judge统一经provider-neutral `ModelRolePort`（Cognitive Worker是子系统名），同时允许物理隔离的`DevinCliModelRoleAdapter`与`CodexExecModelRoleAdapter`。Devin认知worker不得复用Solver port/workspace/session/AGENTS/capability/receipt/resource pool；人工复核/人门另走`HumanTaskPort/HumanGateService`；
-4. Devin认知角色的首个精确候选为`glm-5-2`（本机catalog显示`GLM-5.2 High`，effort由model UID编码），Codex/Responses中的`gpt-5.6-sol`高推理配置为并列候选；两者都必须按角色与精确profile探测requested/effective模型、effort、mode、orchestration、权限、事件和成本。盲化AuthoringBakeoff只选择角色默认profile，不取消其他已合格载体；同模型新会话只能算上下文独立，不能冒充异模型审查；
-5. DB访问仍须先确认`ARANGO_DB=xishujuzhen_math_glm52`，禁止默认库和直接raw client；
-6. Evidence/Artifact/WorkEvent append-only，禁止覆盖、删除负证据、retry until solved或authoring retry until Devin fails；
-7. 自动化不得跨人工Gate、自动切active release或把PARTIAL升级为PASS。
-8. 完整实现按`seven-system/docs/implementation/README.md`的development/activation双依赖推进：上游`READY_FOR_AUDIT`可支持无副作用开发并继承审计债；真实DB、模型、Solver、正式HumanGate、canonical阶段与科学Evidence还需`AUDITED_PASS`或本次未审canary被父级EEA精确覆盖，并且每个具体副作用另有不可扩权LiveRunPermit与原子额度预留收据。实施AI不得把候选系统自签为正式PASS。
+**当前真实实现上限**：v0.1.0实现P0只读preflight+P1 scaffold dry-run+WP-1离线Strict DB契约报告。未连接真实DB，未创建`seven_*_vN`集合。`TargetSolverPort`/`ModelRolePort`/Devin/Codex adapter/QuestionRelease/AuthoringBakeoff均未实现。以`seven-system/docs/implementation-status.md`为准。
 
-**当前真实实现上限**：`seven-system` v0.1.0实现P0只读preflight、P1 scaffold dry-run，以及WP-1的D盘站点存储前置检查和**离线**Strict DB契约报告（都不是387号完整P1）。生产包没有site verifier或apply/DDL primitive，尚未连接真实DB，也没有创建任何`seven_*_vN`集合；因此逻辑站点能力与Schema初始化仍为`NOT_IMPLEMENTED`。Arango engine字节已经经OrbStack image由D盘承载（`A-WP1-D=PASS`，evidence basis为`CONFIRMED_VIA_ORBSTACK_IMAGE`），但仍在容器writable layer而非专用host bind（`A-WP1-BIND=WARNING_NOT_DEDICATED`）。`TargetSolverPort`、`ModelRolePort`（Cognitive Worker子系统）、Devin/Codex认知adapter、QuestionRelease管线和AuthoringBakeoff也都尚未实现或运行；当前不连接DB/Redis、不启动Solver、不调用远程认知Worker。以`seven-system/docs/implementation-status.md`为准，完整故障恢复矩阵和P2-P9均不得冒充已实现。
-
-**最新工程决策记录**：`Tell分类学研究过程文档/389-v0-2026-08-13-seven-system非特化证据工厂工程化落盘-双系统吸收与P0P1首版.md` §14-17。§14替代同文§12-13中“物理未落D盘必然阻断逻辑数据库接入”的政策推论；§15纠正“OrbStack overlay即未落D盘”的不完整宿主存储判断；§16记录初版多模型边界；§17按用户最新决策修正为“目标Solver专用Devin执行面 + ModelRole中的Devin/Codex双认知载体”。完整文档总入口和实施者入口是`seven-system/docs/implementation/README.md`；未来独立审计者必须从`seven-system/docs/audit/README.md`开始，再回读被冻结的实现规范与CompletionBundle。
+**最新工程决策记录**：`Tell分类学研究过程文档/389号` §14-17。完整文档入口：`seven-system/docs/implementation/README.md`；独立审计者入口：`seven-system/docs/audit/README.md`。
 
 ---
 
@@ -970,198 +763,10 @@ Phase D：端到端
 
 POC-5可组合推迟到第二个Tell家族验证后。
 
-#### POC-2.6 续传机制经验沉淀（2026-08-18）
+#### POC续传机制详细SOP（已外移）
 
-**completion_tokens限制与续传机制**：glm-5-2单次API调用的completion_tokens上限是25000（thinking+content+tool_calls都算在内）。竞赛数学题的thinking spin可能需要超过25000 tokens，导致AI在thinking中被截断（reasoning_content有46-73K字符，但message=0、tool_calls=0），无法进入working阶段。**续传机制**：让AI在新的API调用中继续思考。每轮25000 completion_tokens推进一部分，多轮累积完成。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`。
-
-**v1方案（机械拼接reasoning_content，已废弃）**：把AI之前完成的reasoning_content作为新prompt的上下文注入。只传reasoning_content（thinking），不传tool_calls/observation。**验证结果**：CC-101_bare和CC-101_vein成功（这两题Round 1只有1个agent step，全部是thinking，所以只传reasoning_content刚好够用）。**但CC-103_bare暴露了严重问题**：Round 1有6个agent step（web_search + 多轮thinking），完整内容221K字符（reasoning 137K + tool_calls 1.8K + observation 82K），v1方案只传了最后一个step的reasoning_content（66K，30%），丢失了前5步的全部上下文——AI做了什么web search、得到了什么结果、写了什么脚本全部丢失。Round 2的81K thinking全在计划写代码但从未写出，因为AI不知道自己之前已经搜索到了Dumitrescu-Jiang论文的Theorem 4。
-
-**v2方案（交接文档，当前使用）**：不是机械拼接thinking，是从完整探索历程中提取有效内容，整理成结构化的研究文档（HANDOFF.md），交给下一个AI继续。像数学家交接研究笔记——下一个AI读了就能直接接手。**验证结果**：CC-103_bare用交接文档续传，AI在2分钟内写出verify_area3.py（z3 SAT solver验证），7分钟内跑出关键结果（7×5网格UNSAT→A(3)≤3），而v1方案同样时间还在thinking中打转。对比效果极为显著。
-
-**交接文档（HANDOFF.md）的标准结构**：
-1. **题目**——原始问题
-2. **答案猜想**——当前最佳猜想及置信度
-3. **已确认的结论**——带推导概要的数学事实（不是原始thinking，是提炼后的结论）
-4. **已尝试的方向**——走了哪些路线、成功/失败/未完成
-5. **关键文献**——搜索到的论文、定理、已知结果
-6. **已有的中间产物**——脚本、计算结果、文件
-7. **当前卡在哪里**——截断时正在做什么、遇到了什么困难
-8. **建议的下一步**——从已有发现看该试什么
-
-**从每轮export中提取什么**：
-- thinking spin → 确认的数学结论、猜想、证明策略、关键计算结果、死胡同及原因（不提取：重复推理、元评论、已纠正的错误细节）
-- tool calls → web search的关键发现、写的脚本及运行结果、创建的文件（不提取：失败的搜索、无关结果）
-- observation → 论文定理、计算验证结果、搜索到的关键信息（不提取：无关的搜索结果全文）
-
-**循环操作流程**（检测截断→读取完整export→更新HANDOFF.md→启动下一轮→重复）：
-1. 检测：export是否被截断（rc>0, msg=0, tc=0, comp≥24000）
-2. 读取完整export：所有agent step的thinking + tool_calls + observation
-3. 更新HANDOFF.md：把本轮新发现加入交接文档（新确认的结论、新尝试的方向、新写的脚本及运行结果、新的卡点）
-4. 启动下一轮：用更新后的HANDOFF.md作为prompt，`devin -p --prompt-file roundN_handoff_prompt.txt`
-5. 重复：直到AI输出message（有working产出）或写出proof.md
-
-**v2方案与v1方案的关键区别**：v1是机械拼接reasoning_content（丢70%内容），v2是每轮都整理成结构化的交接文档（保留有效内容、去掉涂改和死胡同）。v2的交接文档整理目前是Master Agent手动做的——后续可自动化为脚本（让一个AI读export、提取有效内容、更新HANDOFF.md）。
-
-**基于cwd的devin进程管理**：当系统中有多个devin实例并行运行（如Grove harness系统在`/data/math-agent-glm5.2-tmux-agents-dir/`下跑多个agent），需要精确识别哪些进程属于当前业务。方法：用`lsof -p <pid> | grep cwd`查进程的工作目录——每个run在独有的work_dir中启动，cwd就是进程身份标识。本脚本的进程cwd都在`poc_assets/poc_2.6/workdirs/p26-*`下，别的系统的进程cwd在别处，不会混淆。**不设超时限制**——devin自然运行到完成（输出message后自动退出）。需要中断时跟用户确认后用kill命令（基于cwd匹配杀进程），不要用超时自动杀。续传脚本的`find`命令查进程、`kill`命令杀进程，都基于cwd识别。
-
-#### POC-2.5批量续传实例（2026-08-18启动·跨session持续运行）
-
-**背景**：POC-2.6续传机制验证通过后，启动POC-2.5的16个run批量续传。这个批量运行会跨越多个session（每个run约13-45分钟，15个run串行总计可能需要数小时），后续session的AI需要能定位和管理这个运行。
-
-**如何定位正在运行的实例**：
-
-```bash
-# 1. 查当前正在跑的续传devin进程（基于cwd识别）
-cd ~/master-mind-glm5.2-worktree
-python3 "Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py" find
-
-# 2. 查批量脚本本身是否还在运行
-ps aux | grep "continue_solver.py batch" | grep -v grep
-
-# 3. 查tmux session（每个run的续传在独立tmux session中）
-tmux list-sessions 2>&1 | grep p26
-
-# 4. 查已完成run的export文件
-ls -la "Tell分类学研究过程文档/poc_assets/poc_2.6/trajectories/"*/round*/exports/conversation.json 2>/dev/null
-```
-
-**关键路径**：
-- 续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`
-- 续传数据目录：`Tell分类学研究过程文档/poc_assets/poc_2.6/`
-  - `trajectories/p26-<problem>-<condition>/roundN/exports/conversation.json`——每个run每轮的export
-  - `workdirs/p26-<problem>-<condition>/`——每个run的工作目录（AI写的脚本/proof.md在这里）
-  - `workdirs/p26-<problem>-<condition>/roundN_prompt.txt`——续传prompt（注入的reasoning_content）
-- POC-2.5第一轮原始数据：`Tell分类学研究过程文档/poc_assets/poc_2.5_round1/`
-
-**批量脚本运行参数**：
-```bash
-python3 continue_solver.py batch --max-rounds 5 --problems \
-  CC-101_vein CC-101_vein_hint CC-101_hint \
-  CC-103_bare CC-103_vein CC-103_vein_hint CC-103_hint \
-  CC-104_bare CC-104_vein CC-104_vein_hint CC-104_hint \
-  CC-105_bare CC-105_vein CC-105_vein_hint CC-105_hint
-```
-（CC-101_bare已在POC-2.6单题测试中完成，跳过）
-
-**续传策略**：
-- 13个有export的run（Round 1被截断但有reasoning_content）：从Round 2续传开始，注入Round 1的reasoning_content
-- 3个无export的run（CC-103-bare/CC-104-bare/CC-105-vein，Round 1有多轮tool call但未生成export）：从Round 1重新运行
-
-**如何中断**（需要跟用户确认后）：
-```bash
-# 杀当前正在跑的devin进程和批量脚本
-python3 "Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py" kill
-# 然后杀批量脚本本身
-ps aux | grep "continue_solver.py batch" | grep -v grep | awk '{print $2}' | xargs kill
-```
-
-**完成后如何分析**：16个run全部完成后，按398号§5.3判定逻辑分析因果效应。注意§2.5的澄清——vein条件混入了特化方法引导的混淆变量，分析时需区分"非特化策略的效果"和"特化方法引导的效果"。CC-101的初步观察显示vein可能误导（bare走Rado定理成功，vein走p-adic卡住），但需等全部run完成后做完整分析。
-
-**首批目标Tell家族**：局部-全局表示切换（Local Representation Switch）——已有CasePack v1（22道题，`poc_assets/poc_0/casepack_v1.md`，2026-08-17冻结：6正迁移+4假朋友+2边界从Pipe 3精筛，4 source trace+4变形+2组合保留v0）和383号TellCore v0候选C（7字段最小充分集）。
-
-**当前状态**：理论框架和POC方案设计已完成（396-412号），7项POC资产已准备（poc_assets/）。下一步是执行——**执行编排见413号**（`Tell分类学研究过程文档/413-v0-2026-08-17-非特化研究执行编排-*.md`），413号定义了六批先后顺序、并行关系、时间估算、关键检查点，以及自包含文档加载纪律（执行任何一步前必须全文加载对应的自包含方案文档+§8清单文档）。**第一步是Pipe 3扩展代码修改（412号§5.1-5.3），完成后立即启动Pipe 3规模化运行（~40小时·瓶颈），在等待期间并行做POC-9和selfrun继续。**
-
-**与解题侧脉络分析线的关系**：解题侧（391号P1-P3）和非特化研究（398-409号POC系列）是两条不同的线——解题侧验证"trace识别能否在真实轨迹上产出可用trace"（VMS-31核心+trace_auditor），非特化研究验证"Tell/Hint能否有效指导AI"。两者在P2/Grove闭环接入时汇合——trace→tell匹配需要TellCore，而TellCore由非特化研究产出。
-
-#### POC-2.7系统运行与检查（2026-08-18实现·Pipe 4+Monitor Pipe）
-
-**★ 错题分析系统总索引**：`AnalysisSystemDesign.md`（项目repo根目录）——任何AI涉足错题分析系统时从该文件开始，索引所有文档、规范、代码资产。
-
-**背景**：POC-2.7把续传机制应用到919道DIRECTION_ERROR题上，验证续传能否大规模解决截断问题。系统已实现为错题分析系统的Pipe 4（独立自包含模式）+ Monitor Pipe设计范式（详见`MonitorPipe.md`）。完整运行和检查指南见`POC-2.7/README.md`。
-
-**当前运行状态**（2026-08-18 14:13重启，异步handover架构）：▶️运行中——launcher+monitor运行中，concurrency=5, max_rounds=5, method=v2。通过标准COMPLETED≥50%。**架构改进**：handover生成已改为异步（start_handover+check_handover），不再阻塞主循环——多个handover可并行生成，完成后自动启动解题devin cli填满并发槽。
-
-**三层架构**：
-- **规范层**：`analysis-devin-failure-system/specs/p27_monitor_spec.md` (259行)——检查规范（A类自动检查9项/B类续传质量检查9项/C类AI review抽样5项）
-- **执行层**：`analysis-devin-failure-system/src/monitor_continuation.py` (915行)——Monitor Pipe守护进程，按规范执行18项检查，写alert到ArangoDB `p27_monitor_alerts`集合
-- **查询层**：`analysis-devin-failure-system/scripts/monitor_check_continuation.sh` (285行)——检查脚本，Master AI每次检查都调用，输出7项检查（含系统健康）+8步行动清单+循环监控指令
-
-**Pipe 4核心文件**（独立自包含，不修改现有Pipe 1/2/3的代码）：
-- `src/continuation_config.py`——配置常量（Redis前缀`p27:`/tmux前缀`p27-`/DB集合`p27_continuation_*`/INFRA_FAILURES/MODEL_FAILURES）
-- `src/continuation_db_schema.py`——ArangoDB集合定义+索引
-- `src/continuation_redis_queue.py`——Redis队列操作
-- `src/continuation_collector.py`——数据收集（从problem_list.json加载919道题+创建batch记录）
-- `src/continuation_feeder.py`——入Redis队列
-- `src/continuation_launcher.py`——**核心**，并发启动devin cli+stall/rate_limit/zombie检测+多轮续传+优雅停止+classify_failure(infra/model)
-- `src/continuation_result_collector.py`——结果收集+通过率判定
-- `monitoring/continuation_control.py`——**统一控制工具**（start/stop/status/health/set-concurrency+stop_watchdog）
-- `scripts/continuation_watchdog.sh`——watchdog脚本（每30秒检查服务存活+每5分钟一致性检查）
-- `run_continuation_pipeline.py`——端到端入口（collect→feed→launch→collect-results）
-
-**★ 如何启动全量续传**（推荐——自动启动launcher+monitor到tmux，带auto-restart）：
-```bash
-cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
-.venv/bin/python3 -m monitoring.continuation_control start --batch-id p27-full --concurrency 5 --max-rounds 5 --method v2
-```
-
-**★ 如何启动watchdog**（守护launcher+monitor，崩溃自动重启）：
-```bash
-cd ~/master-mind-glm5.2-worktree/analysis-devin-failure-system
-tmux new-session -d -s p27-watchdog "bash scripts/continuation_watchdog.sh --batch-id p27-full"
-```
-
-**如何查看状态**：
-```bash
-cd analysis-devin-failure-system
-.venv/bin/python3 -m monitoring.continuation_control status --batch-id p27-full
-```
-
-**如何健康检查**（4项检查：服务存活/并发量/DB进度/alert）：
-```bash
-cd analysis-devin-failure-system
-.venv/bin/python3 -m monitoring.continuation_control health --batch-id p27-full
-```
-
-**如何动态调整并发数**（launcher下次poll时自动生效，不影响running）：
-```bash
-cd analysis-devin-failure-system
-.venv/bin/python3 -m monitoring.continuation_control set-concurrency --batch-id p27-full --concurrency 10
-```
-
-**如何检查（Master AI每次检查都调用）**：
-```bash
-cd ~/master-mind-glm5.2-worktree
-bash analysis-devin-failure-system/scripts/monitor_check_continuation.sh p27-full
-```
-输出7项检查（Monitor pane/alerts/进程状态/进度/续传质量/通过率判定/**系统健康**）+ 8步行动清单 + **循环监控指令**。
-
-**★ 循环监控SOP**（Master AI的核心职责——反复执行直到所有题完成）：
-1. 运行检查脚本，阅读7项检查结果
-2. 按行动清单逐项处理（重启挂掉的服务、处理alert、重新入队失败的题）
-3. 等待60-120秒，让devin cli继续工作
-4. 再次运行检查脚本——如此循环，直到第4项进度显示所有题completed或failed
-5. 如果发现系统问题（代码bug/架构问题），修复代码后重启系统，然后继续循环监控
-6. **如果session被中断**，下一个session的AI只需运行检查脚本即可恢复全部上下文——脚本的输出会告诉你系统当前状态和需要做什么
-
-**系统健康判断标准**：
-- ✅ 健康 = launcher+monitor运行中 + devin cli活跃（pane有内容）+ 进度在推进
-- ⚠️ 需关注 = 有新alert + 失败率>15% + handover生成慢
-- ❌ 修复 = launcher/monitor挂了 + devin cli全卡住 + 进度停滞
-
-**如何查看和处理alerts**：
-```bash
-# 查看新alerts
-cd analysis-devin-failure-system && .venv/bin/python3 -m src.monitor_continuation --batch-id p27-full --check-alerts
-# 标记alert为已解决
-.venv/bin/python3 -m src.monitor_continuation --batch-id p27-full --resolve-alert <alert_key>
-```
-
-**alert分类**（详见`specs/p27_monitor_spec.md`）：
-- A类自动检查（9项）：session_health/queue_stalled/rate_limit/zombie_sessions/export_missing/failure_rate/launcher_dead/long_running
-- B类续传质量检查（7项）：proof_missing/proof_no_boxed/proof_too_small/handover_missing/handover_too_small/all_rounds_truncated/status_anomaly
-- C类AI review抽样（5项，需Master AI判断）：proof_quality/proof_hallucination/answer_leak/handover_quality/continuation_direction
-
-**通过标准**（415号§7.1）：919道题中COMPLETED≥50% → POC-2.7通过。
-
-**★ 如何停止系统**（推荐——自动处理watchdog+launcher+monitor）：
-```bash
-cd analysis-devin-failure-system
-# 优雅停止（不kill devin实例，等running自然完成）
-.venv/bin/python3 -m monitoring.continuation_control stop
-# 强制停止（kill所有session+清空Redis队列）
-.venv/bin/python3 -m monitoring.continuation_control stop --force
-```
-**注意**：stop命令的第一步是stop_watchdog()——launchctl unload+disable plist + kill tmux session，防止watchdog重启已停掉的服务。
+> **POC-2.6续传机制经验沉淀 + POC-2.5批量续传实例 + POC-2.7系统运行与检查的完整内容已外移到** `AnalysisSystemOps.md`（项目根目录，§POC续传机制详细SOP节）。
+> **加载时机**：当你要运行/调试POC-2.5/2.6/2.7续传机制，或需要查续传脚本用法、批量续传进程管理、Pipe 4运行检查命令时，必须用read工具全文加载 `AnalysisSystemOps.md`。只看当前状态摘要时不需要读。
 
 ### 当前任务：第六代系统研发
 
@@ -1236,238 +841,10 @@ cd analysis-devin-failure-system
 - 超时阈值调优——340号方案的超时时间需要历史耗时数据支撑
 - 运行对比——不同run_id的耗时对比，发现性能退化
 
-### 研发资产管理（339号方案落实）
+### 研发资产管理（已外移）
 
-**运行资产**：
-- 每次运行的工作目录：`palyground/absorb/vein_analysis/{run_id:04d}_{problem_id}/`
-- 每次运行的归档目录：`system/tests/vein_analysis/runs/{run_id:04d}/`（vein_analysis.py自动归档）
-- 每次运行必须生成`run_manifest.json`——记录所有提示词文件、AGENTS模板、step要求文件、代码的md5和git commit
-- 回头审计时从run_manifest.json找文件版本，不需要md5对比git历史
-
-**目录命名**：
-- 正式运行：`{run_id:04d}_{problem_id}`（如`0011_imo2009p6`）
-- 单独测试：`{run_id:04d}_{problem_id}_{test_type}`（test_type只能是`synthtest`/`v8test`等预定义值）
-- 不允许无run_id的目录（早期`imo2009p6`是历史遗留，不再新增）
-
-**数据库记录**：
-- 每次运行必须写`problem_entries`集合，包含`manifest_path`/`archive_path`/`git_commit`字段
-- 中断的运行必须标记为`interrupted`（不是`running`）——TODO，优先级低
-- 单独测试也要写数据库——TODO，优先级低
-
-**审计流程**（改进后）：
-1. 从数据库查run_id → 直接得到`manifest_path`和`archive_path`
-2. 读run_manifest.json → 直接得到所有文件版本、md5、git commit
-3. `git show <commit>:<文件路径>` → 查看当时的文件内容
-
-**第六代系统架构文档**（`system/docs/`）——system是自包含的第六代系统：
-
-> **核心定位**：`system/`是自包含的第六代系统——从代码到文档，到运行时。`six/`目录已合并到`system/`（343号方案），不再维护。理解第六代系统只需要看`system/`。
->
-> **三层结构**：
-> - **代码层**：`*.py` + `.ref` + `.ai-check`——真正运行的代码
-> - **文档层**：`docs/`——模块设计说明书 + 系统架构文档
-> - **运行时层**：`assets/`——AGENTS模板等运行时资产
-
-**系统架构文档**（`system/docs/architecture.md`）——四个Pipe+两个过程+设计原则+验证历史：
-
-> 包含：四个Pipe（Solver/Parser/Telling/Guide）+两个过程（解题引导/解答吸收）+设计原则（解放思想/反射）+提示词设计认知+VMS-28到28e验证历史+4并发方案+根本认知。
-
-**研发文档索引**（`system/docs/references.md`）——研发过程的"晾衣架"：
-
-> 研发过程文档清单（303-343号）+代码元素到研发文档的映射+POC验证清单（VMS-11到VMS-30）+三个核心问题+系统根本认知+三阶段架构+文件拆分流程控制+脉络分析审计+超时降级+全流程日志+系统时间意识。
-
-**数据结构设计说明书**（`system/docs/schema.md`）——25个dataclass+FCA术语映射：
-
-> 25个dataclass分类+FCA术语映射（双轨术语330号）+核心数据结构详解（Trace/Tell/Segment/LevelView的FCA对应说明）。
-
-**设计原则——解放思想**：
-
-> **核心原则**：不要觉得每个函数只能一个AI、一种方式去做。时时考虑三个维度：
-> 1. **多种方式**——同一个函数可以用多种方式实现，用POC验证决定哪种方式可行（如VMS-28/29/30验证三种格化方式）
-> 2. **多个AI**——同一个函数可以由多个AI实例并发执行（如311号的并发Telling AI）
-> 3. **多个子pipe**——一个函数可以进一步迭代，拆分为多个子函数，每个子pipe独立验证、独立实现
-
-**设计原则——反射**：
-
-> **核心原则**：系统的各处不应该是完全固化的，而是随着系统运行、使用经验丰富而成长发展。流程中必须在合适的地方进行反射——系统停下来审视自己的行为，从中学习，改进自己。
->
-> **反射的三层对象**：反射自己的产出 / 反射自己的流程 / 反射自己的认知
-> **反射的触发时机**：每次循环结束后 / 匹配失败时 / 停机后 / 周期性反思 / 人工触发
-> **和解放思想的关系**：解放思想是设计时的开放性（不要固化设计），反射是运行时的开放性（不要固化运行）。两者配套。
-
-**设计认知——提示词是核心资产**（321号）：
-
-> **核心认知**：六代系统势必积累很多提示词，用于启发AI完成相关的工作。提示词是系统的核心资产，和代码同等重要。
->
-> **提示词管理**：提示词需要积累、管理、版本化。每个版本记录版本号/内容/改进原因/验证状态/使用效果。旧版本保留用于对比和回退。提示词和代码一起版本化管理。
-
-**提示词积累目录**（`第六代系统提示词积累目录/`）：
-
-> 提示词完整文本在`第六代系统提示词积累目录/`中按目录结构积累：`Pipe阶段/子pipe/set_<编号>_<简短描述>/v<版本号>.md` + `README.md`
->
-> **当前积累**：
-> - `pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/`：套A（用FCA/Hasse图启发），V5/V7/V8/V10四个版本+综合分析提示词+4阶段step要求
-> - 其他Pipe阶段的目录已建，待积累
->
-> **三处对齐同步（326号，硬约束）**：提示词在三个地方有记录，必须对齐同步——
-> - **A：提示词积累目录**（`第六代系统提示词积累目录/`）——提示词的完整文本
-> - **B：运行时资产**（`system/assets/`）——AGENTS模板（运行时复制到工作目录）
-> - **C：POC验证文档**（`第六代系统研发过程文档/3xx号`）——提示词的验证结果
->
-> 新增提示词时三处同步创建；改进提示词时三处同步更新版本；POC验证完成后三处同步更新验证状态。
-
-**Schema——晾衣架的完整地形图**：
-
-| 代码位置 | 内容 | 对应的研发文档 | 什么时候看 |
-|---|---|---|---|
-| `system/schema.py` → `Problem` | 题目数据结构 | 第五代01-基础概念/04-两棵树.md | 讨论题目时 |
-| `system/schema.py` → `Hint` | 提示Q数据结构 | 000号+315号§5阶段6 | 讨论hint时 |
-| `system/schema.py` → `Tell` | tell数据结构（含分类学四层位置） | 000号+313号§4.1+287号+315号§4.1 | 讨论tell时 |
-| `system/schema.py` → `Trace` | trace数据结构（含is_branch_position） | 309号+314号问题2+313号§4.1+315号§6.2.2 | 讨论trace时 |
-| `system/schema.py` → `Vein/Segment/Branch/LevelView` | 脉络相关数据结构 | 312号+304号§8.9+318号§4+314号问题2 | 讨论脉络格化时 |
-| `system/schema.py` → `Thinking/SolutionRecord` | Pipe 0输出/过程B输入 | 第五代03-引导树闭环.md+315号§6.2.1 | 讨论过程A/B输入时 |
-| `system/schema.py` → `SolverInput/SolverOutput` | Pipe 0输入输出 | 319号§1+315号§6.8 | 讨论Solver AI时 |
-| `system/schema.py` → `AnalysisInput/AnalysisOutput` | Pipe 1输入输出 | 333号+335号+336号 | 讨论Parser AI时 |
-| `system/vein_analysis.py` → `vein_analysis_three_phase()` | 三阶段脉络分析 | 333号+336号 | 讨论脉络分析时 |
-| `system/verify_lattice_completeness.py` | 闭元素枚举+三层验证 | 332号 | 讨论程序验证时 |
-
-**第六代系统词汇表**（术语定义 + 代码Schema结合）：
-
-> 以下每个术语给出：定义、来源文档、对应的代码Schema（dataclass/字段）。AI看到术语时，既知道定义，又知道代码中的对应。术语新增时必须追加到此表（工作系统纪律第1条）。
-
-**基础概念**：
-
-| 术语 | 定义 | 来源 | 代码Schema |
-|---|---|---|---|
-| **题目（Problem）** | 一道数学题——有problem_id/problem_text/domain/answer | 第五代01-基础概念 | `types.py`→`Problem`：problem_id, problem_text, domain, answer |
-| **提示Q / hint** | 引导从一个数学处境移动到另一个处境的语义移动。tell的注入端。tell+hint构成二元组。 | 000号§引导树闭环 | `types.py`→`Hint`：hint_id, hint_text, hint_level(0=最具体,N=最抽象), tell_id |
-| **tell** | 从trace去特化后存入库中的可泛化思维模式。tell是trace的"泛化版"——从这道题的trace提取出可以启发其他题的思维模式。tell的四个成分：分叉信号/分叉类型/未探索诊断/方向匹配。 | 000号+285号v2修正 | `types.py`→`Tell`：tell_id, branch_signal, branch_type, unexplored_diagnosis, direction_matching, domain, trace_type, segment_pattern, specific_concept |
-| **trace** | 在脉络的某个Level视图上识别出的思维模式。trace是Parser AI的产出，Telling AI的输入。过程A描述"AI在这里可以分叉但没分叉"，过程B描述"解答者在这里做了某个操作"。 | 309号+314号问题2+319号 | `types.py`→`Trace`：trace_id, level(0=最细,N=最粗), trace_type(local/non_local/global), pattern_description, source_segment_ids, is_branch_position(仅过程A) |
-| **局部trace** | 在单个段上（Level 0）识别出的思维模式。 | 322号§1第二部分 | `Trace.trace_type="local"`，`Trace.source_segment_ids`长度=1 |
-| **非局部trace** | 跨多个段的思维模式——只有把几个段合在一起看才能识别出的模式。中间Level视图上的trace。 | 303号+322号§1第二部分 | `Trace.trace_type="non_local"`，`Trace.source_segment_ids`长度>1 |
-| **全局trace** | 整个脉络层面的策略模式——只有把所有段合在一起看（最粗Level）才能识别出的模式。 | 322号§1第二部分 | `Trace.trace_type="global"`，`Trace.source_segment_ids`包含所有段 |
-| **数学处境（MathSituation）** | 引导树/解题树的节点——一个数学处境。有node_type(root/internal/leaf_success/leaf_deadend/leaf_truncated)。 | 第五代04-两棵树 | `types.py`→`MathSituation`：node_id, problem_id, node_type, situation_text, depth, path_from_root, parent_edge_key |
-| **树的边（TreeEdge）** | 引导树/解题树的边——一个提示Q。连接父节点和子节点。 | 第五代04-两棵树 | `types.py`→`TreeEdge`：edge_id, from_node, to_node, hint(Hint), level |
-
-**脉络相关概念**：
-
-| 术语 | 定义 | 来源 | 代码Schema |
-|---|---|---|---|
-| **脉络（Vein）** | 从推理内容中分析出的思维脉络。过程A从Thinking分析→可能有分叉的树/DAG；过程B从SolutionRecord分析→通常线性。 | 312号+319号 | `types.py`→`Vein`：vein_id, source_id, source_type(thinking/solution_record), structure(linear/tree/dag), segments(list[Segment]), branches(list[Branch]) |
-| **段（Segment）** | 脉络中的一个推理步骤或一段推理。最细的段划分是把脉络分成最小的推理步骤。段有特征（用于FCA形式上下文的属性）。 | 314号问题2+319号 | `types.py`→`Segment`：segment_id, vein_id, segment_text, segment_features(dict), order |
-| **分叉（Branch）** | 脉络中AI选了A没选B的位置（仅过程A）。 | 000号+319号 | `types.py`→`Branch`：branch_id, vein_id, at_segment_id, chosen_path, unchosen_paths(list) |
-| **Level视图（LevelView）** | 段的一种合并方式形成的"看法"。最细Level=每个段独立；最粗Level=所有段合并；中间Level=几个段合并。 | 322号§1第一部分+319号 | `types.py`→`LevelView`：view_id, vein_id, level(0=最细,N=最粗), merged_segments(list[list[str]]), view_features(dict) |
-| **格化（grid_vein）** | 把脉络分成段后，考虑段的不同合并方式。每种合并方式形成一个Level视图。"有意义的合并"是把"在思维上属于同一层"的段合在一起。 | 314号问题2+319号§step_2_grid_vein | `pipes.py`→`pipe_1_parser()`的子pipe `step_2_grid_vein()`；产出`list[LevelView]` |
-| **FCA（形式概念分析）** | 用闭包算子定义"有意义的合并"——闭元素是指属性闭包等于自身的段集合。直觉上说，闭元素就是"在思维上属于同一层"的段集合。 | 304号 | `Segment.segment_features`是FCA形式上下文的属性集 |
-| **Hasse图** | 格的可视化——最下面是最细Level，最上面是最粗Level，中间是各个中间Level，节点之间的边表示"从细到粗的合并关系"。 | 322号§1第一部分 | `LevelView`的level字段定义了Hasse图的层次 |
-
-**过程A/B和输入**：
-
-| 术语 | 定义 | 来源 | 代码Schema |
-|---|---|---|---|
-| **过程A** | 分析推理AI的上下文——输入是树状的（推理AI探索后折返）。Parser AI在过程A中分析推理AI的thinking/trajectory。 | 319号§pipe_1_parser+324号附加章节A | `ParserInput.process="A"`，`ParserInput.thinking: Thinking` |
-| **过程B** | 分析已有题目和解答记录——输入是线性的（已完成解答）。Parser AI在过程B中分析外部解答文本。 | 319号§pipe_1_parser+324号附加章节B | `ParserInput.process="B"`，`ParserInput.solution_record: SolutionRecord` |
-| **Thinking** | 推理AI的thinking/trajectory——Pipe 0的输出，Pipe 1过程A的输入。 | 第五代03-引导树闭环+315号 | `types.py`→`Thinking`：solver_ai_id, problem_id, trajectory, rounds(list[dict]), entry_node_id, entry_hint(Hint) |
-| **解答记录（SolutionRecord）** | 外部解答记录——Pipe 1过程B的输入。和Thinking的区别：解答记录是已完成的、正确的、通常线性的脉络。 | 315号§6.2.1 | `types.py`→`SolutionRecord`：record_id, problem(Problem), solution_text, is_verified |
-| **孤悬trace（orphan trace）** | 没匹配到tell的trace。过程A的孤悬trace存档后用于启发过程B——"从什么Level观察外部解答记录"。 | 315号§6.2 | `TellingOutput.unmatched_traces: list[Trace]`；`Step5Output.orphan_traces`；`loops.py`→`archive_orphan_traces()`/`get_archived_orphan_traces()` |
-
-**Pipe和AI角色**：
-
-| 术语 | 定义 | 来源 | 代码Schema |
-|---|---|---|---|
-| **Pipe 0 / Solver AI** | 推理AI——做数学。输入是题目+脉络文本+方向Q，输出是thinking+最终状态+终点节点。 | 318号§2.1+315号§6.8 | `pipes.py`→`pipe_0_solver()`；`SolverInput`(problem, path_text, hint)→`SolverOutput`(thinking, final_status, final_situation) |
-| **Pipe 1 / Parser AI** | 分析AI——从Thinking(过程A)或SolutionRecord(过程B)中分析脉络、格化、识别全Level Trace。三个子step：step_1_analyze_vein / step_2_grid_vein / step_3_identify_traces。 | 318号§3.1+315号§6.2.2+319号 | `pipes.py`→`pipe_1_parser()`；`ParserInput`(process, thinking, solution_record, orphan_traces)→`ParserOutput`(traces, veins, level_views, process) |
-| **Pipe 2 / Telling AI** | 匹配AI——把trace匹配到tell库中的tell。311号后改为多AI并发，每个Telling AI负责一个domain分区。不需要汇总AI（315号确认）。 | 318号§2.1+311号+315号§6.3 | `pipes.py`→`pipe_2_telling()`；`TellingInput`(traces, tell_library_path)→`TellingOutput`(results(list[TellingResult]), unmatched_traces) |
-| **步骤5分叉** | Pipe 2输出后的分叉——过程A：匹配到tell→取hint送入Pipe 3；没匹配到→孤悬trace存档。过程B：新建tell+hint存入AGENTS.md。 | 315号§6.2.1/6.4+319号 | `pipes.py`→`step_5_branch()`；`Step5Input`(telling_output, process)→`Step5Output`(process, hints, orphan_traces, new_tells, new_hints) |
-| **Pipe 3 / Guide AI** | 引导AI——把hint变成引导树的新边，构造新SolverInput，启动新推理AI。 | 318号§2.1+315号§6.5/6.6 | `pipes.py`→`pipe_3_guide()`；`GuideInput`(hints, problem_id, tree_state)→`GuideOutput`(new_edges, new_solver_inputs, tree_state, stop) |
-| **引导树（Guided Expansion Tree）** | "应该往哪走"的视图。每个节点是一个数学处境，每条边是一个提示Q。活的、正在生长的。 | AGENTS.md§Grove核心循环 | `types.py`→`TreeState`：problem_id, nodes(list[MathSituation]), edges(list[TreeEdge]), status(growing/solved/exhausted), running_solvers |
-| **解题树（Solution Record Tree）** | "实际走了什么"的视图。引导展开树展开完成后凝固的树。包含成功路径、失败路径、分叉点。 | AGENTS.md§Grove核心循环 | 同`TreeState`——两棵树是同一棵树的两个面 |
-
-**系统级概念**：
-
-| 术语 | 定义 | 来源 | 代码Schema |
-|---|---|---|---|
-| **tell分类学** | tell的四层分类位置——第一层domain(数论/代数/...)、第二层trace_type(local/non_local/global)、第三层segment_pattern(段结构模式)、第四层specific_concept(具体概念)。 | 313号§4.1 | `Tell`的四个字段：domain, trace_type, segment_pattern, specific_concept |
-| **三个核心问题** | 314号定义的三个必须着力解决的问题——①非局部tell库缺失②推理脉络格化③Tell分类学。 | 314号 | `system/docs/references.md` §4 |
-| **方式A/B/C** | 317号定义的三种格化方式——A：AI做全部格化+trace识别，FCA是理论指导；B：脚本运行FCA格遍历算法；C：AI做+FCA验证。 | 317号§VMS-28/29/30 | `system/docs/architecture.md` §5验证历史 |
-| **多套提示词并发** | 同一Pipe阶段可以有多套不同的提示词（不是不同版本号，是完全不同的设计），并发给多个AI实例处理同一输入。 | 325号§1 | `第六代系统提示词积累目录/`中的set_A/set_B/... |
-| **三处对齐同步** | 提示词在三个地方有记录——A目录(完整文本)、B运行时资产(system/assets/)、C POC验证文档——三处必须对齐同步。 | 326号§1 | 提示词积累目录+system/assets/+研发过程文档 |
-| **trace→tell匹配（TraceTellMatch）** | 一个trace匹配到一个tell的结果——有trace_id/tell_id/confidence/matched。 | 319号 | `system/schema.py`→`TraceTellMatch`：trace_id, tell_id, confidence(float), matched(bool) |
-| `system/process_solve.py` | 解题引导过程（Grove核心循环） | 319号§1+第五代03-引导树闭环.md+315号§6 | 讨论端到端工作流时 |
-| `system/process_absorb.py` | 解答吸收过程（tell库增长循环） | 319号§1+315号§6.2.1 | 讨论Parser AI处理外部解答时 |
-| `system/docs/references.md` → §1 | 研发过程文档清单（303-343号） | 全部 | 需要查文档编号时 |
-| `system/docs/references.md` → §2 | 代码元素到研发文档的映射 | 全部 | 需要追溯代码元素来源时 |
-| `system/docs/references.md` → §3 | POC验证清单（VMS-11到VMS-30） | 317号 | 讨论POC验证时 |
-| `system/docs/references.md` → §4 | 314号三个必须着力解决的问题 | 314号 | 讨论系统核心问题时 |
-| `system/docs/references.md` → §5 | 系统的根本认知 | 315号§6.8+第五代 | 讨论系统设计理念时 |
-
-**如何使用system/docs/**：
-
-1. **用户提到某个概念时**→查`system/docs/references.md` §2，找到对应的代码元素和来源文档
-2. **需要查POC验证时**→查`system/docs/references.md` §3
-3. **需要查研发文档编号时**→查`system/docs/references.md` §1
-4. **需要看某个数据结构的定义时**→看`system/schema.py`中对应的dataclass + `system/docs/schema.md`中的FCA对应说明
-5. **需要看系统架构时**→看`system/docs/architecture.md`（四个Pipe+设计原则+验证历史）
-6. **需要看脉络分析模块时**→看`system/docs/vein_analysis.md`（三阶段架构+文件拆分）
-
-**如何维护system/docs/**：
-
-1. **新增研发文档时**→在`system/docs/references.md` §1中添加条目
-2. **新增或修改数据结构时**→在`system/schema.py`中修改，同时在`system/docs/schema.md`中更新FCA对应说明
-3. **新增POC时**→在`system/docs/references.md` §3中添加条目
-4. **POC验证完成后**→在`system/docs/references.md` §3中更新状态，在`system/docs/architecture.md`中更新验证历史
-5. **修改Pipe接口时**→同步修改`system/schema.py`（输入输出数据结构）+对应模块代码+`system/docs/`中的模块文档
-6. **新增核心问题或认知时**→在`system/docs/references.md` §4或§5中添加
-
-**维护规则**：
-- 代码元素（dataclass/函数/参数）和`system/docs/references.md`中的映射必须同步——改了一个必须改另一个
-- 模块代码变更时同步更新对应的`system/docs/`模块文档
-- `system/docs/references.md`是只读索引——不包含实现逻辑，只包含映射关系
-- `.ref`文件引用`system/docs/`中的模块文档路径
-
-**设计原则rule绑定**（rule文件在`.devin/rules/`中，AGENTS.md只保留索引）：
-
-| rule | 文件 | 触发条件 | 来源 |
-|---|---|---|---|
-| **代码为中心铁律** | `.devin/rules/six-codebase-first.md` + `.devin/skills/codebase-first/SKILL.md` | **always-on——任何时候回答或响应用户提问时** | 用户原话 |
-| 解放思想原则 | `.devin/rules/six-liberation-principle.md` | 设计或修改任何函数时 | 318号/`principles.py` |
-| 反射原则 | `.devin/rules/six-reflection-principle.md` | 设计或修改任何Pipe函数时 | `reflection.py` |
-| 提示词原则+三处对齐同步 | `.devin/rules/six-prompt-principle.md` | 设计或修改任何Pipe函数时；新增/改进/验证提示词时 | 321/325/326号/`prompts.py` |
-| 文档自包含与可审计 | `.devin/rules/six-doc-selfcontained.md` | 编写或修改任何研发过程文档时 | 328号 |
-| 三个核心问题 | `.devin/rules/six-core-problems.md` | 设计或修改任何Pipe时 | 314号/`references.py` |
-| POC三层组织 | `.devin/rules/six-poc-organization.md` | 设计新POC时 | 317号/`references.py` |
-| 形式化定义同步 | `.devin/rules/six-formal-def-sync.md` | 修改任何dataclass或Pipe函数签名时 | 319号/`types.py`/`pipes.py` |
-| 完整工作流对照 | `.devin/rules/six-workflow-alignment.md` | 设计或修改任何Pipe衔接关系时 | 315号/`loops.py` |
-| 双轨术语原则 | `.devin/rules/six-dual-terminology.md` | 编写或修订提示词、技术文档、代码注释时涉及术语选择 | 330号§4 |
-| 提示词自包含 | `.devin/rules/six-prompt-selfcontained.md` | 创建或修订提示词文件时 | 328号/330号§4建议D |
-| **机械化过程描述+程序验证** | `.devin/rules/six-mechanization-reference.md` + `.devin/skills/mechanization-reference/SKILL.md` | 设计提示词时，当认知任务有对应机械化算法且AI用直觉做但产出需完备性保证时 | 332号/用户原话（系统创新） |
-| **运行痕迹全程保留** | `.devin/rules/six-trace-preservation.md` | **always-on——设计或实现系统任何运行阶段、阶段间数据传递、AI实例启动、数据库写入时** | 用户原话（系统设计必须既要考虑运行逻辑，也要考虑痕迹保留） |
-| **AI Agent启动规范** | `.devin/rules/six-ai-agent-launch.md` | **always-on——启动系统中任何AI Agent实例时** | 用户原话（全部使用tmux，先到指定目录，准备好AGENTS.md和提示词文件，短启动提示词+提示词文件加载） |
-| **双重检查机制** | `.devin/rules/six-dual-check-mechanism.md` | **always-on——设计或实现系统任何运行阶段后；系统运行中检查健康状态时；系统运行后审计产出质量时** | 用户原话（代码能保证的用代码检查，无法用代码完成的用流程审计AI检查，.ai-check文件记录checklist） |
-| **"更新文档"动作定义** | `.devin/rules/six-update-docs-action.md` | **用户在system系统研发中说"更新文档"时** | 用户原话（"更新文档"代表很多动作，需要思考哪些文档需要更新，以后只说一句更新文档就全面检查） |
-| **系统资产分级与上下文预算** | `.devin/rules/six-asset-grading.md` | **always-on——设计或修改AI Agent的AGENTS.md内容时；设计或修改提示词文件时；向AI Agent发送直接提示词时；向system/添加新的资产文件时** | 用户原话（AGENTS.md和可复用提示词是system资产，题目解答放文件中，大块要求放文件中，直接提示词不大块，分类学资产从AGENTS.md拆分到单独文件，单文件300行限制，超长检测+警报） |
-| **系统测试规矩** | `.devin/rules/six-test-discipline.md` | **always-on——为系统模块编写测试、POC验证、回归验证时；在`system/tests/`下创建测试资产时；架构改动后需要验证不退化时** | 用户原话（测试不是用完就扔的临时文件，方案先行、按模块组织、内容全留存） |
-| **文件拆分流程控制** | `.devin/rules/six-file-staged-flow.md` | **always-on——设计提示词时，当一个AI session的工作流程有多个阶段且thinking可能过大时** | 用户原话（335号V8改进为例） |
-| **运行数字ID命名规范** | `.devin/rules/six-run-id-naming.md` | **always-on——任何系统运行、测试、实验、审计存档时** | 用户原话（数字ID是可查可审计的保证，应该在任何它应该出现的地方出现） |
-| **数据库-文件双向可追溯性** | `.devin/rules/db-file-traceability.md` + `~/.config/devin/skills/db-file-traceability/SKILL.md` | **always-on——任何向数据库写入记录且同时产出物理文件时；声称"数据已入库"或"文件已落盘"前** | 用户原话（数据库和数据任何时候都可以被"顺藤摸瓜"，要做成AI的工作意识。362号验证发现3个gap后修复） |
-| **研发资产管理** | `.devin/rules/six-asset-management.md` | **always-on——运行vein_analysis_three_phase()时；审计历史运行时；从数据库run_id查找运行资产时** | 339号方案（run_manifest.json+自动归档+目录命名规范+数据库字段，回头审计从5步缩减到3步且确定性） |
-| **代码修改后同步更新文档** | `.devin/rules/code-doc-sync.md` | **always-on——修改了错题分析系统或解题系统的代码逻辑后** | 用户原话（代码修改和文档更新必须在同一个commit中完成。不允许"先提交代码，文档以后再补"——以后永远不会补） |
-
-**第六代研发的核心方向**（截至2026-08-10）：
-1. 非局部tell（303/305号）——tell不只在卡点，可以在脉络上任意点或跨多节点范围
-2. FCA数学基础（304号）——形式概念分析为三层Pipe架构提供完备性证明和系统化格遍历算法
-3. 并发Telling AI（311号）——Pipe 2从单AI串行变为多AI并行，每个Telling AI负责一个tell分区
-4. Pipe 0简化（311号）——从精确拓扑化（8种组合+手工信号词）降级为粗domain分类
-5. trace/tell/hint命名（309号）——trace=辅助AI识别产物，tell=库中标准化描述，hint=方向提示
-6. Parser AI统一（315/318号）——分析AI和Parser AI统一为Parser AI，在过程A和过程B中都用同一套核心能力（提取格化全Level Trace）
-7. 脉络分析管线（315/316号）——过程A和过程B共用步骤1-4，只在步骤5分叉
-8. 四个Pipe命名（318/319号）——Solver AI/Parser AI/Telling AI/Guide AI
-
-**已识别的跑偏方向**（310号评审结论）：
-- 307号原语化——破坏推理AI独立性，拒绝"必须原语化"，保留"可选优化"定位
-- 309号"范式转变"原主张——Pipe 0/1/2融合成一次分析在大规模下不成立；但用户后续提出的"分区后并发Telling AI"是Pipe 2并行化，不跑偏
-
----
+> **完整内容已外移到** `SixthGenRnD.md`（项目根目录）——第六代系统研发管理制度+system/docs索引+运行资产管理+目录命名规范+数据库记录+审计流程+设计原则+研发文档索引。
+> **加载时机**：当你要做第六代系统研发管理工作（运行vein_analysis实验、管理run_id、审计run产出、查system/docs架构文档、查研发过程文档303-343号清单）时，必须用read工具全文加载 `SixthGenRnD.md`。不涉及第六代研发管理时不需要读。
 
 ## TODO
 
@@ -1712,3 +1089,51 @@ tell的固有属性（形式背景的属性维度——tell本身的特点，不
 
 > **完整内容已外移到** `AnalysisSystemOps.md`（项目根目录，运行操作手册）。设计总索引见 `AnalysisSystemDesign.md`。
 > **加载时机**：当你要运行/监控/调试错题分析系统（analysis-devin-failure-system/，判定失败题是"方向出错"还是"token不够"并分类卡点类型）时，必须用read工具全文加载 `AnalysisSystemOps.md`。涉及错题分析系统设计时另读 `AnalysisSystemDesign.md`。不涉及错题分析系统时不需要读。
+
+---
+
+## ★ 外部文档索引（从AGENTS.md外移的文档+关键外部文档）
+
+> **本节是AGENTS.md的总目录。以下文档从AGENTS.md外移或在项目根目录独立维护，按"什么时候必须全文加载"组织。AI进入本repo时先看本索引，按当前工作类型加载对应文档。**
+
+### 从AGENTS.md外移的文档（瘦身工程2026-08-19）
+
+| 文档 | 位置 | 什么时候必须全文加载 |
+|---|---|---|
+| `DataFoundation.md` | 项目根目录 | 做题海梳理与数据基座建设工作时（从有答案的数学题中提炼(tell,hint)对放入ArangoDB） |
+| `SolverPipeSystem.md` | 项目根目录 | 运行/监控/调试管道化GLM-5.2能力边界Profile系统时（xishujuzhen/solver_harness/pipe/）；查跨系统共享信息（DB schema/数据完整性/看Solver方法）时 |
+| `AnalysisSystemOps.md` | 项目根目录 | 运行/监控/调试错题分析系统时（analysis-devin-failure-system/）；运行POC-2.5/2.6/2.7续传机制时 |
+| `SixthGenRnD.md` | 项目根目录 | 做第六代系统研发管理工作时（运行vein_analysis实验、管理run_id、审计run产出、查system/docs架构文档） |
+
+### 项目根目录独立维护的文档（非瘦身工程产生）
+
+| 文档 | 位置 | 什么时候必须全文加载 |
+|---|---|---|
+| `AnalysisSystemDesign.md` | 项目根目录 | 涉及错题分析系统设计时（设计总索引/架构/决策） |
+| `AnalysisSystem.md` | 项目根目录 | 新Session接手AI的完整加载指南（项目基本信息/当前状态/必读文档/代码结构） |
+| `MonitorPipe.md` | 项目根目录 | 设计/实现Monitor Pipe时（连续工作系统的AI智能检查架构设计范式） |
+| `续传规范文档.md` | 项目根目录 | 涉及多轮续传工作时（HANDOFF.md结构/截断判定/prompt模板） |
+| `000-v0-2026-08-08-引导树闭环-识别端结构定义.md` | 项目根目录 | 需要理解tell/hint二元组时（系统架构的根定义文档） |
+| `POC.md` | 项目根目录 | 需要了解所有POC测试的状态时 |
+
+### 关键dev-docs文档（按需加载）
+
+| 文档 | 位置 | 什么时候必须全文加载 |
+|---|---|---|
+| 273号 | `dev-docs/273-v0-2026-08-08-Grove核心循环与辅助智能体JD-跨AI认知同步.md` | 需要Grove核心循环的完整版时（辅助智能体JD展开/7个场景SOP/角色切换细节） |
+| 392号 | `dev-docs/392-v0-2026-08-19-AGENTS_md瘦身外移改造方案.md` | 需要了解AGENTS.md瘦身工程的完整方案时 |
+
+### system/内部文档
+
+| 文档 | 位置 | 什么时候必须全文加载 |
+|---|---|---|
+| `system/README.md` | `system/` | 涉及第六代系统代码时（目录规范/使用方法） |
+| `system/docs/architecture.md` | `system/docs/` | 理解第六代系统架构时（四Pipe+两过程+设计原则+验证历史） |
+| `system/docs/references.md` | `system/docs/` | 查研发文档索引/代码映射/POC清单时 |
+
+### seven-system/内部文档
+
+| 文档 | 位置 | 什么时候必须全文加载 |
+|---|---|---|
+| `seven-system/docs/operations.md` | `seven-system/docs/` | 运行Seven System时（启动/preflight/dry-run/状态/故障处理） |
+| `seven-system/docs/implementation-status.md` | `seven-system/docs/` | 查Seven System当前实现状态时 |
