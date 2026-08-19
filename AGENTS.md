@@ -7,7 +7,7 @@
 ## Grove核心循环与辅助智能体认知（跨AI共享 · 最高认知优先级）
 
 > **本repo与Grove repo（`/data/master-mind-glm5.2-grove/`）共享同一套核心循环认知。**
-> **完整版**：`dev-docs/273-v0-2026-08-08-Grove核心循环与辅助智能体JD-跨AI认知同步.md`——辅助智能体JD展开、7个场景SOP、角色切换细节、反模式/正确模式展开都在273号文档中。本节是精炼版，保留核心认知。
+> **完整版**：`GroveCoreCognition.md`（项目根目录）——辅助智能体JD展开、7个场景SOP、角色切换细节、反模式/正确模式展开、第六代系统文档/代码存放规则完整版、Seven System完整硬约束。本节是精炼版，保留核心认知。**需要完整细节时用read工具全文加载 `GroveCoreCognition.md`。**
 
 ### Grove核心循环
 
@@ -315,6 +315,8 @@
 
 ### 其他规则指针
 
+> **完整版**：`RulePointers.md`（项目根目录）——每条规则的完整描述（触发条件/核心约束/详细说明）、两套Pipe命名体系的完整论述、POC系列文档的完整内容摘要。本节是精炼版，只保留清单。**需要某条规则的完整描述时用read工具加载 `RulePointers.md`。**
+
 **核心rule文件**（`.devin/rules/`中，always-on或触发式加载）：
 - `tell-taxonomy-iteration-audit.md`——Tell分类学迭代审计铁律（FCA再分析9步SOP+版本化审计6条铁律）。触发：对已有profile做FCA再分析时/Tell分类学需要修正时
 - `tell-taxonomy-schema-maintenance.md`——Tell分类学Schema维护铁律。触发：分类学版本号/段结构/domain/结构框架/观察Level参数/关键修正认知变化时。**08号文件和AGENTS.md Schema节必须一致**
@@ -455,6 +457,8 @@
 | `TodoArchive.md` | 项目根目录 | 查待办事项状态/更新TODO进度/确认某任务是否已完成时 |
 | `CurrentTaskAwareness.md` | 项目根目录 | 接手当前活跃任务时（错题分析系统selfrun/解题侧脉络分析/非特化研究POC/第六代研发）——跨session接手工作的首要入口 |
 | `WorkSystemTech.md` | 项目根目录 | 使用工作系统时（CP1-CP6检查点/cognition_checkpoint_math.py/Hook机制/认知图更新） |
+| `GroveCoreCognition.md` | 项目根目录 | 需要Grove核心循环完整细节时（辅助智能体JD展开/7个场景SOP/角色切换/反模式正确模式/第六代文档代码规则完整版/Seven System完整硬约束） |
+| `RulePointers.md` | 项目根目录 | 需要某条规则的完整描述时（触发条件/核心约束/详细说明/两套Pipe命名体系完整论述/POC系列文档完整内容摘要） |
 
 ### 项目根目录独立维护的文档（非瘦身工程产生）
 
