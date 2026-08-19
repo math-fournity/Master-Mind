@@ -203,147 +203,11 @@
 
 ---
 
-### 通用SOP（适用于管道化系统）
+### Solver运行通用SOP（已外移）
 
-> **以下SOP是通用规范，适用于当前管道化系统（pipe/5服务）。旧系统（batch_problem_runner/auto_runner）的SOP已归档到dev-docs/。**
+> **完整内容已外移到** `SolverOpsSOP.md`（项目根目录）——通用SOP（适用于管道化系统pipe/5服务）+ 旧模式SOP归档（batch_problem_runner/auto_runner）。
+> **加载时机**：当你要运行/操作Solver（启动pipe/检查健康/处理异常/批量解题）时，必须用read工具全文加载 `SolverOpsSOP.md`。不涉及Solver运行操作时不需要读。
 
-**SOP G1 · 编译验证（改代码后必须做）**
-
-```bash
-cd ~/master-mind-glm5.2-worktree
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/pipe/feeder.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/pipe/runner.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/pipe/collector.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/pipe/reporter.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/pipe/retry_infrastructure.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/pipe/pipe_control.py && \
-.venv/bin/python -m py_compile xishujuzhen/solver_harness/solver_harness.py && \
-echo "compile OK"
-```
-
-**SOP G2 · 资产追溯规范（2026-08-12）**
-
-> **所有运行资产必须可追溯**——从DB记录能找到文件路径，从文件路径能找到DB记录。不允许放临时目录。
-
-**运行ID唯一性保证**：
-
-exp_id格式：`{batch_id}-{ordinal:02d}-p{progress_key}-r{run_id:07d}-{problem_id}`
-
-- `run_id`是ArangoDB counter（`devin_counters` collection的`run_id`键）原子自增的全局运行ID
-- 每次`create_batch`/`add_cases`/`create_attempt_from_queue`创建attempt时调`next_run_id(db)`获取，确保exp_id全局唯一
-- 同一道题在不同batch中跑→run_id不同→exp_id不同✓
-- 同batch内重跑→run_id不同→exp_id不同✓
-- 两个runner并发→ArangoDB事务保证原子递增→run_id不冲突✓
-- DB attempt记录中有`run_id`字段，便于从run_id反查attempt
-- **目录名以exp_id开头，exp_id含run_id，所以目录永远唯一，不会错乱**
-
-**资产存放位置**：
-
-| 资产 | 位置 | 持久化 | 追溯方式 |
-|---|---|---|---|
-| **trajectory文件**（export/pipe/thinking_capture/tmux.log） | `/data/math-agent-glm5.2-tmux-agents-trajectory/<exp_id>/` | 是 | DB attempt.paths指向 |
-| **solver工作目录**（problem.txt/proof.md/AGENTS.md） | `/data/math-agent-glm5.2-tmux-agents-dir/<exp_id>/` | 是 | DB attempt.paths指向 |
-| **monitor日志** | `/data/math-agent-glm5.2-tmux-agents-dir/logs/batch-<label>.log` | 是 | tmux session名对应 |
-| **auto_runner日志** | `/data/math-agent-glm5.2-tmux-agents-dir/logs/auto_runner.log` | 是 | 固定路径 |
-| **DB记录**（attempt/event/batch/queue） | ArangoDB | 是 | batch_id → attempt → paths |
-| **sessions.db** | `~/.local/share/devin/cli/sessions.db` | 是 | devin_session_id关联 |
-
-**trajectory数据Schema文档**（项目根目录）：
-
-| 文件 | 内容 | 何时读取 |
-|---|---|---|
-| `devin-cli-export-conversation.md` | `exports/conversation.json`的完整Schema（ATIF格式，含reasoning_content/tool_calls/observation） | 需要解析--export导出的conversation.json时 |
-| `trajectory-schema.md` | `sessions_db/trajectory.jsonl`的完整Schema（JSONL格式，含thinking/tool_calls/tool行） | 需要解析sessions_db导出的trajectory.jsonl时 |
-| `analysis-devin-failure-system/docs/solver-trajectory-schema.md` | harness采集的完整trajectory目录结构（9个文件，含session_info/mitm/tmux） | 需要了解完整目录结构时 |
-
-**关键差异**：conversation.json的`observation`字段存tool_results（58%存在率，优先用）；trajectory.jsonl的`role="tool"`行存tool_results（82%存在率，兜底用）。
-
-**面包屑地图方案**（不假设schema的遍历→地图→HANDOVER.md）：见 `conversation-map.md`（项目根目录）。当conversation.json结构未知或可能变化时，用 `scripts/conversation_mapper.py` 生成面包屑地图，交给编写HANDOVER.md的AI按地图逐条遍历，不依赖先验schema。
-
-**从DB查运行时目录和文件位置**：
-```bash
-# 从problem_id查所有attempt及其文件路径
-.venv/bin/python -c "
-from arango import ArangoClient; import os
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.problem_id == @pid RETURN a', bind_vars={'pid': '<PID>'}):
-    print(f'run_id={a.get(\"run_id\",0)} status={a[\"status\"]} batch={a[\"batch_id\"]}')
-    print(f'  exp_id={a[\"exp_id\"]}')
-    print(f'  export: {a[\"paths\"][\"export_path\"]}')
-    print(f'  thinking_capture: {a[\"paths\"][\"tmux_pipe_path\"].replace(\"tmux_pipe.log\",\"thinking_capture.txt\")}')
-    print(f'  solver_dir: {a[\"paths\"][\"solver_dir\"]}')
-"
-```
-
-**禁止**：
-- **禁止放`/tmp/`**——重启丢失，无法追溯
-- **禁止只存DB不存文件**——DB只有paths指针，文件丢了paths指向空
-- **禁止只存文件不存DB**——没有DB记录无法从batch_id查到attempt
-
-**SOP G3 · AI失败题分类与Response truncated处理（2026-08-12）**
-
-> **AI做不出来的题分4类**，全部记录到DB的`devin_problem_runs`中，`status`+`end_reason`字段标识失败类型。完整追溯文档见374号文档。
-
-**AI自身问题导致的失败**：
-
-| status | 含义 | end_reason | 是AI的问题？ |
-|---|---|---|---|
-| `failed_no_proof` | session结束但没输出`### PROOF COMPLETE`标记 | `tmux_session_ended` | 是——AI做了题但没按格式输出标记 |
-| `failed_token_limit` | token用完没做出来 | `tmux_session_ended` / `idle_token_limited` / `response_truncated_max_token_limit` | 是——AI能力不足/效率不够 |
-| `failed_tool_stall` | 工具调用卡住超时 | `stall_seconds` | 是——AI行为异常 |
-| `answer_leak` | AI检测到答案泄漏主动拒绝 | `answer_leak_detected_by_solver` | 是——AI主动拒绝 |
-
-**基础设施问题导致的失败（不算AI做不出来）**：
-
-| status | 含义 | 归因 |
-|---|---|---|
-| `dead_session` | devin cli已退出(DEVIN_CLI_EXITED)但无proof | 基础设施 |
-| `failed_connection` | 网络连接断开 | 网络 |
-| `failed_network_stuck` | 网络不稳定卡死 | 网络 |
-| `launch_error` | 启动失败 | 系统 |
-| `stopped` | 手动停止 | 操作 |
-
-**Response truncated的处理**：
-
-> **Response truncated不是网络问题**——是模型输出达到max token limit被截断。TUI显示`⚠︎ Response truncated`，session空闲等待用户发消息继续。这属于AI做不出来的情况——AI的输出长度不够完成证明。
-
-**处理流程**：
-1. `scan-thinking`扫描发现IDLE的session
-2. 看pane内容——`Response truncated`是token limit，`Connection error`是网络断开
-3. **Response truncated**：可以发"继续"让AI继续输出，但如果反复truncated说明题对AI来说太长→最终标记`failed_token_limit`
-4. **Connection error**：网络问题，发"继续"重试，反复失败则标记`failed_connection`
-
-**手动落盘PROOF COMPLETE的session**（auto_runner的refresh循环会自动做，但如果需要手动做）：
-- 先`capture_thinking(attempt)`保留thinking数据
-- 再`stop_attempt(db, attempt, batch_dir, decode=False)`让devin cli写export
-- 等3秒后kill tmux session
-- 更新DB：`status=candidate_solved`, `end_reason=manual_pane_proof_complete`
-- 记录event：`event_type=attempt_solved`
-
-**查询所有AI失败的题**：
-```bash
-.venv/bin/python -c "
-from arango import ArangoClient; import os
-from collections import Counter
-c = ArangoClient(hosts=os.environ.get('ARANGO_HOST','http://localhost:8529'))
-db = c.db(os.environ['ARANGO_DB'], username=os.environ.get('ARANGO_USER','root'), password=os.environ.get('ARANGO_PASS',''))
-for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_problem_runs FILTER a.status IN [\"failed_no_proof\",\"failed_token_limit\",\"failed_tool_stall\",\"answer_leak\"] RETURN a')).items()):
-    print(f'  {s}: {n}')
-"
-```
-
----
-
-### 旧模式SOP（batch_problem_runner直接操作 · 已归档）
-
-> **以下SOP来自2026-08-12的调试实战，适用于batch_problem_runner.py直接操作模式。该系统已被管道化系统完全替代，当前不再运行。**
->
-> **完整操作SOP已移到**：`dev-docs/旧模式batch_problem_runner操作SOP.md`——16个SOP（SOP 1启动批次/SOP 2检查批次健康/SOP 3验证STALLED/SOP 4处理dead session/SOP 5批量落盘/SOP 6看thinking内容/SOP 7停止批次/SOP 9扫描thinking状态/SOP 10恢复export=0B/SOP 13手动feed+resume）+ 数据完整性表 + 已知根因清单。
->
-> **何时需要读**：管理仍在运行的旧模式实例时（当前无）。
-
----
 
 ## 任务追踪（跨Session工作意识维持）
 
@@ -365,80 +229,11 @@ for s, n in sorted(Counter(a['status'] for a in db.aql.execute('FOR a IN devin_p
 
 ---
 
-## 题目侧写Profile提取工作（活文档 · 数据基座建设）
+## 题目侧写Profile提取工作（已外移）
 
-> **本节记录题目侧写（problem profile）提取工作的进度、方法和产出。这是系统数据基座的核心建设线。**
-> **详细审计日志**：`subagents-dirs/review-log.md`（每批审计结果）
-> **任务追踪文档**：`任务追踪/05-题目侧写Profiling系统.md`
+> **完整内容已外移到** `ProblemProfileWork.md`（项目根目录）——题目侧写提取工作的进度/方法/产出/Tier 2优先级/关键文件。
+> **加载时机**：当你要做题目侧写Profile提取工作（subagent提取profile/审计profile质量/管理Tier 2优先级）时，必须用read工具全文加载 `ProblemProfileWork.md`。不涉及题目侧写工作时不需要读。
 
-### 工作方法
-
-每道题通过subagent完成11步分析：读题目解答→QA序列分析→问题拓扑层→解答思维模式层→翻译方向层→tell拓扑层→提取(tell,hint)对→实验适用性层→输出profile JSON→入库ArangoDB→汇报。
-
-Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/hint_level/per-pair拓扑/必填字段/QA序列结构）+数学内容审查（题目理解/解答理解/key_insight准确性/瓶颈标注合理性）+落盘audit-checklist.md。
-
-### 数据库存储
-
-- **ArangoDB集合**：`problem_profiles`（_key=problem_id，含完整profile JSON）
-- **ArangoDB集合**：`problem_extraction_progress`（_key=数字ID，含global_sequence/extraction_status/metadata）
-- **数据库**：`xishujuzhen_math_glm52`，localhost:8529
-
-### 完成进度（截至2025-01-24）
-
-| 层级 | 来源 | 完成数/总数 | 状态 |
-|---|---|---|---|
-| **Tier 1** | 高难度竞赛题（IMO/IMO SL/Putnam/China TST/FATE-X等） | **452/452** | ✅全部完成 |
-| **Tier 2** | IMO Shortlist剩余+IMO剩余+Putnam剩余+IMO Longlists+China TST剩余+Balkan MO SL+China NOL+ToT+IMC+Yau+Alibaba | 3/606 | 进行中 |
-| **Tier 3** | USAMO+FATE-H+HMMT系列+SMT+CMIMC+Iranian+Brazilian | 0/3127 | 待处理 |
-| **Tier 4** | OlympiadBench+FATE-M+AIME 2024 | 0/860 | 待处理 |
-| **Tier 5** | pascal+fermat+cayley+mathd | 0/942 | 待处理 |
-| **Tier 6+** | olympiads+Hendrycks MATH+AoPS 2024等 | 0/62000+ | 暂不规划 |
-
-**当前总进度**：455/67838（0.67%），但Tier 1高难度题已100%完成。
-
-### Token统计
-
-| 指标 | 数值 |
-|---|---|
-| profile总数 | 455 |
-| 局部tell数量 | 3,192 |
-| 全局tell数量 | 972 |
-| tell总数 | 4,164 |
-| tell字段总token | ~122K |
-| 完整profile总token（含所有文本字段） | ~407K |
-| 平均每profile token | ~893 |
-
-### 质量记录
-
-- **连续0个小问题批次**：129批（从第41批至今）
-- **subagent静默失败处理**：少数题目subagent返回空结果，Master Agent手动创建profile（如omni_math_004296）
-- **原解答问题处理**：部分题目原Lean解答有计算错误/不严谨/模糊/hand-wavy/事实错误，subagent在profile中重构或注明
-- **空答案字段处理**：部分题目answer为空，subagent从解答中推导答案
-
-### Tier 2后续优先级（难的先处理）
-
-1. IMO Shortlist剩余96题（起始seq=1955）← 当前进行中
-2. IMO剩余89题（起始seq=1403）
-3. Putnam剩余88题（起始seq=1756）
-4. IMO Longlists剩余39题（起始seq=1994）
-5. China TST剩余80题（起始seq=1443）
-6. Balkan MO SL剩余31题（起始seq=1862）
-7. China NOL剩余35题（起始seq=1446）
-8. ToT剩余54题（起始seq=1956）
-9. IMC剩余67题（起始seq=1627）
-10. Yau Contest剩余6题（起始seq=1630）
-11. Alibaba Contest剩余21题（起始seq=1597）
-
-### 关键文件
-
-- `subagents-dirs/review-log.md`：完整审计日志（每批的seq范围/题目/审计结果/修复内容/数学审查结论）
-- `subagents-dirs/<problem_id>/`：每题的工作目录（problem.lean/checklist.md/profile.json/audit-checklist.md）
-- `subagents-dirs/audit-checklist-template.md`：审计checklist模板
-- `subagents-dirs/checklist-template.md`：subagent工作checklist模板
-- `scripts/prepare_subagent_dir.py`：subagent工作目录准备脚本
-- `scripts/ingest_problem_extraction_progress.py`：progress记录入库脚本
-
----
 
 ## 认知资产索引（活文档）
 
@@ -547,89 +342,10 @@ Master Agent对每批3题做完整6-Phase审计：格式检查（situation_type/
 - **POC系列审视文档（397号）**：`Tell分类学研究过程文档/397-v0-2026-08-17-GPT373号POC套装的逐个审视-完备性合理性与缺失项.md`——逐个审视373号9个POC的完备性和合理性，识别过度设计部分（POC-5首批过早/POC-7版本修订过重/CaseCard 30字段过多/评分表10维度过重）和GPT未考虑到的8项缺失（最关键：Hint非特化程度钟形曲线验证/识别端验证/基础因果效应验证）。建议修订后首批POC系列为11个POC。
 - **POC自包含方案文档（398-409号）**：`Tell分类学研究过程文档/`下12份自包含POC方案文档（398号POC-2.5基础因果效应验证/399号POC-0 CasePack冻结/400号POC-0.5变形关系声明/401号POC-1因果取商增强版/402号POC-2可选择/403号POC-3.5 Hint非特化程度验证/404号POC-3可执行/405号POC-4可终止/406号POC-6可归责/407号POC-7可持续学习简化版/408号POC-8端到端闭环/409号POC-9识别端验证）。每份遵循398号样板的10节结构（§0规范/§1定位/§2理论背景/§3前置状态/§4输入/§5方法/§6输出/§7通过标准/§8被索引文档全文加载清单/§9执行约束/§10与其他POC关系），§8列出3-7份需全文加载的核心文档。**未来20万上下文的AI只加载某份POC方案+它§8清单的文档，就能完整执行这个POC，不需要用户另外指点。**
 
-### Pipe 3扩展运行SOP（5题分组+检查标准·2026-08-17建立）
+### Pipe 3扩展运行SOP（已外移）
 
-> 本小节是Pipe 3扩展后的**永久性运行SOP**。任何Session的AI运行Pipe 3规模化选题时，必须按本SOP执行。
-
-#### 运行思想
-
-**不直接全量并发，而是5题一组、5并发处理、每组完成后检查。** 原因：
-
-1. **早发现质量问题**——如果6个新字段的填写率或值分布有系统性问题（如全部填unclear、全部填hard），5题就能发现，不需要跑完726题再发现
-2. **早发现rate limit问题**——5并发是小规模验证，确认rate limit安全后再继续
-3. **渐进式放量**——前几组用5并发验证稳定性，后续可以根据rate limit情况调整并发数
-
-#### 操作步骤
-
-```
-# 1. collect 5题
-python3 analysis-devin-failure-system/run_selection_pipeline.py \
-  --batch-id selection-batchN --source-batch-id audit-full1 \
-  --step collect --limit 5
-
-# 2. launch 5题（5并发）
-python3 analysis-devin-failure-system/run_selection_pipeline.py \
-  --batch-id selection-batchN --step launch --concurrency 5
-
-# 3. collect-results
-python3 analysis-devin-failure-system/run_selection_pipeline.py \
-  --batch-id selection-batchN --step collect-results
-
-# 4. 检查（AI执行，见下方检查标准）
-```
-
-#### 检查标准（每组完成后AI必须执行）
-
-**A. 基础完整性检查**
-
-| 检查项 | 标准 | 不通过时的处理 |
-|---|---|---|
-| 完成率 | 5/5完成，0失败 | 失败题重跑（--step launch会自动入队未完成的） |
-| XML解析率 | 0 failed_parse | 检查tmux pane输出，看XML格式是否正确 |
-| 6字段填写率 | ≥95%（允许少量unclear，但不应该大量为空或MISSING） | 如果大量MISSING，检查模板是否正确注入 |
-
-**B. 值分布合理性检查**
-
-| 字段 | 合理分布 | 异常信号 |
-|---|---|---|
-| suitable | YES和NO都有，NO占多数（AIME题大部分不涉及局部-全局切换） | 全YES（标准过松）或全NO（标准过严） |
-| false_friend_candidate | 大部分no，少量yes或unclear | 全yes（假朋友识别过松）或全no且suitable=NO题多（可能没认真识别） |
-| boundary_case_candidate | 大部分no，少量yes或unclear | 全yes（边界识别过松） |
-| process_signal_observability | suitable=YES题应为high/medium，suitable=NO题unclear合理 | suitable=YES题全low（过程信号不可观察，POC-3用不了） |
-| leakage_risk | 大部分low/medium，少量high | 全high（泄漏风险预评过严） |
-| difficulty_estimate | 应有easy/medium/hard分布，与batch对应 | 全hard（没有区分度）或全easy（过松） |
-| branch_position_hint | root和line都应出现 | 全root或全line（没有区分度） |
-
-**C. 字段间逻辑一致性检查**
-
-- suitable=YES的题：batch不应为N/A，d2_reclassified应有具体子类型
-- suitable=NO的题：batch应为N/A
-- suitable=YES且process_signal_observability=low：标记为POC-0精筛时的降优先级题
-- suitable=YES且leakage_risk=high：标记为POC-0精筛时的降优先级题
-- false_friend_candidate=yes仅应出现在suitable=NO的题中（YES题不可能是假朋友）
-
-**D. 跨组趋势检查（从第2组开始）**
-
-- 累计suitable=YES的题数是否在合理范围（每5题约0-2道YES）
-- 6个字段的累计分布是否稳定（不是第1组全hard、第2组全easy这种突变）
-- 是否出现rate limit（如果有failed=rate_limited，降低并发数）
-
-#### 检查不通过时的处理
-
-| 问题 | 处理 |
-|---|---|
-| 6字段大量MISSING | 检查模板是否正确注入（grep 6个字段名在生成的AGENTS.md中） |
-| 6字段大量unclear | 可接受——Pipe 3是二阶判断，信息不足时unclear是诚实回答。但如果suitable=YES题的process_signal_observability全是unclear，说明d2_exp质量不够 |
-| suitable全NO | 检查这5题的d1是否都是TOKEN_LIMIT/CONNECTION_ERROR（如果是，说明collect读到了不该读的审计结果） |
-| suitable全YES | 检查选题标准是否过松（d1是否真的都是DIRECTION_ERROR） |
-| difficulty全hard | 412号模板中difficulty判定指引偏粗，AI可能对不涉及局部-全局切换的题默认标hard。这是低价值字段（410号§2说"低价值"），不影响POC-0精筛，可接受 |
-| rate limit | 降低并发到1，暂停20分钟后重试（388号§4.1机制） |
-
-#### 通过检查后继续下一组
-
-检查通过后，collect下一组5题继续运行。累计suitable=YES的题达到30-50道时可以停止（412号§7.1的完成标准）。
-
----
+> **完整内容已外移到** `Pipe3SelectionSOP.md`（项目根目录）——5题分组+检查标准的规模化选题操作流程。
+> **加载时机**：当你要运行Pipe 3规模化选题（5题分组/5并发/检查6字段填写率/渐进放量）时，必须用read工具全文加载 `Pipe3SelectionSOP.md`。不涉及Pipe 3运行时不需要读。
 
 ## 工作系统技术说明
 
@@ -846,186 +562,10 @@ POC-5可组合推迟到第二个Tell家族验证后。
 > **完整内容已外移到** `SixthGenRnD.md`（项目根目录）——第六代系统研发管理制度+system/docs索引+运行资产管理+目录命名规范+数据库记录+审计流程+设计原则+研发文档索引。
 > **加载时机**：当你要做第六代系统研发管理工作（运行vein_analysis实验、管理run_id、审计run产出、查system/docs架构文档、查研发过程文档303-343号清单）时，必须用read工具全文加载 `SixthGenRnD.md`。不涉及第六代研发管理时不需要读。
 
-## TODO
+## TODO（已外移）
 
-> 本节记录跨 Session 需要保持的待办事项。
-
-### 第五代系统技术说明书（✅全部完成）
-
-- [x] 编写01-基础概念（6文件）——tell+hint二元组/引导树闭环/两棵树/Level/概念树
-- [x] 编写06-四代继承（6文件）——盘古/女娲/燧人/伏羲的遗产+第五代独特贡献+核心洞察继承
-- [x] 编写02-tell端（7文件）——四个成分/去特化/Pipe 0/1/2/标准化语言描述/schema
-- [x] 编写03-hint端（5文件）——字典结构/Level梯度/脉络继承/方向注入/schema
-- [x] 编写04-概念树（5文件）——大概念小概念/概念文件格式/按需加载/概念膨胀应对/schema
-- [x] 编写05-引导树闭环（5文件）——三个推动关系/并发DFS/回溯铁律/停机条件/辅助智能体JD
-- [x] 编写07-工程规格（9文件）——系统架构总图/Pipe接口定义/ArangoDB schema/AQL查询模板等
-- [x] 编写08-验证状态（5文件）——POC-VMS-8/9/10+验证总结+POC系列方案
-- [x] 编写09-附录（3文件）——术语表/文档索引/参考文献
-
-### 第六代系统必须着力解决的问题（314号）
-
-> **文档**：`第六代系统研发过程文档/314-v0-2026-08-10-第六代系统必须着力解决的问题.md`
-> **问题1（库侧）**：现有4164个tell全部是第五代局部分析方法的产物，没有经过非局部分析。tell库中看不到"反证法"、"同构之桥"、"构造-分析-排除"等高Level/非局部tell。用当前分析方法分析费马大定理证明，AI绝对不会分析出"同构之桥"。
-> **问题2（识别侧）**：推理脉络的"格"化——如何找出所有Level的脉络视图。非局部tell存在于中间Level，但要找到中间Level的tell，必须先把推理脉络格化。n个节点的脉络有2^(n-1)种看法，不能全枚举，需要用FCA格遍历算法系统化地找出有意义的Level视图。问题2是问题1的前置。
-> **问题3（分类侧）**：Tell的分类学——建立同时覆盖局部tell和非局部tell的分类体系。313号已启动研究任务线。依赖问题1和问题2，但局部tell的分类部分可以独立先行。
-
-- [ ] **定义"有意义的合并"**——什么样的段合并产生有段特征的段？（304号§8.15的三个例子给出线索：构造+分析+排除合并后有"构造的目的"这个段特征）
-- [ ] **把推理脉络转化为FCA形式上下文**——对象=脉络的段，属性=段特征，用闭包算子计算概念格，概念格就是所有有意义的Level视图（304号§7的gap+§8.9的对接）
-- [ ] **用FCA格遍历算法系统化枚举Level视图**——不暴力枚举2^(n-1)种看法，用Next Closure/In-Close算法枚举闭元素（304号§8.7）
-- [ ] **建立非局部trace的识别方法**——在每个Level视图上做trace识别，不只看一个Level（问题1的识别侧）
-- [ ] **用非局部分析方法重新分析现有题目**——对现有455个profile的thinking做非局部分析，补充非局部tell到库中（问题1的库侧）
-- [ ] **在非局部tell的基础上建立分类学**——分类学要同时覆盖局部tell和非局部tell，不能只覆盖局部tell
-
-### 第六代系统研发（当前）
-
-- [ ] 设计Telling AI提示词模板（311号§6.2）——提示词必须包含非局部分析的指导
-- [ ] 定义汇总AI的判断标准——去重/排序/冲突解决（311号§6.3）——315号已确认不需要汇总，此项可能需要修订
-
-### 第六代系统POC验证（317号启动）
-
-> **方案文档**：`第六代系统研发过程文档/317-v0-2026-08-10-第六代系统POC验证方案-大量POC的设计.md`
-> **审计后20个POC按三层组织**：基础能力(VMS-11/12/13/20/24/27/28/29/30)→管线验证(VMS-14/15/16/21/22/23/25)→系统验证(VMS-17/18/19/26)
-
-**第一层：基础能力验证（9个可并行）**
-- [ ] **POC-VMS-11**：非局部trace识别——用费马大定理证明作为脉络，验证能否识别"同构之桥"等非局部trace
-- [ ] **POC-VMS-12**：推理脉络格化——用FCA格遍历算法找出有意义的Level视图
-- [ ] **POC-VMS-13**：Tell分类学基础——查数据库了解现有4164个tell的分类现状
-- [ ] **POC-VMS-20**：Pipe 0简化版——粗domain分类实现方式验证（311号§3.2）
-- [ ] **POC-VMS-24**：当前分析方法局限性验证——费马大定理证明作为基线（314号§1.2）
-- [ ] **POC-VMS-27**：已有产物二次分析——提取格化的全Level Trace（3-5个不同domain的profile，依赖VMS-12，314/312号）
-- [ ] **POC-VMS-28**：方式A——AI做全部格化+trace识别，FCA是理论指导（316号§5+用户提问）
-- [ ] **POC-VMS-29**：方式B——脚本做FCA格化，AI做trace识别（316号§5+用户提问）
-- [ ] **POC-VMS-30**：方式C——AI做全部，FCA验证补漏（316号§5+用户提问）
-
-**第二层：管线验证（7个）**
-- [ ] **POC-VMS-14**：脉络分析管线——步骤1-4完整管线端到端运行（依赖VMS-11+VMS-12）
-- [ ] **POC-VMS-15（历史载体方案）**：并发Telling AI——311号原案使用多个Devin CLI实例做trace→tell匹配（依赖VMS-13）+分区粒度验证；现行实现若进入Seven/第六代系统，Telling角色必须由provider-neutral `ModelRolePort`选择载体，Devin可作为`DevinCliModelRoleAdapter`但不再等同于角色本体
-- [ ] **POC-VMS-16**：Parser AI——从外部解答记录识别新(tell,hint)（依赖VMS-14）+两个输入机制验证
-- [ ] **POC-VMS-21**：分类维度结构验证——四层层次结构vs正交维度（依赖VMS-13，313号§4.1）
-- [ ] **POC-VMS-22**：FCA角色验证——用FCA定义分类体系vs用FCA验证完备性（依赖VMS-13+21，313号§4.3）
-- [ ] **POC-VMS-23**：非局部tell库补充——重新分析现有455个profile（依赖VMS-11，314号§2.1）
-- [ ] **POC-VMS-25（历史载体方案）**：Tell存储方案——目录AGENTS.md+可审计遍历（315号原案以Devin CLI启动，依赖VMS-13+21）；现行认知角色启动必须改由`ModelRolePort`路由，其中Devin和Codex都只是可资格化adapter
-
-**第三层：系统验证（4个）**
-- [ ] **POC-VMS-17**：端到端工作流——完整7阶段循环（依赖VMS-14+VMS-15）
-- [ ] **POC-VMS-18**：引导树妖娆生长——多Level多方向分叉（依赖VMS-17）
-- [ ] **POC-VMS-19**：tell库持续增长闭环——过程A→过程B→过程A（依赖VMS-16+VMS-17）+管线统一性验证
-- [ ] **POC-VMS-26**：两棵树Level问题——非局部trace的树级位置（依赖VMS-17，315/316号）
-
-### Tell分类学Schema（跨压缩边界保真 · 对抗遗忘）
-
-> **本节是Tell分类学的核心Schema——跨压缩边界也不能忘的东西。** 完整分类学在`FCA学习笔记/08-先验Tell分类学.md`（v3），本节只记录最紧要的结构。如果session压缩后你只记得本节内容，你仍然能知道分类学的结构、当前版本、关键修正历史。**本节的维护规则见`.devin/rules/tell-taxonomy-schema-maintenance.md`。**
-
-#### 分类学结构（v3当前版本）
-
-```
-tell的固有属性（形式背景的属性维度——tell本身的特点，不随题目位置变化）：
-  第一层：domain（6个：数论/代数/组合/几何/分析/跨域）
-  第二层：段结构模式（5大类：构造-分析-排除/探索-诊断-修复/跨域桥接/归约策略/累积-收敛）
-  第三层：具体概念（domain×段结构模式的交叉；子模式在此层体现，如"无尽追逐"是"探索-诊断-修复"的子模式）
-
-观察trace的Level选择（不是tell的属性，是检索时的参数——取决于trace结构，不取决于tell本身）：
-  局部Level / 非局部Level / 全局Level
-```
-
-#### 5大类段结构模式（必须记住的名字和一句话定义）
-
-| 模式 | 一句话定义 |
-|---|---|
-| 构造-分析-排除 | 构造对象→分析性质→排除不可能 |
-| 探索-诊断-修复 | 探索方向→发现gap→诊断→修复（"无尽追逐"是此模式的子模式——诊断环节断裂） |
-| 跨域桥接 | 把问题从一个领域翻译到另一个领域 |
-| 归约策略 | 把大问题归约到小问题 |
-| 累积-收敛 | 逐步累积信息→最终收敛到结论 |
-
-#### 版本历史摘要（全历史在08号文件顶部）
-
-| 版本 | 触发 | 核心修正 | 关键认知 |
-|---|---|---|---|
-| v1 | 初始建立 | 四层结构：domain→trace类型→段结构模式→具体概念 | 初始构想 |
-| v2 | FLT例子 | "局部/非局部/全局"从属性维度移到观察Level参数 | **FLT例子**：同一个tell在"题目就是证明FLT"中表现为全局，在"中间需要FLT"中表现为局部——所以"局部/非局部/全局"不是tell的固有属性，是观察方式 |
-| v3 | FCA理论审查 | "无尽追逐"从第二层降级到第三层（"探索-诊断-修复"的子模式） | **FCA属性测试**：tell"应该转向X"在AI追逐时和不追逐但同样需要转向时都出现——tell相同，但"无尽追逐"只在前者中出现——所以"无尽追逐"不是tell的固有属性 |
-
-#### 两个关键修正认知（必须记住的洞察）
-
-**洞察1（v2）**：tell的固有属性和观察trace的方式是正交的两个轴。"局部/非局部/全局"是观察方式（你看trace的粒度），不是tell的属性（tell本身的特点）。同一个tell在不同题目位置（整体目标vs中间步骤）有不同的Level显现，但tell本身不变。
-
-**洞察2（v3）**：FCA要求形式背景的属性必须是对象的固有特征。测试方法：如果同一个对象在不同观察方式下属性值变化，那这个属性不是固有属性。"无尽追逐"是trace特征（AI在trace中的行为模式），不是tell属性——它随AI是否追逐而变化，不随tell本身变化。
-
-#### 高Level概念作为分类学坐标轴（336号·必须记住的洞察）
-
-**洞察3（336号）**：高Level概念（如同构之桥）不是分类学中的"点"（被分类的对象），而是分类学的"坐标轴"（分类的维度本身）。"跨域桥接"是段结构模式这个分类维度上的一个值——它是坐标轴上的一个刻度，不是被分类到一个类别中的对象。降低Level后的具体形式（如"构造Frey曲线"）才是分类学中的"点"。
-
-**结构知识与内容知识分离**：
-- **结构知识**（在分类学Schema/解释库中）：domain定义、段结构模式定义、子模式定义（如"同构之桥"是"跨域桥接"的子模式）、高Level概念的三种解释文本——这些是分类学的"坐标轴"
-- **内容知识**（在tell库/hint库中）：具体tell条目、具体hint条目，每个条目有{domain, 段结构模式}属性——这些是分类学中的"点"
-
-**高Level概念的存储和使用方式（338号，载体口径已更新）**：高Level部分和低Level部分一样放入可审计分类目录，由专门的认知角色从中读取并识别。338号原案写作“专门的devin cli”；现行物理载体必须由provider-neutral `ModelRolePort`选择，Devin CLI仍可作为经过角色级能力门的正式adapter，与Codex并列。区别在描述方式——高Level部分要"说清楚"+带例子，不能只是一句抽象的话。详见技术说明书`04-概念树/07-高Level概念解释库.md`。
-
-**高Level概念的两种类型（340号）**：
-- **第一种（可展开的）**——如构造-分析-排除、累积-收敛、探索-诊断-修复、归约策略：概念本身定义了展开维度（过程的阶段），可以预先降低Level为具体形式列表。组合爆炸可控，覆盖缺口有限。
-- **第二种（无法指定展开方向的）**——如同构之桥：概念本身不定义展开维度，目标领域开放，无法预先降低Level。主要靠充分解释+启发式触发+案例积累。组合爆炸风险高，覆盖缺口永远存在。
-- 两种类型的Telling AI识别逻辑不同：第一种遍历展开后的具体形式列表，第二种理解概念+格化脉络+判断适用条件（无列表可遍历）。
-
-#### tell和hint的多对多关系（333号·必须记住的洞察）
-
-**洞察4（333号）**：tell和hint是多对多关系——一个tell可以对应多个hint（同一个trace识别结果可以触发多个不同的方向提示），一个hint也可能被多个tell指到（同一个方向提示可能被不同的识别结果触发）。数据库schema中tell_hint_match集合需要支持多对多。
-
-#### 关键文件
-
-| 文件 | 内容 |
-|---|---|
-| `FCA学习笔记/08-先验Tell分类学.md` | 完整分类学（v3）+版本历史+形式背景+概念格 |
-| `FCA学习笔记/09-用FCA重做已完成题目Tell分类-IMO2024P5对比.md` | IMO 2024 P5的FCA再分析对比 |
-| `FCA学习笔记/fca-reanalysis-full-plan.md` | **全量处理方案（455题）——分批策略、进度跟踪、恢复机制** |
-| `FCA学习笔记/fca-reanalysis-checklist.md` | **执行check list模板——主agent建立TODO List用（铁律0）** |
-| `FCA学习笔记/fca-reanalysis-subagent-prompt-template.md` | **subagent prompt模板——主agent构造subagent的prompt用（铁律-1分工架构）** |
-| `FCA学习笔记/fca-reanalysis-output-verification-checklist.md` | **产出验证check list——主agent验证subagent产出用（铁律0.5）** |
-| `第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee/v6.md` | **V6提示词——格化+全Level Trace识别的完整操作指南（679行）。subagent在步骤0加载** |
-| `.devin/rules/tell-taxonomy-iteration-audit.md` | 铁律-1（主agent/subagent分工）+ 铁律0（TODO List）+ 铁律0.5（产出验证）+ 再分析10步SOP + 版本化审计7条铁律 |
-| `.devin/rules/tell-taxonomy-schema-maintenance.md` | 本Schema节的维护规则 |
-
----
-
-### Tell分类学研究（当前任务线，313号启动）
-
-> **启动文档**：`第六代系统研发过程文档/313-v0-2026-08-10-Tell分类学研究-建立第六代Tell的分类体系.md`
-> **目标**：建立第六代Tell的分类体系，使得每个tell在分类体系中有明确位置、Telling AI可按分类体系分区、trace→tell匹配有匹配key、分类体系可扩展且有FCA数学基础。
-> **⚠️ 迭代审计铁律**：Tell分类学不是一次性建成的——它在不断看新题的过程中被修正。修正的全历史审计在`FCA学习笔记/08-先验Tell分类学.md`顶部明面记录。每次修正必须做覆盖性检查。详见`.devin/rules/tell-taxonomy-iteration-audit.md`。
-> **⚠️ Schema维护铁律**：上面的"Tell分类学Schema"节是跨压缩边界保真的核心——分类学修正后必须同步更新该节。详见`.devin/rules/tell-taxonomy-schema-maintenance.md`。
-
-**已完成**：
-- [x] **先验Tell分类学建立**（`FCA学习笔记/08-先验Tell分类学.md`）——v3版本，三层属性维度（domain→段结构模式→具体概念）+观察Level参数（局部/非局部/全局）。版本历史：v1初始四层→v2 FLT例子修正（"局部/非局部/全局"从属性移到观察参数）→v3 FCA理论审查修正（"无尽追逐"降级为"探索-诊断-修复"子模式）
-- [x] **IMO 2024 P5对比分析**（`FCA学习笔记/09-用FCA重做已完成题目Tell分类-IMO2024P5对比.md`）——用FCA先验分类学重做一道已完成题目的Tell分类，发现原始profile遗漏6个非局部/全局tell显现
-
-**待完成**：
-- [ ] **第零步：确认现有tell库的局限性**——确认现有4164个tell全是局部tell，没有非局部tell（314号问题）
-- [ ] **第一步：现状调查**——查数据库了解当前4164个tell的分类现状（有没有domain标签/大概念拓扑标签/972个"全局tell"是什么含义/来源分布是否暗示domain分类）
-- [ ] **全量FCA再分析**——对67837道题做FCA再分析，按6层难度从高到低进行（Tier 1的452题可立即启动，Tier 2-5待profile提取完成）。方案见`FCA学习笔记/fca-reanalysis-full-plan.md`，与`任务追踪/06-题目侧写Profile提取完整方案.md`对齐
-- [ ] **分类学迭代修正**——在抽样验证中发现的分类学问题，按版本化审计铁律修正08号文件
-- [ ] **第二步：分类维度设计**——确定层次结构还是正交维度，确定每层/每维度的具体取值，确定和FCA形式上下文的对接方式
-- [ ] **第三步：非局部trace段结构模式收集**——从304号§8.15的三个例子出发，用费马大定理证明过程和真实thinking收集更多段结构模式，确定有多少种（依赖314号问题的解决）
-- [ ] **第四步：FCA形式上下文构建**——把分类维度转化为FCA形式上下文（对象=tell，属性=分类维度取值），用闭包算子计算概念格，验证完备性
-- [ ] **第五步：Telling AI分区验证**——用分类体系验证311号的分区方案（按domain分/按domain×trace_type分/按更细层次分），验证每区tell数和并发数
-- [ ] **第六步：POC验证**——验证trace→tell匹配准确率/Telling AI分区效率/非局部trace段结构模式分类覆盖率
-
-### POC验证已完成项
-
-- [x] **POC-VMS-0到VMS-6v2全部完成**：核心循环、可扩展性、Pattern闭环、跨域迁移、动态引导胜率验证
-- [x] **POC-VMS-7g泛化POC完成**：验证了"翻译语言"hint在群论和数论两道题上都被AI采纳
-- [x] **POC-VMS-7g-v3奥赛难题版完成**：高Level静态hint没有胜出（bare 0% vs knowledge 25% vs highlevel 12%）
-- [x] **POC-VMS-8完成**：引导树闭环验证成功（bare 0% → tree 67%）
-- [x] **POC-VMS-9完成**：tell端去特化+形式化过滤验证（全部PASS）
-- [x] **POC-VMS-10完成**：拓扑相同且距离极近的tell的小概念标记分辨验证（全部PASS）
-
-### 其他待办
-
-- [ ] 补充1709+T05正确hint实验——验证1709题在正确hint下能成功（POC-VMS-10局限）
-- [ ] 扩大同一拓扑下的tell数量——从2个tell扩展到5-10个，验证小概念标记分辨的精度
-- [ ] 自动化小概念提取——用NLP方法从tell的标准化语言描述中自动提取小概念信号词
-- [ ] 验证概念树管理——当小概念数量膨胀时，验证概念文件的层次结构和按需加载机制
-
----
+> **完整内容已外移到** `TodoArchive.md`（项目根目录）——跨Session待办事项归档。
+> **加载时机**：当你要查待办事项状态、更新TODO进度、确认某任务是否已完成时，用read工具加载 `TodoArchive.md`。日常工作中不需要常驻加载。
 
 ## Memory Section
 
@@ -1104,6 +644,10 @@ tell的固有属性（形式背景的属性维度——tell本身的特点，不
 | `SolverPipeSystem.md` | 项目根目录 | 运行/监控/调试管道化GLM-5.2能力边界Profile系统时（xishujuzhen/solver_harness/pipe/）；查跨系统共享信息（DB schema/数据完整性/看Solver方法）时 |
 | `AnalysisSystemOps.md` | 项目根目录 | 运行/监控/调试错题分析系统时（analysis-devin-failure-system/）；运行POC-2.5/2.6/2.7续传机制时 |
 | `SixthGenRnD.md` | 项目根目录 | 做第六代系统研发管理工作时（运行vein_analysis实验、管理run_id、审计run产出、查system/docs架构文档） |
+| `SolverOpsSOP.md` | 项目根目录 | 运行/操作Solver时（启动pipe/检查健康/处理异常/批量解题/旧模式batch_problem_runner） |
+| `ProblemProfileWork.md` | 项目根目录 | 做题目侧写Profile提取工作时（subagent提取profile/审计profile质量/管理Tier 2优先级） |
+| `Pipe3SelectionSOP.md` | 项目根目录 | 运行Pipe 3规模化选题时（5题分组/5并发/检查6字段填写率/渐进放量） |
+| `TodoArchive.md` | 项目根目录 | 查待办事项状态/更新TODO进度/确认某任务是否已完成时 |
 
 ### 项目根目录独立维护的文档（非瘦身工程产生）
 
