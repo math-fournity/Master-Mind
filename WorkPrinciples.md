@@ -53,8 +53,6 @@
 - `system-ref-sync.md`——system/代码与.ref文件同步规则
 - `pipeline-monitor-sop.md`——Pipe监控SOP（运行任何Pipe时必须启动Monitor Pipe并行监控，检查用`monitor_check.sh`）
 - `audit-pipeline-rate-limit.md`——审计Pipeline Rate Limit防护（>8个进程时并发=1，rate limit是账户级共享）
-- `solver-batch-health-check.md`——批量Solver健康检查（三条铁律+7项检查清单+并发上限经验）
-- `solver-concurrency.md`——Solver并发约束（3秒启动间隔铁律+并发经验表）
 - `guided-math-solving.md`——元组群guided-math-solving（5个Skill）
 
 **关键dev-docs文档**（按需加载）：
