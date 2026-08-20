@@ -43,6 +43,7 @@
 | 题海梳理与数据基座建设 | `DataFoundation.md` |
 | 管道化Profile系统（pipe/5服务+Redis） | `SolverPipeSystem.md` |
 | 解题系统进展交接（tier=1进度/6.6检测修复/已知问题/待办） | `dev-docs/398-v0-2026-08-19-解题系统进展交接文档.md` |
+| 解题系统审计方法（查询结果/失败题/运行资产位置/追溯方法） | `解题系统审计方法.md` |
 | 错题分析系统运行操作 | `AnalysisSystemOps.md` |
 | 第六代研发管理（run_id/审计/system/docs索引） | `SixthGenRnD.md` |
 | Solver运行操作SOP（pipe启动/健康检查/异常处理） | `SolverOpsSOP.md` |
