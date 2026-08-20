@@ -126,18 +126,12 @@ tmux new-session -d -s pipe-monitor \
 echo "  ✅ pipe-monitor (interval=300s, concurrency=$CONCURRENCY)"
 echo "     检查脚本: bash $REPO/xishujuzhen/solver_harness/pipe/scripts/monitor_check.sh"
 
-# === 6. 启动watchdog ===
+# === 6. watchdog（已移除 launchd，不自动启动）===
+# 2026-08-18: 用户决定 solver 系统不进入 launchd。
+# 如需 watchdog，手动运行：bash $REPO/xishujuzhen/solver_harness/pipe/pipe_watchdog.sh
 echo ""
-echo "[6/6] 启动launchd watchdog..."
-PLIST=~/Library/LaunchAgents/com.aurolafly.pipe-watchdog.plist
-launchctl unload $PLIST 2>/dev/null || true
-launchctl load $PLIST
-sleep 2
-if launchctl list | grep -q pipe-watchdog; then
-    echo "  ✅ watchdog已启动 (launchd KeepAlive)"
-else
-    echo "  ⚠️ watchdog启动失败（不影响运行，但无自动恢复能力）"
-fi
+echo "[6/6] watchdog: 已移除 launchd（solver系统不自动启动）"
+echo "  如需手动运行: bash $REPO/xishujuzhen/solver_harness/pipe/pipe_watchdog.sh"
 
 # === 完成 ===
 echo ""
