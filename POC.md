@@ -372,3 +372,7 @@ AI的工作流程（从conversation.json的agent steps确认）：
 | 面包屑地图方案 | `conversation-map.md`（项目根目录） | POC-2.7.6 |
 | conversation.json Schema | `devin-cli-export-conversation.md`（项目根目录） | POC-2.7.6 |
 | trajectory.jsonl Schema | `trajectory-schema.md`（项目根目录） | POC-2.7.6 |
+
+## POC-1重审（⚠️触发·方案=419号）
+
+1962终版判定（截断可救）触发401号重审：7字段结构存活，因果充分性宣称悬置，Pareto证据降级。重构路径=以v2 R4 thinking为新提取素材产出候选TellCore v0.2（弱因果框架）。方案与工作分解见`Tell分类学研究过程文档/419-v0-2026-08-21-POC-1重审方案.md`。
