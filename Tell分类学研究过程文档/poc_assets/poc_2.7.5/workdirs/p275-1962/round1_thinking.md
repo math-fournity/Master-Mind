@@ -1,0 +1,1539 @@
+The user wants me to solve a math problem and write the proof to proof.md. Let me analyze the problem.
+
+Problem: Find all triples $(a, b, c)$ of positive integers such that $ab - c$, $bc - a$, and $ca - b$ are all powers of 2.
+
+Let me think about this carefully.
+
+Let $ab - c = 2^x$, $bc - a = 2^y$, $ca - b = 2^z$ where $x, y, z \geq 0$ are non-negative integers.
+
+First, let me consider small cases and symmetry.
+
+Case 1: $a = b = c$. Then $a^2 - a = 2^x$. So $a(a-1) = 2^x$. Since $\gcd(a, a-1) = 1$, both $a$ and $a-1$ must be powers of 2. The only consecutive powers of 2 are 1 and 2. So $a = 2, a-1 = 1$, giving $a = b = c = 2$. Check: $ab - c = 4 - 2 = 2 = 2^1$. ✓
+
+Also $a = 1$: $1 \cdot 0 = 0$, which is not a power of 2 (powers of 2 are $2^n$ for $n \geq 0$, so $1, 2, 4, ...$; 0 is not a power of 2). So $a = 1$ doesn't work.
+
+So $(2, 2, 2)$ is a solution.
+
+Case 2: WLOG $a \leq b \leq c$.
+
+Let me think about this more carefully. Let me consider the case where one of them is 1.
+
+If $a = 1$: $b - c = 2^x$, $bc - 1 = 2^y$, $c - b = 2^z$.
+
+From $b - c = 2^x$ and $c - b = 2^z$: $2^x + 2^z = 0$, impossible since both are non-negative. Unless both are 0, but 0 is not a power of 2. So no solution with $a = 1$.
+
+Wait, actually we need $b - c$ and $c - b$ to both be powers of 2, which are non-negative. So $b - c \geq 0$ and $c - b \geq 0$, meaning $b = c$, and then both are 0, not a power of 2. So no solution with $a = 1$.
+
+By symmetry, none of $a, b, c$ can be 1.
+
+So $a, b, c \geq 2$.
+
+Case: $a = b = 2$. Then $ab - c = 4 - c = 2^x$, $bc - a = 2c - 2 = 2(c-1) = 2^y$, $ca - b = 2c - 2 = 2^z$.
+
+So $y = z$ and $c - 1 = 2^{y-1}$, so $c = 2^{y-1} + 1$.
+And $4 - c = 2^x$, so $c = 4 - 2^x$. Since $c \geq 2$, $2^x \leq 2$, so $x \leq 1$.
+- $x = 0$: $c = 3$. Then $c - 1 = 2 = 2^1$, so $y = 2$. Check: $bc - a = 6 - 2 = 4 = 2^2$ ✓. So $(2, 2, 3)$ and by symmetry permutations.
+- $x = 1$: $c = 2$. Then $c - 1 = 1 = 2^0$, so $y = 1$. This gives $(2, 2, 2)$ already found.
+
+So $(2, 2, 3)$ and its permutations are solutions.
+
+Let me check: $ab - c = 4 - 3 = 1 = 2^0$ ✓, $bc - a = 6 - 2 = 4 = 2^2$ ✓, $ca - b = 6 - 2 = 4 = 2^2$ ✓. 
+
+Now let me think more generally. WLOG $a \leq b \leq c$.
+
+From $ab - c = 2^x \geq 1$, we get $c \leq ab - 1$.
+From $bc - a = 2^y \geq 1$, we get $a \leq bc - 1$ (always true for $b, c \geq 2$).
+From $ca - b = 2^z \geq 1$, we get $b \leq ca - 1$.
+
+Let me try $a = 2, b = 3$. Then $ab - c = 6 - c = 2^x$, so $c = 6 - 2^x$. Since $c \geq b = 3$, $2^x \leq 3$, so $x \in \{0, 1\}$.
+- $x = 0$: $c = 5$. $bc - a = 15 - 2 = 13$, not a power of 2.
+- $x = 1$: $c = 4$. $bc - a = 12 - 2 = 10$, not a power of 2.
+
+$a = 2, b = 4$: $ab - c = 8 - c = 2^x$, $c = 8 - 2^x \geq 4$, so $2^x \leq 4$, $x \in \{0, 1, 2\}$.
+- $x = 0$: $c = 7$. $bc - a = 28 - 2 = 26$, no.
+- $x = 1$: $c = 6$. $bc - a = 24 - 2 = 22$, no.
+- $x = 2$: $c = 4$. $bc - a = 16 - 2 = 14$, no.
+
+$a = 2, b = 5$: $c = 10 - 2^x \geq 5$, $2^x \leq 5$, $x \in \{0, 1, 2\}$.
+- $x = 0$: $c = 9$. $bc - a = 45 - 2 = 43$, no.
+- $x = 1$: $c = 8$. $bc - a = 40 - 2 = 38$, no.
+- $x = 2$: $c = 6$. $bc - a = 30 - 2 = 28$, no.
+
+$a = 2, b = 6$: $c = 12 - 2^x \geq 6$, $2^x \leq 6$, $x \in \{0, 1, 2\}$.
+- $x = 0$: $c = 11$. $bc - a = 66 - 2 = 64 = 2^6$! $ca - b = 22 - 6 = 16 = 2^4$! 
+
+So $(2, 6, 11)$: $ab - c = 12 - 11 = 1 = 2^0$ ✓, $bc - a = 66 - 2 = 64 = 2^6$ ✓, $ca - b = 22 - 6 = 16 = 2^4$ ✓. 
+
+So $(2, 6, 11)$ and permutations are solutions.
+
+- $x = 1$: $c = 10$. $bc - a = 60 - 2 = 58$, no.
+- $x = 2$: $c = 8$. $bc - a = 48 - 2 = 46$, no.
+
+$a = 2, b = 7$: $c = 14 - 2^x \geq 7$, $2^x \leq 7$, $x \in \{0, 1, 2\}$.
+- $x = 0$: $c = 13$. $bc - a = 91 - 2 = 89$, no.
+- $x = 1$: $c = 12$. $bc - a = 84 - 2 = 82$, no.
+- $x = 2$: $c = 10$. $bc - a = 70 - 2 = 68$, no.
+
+$a = 2, b = 8$: $c = 16 - 2^x \geq 8$, $2^x \leq 8$, $x \in \{0, 1, 2, 3\}$.
+- $x = 0$: $c = 15$. $bc - a = 120 - 2 = 118$, no.
+- $x = 1$: $c = 14$. $bc - a = 112 - 2 = 110$, no.
+- $x = 2$: $c = 12$. $bc - a = 96 - 2 = 94$, no.
+- $x = 3$: $c = 8$. $bc - a = 64 - 2 = 62$, no.
+
+This is getting tedious. Let me think more systematically.
+
+Actually, let me think about this problem more carefully. This is a competition problem. Let me search for the structure.
+
+Let $ab - c = 2^x$, $bc - a = 2^y$, $ca - b = 2^z$.
+
+Adding all three: $ab + bc + ca - a - b - c = 2^x + 2^y + 2^z$.
+
+Let me consider the case where $a = b$ (by symmetry we can look at this). Then $a^2 - c = 2^x$, $ac - a = a(c-1) = 2^y$, $ac - a = 2^z$. So $y = z$ and $a(c-1) = 2^y$.
+
+Since $a(c-1)$ is a power of 2, and $a \geq 2$, both $a$ and $c-1$ must be powers of 2. Let $a = 2^p$, $c - 1 = 2^q$, so $c = 2^q + 1$.
+
+Then $a^2 - c = 2^{2p} - 2^q - 1 = 2^x$.
+
+So $2^{2p} - 2^q - 1 = 2^x$.
+
+If $q = 0$: $2^{2p} - 2 = 2^x$, so $2(2^{2p-1} - 1) = 2^x$. For this to be a power of 2, $2^{2p-1} - 1$ must be a power of 2. $2^{2p-1} - 1$ is odd, so it must be 1, giving $2p-1 = 1$, $p = 1$, $a = 2$, $c = 2$. This gives $(2, 2, 2)$.
+
+If $q \geq 1$: $2^{2p} - 2^q - 1 = 2^x$. The left side: $2^{2p}$ is even, $2^q$ is even, so $2^{2p} - 2^q$ is even, minus 1 is odd. So $2^x$ is odd, meaning $x = 0$, and $2^{2p} - 2^q - 1 = 1$, so $2^{2p} - 2^q = 2$, $2^q(2^{2p-q} - 1) = 2$.
+
+If $q = 1$: $2(2^{2p-1} - 1) = 2$, so $2^{2p-1} - 1 = 1$, $2p - 1 = 1$, $p = 1$, $a = 2$, $c = 3$. This gives $(2, 2, 3)$.
+
+If $q \geq 2$: $2^q \geq 4 > 2$, impossible.
+
+So with $a = b$, the only solutions are $(2, 2, 2)$ and $(2, 2, 3)$ (and permutations of the latter).
+
+Now for the general case with $a \leq b \leq c$ and $a < b$.
+
+We found $(2, 6, 11)$. Let me continue searching.
+
+$a = 3, b = 3$: $c = 9 - 2^x \geq 3$, $2^x \leq 6$, $x \in \{0, 1, 2\}$.
+- $x = 0$: $c = 8$. $bc - a = 24 - 3 = 21$, no.
+- $x = 1$: $c = 7$. $bc - a = 21 - 3 = 18$, no.
+- $x = 2$: $c = 5$. $bc - a = 15 - 3 = 12$, no.
+
+$a = 3, b = 4$: $c = 12 - 2^x \geq 4$, $2^x \leq 8$, $x \in \{0,1,2,3\}$.
+- $x = 0$: $c = 11$. $bc - a = 44 - 3 = 41$, no.
+- $x = 1$: $c = 10$. $bc - a = 40 - 3 = 37$, no.
+- $x = 2$: $c = 8$. $bc - a = 32 - 3 = 29$, no.
+- $x = 3$: $c = 4$. $bc - a = 16 - 3 = 13$, no.
+
+$a = 3, b = 5$: $c = 15 - 2^x \geq 5$, $2^x \leq 10$, $x \in \{0,1,2,3\}$.
+- $x = 0$: $c = 14$. $bc - a = 70 - 3 = 67$, no.
+- $x = 1$: $c = 13$. $bc - a = 65 - 3 = 62$, no.
+- $x = 2$: $c = 11$. $bc - a = 55 - 3 = 52$, no.
+- $x = 3$: $c = 7$. $bc - a = 35 - 3 = 32 = 2^5$! $ca - b = 21 - 5 = 16 = 2^4$! 
+
+So $(3, 5, 7)$: $ab - c = 15 - 7 = 8 = 2^3$ ✓, $bc - a = 35 - 3 = 32 = 2^5$ ✓, $ca - b = 21 - 5 = 16 = 2^4$ ✓. 
+
+So $(3, 5, 7)$ and permutations are solutions.
+
+$a = 3, b = 6$: $c = 18 - 2^x \geq 6$, $2^x \leq 12$, $x \in \{0,1,2,3\}$.
+- $x = 0$: $c = 17$. $bc - a = 102 - 3 = 99$, no.
+- $x = 1$: $c = 16$. $bc - a = 96 - 3 = 93$, no.
+- $x = 2$: $c = 14$. $bc - a = 84 - 3 = 81$, no.
+- $x = 3$: $c = 10$. $bc - a = 60 - 3 = 57$, no.
+
+$a = 3, b = 7$: $c = 21 - 2^x \geq 7$, $2^x \leq 14$, $x \in \{0,1,2,3\}$.
+- $x = 0$: $c = 20$. $bc - a = 140 - 3 = 137$, no.
+- $x = 1$: $c = 19$. $bc - a = 133 - 3 = 130$, no.
+- $x = 2$: $c = 17$. $bc - a = 119 - 3 = 116$, no.
+- $x = 3$: $c = 13$. $bc - a = 91 - 3 = 88$, no.
+
+$a = 4, b = 4$: $c = 16 - 2^x \geq 4$, $2^x \leq 12$, $x \in \{0,1,2,3\}$.
+- $x = 0$: $c = 15$. $bc - a = 60 - 4 = 56$, no.
+- $x = 1$: $c = 14$. $bc - a = 56 - 4 = 52$, no.
+- $x = 2$: $c = 12$. $bc - a = 48 - 4 = 44$, no.
+- $x = 3$: $c = 8$. $bc - a = 32 - 4 = 28$, no.
+
+$a = 4, b = 5$: $c = 20 - 2^x \geq 5$, $2^x \leq 15$, $x \in \{0,1,2,3\}$.
+- $x = 0$: $c = 19$. $bc - a = 95 - 4 = 91$, no.
+- $x = 1$: $c = 18$. $bc - a = 90 - 4 = 86$, no.
+- $x = 2$: $c = 16$. $bc - a = 80 - 4 = 76$, no.
+- $x = 3$: $c = 12$. $bc - a = 60 - 4 = 56$, no.
+
+$a = 4, b = 6$: $c = 24 - 2^x \geq 6$, $2^x \leq 18$, $x \in \{0,1,2,3,4\}$.
+- $x = 0$: $c = 23$. $bc - a = 138 - 4 = 134$, no.
+- $x = 1$: $c = 22$. $bc - a = 132 - 4 = 128 = 2^7$! $ca - b = 88 - 6 = 82$, no.
+- $x = 2$: $c = 20$. $bc - a = 120 - 4 = 116$, no.
+- $x = 3$: $c = 16$. $bc - a = 96 - 4 = 92$, no.
+- $x = 4$: $c = 8$. $bc - a = 48 - 4 = 44$, no.
+
+$a = 4, b = 7$: $c = 28 - 2^x \geq 7$, $2^x \leq 21$, $x \in \{0,1,2,3,4\}$.
+- $x = 0$: $c = 27$. $bc - a = 189 - 4 = 185$, no.
+- $x = 1$: $c = 26$. $bc - a = 182 - 4 = 178$, no.
+- $x = 2$: $c = 24$. $bc - a = 168 - 4 = 164$, no.
+- $x = 3$: $c = 20$. $bc - a = 140 - 4 = 136$, no.
+- $x = 4$: $c = 12$. $bc - a = 84 - 4 = 80$, no.
+
+Hmm, let me think about whether there might be infinitely many solutions or just finitely many.
+
+Let me think about this differently. Let me consider the equations modulo 2.
+
+If all of $a, b, c$ are odd: $ab - c$ is odd - odd = even. $bc - a$ is odd - odd = even. $ca - b$ is even. So all three are even, meaning they're powers of 2 that are even, so $\geq 2$. That's consistent.
+
+If exactly one is even, say $a$ is even, $b, c$ odd: $ab - c$ = even - odd = odd, so $ab - c = 1$ (the only odd power of 2). $bc - a$ = odd - even = odd, so $bc - a = 1$. $ca - b$ = even - odd = odd, so $ca - b = 1$.
+
+So $ab - c = 1$, $bc - a = 1$, $ca - b = 1$. This means $c = ab - 1$, $a = bc - 1$, $b = ca - 1$.
+
+From $c = ab - 1$ and $a = bc - 1 = b(ab-1) - 1 = ab^2 - b - 1$. So $a = ab^2 - b - 1$, $a(1 - b^2) = -b - 1$, $a(b^2 - 1) = b + 1$, $a(b-1)(b+1) = b+1$. If $b \neq -1$ (which it isn't since $b \geq 1$), $a(b-1) = 1$. Since $a \geq 1, b \geq 1$, we get $a = 1, b = 1$. But $a$ is even, contradiction. So no solution with exactly one even.
+
+Wait, but we need to be more careful. If $b = 1$, then $a(b-1) = 0 \neq 1$. Actually let me redo: $a(b-1)(b+1) = b+1$. If $b+1 \neq 0$, divide: $a(b-1) = 1$. Since $a, b$ are positive integers, $a = 1, b = 1$. But $a$ is even, contradiction. So no solution with exactly one even.
+
+If exactly two are even, say $a, b$ even, $c$ odd: $ab - c$ = even - odd = odd, so $ab - c = 1$. $bc - a$ = even - even = even. $ca - b$ = even - even = even. So $ab - c = 1$, i.e., $c = ab - 1$ (which is odd since $ab$ is even). Then $bc - a = b(ab-1) - a = ab^2 - b - a$ and $ca - b = (ab-1)a - b = a^2b - a - b$.
+
+For $(2, 6, 11)$: $a=2, b=6$ even, $c=11$ odd. $ab - c = 12 - 11 = 1$ ✓. $bc - a = 66 - 2 = 64$ ✓. $ca - b = 22 - 6 = 16$ ✓. This fits the pattern!
+
+So with $a, b$ even and $c$ odd, we need $c = ab - 1$ and $bc - a$ and $ca - b$ are powers of 2.
+
+$bc - a = b(ab-1) - a = ab^2 - b - a = a(b^2 - 1) - b = a(b-1)(b+1) - b$.
+$ca - b = a(ab-1) - b = a^2b - a - b = b(a^2 - 1) - a = b(a-1)(a+1) - a$.
+
+Hmm, let me think about this differently. Let $a = 2s, b = 2t$ (both even). Then $c = 4st - 1$.
+
+$bc - a = 2t(4st-1) - 2s = 8st^2 - 2t - 2s = 2(4st^2 - t - s)$.
+$ca - b = 2s(4st-1) - 2t = 8s^2t - 2s - 2t = 2(4s^2t - s - t)$.
+
+So $bc - a = 2 \cdot (4st^2 - t - s)$ and $ca - b = 2 \cdot (4s^2t - s - t)$.
+
+For these to be powers of 2, we need $4st^2 - t - s$ and $4s^2t - s - t$ to be powers of 2 (possibly $2^0 = 1$).
+
+Let me denote $f(s,t) = 4st^2 - t - s$ and $g(s,t) = 4s^2t - s - t$.
+
+Note $f(s,t) = 4st^2 - s - t$ and $g(s,t) = 4s^2t - s - t$. By symmetry $g(s,t) = f(t,s)$.
+
+For $(2, 6, 11)$: $s = 1, t = 3$. $f(1,3) = 4 \cdot 1 \cdot 9 - 3 - 1 = 36 - 4 = 32 = 2^5$. $g(1,3) = f(3,1) = 4 \cdot 3 \cdot 1 - 1 - 3 = 12 - 4 = 8 = 2^3$. So $bc - a = 2 \cdot 32 = 64 = 2^6$ ✓ and $ca - b = 2 \cdot 8 = 16 = 2^4$ ✓.
+
+For $(2, 2, 3)$: $s = 1, t = 1$. $f(1,1) = 4 - 1 - 1 = 2 = 2^1$. $g(1,1) = 2$. So $bc - a = 4 = 2^2$ ✓ and $ca - b = 4 = 2^2$ ✓.
+
+For $(2, 2, 2)$: all even. $ab - c = 4 - 2 = 2$, $bc - a = 4 - 2 = 2$, $ca - b = 4 - 2 = 2$. All powers of 2. ✓
+
+Now for $(3, 5, 7)$: all odd. $ab - c = 15 - 7 = 8 = 2^3$, $bc - a = 35 - 3 = 32 = 2^5$, $ca - b = 21 - 5 = 16 = 2^4$. ✓
+
+So we have solutions with all odd and solutions with two even + one odd. Let me also check if all even is possible beyond $(2,2,2)$.
+
+If all even: $a = 2s, b = 2t, c = 2u$. Then $ab - c = 4st - 2u = 2(2st - u)$. For this to be a power of 2, $2st - u$ must be a power of 2. Similarly for the others. Let $2st - u = 2^{x'}, 2tu - s = 2^{y'}, 2us - t = 2^{z'}$. This is the same form as the original problem but with $2st - u$ instead of $st - u$... actually not quite the same.
+
+Hmm, let me think about this differently. Let me try to find more solutions computationally.
+
+Actually, let me think about the all-odd case. If $a, b, c$ are all odd, then $ab - c, bc - a, ca - b$ are all even. Let $a = 2s+1, b = 2t+1, c = 2u+1$.
+
+$ab - c = (2s+1)(2t+1) - (2u+1) = 4st + 2s + 2t + 1 - 2u - 1 = 4st + 2s + 2t - 2u = 2(2st + s + t - u)$.
+
+So $ab - c = 2(2st + s + t - u)$, and similarly for the others. For these to be powers of 2, we need $2st + s + t - u, 2tu + t + u - s, 2us + u + s - t$ to all be powers of 2.
+
+For $(3, 5, 7)$: $s=1, t=2, u=3$. $2 \cdot 1 \cdot 2 + 1 + 2 - 3 = 4 + 0 = 4 = 2^2$. $2 \cdot 2 \cdot 3 + 2 + 3 - 1 = 12 + 4 = 16 = 2^4$. $2 \cdot 3 \cdot 1 + 3 + 1 - 2 = 6 + 2 = 8 = 2^3$. So $ab - c = 2 \cdot 4 = 8$ ✓, $bc - a = 2 \cdot 16 = 32$ ✓, $ca - b = 2 \cdot 8 = 16$ ✓.
+
+OK so the problem reduces to finding $(s, t, u)$ such that $2st + s + t - u$, $2tu + t + u - s$, $2us + u + s - t$ are all powers of 2 (including $2^0 = 1$).
+
+Note that $2st + s + t - u = (2s+1)(2t+1)/2 - (2u+1)/2 + ... $ hmm, let me think differently.
+
+$2st + s + t = (s+1)(t+1) + st - 1$. Hmm, not so clean.
+
+Actually, $2st + s + t = \frac{(2s+1)(2t+1) - 1}{2}$. So $2st + s + t - u = \frac{(2s+1)(2t+1) - 1}{2} - u = \frac{(2s+1)(2t+1) - 1 - 2u}{2} = \frac{ab - c}{2}$ where $a = 2s+1, b = 2t+1, c = 2u+1$. OK that's circular.
+
+Let me just try to be more systematic and search computationally for more solutions. Let me write a script.
+
+Actually, let me think about this problem from a higher level. This is likely a competition problem with a finite set of solutions. The solutions I've found so far are:
+- $(2, 2, 2)$ and permutations (but it's symmetric)
+- $(2, 2, 3)$ and permutations
+- $(2, 6, 11)$ and permutations
+- $(3, 5, 7)$ and permutations
+
+Let me search more systematically with a script to make sure I haven't missed any.
+
+Let me write a Python script to search.
+
+Good, so up to 200, we have exactly 4 solutions (with $a \leq b \leq c$):
+1. $(2, 2, 2)$
+2. $(2, 2, 3)$
+3. $(2, 6, 11)$
+4. $(3, 5, 7)$
+
+Now I need to prove these are the only ones. Let me think about how to prove this rigorously.
+
+Let me think about the structure more carefully. WLOG $a \leq b \leq c$.
+
+We have $ab - c = 2^x$, $bc - a = 2^y$, $ca - b = 2^z$.
+
+Since $a \leq b \leq c$, we have $bc - a \geq bc - c = c(b-1) \geq c \geq b \geq a \geq 2$ (since $a \geq 2$ as shown). So $2^y \geq 2$, meaning $y \geq 1$.
+
+Also $ca - b \geq ca - c = c(a-1) \geq c \geq 2$ (if $a \geq 2$), so $z \geq 1$.
+
+And $ab - c$: since $c \leq ab - 1$ (because $ab - c \geq 1$), and $c \geq b$, we have $b \leq ab - 1$, so $b(a-1) \geq 1$, which is true for $a \geq 2$.
+
+Let me think about parity cases.
+
+**Case 1: All odd.**
+
+$a, b, c$ all odd. Then $ab - c, bc - a, ca - b$ are all even, so $x, y, z \geq 1$.
+
+Let $a = 2s+1, b = 2t+1, c = 2u+1$ with $0 \leq s \leq t \leq u$.
+
+$ab - c = 2(2st + s + t - u) = 2^x$, so $2st + s + t - u = 2^{x-1}$.
+$bc - a = 2(2tu + t + u - s) = 2^y$, so $2tu + t + u - s = 2^{y-1}$.
+$ca - b = 2(2us + u + s - t) = 2^z$, so $2us + u + s - t = 2^{z-1}$.
+
+Let me denote $P = 2st + s + t - u$, $Q = 2tu + t + u - s$, $R = 2us + u + s - t$.
+
+Note: $P + Q + R = 2st + 2tu + 2us + (s+t-u) + (t+u-s) + (u+s-t) = 2(st+tu+us) + (s+t+u) = 2(st+tu+us) + s + t + u$.
+
+Also, $P = 2st + s + t - u$. Since $u \geq t \geq s \geq 0$:
+- If $s = 0$ (i.e., $a = 1$): $P = t - u \leq 0$, but $P$ must be a power of 2 (positive), so $P \geq 1$, contradiction. So $s \geq 1$, i.e., $a \geq 3$.
+
+With $s \geq 1$: $P = 2st + s + t - u \geq 2t + 1 + t - u = 3t + 1 - u$. Since $u \geq t$, $P \geq 3t + 1 - u$. If $u = t$, $P = 2st + s \geq 2t + 1 \geq 3$. If $u = t+1$, $P = 2st + s - 1 \geq 2t \geq 2$.
+
+Hmm, this is getting complicated. Let me try a different approach.
+
+**Key idea: bounding.**
+
+WLOG $a \leq b \leq c$. We have $ab - c = 2^x \geq 1$, so $c \leq ab - 1$.
+
+Also $c \geq b$, so $b \leq ab - 1$, giving $b(a-1) \geq 1$, so $a \geq 2$.
+
+Now, $ca - b = 2^z$ and $bc - a = 2^y$.
+
+$ca - b \geq ca - c = c(a-1) \geq c$ (since $a \geq 2$). So $2^z \geq c$.
+$bc - a \geq bc - c = c(b-1) \geq c$ (since $b \geq 2$). So $2^y \geq c$.
+
+Also, $ab - c = 2^x \leq ab - b = b(a-1)$ (since $c \geq b$). So $2^x \leq b(a-1)$.
+
+And $ab - c = 2^x \geq ab - (ab-1) = 1$.
+
+Now, $ca - b = 2^z$ and $bc - a = 2^y$. 
+
+$(ca - b)(bc - a) = 2^{y+z} = c^2 ab - ca^2 - b^2 c + ab = ab(c^2 + 1) - c(a^2 + b^2)$.
+
+Hmm, let me try another approach. 
+
+$(ca-b) \cdot b = bca - b^2$ and $(bc-a) \cdot a = abc - a^2$. So $(ca-b)b - (bc-a)a = a^2 - b^2 + abc - abc$... no wait.
+
+$(ca-b)b = abc - b^2$ and $(bc-a)a = abc - a^2$. So $(ca-b)b - (bc-a)a = a^2 - b^2$.
+
+So $b \cdot 2^z - a \cdot 2^y = a^2 - b^2 = (a-b)(a+b)$.
+
+Since $a \leq b$, the RHS is $\leq 0$. So $b \cdot 2^z \leq a \cdot 2^y$, meaning $2^{y-z} \geq b/a \geq 1$, so $y \geq z$.
+
+Similarly, $(ab-c)c - (ca-b)a = a^2 - c^2$... let me compute:
+$(ab-c)c = abc - c^2$ and $(ca-b)a = a^2c - ab$. So $(ab-c)c - (ca-b)a = abc - c^2 - a^2c + ab = c(ab - a^2 - c) + ab = ...$
+
+Let me be more careful. $(ab-c)c = abc - c^2$. $(ca-b)a = ca^2 - ab$. Difference: $abc - c^2 - ca^2 + ab = a(bc - a c + b) - c^2 = a(c(b-a) + b) - c^2$. Hmm, not clean.
+
+Let me try: $(ab-c) \cdot c = abc - c^2$ and $(bc-a) \cdot a = abc - a^2$. So $(ab-c)c - (bc-a)a = a^2 - c^2 = (a-c)(a+c)$.
+
+Since $a \leq c$, RHS $\leq 0$. So $c \cdot 2^x \leq a \cdot 2^y$, meaning $2^{y-x} \geq c/a \geq 1$, so $y \geq x$.
+
+So we have $y \geq z$ and $y \geq x$. Since $a \leq b \leq c$, $bc - a$ is the largest, which makes sense.
+
+Now let me think about the relationship more. We have:
+- $b \cdot 2^z - a \cdot 2^y = (a-b)(a+b) = -(b-a)(a+b)$
+- $c \cdot 2^x - a \cdot 2^y = (a-c)(a+c) = -(c-a)(a+c)$
+- $c \cdot 2^x - b \cdot 2^z = ?$ Let me compute: $(ab-c)c - (ca-b)b = abc - c^2 - abc + b^2 = b^2 - c^2 = (b-c)(b+c)$. So $c \cdot 2^x - b \cdot 2^z = (b-c)(b+c)$. Since $b \leq c$, RHS $\leq 0$, so $c \cdot 2^x \leq b \cdot 2^z$, meaning $2^{z-x} \geq c/b \geq 1$, so $z \geq x$.
+
+So $y \geq z \geq x$.
+
+Now, from $c \cdot 2^x - b \cdot 2^z = (b-c)(b+c)$:
+$c \cdot 2^x - b \cdot 2^z = -(c-b)(b+c)$
+$b \cdot 2^z - c \cdot 2^x = (c-b)(b+c)$
+
+If $z > x$: $b \cdot 2^z - c \cdot 2^x = 2^x(b \cdot 2^{z-x} - c) = (c-b)(b+c)$.
+
+If $z = x$: $b \cdot 2^x - c \cdot 2^x = (b-c) \cdot 2^x = (b-c)(b+c)$, so $2^x = b+c$ (if $b \neq c$) or $b = c$ (if $b = c$).
+
+If $b = c$ and $z = x$: Then $ab - c = ab - b = b(a-1) = 2^x$ and $bc - a = b^2 - a = 2^y$ and $ca - b = ba - b = b(a-1) = 2^x = 2^z$. So $x = z$ and $b(a-1) = 2^x$. Since $b(a-1)$ is a power of 2, and $\gcd(b, a-1)$ divides $\gcd(b, a-1)$... 
+
+If $b = c$: $ab - b = b(a-1) = 2^x$, $b^2 - a = 2^y$, $ab - b = 2^z = 2^x$.
+
+$b(a-1) = 2^x$: both $b$ and $a-1$ are powers of 2 (since their product is a power of 2). Let $b = 2^p$, $a - 1 = 2^q$, so $a = 2^q + 1$.
+
+$b^2 - a = 2^{2p} - 2^q - 1 = 2^y$.
+
+If $q = 0$: $a = 2$, $2^{2p} - 2 = 2^y$, $2(2^{2p-1} - 1) = 2^y$. For $y \geq 2$, $2^{2p-1} - 1 = 2^{y-1}$. LHS is odd, so $y - 1 = 0$, $y = 1$, $2^{2p-1} = 2$, $p = 1$, $b = 2$. So $(a,b,c) = (2,2,2)$. ✓
+
+If $q \geq 1$: $2^{2p} - 2^q - 1$ is odd, so $y = 0$ and $2^{2p} - 2^q - 1 = 1$, $2^{2p} - 2^q = 2$, $2^q(2^{2p-q} - 1) = 2$. So $q = 1$ and $2^{2p-1} - 1 = 1$, $p = 1$, $b = 2$, $a = 3$. So $(a,b,c) = (3,2,2)$, i.e., $(2,2,3)$ with $a \leq b \leq c$. ✓
+
+So when $b = c$, we get $(2,2,2)$ and $(2,2,3)$.
+
+Now assume $b < c$ (and $a \leq b < c$). Then from $z = x$ case: $2^x = b + c$. And $ab - c = 2^x = b + c$, so $ab = b + 2c$, $a = 1 + 2c/b$. Since $a$ is a positive integer, $b | 2c$. 
+
+Also $bc - a = 2^y$. And $ca - b = 2^z = 2^x = b + c$. So $ca = b + (b+c) = 2b + c$, $a = (2b+c)/c = 2b/c + 1$. Since $a$ is a positive integer, $c | 2b$.
+
+From $a = 1 + 2c/b$ and $a = 1 + 2b/c$: $2c/b = 2b/c$, so $c^2 = b^2$, $c = b$. Contradiction with $b < c$.
+
+So if $b < c$, then $z > x$.
+
+OK so now with $a \leq b < c$ and $y \geq z > x$:
+
+From $b \cdot 2^z - c \cdot 2^x = (c-b)(b+c)$:
+$2^x(b \cdot 2^{z-x} - c) = (c-b)(b+c)$.
+
+Let $m = z - x \geq 1$. Then $2^x(b \cdot 2^m - c) = (c-b)(b+c)$.
+
+From $c \cdot 2^x - a \cdot 2^y = -(c-a)(a+c)$:
+$a \cdot 2^y - c \cdot 2^x = (c-a)(a+c)$.
+
+Let $n = y - x \geq m \geq 1$. Then $2^x(a \cdot 2^n - c) = (c-a)(a+c)$.
+
+And from $b \cdot 2^z - a \cdot 2^y = -(b-a)(a+b)$ (since $a \leq b$):
+$a \cdot 2^y - b \cdot 2^z = (b-a)(a+b)$.
+$2^z(a \cdot 2^{y-z} - b) = (b-a)(a+b)$.
+
+Let $k = y - z \geq 0$. Then $2^z(a \cdot 2^k - b) = (b-a)(a+b)$.
+
+If $a = b$: $0 = 0$, no info. If $a < b$: $a \cdot 2^k - b > 0$ (since LHS > 0), so $a \cdot 2^k > b$.
+
+This is getting quite involved. Let me try a different approach - maybe I should look at this problem modulo small numbers or use infinite descent.
+
+Actually, let me think about it from the perspective of the competition. This is likely from ISL or similar. Let me search.
+
+Actually, let me think about the problem more carefully.
+
+We have $ab - c = 2^x$, $bc - a = 2^y$, $ca - b = 2^z$ with $a \leq b \leq c$ and $y \geq z \geq x$.
+
+From $ab - c = 2^x$: $c = ab - 2^x$.
+Substituting into $bc - a = 2^y$: $b(ab - 2^x) - a = 2^y$, so $ab^2 - b \cdot 2^x - a = 2^y$, i.e., $a(b^2 - 1) = 2^y + b \cdot 2^x = 2^x(2^{y-x} + b)$.
+
+So $a(b^2-1) = 2^x(2^{y-x} + b)$, i.e., $a(b-1)(b+1) = 2^x(2^{y-x} + b)$.
+
+Similarly, substituting into $ca - b = 2^z$: $(ab - 2^x)a - b = 2^z$, so $a^2 b - a \cdot 2^x - b = 2^z$, i.e., $b(a^2 - 1) = 2^z + a \cdot 2^x = 2^x(2^{z-x} + a)$.
+
+So $b(a-1)(a+1) = 2^x(2^{z-x} + a)$.
+
+These are key equations. Let me denote $u = y - x \geq 0$ and $v = z - x \geq 0$ with $u \geq v$.
+
+$a(b-1)(b+1) = 2^x(2^u + b)$ ... (I)
+$b(a-1)(a+1) = 2^x(2^v + a)$ ... (II)
+
+From (I): $\frac{a(b-1)(b+1)}{2^u + b} = 2^x$.
+From (II): $\frac{b(a-1)(a+1)}{2^v + a} = 2^x$.
+
+So $\frac{a(b-1)(b+1)}{2^u + b} = \frac{b(a-1)(a+1)}{2^v + a}$.
+
+Cross-multiplying: $a(b-1)(b+1)(2^v + a) = b(a-1)(a+1)(2^u + b)$.
+
+$\frac{a}{a+1} \cdot \frac{(b-1)(b+1)}{b} \cdot \frac{2^v + a}{1} = \frac{(a-1)}{1} \cdot \frac{(2^u + b)}{1}$
+
+Hmm, let me just simplify directly:
+
+$a(b^2-1)(2^v + a) = b(a^2-1)(2^u + b)$
+
+$a(b^2-1) \cdot 2^v + a^2(b^2-1) = b(a^2-1) \cdot 2^u + b^2(a^2-1)$
+
+$a(b^2-1) \cdot 2^v - b(a^2-1) \cdot 2^u = b^2(a^2-1) - a^2(b^2-1) = a^2 b^2 - b^2 - a^2 b^2 + a^2 = a^2 - b^2 = (a-b)(a+b)$
+
+So $a(b^2-1) \cdot 2^v - b(a^2-1) \cdot 2^u = (a-b)(a+b) = -(b-a)(a+b)$.
+
+If $a < b$: $b(a^2-1) \cdot 2^u - a(b^2-1) \cdot 2^v = (b-a)(a+b)$.
+
+$2^v[b(a^2-1) \cdot 2^{u-v} - a(b^2-1)] = (b-a)(a+b)$.
+
+Since $u \geq v$, let $w = u - v \geq 0$.
+
+$2^v[b(a^2-1) \cdot 2^w - a(b^2-1)] = (b-a)(a+b)$.
+
+If $a = b$: LHS = $2^v[a(a^2-1)(2^w - 1)] = 0$ (if $w = 0$) or positive. RHS = 0. So $w = 0$, i.e., $u = v$, i.e., $y = z$. Which makes sense by symmetry when $a = b$.
+
+OK this is getting very algebraic. Let me try yet another approach.
+
+**Approach via Vieta jumping / descent.**
+
+Consider the system as a quadratic in $c$:
+- $ab - c = 2^x$ gives $c = ab - 2^x$.
+- $bc - a = 2^y$ gives $c = (2^y + a)/b$.
+- $ca - b = 2^z$ gives $c = (2^z + b)/a$.
+
+From the first two: $ab - 2^x = (2^y + a)/b$, so $ab^2 - b \cdot 2^x = 2^y + a$, i.e., $a(b^2 - 1) = 2^y + b \cdot 2^x$.
+
+From the first and third: $ab - 2^x = (2^z + b)/a$, so $a^2 b - a \cdot 2^x = 2^z + b$, i.e., $b(a^2 - 1) = 2^z + a \cdot 2^x$.
+
+So we need:
+- $a(b^2-1) = 2^x(2^{y-x} + b)$ where $y \geq x$
+- $b(a^2-1) = 2^x(2^{z-x} + a)$ where $z \geq x$
+
+And $c = ab - 2^x$ with $c \geq b$, so $ab - 2^x \geq b$, i.e., $b(a-1) \geq 2^x$.
+
+Let me think about this problem by cases on $x$.
+
+**Case $x = 0$: $ab - c = 1$, so $c = ab - 1$.**
+
+Then $bc - a = b(ab-1) - a = ab^2 - b - a = a(b^2-1) - b$.
+And $ca - b = a(ab-1) - b = a^2 b - a - b = b(a^2-1) - a$.
+
+We need $a(b^2-1) - b = 2^y$ and $b(a^2-1) - a = 2^z$.
+
+$a(b-1)(b+1) - b = 2^y$ ... (*)
+$b(a-1)(a+1) - a = 2^z$ ... (**)
+
+For $(2, 6, 11)$: $a=2, b=6$. (*) $2 \cdot 5 \cdot 7 - 6 = 70 - 6 = 64 = 2^6$ ✓. (**) $6 \cdot 1 \cdot 3 - 2 = 18 - 2 = 16 = 2^4$ ✓.
+
+For $(2, 2, 3)$: $a=2, b=2$. (*) $2 \cdot 1 \cdot 3 - 2 = 4 = 2^2$ ✓. (**) same = $4 = 2^2$ ✓.
+
+Let me analyze (*): $a(b-1)(b+1) = 2^y + b$. 
+
+If $b$ is even: $b = 2^s \cdot m$ where $m$ is odd. Then $2^y + b = 2^y + 2^s m$. 
+
+If $s < y$: $2^y + b = 2^s(2^{y-s} + m)$. And $a(b-1)(b+1) = a(b^2-1)$. Since $b$ is even, $b^2 - 1$ is odd. So $a \cdot \text{odd} = 2^s(2^{y-s} + m)$ where $2^{y-s} + m$ is odd (since $y > s$ means $2^{y-s}$ is even, plus odd $m$ = odd). So $a = 2^s \cdot \frac{2^{y-s} + m}{b^2-1}$... this requires $(b^2-1) | (2^{y-s} + m)$.
+
+Hmm, this is still complicated. Let me try to think about it differently.
+
+Let me consider the case $a = 2$ specifically, since two of our solutions have $a = 2$.
+
+**Subcase $a = 2$:**
+
+$ab - c = 2b - c = 2^x$, so $c = 2b - 2^x$.
+$bc - a = bc - 2 = 2^y$.
+$ca - b = 2c - b = 2^z$.
+
+From $c = 2b - 2^x$ and $2c - b = 2^z$: $2(2b - 2^x) - b = 2^z$, $3b - 2^{x+1} = 2^z$, so $b = (2^z + 2^{x+1})/3$.
+
+For $b$ to be a positive integer, $3 | (2^z + 2^{x+1})$.
+
+$2^z + 2^{x+1} \equiv 0 \pmod{3}$. Since $2 \equiv -1 \pmod{3}$, $(-1)^z + (-1)^{x+1} \equiv 0 \pmod{3}$, i.e., $(-1)^z + (-1)^{x+1} \equiv 0 \pmod{3}$.
+
+If $z$ even, $x+1$ odd (i.e., $x$ even): $1 + (-1) = 0$ ✓.
+If $z$ odd, $x+1$ even (i.e., $x$ odd): $(-1) + 1 = 0$ ✓.
+If $z$ even, $x+1$ even: $1 + 1 = 2 \not\equiv 0$.
+If $z$ odd, $x+1$ odd: $(-1) + (-1) = -2 \not\equiv 0$.
+
+So $z$ and $x$ must have the same parity.
+
+$b = (2^z + 2^{x+1})/3$.
+$c = 2b - 2^x = (2^{z+1} + 2^{x+2})/3 - 2^x = (2^{z+1} + 2^{x+2} - 3 \cdot 2^x)/3 = (2^{z+1} + 2^x(4 - 3))/3 = (2^{z+1} + 2^x)/3$.
+
+And $bc - 2 = 2^y$, so $bc = 2^y + 2$.
+
+$bc = \frac{(2^z + 2^{x+1})(2^{z+1} + 2^x)}{9} = \frac{2^{2z+1} + 2^{z+x} + 2^{z+x+2} + 2^{2x+1}}{9} = \frac{2^{2z+1} + 2^{z+x}(1 + 4) + 2^{2x+1}}{9} = \frac{2^{2z+1} + 5 \cdot 2^{z+x} + 2^{2x+1}}{9}$.
+
+$= \frac{2(2^{2z} + 5 \cdot 2^{z+x-1} + 2^{2x})}{9}$... hmm, let me factor differently.
+
+$= \frac{2^{x}(2^{2z-x+1} + 5 \cdot 2^{z} + 2^{x+1})}{9}$... this isn't simplifying nicely.
+
+Let me just compute $bc$ for specific parities.
+
+Let $x = 2p, z = 2q$ (both even) or $x = 2p+1, z = 2q+1$ (both odd).
+
+**Both even: $x = 2p, z = 2q$.**
+
+$b = (2^{2q} + 2^{2p+1})/3 = (4^q + 2 \cdot 4^p)/3$.
+$c = (2^{2q+1} + 2^{2p})/3 = (2 \cdot 4^q + 4^p)/3$.
+
+$bc = \frac{(4^q + 2 \cdot 4^p)(2 \cdot 4^q + 4^p)}{9} = \frac{2 \cdot 4^{2q} + 4^{p+q} + 4 \cdot 4^{p+q} + 2 \cdot 4^{2p}}{9} = \frac{2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p}}{9}$.
+
+$bc - 2 = \frac{2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18}{9} = 2^y$.
+
+So $2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18 = 9 \cdot 2^y$.
+
+$2(4^{2q} + 4^{2p}) + 5 \cdot 4^{p+q} - 18 = 9 \cdot 2^y$.
+
+For $p = 0, q = 0$: $2(1+1) + 5 - 18 = 4 + 5 - 18 = -9 < 0$. Not valid (need $b \geq a = 2$, $b = (1+2)/3 = 1 < 2$). Invalid.
+
+For $p = 0, q = 1$: $b = (4 + 2)/3 = 2$, $c = (8 + 1)/3 = 3$. $bc - 2 = 6 - 2 = 4 = 2^2$. ✓ This is $(2, 2, 3)$.
+
+For $p = 1, q = 1$: $b = (4 + 8)/3 = 4$, $c = (8 + 4)/3 = 4$. $bc - 2 = 16 - 2 = 14$, not power of 2.
+
+For $p = 0, q = 2$: $b = (16 + 2)/3 = 6$, $c = (32 + 1)/3 = 11$. $bc - 2 = 66 - 2 = 64 = 2^6$. ✓ This is $(2, 6, 11)$.
+
+For $p = 1, q = 2$: $b = (16 + 8)/3 = 8$, $c = (32 + 4)/3 = 12$. $bc - 2 = 96 - 2 = 94$, no.
+
+For $p = 2, q = 2$: $b = (16 + 32)/3 = 16$, $c = (32 + 16)/3 = 16$. $bc - 2 = 256 - 2 = 254$, no.
+
+For $p = 0, q = 3$: $b = (64 + 2)/3 = 22$, $c = (128 + 1)/3 = 43$. $bc - 2 = 946 - 2 = 944$, not power of 2.
+
+For $p = 1, q = 3$: $b = (64 + 8)/3 = 24$, $c = (128 + 4)/3 = 44$. $bc - 2 = 1056 - 2 = 1054$, no.
+
+For $p = 2, q = 3$: $b = (64 + 32)/3 = 32$, $c = (128 + 16)/3 = 48$. $bc - 2 = 1536 - 2 = 1534$, no.
+
+For $p = 3, q = 3$: $b = (64 + 128)/3 = 64$, $c = (128 + 64)/3 = 64$. $bc - 2 = 4096 - 2 = 4094$, no.
+
+**Both odd: $x = 2p+1, z = 2q+1$.**
+
+$b = (2^{2q+1} + 2^{2p+2})/3 = (2 \cdot 4^q + 4 \cdot 4^p)/3 = 2(4^q + 2 \cdot 4^p)/3$.
+$c = (2^{2q+2} + 2^{2p+1})/3 = (4 \cdot 4^q + 2 \cdot 4^p)/3 = 2(2 \cdot 4^q + 4^p)/3$.
+
+For $p = 0, q = 0$: $b = 2(1+2)/3 = 2$, $c = 2(2+1)/3 = 2$. $bc - 2 = 4 - 2 = 2 = 2^1$. ✓ This is $(2, 2, 2)$.
+
+For $p = 0, q = 1$: $b = 2(4+2)/3 = 4$, $c = 2(8+1)/3 = 6$. $bc - 2 = 24 - 2 = 22$, no.
+
+For $p = 1, q = 1$: $b = 2(4+8)/3 = 8$, $c = 2(8+4)/3 = 8$. $bc - 2 = 64 - 2 = 62$, no.
+
+For $p = 0, q = 2$: $b = 2(16+2)/3 = 12$, $c = 2(32+1)/3 = 22$. $bc - 2 = 264 - 2 = 262$, no.
+
+For $p = 1, q = 2$: $b = 2(16+8)/3 = 16$, $c = 2(32+4)/3 = 24$. $bc - 2 = 384 - 2 = 382$, no.
+
+For $p = 0, q = 3$: $b = 2(64+2)/3 = 44$, $c = 2(128+1)/3 = 86$. $bc - 2 = 3784 - 2 = 3782$, no.
+
+So for $a = 2$, the solutions are $(2, 2, 2)$, $(2, 2, 3)$, $(2, 6, 11)$ and no more (at least for small $p, q$). But I need to prove there are no more for large $p, q$.
+
+Let me think about this. For $a = 2$, both even case ($x = 2p, z = 2q$ with $q \geq 1$ for $b \geq 2$):
+
+$bc = \frac{2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p}}{9}$
+
+$bc - 2 = \frac{2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18}{9}$
+
+For this to be a power of 2, we need $2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18 = 9 \cdot 2^y$.
+
+Let me factor: $2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} = 2(4^{2q} + 4^{2p}) + 5 \cdot 4^{p+q}$.
+
+$= 2 \cdot 4^p(4^{2q-p} + 4^p) + 5 \cdot 4^{p+q}$... hmm.
+
+Actually, let me think about $bc - 2 \pmod{3}$. 
+
+$bc = \frac{(4^q + 2 \cdot 4^p)(2 \cdot 4^q + 4^p)}{9}$.
+
+$4 \equiv 1 \pmod{3}$, so $4^q \equiv 1 \pmod{3}$, $4^p \equiv 1 \pmod{3}$.
+
+$bc \equiv \frac{(1 + 2)(2 + 1)}{9} = \frac{9}{9} = 1 \pmod{3}$ (roughly, but division by 9 mod 3 is tricky).
+
+Actually, let me compute $bc \pmod{3}$ more carefully. $b = (4^q + 2 \cdot 4^p)/3$ and $c = (2 \cdot 4^q + 4^p)/3$. $b \cdot c = \frac{(4^q + 2 \cdot 4^p)(2 \cdot 4^q + 4^p)}{9}$.
+
+$(4^q + 2 \cdot 4^p)(2 \cdot 4^q + 4^p) = 2 \cdot 4^{2q} + 4^{p+q} + 4 \cdot 4^{p+q} + 2 \cdot 4^{2p} = 2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p}$.
+
+Modulo 9: $4 \equiv 4 \pmod{9}$, $4^2 = 16 \equiv 7$, $4^3 = 64 \equiv 1$, $4^4 \equiv 4$, so $4^n \pmod{9}$ has period 3: $4, 7, 1, 4, 7, 1, ...$
+
+$4^n \pmod{9}$: $n \equiv 0 \pmod{3}$: 1; $n \equiv 1 \pmod{3}$: 4; $n \equiv 2 \pmod{3}$: 7.
+
+$2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} \pmod{9}$:
+
+This depends on $p \pmod{3}$ and $q \pmod{3}$. Let me just check if $bc - 2$ can be a power of 2 for large values.
+
+A power of 2 modulo 9 cycles: $2^0 = 1, 2^1 = 2, 2^2 = 4, 2^3 = 8, 2^4 = 16 \equiv 7, 2^5 \equiv 5, 2^6 \equiv 1, ...$. Period 6: $1, 2, 4, 8, 7, 5$.
+
+So $9 \cdot 2^y \pmod{81}$... hmm, this is getting complicated. Let me try a different approach.
+
+Actually, for the case $a = 2$, let me look at $bc - 2 = 2^y$ where $b = (2^z + 2^{x+1})/3$ and $c = (2^{z+1} + 2^x)/3$.
+
+$bc = \frac{(2^z + 2^{x+1})(2^{z+1} + 2^x)}{9}$
+
+Let me substitute $x = 2p, z = 2q$ (both even, which is the case giving non-trivial solutions):
+
+$b = \frac{4^q + 2 \cdot 4^p}{3}, \quad c = \frac{2 \cdot 4^q + 4^p}{3}$
+
+$bc = \frac{(4^q + 2 \cdot 4^p)(2 \cdot 4^q + 4^p)}{9}$
+
+Let $r = 4^p, s = 4^q$ (so $r, s$ are powers of 4, with $s \geq r$ since $q \geq p$ for $c \geq b$... actually we need $c \geq b$, which means $2s + r \geq s + 2r$, i.e., $s \geq r$, i.e., $q \geq p$).
+
+$bc = \frac{(s + 2r)(2s + r)}{9} = \frac{2s^2 + rs + 4rs + 2r^2}{9} = \frac{2s^2 + 5rs + 2r^2}{9} = \frac{(2s + r)(s + 2r)}{9}$.
+
+$bc - 2 = \frac{2s^2 + 5rs + 2r^2 - 18}{9}$.
+
+For this to be $2^y$: $2s^2 + 5rs + 2r^2 - 18 = 9 \cdot 2^y$.
+
+With $r = 4^p, s = 4^q$:
+$2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18 = 9 \cdot 2^y$.
+
+$2(4^{2q} + 4^{2p}) + 5 \cdot 4^{p+q} = 9 \cdot 2^y + 18 = 9(2^y + 2)$.
+
+$2(4^{2q} + 4^{2p}) + 5 \cdot 4^{p+q} = 9(2^y + 2)$.
+
+LHS: $2 \cdot 4^p(4^{2q-p} + 4^p) + 5 \cdot 4^{p+q} = 4^p[2(4^{2q-p} + 4^p) + 5 \cdot 4^q]$.
+
+$= 4^p[2 \cdot 4^{2q-p} + 2 \cdot 4^p + 5 \cdot 4^q]$.
+
+If $p = 0$: $2 \cdot 4^{2q} + 2 + 5 \cdot 4^q = 9(2^y + 2)$, so $2 \cdot 4^{2q} + 5 \cdot 4^q + 2 = 9 \cdot 2^y + 18$, $2 \cdot 4^{2q} + 5 \cdot 4^q - 16 = 9 \cdot 2^y$.
+
+$2 \cdot 16^q + 5 \cdot 4^q - 16 = 9 \cdot 2^y$.
+
+For $q = 1$: $32 + 20 - 16 = 36 = 9 \cdot 4 = 9 \cdot 2^2$. ✓ ($y = 2$, giving $(2,2,3)$).
+For $q = 2$: $512 + 80 - 16 = 576 = 9 \cdot 64 = 9 \cdot 2^6$. ✓ ($y = 6$, giving $(2,6,11)$).
+For $q = 3$: $8192 + 320 - 16 = 8496 = 9 \cdot 944$. $944 = 16 \cdot 59$, not a power of 2.
+For $q = 4$: $2 \cdot 65536 + 5 \cdot 256 - 16 = 131072 + 1280 - 16 = 132336 = 9 \cdot 14704$. $14704 = 16 \cdot 919$, not a power of 2.
+
+So for $p = 0$, only $q = 1, 2$ work. Let me prove this.
+
+$2 \cdot 16^q + 5 \cdot 4^q - 16 = 9 \cdot 2^y$.
+
+Let $t = 4^q$. Then $2t^2 + 5t - 16 = 9 \cdot 2^y$.
+
+$2t^2 + 5t - 16 = 9 \cdot 2^y$.
+
+For $q \geq 3$, $t = 4^q \geq 64$. $2t^2 + 5t - 16 > 2 \cdot 64^2 = 8192$. And $2t^2 + 5t - 16 < 2t^2 + 5t^2 = 7t^2$ (for $t \geq 1$). So $9 \cdot 2^y$ is between $2t^2$ and $7t^2$, meaning $2^y$ is between $\frac{2t^2}{9}$ and $\frac{7t^2}{9}$.
+
+$t = 4^q = 2^{2q}$, so $t^2 = 2^{4q}$, and $\frac{2t^2}{9} = \frac{2^{4q+1}}{9}$, $\frac{7t^2}{9} = \frac{7 \cdot 2^{4q}}{9}$.
+
+So $2^y \approx \frac{2^{4q+1}}{9}$ to $\frac{7 \cdot 2^{4q}}{9}$, meaning $y \approx 4q + 1 - \log_2 9$ to $4q + \log_2 7 - \log_2 9$. Since $\log_2 9 \approx 3.17$, $y \approx 4q - 2.17$ to $4q - 0.54$. So $y$ is around $4q - 2$ or $4q - 1$.
+
+More precisely, $2t^2 + 5t - 16 = 9 \cdot 2^y$, so $2^y = \frac{2t^2 + 5t - 16}{9} = \frac{2 \cdot 4^{2q} + 5 \cdot 4^q - 16}{9}$.
+
+$= \frac{4^q(2 \cdot 4^q + 5) - 16}{9}$.
+
+For $q \geq 3$: $4^q \geq 64$, $2 \cdot 4^q + 5 \geq 133$. $4^q \cdot 133 - 16 \geq 64 \cdot 133 - 16 = 8512$. $\frac{8512}{9} \approx 945.8$.
+
+$2^y = \frac{4^q(2 \cdot 4^q + 5) - 16}{9}$.
+
+$v_2(2^y) = y$, and $v_2(\text{numerator}) - v_2(9) = v_2(\text{numerator})$ since $9$ is odd.
+
+$v_2(4^q(2 \cdot 4^q + 5) - 16) = v_2(2^{2q}(2 \cdot 4^q + 5) - 2^4)$.
+
+$= v_2(2^4(2^{2q-4}(2 \cdot 4^q + 5) - 1))$ for $q \geq 2$ (so $2q - 4 \geq 0$).
+
+$= 4 + v_2(2^{2q-4}(2 \cdot 4^q + 5) - 1)$.
+
+Now $2^{2q-4}(2 \cdot 4^q + 5)$ is even (for $q \geq 3$, $2q - 4 \geq 2$, so $2^{2q-4} \geq 4$, and $2 \cdot 4^q + 5$ is odd, so the product is even). So $2^{2q-4}(2 \cdot 4^q + 5) - 1$ is odd, meaning $v_2 = 0$.
+
+So $v_2(\text{numerator}) = 4$ for $q \geq 3$.
+
+Therefore $y = 4$ for all $q \geq 3$ (in the $p = 0$ case)!
+
+But $2^y = 2^4 = 16$, and $\frac{2 \cdot 4^{2q} + 5 \cdot 4^q - 16}{9} = 16$ requires $2 \cdot 4^{2q} + 5 \cdot 4^q - 16 = 144$, i.e., $2 \cdot 4^{2q} + 5 \cdot 4^q = 160$. For $q = 3$: $2 \cdot 4096 + 5 \cdot 64 = 8192 + 320 = 8512 \neq 160$. So no solution for $q \geq 3$ with $p = 0$.
+
+Wait, I think I made an error. Let me recheck. $v_2$ of the numerator is 4, so $2^y = \text{numerator}/9$ and $v_2(2^y) = v_2(\text{numerator}) = 4$ (since 9 is odd). So $y = 4$, meaning $2^y = 16$. But $\frac{2 \cdot 4^{2q} + 5 \cdot 4^q - 16}{9} = 16$ gives $2 \cdot 4^{2q} + 5 \cdot 4^q = 160$, which only holds for small $q$. So indeed no solution for $q \geq 3$.
+
+For $p \geq 1$ in the both-even case: Similar analysis. $2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18 = 9 \cdot 2^y$.
+
+$= 2 \cdot 4^p(4^{2q-p} + 4^p) + 5 \cdot 4^{p+q} - 18$.
+
+$v_2$: Factor out $4^p = 2^{2p}$: $2^{2p}[2(4^{2q-p} + 4^p) + 5 \cdot 4^q] - 18 = 2^{2p} \cdot M - 18$ where $M = 2(4^{2q-p} + 4^p) + 5 \cdot 4^q$.
+
+$M$ is even (since $2(\ldots)$ is even and $5 \cdot 4^q$ is even for $q \geq 1$). So $2^{2p} \cdot M$ is divisible by $2^{2p+1}$, and $18 = 2 \cdot 9$.
+
+If $2p + 1 > 1$ (i.e., $p \geq 1$): $v_2(2^{2p} \cdot M - 18) = v_2(2(2^{2p-1} \cdot M - 9)) = 1 + v_2(2^{2p-1} \cdot M - 9)$. Since $2^{2p-1} \cdot M$ is even (for $p \geq 1$) and 9 is odd, $2^{2p-1} \cdot M - 9$ is odd, so $v_2 = 0$. Thus $v_2(\text{numerator}) = 1$, giving $y = 1$, $2^y = 2$.
+
+$\frac{2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} - 18}{9} = 2$ requires $2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p} = 36$. For $p \geq 1, q \geq p \geq 1$: $2 \cdot 4^{2q} \geq 2 \cdot 16 = 32$ and $5 \cdot 4^{p+q} \geq 5 \cdot 16 = 80$, so LHS $\geq 32 + 80 = 112 > 36$. No solution.
+
+So for $a = 2$, both-even case: only $p = 0, q \in \{1, 2\}$ work, giving $(2, 2, 3)$ and $(2, 6, 11)$.
+
+For $a = 2$, both-odd case ($x = 2p+1, z = 2q+1$): $b = 2(4^q + 2 \cdot 4^p)/3$, $c = 2(2 \cdot 4^q + 4^p)/3$.
+
+$bc = \frac{4(4^q + 2 \cdot 4^p)(2 \cdot 4^q + 4^p)}{9} = \frac{4(2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p})}{9}$.
+
+$bc - 2 = \frac{4(2 \cdot 4^{2q} + 5 \cdot 4^{p+q} + 2 \cdot 4^{2p}) - 18}{9} = \frac{8 \cdot 4^{2q} + 20 \cdot 4^{p+q} + 8 \cdot 4^{2p} - 18}{9}$.
+
+$= \frac{2(4 \cdot 4^{2q} + 10 \cdot 4^{p+q} + 4 \cdot 4^{2p} - 9)}{9}$.
+
+$v_2$: numerator $= 8 \cdot 4^{2q} + 20 \cdot 4^{p+q} + 8 \cdot 4^{2p} - 18$.
+
+$= 2(4 \cdot 4^{2q} + 10 \cdot 4^{p+q} + 4 \cdot 4^{2p} - 9)$.
+
+The inner part: $4 \cdot 4^{2q} + 10 \cdot 4^{p+q} + 4 \cdot 4^{2p} - 9$. All terms except $-9$ are even, so this is odd. Thus $v_2(\text{numerator}) = 1$, giving $y = 1$, $2^y = 2$.
+
+$\frac{8 \cdot 4^{2q} + 20 \cdot 4^{p+q} + 8 \cdot 4^{2p} - 18}{9} = 2$ requires $8 \cdot 4^{2q} + 20 \cdot 4^{p+q} + 8 \cdot 4^{2p} = 36$.
+
+For $p = 0, q = 0$: $8 + 20 + 8 = 36$. ✓ This gives $(2, 2, 2)$.
+For $p = 0, q = 1$: $128 + 80 + 8 = 216 \neq 36$.
+For $p \geq 1$ or $q \geq 1$: LHS > 36. No solution.
+
+So for $a = 2$: solutions are $(2, 2, 2)$, $(2, 2, 3)$, $(2, 6, 11)$.
+
+Now I need to handle $a \geq 3$. We found $(3, 5, 7)$ with all odd. Let me check if there are solutions with $a = 3$ and some even.
+
+If $a = 3$ (odd) and $b$ even, $c$ odd: $ab - c = 3b - c$ = even - odd = odd, so $3b - c = 1$, $c = 3b - 1$. $bc - a = b(3b-1) - 3 = 3b^2 - b - 3$. $ca - b = (3b-1) \cdot 3 - b = 9b - 3 - b = 8b - 3$.
+
+$8b - 3$ is odd, so $8b - 3 = 1$ (only odd power of 2), giving $b = 1/2$, not integer. No solution.
+
+If $a = 3$ (odd) and $b$ odd, $c$ even: $ab - c = 3b - c$ = odd - even = odd, so $3b - c = 1$, $c = 3b - 1$ (even since $b$ odd). $bc - a = b(3b-1) - 3 = 3b^2 - b - 3$ (odd - odd = even, OK). $ca - b = (3b-1) \cdot 3 - b = 8b - 3$ (even - odd = odd), so $8b - 3 = 1$, $b = 1/2$. No.
+
+If $a = 3$ and $b, c$ both even: $ab - c = 3b - c$ = even - even = even. $bc - a = bc - 3$ = even - odd = odd, so $bc - 3 = 1$, $bc = 4$. So $b = 2, c = 2$ (with $b \leq c$). Check: $ab - c = 6 - 2 = 4 = 2^2$ ✓, $bc - a = 4 - 3 = 1 = 2^0$ ✓, $ca - b = 6 - 2 = 4 = 2^2$ ✓. So $(2, 2, 3)$ again (with $a = 3, b = 2, c = 2$, i.e., permutation).
+
+If $a = 3$ and all odd: This is the case giving $(3, 5, 7)$.
+
+Let me now handle the all-odd case more generally.
+
+**All odd case:** $a, b, c$ all odd, $a \leq b \leq c$, $a \geq 3$.
+
+$ab - c = 2^x$ (even, $x \geq 1$), $bc - a = 2^y$ (even, $y \geq 1$), $ca - b = 2^z$ (even, $z \geq 1$).
+
+Let $a = 2s+1, b = 2t+1, c = 2u+1$ with $1 \leq s \leq t \leq u$ (since $a \geq 3$).
+
+$ab - c = (2s+1)(2t+1) - (2u+1) = 4st + 2s + 2t - 2u = 2(2st + s + t - u) = 2^x$.
+
+So $2st + s + t - u = 2^{x-1}$, $2tu + t + u - s = 2^{y-1}$, $2us + u + s - t = 2^{z-1}$.
+
+Let $P = 2st + s + t - u$, $Q = 2tu + t + u - s$, $R = 2us + u + s - t$.
+
+$P + s = 2st + 2s + t - u = s(2t + 2) + t - u$... hmm.
+
+$P = 2st + s + t - u$. Note $P = (s+1)(t+1) + (s+1)(t+1) - 2 - s - t - 1 - u + 1$... no.
+
+$2st + s + t = (2s+1)(2t+1)/2 - 1/2$... no, $(2s+1)(2t+1) = 4st + 2s + 2t + 1$, so $2st + s + t = ((2s+1)(2t+1) - 1)/2 = (ab - 1)/2$.
+
+So $P = (ab - 1)/2 - u = (ab - 1 - 2u)/2 = (ab - c)/2 = (ab - c)/2$. Wait, $c = 2u + 1$, so $ab - c = ab - 2u - 1$, and $(ab - c)/2 = (ab - 2u - 1)/2$. And $P = 2st + s + t - u = (ab - 1)/2 - u = (ab - 1 - 2u)/2 = (ab - 2u - 1)/2 = (ab - c)/2$. Yes, so $P = (ab - c)/2 = 2^{x-1}$. OK that's consistent.
+
+So the system becomes: find odd $a \leq b \leq c$ with $a \geq 3$ such that $(ab-c)/2$, $(bc-a)/2$, $(ca-b)/2$ are all powers of 2 (including $2^0 = 1$).
+
+This is the same problem but divided by 2. Let me think about whether we can do a descent.
+
+Actually, let me think about the all-odd case differently. We have $a, b, c$ odd, and $ab - c, bc - a, ca - b$ all even powers of 2.
+
+From $ab - c = 2^x$ with $x \geq 1$: $c = ab - 2^x$, and $c$ is odd, $ab$ is odd, $2^x$ is even, so $c$ is odd. ✓
+
+$bc - a = b(ab - 2^x) - a = ab^2 - b \cdot 2^x - a = a(b^2 - 1) - b \cdot 2^x = 2^y$.
+
+$ca - b = a(ab - 2^x) - b = a^2 b - a \cdot 2^x - b = b(a^2 - 1) - a \cdot 2^x = 2^z$.
+
+So $a(b^2 - 1) = 2^y + b \cdot 2^x = 2^x(2^{y-x} + b)$ and $b(a^2 - 1) = 2^z + a \cdot 2^x = 2^x(2^{z-x} + a)$.
+
+Since $a, b$ are odd and $b^2 - 1 = (b-1)(b+1)$ is even (in fact divisible by 8 since $b$ is odd, $b-1$ and $b+1$ are consecutive even numbers, one divisible by 4), and $a$ is odd:
+
+$a(b^2-1)$ is even, and $2^x(2^{y-x}+b)$: $b$ is odd, so $2^{y-x} + b$ is odd if $y > x$ and even if $y = x$ (since $2^0 + b = 1 + b$ is even).
+
+If $y > x$: $2^{y-x} + b$ is even + odd = odd. So $v_2(a(b^2-1)) = x$. Since $a$ is odd, $v_2(b^2-1) = x$.
+
+If $y = x$: $2^{y-x} + b = 1 + b$ is even. $v_2(1 + b) = v_2(b+1)$. So $v_2(a(b^2-1)) = x + v_2(b+1)$. Since $v_2(b^2-1) = v_2((b-1)(b+1)) = v_2(b-1) + v_2(b+1)$, and $a$ is odd: $v_2(b-1) + v_2(b+1) = x + v_2(b+1)$, so $v_2(b-1) = x$.
+
+Similarly for the other equation.
+
+This is getting very involved. Let me try a more computational approach to verify there are no more solutions, and then try to find a cleaner proof.
+
+Let me search up to a larger bound.
+
+Good, confirmed up to 1000. Now let me also verify the v2 analysis I did above to make sure the proof is correct, and write it up.
+
+Let me also verify my parity analysis:
+- All even: only (2,2,2)
+- Two even, one odd: (2,2,3) and (2,6,11)
+- All odd: (3,5,7)
+- One even, two odd: impossible (shown above)
+
+Wait, (2,2,2) is all even. (2,2,3) has two even (2,2) and one odd (3). (2,6,11) has two even (2,6) and one odd (11). (3,5,7) is all odd.
+
+Let me verify the "one even, two odd" case is truly impossible. If $a$ even, $b, c$ odd: $ab - c$ = even - odd = odd → must be 1. $bc - a$ = odd - even = odd → must be 1. $ca - b$ = even - odd = odd → must be 1. So $ab - c = 1, bc - a = 1, ca - b = 1$. From these: $c = ab - 1$, $a = bc - 1 = b(ab-1) - 1 = ab^2 - b - 1$. So $a = ab^2 - b - 1$, $a(1 - b^2) = -b - 1$, $a(b^2 - 1) = b + 1$, $a(b-1)(b+1) = b+1$. Since $b \geq 2$ (we showed $a, b, c \geq 2$), $b + 1 \neq 0$, so $a(b-1) = 1$. Since $a \geq 2$, $b - 1 \geq 1$, product $\geq 2 > 1$. Contradiction. ✓
+
+Now let me also handle the "all even" case. If $a, b, c$ all even, let $a = 2a', b = 2b', c = 2c'$. Then $ab - c = 4a'b' - 2c' = 2(2a'b' - c')$. For this to be a power of 2, $2a'b' - c'$ must be a power of 2. Similarly $2b'c' - a'$ and $2c'a' - b'$ must be powers of 2.
+
+This is NOT the same form as the original (it has $2a'b'$ instead of $a'b'$). So we can't directly do infinite descent.
+
+But let me think about it. If all even, $ab - c = 2(2a'b' - c')$, $bc - a = 2(2b'c' - a')$, $ca - b = 2(2c'a' - b')$. So $2a'b' - c', 2b'c' - a', 2c'a' - b'$ are all powers of 2 (including $2^0 = 1$).
+
+Now, $2a'b' - c'$: if $a', b', c'$ all even again, we can factor out more 2's. But if some are odd...
+
+Actually, let me think about this differently. Let $v_2(a) = \alpha, v_2(b) = \beta, v_2(c) = \gamma$ (the 2-adic valuations). WLOG $\alpha \leq \beta \leq \gamma$ (by reordering).
+
+$ab - c = 2^x$: $v_2(ab) = \alpha + \beta$, $v_2(c) = \gamma \geq \alpha + \beta$ (if $\gamma > \alpha + \beta$) or $\gamma = \alpha + \beta$ (if equal).
+
+If $\gamma > \alpha + \beta$: $v_2(ab - c) = \alpha + \beta$ (since $ab$ has lower 2-adic valuation). So $x = \alpha + \beta$.
+
+$bc - a = 2^y$: $v_2(bc) = \beta + \gamma > \alpha$ (since $\gamma \geq \beta \geq \alpha$ and $\gamma > \alpha + \beta \geq \alpha$). So $v_2(bc - a) = \alpha$ (since $a$ has lower valuation). So $y = \alpha$.
+
+$ca - b = 2^z$: $v_2(ca) = \gamma + \alpha$. If $\gamma + \alpha > \beta$: $v_2(ca - b) = \beta$, so $z = \beta$. If $\gamma + \alpha = \beta$: need more care. Since $\gamma > \alpha + \beta \geq \beta$ and $\alpha \geq 1$ (if $a$ is even), $\gamma + \alpha > \beta$. So $z = \beta$.
+
+So $x = \alpha + \beta, y = \alpha, z = \beta$. And $y \geq z$ requires $\alpha \geq \beta$, but we assumed $\alpha \leq \beta$, so $\alpha = \beta$.
+
+With $\alpha = \beta$: $x = 2\alpha, y = \alpha, z = \alpha$. And $\gamma > 2\alpha$.
+
+Now, $ab - c = 2^{2\alpha}$: $ab = 2^{2\alpha} \cdot a'' b''$ where $a = 2^\alpha a'', b = 2^\alpha b''$ with $a'', b''$ odd. $c = 2^\gamma c''$ with $c''$ odd, $\gamma > 2\alpha$. $ab - c = 2^{2\alpha}(a''b'' - 2^{\gamma - 2\alpha} c'') = 2^{2\alpha} \cdot a''b''$ (since $2^{\gamma-2\alpha} c''$ is even and $a''b''$ is odd, so $a''b'' - 2^{\gamma-2\alpha}c''$ is odd). So $a''b'' - 2^{\gamma-2\alpha} c'' = 1$, i.e., $a''b'' = 1 + 2^{\gamma - 2\alpha} c''$.
+
+$bc - a = 2^\alpha$: $bc = 2^{\alpha + \gamma} b'' c''$, $a = 2^\alpha a''$. $bc - a = 2^\alpha(2^\gamma b''c'' - a'') = 2^\alpha$. So $2^\gamma b'' c'' - a'' = 1$, i.e., $a'' = 2^\gamma b'' c'' - 1$.
+
+$ca - b = 2^\alpha$: $ca = 2^{\gamma + \alpha} c'' a''$, $b = 2^\alpha b''$. $ca - b = 2^\alpha(2^\gamma c'' a'' - b'') = 2^\alpha$. So $2^\gamma c'' a'' - b'' = 1$, i.e., $b'' = 2^\gamma c'' a'' - 1$.
+
+From $a'' = 2^\gamma b'' c'' - 1$ and $b'' = 2^\gamma c'' a'' - 1$:
+
+$a'' = 2^\gamma c''(2^\gamma c'' a'' - 1) - 1 = 2^{2\gamma} c''^2 a'' - 2^\gamma c'' - 1$.
+
+$a''(1 - 2^{2\gamma} c''^2) = -2^\gamma c'' - 1$.
+
+$a''(2^{2\gamma} c''^2 - 1) = 2^\gamma c'' + 1$.
+
+$a'' = \frac{2^\gamma c'' + 1}{2^{2\gamma} c''^2 - 1} = \frac{2^\gamma c'' + 1}{(2^\gamma c'' - 1)(2^\gamma c'' + 1)} = \frac{1}{2^\gamma c'' - 1}$.
+
+For $a''$ to be a positive integer, $2^\gamma c'' - 1 = 1$, so $2^\gamma c'' = 2$, meaning $\gamma = 1, c'' = 1$.
+
+But we need $\gamma > 2\alpha \geq 2$ (since $\alpha \geq 1$ for even $a$). $\gamma = 1 < 2$. Contradiction!
+
+So the case $\gamma > \alpha + \beta$ (with all even) has no solution (except possibly $\alpha = 0$, but we're in the all-even case so $\alpha \geq 1$).
+
+Now if $\gamma = \alpha + \beta$ (with $\alpha \leq \beta$): $v_2(ab) = v_2(c) = \alpha + \beta$. Then $v_2(ab - c)$ depends on the odd parts. Let $a = 2^\alpha a'', b = 2^\beta b'', c = 2^{\alpha+\beta} c''$ with $a'', b'', c''$ odd. $ab - c = 2^{\alpha+\beta}(a''b'' - c'')$. Since $a''b''$ and $c''$ are both odd, $a''b'' - c''$ is even, so $v_2(ab - c) \geq \alpha + \beta + 1$.
+
+$bc - a = 2^\beta b'' \cdot 2^{\alpha+\beta} c'' - 2^\alpha a'' = 2^\alpha(2^{2\beta} b'' c'' - a'')$. Since $2^{2\beta} b'' c''$ is even and $a''$ is odd, $2^{2\beta} b'' c'' - a''$ is odd. So $v_2(bc - a) = \alpha$, meaning $y = \alpha$.
+
+$ca - b = 2^{\alpha+\beta} c'' \cdot 2^\alpha a'' - 2^\beta b'' = 2^\beta(2^{2\alpha} c'' a'' - b'')$. Since $2^{2\alpha} c'' a''$ is even and $b''$ is odd, $2^{2\alpha} c'' a'' - b''$ is odd. So $v_2(ca - b) = \beta$, meaning $z = \beta$.
+
+For $y \geq z$: $\alpha \geq \beta$, combined with $\alpha \leq \beta$ gives $\alpha = \beta$.
+
+With $\alpha = \beta$: $\gamma = 2\alpha$. $a = 2^\alpha a'', b = 2^\alpha b'', c = 2^{2\alpha} c''$ with $a'', b'', c''$ odd.
+
+$ab - c = 2^{2\alpha}(a''b'' - c'') = 2^x$. Since $a''b'' - c''$ is even (odd - odd), let $v_2(a''b'' - c'') = \delta \geq 1$. Then $x = 2\alpha + \delta$.
+
+$bc - a = 2^\alpha(2^{2\alpha} b'' c'' - a'') = 2^\alpha \cdot \text{odd} = 2^\alpha$. So $y = \alpha$ and $2^{2\alpha} b'' c'' - a'' = 1$, i.e., $a'' = 2^{2\alpha} b'' c'' - 1$.
+
+$ca - b = 2^\alpha(2^{2\alpha} c'' a'' - b'') = 2^\alpha \cdot \text{odd} = 2^\alpha$. So $z = \alpha$ and $2^{2\alpha} c'' a'' - b'' = 1$, i.e., $b'' = 2^{2\alpha} c'' a'' - 1$.
+
+From $a'' = 2^{2\alpha} b'' c'' - 1$ and $b'' = 2^{2\alpha} c'' a'' - 1$:
+
+$a'' = 2^{2\alpha} c''(2^{2\alpha} c'' a'' - 1) - 1 = 2^{4\alpha} c''^2 a'' - 2^{2\alpha} c'' - 1$.
+
+$a''(2^{4\alpha} c''^2 - 1) = 2^{2\alpha} c'' + 1$.
+
+$a'' = \frac{2^{2\alpha} c'' + 1}{(2^{2\alpha} c'' - 1)(2^{2\alpha} c'' + 1)} = \frac{1}{2^{2\alpha} c'' - 1}$.
+
+For $a'' \geq 1$ (odd positive integer): $2^{2\alpha} c'' - 1 = 1$, so $2^{2\alpha} c'' = 2$. Since $\alpha \geq 1$, $2^{2\alpha} \geq 4 > 2$. Contradiction unless $\alpha = 0$, but we're in the all-even case.
+
+So the all-even case with $\alpha = \beta, \gamma = 2\alpha$ also has no solution for $\alpha \geq 1$.
+
+Wait, but $(2, 2, 2)$ is all even! Let me check: $a = b = c = 2$, $\alpha = \beta = \gamma = 1$. $\gamma = 1, \alpha + \beta = 2$. So $\gamma < \alpha + \beta$! I missed this case.
+
+Let me redo. WLOG $v_2(a) \leq v_2(b) \leq v_2(c)$, i.e., $\alpha \leq \beta \leq \gamma$.
+
+Case A: $\gamma > \alpha + \beta$. Handled above, no solution (for $\alpha \geq 1$).
+
+Case B: $\gamma = \alpha + \beta$. Handled above, no solution (for $\alpha \geq 1$).
+
+Case C: $\gamma < \alpha + \beta$. Then $v_2(ab - c) = \gamma$ (since $c$ has lower 2-adic valuation than $ab$). So $x = \gamma$.
+
+$bc - a$: $v_2(bc) = \beta + \gamma$, $v_2(a) = \alpha$. If $\beta + \gamma > \alpha$: $v_2(bc - a) = \alpha$, so $y = \alpha$. Since $\gamma \geq \beta \geq \alpha$ and $\gamma \geq 1$, $\beta + \gamma \geq 2\alpha \geq \alpha + 1 > \alpha$ (if $\alpha \geq 1$). Actually $\beta + \gamma \geq \alpha + 1$ might not hold if $\alpha = \beta = \gamma$... if $\alpha = \beta = \gamma$, then $\beta + \gamma = 2\alpha > \alpha$ for $\alpha \geq 1$. So $y = \alpha$.
+
+$ca - b$: $v_2(ca) = \gamma + \alpha$, $v_2(b) = \beta$. If $\gamma + \alpha > \beta$: $v_2(ca - b) = \beta$, so $z = \beta$. Since $\gamma \geq \beta$ and $\alpha \geq 1$, $\gamma + \alpha \geq \beta + 1 > \beta$. So $z = \beta$.
+
+So $x = \gamma, y = \alpha, z = \beta$. For $y \geq z \geq x$ (which we derived from $a \leq b \leq c$): $\alpha \geq \beta \geq \gamma$. Combined with $\alpha \leq \beta \leq \gamma$: $\alpha = \beta = \gamma$.
+
+So $\alpha = \beta = \gamma$ and $\gamma < 2\alpha$, i.e., $\alpha < 2\alpha$, which is true for $\alpha \geq 1$.
+
+With $\alpha = \beta = \gamma$: $a = 2^\alpha a'', b = 2^\alpha b'', c = 2^\alpha c''$ with $a'', b'', c''$ odd.
+
+$ab - c = 2^{2\alpha} a'' b'' - 2^\alpha c'' = 2^\alpha(2^\alpha a'' b'' - c'') = 2^\alpha \cdot \text{odd}$ (since $2^\alpha a''b''$ is even and $c''$ is odd). So $x = \alpha$ and $2^\alpha a'' b'' - c'' = 1$, i.e., $c'' = 2^\alpha a'' b'' - 1$.
+
+$bc - a = 2^\alpha(2^\alpha b'' c'' - a'') = 2^\alpha \cdot \text{odd}$. So $y = \alpha$ and $2^\alpha b'' c'' - a'' = 1$, i.e., $a'' = 2^\alpha b'' c'' - 1$.
+
+$ca - b = 2^\alpha(2^\alpha c'' a'' - b'') = 2^\alpha \cdot \text{odd}$. So $z = \alpha$ and $2^\alpha c'' a'' - b'' = 1$, i.e., $b'' = 2^\alpha c'' a'' - 1$.
+
+So we have:
+$c'' = 2^\alpha a'' b'' - 1$ ... (i)
+$a'' = 2^\alpha b'' c'' - 1$ ... (ii)
+$b'' = 2^\alpha c'' a'' - 1$ ... (iii)
+
+From (i) and (ii): $a'' = 2^\alpha b''(2^\alpha a'' b'' - 1) - 1 = 2^{2\alpha} a'' b''^2 - 2^\alpha b'' - 1$.
+
+$a''(1 - 2^{2\alpha} b''^2) = -2^\alpha b'' - 1$.
+
+$a''(2^{2\alpha} b''^2 - 1) = 2^\alpha b'' + 1$.
+
+$a'' = \frac{2^\alpha b'' + 1}{(2^\alpha b'' - 1)(2^\alpha b'' + 1)} = \frac{1}{2^\alpha b'' - 1}$.
+
+For $a''$ to be a positive odd integer: $2^\alpha b'' - 1 = 1$, so $2^\alpha b'' = 2$.
+
+If $\alpha = 1$: $b'' = 1$. Then from (i): $c'' = 2 \cdot a'' \cdot 1 - 1 = 2a'' - 1$. From (iii): $1 = 2 c'' a'' - 1$, so $c'' a'' = 1$, meaning $c'' = a'' = 1$. Then from (i): $c'' = 2 \cdot 1 \cdot 1 - 1 = 1$ ✓. So $a'' = b'' = c'' = 1$, giving $a = b = c = 2$. This is $(2, 2, 2)$. ✓
+
+If $\alpha \geq 2$: $2^\alpha \geq 4 > 2$, so $2^\alpha b'' \geq 4 > 2$, no solution.
+
+So the all-even case gives only $(2, 2, 2)$.
+
+Now I need to handle:
+1. Two even, one odd (with the odd being the largest, $c$): $(2, 2, 3)$ and $(2, 6, 11)$.
+2. All odd: $(3, 5, 7)$.
+
+For case 1 (two even $a, b$ and one odd $c$, with $a \leq b \leq c$):
+
+$ab - c$ = even - odd = odd, so $ab - c = 1$ (only odd power of 2), i.e., $c = ab - 1$.
+$bc - a$ = even - even = even, power of 2.
+$ca - b$ = even - even = even, power of 2.
+
+So $c = ab - 1$ (odd, since $ab$ even), and we need $b(ab-1) - a = ab^2 - b - a$ and $a(ab-1) - b = a^2 b - a - b$ to be powers of 2.
+
+$bc - a = a(b^2 - 1) - b = a(b-1)(b+1) - b = 2^y$.
+$ca - b = b(a^2 - 1) - a = b(a-1)(a+1) - a = 2^z$.
+
+Now, $a$ and $b$ are both even. Let $a = 2^\alpha a', b = 2^\beta b'$ with $a', b'$ odd, $\alpha, \beta \geq 1$.
+
+WLOG $a \leq b$. 
+
+$ca - b = b(a^2-1) - a = 2^z$. $b(a^2-1) = b(a-1)(a+1)$. Since $a$ is even, $a-1$ and $a+1$ are both odd, so $a^2 - 1$ is odd. Thus $v_2(b(a^2-1)) = \beta$. And $a = 2^\alpha a'$, so $v_2(a) = \alpha$.
+
+If $\beta > \alpha$: $v_2(b(a^2-1) - a) = \alpha$ (since $a$ has lower valuation). So $z = \alpha$ and $b(a^2-1) - a = 2^\alpha \cdot \text{odd part}$. Actually $b(a^2-1) - a = 2^\alpha(2^{\beta - \alpha} b'(a^2-1) - a')$. Since $\beta > \alpha$, $2^{\beta-\alpha} b'(a^2-1)$ is even, and $a'$ is odd, so the difference is odd. Thus $z = \alpha$ and $2^{\beta-\alpha} b'(a^2-1) - a' = 1$.
+
+If $\beta < \alpha$: $v_2(b(a^2-1) - a) = \beta$ and $b'(a^2-1) - 2^{\alpha-\beta} a' = 1$ (odd - even = odd, so this works).
+
+If $\beta = \alpha$: $v_2(b(a^2-1) - a) = \alpha + v_2(b'(a^2-1) - a')$. Since $b'(a^2-1)$ is odd and $a'$ is odd, $b'(a^2-1) - a'$ is even, so $z > \alpha$.
+
+Similarly for $bc - a = a(b^2-1) - b = 2^y$. $a(b^2-1)$ has $v_2 = \alpha$ (since $b^2-1$ is odd). $b$ has $v_2 = \beta$.
+
+If $\alpha > \beta$: $y = \beta$ and $a'(b^2-1) \cdot 2^{\alpha-\beta} - b' = 1$.
+If $\alpha < \beta$: $y = \alpha$ and $a'(b^2-1) - 2^{\beta-\alpha} b' = 1$.
+If $\alpha = \beta$: $y = \alpha + v_2(a'(b^2-1) - b')$.
+
+From $y \geq z$ (since $a \leq b \leq c$):
+
+This is getting very complex. Let me try a different approach for the two-even-one-odd case.
+
+Since $a, b$ even and $c = ab - 1$ odd, let me substitute directly.
+
+$bc - a = b(ab-1) - a = ab^2 - b - a = 2^y$.
+$ca - b = a(ab-1) - b = a^2 b - a - b = 2^z$.
+
+Note: $bc - a - (ca - b) = ab^2 - b - a - a^2 b + a + b = ab(b - a) = ab(b-a)$.
+
+So $2^y - 2^z = ab(b - a)$.
+
+If $a = b$: $2^y = 2^z$, so $y = z$. Then $a(b^2-1) - b = a(a^2-1) - a = a(a^2-2) = 2^y$. With $a$ even, $a = 2^\alpha a'$: $2^\alpha a'(a^2-2) = 2^y$. $a^2 - 2 = 2^{2\alpha} a'^2 - 2 = 2(2^{2\alpha-1} a'^2 - 1)$. So $a(a^2-2) = 2^{\alpha+1} a'(2^{2\alpha-1} a'^2 - 1) = 2^y$. The factor $2^{2\alpha-1} a'^2 - 1$ is odd, so $y = \alpha + 1$ and $a'(2^{2\alpha-1} a'^2 - 1) = 1$. Since $a' \geq 1$ and $2^{2\alpha-1} a'^2 - 1 \geq 2^1 - 1 = 1$ (for $\alpha \geq 1$), we need $a' = 1$ and $2^{2\alpha-1} - 1 = 1$, so $2\alpha - 1 = 1$, $\alpha = 1$, $a = 2$. Then $c = ab - 1 = 3$. This gives $(2, 2, 3)$. ✓
+
+If $a < b$: $2^y - 2^z = ab(b-a) > 0$, so $y > z$. $2^z(2^{y-z} - 1) = ab(b-a)$.
+
+Since $2^{y-z} - 1$ is odd, $v_2(ab(b-a)) = z$.
+
+Also, $bc - a + ca - b = ab^2 + a^2 b - 2a - 2b = ab(a+b) - 2(a+b) = (a+b)(ab-2) = 2^y + 2^z$.
+
+So $(a+b)(ab-2) = 2^y + 2^z = 2^z(2^{y-z} + 1)$.
+
+Since $2^{y-z} + 1$ is odd, $v_2((a+b)(ab-2)) = z$.
+
+Also from $2^z(2^{y-z}-1) = ab(b-a)$: $v_2(ab(b-a)) = z$.
+
+So $v_2((a+b)(ab-2)) = v_2(ab(b-a)) = z$.
+
+$(a+b)(ab-2) + ab(b-a) = (a+b)(ab-2) + ab(b-a) = a^2 b - 2a + ab^2 - 2b + ab^2 - a^2 b = 2ab^2 - 2a - 2b = 2(ab^2 - a - b) = 2 \cdot 2^y = 2^{y+1}$.
+
+So $(a+b)(ab-2) + ab(b-a) = 2^{y+1}$.
+
+$(a+b)(ab-2) = 2^z(2^{y-z}+1)$ and $ab(b-a) = 2^z(2^{y-z}-1)$.
+
+Sum: $2^z \cdot 2 \cdot 2^{y-z} = 2^{y+1}$ ✓.
+
+Product: $(a+b)(ab-2) \cdot ab(b-a) = 2^{2z}(2^{2(y-z)}-1)$.
+
+Hmm, this is getting complicated. Let me try a more direct approach.
+
+For the two-even-one-odd case with $a < b$ (both even), $c = ab - 1$:
+
+$bc - a = ab^2 - b - a = 2^y$
+$ca - b = a^2 b - a - b = 2^z$
+
+Let me set $a = 2A, b = 2B$ (so $A, B \geq 1$). Then $c = 4AB - 1$.
+
+$bc - a = 2B(4AB-1) - 2A = 8AB^2 - 2B - 2A = 2(4AB^2 - A - B) = 2^y$.
+$ca - b = 2A(4AB-1) - 2B = 8A^2 B - 2A - 2B = 2(4A^2 B - A - B) = 2^z$.
+
+So $4AB^2 - A - B = 2^{y-1}$ and $4A^2 B - A - B = 2^{z-1}$.
+
+Let $f = 4AB^2 - A - B$ and $g = 4A^2 B - A - B$. Note $f - g = 4AB(B - A)$.
+
+If $A = B$: $f = g = 4A^3 - 2A = 2A(2A^2 - 1)$. For this to be a power of 2: $A(2A^2-1) = 2^{y-2}$. Since $2A^2 - 1$ is odd, $A$ must be a power of 2 and $2A^2 - 1 = 1$, so $A = 1$. Then $f = 2$, $y = 2$, giving $a = b = 2, c = 3$. ✓
+
+If $A < B$: $f > g$, so $y > z$. $f - g = 4AB(B-A) = 2^{z-1}(2^{y-z} - 1)$.
+
+$g = 4A^2 B - A - B = 2^{z-1}$.
+$f = 4AB^2 - A - B = 2^{y-1}$.
+
+$f + g = 4AB(A+B) - 2(A+B) = 2(A+B)(2AB - 1) = 2^{z-1}(2^{y-z} + 1)$.
+
+So $(A+B)(2AB - 1) = 2^{z-2}(2^{y-z} + 1)$ (if $z \geq 2$).
+
+And $f - g = 4AB(B-A) = 2^{z-1}(2^{y-z} - 1)$, so $2AB(B-A) = 2^{z-2}(2^{y-z} - 1)$ (if $z \geq 2$).
+
+If $z = 1$: $g = 1$, so $4A^2 B - A - B = 1$, i.e., $4A^2 B = A + B + 1$. For $A = 1$: $4B = 2 + B$, $B = 2/3$, no. For $A = 2$: $16B = 3 + B$, $15B = 3$, no. For $A = 3$: $36B = 4 + B$, $35B = 4$, no. Generally $4A^2 B \geq 4B > A + B + 1$ for $A \geq 2$ (since $4A^2 B - B = B(4A^2 - 1) \geq 3B \geq 3 > A + 1$ for $A \geq 2, B \geq 1$... wait for $A = 2, B = 1$: $4 \cdot 4 - 2 - 1 = 13 \neq 1$). So $z = 1$ has no solution with $A < B$.
+
+Actually wait, we need $A \leq B$ (since $a \leq b$). And $A < B$ in this subcase. So $B \geq A + 1 \geq 2$.
+
+For $A = 1, B \geq 2$: $g = 4B - 1 - B = 3B - 1$. $f = 4B^2 - 1 - B = 4B^2 - B - 1$.
+
+$g = 3B - 1 = 2^{z-1}$. So $3B = 2^{z-1} + 1$, $B = (2^{z-1} + 1)/3$. For $B$ to be integer, $2^{z-1} \equiv 2 \pmod{3}$, i.e., $z - 1$ odd, $z$ even.
+
+$f = 4B^2 - B - 1 = 2^{y-1}$.
+
+$B = (2^{z-1} + 1)/3$. $f = 4 \cdot \frac{(2^{z-1}+1)^2}{9} - \frac{2^{z-1}+1}{3} - 1 = \frac{4(2^{z-1}+1)^2 - 3(2^{z-1}+1) - 9}{9} = \frac{4 \cdot 2^{2z-2} + 8 \cdot 2^{z-1} + 4 - 3 \cdot 2^{z-1} - 3 - 9}{9} = \frac{4 \cdot 2^{2z-2} + 5 \cdot 2^{z-1} - 8}{9} = \frac{2^{2z} + 5 \cdot 2^{z-1} - 8}{9}$.
+
+Wait, $4 \cdot 2^{2z-2} = 2^2 \cdot 2^{2z-2} = 2^{2z}$. And $5 \cdot 2^{z-1}$. So $f = \frac{2^{2z} + 5 \cdot 2^{z-1} - 8}{9} = \frac{2^{z-1}(2^{z+1} + 5) - 8}{9}$.
+
+For $f = 2^{y-1}$: $2^{z-1}(2^{z+1} + 5) - 8 = 9 \cdot 2^{y-1}$.
+
+$2^{z-1}(2^{z+1} + 5) = 9 \cdot 2^{y-1} + 8$.
+
+$v_2$ of LHS: $z - 1$ (since $2^{z+1} + 5$ is odd for $z \geq 1$). $v_2$ of RHS: $v_2(9 \cdot 2^{y-1} + 8) = v_2(8(9 \cdot 2^{y-4} + 1))$ for $y \geq 4$, which is $3 + v_2(9 \cdot 2^{y-4} + 1) = 3$ (since $9 \cdot 2^{y-4}$ is even for $y \geq 5$, so $+1$ is odd; for $y = 4$, $9 + 1 = 10$, $v_2 = 1$, so total $= 4$).
+
+Hmm, let me be more careful.
+
+For $y = 1$: $9 \cdot 1 + 8 = 17$, $v_2 = 0$. But $z - 1 \geq 0$ (since $z \geq 1$). If $z = 1$: $v_2(\text{LHS}) = 0$, $v_2(\text{RHS}) = 0$. OK. $2^0(2^2 + 5) = 9 = 9 \cdot 1 + 8 = 17$? No, $9 \neq 17$. So no.
+
+For $y = 2$: $9 \cdot 2 + 8 = 26$, $v_2 = 1$. Need $z - 1 = 1$, $z = 2$. LHS: $2(2^3 + 5) = 2 \cdot 13 = 26$. ✓ So $z = 2, y = 2$. But we need $y > z$ (since $A < B$), and $y = z = 2$ doesn't satisfy $y > z$. Actually wait, $y > z$ was derived from $f > g$ which requires $B > A$, i.e., $A < B$. With $A = 1, B = (2^1 + 1)/3 = 1$. But $B = 1 = A$, contradiction with $A < B$. So this case is $A = B = 1$, which gives $(2, 2, 3)$ already found.
+
+For $y = 3$: $9 \cdot 4 + 8 = 44$, $v_2 = 2$. Need $z - 1 = 2$, $z = 3$. LHS: $4(2^4 + 5) = 4 \cdot 21 = 84 \neq 44$. No.
+
+For $y = 4$: $9 \cdot 8 + 8 = 80$, $v_2 = 4$. Need $z - 1 = 4$, $z = 5$. LHS: $16(2^6 + 5) = 16 \cdot 69 = 1104 \neq 80$. No.
+
+Hmm, this approach of matching $v_2$ isn't working directly because the equation isn't just about $v_2$.
+
+Let me go back to the direct equation: $2^{z-1}(2^{z+1} + 5) - 8 = 9 \cdot 2^{y-1}$.
+
+$2^{z-1}(2^{z+1} + 5) = 9 \cdot 2^{y-1} + 8$.
+
+For $z = 2$: $2(8 + 5) = 26 = 9 \cdot 2^{y-1} + 8$, so $9 \cdot 2^{y-1} = 18$, $2^{y-1} = 2$, $y = 2$. $B = (2+1)/3 = 1 = A$. Not $A < B$.
+
+For $z = 4$: $8(32+5) = 8 \cdot 37 = 296 = 9 \cdot 2^{y-1} + 8$, $9 \cdot 2^{y-1} = 288$, $2^{y-1} = 32$, $y = 6$. $B = (8+1)/3 = 3$. $A = 1, B = 3$, $A < B$ ✓. This gives $a = 2, b = 6, c = 11$. ✓
+
+For $z = 6$: $32(128+5) = 32 \cdot 133 = 4256 = 9 \cdot 2^{y-1} + 8$, $9 \cdot 2^{y-1} = 4248$, $2^{y-1} = 472 = 8 \cdot 59$, not a power of 2.
+
+For $z = 8$: $128(512+5) = 128 \cdot 517 = 66176 = 9 \cdot 2^{y-1} + 8$, $9 \cdot 2^{y-1} = 66168$, $2^{y-1} = 7352 = 8 \cdot 919$, not a power of 2.
+
+For $z = 10$: $512(2048+5) = 512 \cdot 2053 = 1051136$. $9 \cdot 2^{y-1} = 1051128$. $2^{y-1} = 116792 = 8 \cdot 14599$, not a power of 2.
+
+So for $A = 1$, only $z = 4$ (i.e., $B = 3$) gives a solution with $A < B$.
+
+Let me prove this. We need $2^{z-1}(2^{z+1}+5) - 8 = 9 \cdot 2^{y-1}$, i.e., $\frac{2^{z-1}(2^{z+1}+5) - 8}{9} = 2^{y-1}$.
+
+$= \frac{2^{2z} + 5 \cdot 2^{z-1} - 8}{9}$.
+
+$= \frac{2^3(2^{2z-3} + 5 \cdot 2^{z-4} - 1)}{9}$ for $z \geq 4$.
+
+$= \frac{8(2^{2z-3} + 5 \cdot 2^{z-4} - 1)}{9}$.
+
+For $z \geq 4$: $2^{2z-3} + 5 \cdot 2^{z-4} - 1$. The first two terms are even (for $z \geq 5$, $2z-3 \geq 7$ and $z-4 \geq 1$), so the expression is odd. For $z = 4$: $2^5 + 5 \cdot 1 - 1 = 32 + 5 - 1 = 36$, which is even. $v_2(36) = 2$.
+
+So for $z \geq 5$: $v_2(\frac{2^{2z} + 5 \cdot 2^{z-1} - 8}{9}) = 3$ (since the numerator has $v_2 = 3$ and denominator is odd). So $y - 1 = 3$, $y = 4$, $2^{y-1} = 8$.
+
+$\frac{2^{2z} + 5 \cdot 2^{z-1} - 8}{9} = 8$ requires $2^{2z} + 5 \cdot 2^{z-1} - 8 = 72$, $2^{2z} + 5 \cdot 2^{z-1} = 80$. For $z = 5$: $1024 + 80 = 1104 \neq 80$. No solution for $z \geq 5$.
+
+For $z = 4$: $\frac{256 + 40 - 8}{9} = \frac{288}{9} = 32 = 2^5$. So $y - 1 = 5$, $y = 6$. ✓ (This gives $(2, 6, 11)$.)
+
+For $z = 3$: $B = (4+1)/3 = 5/3$, not integer (since $z = 3$ is odd, $z - 1 = 2$ is even, $2^2 + 1 = 5 \not\equiv 0 \pmod 3$). Actually we need $z$ even for $B$ to be integer. $z = 3$ is odd, skip.
+
+For $z = 2$: Already handled, gives $A = B = 1$.
+
+So for $A = 1$, the only solution with $A < B$ is $z = 4, B = 3$, giving $(2, 6, 11)$.
+
+Now for $A \geq 2$ with $A < B$:
+
+$g = 4A^2 B - A - B = 2^{z-1}$ and $f = 4AB^2 - A - B = 2^{y-1}$.
+
+$g = B(4A^2 - 1) - A = 2^{z-1}$. So $B = \frac{2^{z-1} + A}{4A^2 - 1}$.
+
+For $B$ to be a positive integer with $B > A \geq 2$:
+
+$4A^2 - 1 \leq 2^{z-1} + A$, so $2^{z-1} \geq 4A^2 - A - 1$. For $A = 2$: $2^{z-1} \geq 13$, $z \geq 5$.
+
+Also $B > A$: $\frac{2^{z-1} + A}{4A^2 - 1} > A$, so $2^{z-1} > A(4A^2 - 1) - A = 4A^3 - 2A$, $2^{z-1} > 2A(2A^2 - 1)$. For $A = 2$: $2^{z-1} > 2 \cdot 2 \cdot 7 = 28$, $z \geq 6$.
+
+$f = 4AB^2 - A - B = 2^{y-1}$.
+
+Substituting $B = \frac{2^{z-1} + A}{4A^2 - 1}$:
+
+$f = \frac{4A(2^{z-1}+A)^2}{(4A^2-1)^2} - A - \frac{2^{z-1}+A}{4A^2-1}$
+
+$= \frac{4A(2^{z-1}+A)^2 - (4A^2-1)^2 \cdot A - (2^{z-1}+A)(4A^2-1)}{(4A^2-1)^2}$
+
+This is very messy. Let me try a different approach.
+
+Actually, let me think about this problem using the key relation $2^y - 2^z = ab(b-a)$ (for $a < b$ in the two-even-one-odd case).
+
+$2^z(2^{y-z} - 1) = ab(b-a)$.
+
+Since $2^{y-z} - 1$ is odd, $z = v_2(ab(b-a))$.
+
+Also, $2^y + 2^z = (a+b)(ab-2)$, so $2^z(2^{y-z} + 1) = (a+b)(ab-2)$.
+
+Since $2^{y-z} + 1$ is odd, $z = v_2((a+b)(ab-2))$.
+
+So $v_2(ab(b-a)) = v_2((a+b)(ab-2))$.
+
+Now, $a = 2A, b = 2B$:
+- $ab(b-a) = 4AB \cdot 2(B-A) = 8AB(B-A)$.
+- $(a+b)(ab-2) = 2(A+B)(4AB-2) = 4(A+B)(2AB-1)$.
+
+$v_2(8AB(B-A)) = 3 + v_2(AB(B-A))$.
+$v_2(4(A+B)(2AB-1)) = 2 + v_2(A+B)$ (since $2AB - 1$ is odd).
+
+So $3 + v_2(AB(B-A)) = 2 + v_2(A+B)$, i.e., $v_2(A+B) = 1 + v_2(AB(B-A))$.
+
+Also, $z = 3 + v_2(AB(B-A))$ (from $z = v_2(ab(b-a)) = v_2(8AB(B-A)) = 3 + v_2(AB(B-A))$).
+
+And $2^{y-z} - 1 = \frac{ab(b-a)}{2^z} = \frac{8AB(B-A)}{2^z} = \frac{AB(B-A)}{2^{v_2(AB(B-A))}}$ (the odd part of $AB(B-A)$).
+
+$2^{y-z} + 1 = \frac{(a+b)(ab-2)}{2^z} = \frac{4(A+B)(2AB-1)}{2^z} = \frac{(A+B)(2AB-1)}{2^{v_2(AB(B-A))+1}}$.
+
+Since $v_2(A+B) = 1 + v_2(AB(B-A))$, let $v = v_2(AB(B-A))$. Then $v_2(A+B) = v + 1$.
+
+$\frac{(A+B)(2AB-1)}{2^{v+1}} = \frac{A+B}{2^{v+1}} \cdot (2AB-1)$. Since $v_2(A+B) = v+1$, $\frac{A+B}{2^{v+1}}$ is odd, and $2AB-1$ is odd, so the whole thing is odd. ✓
+
+$2^{y-z} + 1 = \frac{(A+B)(2AB-1)}{2^{v+1}}$ and $2^{y-z} - 1 = \frac{AB(B-A)}{2^v}$.
+
+Adding: $2 \cdot 2^{y-z} = \frac{AB(B-A)}{2^v} + \frac{(A+B)(2AB-1)}{2^{v+1}} = \frac{2AB(B-A) + (A+B)(2AB-1)}{2^{v+1}}$.
+
+$2^{y-z+1} = \frac{2AB(B-A) + (A+B)(2AB-1)}{2^{v+1}} = \frac{2AB^2 - 2A^2B + 2A^2B + 2AB^2 - A - B}{2^{v+1}} = \frac{4AB^2 - A - B}{2^{v+1}} = \frac{f}{2^{v+1}}$.
+
+But $f = 2^{y-1}$, so $2^{y-z+1} = \frac{2^{y-1}}{2^{v+1}} = 2^{y-v-2}$. So $y - z + 1 = y - v - 2$, $z = v + 3$. Which is consistent with $z = 3 + v$. ✓
+
+OK so the algebra is consistent but doesn't directly help. Let me try to bound things.
+
+For $A \geq 2, B > A$:
+
+$g = 4A^2 B - A - B = 2^{z-1}$, so $B = \frac{2^{z-1} + A}{4A^2 - 1}$.
+
+$f = 4AB^2 - A - B = 2^{y-1}$.
+
+$f = 4A \left(\frac{2^{z-1}+A}{4A^2-1}\right)^2 - A - \frac{2^{z-1}+A}{4A^2-1}$
+
+$= \frac{4A(2^{z-1}+A)^2 - A(4A^2-1)^2 - (2^{z-1}+A)(4A^2-1)}{(4A^2-1)^2}$
+
+Let me expand the numerator:
+$4A(2^{2z-2} + 2A \cdot 2^{z-1} + A^2) - A(16A^4 - 8A^2 + 1) - (2^{z-1}+A)(4A^2-1)$
+
+$= 4A \cdot 2^{2z-2} + 8A^2 \cdot 2^{z-1} + 4A^3 - 16A^5 + 8A^3 - A - 4A^2 \cdot 2^{z-1} + 2^{z-1} - 4A^3 + A$
+
+$= 2^{2z} A + 2^{z+2} A^2 + 4A^3 - 16A^5 + 8A^3 - A - 2^{z+1} A^2 + 2^{z-1} - 4A^3 + A$
+
+$= 2^{2z} A + (2^{z+2} - 2^{z+1}) A^2 + (4 + 8 - 4) A^3 - 16A^5 + 2^{z-1}$
+
+$= 2^{2z} A + 2^{z+1} A^2 + 8A^3 - 16A^5 + 2^{z-1}$
+
+$= 2^{z-1}(2^{z-1} \cdot 2A + 2^2 A^2 + 1) + 8A^3 - 16A^5$
+
+$= 2^{z-1}(2^z A + 4A^2 + 1) + 8A^3(1 - 2A^2)$
+
+$= 2^{z-1}(2^z A + 4A^2 + 1) - 8A^3(2A^2 - 1)$
+
+So $f = \frac{2^{z-1}(2^z A + 4A^2 + 1) - 8A^3(2A^2 - 1)}{(4A^2-1)^2}$.
+
+For $f = 2^{y-1}$:
+
+$2^{z-1}(2^z A + 4A^2 + 1) - 8A^3(2A^2 - 1) = 2^{y-1} (4A^2-1)^2$.
+
+Note $(4A^2-1)^2$ is odd. So $v_2(\text{LHS}) = y - 1$.
+
+$v_2(\text{LHS})$: The first term has $v_2 = z - 1$ (since $2^z A + 4A^2 + 1$ is odd for $A \geq 1$: $2^z A$ is even, $4A^2$ is even, $+1$ makes it odd). The second term: $8A^3(2A^2-1)$, $v_2 = 3 + 3v_2(A) + 0 = 3 + 3v_2(A)$ (since $2A^2 - 1$ is odd).
+
+If $z - 1 < 3 + 3v_2(A)$: $v_2(\text{LHS}) = z - 1$, so $y - 1 = z - 1$, $y = z$. But we need $y > z$ (since $A < B$). Contradiction.
+
+If $z - 1 > 3 + 3v_2(A)$: $v_2(\text{LHS}) = 3 + 3v_2(A)$, so $y - 1 = 3 + 3v_2(A)$, $y = 4 + 3v_2(A)$.
+
+If $z - 1 = 3 + 3v_2(A)$: $v_2(\text{LHS}) \geq z - 1 + v_2(\text{odd} + \text{odd}) = z - 1 + v_2(\text{even}) \geq z$. Need to check.
+
+For $A$ odd ($v_2(A) = 0$): $3 + 3 \cdot 0 = 3$. So if $z - 1 > 3$ (i.e., $z \geq 5$): $y = 4$. If $z - 1 < 3$ (i.e., $z \leq 3$): $y = z$, contradiction. If $z - 1 = 3$ ($z = 4$): need to check.
+
+For $z = 4, A$ odd: $v_2(\text{LHS}) = v_2(8(16A + 4A^2 + 1) - 8A^3(2A^2-1)) = v_2(8(16A + 4A^2 + 1 - A^3(2A^2-1))) = 3 + v_2(16A + 4A^2 + 1 - 2A^5 + A^3)$.
+
+$= 3 + v_2(1 + 16A + 4A^2 + A^3 - 2A^5)$.
+
+For $A = 1$: $1 + 16 + 4 + 1 - 2 = 20$, $v_2 = 2$. So $v_2(\text{LHS}) = 5$, $y = 6$. This is the $(2, 6, 11)$ case! $B = (8+1)/3 = 3$. ✓
+
+For $A = 3$: $1 + 48 + 36 + 27 - 486 = -374$, $v_2(-374) = 1$. $v_2(\text{LHS}) = 4$, $y = 5$. Check: $B = (8+3)/35 = 11/35$, not integer. So no.
+
+For $A = 5$: $1 + 80 + 100 + 125 - 6250 = -5944$, $v_2 = 3$. $v_2(\text{LHS}) = 6$, $y = 7$. $B = (8+5)/99 = 13/99$, not integer.
+
+So for $A$ odd, $z = 4$, only $A = 1$ gives integer $B$.
+
+For $A$ odd, $z \geq 5$: $y = 4$. $f = 2^3 = 8$. $4AB^2 - A - B = 8$. $B = \frac{2^{z-1}+A}{4A^2-1}$. For $A = 1$: $B = \frac{2^{z-1}+1}{3}$. $f = 4B^2 - 1 - B = 8$, $4B^2 - B - 9 = 0$, $B = \frac{1 + \sqrt{145}}{8}$, not integer. For $A = 3$: $B = \frac{2^{z-1}+3}{35}$. $f = 12B^2 - 3 - B = 8$, $12B^2 - B - 11 = 0$, $B = \frac{1 + \sqrt{529}}{24} = \frac{24}{24} = 1$. But $B = 1 < A = 3$, contradiction. For $A \geq 5$: $B > A \geq 5$, $f = 4AB^2 - A - B > 4 \cdot 5 \cdot 25 - 5 - 5 = 490 > 8$. No solution.
+
+For $A$ even ($v_2(A) \geq 1$): $3 + 3v_2(A) \geq 6$. If $z - 1 > 3 + 3v_2(A)$: $y = 4 + 3v_2(A) \geq 7$. But also $B > A \geq 2$ and $f = 4AB^2 - A - B \geq 4 \cdot 2 \cdot 9 - 2 - 3 = 67$, so $2^{y-1} \geq 67$, $y \geq 7$. And $g = 4A^2 B - A - B \geq 4 \cdot 4 \cdot 3 - 2 - 3 = 43$, $2^{z-1} \geq 43$, $z \geq 6$.
+
+For $A = 2$ ($v_2(A) = 1$): $3 + 3 = 6$. If $z \geq 8$ ($z - 1 > 6$): $y = 7$, $f = 64$. $B = \frac{2^{z-1}+2}{15}$. $f = 8B^2 - 2 - B = 64$, $8B^2 - B - 66 = 0$, $B = \frac{1 + \sqrt{2113}}{16}$. $\sqrt{2113} \approx 45.97$, not integer. No.
+
+If $z = 7$ ($z - 1 = 6$): $v_2(\text{LHS}) = 6 + v_2(\text{odd} - \text{odd})$. $\text{LHS}/2^6 = (2^7 \cdot 2 + 4 \cdot 4 + 1) - \frac{8 \cdot 8 \cdot 7}{64} = (256 + 16 + 1) - 7 = 266$. $v_2(266) = 1$. So $v_2(\text{LHS}) = 7$, $y = 8$. $B = (64+2)/15 = 66/15$, not integer.
+
+If $z = 6$ ($z - 1 = 5 < 6$): $y = z = 6$, contradiction.
+
+So for $A = 2$, no solution with $B > A$.
+
+For larger $A$ even, $B > A$ means $f$ and $g$ are even larger, but $y$ is bounded by $4 + 3v_2(A)$, which grows slowly. Let me check $A = 4$ ($v_2 = 2$): $3 + 6 = 9$. If $z \geq 11$: $y = 10$, $f = 512$. $B = \frac{2^{z-1}+4}{63}$. $f = 16B^2 - 4 - B = 512$, $16B^2 - B - 516 = 0$, $B = \frac{1+\sqrt{33025}}{32} = \frac{1+181.7}{32}$, not integer.
+
+This is getting tedious. Let me try to prove it more cleanly.
+
+Actually, I think the key insight is:
+
+For $A \geq 2$ (in the two-even-one-odd case with $A < B$), $g = 4A^2 B - A - B = 2^{z-1}$ gives $B = \frac{2^{z-1}+A}{4A^2-1}$. Then $f = 4AB^2 - A - B$. We showed $f = \frac{2^{z-1}(2^zA + 4A^2+1) - 8A^3(2A^2-1)}{(4A^2-1)^2}$.
+
+For large $z$, $f \approx \frac{2^{2z-1} A}{(4A^2-1)^2}$. And $f = 2^{y-1}$, so $2^{y-1} \approx \frac{2^{2z-1} A}{(4A^2-1)^2}$, giving $y \approx 2z - 2v_2(4A^2-1) + \log_2 A - (4A^2-1)^2/...$. This isn't leading anywhere clean.
+
+Let me try a completely different approach. Maybe I should use the fact that for large $a, b, c$, the expressions $ab - c, bc - a, ca - b$ grow too fast to all be powers of 2.
+
+Actually, I think the cleanest approach might be to use the relation $2^y - 2^z = ab(b-a)$ and $2^y + 2^z = (a+b)(ab-2)$ (in the two-even-one-odd case with $a < b$).
+
+From these: $2^{y+1} = 2^y + 2^z + 2^y - 2^z = (a+b)(ab-2) + ab(b-a) = a^2b + ab^2 - 2a - 2b + ab^2 - a^2b = 2ab^2 - 2(a+b) = 2(ab^2 - a - b) = 2f \cdot 2 = 2 \cdot 2^y$. Wait, that's circular.
+
+$2^y = \frac{(a+b)(ab-2) + ab(b-a)}{2} = \frac{a^2b + ab^2 - 2a - 2b + ab^2 - a^2b}{2} = \frac{2ab^2 - 2a - 2b}{2} = ab^2 - a - b$. ✓
+
+$2^z = \frac{(a+b)(ab-2) - ab(b-a)}{2} = \frac{a^2b + ab^2 - 2a - 2b - ab^2 + a^2b}{2} = \frac{2a^2b - 2a - 2b}{2} = a^2b - a - b$. ✓
+
+So $2^y \cdot 2^z = (ab^2 - a - b)(a^2b - a - b) = 2^{y+z}$.
+
+$(ab^2 - a - b)(a^2b - a - b) = a^3b^3 - a^2b^2 - ab^3 - a^3b + a^2 + ab + ab^2 + a^2b - a^2 - b^2 - ab - a - b$
+
+Hmm, let me just expand:
+$(ab^2 - a - b)(a^2b - a - b)$
+$= a^3b^3 - a^2b^2 - ab^3 - a^3b + a^2 + ab + a^2b^2 - ab - b^2$
+$= a^3b^3 - ab^3 - a^3b + a^2 + a^2b^2 - a^2b^2 - b^2$
+
+Wait, let me be more careful:
+$= ab^2 \cdot a^2b - ab^2 \cdot a - ab^2 \cdot b - a \cdot a^2b + a \cdot a + a \cdot b - b \cdot a^2b + b \cdot a + b \cdot b$
+$= a^3b^3 - a^2b^2 - ab^3 - a^3b + a^2 + ab - a^2b^2 + ab + b^2$
+$= a^3b^3 - 2a^2b^2 - ab^3 - a^3b + a^2 + 2ab + b^2$
+$= a^3b^3 - 2a^2b^2 - ab(a^2 + b^2) + (a+b)^2 - 2ab + 2ab$
+
+Hmm, $a^2 + 2ab + b^2 = (a+b)^2$. So:
+$= a^3b^3 - 2a^2b^2 - ab^3 - a^3b + (a+b)^2$
+$= ab(a^2b^2 - 2ab - b^2 - a^2) + (a+b)^2$
+$= ab((ab)^2 - 2ab - (a^2+b^2)) + (a+b)^2$
+$= ab((ab-1)^2 - 1 - (a^2+b^2)) + (a+b)^2$
+
+Not simplifying nicely. Let me try yet another approach.
+
+Actually, I think for a competition proof, the approach would be:
+
+1. Show $a, b, c \geq 2$.
+2. Analyze parity cases.
+3. For each case, use the algebraic relations to bound and find solutions.
+
+Let me try to think about what makes this problem tick. The key relations are:
+- $c = ab - 2^x$
+- $a(b^2-1) = 2^x(2^{y-x} + b)$ 
+- $b(a^2-1) = 2^x(2^{z-x} + a)$
+
+From the last two: $\frac{a(b^2-1)}{b(a^2-1)} = \frac{2^{y-x}+b}{2^{z-x}+a}$.
+
+$\frac{a(b-1)(b+1)}{b(a-1)(a+1)} = \frac{2^{y-x}+b}{2^{z-x}+a}$.
+
+For $a = b$: $1 = \frac{2^{y-x}+a}{2^{z-x}+a}$, so $y = z$. ✓
+
+For $a < b$: $\frac{a(b-1)(b+1)}{b(a-1)(a+1)} > 1$ (since $b > a$ and $\frac{(b-1)(b+1)}{(a-1)(a+1)} > 1$ and $\frac{a}{b} < 1$... actually need to check). $\frac{a(b^2-1)}{b(a^2-1)} = \frac{a}{b} \cdot \frac{b^2-1}{a^2-1}$. For $b > a \geq 2$: $\frac{b^2-1}{a^2-1} > \frac{b^2}{a^2} > 1$ and $\frac{a}{b} < 1$. So the product could be > or < 1. For $a = 2, b = 6$: $\frac{2 \cdot 35}{6 \cdot 3} = \frac{70}{18} = 35/9 > 1$. For $a = 2, b = 4$: $\frac{2 \cdot 15}{4 \cdot 3} = \frac{30}{12} = 5/2 > 1$. For $a = 3, b = 5$: $\frac{3 \cdot 24}{5 \cdot 8} = \frac{72}{40} = 9/5 > 1$. Seems like it's > 1 for $b > a \geq 2$.
+
+$\frac{a(b^2-1)}{b(a^2-1)} = \frac{a(b-1)(b+1)}{b(a-1)(a+1)}$. For $b > a \geq 2$: $\frac{b+1}{a+1} > 1$ and $\frac{b-1}{a-1} > 1$ and $\frac{a}{b} < 1$. Product: $\frac{a(b-1)(b+1)}{b(a-1)(a+1)} = \frac{a}{b} \cdot \frac{(b-1)(b+1)}{(a-1)(a+1)}$. 
+
+$\frac{(b-1)(b+1)}{(a-1)(a+1)} = \frac{b^2-1}{a^2-1}$. For $b > a \geq 2$: $b^2 - 1 > a^2 - 1$ and $a^2 - 1 \geq 3$. $\frac{b^2-1}{a^2-1} > \frac{b^2}{a^2} = (b/a)^2$. So $\frac{a}{b} \cdot \frac{b^2-1}{a^2-1} > \frac{a}{b} \cdot \frac{b^2}{a^2} = \frac{b}{a} > 1$. So indeed > 1.
+
+So $\frac{2^{y-x}+b}{2^{z-x}+a} > 1$, meaning $2^{y-x} + b > 2^{z-x} + a$, i.e., $2^{y-x} - 2^{z-x} > a - b < 0$. So $2^{y-x} - 2^{z-x} > a - b$. Since $a < b$, $a - b < 0$, and $2^{y-x} - 2^{z-x} \geq 0$ (since $y \geq z$), this is always true. Not very helpful.
+
+OK, I think I need to just be more systematic. Let me try to prove the result for the two-even-one-odd case by showing that for $A \geq 2$, there are no solutions.
+
+For $A \geq 2, B > A$ (both positive integers, $a = 2A, b = 2B$):
+
+$g = 4A^2 B - A - B = 2^{z-1}$ ... (*)
+$f = 4AB^2 - A - B = 2^{y-1}$ ... (**)
+
+From (*): $B(4A^2 - 1) = 2^{z-1} + A$, so $B = \frac{2^{z-1} + A}{4A^2 - 1}$.
+
+For $B$ to be a positive integer, $(4A^2 - 1) | (2^{z-1} + A)$.
+
+Now, $4A^2 - 1 = (2A-1)(2A+1)$. So $(2A-1)(2A+1) | (2^{z-1} + A)$.
+
+From (**): $f = 4AB^2 - A - B = 2^{y-1}$.
+
+Substituting $B$:
+$f = \frac{4A(2^{z-1}+A)^2}{(4A^2-1)^2} - A - \frac{2^{z-1}+A}{4A^2-1}$
+
+$= \frac{4A(2^{z-1}+A)^2 - A(4A^2-1)^2 - (2^{z-1}+A)(4A^2-1)}{(4A^2-1)^2}$
+
+Numerator $= 4A(2^{2z-2} + 2A \cdot 2^{z-1} + A^2) - A(16A^4 - 8A^2 + 1) - (2^{z-1}+A)(4A^2-1)$
+
+$= 4A \cdot 2^{2z-2} + 8A^2 \cdot 2^{z-1} + 4A^3 - 16A^5 + 8A^3 - A - 4A^2 \cdot 2^{z-1} - 2^{z-1} + 4A^3 - A$
+
+Wait, let me redo this carefully.
+
+$- (2^{z-1}+A)(4A^2-1) = -4A^2 \cdot 2^{z-1} + 2^{z-1} - 4A^3 + A$
+
+So numerator $= 4A \cdot 2^{2z-2} + 8A^2 \cdot 2^{z-1} + 4A^3 - 16A^5 + 8A^3 - A - 4A^2 \cdot 2^{z-1} + 2^{z-1} - 4A^3 + A$
+
+$= 4A \cdot 2^{2z-2} + (8A^2 - 4A^2) \cdot 2^{z-1} + 2^{z-1} + (4A^3 + 8A^3 - 4A^3) - 16A^5 + (-A + A)$
+
+$= 4A \cdot 2^{2z-2} + 4A^2 \cdot 2^{z-1} + 2^{z-1} + 8A^3 - 16A^5$
+
+$= 2^{z-1}(4A \cdot 2^{z-1} + 4A^2 + 1) + 8A^3(1 - 2A^2)$
+
+$= 2^{z-1}(2^{z+1}A + 4A^2 + 1) - 8A^3(2A^2 - 1)$
+
+So $f = \frac{2^{z-1}(2^{z+1}A + 4A^2 + 1) - 8A^3(2A^2 - 1)}{(4A^2-1)^2} = 2^{y-1}$.
+
+$(4A^2-1)^2 \cdot 2^{y-1} = 2^{z-1}(2^{z+1}A + 4A^2 + 1) - 8A^3(2A^2 - 1)$.
+
+Since $(4A^2-1)^2$ is odd, $v_2(\text{RHS}) = y - 1$.
+
+$v_2(\text{RHS})$: First term $v_2 = z - 1$ (since $2^{z+1}A + 4A^2 + 1$ is odd). Second term $v_2 = 3 + 3v_2(A)$ (since $2A^2 - 1$ is odd).
+
+Case 1: $z - 1 < 3 + 3v_2(A)$. Then $v_2(\text{RHS}) = z - 1$, so $y = z$. But $y > z$ (since $B > A$). Contradiction.
+
+Case 2: $z - 1 > 3 + 3v_2(A)$. Then $v_2(\text{RHS}) = 3 + 3v_2(A)$, so $y = 4 + 3v_2(A)$.
+
+Then $2^{y-1} = 2^{3+3v_2(A)}$, and $f = 2^{3+3v_2(A)}$.
+
+$f = 4AB^2 - A - B = 2^{3+3v_2(A)}$.
+
+With $B > A \geq 2$: $f = 4AB^2 - A - B > 4A \cdot A^2 - A - A = 4A^3 - 2A \geq 4 \cdot 8 - 4 = 28$ (for $A = 2$). And $2^{3+3v_2(A)}$: for $A = 2$ ($v_2 = 1$): $2^6 = 64$. For $A = 4$ ($v_2 = 2$): $2^9 = 512$. For $A = 6$ ($v_2 = 1$): $2^6 = 64$.
+
+So for $A = 2$: $f = 64$, $4 \cdot 2 \cdot B^2 - 2 - B = 64$, $8B^2 - B - 66 = 0$, $B = \frac{1 + \sqrt{1 + 2112}}{16} = \frac{1 + \sqrt{2113}}{16}$. $2113 = 2113$. $45^2 = 2025, 46^2 = 2116$. Not a perfect square. No solution.
+
+For $A = 4$: $f = 512$, $16B^2 - 4 - B = 512$, $16B^2 - B - 516 = 0$, $B = \frac{1 + \sqrt{1 + 33024}}{32} = \frac{1 + \sqrt{33025}}{32}$. $181^2 = 32761, 182^2 = 33124$. Not perfect square.
+
+For $A = 6$: $f = 64$, $24B^2 - 6 - B = 64$, $24B^2 - B - 70 = 0$, $B = \frac{1 + \sqrt{1 + 6720}}{48} = \frac{1 + \sqrt{6721}}{48}$. $82^2 = 6724$. Not quite.
+
+For $A = 8$ ($v_2 = 3$): $f = 2^{12} = 4096$, $32B^2 - 8 - B = 4096$, $32B^2 - B - 4104 = 0$, $B = \frac{1 + \sqrt{1 + 525312}}{64} = \frac{1 + \sqrt{525313}}{64}$. $724^2 = 524176, 725^2 = 525625$. Not perfect square.
+
+For $A = 10$ ($v_2 = 1$): $f = 64$, $40B^2 - 10 - B = 64$, $40B^2 - B - 74 = 0$, $B = \frac{1 + \sqrt{1 + 11840}}{80} = \frac{1 + \sqrt{11841}}{80}$. $108^2 = 11664, 109^2 = 11881$. Not perfect square.
+
+For $A = 3$ ($v_2 = 0$): $f = 8$, $12B^2 - 3 - B = 8$, $12B^2 - B - 11 = 0$, $B = \frac{1 + \sqrt{529}}{24} = \frac{24}{24} = 1$. But $B = 1 < A = 3$. No.
+
+For $A = 5$ ($v_2 = 0$): $f = 8$, $20B^2 - 5 - B = 8$, $20B^2 - B - 13 = 0$, $B = \frac{1 + \sqrt{1041}}{40}$. $32^2 = 1024, 33^2 = 1089$. Not perfect square.
+
+For $A = 7$ ($v_2 = 0$): $f = 8$, $28B^2 - 7 - B = 8$, $28B^2 - B - 15 = 0$, $B = \frac{1 + \sqrt{1681}}{56} = \frac{1 + 41}{56} = \frac{42}{56} = 3/4$. Not integer.
+
+For $A = 9$ ($v_2 = 0$): $f = 8$, $36B^2 - 9 - B = 8$, $36B^2 - B - 17 = 0$, $B = \frac{1 + \sqrt{2449}}{72}$. $49^2 = 2401, 50^2 = 2500$. Not perfect square.
+
+For $A = 11$ ($v_2 = 0$): $f = 8$, $44B^2 - 11 - B = 8$, $44B^2 - B - 19 = 0$, $B = \frac{1 + \sqrt{3345}}{88}$. $57^2 = 3249, 58^2 = 3364$. Not perfect square.
+
+For $A = 13$ ($v_2 = 0$): $f = 8$, $52B^2 - 13 - B = 8$, $52B^2 - B - 21 = 0$, $B = \frac{1 + \sqrt{4369}}{104}$. $66^2 = 4356, 67^2 = 4489$. Not perfect square.
+
+For $A = 15$ ($v_2 = 0$): $f = 8$, $60B^2 - 15 - B = 8$, $60B^2 - B - 23 = 0$, $B = \frac{1 + \sqrt{5521}}{120}$. $74^2 = 5476, 75^2 = 5625$. Not perfect square.
+
+For $A = 17$ ($v_2 = 0$): $f = 8$, $68B^2 - 17 - B = 8$, $68B^2 - B - 25 = 0$, $B = \frac{1 + \sqrt{6801}}{136}$. $82^2 = 6724, 83^2 = 6889$. Not perfect square.
+
+So for $A$ odd $\geq 3$, $f = 8$ gives $B = \frac{1 + \sqrt{1 + 32(4A^2+A+1) \cdot 8}}{...}$... actually let me think about this more generally.
+
+For $A$ odd, $v_2(A) = 0$, $y = 4$, $f = 8$:
+$4AB^2 - A - B = 8$
+$4AB^2 - B - (A + 8) = 0$
+$B = \frac{1 + \sqrt{1 + 16A(A+8)}}{8A} = \frac{1 + \sqrt{16A^2 + 128A + 1}}{8A}$.
+
+Need $16A^2 + 128A + 1 = k^2$ for some odd positive integer $k$.
+
+$k^2 - 16A^2 - 128A = 1$
+$k^2 - (4A + 16)^2 + 256 - 128A = 1$... hmm.
+
+$k^2 - (4A)^2 = 128A + 1$
+$(k - 4A)(k + 4A) = 128A + 1$.
+
+Since $k$ is odd and $4A$ is even, $k - 4A$ and $k + 4A$ are both odd. Let $k - 4A = d_1, k + 4A = d_2$ where $d_1 d_2 = 128A + 1$ and $d_2 - d_1 = 8A$, $d_2 + d_1 = 2k$.
+
+From $d_2 = d_1 + 8A$: $d_1(d_1 + 8A) = 128A + 1$, $d_1^2 + 8Ad_1 - 128A - 1 = 0$.
+
+$d_1 = \frac{-8A + \sqrt{64A^2 + 512A + 4}}{2} = \frac{-8A + 2\sqrt{16A^2 + 128A + 1}}{2} = -4A + \sqrt{16A^2 + 128A + 1}$.
+
+This is circular. Let me try: $d_1 d_2 = 128A + 1$ and $d_2 - d_1 = 8A$. So $d_1$ and $d_2$ are odd divisors of $128A + 1$ with $d_2 - d_1 = 8A$.
+
+For $A = 1$: $128 + 1 = 129 = 3 \times 43$. $d_2 - d_1 = 8$. $43 - 3 = 40 \neq 8$. $129 - 1 = 128 \neq 8$. $43 - 3 = 40$. No pair with difference 8. But wait, $A = 1$ gives $B = 1$ (not $> A$), so this case doesn't apply.
+
+For $A = 3$: $384 + 1 = 385 = 5 \times 7 \times 11$. $d_2 - d_1 = 24$. $385 - 1 = 384 \neq 24$. $77 - 5 = 72$. $55 - 7 = 48$. $35 - 11 = 24$! So $d_1 = 11, d_2 = 35$. $k = (11 + 35)/2 = 23$. $B = (1 + 23)/24 = 1$. But $B = 1 < A = 3$. No.
+
+For $A = 5$: $640 + 1 = 641$ (prime). $d_2 - d_1 = 40$. $641 - 1 = 640 \neq 40$. No.
+
+For $A = 7$: $896 + 1 = 897 = 3 \times 299 = 3 \times 13 \times 23$. $d_2 - d_1 = 56$. $897 - 1 = 896 \neq 56$. $299 - 3 = 296$. $69 - 13 = 56$! $d_1 = 13, d_2 = 69$. $k = 41$. $B = (1 + 41)/56 = 42/56 = 3/4$. Not integer.
+
+For $A = 9$: $1152 + 1 = 1153$ (prime?). $d_2 - d_1 = 72$. $1153 - 1 = 1152 \neq 72$. No.
+
+For $A = 11$: $1408 + 1 = 1409 = 1409$ (prime?). $d_2 - d_1 = 88$. $1409 - 1 = 1408 \neq 88$. No.
+
+For $A = 13$: $1664 + 1 = 1665 = 3 \times 5 \times 111 = 3 \times 5 \times 3 \times 37 = 9 \times 185$. $d_2 - d_1 = 104$. $1665 - 1 = 1664 \neq 104$. $185 - 9 = 176$. $333 - 5 = 328$. $555 - 3 = 552$. No.
+
+For $A = 15$: $1920 + 1 = 1921 = 17 \times 113$. $d_2 - d_1 = 120$. $1921 - 1 = 1920 \neq 120$. $113 - 17 = 96$. No.
+
+It seems like for $A$ odd $\geq 3$, even when we find integer $B$, it's $\leq A$. Let me prove this.
+
+For $A$ odd $\geq 3$, $f = 8$: $B = \frac{1 + k}{8A}$ where $k = \sqrt{16A^2 + 128A + 1}$. For $B > A$: $1 + k > 8A^2$, $k > 8A^2 - 1$. $k^2 > (8A^2 - 1)^2 = 64A^4 - 16A^2 + 1$. But $k^2 = 16A^2 + 128A + 1$. So $16A^2 + 128A + 1 > 64A^4 - 16A^2 + 1$, $32A^2 + 128A > 64A^4$, $A^2 + 4A > 2A^4$, $1 + 4/A > 2A^2$. For $A \geq 2$: $2A^2 \geq 8 > 1 + 4/A \leq 3$. So no solution with $B > A$ for $A \geq 2$ odd.
+
+So for $A$ odd $\geq 3$, Case 2 gives $B \leq A$, contradicting $B > A$. ✓
+
+For $A$ even, Case 2: $y = 4 + 3v_2(A)$. $f = 2^{3+3v_2(A)}$.
+
+$4AB^2 - A - B = 2^{3+3v_2(A)}$.
+
+$B = \frac{1 + \sqrt{1 + 16A(A + 2^{3+3v_2(A)})}}{8A}$.
+
+For $B > A$: $1 + \sqrt{1 + 16A^2 + 16A \cdot 2^{3+3v_2(A)}} > 8A^2$.
+
+$\sqrt{16A^2 + 16A \cdot 2^{3+3v_2(A)} + 1} > 8A^2 - 1$.
+
+$16A^2 + 16A \cdot 2^{3+3v_2(A)} + 1 > 64A^4 - 16A^2 + 1$ (for $8A^2 - 1 > 0$, i.e., $A \geq 1$).
+
+$32A^2 + 16A \cdot 2^{3+3v_2(A)} > 64A^4$.
+
+$A + 2^{3+3v_2(A)}/2 > 2A^3$... wait, divide by $16A$ (for $A \geq 1$):
+
+$2A + 2^{3+3v_2(A)} > 4A^3$.
+
+For $A = 2$ ($v_2 = 1$): $4 + 2^6 = 68 > 32 = 4 \cdot 8$. ✓ So $B > A$ is possible. But we showed $B$ is not an integer in this case.
+
+For $A = 4$ ($v_2 = 2$): $8 + 2^9 = 520 > 256 = 4 \cdot 64$. ✓ Possible but $B$ not integer.
+
+For $A = 6$ ($v_2 = 1$): $12 + 64 = 76 > 864 = 4 \cdot 216$? $76 < 864$. ✗ So $B \leq A$.
+
+For $A = 8$ ($v_2 = 3$): $16 + 2^{12} = 4112 > 2048 = 4 \cdot 512$. ✓ Possible but $B$ not integer.
+
+For $A = 10$ ($v_2 = 1$): $20 + 64 = 84 > 4000 = 4 \cdot 1000$? No. ✗
+
+For $A = 12$ ($v_2 = 2$): $24 + 512 = 536 > 6912 = 4 \cdot 1728$? No. ✗
+
+For $A = 16$ ($v_2 = 4$): $32 + 2^{15} = 32800 > 16384 = 4 \cdot 4096$. ✓ Possible.
+
+So for $A$ even, $B > A$ is possible when $2^{3+3v_2(A)}$ is large relative to $A^3$, which happens when $v_2(A)$ is large. But we need $B$ to be a positive integer, which requires the discriminant to be a perfect square.
+
+$1 + 16A(A + 2^{3+3v_2(A)}) = 1 + 16A^2 + 16A \cdot 2^{3+3v_2(A)}$.
+
+Let $A = 2^s \cdot m$ where $m$ is odd, $s = v_2(A) \geq 1$.
+
+$= 1 + 16 \cdot 2^{2s} m^2 + 16 \cdot 2^s m \cdot 2^{3+3s} = 1 + 2^{4+2s} m^2 + 2^{6+4s} m$.
+
+$= 1 + 2^{4+2s}(m^2 + 2^{2+2s} m) = 1 + 2^{4+2s} m(m + 2^{2+2s})$.
+
+For this to be a perfect square $k^2$: $k^2 = 1 + 2^{4+2s} m(m + 2^{2+2s})$.
+
+$k$ must be odd (since $k^2 \equiv 1 \pmod{2}$). Let $k = 2j + 1$.
+
+$(2j+1)^2 = 1 + 2^{4+2s} m(m + 2^{2+2s})$
+
+$4j^2 + 4j = 2^{4+2s} m(m + 2^{2+2s})$
+
+$j(j+1) = 2^{2+2s} m(m + 2^{2+2s})$
+
+Since $j$ and $j+1$ are coprime, and $m$ and $m + 2^{2+2s}$ have $\gcd = \gcd(m, 2^{2+2s}) = 1$ (since $m$ is odd), we need to distribute the factors.
+
+$j(j+1) = 2^{2+2s} \cdot m \cdot (m + 2^{2+2s})$.
+
+Since $\gcd(j, j+1) = 1$ and $\gcd(m, m + 2^{2+2s}) = 1$ (as $m$ is odd), and $2^{2+2s}$ is a power of 2:
+
+The factors $m$ and $m + 2^{2+2s}$ are both odd and coprime. The factor $2^{2+2s}$ must go entirely to either $j$ or $j+1$.
+
+Case i: $j = 2^{2+2s} \cdot \alpha$, $j + 1 = \beta$, with $\alpha \beta = m(m + 2^{2+2s})$ and $\gcd(\alpha, \beta) = 1$.
+
+Since $m$ and $m + 2^{2+2s}$ are coprime, either $\alpha = m, \beta = m + 2^{2+2s}$ or $\alpha = m + 2^{2+2s}, \beta = m$ (or other factorizations, but since they're coprime, the only coprime factorizations are these, up to units).
+
+Sub-case i.a: $j = 2^{2+2s} m, j + 1 = m + 2^{2+2s}$. Then $2^{2+2s} m + 1 = m + 2^{2+2s}$, $m(2^{2+2s} - 1) = 2^{2+2s} - 1$, $m = 1$ (since $2^{2+2s} - 1 > 0$). Then $A = 2^s$, $j = 2^{2+2s}$, $k = 2j + 1 = 2^{3+2s} + 1$.
+
+$B = \frac{1 + k}{8A} = \frac{2 + 2^{3+2s}}{2^{s+3}} = \frac{2(1 + 2^{2+2s})}{2^{s+3}} = \frac{1 + 2^{2+2s}}{2^{s+2}}$.
+
+For $s = 1$: $B = \frac{1 + 32}{8} = 33/8$. Not integer.
+
+For $s = 2$: $B = \frac{1 + 128}{16} = 129/16$. Not integer.
+
+For $s \geq 1$: $1 + 2^{2+2s}$ is odd, $2^{s+2}$ is a power of 2, so $B$ is not an integer. ✗
+
+Sub-case i.b: $j = 2^{2+2s}(m + 2^{2+2s}), j + 1 = m$. Then $2^{2+2s}(m + 2^{2+2s}) + 1 = m$, $m(2^{2+2s} - 1) = -2^{2(2+2s)} - 1$, $m = \frac{-(2^{2(2+2s)} + 1)}{2^{2+2s} - 1}$. Since $m > 0$, this is negative. ✗
+
+Case ii: $j = \alpha, j + 1 = 2^{2+2s} \beta$, with $\alpha \beta = m(m + 2^{2+2s})$ and $\gcd(\alpha, \beta) = 1$.
+
+Sub-case ii.a: $\alpha = m, \beta = m + 2^{2+2s}$. $j = m, j + 1 = 2^{2+2s}(m + 2^{2+2s})$. $m + 1 = 2^{2+2s}(m + 2^{2+2s})$. For $m \geq 1, s \geq 1$: RHS $\geq 4 \cdot (1 + 4) = 20 > 2 = m + 1$ (for $m = 1$). So no solution.
+
+Sub-case ii.b: $\alpha = m + 2^{2+2s}, \beta = m$. $j = m + 2^{2+2s}, j + 1 = 2^{2+2s} m$. $m + 2^{2+2s} + 1 = 2^{2+2s} m$, $m(2^{2+2s} - 1) = 2^{2+2s} + 1$, $m = \frac{2^{2+2s} + 1}{2^{2+2s} - 1} = 1 + \frac{2}{2^{2+2s} - 1}$.
+
+For $s \geq 1$: $2^{2+2s} - 1 \geq 15 > 2$, so $m$ is not an integer. ✗
+
+So Case 2 for $A$ even gives no integer solutions with $B > A$! ✓
+
+Case 3: $z - 1 = 3 + 3v_2(A)$. Then $v_2(\text{RHS}) = z - 1 + v_2(\text{odd} - \text{odd})$. The two terms (divided by $2^{z-1}$) are $(2^{z+1}A + 4A^2 + 1)$ and $\frac{8A^3(2A^2-1)}{2^{z-1}} = \frac{8A^3(2A^2-1)}{2^{3+3v_2(A)}} = \frac{A^3(2A^2-1)}{2^{3v_2(A)}}$. 
+
+With $A = 2^s m$ ($m$ odd, $s = v_2(A)$): $\frac{2^{3s} m^3 (2^{2s+1} m^2 - 1)}{2^{3s}} = m^3(2^{2s+1} m^2 - 1)$, which is odd.
+
+And $2^{z+1} A + 4A^2 + 1 = 2^{z+1} \cdot 2^s m + 4 \cdot 2^{2s} m^2 + 1 = 2^{z+1+s} m + 2^{2s+2} m^2 + 1$, which is odd (since all terms except the last are even).
+
+So $v_2(\text{RHS}) = z - 1 + v_2(\text{odd} - \text{odd})$. The difference of two odd numbers is even, so $v_2 \geq z$.
+
+$v_2(\text{RHS}) = z - 1 + v_2((2^{z+1}A + 4A^2 + 1) - m^3(2^{2s+1}m^2 - 1))$.
+
+This is getting very complicated. Let me just check specific values.
+
+For $A = 1$ ($s = 0, m = 1$): $z - 1 = 3$, $z = 4$. We already found this gives $(2, 6, 11)$. ✓
+
+For $A = 2$ ($s = 1, m = 1$): $z - 1 = 6$, $z = 7$. $B = (64 + 2)/15 = 66/15 = 22/5$. Not integer. ✗
+
+For $A = 3$ ($s = 0, m = 3$): $z - 1 = 3$, $z = 4$. $B = (8 + 3)/35 = 11/35$. Not integer. ✗
+
+For $A = 4$ ($s = 2, m = 1$): $z - 1 = 9$, $z = 10$. $B = (512 + 4)/63 = 516/63 = 172/21$. Not integer. ✗
+
+For $A = 5$ ($s = 0, m = 5$): $z - 1 = 3$, $z = 4$. $B = (8 + 5)/99 = 13/99$. Not integer. ✗
+
+For $A = 6$ ($s = 1, m = 3$): $z - 1 = 6$, $z = 7$. $B = (64 + 6)/143 = 70/143$. Not integer. ✗
+
+For $A = 7$ ($s = 0, m = 7$): $z - 1 = 3$, $z = 4$. $B = (8+7)/195 = 15/195 = 1/13$. Not integer. ✗
+
+So for $A \geq 2$, Case 3 gives no integer $B$. But I need to prove this in general, not just check small values.
+
+For $A$ odd ($s = 0, m = A$): $z = 4$. $B = (8 + A)/(4A^2 - 1)$. For $A \geq 3$: $4A^2 - 1 \geq 35 > 8 + A \leq 8 + A$. For $A = 3$: $35 > 11$. For $A \geq 3$: $4A^2 - 1 > A + 8$ (since $4A^2 - A - 9 > 0$ for $A \geq 2$). So $B < 1$, not a positive integer. ✗
+
+For $A$ even ($s \geq 1, m$ odd): $z = 4 + 3s$. $B = (2^{3+3s} + 2^s m)/(4 \cdot 2^{2s} m^2 - 1) = (2^{3+3s} + 2^s m)/(2^{2s+2} m^2 - 1)$.
+
+$= 2^s(2^{3+2s} + m)/(2^{2s+2} m^2 - 1)$.
+
+The denominator is odd. The numerator has $v_2 = s$. So $B = 2^s \cdot \frac{2^{3+2s} + m}{2^{2s+2} m^2 - 1}$.
+
+For $B$ to be a positive integer, $(2^{2s+2} m^2 - 1) | 2^s(2^{3+2s} + m)$. Since the denominator is odd, $(2^{2s+2} m^2 - 1) | (2^{3+2s} + m)$.
+
+For $m = 1$: $(2^{2s+2} - 1) | (2^{3+2s} + 1)$. $2^{3+2s} + 1 = 2 \cdot 2^{2s+2} + 1 - 1 = 2(2^{2s+2} - 1) + 3$. So $(2^{2s+2} - 1) | 3$. $2^{2s+2} - 1 \in \{1, 3\}$. $2^{2s+2} \in \{2, 4\}$, so $s = 0$ (but $s \geq 1$) or $s = 0$. No solution for $s \geq 1$.
+
+For $m \geq 3$: $2^{2s+2} m^2 - 1 \geq 4 \cdot 9 - 1 = 35$ and $2^{3+2s} + m \leq 2^{3+2s} + m$. For $s = 1$: denom $= 16m^2 - 1$, numer $= 32 + m$. $16m^2 - 1 > 32 + m$ for $m \geq 2$ ($16 \cdot 4 - 1 = 63 > 34$). So $B < 1$. ✗
+
+For $s \geq 2, m \geq 1$: denom $\geq 2^6 - 1 = 63$, numer $\leq 2^7 + m$. For $m = 1$: $63 | 129$? $129/63 \approx 2.05$, $129 =
