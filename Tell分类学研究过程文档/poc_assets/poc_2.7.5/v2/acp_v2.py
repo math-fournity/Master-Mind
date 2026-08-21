@@ -24,7 +24,7 @@ SKILL = Path("~/.config/opencode/skills/oc-trajectory/scripts/oc_traj.py")
 CWD = Path("/tmp/p275-1962-v2")
 MODEL = "openrouter/stealth/ox-alpha"
 EFFORT = "max"
-SILENT = 30
+SILENT = 300
 MAXRT = 120 * 60
 
 
@@ -77,6 +77,7 @@ def assert_config(proc, sid, cid, value, rid, log):
 
 def main():
     n = int(sys.argv[1])
+    role = sys.argv[2] if len(sys.argv) > 2 else "auto"
     prev = n - 1
     tag = f"r{n}"
     # ---- 1. 现场准备 ----
@@ -93,7 +94,9 @@ def main():
     print(f"[stage] 现场={CWD} 历史轮次={[p.name for p in sorted(rounds_dst.iterdir())]}", flush=True)
 
     # ---- 2. prompt ----
-    tpl = (V2 / ("prompt_round1.md" if n == 1 else "prompt_roundN.md")).read_text()
+    tplname = {"observer": "prompt_observer.md", "solver": "prompt_solver.md"}.get(
+        role, "prompt_round1.md" if n == 1 else "prompt_roundN.md")
+    tpl = (V2 / tplname).read_text()
     prompt_text = tpl.replace("{ROUND_NUM}", str(n)).replace("{PREV_NUM}", str(prev))
     OUT = CWD / f"acp_out_{tag}"
     OUT.mkdir(exist_ok=True)
@@ -143,6 +146,9 @@ def main():
     tools_state = {}
     prompt_response = None
     while True:
+        if proc.poll() is not None:
+            print("[done] opencode进程已退出", flush=True)
+            break
         r, _, _ = select.select([proc.stdout], [], [], 5)
         now = time.time()
         if not r:
