@@ -24,7 +24,7 @@
 
 1. **DB**：`ARANGO_DB=xishujuzhen_math_glm52`，运行前必须`echo $ARANGO_DB`确认。忘了source `.env`会fallback到错误数据库。详见`RepoInfo.md`
 2. **Git**：只在`glm5.2`分支，显式路径add（禁`-A`/`-.`/`-u`），改前清干净改后立即commit，push需用户授权
-3. **解题系统已拆分**：pipe系统/solver相关skills和文档已迁移到独立repo`~/master-mind-normal-solver/`。本repo不再包含解题系统代码。详见该repo的`AGENTS.md`
+3. **两大解题系统在独立repo**：①平凡解题系统`~/master-mind-normal-solver/`——pipe系统（5服务+Redis队列）让AI直接在TUI中解题，已大规模运行，产出大量截断题（单次输出上限导致thinking spin中途停止）和trace；②续传解题系统`~/master-mind-analysis-system/`——多轮次续传解题管线（Pipe 4，持续迭代中），用handover交接文档续传解决平凡系统未解出的题，glm-5.2已在其中解出约148道这类题（DB实况2026-08-21：10,072 run入池，151 completed）。本repo不再包含解题系统代码。进入哪个repo工作前必须先读该repo的`AGENTS.md`
 4. **不做清单**（123号·硬约束）：①不先扩张再验证 ②不答案泄漏 ③不用覆盖率代正确 ④不伪造CoT ⑤不角色混用 ⑥不混淆L1/L2/L3 ⑦不未定义宣称同调洞 ⑧不在线自动写入production H。详见`WorkPrinciples.md`
 
 ---
@@ -50,6 +50,8 @@
 | 跨session认知（POC-VMS方法论/第五代核心设计/第一性原理基线）/交接记录 | `MemoryArchive.md` |
 | 术语（xishujuzhen/tell/hint/Pipe/概念树等） | `Glossary.md` |
 | 认知资产索引/原语目录/论文原语化版/五代技术说明书 | `SystemAssets.md` |
+| 平凡解题系统（pipe架构/运行SOP/审计方法） | `~/master-mind-normal-solver/`的`AGENTS.md`+`README.md` |
+| 续传解题系统（Pipe 4管线/SOP/src/docs） | `~/master-mind-analysis-system/`的`AGENTS.md`+`README.md` |
 
 ### 其他关键文档
 
