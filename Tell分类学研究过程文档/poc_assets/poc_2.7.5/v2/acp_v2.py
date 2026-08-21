@@ -201,8 +201,9 @@ def main():
         "工作笔记": (CWD / "工作笔记.md").exists(),
         "分析笔记": (CWD / "分析笔记.md").exists(),
     }
-    truncated = (usage.get("outputTokens") == 32000 and counts["message"] == 0
-                 and counts["tool"] == 0)
+    # 截断指纹：outputTokens恰为整上限值即判（message/tool计数不再作为必要条件——
+    # 解题者轮可能用工具后仍被截断，R4实证）
+    truncated = (usage.get("outputTokens") == 32000)
     result.update({
         "counts": counts, "usage": usage, "notes_present": notes,
         "proof_md": proof.exists(),
