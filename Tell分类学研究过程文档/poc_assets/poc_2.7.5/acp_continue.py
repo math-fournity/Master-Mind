@@ -30,10 +30,12 @@ from pathlib import Path
 REPO = Path("~/master-mind-glm5.2-worktree")
 POC_DIR = REPO / "Tell分类学研究过程文档/poc_assets/poc_2.7.5"
 WORKDIR_REPO = POC_DIR / "workdirs/p275-1962"
-HANDOVER_FILE = WORKDIR_REPO / "HANDOVER_R1.md"
+TAG = sys.argv[1] if len(sys.argv) > 1 else "r2"   # 轮次标签: r2/r3/...
+# argv[2] = 上一轮整理者产出的HANDOVER路径（本轮的推理输入）
+HANDOVER_FILE = Path(sys.argv[2]) if len(sys.argv) > 2 else WORKDIR_REPO / "HANDOVER_R1.md"
 
 CWD = Path("/tmp/p275-1962-acp")          # 隔离工作区
-OUT = CWD / "acp_out"                      # trajectory落盘
+OUT = CWD / f"acp_out_{TAG}"               # trajectory落盘
 MODEL = "openrouter/stealth/ox-alpha"
 EFFORT = "max"
 SILENT_DONE_SEC = 30
@@ -292,7 +294,7 @@ def main():
     for name in ("proof.md",):
         src = CWD / name
         if src.exists():
-            shutil.copy(src, WORKDIR_REPO / f"r2_{name}")
+            shutil.copy(src, WORKDIR_REPO / f"{TAG}_{name}")
 
     print(json.dumps({k: result[k] for k in
                       ("final_status", "counts", "boxed_found",
