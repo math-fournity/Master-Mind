@@ -248,7 +248,7 @@ AI的工作流程（从conversation.json的agent steps确认）：
 
 ---
 
-## POC-2.7.5 续传发现对前置POC的影响评估（🔄影响评估已完成·1962补验证进行中）
+## POC-2.7.5 续传发现对前置POC的影响评估（✅完成——1962终版判定：截断可救，POC-1重审触发）
 
 **方案文档**：`Tell分类学研究过程文档/416-v0-2026-08-18-POC-2.7.5-续传发现对前置POC的影响评估.md`
 **影响评估报告**：`Tell分类学研究过程文档/poc_assets/poc_2.7.5/impact_assessment_report.md`（2026-08-21产出）
@@ -290,9 +290,9 @@ AI的工作流程（从conversation.json的agent steps确认）：
 | TellCore的因果贡献 | 从失败到成功 | 从续传5轮失败到成功，或减少续传轮次/时间 |
 | 正迁移题的筛选标准 | DIRECTION_ERROR | 续传后仍然失败 |
 
-### 后续序列调整（2026-08-21）
+### 后续序列调整（2026-08-21晚·终版）
 
-POC-2.5b（强因果版）挂起等TRUNCATED_AT_MAX供给；新增**POC-2.5c弱因果版**（418号骨架）——以续传系统152道completed题为选题池，测"给Hint后能否0轮解出"，处理组资产有效性挂起等1962判据。
+1962补验证完成：v2编排六轮接力产出完整proof.md（16解boxed，COMPLETED）。终版判定=**截断可救**（verdict_1962.md），覆盖第三类判定。POC-1重审触发（401号头部回执）；POC-2.5b选题前提细化（TRUNCATED_AT_MAX vs BUDGET_STARVED区分，见047号修正6）；POC-2.5c处理组资产待POC-1重审后定。
 
 ---
 

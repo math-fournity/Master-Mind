@@ -94,9 +94,9 @@
 
 ---
 
-## §6 1962补验证执行记录
+## §6 1962补验证执行记录【已完成，终版判定见verdict_1962.md】
 
-- 启动时间：2026-08-21 12:47（tmux session `poc275-1962`）
-- 脚本：`poc_assets/poc_2.7.5/run_1962_revalidation.py`（Round 1新跑bare替代seed_export复用；续传轮v1机械拼接——纯thinking spin场景已被POC-2.6验证）
-- 判定标准：416号§5.2（COMPLETED→截断错误→POC-1重审；TRUNCATED_AT_MAX→真思维错误→POC-1维持）
-- 结果：见`results_1962.json`（实验结束后回填本节）
+- 执行链：R1(glm-5-2 bare) + v1 HANDOVER模式五轮（全部预算截断）+ **v2编排六轮（观察者/解题者递归消化链，实验成功）**
+- 最终产物：`v2run/rounds/round6/proof.md`——完整证明（COMPLETED，16解boxed，独立数值验证）
+- **终版判定：截断错误，续传可救（第一类）**——覆盖早前第三类判定。POC-1重审触发，行动项与分层影响见`verdict_1962.md`§2
+- 方法论副产物：观察者/解题者专职编排、oc-trajectory skill、截断指纹、静默阈值——详见续传系统repo dev-docs/047/053号
