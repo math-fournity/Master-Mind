@@ -11,12 +11,13 @@
 |---|---|---|---|---|---|---|
 | POC-0 | CasePack冻结 | ✅完成 | 399号 | `poc_assets/poc_0/` | — | — |
 | POC-0.5 | 变形关系声明 | ✅完成 | 400号 | `poc_assets/poc_0.5/` | — | — |
-| POC-1 | 因果取商增强版 | ⚠️重审触发(2026-08-21)——执行已完成，产出候选v0.2 | 401号+419号 | `poc_assets/poc_1/`(旧)+`poc_1/candidates_v0.2.yaml`(新草案) | `poc_2.7.5/poc1rev/` | — |
+| POC-1 | 因果取商增强版 | ✅完成——重审产出候选v0.2已采纳(2026-08-22) | 401号+419号 | `poc_assets/poc_1/`(旧归档)+`poc_1/candidates_v0.2.yaml`(正式) | `poc_2.7.5/poc1rev/` | — |
 | POC-2 | 可选择 | 待执行 | 402号 | `poc_assets/poc_2/` | — | — |
 | POC-2.5 | 基础因果效应验证 | ⚠️执行中 | 398号 | `poc_assets/poc_2.5_round1/` + `poc_2.6/` | sessions.db | 2份(见下) |
 | POC-2.6 | 续传机制验证 | ✅完成 | 399号(2.6) | `poc_assets/poc_2.6/` | sessions.db | 2份(见下) |
 | POC-2.7 | 截断vs思维错误 | ⚠️执行中 | 415号 | `poc_assets/poc_2.7/` | ArangoDB | — |
-| POC-2.7.5 | 续传发现对前置POC的影响评估 | ⚠️执行中 | 416号 | `poc_assets/poc_2.7.5/` | — | — |
+| POC-2.7.5 | 续传发现对前置POC的影响评估 | ✅完成——1962终版判定：截断可救 | 416号 | `poc_assets/poc_2.7.5/` | — | — |
+| POC-2.5c | 基础因果效应验证·弱因果版 | ⚠️启动中(2026-08-22)——v0.2候选Ⅰ单臂12题T/C试点，实验矩阵已冻结 | 418号+`poc_2.7.5/v2/poc25c_experiment_design.md` | `poc_assets/poc_25c/`(建立中)+`poc_1/candidates_v0.2.yaml` | ArangoDB(p27_continuation_runs选题池) | — |
 | POC-3.5 | Hint非特化程度验证 | 待执行 | 403号 | `poc_assets/poc_3.5/` | — | — |
 | POC-3 | 可执行 | 待执行 | 404号 | — | — | — |
 | POC-4 | 可终止 | 待执行 | 405号 | — | — | — |
@@ -373,6 +374,6 @@ AI的工作流程（从conversation.json的agent steps确认）：
 | conversation.json Schema | `devin-cli-export-conversation.md`（项目根目录） | POC-2.7.6 |
 | trajectory.jsonl Schema | `trajectory-schema.md`（项目根目录） | POC-2.7.6 |
 
-## POC-1重审（⚠️触发·方案=419号）
+## POC-1重审（✅完成·方案=419号·产出已采纳）
 
-1962终版判定（截断可救）触发401号重审：7字段结构存活，因果充分性宣称悬置，Pareto证据降级。重构路径=以v2 R4 thinking为新提取素材产出候选TellCore v0.2（弱因果框架）。方案与工作分解见`Tell分类学研究过程文档/419-v0-2026-08-21-POC-1重审方案.md`。
+1962终版判定（截断可救）触发401号重审：7字段结构存活，因果充分性宣称悬置，Pareto证据降级。重构路径=以v2 R4/R6 thinking为素材双审查者独立提取，产出候选TellCore v0.2四条（弱因果框架）。**2026-08-22用户拍板采纳v0.2四候选**，取代旧候选A/B/C（归档+Evidence-downgraded）。首个下游应用：POC-2.5c候选Ⅰ单臂12题T/C试点（实验矩阵冻结于`poc_assets/poc_2.7.5/v2/poc25c_experiment_design.md`）。
