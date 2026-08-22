@@ -15,6 +15,7 @@
   C组 = 题面+约束块（与T组hint后内容逐字一致）
 """
 
+import json
 import shutil
 from pathlib import Path
 
@@ -75,6 +76,11 @@ def main():
                 out.write_text(HINT_BLOCK + full_problem)
             else:
                 out.write_text(full_problem)
+            # 送达校验锚点固化（2026-08-22：688磁盘题面无"# Problem"头，运行期探测破产）
+            (rd / "anchors.json").write_text(json.dumps({
+                "body_head": full_problem[:60],
+                "cons_tail": full_problem[-45:].strip(),
+            }, ensure_ascii=False))
             print(f"written {out.relative_to(HERE)} ({out.stat().st_size}B)")
     # T/C一致性断言：每题C组全文必须是T组去掉hint块的剩余部分
     for pid in PROBLEMS:
