@@ -11,7 +11,7 @@
 |---|---|---|---|---|---|---|
 | POC-0 | CasePack冻结 | ✅完成 | 399号 | `poc_assets/poc_0/` | — | — |
 | POC-0.5 | 变形关系声明 | ✅完成 | 400号 | `poc_assets/poc_0.5/` | — | — |
-| POC-1 | 因果取商增强版 | ✅完成(有条件) | 401号 | `poc_assets/poc_1/` | — | — |
+| POC-1 | 因果取商增强版 | ⚠️重审触发(2026-08-21)——执行已完成，产出候选v0.2 | 401号+419号 | `poc_assets/poc_1/`(旧)+`poc_1/candidates_v0.2.yaml`(新草案) | `poc_2.7.5/poc1rev/` | — |
 | POC-2 | 可选择 | 待执行 | 402号 | `poc_assets/poc_2/` | — | — |
 | POC-2.5 | 基础因果效应验证 | ⚠️执行中 | 398号 | `poc_assets/poc_2.5_round1/` + `poc_2.6/` | sessions.db | 2份(见下) |
 | POC-2.6 | 续传机制验证 | ✅完成 | 399号(2.6) | `poc_assets/poc_2.6/` | sessions.db | 2份(见下) |
