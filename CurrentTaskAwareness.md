@@ -29,31 +29,30 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
 - **操作状态（commit游标/坑清单/恢复命令）**：`任务追踪/09-解题侧脉络分析新方案执行.md`
 - **编号注意**：393/394/395号已被391号预留（P1结果/P2协议/P2结果），解题侧新文档从396号起；第六代目录与Tell分类学目录在380-389段已冲突，跨目录查编号勿只看一个目录
 
-### 当前任务：非特化研究（2026-08-17起·活跃·并行于大规模解题系统和错题分析系统）
+### 当前任务：非特化研究（2026-08-17起·活跃·并行于两大解题系统）
 
-**任务定位**：非特化研究是一个独立任务线，并行于"大规模解题系统运行"和"错题分析系统运行"。它的目标是验证(Tell, Hint)的有效性——从正确的答题过程中分层提取有价值的解题思维，将其中因果充分的认知动作提炼成TellCore，按相应非特化策略产生Hint，最终Hint能摸到钟形曲线最高点（或Pareto前沿）。
+**任务定位**：非特化研究是一个独立任务线。目标是验证(Tell, Hint)的有效性——从正确的答题过程中分层提取有价值的解题思维，将其中因果充分的认知动作提炼成TellCore，按相应非特化策略产生Hint。
 
-**与其他任务的并行关系**：
+**与其他任务的并行关系（2026-08-21更新——两大解题系统均已迁出本repo）**：
 
 ```
-任务线1：大规模解题系统运行（Pipe 0 Solver AI跑题）
-  → 产出：bare AI的失败trace和成功trace
-  → 代码：xishujuzhen/solver_harness/
+任务线1：平凡解题系统运行
+  → 位置：独立repo ~/master-mind-normal-solver/（pipe系统5服务+Redis）
+  → 状态：大规模运行中；产出大量截断题（单次输出上限致thinking spin中途停止）与trace
 
-任务线2：错题分析系统运行（Pipe 1分析→Pipe 2审计→Pipe 3选题）
-  → 产出：d1/d2判定 + 审计通过的结果 + **Pipe 3语义选题结果（708条，含6项POC准备数据，47道YES候选+69道假朋友+30道边界）**
-  → 代码：analysis-devin-failure-system/
-  → 文档：dev-docs/387号（方案）、388号（rate limit根因）、Tell分类学研究过程文档/412号（Pipe 3扩展方案）
-  → 状态：Pipe 3规模化运行已完成（2026-08-17），产出已就绪供POC-0使用
+任务线2：续传解题系统运行
+  → 位置：独立repo ~/master-mind-analysis-system/（Pipe 4续传管线）
+  → 状态：持续迭代中；glm-5.2已解出约148道平凡系统未解出的题（DB: p27_continuation_runs, 10,072 run入池/151 completed）
+  → 注意：原错题分析系统的Pipe 1/2/3已删除转型为Pipe 4；本repo内的analysis-devin-failure-system/目录是历史残留
 
 任务线3：非特化研究（POC-0~9验证Tell/Hint有效性）← 本任务
-  → 输入：错题分析系统的Pipe 3选题结果（**47道候选题+69道假朋友+30道边界+6项POC准备数据，已就绪**）
-  → 产出：TellCore v0 + HintRenderer + HintInstance + EvidenceRecord + 钟形曲线/Pareto前沿实验证据
-  → 文档：Tell分类学研究过程文档/396-410号
-  → 代码：暂无独立代码（POC阶段以方案文档驱动，执行时复用solver_harness）
+  → 输入：Pipe 3时代选题结果（47道候选+69道假朋友+30道边界，冻结可用）+ v2实验R4/R6成功trace（新提取素材）
+  → 产出：TellCore（v0.1→重审中v0.2）+ HintRenderer + HintInstance + 弱因果框架下的实验证据
+  → 文档：Tell分类学研究过程文档/396-419号
+  → 代码：poc_assets/poc_2.7.5/v2/（ACP驱动器+提示词模板）
 ```
 
-**三线接力关系**：任务线1跑题→任务线2分析审计选题→任务线3验证Tell/Hint有效性。任务线3的输入依赖任务线2的Pipe 3产出，但任务线3的理论研究和POC方案设计可以与任务线1/2并行进行。
+**三线关系（2026-08-21版）**：任务线1产出截断题与trace → 任务线2用续传救活并产出成功trace → 任务线3从成功trace提取TellCore、渲染Hint、验证因果效应。任务线2的v2编排实验（1962案例）同时是任务线3的方法论验证场。
 
 **核心文档体系**：
 
@@ -75,26 +74,25 @@ devin cli载体失效，错题分析系统（`analysis-devin-failure-system/`）
   → 这是POC-0的前置依赖——没有Pipe 3产出，POC-0只能退回人工筛选1071条DIRECTION_ERROR题
 
 Phase A：策略对象成形
-  POC-0 CasePack冻结（✅v1已冻结·2026-08-17）——从Pipe 3产出精筛6正迁移+4假朋友+2边界，保留v0的source_trace/变形/组合→22道CasePack v1（`poc_assets/poc_0/casepack_v1.md`）
-  POC-0.5 变形关系声明（✅已完成·2026-08-18·400号方案，变换→题目映射审查完成，7个gap标注留待未来题包扩展）
-  POC-1 因果取商增强版（✅已完成·2026-08-18·401号方案，提取完备性检查+Pareto前沿分析+遗漏项裁决完成，标准8✅通过（有条件）——3条遗漏全部补入（思维C→binding_rules扩展/思维D→internal_policy step4扩展/思维F→internal_policy新增step4.5），3个候选噪声全部保留但有标记，修订候选TellCore v0.1已记录，Pareto前沿={候选B,C}不变。有条件通过的条件：POC-3验证3个补入可执行+POC-2.5验证3个候选噪声部分可删除）
+  POC-0 CasePack冻结（✅v1已冻结·2026-08-17——⚠️POC-2.7.5后"bare可失败"否决项需按新标准复核正迁移题资格）
+  POC-0.5 变形关系声明（✅已完成·2026-08-18·不受续传发现影响）
+  POC-1 因果取商增强版（⚠️**重审触发**·2026-08-21·419号方案——1962判定证明对照基线假失败，7字段存活/因果充分性悬置/Pareto证据降级；重审四步已完成，产出候选TellCore v0.2三条（poc_1/candidates_v0.2.yaml），**待用户采纳决策**）
 
 Phase B：基础验证
-  POC-2 可选择（402号方案）
-  POC-2.5 基础因果效应验证（新增·398号方案·快速失败门·⚠️执行中——2026-08-18批量续传运行中，15个run串行，CC-101_bare已完成(POC-2.6)，CC-101_vein执行中。详见下方"POC-2.5批量续传实例"定位方法）
-  POC-2.6 续传机制验证（新增·399号方案·✅已完成·2026-08-18·单题测试CC-101_bare通过——Round 1被截断(rc=54K,msg=0)，Round 2续传后AI在Round 1 thinking基础上继续，19个agent step多轮工具调用，写出proof.md(答案boxed{4})，completed=True。续传脚本：`Tell分类学研究过程文档/poc_assets/poc_2.6/continue_solver.py`，支持find/kill命令基于cwd精确管理devin进程）
-  POC-2.7 截断vs思维错误（新增·415号方案·▶️**运行中**——919道DIRECTION_ERROR题全量续传，验证续传能否大规模解决截断问题。通过标准COMPLETED≥50%。**系统已实现为Pipe 4+Monitor Pipe**——2026-08-18 12:47启动，3个服务（launcher+monitor+watchdog）全部运行中，concurrency=5, max_rounds=5, method=v2。详见下方"POC-2.7系统运行与检查"节）
-  POC-3.5 Hint非特化程度验证（新增·403号方案·396号核心论断的验证·最关键）
-  POC-3 可执行（404号方案·用POC-3.5确定的峰值HintInstance）
-  POC-4 可终止（405号方案）
+  POC-2 可选择（402号方案·待v0.2采纳后用新候选重跑）
+  POC-2.5 基础因果效应验证（❌废弃·选题前提坍塌）→ POC-2.5b强因果版（⏸️挂起·等TRUNCATED_AT_MAX供给）→ **POC-2.5c弱因果版（418号方案·▶️处理组定稿草案就绪：v0.2三候选+HintInstance样例（v2/hintinstance_candidate1_sample.md），待用户决策采纳与启动时机）**
+  POC-2.6 续传机制验证（✅完成·399号）
+  POC-2.7 截断vs思维错误（✅由续传解题系统Pipe 4接管执行·DB实况10,072 run/152 completed；**1962案例经v2编排六轮接力完成完整证明（16解boxed）→ 判定=截断可救，POC-1重审触发**。方法论产出：观察者/解题者专职编排+SOP修正案（续传系统repo dev-docs/047/053号））
+  POC-3.5 Hint非特化程度验证（403号·材料源更新为v0.2候选）
+  POC-3 可执行（404号）/ POC-4 可终止（405号）
 
 Phase C：归责与学习
-  POC-6 可归责（406号方案·干预矩阵·检测Mid-Hint"所有提示都有效"问题）
-  POC-7 可持续学习简化版（407号方案·只做反例识别+修订候选记录）
+  POC-6 可归责（406号）
+  POC-7 可持续学习简化版（407号·POC-1重审全程已作为首个闭环案例归档）
 
 Phase D：端到端
-  POC-8 端到端闭环（408号方案·+跨模型验证）
-  POC-9 识别端验证（新增·409号方案·可并行于POC-8）
+  POC-8 端到端闭环（408号）
+  POC-9 识别端验证（409号·可并行）
 ```
 
 POC-5可组合推迟到第二个Tell家族验证后。
