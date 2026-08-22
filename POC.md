@@ -17,7 +17,7 @@
 | POC-2.6 | 续传机制验证 | ✅完成 | 399号(2.6) | `poc_assets/poc_2.6/` | sessions.db | 2份(见下) |
 | POC-2.7 | 截断vs思维错误 | ⚠️执行中 | 415号 | `poc_assets/poc_2.7/` | ArangoDB | — |
 | POC-2.7.5 | 续传发现对前置POC的影响评估 | ✅完成——1962终版判定：截断可救 | 416号 | `poc_assets/poc_2.7.5/` | — | — |
-| POC-2.5c | 基础因果效应验证·弱因果版 | ⚠️启动中(2026-08-22)——v0.2候选Ⅰ单臂12题T/C试点，实验矩阵已冻结 | 418号+`poc_2.7.5/v2/poc25c_experiment_design.md` | `poc_assets/poc_25c/`(建立中)+`poc_1/candidates_v0.2.yaml` | ArangoDB(p27_continuation_runs选题池) | — |
+| POC-2.5c | 基础因果效应验证·弱因果版 | ⚠️Batch-1完成待裁决(2026-08-22)——T4/12vsC4/12配对对称零净效应+C组33%解出触发池污染条款，详见`poc_25c/batch1_EvidenceRecord.md` | 418号+`poc_2.7.5/v2/poc25c_experiment_design.md` | `poc_assets/poc_25c/`(全)+运行现场D盘poc25c-batch1 | ArangoDB(p27_continuation_runs选题池) | batch1_EvidenceRecord.md |
 | POC-3.5 | Hint非特化程度验证 | 待执行 | 403号 | `poc_assets/poc_3.5/` | — | — |
 | POC-3 | 可执行 | 待执行 | 404号 | — | — | — |
 | POC-4 | 可终止 | 待执行 | 405号 | — | — | — |
