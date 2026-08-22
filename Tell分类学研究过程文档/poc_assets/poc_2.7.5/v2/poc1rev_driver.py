@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-CWD = Path("/tmp/p275-1962-poc1rev")
+CWD = Path("/tmp/p275-1962-r6ext")
 OUT = CWD / "acp_out"
 MODEL = "openrouter/stealth/ox-alpha"
 EFFORT = "max"
