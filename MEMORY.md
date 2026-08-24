@@ -13,8 +13,9 @@ This file records current state for future sessions. It is a handoff surface, no
 
 ## Active Goal
 
-Complete the Math Master Manufacturing repo governance alignment so future AI sessions can quickly establish
-complete, evidence-traceable cognitive closure before answering or changing the project.
+Use the completed governance alignment as the safety baseline for a new sixth-generation current-state repo
+reconstruction. The binding working guide is
+`dev-docs/sixth-gen-current-repo/action-guide-2026-08-24.md`.
 
 ## Verified Facts
 
@@ -34,6 +35,7 @@ complete, evidence-traceable cognitive closure before answering or changing the 
 | History lineage | verified | Update lineage when new system islands or migrations happen | GOV-004, GOV-005 |
 | Audit closure | verified | Use the closure file as the entry for auditing this alignment | GOV-001, GOV-003 |
 | Seven verification | verified | Re-run when Seven code/contracts change | GOV-003 |
+| Sixth-generation current repo reconstruction | planned | Create `pre-sixth-gen-current-repo-2026-08-24` and `codex/sixth-gen-current-repo-2026-08-24`, then follow the action guide | GOV-010 |
 
 ## Open Questions
 
@@ -59,3 +61,9 @@ and verification evidence in `e52927f`.
 Validation evidence is in `dev-docs/governance-alignment-manifests/final-validation-results.json`: governance
 layout PASS, `git diff --check` PASS, POC-2.5c scripts `py_compile` PASS, Seven tests `2385 passed`, D disk
 offload verification PASS, and baseline file reconciliation PASS with 0 unknown paths.
+
+### 2026-08-24 - Sixth-Generation Reconstruction Guide Added
+
+The user narrowed the next objective from full historical canonicalization to a sixth-generation current-state
+repo reconstruction. The working constitution is now rooted in `AGENTS.md` and detailed in
+`dev-docs/sixth-gen-current-repo/action-guide-2026-08-24.md`.

@@ -9,6 +9,7 @@ Current governance-alignment entries:
 - `governance-alignment-baseline-2026-08-24.md`
 - `external-large-data-offload-2026-08-24.md`
 - `governance-alignment-manifests/`
+- `sixth-gen-current-repo/action-guide-2026-08-24.md`
 
 Historical numbered docs remain in place as evidence. Use `docs/history/legacy-assets.md` and
 `docs/history/git-log-lineage.tsv` to route into them.

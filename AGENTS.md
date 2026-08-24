@@ -36,6 +36,24 @@ and correctly.
 The old `RepoInfo.md` rule "only work on `glm5.2`" is superseded only for the user-authorized governance
 alignment branch. For ordinary future work, check `rulings.md` and `MEMORY.md` before changing branch policy.
 
+## Current Reconstruction Constitution
+
+The next authorized direction is to turn this worktree into a sixth-generation current-state repository, not to
+canonicalize every historical system. Before starting that work, read and follow:
+
+`dev-docs/sixth-gen-current-repo/action-guide-2026-08-24.md`
+
+That guide is binding for the reconstruction until it is superseded by an explicit user ruling. In short:
+
+- open a new tag and branch before any broad migration;
+- preserve this governance-alignment branch as the safety baseline;
+- keep only sixth-generation current code, docs, prompts, evidence, and governance in the active worktree;
+- extract still-current sixth-generation knowledge from older systems before removing their visible directories;
+- classify every old path as current, extracted, history-only, D-disk external data, local excluded, or unknown;
+- do not allow `unknown` at completion;
+- do not rewrite Git history, push, write DBs, start solver batches, or run external systems without explicit
+  current authorization.
+
 ## System Islands
 
 This is a super repo, not one clean application. Treat each island as a bounded historical or active system:

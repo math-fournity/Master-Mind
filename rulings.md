@@ -42,3 +42,11 @@ This alignment was implemented without subagents.
 
 The governance alignment is local. Do not push, write databases, start external solver batches, or run external
 systems unless the user separately authorizes that action.
+
+## R-008 - 2026-08-24 - Sixth-Generation Current Repo Working Constitution
+
+The user narrowed the next governance objective: instead of canonicalizing the entire historical super repo,
+future work should turn this worktree into a sixth-generation current-state repo. The action guide should be
+persisted so future sessions after context compression can find and follow it. The project `AGENTS.md` should
+carry the binding short constitution, and the complete guide should live under
+`dev-docs/sixth-gen-current-repo/action-guide-2026-08-24.md` until superseded by an explicit user ruling.
