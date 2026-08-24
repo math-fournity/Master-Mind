@@ -27,6 +27,20 @@ path，字段数和 path 集合一致。由于 macOS 当前 locale 会把不同�
 中文 path 分类、唯一性和集合检查统一使用 `LC_ALL=C` 的字节级比较。当前仍有 5,795 条
 `retain/extract/history` 候选动作待概念证据核验，不能把 literal `unknown=0` 写成迁移已经完成。
 
+## Final Path Decision Dry-Run
+
+在19个概念族、canonical docs、current code/tests和Git替代关系闭合后，19,286个baseline path已全部
+获得final action：798个`keep-current`、7个`extract-current-knowledge`、5,397个`history-only`、
+13,084个`exclude-local`；pending和unknown均为0，target collision为0。
+
+计划中的物理迁移共697个path：26个Prompt迁入`prompts/absorb/`，95个第六代R&D来源迁入
+`docs/history/sixth-generation/rnd/`，19个旧第六代说明迁入`docs/history/sixth-generation/legacy-spec/`，
+557个Tell/非特化研究与POC资产迁入`evidence/history/tell-research/`。其余history-only内容不复制进
+目标树，由`pre-sixth-gen-current-repo-2026-08-24`和逐path Git pointer恢复。
+
+本节仍是迁移计划，不表示文件已经移动。物理迁移前必须清除current `.ref` 对待移除目录的依赖，
+并把仍有效的 `.devin` 开发纪律归一到current development contract。
+
 ## Git 历史逆向结果
 
 截至安全基线，原项目历史为 1,397 个主要开发提交；加入本轮治理提交后当前 refs 可见 1,401 个提交。历史从 2026-07-07 的星学/排盘系统开始，不能把这段早期历史伪装成第六代系统的出生点。
@@ -73,18 +87,16 @@ path，字段数和 path 集合一致。由于 macOS 当前 locale 会把不同�
 2. `system/README.md` 已记录 391 替代 363，但旧 363 文件和 route-lock 仍必须保留为历史物证；迁移时不能把“替代”误做成物理删除。
 3. `.devin/rules/` 中既有第六代开发纪律，也有后来解题/续传系统的规则；必须按运行时可见性和消费者逐文件划分，不能整目录复制到未来 runtime context。
 4. `Tell分类学研究过程文档/`、`runs/`、`subagents-dirs/`、`palyground/` 含大量证据和生成物；它们的保留方式需要按“当前证据、历史证据、D 盘外置、local/cache”四类逐项核对。
-5. 初始 `unknown=69` 已归零，但 5,795 条候选动作仍需代码、测试、消费者和历史证据决定最终类别；不得用前缀批量决策。
+5. Final path action 已归零 pending；剩余风险是迁移执行期间的 ref/import/link 完整性和历史恢复验证。
 6. 当前没有授权使用数据库或外部运行系统补足 live 事实，因此所有 live/资格化结论必须保持证据准确的降级状态。
 
 ## 下一步执行顺序
 
-1. 沿 19 个概念族闭合 5,795 条 pending path action；先完成抽取目标和历史理由，不作内容迁移。
-2. 沿概念账本读取对应代码、`.ref`、`.ai-check`、模块 docs、tests、fixtures、POC 结果和精确 Git diff，修正每个概念的 commit、当前状态、canonical target 与冲突。
-3. 建立第六代 canonical docs：scope、domain concepts、system architecture、detailed contracts、AI role/prompt contracts、data boundaries、quality/qualification gates、history/replacements。每个文档只维护一个当前真值，并回指底层证据。
-4. 建立 `prompts/` 与 `evidence/` 仅在真实资产边界确认后进行；大数据和大 run body 继续使用 D 盘指针，不复制进活动 Git 内容。
-5. 对旧目录执行“先抽取、后迁移”：每一条 `git mv` 或删除都先在迁移表登记 old path、new path、理由、恢复方式和证据；优先使用 Git 保留可恢复性，避免批量物理删除。
-6. 在活动根目录只保留第六代实现、当前治理、canonical docs、Prompt/证据/数据指针和必要开发工具；Seven、Eight、分析系统、第五代和原语目录从活动路由中移出，保留 Git/tag/history 指针。
-7. 最后重新生成当前文件对账，要求 `unknown=0`；运行治理验证、链接/路径检查、`git diff --check`、安全的 Python compile 和 system 测试。任何需要 DB 写入、外部 solver 或 live qualification 的步骤都停在授权边界。
+1. 建立current development contract，清除`.ref`对`.devin`、旧代和待移除根目录的依赖。
+2. 按迁移表执行四组`git mv`，同步Prompt代码路径和历史索引。
+3. 从活动树移除其余history-only tracked paths；不触碰local/secret/cache内容。
+4. 重写根README、dev-docs/history索引，使旧岛只通过Git/history入口可达。
+5. 生成最终文件对账，要求pending/unknown/missing/duplicate均为0；运行治理、链接、compile和system tests。
 
 ## 当前判定
 

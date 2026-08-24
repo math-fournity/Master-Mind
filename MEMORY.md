@@ -37,7 +37,8 @@ repo reconstruction. The binding working guide is
 - `.env.example` is a tracked safe template and is `keep-current`; only `.env` and actual local secret state are excluded.
 - Path comparison for the manifests must use `LC_ALL=C`; the default macOS locale can treat distinct Chinese
   filenames as collation-equivalent and produce false matches or false duplicate reports.
-- The initial path maps contain 5,795 pending candidate actions. Unknown zero does not mean migration complete.
+- All 19,286 baseline paths now have final actions: 798 keep-current, 7 extract-current-knowledge, 5,397
+  history-only, and 13,084 exclude-local. Pending and unknown are zero; physical migration has not started.
 - `dev-docs/sixth-gen-current-repo/reverse-git-log.tsv` contains one row for each of the 1,401 commits visible
   from all refs, in newest-to-oldest order.
 - Canonical sixth-generation scope, concepts, architecture, detailed contracts, AI, data, quality, operations,
@@ -61,7 +62,7 @@ repo reconstruction. The binding working guide is
 | History lineage | verified | Update lineage when new system islands or migrations happen | GOV-004, GOV-005 |
 | Audit closure | verified | Use the closure file as the entry for auditing this alignment | GOV-001, GOV-003 |
 | Seven verification | verified | Re-run when Seven code/contracts change | GOV-003 |
-| Sixth-generation current repo reconstruction | in progress | Reconcile stale `system/docs` status/counts against canonical docs, then close 5,795 pending path actions before migration | GOV-010 |
+| Sixth-generation current repo reconstruction | in progress | Remove current ref dependencies on old roots, execute four mapped move groups, then retire remaining history-only paths | GOV-010 |
 
 ## Open Questions
 
@@ -106,8 +107,7 @@ and the first investigation report. No content migration had started at this com
 ### 2026-08-24 - Initial Unknown Paths Classified
 
 Resolved all 69 initial unknown paths without moving content. The byte-exact manifests contain 19,286 unique
-paths with matching path sets and zero literal unknown. The remaining 5,795 candidate actions still require
-concept-level code/test/history evidence before they can become keep, extract, or history-only decisions.
+paths with matching path sets and zero literal unknown. Later concept reconciliation closed all remaining pending actions.
 
 ### 2026-08-24 - Canonical Sixth-Generation Cognition Established
 
@@ -123,3 +123,10 @@ Corrected current system docs, refs and AI checks for partial implementation, 39
 Prompt use and the current test count. Versioned the absorb protection baseline instead of overwriting frozen v1,
 then updated the post-freeze diagnostic validator to verify historical bytes from pinned Git when current files
 evolve. Final result: 295 tests passed with one pre-existing warning; no external runtime was started.
+
+### 2026-08-24 - Final Baseline Path Actions Decided
+
+Closed every baseline path to a final class without moving content. The executable map retains or moves 798
+current paths, records 7 completed knowledge extractions, retires 5,397 paths through history or mapped
+history/evidence locations, and excludes 13,084 local-state paths. Four planned move groups cover 697 files
+with zero target collisions; all other historical content is recoverable from the safety tag.
