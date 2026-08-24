@@ -42,8 +42,11 @@ repo reconstruction. The binding working guide is
   from all refs, in newest-to-oldest order.
 - Canonical sixth-generation scope, concepts, architecture, detailed contracts, AI, data, quality, operations,
   and history routes now exist under `docs/`; `prompts/` and `evidence/` provide non-duplicating asset entries.
-- `PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis` collected and passed 294 tests in 13.29s
+- `PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis` collected and passed 295 tests in 11.58s
   on Python 3.14.6/pytest 9.1.1/darwin. One test-return warning remains.
+- The historical 161-path absorb baseline remains byte-identical at its v1 digest. A current v2 baseline covers
+  the same paths with 13 audited governance/ref/ai-check/V10-description changes. Historical VMS validation reads
+  evolved frozen members from pinned commit `3b26684`; 93 bindings matched and a wrong-blob test fails closed.
 - Current code proves the complete Grove/four-Pipe system is not implemented: entry loaders, Solver exploration,
   solve-mode vein analysis, Trace/Tell matching, Tell deposit, Hint extraction, Guide expansion, and tree persistence
   remain stubs or explicit `NotImplementedError` paths.
@@ -110,6 +113,13 @@ concept-level code/test/history evidence before they can become keep, extract, o
 
 Created a breadth-first current cognition layer across product, domain, system design, detailed contracts, AI,
 data, quality, operations, and history, plus Prompt/evidence root routes. Direct code inspection established the
-partial implementation boundary, and 294 solve-side offline tests passed with one warning. No DB, Devin, tmux,
+partial implementation boundary, and 295 solve-side offline tests passed with one warning. No DB, Devin, tmux,
 Solver, network, or live qualification action was performed. Sanitized `.env.example` without displaying its
 historical credential-like value.
+
+### 2026-08-24 - System Cognition And Historical Freeze Reconciled
+
+Corrected current system docs, refs and AI checks for partial implementation, 391-over-363 routing, V10 active
+Prompt use and the current test count. Versioned the absorb protection baseline instead of overwriting frozen v1,
+then updated the post-freeze diagnostic validator to verify historical bytes from pinned Git when current files
+evolve. Final result: 295 tests passed with one pre-existing warning; no external runtime was started.

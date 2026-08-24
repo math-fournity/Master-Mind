@@ -3,6 +3,9 @@
 **来源**：合并自six/principles.py + six/reflection.py + six/prompts.py（PROMPT_DESIGN_PRINCIPLE）+ six/pipes.py（验证历史）+ six/README.md（概述）
 **合并方案**：343号
 
+> **当前状态说明（2026-08-24）**：本文主要保存目标架构和 VMS-28 历史。当前实现边界以
+> `docs/design/system/sixth-generation-architecture.md` 为准；完整四 Pipe/Grove 闭环尚未实现。
+
 ---
 
 ## 1. 概述
@@ -13,8 +16,8 @@
 
 | Pipe | 函数 | AI名 | 职责 | 实现状态 |
 |---|---|---|---|---|
-| Pipe 0 | `pipe_0_solver()` | Solver AI | 推理探索，产生thinking/trajectory | 第五代已验证，第六代继承 |
-| Pipe 1 | `pipe_1_parser()` | Parser AI | 提取格化全Level Trace | **已实现**（system/vein_analysis.py三阶段架构） |
+| Pipe 0 | `pipe_0_solver()` | Solver AI | 推理探索，产生thinking/trajectory | 第六代 `inference_explore()` 未实现；仅有历史继承依据 |
+| Pipe 1 | `pipe_1_parser()` | Parser AI | 提取格化全Level Trace | absorb 侧已实现；solve mode 未实现 |
 | Pipe 2 | `pipe_2_telling()` | Telling AI | 并发trace→tell匹配 | 待实现 |
 | Pipe 3 | `pipe_3_guide()` | Guide AI | 引导树填充，启动新Solver AI | 待实现 |
 
@@ -22,8 +25,8 @@
 
 | 过程 | 流程函数 | 实现 | 说明 |
 |---|---|---|---|
-| 解题引导 | `grove_core_loop()` | system/process_solve.py | Grove核心循环——分析推理AI上下文 |
-| 解答吸收 | `tell_library_growth_loop()` | system/process_absorb.py | tell库增长循环——分析外部解答记录 |
+| 解题引导 | `solve()`目标骨架 | `system/process_solve.py` | 多个关键阶段为 `NotImplementedError`，不可运行 |
+| 解答吸收 | `absorb()`目标骨架 | `system/process_absorb.py` | vein analysis 已实现，匹配/沉淀/存储未实现 |
 
 ### 步骤差异
 

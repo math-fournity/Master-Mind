@@ -75,5 +75,5 @@ family。缺失必需 family 是 scientific FAIL；malformed DAG、未知端点�
 ## 当前验证
 
 命令：`PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis`
-结果：294 passed，1 warning，Python 3.14.6，pytest 9.1.1，darwin。
+结果：295 passed，1 warning，Python 3.14.6，pytest 9.1.1，darwin。
 警告：`test_source_tree_sha256` 返回字符串而不是 `None`；本次断言仍通过，但应作为测试质量债务。

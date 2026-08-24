@@ -97,6 +97,22 @@ class EventExtractorDiagnosticAuditTests(unittest.TestCase):
         )
         self.assertEqual(historical - current, set())
 
+    def test_historical_git_fallback_rejects_wrong_blob(self) -> None:
+        freeze = json.loads(audit.DEFAULT_FREEZE.read_text())
+        binding = next(
+            row
+            for row in freeze["frozen_files"]
+            if row["path"]
+            == "system/tests/solve_vein_analysis/test_pipeline.ai-check"
+        )
+        with patch.object(audit, "_historical_git_blob", return_value=b"wrong"):
+            with self.assertRaises(audit.DiagnosticAuditError):
+                audit._validate_current_or_historical_binding(
+                    binding["path"],
+                    binding["sha256"],
+                    "negative fallback test",
+                )
+
     def test_review_cannot_restore_blindness_or_qualification(self) -> None:
         for field, bad_value in (
             ("blindness", "BLIND"),

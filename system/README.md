@@ -1,6 +1,10 @@
-# system/ —— AI数学系统的物理实现
+# system/ —— 第六代系统物理实现与当前边界
 
-`system/` 是整个AI数学系统的物理实现代码。不是用来描述系统的，而是未来真正可以工作的系统代码。
+`system/` 是第六代系统的物理代码边界，同时包含已实现组件和明确的目标骨架。它不是完整可运行
+系统：`enter.py`、`solve.py`、Trace/Tell 匹配、Tell 沉淀、Hint/Guide、tree persistence 和
+Grove 闭环仍未实现。跨模块 current truth 先读
+`docs/design/system/sixth-generation-architecture.md` 和
+`docs/design/detailed/sixth-generation-current-contracts.md`。
 
 ## 目录结构
 
@@ -26,9 +30,10 @@ system/
 
 解题侧的全部测试和POC必须从`system/tests/solve_vein_analysis/README.md`进入；该索引连接协议、结果、repo/D盘物证、Verdict与阶段门。**当前总任务追踪以391号新方案为准**（`第六代系统研发过程文档/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`——363号及route-lock已于2026-08-16标记SUPERSEDED，资格链冻结，勿再按其指针推进）。
 
-## docs/ —— system的完整内部认知文档
+## docs/ —— system 的模块内认知文档
 
-`system/docs/` 承载理解system中任意模块所需的**所有内部认知**，不只是模块设计说明书。包括三个层次：
+`system/docs/` 承载模块历史、局部设计和运行手册。跨模块 current scope、概念、架构、AI、数据、
+质量和运行边界由根 `docs/` 的 sixth-generation canonical 文档维护，避免两份当前规范。
 
 1. **系统级认知**——理解任何模块都需要的前置认知（根本认知、四Pipe架构、设计原则、验证历史）
 2. **跨模块认知**——跨模块的"晾衣架"和知识层（研发文档索引、代码映射、POC清单、术语映射）
@@ -70,7 +75,8 @@ system/docs/
 | `第六代系统研发过程文档/` | 研发过程文档 | 设计思想的来源——研发过程中的思考、争论、方案演进 |
 | `Tell分类学研究过程文档/` | 分类学研究 | Tell分类学的迭代审计记录 |
 
-**演进关系**：研发过程文档中的设计决策 → 沉淀到技术说明书 → 由 `system/` 物理实现 → 实现细节记录在 `system/docs/`
+**理想演进关系**：研发过程结论 → current canonical docs → `system/` 实现或显式 stub → tests/运行证据。
+历史技术说明书和 `system/docs/` 只在与当前代码及 canonical docs 一致时代表当前设计。
 
 ### .ref 文件关系
 
@@ -89,8 +95,8 @@ system/docs/vein_analysis.md
 - 解题侧确定性核心已完成结构化轨迹后的离线 POC；独立 Devin 文件写入 POC 和 tmux 交互调试档已进入开发性实测，但角色资格、流式抽取与 `process_solve.py` 接入仍未通过。
 - 解题侧tmux live workspace与较大POC物证使用独立D盘根`/data/master-mind-solve-vein-data/`；不得借用Seven、题海Solver或入题侧运行目录，也不得fallback到repo/Home/`/tmp`。
 - 解题侧Devin认知角色的当前候选执行档是no-sandbox + `dangerous`；其工作区权限由冻结的角色`AGENTS.md`/`TASK.md`约束并用原始tool events审计。VMS-38已支持这个`INTERACTIVE_TMUX_DEBUG`执行合同：D盘workspace、严格输出/DONE、exact model、边界内工具调用、唯一退出和exit 0成立；它仍是`DEVELOPMENT_ONLY`，不等于强隔离或角色资格PASS。历史receipt的ATIF计数错误已在运行后解析器中修正，但不得回写历史bundle。
-- VMS-41四个串行one-shot attempt已经全部消费并封存，artifact/replay链PASS，但冻结机械结果为0/4、协议`INCONCLUSIVE_PROTOCOL`，当前Event Extractor profile仍为`NOT_QUALIFIED`。事后诊断因先见机械结果而明确是`BREACHED_BEFORE_MANUAL_AUDIT / FAILURE_LOCALIZATION_ONLY`；其独立D盘audit bundle已封存，原四ID绝对不得重跑。VMS-41R1的独立V2 occurrence/projection evaluator、联合file-effect auditor与19场景不可变开发校准包已通过；全新未见qualification pack、阈值、盲审rubric、attempt IDs、0.4.1角色资产、零模型preexecution freeze、live runner shell、不可消费LiveRunPermit/盲审包计划、sealed manual judgment合同、hidden join simulator、fake materializer、final qualification join receipt和临时append-only写包dry-run已冻结。VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final reviewer+hidden-join receipt、unseen qualification extension与DAG writeback sidecar已新增；VMS-43 Trace Auditor结构审计已新增。当前全量293项回归PASS。以上仍不资格化模型；live资格实验仍需新的明确人签LiveRunPermit。
-- Trace/Tell积累采用独立、内容寻址的分片文件；AI按稳定item ID逐项分析，程序以append-only cursor和`missing=duplicate=unknown=0`对账证明遍历完成。`AGENTS.md`只承载短遍历协议、权限与Schema指针，不承载Tell/Trace全量内容。
+- VMS-41四个串行one-shot attempt已经全部消费并封存，artifact/replay链PASS，但冻结机械结果为0/4、协议`INCONCLUSIVE_PROTOCOL`，当前Event Extractor profile仍为`NOT_QUALIFIED`。事后诊断因先见机械结果而明确是`BREACHED_BEFORE_MANUAL_AUDIT / FAILURE_LOCALIZATION_ONLY`；其独立D盘audit bundle已封存，原四ID绝对不得重跑。VMS-41R1的独立V2 occurrence/projection evaluator、联合file-effect auditor与19场景不可变开发校准包已通过；全新未见qualification pack、阈值、盲审rubric、attempt IDs、0.4.1角色资产、零模型preexecution freeze、live runner shell、不可消费LiveRunPermit/盲审包计划、sealed manual judgment合同、hidden join simulator、fake materializer、final qualification join receipt和临时append-only写包dry-run已冻结。VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final reviewer+hidden-join receipt、unseen qualification extension与DAG writeback sidecar已新增；VMS-43 Trace Auditor结构审计已新增。当前全量295项回归PASS（2026-08-24实跑）。以上仍不资格化模型；live资格实验仍需新的明确人签LiveRunPermit。
+- 370号提出 Trace/Tell 内容寻址分片和逐项遍历方案，但 registry、cursor、coverage/completion runtime 尚未实现。该方案不能写成当前运行事实。
 
 ## 代码规范
 

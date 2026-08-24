@@ -93,7 +93,7 @@
 | 360 | POC-VMS-37结果——D盘/tmux/dangerous/exact model可用，但`Read(/Volumes/**)`自拒绝且attempt ID漂移，总体INCONCLUSIVE/ABORTED |
 | 361 | POC-VMS-38协议——no-sandbox + dangerous/YOLO + 冻结AGENTS工作区权限与精确attempt身份的一次性tmux验证 |
 | 362 | POC-VMS-38结果——调试执行合同SUPPORTED；严格输出/DONE/exact model/tool boundary/正常退出PASS，角色资格仍NOT TESTED；发现历史ATIF摘要0/15计数缺陷 |
-| 363 | 解题侧总路线图与任务追踪——Devin AGENTS物理边界、S1—S7脉络核心、Trace/Tell/Hint积累、推理树/引导树、Grove闭环、Seven模拟/DB与golden slice |
+| 363 | 历史总路线图（SUPERSEDED_BY_391）——资格链和后续目标的冻结来源，不再作为当前任务状态 |
 | 364 | POC-VMS-39冻结协议——Devin `AGENTS.md`短控制面的官方回源、精确尺寸sentinel与ATIF effective visibility隔离实测 |
 | 365 | POC-VMS-39最终结果——静态`rules show`完整到256 KiB；live 16,384 bytes full、16,385 bytes开始截断；四cell全树aggregate integrity PASS |
 | 366 | POC-VMS-40冻结协议——五层真值、多视图关系、多轴State、不可拆分alternative与机械Evaluator |
@@ -118,6 +118,14 @@
 | 385 | POC-VMS-42 State Normalizer unseen qualification extension——全新fixture扩展、新旧case/candidate ID不重叠、public/hidden隔离和非资格化extension receipt |
 | 386 | POC-VMS-42 State Normalizer DAG writeback sidecar——PASS normalized bundle按DAG event_id/topological order生成不可变annotation bundle，不改写DAG本体 |
 | 387 | POC-VMS-43 Trace Auditor结构审计——结构化DAG上的branch/failure/revisit/reuse/merge/recovery family观测与可选state sidecar一致性验证 |
+
+### 2026-08-16 当前路线替代
+
+| 编号 | 内容 |
+|---|---|
+| 390 | 解题侧脉络分析线过度设计评审——区分保留核心、冻结资格链和真实数据缺口 |
+| 391 | 当前解题侧工作方案——取代363，冻结旧资格链，转向真实数据 golden slice；§8为阶段状态源 |
+| 392 | 入题侧脉络分析31条经验提取与解题侧对照 |
 
 ---
 
@@ -188,7 +196,7 @@
 | `run_event_extractor_calibration.py` + `qualification_fixtures/vms41r1_calibration/` | 371号 | 13 candidate+6 file-effect开发场景逐轴零mismatch；manifest、受限mutation、tamper与symlink拒绝；永久`DEVELOPMENT_ONLY` |
 | `build_vms41r1_qualification_pack.py` + `qualification_fixtures/vms41r1/` | 372号 | 6个未见qualification case、6个hidden reference candidate、4个negative mutation自检；public manifests不含答案/acceptable set；机械上限`PENDING_BLIND_MANUAL_AUDIT` |
 | `freeze_vms41r1_event_extractor_preexecution.py` + `live_fixtures/poc_vms_41r1.freeze.json` | 371-372号 | 0.4.1角色资产、6个attempt IDs、qualification pack和hidden grader物证的零模型preexecution freeze；外部副作用授权全为0，live仍需新授权 |
-| `tests/solve_vein_analysis/` | 346-387号 | `README.md`是全部测试/POC证据总索引；293 tests；VMS-39冻结profile cap=16,384 bytes；VMS-40离线6 case/26 candidate PASS；VMS-41封存为NOT_QUALIFIED；VMS-41R1 zero-model chain闭合但live未授权；VMS-42 State Normalizer链PASS；VMS-43 Trace Auditor结构审计PASS；VMS-44—52仍待预注册 |
+| `tests/solve_vein_analysis/` | 346-392号 | `README.md`是全部测试/POC证据总索引；2026-08-24实跑295 tests PASS；VMS-39冻结profile cap=16,384 bytes；VMS-40离线6 case/26 candidate PASS；VMS-41封存为NOT_QUALIFIED；VMS-41R1 zero-model chain闭合但live未授权；VMS-42 State Normalizer链PASS；VMS-43 Trace Auditor结构审计PASS；391取代363 |
 
 ### Pipe 2: Telling AI（待实现）
 

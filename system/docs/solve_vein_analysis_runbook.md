@@ -53,7 +53,7 @@ cd ~/master-mind-glm5.2-worktree
   -v
 ```
 
-当前基线是 **293 个测试全部通过**。测试包含：
+当前基线是 **295 个测试全部通过（2026-08-24实跑）**。测试包含：
 
 - 五个正例 fixture；
 - Next Closure 与独立 oracle 对账；
@@ -266,7 +266,7 @@ live Stage B已经按固定顺序执行A16、A16P1、A32；观察到截断后，
 
 ### 6.2 POC-VMS-41：已封存，只允许只读复核
 
-VMS-41的四个exact attempt已经全部消费并封存，原ID绝对不得重跑。artifact/replay链PASS，但冻结机械结果为0/4，协议为`INCONCLUSIVE_PROTOCOL`，当前profile为`NOT_QUALIFIED`。事后人工诊断在看到机械结果后才进行，故只能是`FAILURE_LOCALIZATION_ONLY`，不能升级确认性结论。VMS-41R1的V2 parser/evaluator、联合file-effect auditor和不可变calibration pack已离线实现；全新未见qualification pack、阈值、盲审rubric、attempt IDs、0.4.1角色资产、零模型preexecution freeze、live runner shell、不可消费LiveRunPermit/盲审包计划、sealed manual judgment合同、hidden join simulator、fake materializer、final qualification join receipt和fake bundle append-only dry-run也已冻结。VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final receipt、unseen qualification extension与DAG writeback sidecar已冻结。VMS-43 Trace Auditor结构审计已冻结。当前293项测试PASS，live仍未授权。
+VMS-41的四个exact attempt已经全部消费并封存，原ID绝对不得重跑。artifact/replay链PASS，但冻结机械结果为0/4，协议为`INCONCLUSIVE_PROTOCOL`，当前profile为`NOT_QUALIFIED`。事后人工诊断在看到机械结果后才进行，故只能是`FAILURE_LOCALIZATION_ONLY`，不能升级确认性结论。VMS-41R1的V2 parser/evaluator、联合file-effect auditor和不可变calibration pack已离线实现；全新未见qualification pack、阈值、盲审rubric、attempt IDs、0.4.1角色资产、零模型preexecution freeze、live runner shell、不可消费LiveRunPermit/盲审包计划、sealed manual judgment合同、hidden join simulator、fake materializer、final qualification join receipt和fake bundle append-only dry-run也已冻结。VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final receipt、unseen qualification extension与DAG writeback sidecar已冻结。VMS-43 Trace Auditor结构审计已冻结。当前295项测试PASS（2026-08-24实跑），live仍未授权。
 
 校准包可只读重放：
 

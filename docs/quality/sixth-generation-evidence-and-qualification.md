@@ -1,7 +1,7 @@
 # 第六代系统证据与资格边界
 
 **状态**：current
-**最近验证**：2026-08-24，commit 基线 `8940e92`
+**最近验证**：2026-08-24，基于 `b32a625` 后的 system cognition reconciliation diff
 
 ## 当前实际测试结果
 
@@ -12,10 +12,22 @@ PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis
 ```
 
 环境：darwin、Python 3.14.6、pytest 9.1.1、pluggy 1.6.0。
-结果：294 collected，294 passed，1 warning，13.29 秒。
+结果：295 collected，295 passed，1 warning，11.58 秒。
 
 警告来自 `test_event_extraction_qualification_runtime.py::test_source_tree_sha256`：测试函数返回字符串
-而不是 `None`。这不改变本次 294 PASS，但属于测试质量债务；现有 293 计数文档均已过时。
+而不是 `None`。这不改变本次 295 PASS，但属于测试质量债务；现有 293 计数文档均已过时。
+
+## Protected absorb baseline 版本
+
+- historical v1 digest=`9bb4fd2551d13f196610ddf8e203ad96b0855f3337f6c4e6502f6c764eafd6b3`，
+  继续由冻结 VMS receipts 引用，文件和 receipts 均不修改；
+- current v2 digest=`2085e1c91bac1909b01ab3dd74f0845b9d2484b77e34d0a7cb9f2357f0b5f3a7`，
+  仍覆盖同一 161 path，只更新 13 个经审计的 current docs/ref/ai-check/V10 schema 描述；
+- historical validator 对已演进的 frozen path 从固定 commit `3b26684` 读取旧 blob，93 个绑定预核
+  0 mismatch；错误 blob 的新增负向测试 fail-closed。
+
+这使 current isolation protection 可以演进，同时保持 historical freeze 可逐字节复核；不得用 v2
+替换任何历史 receipt 中的 v1 identity。
 
 ## PASS 支持什么
 
@@ -69,4 +81,4 @@ VMS-41 失败、协议中断、旧 parser 计数错误和所有 sealed negative 
 ## 重建验收
 
 文档批次至少运行 governance validator、`git diff --check` 和链接/path 检查。代码或合同变化再运行
-294 项离线测试和相称的负向/fault 检查。任何 live、DB 或外部系统证据均需单独授权。
+295 项离线测试和相称的负向/fault 检查。任何 live、DB 或外部系统证据均需单独授权。

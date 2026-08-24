@@ -33,7 +33,7 @@ and implementation say so.
 | Evidence routing | `evidence/README.md` |
 
 Current implementation verdict: the complete four-Pipe/Grove loop is not implemented. The verified current
-core is the independent solve-side structured-trajectory offline toolchain, which passed 294 tests on
+core is the independent solve-side structured-trajectory offline toolchain, which passed 295 tests on
 2026-08-24; live model roles remain unqualified and unauthorized.
 
 ## Current Governance Entry Points

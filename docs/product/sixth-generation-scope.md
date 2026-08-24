@@ -20,7 +20,7 @@ Eight、错题分析系统、外部 Solver 和星学遗留只作为抽取来源�
 | 共享领域类型 | 已实现，未形成完整端到端验证 | `system/schema.py` |
 | absorb 侧三阶段脉络分析 | 代码已实现，当前分支未进行 live 运行验证 | `system/vein_analysis.py`、`system/docs/vein_analysis.md` |
 | ArangoDB 适配器 | 代码存在，当前 live schema 和数据未核验 | `system/db.py`、`system/db_schema.py` |
-| solve-side 结构化轨迹离线分析 | 已实现并在当前环境验证 | `system/solve_vein_analysis/`；294 tests PASS |
+| solve-side 结构化轨迹离线分析 | 已实现并在当前环境验证 | `system/solve_vein_analysis/`；295 tests PASS |
 | Event Extractor/State Normalizer/Trace Auditor 资格工具 | 离线和零模型合同已验证；模型角色未资格化 | `system/tests/solve_vein_analysis/README.md` |
 | `enter.py` 入题入口 | 未实现 | `load_solution_records()` 抛 `NotImplementedError` |
 | `solve.py` 解题入口 | 未实现 | `load_problem()`、`inference_explore()` 等抛 `NotImplementedError` |
@@ -33,7 +33,7 @@ Eight、错题分析系统、外部 Solver 和星学遗留只作为抽取来源�
 - 不把历史目录原样搬成“第六代模块”。
 - 不在本轮实现缺失的 Grove/Tree/Tell runtime，只先建立准确当前认知。
 - 不启动 Devin、tmux live qualification、外部 Solver、ArangoDB 写入或远程 push。
-- 不把 294 个离线测试解释成模型能力、Tell 有效性或端到端闭环证明。
+- 不把 295 个离线测试解释成模型能力、Tell 有效性或端到端闭环证明。
 - 不复制大语料和大 run body 回 Git。
 
 ## 目标活动面

@@ -15,6 +15,7 @@ import json
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 from typing import Any
 
@@ -91,6 +92,7 @@ EXPECTED_AUDITOR_KEYS = {"actor_id", "actor_type", "independence"}
 RFC3339_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 FROZEN_FREEZE_SHA256 = "2ae350c66d2d94bd63a8de1a702278a9d1b9e49d96f3ba39401d8147859db59e"
+HISTORICAL_SOURCE_COMMIT = "3b2668404ce42a3bd6eacd76f0ed1a5cfe880769"
 
 
 class DiagnosticAuditError(RuntimeError):
@@ -116,6 +118,47 @@ def _canonical_json_bytes(value: Any) -> bytes:
 
 def _sha256_bytes(value: bytes) -> str:
     return hashlib.sha256(value).hexdigest()
+
+
+def _historical_git_blob(relative: str) -> bytes:
+    try:
+        result = subprocess.run(
+            ["git", "show", f"{HISTORICAL_SOURCE_COMMIT}:{relative}"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            check=False,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise DiagnosticAuditError("historical Git source unavailable") from exc
+    if result.returncode != 0:
+        raise DiagnosticAuditError(f"historical Git source absent: {relative}")
+    return result.stdout
+
+
+def _validate_current_or_historical_binding(
+    relative: str,
+    expected_hash: str,
+    label: str,
+) -> str:
+    relative_path = Path(relative)
+    if (
+        not relative
+        or relative_path.is_absolute()
+        or ".." in relative_path.parts
+        or relative_path.as_posix() != relative
+        or not HEX64.fullmatch(expected_hash)
+    ):
+        raise DiagnosticAuditError(f"unsafe historical binding: {label}")
+    current = REPO_ROOT / relative_path
+    if current.is_symlink():
+        raise DiagnosticAuditError(f"current historical binding is a symlink: {label}")
+    if current.is_file() and sha256_file(current) == expected_hash:
+        return "CURRENT_WORKTREE"
+    historical = _historical_git_blob(relative)
+    if _sha256_bytes(historical) != expected_hash:
+        raise DiagnosticAuditError(f"historical Git hash drift: {label}")
+    return "PINNED_GIT_COMMIT"
 
 
 def _load_object(path: Path, label: str) -> dict[str, Any]:
@@ -307,8 +350,9 @@ def _validate_historical_freeze(path: Path) -> dict[str, Any]:
     source set.  That was correct before execution, but after sealing it makes
     any newly added post-hoc test look like historical evidence drift.  This
     validator instead checks every manifest member and reconstructs the frozen
-    test-tree hash from those exact members.  It never permits a listed file to
-    disappear or change.
+    test-tree hash from those exact members. Current files may evolve after the
+    freeze; changed or retired members are verified byte-for-byte from the pinned
+    pre-reconstruction Git commit instead of rewriting the freeze.
     """
 
     if sha256_file(path) != FROZEN_FREEZE_SHA256:
@@ -338,20 +382,20 @@ def _validate_historical_freeze(path: Path) -> dict[str, Any]:
         ):
             raise DiagnosticAuditError(f"unsafe frozen file binding {index}")
         observed.add(relative)
-        target = REPO_ROOT / relative
-        if target.is_symlink() or not target.is_file():
-            raise DiagnosticAuditError(f"frozen file absent or unsafe: {relative}")
-        if sha256_file(target) != expected_hash:
-            raise DiagnosticAuditError(f"frozen file hash drift: {relative}")
+        _validate_current_or_historical_binding(
+            relative,
+            expected_hash,
+            f"frozen file {index}",
+        )
     for binding_name in ("protocol", "acceptable_set_pack"):
         binding = freeze.get(binding_name)
         if not isinstance(binding, dict) or set(binding) != {"path", "sha256"}:
             raise DiagnosticAuditError(f"historical {binding_name} binding malformed")
-        target = REPO_ROOT / binding["path"]
-        if target.is_symlink() or not target.is_file():
-            raise DiagnosticAuditError(f"historical {binding_name} is unsafe")
-        if sha256_file(target) != binding["sha256"]:
-            raise DiagnosticAuditError(f"historical {binding_name} hash drift")
+        _validate_current_or_historical_binding(
+            binding["path"],
+            binding["sha256"],
+            binding_name,
+        )
 
     historic_rows = _historical_test_source_rows(freeze)
     payload = "".join(
@@ -371,11 +415,11 @@ def _validate_historical_freeze(path: Path) -> dict[str, Any]:
         or test_gate.get("verdict") != "PASS"
     ):
         raise DiagnosticAuditError("historical test gate was not an exact PASS")
-    baseline = REPO_ROOT / test_gate["protected_absorb_baseline_path"]
-    if baseline.is_symlink() or not baseline.is_file():
-        raise DiagnosticAuditError("protected baseline is absent or unsafe")
-    if sha256_file(baseline) != test_gate["protected_absorb_baseline_sha256"]:
-        raise DiagnosticAuditError("protected baseline hash drift")
+    _validate_current_or_historical_binding(
+        test_gate["protected_absorb_baseline_path"],
+        test_gate["protected_absorb_baseline_sha256"],
+        "protected absorb baseline",
+    )
     if test_gate.get("protected_absorb_file_count") != 161:
         raise DiagnosticAuditError("protected baseline file count drift")
 
@@ -394,17 +438,17 @@ def _validate_historical_freeze(path: Path) -> dict[str, Any]:
             ("problem_path", "problem_sha256"),
             ("raw_path", "raw_sha256"),
         ):
-            target = REPO_ROOT / row[path_field]
-            if target.is_symlink() or not target.is_file():
-                raise DiagnosticAuditError(f"historical case source unsafe: {path_field}")
-            if sha256_file(target) != row[hash_field]:
-                raise DiagnosticAuditError(f"historical case source drift: {path_field}")
+            _validate_current_or_historical_binding(
+                row[path_field],
+                row[hash_field],
+                f"historical case source {row['case_id']}.{path_field}",
+            )
         if row.get("source_receipt_path") is not None:
-            target = REPO_ROOT / row["source_receipt_path"]
-            if target.is_symlink() or not target.is_file():
-                raise DiagnosticAuditError("historical source receipt unsafe")
-            if sha256_file(target) != row["source_receipt_sha256"]:
-                raise DiagnosticAuditError("historical source receipt drift")
+            _validate_current_or_historical_binding(
+                row["source_receipt_path"],
+                row["source_receipt_sha256"],
+                f"historical source receipt {row['case_id']}",
+            )
     return freeze
 
 

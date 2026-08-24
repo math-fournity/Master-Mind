@@ -2,16 +2,16 @@
 
 ## 模块职责
 
-脉络分析——拿到推理AI的thinking或外部解答文本，分析出思维脉络，格化脉络（分段+所有有意义的Level视图），在各Level视图下识别trace（可泛化的思维模式）。4并发方案：V5/V7/V8/V9四个提示词版本并发跑同一道题，取trace并集。
+脉络分析——拿到推理AI的thinking或外部解答文本，分析出思维脉络，格化脉络（分段+所有有意义的Level视图），在各Level视图下识别trace（可泛化的思维模式）。4并发方案：V5/V7/V8/V10四个提示词版本并发跑同一道题，取trace并集。
 
 ## 代码能检查的（不需要AI重复检查）
 
-- [代码] 4个工作目录是否都创建（V5/V7/V8/V9各一个）——os.path.exists()
+- [代码] 4个工作目录是否都创建（V5/V7/V8/V10各一个）——os.path.exists()
 - [代码] 4个output.json文件是否都存在——os.path.exists()
-- [代码] V9的output.json是否包含key_entities和meta_reflection_traces字段——JSON schema验证
-- [代码] V9的闭元素完备性得分——verify_lattice_completeness.py自动计算
-- [代码] V9的关键实体贯穿性验证——verify_lattice_completeness.py自动检查
-- [代码] V9的伪元模式过滤——verify_lattice_completeness.py自动标记
+- [代码] V10的output.json是否包含key_entities和meta_reflection_traces字段——JSON schema验证
+- [代码] V10的闭元素完备性得分——verify_lattice_completeness.py自动计算
+- [代码] V10的关键实体贯穿性验证——verify_lattice_completeness.py自动检查
+- [代码] V10的伪元模式过滤——verify_lattice_completeness.py自动标记
 - [代码] merged_traces.json是否存在——os.path.exists()
 - [代码] meta.json是否记录了4个ai_id和时间戳——JSON schema验证
 
@@ -26,7 +26,7 @@
 ### 产出质量——trace语义
 
 - [ ] V5的trace是否被正确解析——V5没有JSON输出要求（TODO-2），产出是自由文本，检查解析是否遗漏了trace或错误解析了trace
-- [ ] V7/V8/V9的JSON产出是否字段完整——每个trace有id/type/level/segment(s)/description/generalizable
+- [ ] V7/V8/V10的JSON产出是否字段完整——每个trace有id/type/level/segment(s)/description/generalizable
 - [ ] trace的pattern_description是否准确描述了思维模式——不是泛泛而谈，而是针对这道题的具体思维模式
 - [ ] trace的level是否正确——local=单段、non_local=跨段、global=整脉络
 - [ ] trace的source_segment_ids是否和描述一致——描述说"段3到段9"但source_segment_ids列的是段3到段8就是错的
@@ -35,13 +35,13 @@
 
 - [ ] 4版本的trace并集是否遗漏了独有发现——对照VMS-28c/28d/28e的已知独有发现清单，检查这次跑出来的trace是否覆盖了各版本的独有发现
 - [ ] 并集去重是否合理——如果merged_traces.json中有两个trace描述高度相似但没去重，记录为问题（如果按TODO-5建议选c不在脉络分析阶段去重，则此项改为检查"trace_match阶段是否自然处理了重复"）
-- [ ] V9的元反思trace是否有价值——元反思发现的5个新trace（如果有）是否真的是系统化步骤未覆盖的有价值trace，而不是为了凑数硬找的
+- [ ] V10的元反思trace是否有价值——元反思发现的5个新trace（如果有）是否真的是系统化步骤未覆盖的有价值trace，而不是为了凑数硬找的
 
 ### 产出质量——程序验证
 
-- [ ] V9的闭元素完备性得分是否100%——如果不是100%，检查遗漏的闭元素是什么，AI为什么漏了
-- [ ] V9的关键实体贯穿性验证中"可能遗漏"的实体——10个被标记为"可能遗漏"的实体中，哪些是真正的遗漏（需要补为元模式），哪些已被闭元素trace覆盖（不需要补）
-- [ ] V9的伪元模式过滤——被标记为伪元模式的AI优势元素，AI描述的语义层面是否有独立价值（程序只能检查段集合层面，语义层面需要AI判断）
+- [ ] V10的闭元素完备性得分是否100%——如果不是100%，检查遗漏的闭元素是什么，AI为什么漏了
+- [ ] V10的关键实体贯穿性验证中"可能遗漏"的实体——10个被标记为"可能遗漏"的实体中，哪些是真正的遗漏（需要补为元模式），哪些已被闭元素trace覆盖（不需要补）
+- [ ] V10的伪元模式过滤——被标记为伪元模式的AI优势元素，AI描述的语义层面是否有独立价值（程序只能检查段集合层面，语义层面需要AI判断）
 
 ### 对接到下一阶段
 
@@ -52,15 +52,15 @@
 
 ## 审计流程
 
-1. 加载 vein_analysis.ref → 阅读参考文档（4并发方案、V9提示词、332号POC验证记录等）
+1. 加载 vein_analysis.ref → 阅读参考文档（4并发方案、V10提示词、332号POC验证记录等）
 2. 加载 vein_analysis.py → 理解编排逻辑和产出解析逻辑
 3. 加载本 .ai-check 文件 → 明确检查项目
 4. 检查实际运行产出：
    - `palyground/{process}/vein_analysis/{problem_id}/V5/output.json`
    - `palyground/{process}/vein_analysis/{problem_id}/V7/output.json`
    - `palyground/{process}/vein_analysis/{problem_id}/V8/output.json`
-   - `palyground/{process}/vein_analysis/{problem_id}/V9/output.json`
-   - `palyground/{process}/vein_analysis/{problem_id}/V9/audit_report.json`
+   - `palyground/{process}/vein_analysis/{problem_id}/V10/output.json`
+   - `palyground/{process}/vein_analysis/{problem_id}/V10/audit_report.json`
    - `palyground/{process}/vein_analysis/{problem_id}/merged_traces.json`
    - `palyground/{process}/vein_analysis/{problem_id}/meta.json`
    - tmux session输出：`tmux capture-pane -t {process}-vein_analysis-{problem_id}-V{5,7,8,9} -p`

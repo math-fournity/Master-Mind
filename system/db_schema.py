@@ -195,19 +195,19 @@ PROBLEM_ENTRIES_SCHEMA = {
         },
         "versions": {
             "type": "ARRAY",
-            "description": "4并发版本列表——[\"V5\", \"V7\", \"V8\", \"V9\"]",
+            "description": "4并发版本列表——[\"V5\", \"V7\", \"V8\", \"V10\"]",
         },
         "version_workdirs": {
             "type": "OBJECT",
-            "description": "各版本工作目录路径——{V5: path, V7: path, V8: path, V9: path}",
+            "description": "各版本工作目录路径——{V5: path, V7: path, V8: path, V10: path}",
         },
         "session_names": {
             "type": "OBJECT",
-            "description": "各版本tmux session名——{V5: name, V7: name, V8: name, V9: name}",
+            "description": "各版本tmux session名——{V5: name, V7: name, V8: name, V10: name}",
         },
         "ai_instance_ids": {
             "type": "OBJECT",
-            "description": "各版本AI实例ID（ai_instances表的_key）——{V5: id, V7: id, V8: id, V9: id}",
+            "description": "各版本AI实例ID（ai_instances表的_key）——{V5: id, V7: id, V8: id, V10: id}",
         },
         "output_paths": {
             "type": "OBJECT",
@@ -215,7 +215,7 @@ PROBLEM_ENTRIES_SCHEMA = {
         },
         "audit_report_path": {
             "type": "TEXT",
-            "description": "V9程序验证报告路径——audit_report.json",
+            "description": "V10程序验证报告路径——audit_report.json",
         },
         "merged_traces_path": {
             "type": "TEXT",
