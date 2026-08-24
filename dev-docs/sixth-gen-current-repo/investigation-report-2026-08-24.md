@@ -16,6 +16,17 @@
 
 机器底账：`source-inventory.tsv`。迁移审计底账：`path-migration-map.tsv`。概念账本：`concept-extraction.tsv`。
 
+## 第二轮路径分类结果
+
+初始 69 个 `unknown` 已逐项读取路径、最近提交和相关内容后归零：43 个 `keep-current`、7 个
+`extract-current-knowledge`、18 个 `history-only`、1 个 `exclude-local`。此外，tracked 的
+`.env.example` 从过宽的 `.env*` local-secret 规则中纠正为 `keep-current`。
+
+本轮仅修改清单和迁移计划，没有移动、删除或重写任何原文件。两张 TSV 均为 19,286 个唯一
+path，字段数和 path 集合一致。由于 macOS 当前 locale 会把不同中文路径视作排序等价，所有
+中文 path 分类、唯一性和集合检查统一使用 `LC_ALL=C` 的字节级比较。当前仍有 5,795 条
+`retain/extract/history` 候选动作待概念证据核验，不能把 literal `unknown=0` 写成迁移已经完成。
+
 ## Git 历史逆向结果
 
 截至安全基线，原项目历史为 1,397 个主要开发提交；加入本轮治理提交后当前 refs 可见 1,401 个提交。历史从 2026-07-07 的星学/排盘系统开始，不能把这段早期历史伪装成第六代系统的出生点。
@@ -62,12 +73,12 @@
 2. `system/README.md` 已记录 391 替代 363，但旧 363 文件和 route-lock 仍必须保留为历史物证；迁移时不能把“替代”误做成物理删除。
 3. `.devin/rules/` 中既有第六代开发纪律，也有后来解题/续传系统的规则；必须按运行时可见性和消费者逐文件划分，不能整目录复制到未来 runtime context。
 4. `Tell分类学研究过程文档/`、`runs/`、`subagents-dirs/`、`palyground/` 含大量证据和生成物；它们的保留方式需要按“当前证据、历史证据、D 盘外置、local/cache”四类逐项核对。
-5. 初始 `unknown=69` 主要是没有被当前前缀规则覆盖的历史根文件或边缘路径；必须用 Git 最近提交、内容主题和消费者搜索归零，不能直接删除。
+5. 初始 `unknown=69` 已归零，但 5,795 条候选动作仍需代码、测试、消费者和历史证据决定最终类别；不得用前缀批量决策。
 6. 当前没有授权使用数据库或外部运行系统补足 live 事实，因此所有 live/资格化结论必须保持证据准确的降级状态。
 
 ## 下一步执行顺序
 
-1. 把 `source-inventory.tsv` 的 69 个 unknown 和 `path-migration-map.tsv` 的 pending action 逐项闭合；对路径分类不作内容迁移。
+1. 沿 19 个概念族闭合 5,795 条 pending path action；先完成抽取目标和历史理由，不作内容迁移。
 2. 沿概念账本读取对应代码、`.ref`、`.ai-check`、模块 docs、tests、fixtures、POC 结果和精确 Git diff，修正每个概念的 commit、当前状态、canonical target 与冲突。
 3. 建立第六代 canonical docs：scope、domain concepts、system architecture、detailed contracts、AI role/prompt contracts、data boundaries、quality/qualification gates、history/replacements。每个文档只维护一个当前真值，并回指底层证据。
 4. 建立 `prompts/` 与 `evidence/` 仅在真实资产边界确认后进行；大数据和大 run body 继续使用 D 盘指针，不复制进活动 Git 内容。

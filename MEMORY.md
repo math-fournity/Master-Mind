@@ -32,7 +32,12 @@ repo reconstruction. The binding working guide is
 - First reverse investigation commit: `d84ee11`.
 - The first current-tree inventory covers 19,286 paths: 6,184 tracked, 13,100 ignored, and the 2 inventory
   files generated during collection. The generated inventory paths are now committed investigation assets, not
-  pre-existing untracked project content. Initial classification leaves 69 `unknown` paths for explicit investigation.
+  pre-existing untracked project content. The initial 69 `unknown` paths have now been classified as 43
+  `keep-current`, 7 `extract-current-knowledge`, 18 `history-only`, and 1 `exclude-local`; literal unknown is zero.
+- `.env.example` is a tracked safe template and is `keep-current`; only `.env` and actual local secret state are excluded.
+- Path comparison for the manifests must use `LC_ALL=C`; the default macOS locale can treat distinct Chinese
+  filenames as collation-equivalent and produce false matches or false duplicate reports.
+- The initial path maps contain 5,795 pending candidate actions. Unknown zero does not mean migration complete.
 - `dev-docs/sixth-gen-current-repo/reverse-git-log.tsv` contains one row for each of the 1,401 commits visible
   from all refs, in newest-to-oldest order.
 
@@ -44,7 +49,7 @@ repo reconstruction. The binding working guide is
 | History lineage | verified | Update lineage when new system islands or migrations happen | GOV-004, GOV-005 |
 | Audit closure | verified | Use the closure file as the entry for auditing this alignment | GOV-001, GOV-003 |
 | Seven verification | verified | Re-run when Seven code/contracts change | GOV-003 |
-| Sixth-generation current repo reconstruction | in progress | Close the 69 unknown paths and 19-concept ledger, then build canonical docs before path migration | GOV-010 |
+| Sixth-generation current repo reconstruction | in progress | Close 5,795 pending path actions through the 19-concept ledger, then build canonical docs before path migration | GOV-010 |
 
 ## Open Questions
 
@@ -84,4 +89,10 @@ repo reconstruction. The working constitution is now rooted in `AGENTS.md` and d
 Created `pre-sixth-gen-current-repo-2026-08-24`, switched to
 `codex/sixth-gen-current-repo-2026-08-24`, and committed the first investigation assets in `d84ee11`:
 the full current-tree source inventory, path migration map, 1,401-commit reverse index, 19-concept ledger,
-and the first investigation report. No content migration has started; all 69 unknown paths remain open.
+and the first investigation report. No content migration had started at this commit.
+
+### 2026-08-24 - Initial Unknown Paths Classified
+
+Resolved all 69 initial unknown paths without moving content. The byte-exact manifests contain 19,286 unique
+paths with matching path sets and zero literal unknown. The remaining 5,795 candidate actions still require
+concept-level code/test/history evidence before they can become keep, extract, or history-only decisions.
