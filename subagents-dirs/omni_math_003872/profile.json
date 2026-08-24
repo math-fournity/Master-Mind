@@ -1,0 +1,201 @@
+{
+  "_key": "omni_math_003872",
+  "source_id": "imo_shortlist_2020_c8",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Players A and B play a game on a blackboard that initially contains 2020 copies of the number 1. In every round, player A erases two numbers x and y from the blackboard, and then player B writes one of the numbers x+y and |x-y| on the blackboard. The game terminates as soon as, at the end of some round, one of the following holds: (1) one of the numbers on the blackboard is larger than the sum of all other numbers; (2) there are only zeros on the blackboard. Player B must then give as many cookies to player A as there are numbers on the blackboard. Player A wants to get as many cookies as possible, whereas player B wants to give as few as possible. Determine the number of cookies that A receives if both players play optimally.",
+  "solution_text": "For a positive integer n, denote by S_2(n) the sum of digits in its binary representation. We prove that if a board initially contains an even number n>1 of ones, then A can guarantee to obtain S_2(n), but not more, cookies. The binary representation of 2020 is 11111100100_2, so S_2(2020)=7.\n\nA's strategy: At any round, while possible, A chooses two equal nonzero numbers. By induction, each number on the board is either 0 or a power of 2. When A cannot follow this strategy, all nonzero numbers are distinct powers of 2, so the largest exceeds the sum of the others (or all are zero). Define the 'range' of a number as the count of original 1s it was obtained from. Nonzero k has range k, zero has range a power of 2. Sum of ranges = n. Since S_2(a+b) <= S_2(a)+S_2(b), n cannot be represented as fewer than S_2(n) powers of 2. So A guarantees at least S_2(n) cookies.\n\nB's strategy: Define balanced collections as sign choices epsilon_1,...,epsilon_k in {+1,-1} with sum epsilon_i x_i = 0. A situation is 'good' if 2^(s+1) does not divide the number of balanced collections, where s=S_2(n).\n- Lemma 1: Initial situation is good. The initial balanced count is C(n,n/2), and nu_2(C(n,n/2)) = S_2(n) = s by Legendre's formula.\n- Lemma 2: B can maintain goodness. If A erases x_p and x_q, let N = N_+ + N_- where N_+ counts balanced collections with same signs on p,q and N_- counts those with different signs. Writing x+y gives N_+, writing |x-y| gives N_-. Since 2^(s+1) does not divide N, it does not divide one of N_+, N_-.\n- Lemma 3: Good terminating situation has at most s numbers. If one number > sum of others, balanced count = 0 (divisible by 2^(s+1), not good). If all zeros, balanced count = 2^k, and goodness requires k <= s.\n\nBy Lemmas 1-2, B maintains goodness. By Lemma 3, at most s numbers remain. Combined with A's lower bound, the answer is S_2(2020) = 7.",
+  "solution_summary": "The answer equals S_2(2020) = popcount(2020) = 7. A's strategy (always pick two equal numbers) guarantees at least 7 via a range invariant and the subadditivity of binary digit sum. B's strategy (maintain that 2^(s+1) does not divide the number of balanced sign collections) guarantees at most 7, using Legendre's formula for the 2-adic valuation of C(2020,1010).",
+  "domain": "combinatorics",
+  "subfield": "game_theory",
+  "answer_type": "numerical",
+  "answer": "7",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_transformation",
+  "structure_features": "Two-player game with alternating moves, A controls pair selection, B controls operation choice (addition/absolute difference), two termination conditions, objective is final count of numbers",
+  "key_objects": ["blackboard numbers", "game rounds", "termination conditions", "cookies count", "binary representation", "balanced sign collections", "2-adic valuation"],
+  "thinking_patterns": ["invariant_analysis", "strategy_pairing", "binary_representation", "2_adic_valuation", "induction_on_game_rounds", "potential_function"],
+  "primary_pattern": "binary_representation",
+  "knowledge_required": ["binary representation / popcount", "Legendre's formula for 2-adic valuation", "balanced collections / sign sums", "game theory strategy pairing"],
+  "key_insight": "The answer equals S_2(2020) = popcount(2020) = 7, connecting the binary representation of the initial count to both players' optimal strategies through range invariants and 2-adic valuation of balanced collections",
+  "translation_from": "game-theoretic strategy analysis (pair selection and operation choice)",
+  "translation_to": "number-theoretic invariants (binary digit sum and 2-adic valuation of balanced collections)",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["binary digit sum", "popcount", "balanced collections", "2-adic valuation", "equal number pairing", "range invariant", "powers of 2", "Legendre formula"],
+  "expected_ai_method": "case_by_case",
+  "correct_method": "structural_transformation",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI describes game structure but doesn't identify the binary representation connection",
+      "hint": "Focus on what quantities are preserved or transformed each round",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "case_by_case", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["game structure", "player roles", "termination conditions"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists directions but misses binary representation and sign-sum invariants",
+      "hint": "Consider invariants related to the number 2020 itself - its arithmetic properties",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["invariants", "sum preservation", "parity", "binary representation"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI analyzes B always writing x+y but gets stuck on how A prevents large numbers",
+      "hint": "What if A always picks two equal numbers? What structure does this create?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["sum preservation", "equal number strategy", "powers of 2"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI recognizes all numbers become 0 or powers of 2 but doesn't connect to binary representation of 2020",
+      "hint": "Define the range of each number and relate the sum of ranges to 2020's binary representation",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["range invariant", "powers of 2", "binary digit sum", "popcount"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI proves A gets at least S_2(2020)=7 but hasn't considered B's strategy",
+      "hint": "Consider the number of balanced sign collections and how it changes under B's choices",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["balanced collections", "sign sums", "2-adic valuation", "Legendre formula"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI derives the recurrence N = N_+ + N_- but doesn't see the 2-adic valuation invariant",
+      "hint": "Use Legendre's formula to compute nu_2 of the initial balanced count and maintain a good invariant",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["2-adic valuation", "good situation", "Legendre formula", "balanced collections recurrence"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both A's lower bound and B's upper bound strategy",
+      "hint": "Combine both bounds to conclude the answer is S_2(2020) = 7",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "method_translation"},
+      "tell_small_concepts": ["strategy pairing", "upper and lower bounds", "popcount 2020"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Full game from initial 2020 ones to termination",
+      "observation_point": null,
+      "tell": "The game outcome depends on the binary digit sum of the initial count, not on the specific sequence of moves",
+      "hint": "Look for invariants related to S_2(n) that are preserved throughout the game",
+      "hint_level": 0.6,
+      "generalizability": "high - applies to any even initial count n, answer is always S_2(n)",
+      "why_not_visible_locally": "The connection between the game's final count and the binary representation of 2020 is a global property that requires analyzing both players' strategies simultaneously; no single round reveals this connection",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "case_by_case", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["binary digit sum", "popcount", "global invariant", "strategy pairing"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "B's strategy using balanced collections",
+      "observation_point": "R6",
+      "tell": "The 2-adic valuation of the number of balanced sign collections is the key invariant for B's strategy",
+      "hint": "Define balanced collections and track how their count splits under B's two choices",
+      "hint_level": 0.4,
+      "generalizability": "medium - the balanced collections technique applies to similar sign-sum games but requires adaptation",
+      "why_not_visible_locally": "The balanced collections concept is not suggested by the game rules themselves; it requires importing a number-theoretic tool (2-adic valuation) that is invisible in the game's local dynamics",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["balanced collections", "2-adic valuation", "sign sums", "Legendre formula"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try to simulate the game or analyze small cases, but would miss the binary representation connection and the balanced collections invariant. Without knowledge of 2-adic valuation and Legendre's formula, it cannot construct B's optimal strategy.",
+  "suitable_for_poc": ["tell_hint_injection", "knowledge_bottleneck_detection", "strategy_translation"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这个博弈的结构：谁控制什么，每轮如何变化，终止条件是什么？",
+        "expected_answer": "A选两个数，B选x+y或|x-y|；每轮数字个数减1；终止条件(1)某数>其余之和(2)全零；A最大化剩余个数，B最小化"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能有助于分析这个博弈的不变量或数量",
+        "expected_answer": "数字之和、奇偶性、数字个数、最大数、数之间的关系、二进制表示、三角不等式（一个>其余之和）、符号和等"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "假设B总是写x+y，分析会发生什么",
+        "expected_answer": "和保持2020不变，B需要创造>1010的数，A可以尝试阻止，但这忽略了|x-y|选项，分析不完整"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "考虑A总选两个相等的数的策略，能推出什么结构？",
+        "expected_answer": "归纳证明所有数为0或2的幂；无法继续时非零数为不同的2的幂，最大者>其余之和，游戏终止"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "定义每个数的range（它由多少个原始1得到），证明range的性质并联系2020的二进制表示",
+        "expected_answer": "非零数k的range=k，零的range=2的幂；range之和=2020；由S_2(a+b)<=S_2(a)+S_2(b)，2020不能表示为少于S_2(2020)=7个2的幂之和，故A保证>=7"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "对B的策略，考虑平衡符号集合的数量如何随B的选择变化？",
+        "expected_answer": "N=N_++N_-，其中N_+是同号平衡集合数，N_-是异号平衡集合数；写x+y得N_+，写|x-y|得N_-；这是关键递推"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "利用Legendre公式计算初始平衡集合数的2-adic valuation，完成B的策略并得出结论",
+        "expected_answer": "nu_2(C(2020,1010))=S_2(2020)=7；B维护好局面(2^8不整除N)；终止时若一个数>其余之和则N=0不good，若全零则N=2^k且k<=7；故B保证<=7，结合A的>=7，答案为7"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 3,
+      "knowledge_rounds": 3,
+      "level_sum": 2.9,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-28T00:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "IMO 2020 Shortlist C8. Key insight: answer = popcount(2020) = 7. Two independent strategies (A's equal-pairing + range invariant, B's balanced collections + 2-adic valuation) meet at the same value."
+  }
+}

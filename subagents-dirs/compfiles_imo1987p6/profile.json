@@ -1,0 +1,285 @@
+{
+  "_key": "compfiles_imo1987p6",
+  "source_id": "compfiles_imo1987p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Let n be an integer greater than or equal to 2. Prove that if k^2 + k + n is prime for all integers k such that 0 <= k <= sqrt(n/3), then k^2 + k + n is prime for all integers k such that 0 <= k <= n - 2.",
+  "solution_text": "Strong induction on k. Define f(x) = x^2 + x + p and r = floor(sqrt(p/3)). Base case k=0 and k <= r use the hypothesis directly. For k > r, let s = k - r >= 1. (1) Show f(k) < (2k+1)^2 using p <= 3r^2 + 6r + 2. (2) Show f(k) is coprime to all integers in (k, 2k]: suppose not, let j be a common factor, set ss = j - k - 1 <= k-1. Key identity: f(k) = f(ss) + (2k - j + 1)*j, so gcd(f(k), j) = gcd(f(ss), j). By induction f(ss) is prime, so f(ss) | j. Since f(ss) >= p and j < 2p, we get f(ss) = j, leading to p <= k+1 <= p-1, contradiction. (3) Use dyadic argument to extend coprimality from (k, 2k] to (1, 2k]. (4) Since f(k) < (2k+1)^2 and f(k) is coprime to all integers in (1, 2k], f(k) is prime.",
+  "solution_summary": "强归纳+互素性判素性。利用代数恒等式f(k)-f(j)=(k-j)(k+j+1)选取j=m-k-1使f(k)≡f(j)(mod m)，将gcd归约到更小值，由归纳假设推出矛盾证明互素性，再结合f(k)<(2k+1)²的界证明素性。",
+  "domain": "number_theory",
+  "subfield": "primality_proofs",
+  "answer_type": "proof",
+  "answer": "k^2 + k + n is prime for all integers k with 0 <= k <= n-2",
+  "problem_type": "structural_existence",
+  "solution_method_type": "strong_induction_coprimality",
+  "structure_features": "二次多项式 f(k)=k²+k+n 的素性从短区间 [0, √(n/3)] 传播到长区间 [0, n-2]，强归纳+互素性判素性+代数恒等式联系不同点的值",
+  "key_objects": [
+    "二次多项式 k²+k+n",
+    "素性",
+    "强归纳",
+    "互素性",
+    "⌊√(n/3)⌋",
+    "代数恒等式 f(k)-f(j)=(k-j)(k+j+1)"
+  ],
+  "thinking_patterns": [
+    "strong_induction",
+    "coprimality_primality_bridge",
+    "algebraic_identity_relating_values",
+    "contradiction_from_size_bounds",
+    "range_extension",
+    "dyadic_argument"
+  ],
+  "primary_pattern": "coprimality_primality_bridge",
+  "knowledge_required": [
+    "互素性判素性（若m与所有d²≤m的d互素则m素数）",
+    "强归纳原理",
+    "二次多项式差值因式分解 f(k)-f(j)=(k-j)(k+j+1)",
+    "gcd加法性质 gcd(a+bm, b)=gcd(a,b)",
+    "dyadic argument（互素性区间倍增）"
+  ],
+  "key_insight": "利用代数恒等式 f(k)-f(j)=(k-j)(k+j+1)，选取 j=m-k-1 使 f(k)≡f(j)(mod m)，将 gcd(f(k),m) 归约为 gcd(f(j),m)，再用归纳假设 f(j) 素数推出矛盾——这是将素性从短区间传播到长区间的核心机制",
+  "translation_from": "直接素性验证（尝试直接分析f(k)的因子结构）",
+  "translation_to": "互素性判素性（通过证明f(k)与一段区间内所有整数互素+大小界来证明素性）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "coprimality_primality_bridge",
+    "strong_induction",
+    "quadratic_value_identity",
+    "range_extension",
+    "size_bound_for_primality",
+    "gcd_reduction"
+  ],
+  "expected_ai_method": "direct_calculation",
+  "correct_method": "coprimality_based_primality_via_induction",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到条件命题但未识别假设范围与结论范围的结构关系",
+      "hint": "描述题目结构：假设范围√(n/3)与结论范围n-2的关系",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["hypothesis_range", "conclusion_range", "range_extension"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但未考虑互素性作为素性的桥梁",
+      "hint": "列出所有方向：归纳、反证、互素性、大小估计",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["approach_enumeration", "coprimality_bridge", "induction"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试直接分析f(k)的因子结构但卡住——二次多项式无简单分解",
+      "hint": "假设f(k)合数，直接分析因子，发现卡住",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["composite_assumption", "factor_analysis", "stuck_point"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI卡在直接因式分解，需要转向f(k)与f(j)的代数关系",
+      "hint": "计算f(k)-f(j)=(k-j)(k+j+1)，选取j=m-k-1使f(k)≡f(j)(mod m)",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["quadratic_value_identity", "difference_factorization", "modular_reduction"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI有恒等式但不知如何与归纳结合推出矛盾",
+      "hint": "用强归纳+恒等式证明gcd(f(k),m)=gcd(f(j),m)，由f(j)素数推出矛盾",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["strong_induction", "gcd_identity", "coprime_propagation", "size_bound_contradiction"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI证明了互素性但未建立素性判据所需的界",
+      "hint": "需要f(k)<(2k+1)²使潜在素因子落在互素区间内",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["size_bound_for_primality", "coprimality_primality_bridge", "dyadic_argument"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI需要从r=⌊√(n/3)⌋推导出f(k)<(2k+1)²的界",
+      "hint": "利用n≤3r²+6r+2和s=k-r≥1完成界估计",
+      "hint_level": 0.65,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["range_bound", "sqrt_n_over_3", "inequality_estimation"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "所有零件就位但未组装成完整证明",
+      "hint": "组装：归纳基础+互素性+界→素性，证毕",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["induction_assembly", "proof_completion", "range_extension"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从假设范围到结论范围的完整归纳链——代数恒等式→gcd归约→互素性→大小界→素性",
+      "observation_point": null,
+      "tell": "证明需要一条非显然的链条：代数恒等式将不同点的值联系起来→gcd归约到更小的值→归纳假设给出素数→矛盾推出互素性→大小界+互素性给出素性。没有任何单一步骤揭示完整链条。",
+      "hint": "关键路径是：(1)建立f(k)<(2k+1)²，(2)用恒等式+归纳证明互素性，(3)用互素性+界推出素性",
+      "hint_level": 0.7,
+      "generalizability": "high——互素性判素性+归纳的范式可推广到许多多项式序列的素性证明",
+      "why_not_visible_locally": "每个局部步骤（恒等式、gcd、界）看起来是独立的计算。全局链条——这些步骤组合成一个素性判据——只有从完整路径视角才可见。没有任何单个步骤揭示最终目标是互素性判素性。",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["coprimality_primality_bridge", "induction_chain", "size_bound_for_primality"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "假设范围√(n/3)与结论范围n-2之间的隐含关系",
+      "observation_point": "R7",
+      "tell": "√(n/3)这个阈值不是任意的——它恰好是使f(k)<(2k+1)²成立的临界点，这是互素性判素性步骤的必要条件",
+      "hint": "假设范围√(n/3)的选择使得当k>√(n/3)时界f(k)<(2k+1)²成立，这对互素性→素性步骤是必要的",
+      "hint_level": 0.75,
+      "generalizability": "medium——具体阈值依赖于多项式形式，但'假设范围匹配证明需求'的范式是通用的",
+      "why_not_visible_locally": "在局部计算界f(k)<(2k+1)²时，与'为什么√(n/3)是假设阈值'的联系是隐含的——只有当你看到界需要n≤3r²+...时，√(n/3)的选择才变得清晰",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["hypothesis_threshold", "range_bound_connection", "sqrt_n_over_3"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接因式分解或简单归纳，不会发现关键恒等式f(k)-f(j)=(k-j)(k+j+1)及其在gcd归约中的应用，也不会想到'互素性+大小界→素性'的间接框架。最可能在R3（直接分析因子）处卡住，无法完成从直接验证到互素性框架的方法翻译。",
+  "suitable_for_poc": ["tell_hint_injection", "topology_matching", "path_feature_extraction", "knowledge_bottleneck_detection"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "描述这道题的结构：假设条件是什么？要证明的结论是什么？假设的范围和结论的范围之间有什么关系？",
+        "expected_answer": "假设条件是 k²+k+n 对 0≤k≤√(n/3) 为素数，结论是 k²+k+n 对 0≤k≤n-2 为素数。结论范围远大于假设范围，需要将小范围的素性'传播'到大范围。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "列出所有可能的证明方向：直接验证、归纳、反证、互素性、大小估计……",
+        "expected_answer": "可能方向：强归纳（利用小k的结论推大k）、反证（假设某k处f(k)合数）、直接因式分解、互素性判素性、Eratosthenes筛法思想、多项式值的代数关系……"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "假设存在某个 k > √(n/3) 使得 f(k) = k²+k+n 是合数，尝试直接分析它的因子。你能得到什么？",
+        "expected_answer": "f(k) 合数意味着有因子 d 满足 1 < d < f(k)。但直接分析因子结构没有明显进展——f(k) 是二次多项式，没有简单的因式分解。卡住了。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "计算代数恒等式 f(k) - f(j) = (k-j)(k+j+1)。这个恒等式如何将 f(k) 与更小的 f(j) 联系起来？特别地，如果想让 f(k) ≡ f(j) (mod m)，应该如何选取 j？",
+        "expected_answer": "f(k) - f(j) = (k-j)(k+j+1)。要让 f(k) ≡ f(j) (mod m)，需要 m | (k-j)(k+j+1)。最简单的方式是令 k+j+1 = m，即 j = m - k - 1。这样 f(k) - f(j) = (k - (m-k-1)) · m = (2k - m + 1) · m，确实是 m 的倍数。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "用强归纳：假设对所有 j < k，f(j) 是素数。如果 f(k) 与某个 m ∈ (k, 2k] 不互素，取 j = m - k - 1，用上面的恒等式证明 gcd(f(k), m) = gcd(f(j), m)。由此推出什么矛盾？",
+        "expected_answer": "gcd(f(k), m) = gcd(f(j), m)，由归纳 f(j) 素数，所以 f(j) | m。又 f(j) = j²+j+n ≥ n，而 m ≤ 2k ≤ 2(n-2) < 2n，所以 f(j) = m。代入得 j² + n = k + 1，即 n ≤ k + 1 ≤ n - 1，矛盾。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "上面的矛盾证明了 f(k) 与 (k, 2k] 中所有整数互素。现在需要证明 f(k) 是素数。回忆：如果一个数 m > 1 与所有满足 d² ≤ m 的整数 d 互素，则 m 是素数。你需要什么额外条件？",
+        "expected_answer": "需要证明 f(k) < (2k+1)²，这样所有 f(k) 的潜在素因子 d ≤ √f(k) < 2k+1，而我们已经证明了 f(k) 与 (k, 2k] 互素。还需要处理 d ≤ k 的部分——可以用 dyadic argument 将互素性从 (k, 2k] 扩展到 (1, 2k]。"
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.65,
+        "question": "证明 f(k) < (2k+1)²。利用 r = ⌊√(n/3)⌋ 和 k > r，推导出 n ≤ 3r² + 6r + 2，然后完成界的估计。",
+        "expected_answer": "由 √(n/3) < r+1 得 n < 3(r+1)² = 3r² + 6r + 3，故 n ≤ 3r² + 6r + 2。设 s = k - r ≥ 1，则 f(k) = k² + k + n = (s+r)² + (s+r) + n ≤ (s+r)² + (s+r) + 3r² + 6r + 2。展开后与 (2k+1)² = (2(s+r)+1)² 比较可得 f(k) < (2k+1)²。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "现在所有零件都齐了：归纳基础来自假设，互素性来自反证矛盾，素性来自界+互素。把完整的证明组装起来。",
+        "expected_answer": "强归纳：基础情形 k ≤ r 由假设给出。归纳步：k > r 时，(1) 证明 f(k) < (2k+1)²，(2) 证明 f(k) 与 (k, 2k] 互素（反证+恒等式+归纳假设），(3) 用 dyadic argument 扩展互素性到 (1, 2k]，(4) 由 f(k) < (2k+1)² 和互素性得 f(k) 素数。证毕。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 4.55,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO 1987 P6. 核心难点在于从直接素性验证翻译到互素性判素性框架，以及发现代数恒等式f(k)-f(j)=(k-j)(k+j+1)在gcd归约中的应用。已有拓扑分类完全覆盖，无需进化。"
+  }
+}

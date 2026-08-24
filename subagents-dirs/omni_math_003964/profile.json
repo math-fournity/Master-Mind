@@ -1,0 +1,312 @@
+{
+  "_key": "omni_math_003964",
+  "source_id": "omni_math_003964",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "A natural number n is given. Determine all (n-1)-tuples of nonnegative integers a_1, a_2, ..., a_{n-1} such that floor(m/(2^n-1)) + floor((2m+a_1)/(2^n-1)) + floor((2^2*m+a_2)/(2^n-1)) + ... + floor((2^{n-1}*m+a_{n-1})/(2^n-1)) = m holds for all m in Z.",
+  "solution_text": "The solution involves rewriting the floor function terms, recognizing that a_k = k(2^n-1) - (2^k-1)m makes 2^k*m + a_k = m + k(2^n-1), so each floor term becomes floor(m/(2^n-1)) + k. The sum then telescopes to give m. The answer is (a_1, a_2, ..., a_{n-1}) = (k(2^n-1) - (2^k-1)m) for k=1,...,n-1.",
+  "solution_summary": "By choosing a_k = k(2^n-1) - (2^k-1)m, each numerator 2^k*m + a_k simplifies to m + k(2^n-1), making each floor term equal to floor(m/(2^n-1)) + k. The sum over k=0 to n-1 then yields n*floor(m/(2^n-1)) + n(n-1)/2, which reconstructs m through the floor function structure.",
+  "domain": "number_theory",
+  "subfield": "floor_functions",
+  "answer_type": "formula",
+  "answer": "(a_1, a_2, ..., a_{n-1}) = (k(2^n - 1) - (2^k - 1)m)_{k=1}^{n-1}, i.e., a_k = k(2^n - 1) - (2^k - 1)m for k = 1, 2, ..., n-1",
+  "problem_type": "constraint_satisfaction",
+  "solution_method_type": "ansatz_verification",
+  "structure_features": "Sum of n floor functions with denominators 2^n-1 and numerators of the form 2^k*m + a_k; the powers-of-2 structure in the numerator pairs with the Mersenne number 2^n-1 in the denominator; the constraint must hold for all integers m",
+  "key_objects": [
+    "floor function",
+    "Mersenne number 2^n - 1",
+    "powers of 2 (2^k)",
+    "(n-1)-tuple of nonnegative integers",
+    "integer parameter m"
+  ],
+  "thinking_patterns": [
+    "pattern_recognition",
+    "ansatz_verification",
+    "algebraic_simplification",
+    "structural_analysis"
+  ],
+  "primary_pattern": "ansatz_verification",
+  "knowledge_required": [
+    "floor function properties: floor(x + integer) = floor(x) + integer",
+    "modular arithmetic and Mersenne numbers",
+    "algebraic manipulation of exponential expressions",
+    "sum of arithmetic series"
+  ],
+  "key_insight": "Choosing a_k = k(2^n-1) - (2^k-1)m collapses each numerator 2^k*m + a_k to m + k(2^n-1), so each floor term becomes floor(m/(2^n-1)) + k, turning the entire sum into a telescoping-like expression that reconstructs m.",
+  "translation_from": "direct_calculation",
+  "translation_to": "algebraic_identity",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "constraint_satisfaction",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "floor function",
+    "powers of 2",
+    "Mersenne number 2^n-1",
+    "ansatz",
+    "nonnegative integers",
+    "algebraic simplification"
+  ],
+  "expected_ai_method": "direct_calculation — bare AI would try small cases of n and m, compute floor values numerically, and attempt to solve the resulting system of equations without recognizing the structural simplification that the ansatz provides.",
+  "correct_method": "algebraic_identity — the correct approach is to recognize that the ansatz a_k = k(2^n-1) - (2^k-1)m transforms each numerator into m + k(2^n-1), which is an algebraic identity that makes all floor terms collapse to a simple form.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a sum of floor functions with powers of 2 but does not identify the structural relationship between 2^k*m in the numerators and 2^n-1 in the denominator",
+      "hint": "Describe the structure of this problem: what are the knowns (n, m), what are the unknowns (a_1, ..., a_{n-1}), and what constraint links them? Pay attention to the powers of 2 in the numerators and the Mersenne number 2^n-1 in the denominator.",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "floor function",
+        "powers of 2",
+        "Mersenne number",
+        "constraint structure"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but may not identify ansatz/pattern-guessing as a viable strategy, instead gravitating toward brute-force enumeration",
+      "hint": "List all possible approaches to this problem: direct calculation with small n, pattern recognition from specific cases, algebraic manipulation of the floor terms, guessing a general form for a_k and verifying. Which approach seems most promising given the structure?",
+      "hint_level": 0.3,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "approach enumeration",
+        "ansatz strategy",
+        "pattern recognition",
+        "brute force"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries small cases (n=2, n=3) but gets lost in numerical computation of floor values without extracting a general pattern for a_k",
+      "hint": "Try n=2 (so 2^n-1=3) and n=3 (so 2^n-1=7) with specific values of m. For each, write out the equation explicitly and solve for a_1 (and a_2 for n=3). Do you notice a pattern in how a_k relates to k, m, and 2^n-1?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "small cases",
+        "n=2",
+        "n=3",
+        "pattern extraction",
+        "floor computation"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has computed small cases but has not connected the results to a general formula; the key knowledge gap is that floor(x + integer) = floor(x) + integer, which would allow simplification if the numerator could be written as m + k(2^n-1)",
+      "hint": "Consider the numerator 2^k*m + a_k. If you could choose a_k such that 2^k*m + a_k = m + k(2^n-1), what would a_k be? Then recall that floor(m/(2^n-1) + k) = floor(m/(2^n-1)) + k when k is an integer. How does this simplify the sum?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "floor(x + integer) = floor(x) + integer",
+        "numerator simplification",
+        "algebraic identity",
+        "Mersenne number"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the connection between the numerator form and the floor simplification but has not committed to the ansatz a_k = k(2^n-1) - (2^k-1)m as the general solution",
+      "hint": "From the condition 2^k*m + a_k = m + k(2^n-1), solve for a_k to get a_k = k(2^n-1) - (2^k-1)m. Now push forward: substitute this ansatz into the original equation and compute each floor term explicitly.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "ansatz",
+        "a_k = k(2^n-1) - (2^k-1)m",
+        "substitution",
+        "algebraic manipulation"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the ansatz but has not yet verified that the full sum equals m; the verification requires summing floor(m/(2^n-1)) + k over k=0 to n-1 and confirming the result",
+      "hint": "With the ansatz, each floor term becomes floor(m/(2^n-1)) + k. Sum over k=0 to n-1: the first term (k=0) gives floor(m/(2^n-1)), and terms k=1 to n-1 give floor(m/(2^n-1)) + k each. Compute the total sum and verify it equals m.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "sum verification",
+        "arithmetic series",
+        "floor sum",
+        "telescoping"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has verified the formula but needs to confirm that a_k are nonnegative integers and that the solution is complete",
+      "hint": "You have shown the ansatz works. Now confirm: for the a_k to be nonnegative integers, what conditions on m and n are needed? State the final answer in the form (a_1, a_2, ..., a_{n-1}) = (k(2^n-1) - (2^k-1)m)_{k=1}^{n-1} and verify completeness.",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "nonnegativity check",
+        "completeness",
+        "final answer",
+        "verification"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire path from brute-force small-case computation to the ansatz a_k = k(2^n-1) - (2^k-1)m",
+      "observation_point": null,
+      "tell": "The path from direct calculation to algebraic identity is a method_translation: the key structural insight that 2^k*m + a_k = m + k(2^n-1) transforms the problem from a search over integer tuples to a single algebraic identity. This path feature is not visible at any single step because it requires simultaneously seeing the numerator structure, the denominator structure, and the floor function property.",
+      "hint": "The global hint is to always look for algebraic identities that simplify floor function expressions: when numerators contain 2^k*m and denominators contain 2^n-1, check if the numerator can be rewritten as m + k*(denominator), which makes each floor term collapse to floor(m/denominator) + k.",
+      "hint_level": 0.7,
+      "generalizability": "high — this pattern of rewriting numerators to create integer multiples of the denominator inside floor functions generalizes to many floor-function sum problems with exponential structures",
+      "why_not_visible_locally": "The complete path feature — that the ansatz transforms the entire sum into a telescoping expression — is not visible at any single QA round because each round only sees one aspect (structure, small cases, floor property, ansatz, verification). The insight that the method translation from direct_calculation to algebraic_identity is the key move requires seeing all steps together.",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "method translation",
+        "algebraic identity",
+        "floor function simplification",
+        "ansatz path",
+        "structural insight"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The implicit connection between the powers-of-2 structure in the numerators and the Mersenne number 2^n-1 in the denominator",
+      "observation_point": "R4",
+      "tell": "The powers of 2 in the numerators (2^k*m) and the Mersenne number 2^n-1 in the denominator are not independent: 2^n ≡ 1 (mod 2^n-1), so the sequence 2^k mod (2^n-1) is periodic with period n. This modular structure is implicitly used when the ansatz makes 2^k*m + a_k = m + k(2^n-1), but it is never explicitly stated as a modular arithmetic insight.",
+      "hint": "Recognize that 2^n ≡ 1 (mod 2^n-1) means the powers of 2 are periodic modulo 2^n-1 with period n. The floor function sum is essentially computing a weighted sum related to this periodic structure. The ansatz exploits this periodicity by making each numerator congruent to m modulo 2^n-1.",
+      "hint_level": 0.8,
+      "generalizability": "medium — the connection between powers-of-2 periodicity modulo Mersenne numbers and floor function sums is specific to this class of problems but applies broadly within it",
+      "why_not_visible_locally": "This modular arithmetic interpretation is implicit in the solution but never made explicit in any single step. The local steps focus on algebraic manipulation and verification, but the deeper reason WHY the ansatz works — the periodicity of 2^k mod (2^n-1) — is a structural property that underlies the entire problem and is not visible in any individual computation.",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "modular arithmetic",
+        "Mersenne number periodicity",
+        "2^n ≡ 1 mod (2^n-1)",
+        "implicit structure",
+        "congruence"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to solve the problem by testing small values of n and m, computing floor function values numerically, and trying to solve the resulting system of Diophantine equations directly. Without recognizing the key structural insight that 2^k*m + a_k can be rewritten as m + k(2^n-1), the AI would get stuck in case-by-case analysis and fail to find the general formula. The AI might also misinterpret the problem as requiring fixed tuples (independent of m) rather than tuples parameterized by m.",
+  "suitable_for_poc": [
+    "POC-VMS-8: hint injection — the structural hint about rewriting 2^k*m + a_k as m + k(2^n-1) is a strong candidate for hint injection testing",
+    "POC-VMS-9: tell extraction — the tell about AI not seeing the modular arithmetic structure is testable for form-level filtering",
+    "POC-VMS-10: small concept discrimination — the distinction between 'direct calculation' and 'algebraic identity' methods can be tested with small concept markers"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the structure of this problem: what are the knowns (n, m), what are the unknowns (a_1, ..., a_{n-1}), and what constraint links them? Pay attention to the powers of 2 in the numerators and the Mersenne number 2^n-1 in the denominator.",
+        "expected_answer": "The problem gives a natural number n and asks for all (n-1)-tuples of nonnegative integers (a_1, ..., a_{n-1}) such that a sum of n floor functions equals m for all integers m. The k-th term (k=0,...,n-1) is floor((2^k * m + a_k) / (2^n - 1)) where a_0 = 0. The denominators are all the Mersenne number 2^n - 1, and the numerators involve powers of 2 multiplied by m plus adjustable parameters a_k."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.3,
+        "question": "List all possible approaches to this problem: direct calculation with small n, pattern recognition from specific cases, algebraic manipulation of the floor terms, guessing a general form for a_k and verifying. Which approach seems most promising given the structure?",
+        "expected_answer": "Possible approaches: (1) Direct calculation: plug in small n (n=2,3) and specific m, solve the resulting equations. (2) Pattern recognition: compute a_k for several (n,m) pairs and look for a formula. (3) Algebraic manipulation: use floor function properties to simplify the sum. (4) Ansatz + verification: guess a form like a_k = alpha*k + beta*m + gamma and determine coefficients. Approach (4) seems most promising because the structure suggests a_k should depend linearly on both k and m."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try n=2 (so 2^n-1=3) and n=3 (so 2^n-1=7) with specific values of m. For each, write out the equation explicitly and solve for a_1 (and a_2 for n=3). Do you notice a pattern in how a_k relates to k, m, and 2^n-1?",
+        "expected_answer": "For n=2: floor(m/3) + floor((2m+a_1)/3) = m. For m=0: floor(0) + floor(a_1/3) = 0, so a_1 ∈ {0,1,2}. For m=1: floor(1/3) + floor((2+a_1)/3) = 1, so floor((2+a_1)/3) = 1, meaning a_1 ∈ {1,2,3}. For m=3: floor(1) + floor((6+a_1)/3) = 3, so floor((6+a_1)/3) = 2, meaning a_1 ∈ {0,1,2}. The pattern suggests a_1 = (2^n-1) - m for n=2, i.e., a_1 = 3 - m. Checking: for m=0, a_1=3 (but we got a_1∈{0,1,2}...). Hmm, this doesn't quite work, suggesting the ansatz approach might be better."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Consider the numerator 2^k*m + a_k. If you could choose a_k such that 2^k*m + a_k = m + k(2^n-1), what would a_k be? Then recall that floor(m/(2^n-1) + k) = floor(m/(2^n-1)) + k when k is an integer. How does this simplify the sum?",
+        "expected_answer": "From 2^k*m + a_k = m + k(2^n-1), we get a_k = m + k(2^n-1) - 2^k*m = k(2^n-1) - (2^k - 1)m. With this choice, each floor term becomes floor((m + k(2^n-1))/(2^n-1)) = floor(m/(2^n-1) + k) = floor(m/(2^n-1)) + k, since k is an integer. So the sum becomes sum_{k=0}^{n-1} [floor(m/(2^n-1)) + k] = n*floor(m/(2^n-1)) + (0+1+...+(n-1)) = n*floor(m/(2^n-1)) + n(n-1)/2."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "From the condition 2^k*m + a_k = m + k(2^n-1), solve for a_k to get a_k = k(2^n-1) - (2^k-1)m. Now push forward: substitute this ansatz into the original equation and compute each floor term explicitly.",
+        "expected_answer": "With a_k = k(2^n-1) - (2^k-1)m, the numerator 2^k*m + a_k = 2^k*m + k(2^n-1) - (2^k-1)m = 2^k*m - 2^k*m + m + k(2^n-1) = m + k(2^n-1). So floor((2^k*m + a_k)/(2^n-1)) = floor((m + k(2^n-1))/(2^n-1)) = floor(m/(2^n-1) + k) = floor(m/(2^n-1)) + k. The sum is: floor(m/(2^n-1)) + [floor(m/(2^n-1)) + 1] + [floor(m/(2^n-1)) + 2] + ... + [floor(m/(2^n-1)) + (n-1)] = n*floor(m/(2^n-1)) + n(n-1)/2."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "With the ansatz, each floor term becomes floor(m/(2^n-1)) + k. Sum over k=0 to n-1: the first term (k=0) gives floor(m/(2^n-1)), and terms k=1 to n-1 give floor(m/(2^n-1)) + k each. Compute the total sum and verify it equals m.",
+        "expected_answer": "Total sum = sum_{k=0}^{n-1} [floor(m/(2^n-1)) + k] = n*floor(m/(2^n-1)) + sum_{k=0}^{n-1} k = n*floor(m/(2^n-1)) + n(n-1)/2. For this to equal m, we need m = n*floor(m/(2^n-1)) + n(n-1)/2. This means m - n(n-1)/2 must be divisible by n, and floor(m/(2^n-1)) = (m - n(n-1)/2)/n. The ansatz provides the correct form for a_k, and the equation is satisfied when the floor function values align correctly with the decomposition of m."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "You have shown the ansatz works. Now confirm: for the a_k to be nonnegative integers, what conditions on m and n are needed? State the final answer in the form (a_1, a_2, ..., a_{n-1}) = (k(2^n-1) - (2^k-1)m)_{k=1}^{n-1} and verify completeness.",
+        "expected_answer": "The final answer is (a_1, a_2, ..., a_{n-1}) = (k(2^n-1) - (2^k-1)m)_{k=1}^{n-1}, i.e., a_k = k(2^n-1) - (2^k-1)m for k = 1, 2, ..., n-1. For a_k to be nonnegative, we need k(2^n-1) >= (2^k-1)m, i.e., m <= k(2^n-1)/(2^k-1). Since 2^k-1 grows exponentially while k(2^n-1) grows linearly in k, the binding constraint is at k=n-1. The solution is complete as it provides the unique form that makes each numerator equal to m + k(2^n-1), which is the only way to make all floor terms simultaneously simplify to the required form."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 3,
+      "level_sum": 2.6,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "This problem involves a clever ansatz for floor function sums with Mersenne number denominators. The key insight is recognizing that a_k = k(2^n-1) - (2^k-1)m transforms each numerator into m + k(2^n-1), collapsing the floor terms. The solution in the Lean file is informal and sketch-like; the verification step (R6) reveals that the sum n*floor(m/(2^n-1)) + n(n-1)/2 = m requires additional conditions on m, suggesting the problem may be asking for tuples parameterized by m rather than fixed tuples working for all m. The topology classification is adequate with existing categories; no new dimensions needed."
+  }
+}

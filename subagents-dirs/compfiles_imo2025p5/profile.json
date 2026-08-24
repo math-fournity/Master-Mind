@@ -1,0 +1,272 @@
+{
+  "_key": "compfiles_imo2025p5",
+  "source_id": "compfiles/Imo2025P5",
+  "source_dataset": "compfiles_imo",
+  "schema_version": 3,
+  "problem_text": "Alice and Bazza are playing the inekoalaty game, a two-player game whose rules depend on a positive number λ known to both players. On the nth turn of the game (starting with n = 1) the following happens: If n is odd, Alice chooses a nonnegative real number xₙ such that x₁ + x₂ + ... + xₙ ≤ λn. If n is even, Bazza chooses a nonnegative real number xₙ such that x₁² + x₂² + ... + xₙ² ≤ n. If a player cannot choose a suitable number, the game ends and the other player wins. If the game goes forever, neither player wins. All chosen numbers are known to both players. Determine all values of λ for which Alice has a winning strategy and all those for which Bazza has a winning strategy.",
+  "solution_text": "Alice wins when λ > √2/2, Bazza wins when λ < √2/2, and when λ = √2/2 neither player has a winning strategy. For λ < √2/2: Bazza plays greedily, always choosing the largest number allowed, making the sum of squares after his move at index 2k+1 exactly 2k+2. Each pair (a,b) satisfies a²+b²=2, so a+b≥√2 by Cauchy-Schwarz. The sum after 2k moves is at least k√2, which exceeds λ(2k+1) for large k, so Alice eventually cannot move. For λ > √2/2: Alice plays 0 until a large even index N, at which point her unspent linear budget λ(N+1) - √2·(N/2) has grown linearly (Bazza's contribution bounded by Cauchy-Schwarz), exceeding √(N+2), and she spends all of it, making the sum of squares exceed N+2 so Bazza cannot move. For λ = √2/2: both strategies degenerate—playing all zeros keeps Alice alive forever, greedy play keeps Bazza alive forever, so neither wins.",
+  "solution_summary": "阈值λ=√2/2由Cauchy-Schwarz不等式决定。λ<√2/2时Bazza贪心策略（每对a²+b²=2推出a+b≥√2）逼死Alice；λ>√2/2时Alice蓄力策略（出0攒预算后一击毙命）逼死Bazza；λ=√2/2时双方均能存活，平局。",
+  "domain": "mathematics",
+  "subfield": "game_theory_and_inequalities",
+  "answer_type": "characterization",
+  "answer": "Alice has a winning strategy when λ > √2/2, Bazza has a winning strategy when λ < √2/2, and when λ = √2/2 neither player has a winning strategy (the game can go on forever).",
+  "problem_type": "characterization",
+  "solution_method_type": "cauchy_schwarz_threshold_analysis",
+  "structure_features": "双人交替博弈，非对称约束（线性预算∑xᵢ≤λn vs 二次预算∑xᵢ²≤n），阈值√2/2分隔胜负区域，边界处平局",
+  "key_objects": [
+    "线性预算约束（∑xᵢ ≤ λn）",
+    "二次预算约束（∑xᵢ² ≤ n）",
+    "Cauchy-Schwarz不等式",
+    "贪心策略",
+    "蓄力策略",
+    "阈值√2/2",
+    "不变量a²+b²=2"
+  ],
+  "thinking_patterns": [
+    "threshold_analysis",
+    "greedy_strategy",
+    "budget_accumulation",
+    "invariant_analysis",
+    "cauchy_schwarz_application",
+    "boundary_case_analysis"
+  ],
+  "primary_pattern": "threshold_analysis",
+  "knowledge_required": [
+    "Cauchy-Schwarz不等式",
+    "博弈论基础（必胜策略概念）",
+    "实分析（非负实数序列）",
+    "渐近增长比较",
+    "QM-AM不等式"
+  ],
+  "key_insight": "阈值√2/2由Cauchy-Schwarz决定——Bazza的k步二次预算≤k给出线性和≤√2·k，与Alice的线性预算λ·2k竞争，当λ>√2/2时Alice的线性预算增长更快，可蓄力一击毙命",
+  "translation_from": "game_theory_strategy",
+  "translation_to": "inequality_analysis",
+  "translation_type": "domain_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "linear_budget",
+    "quadratic_budget",
+    "cauchy_schwarz",
+    "greedy_strategy",
+    "threshold",
+    "budget_accumulation",
+    "invariant",
+    "pairing_structure"
+  ],
+  "expected_ai_method": "case_by_case（bare AI会尝试对不同λ值逐案分析，不发现统一的Cauchy-Schwarz结构）",
+  "correct_method": "inequality_based_strategy_analysis（用Cauchy-Schwarz联系两种预算，设计贪心/蓄力策略，分析渐近竞争确定阈值）",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到双人博弈和交替约束，但未识别线性预算与二次预算之间的本质张力",
+      "hint": "识别每种预算的类型以及它们如何竞争——线性预算可累加，二次预算是局部的",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["linear_budget", "quadratic_budget", "alternating_constraints"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出多种方向但未考虑Cauchy-Schwarz作为连接线性和二次和的桥梁",
+      "hint": "考虑什么不等式能联系线性和与平方和",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["cauchy_schwarz", "sum_vs_sum_of_squares", "approach_listing"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试λ=1直接出大数，但未看到贪心策略或配对结构",
+      "hint": "观察Bazza贪心出牌（花光二次预算）时会发生什么",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["greedy_strategy", "quadratic_budget", "specific_value_attempt"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未识别Cauchy-Schwarz是连接两种预算的关键工具",
+      "hint": "应用Cauchy-Schwarz：k个数的平方和≤k推出线性和≤√(k²)=k。更精确地，配对Alice和Bazza的移动",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["cauchy_schwarz", "pairing", "sum_bound"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI看到贪心策略但未推导出不变量a²+b²=2和a+b≥√2",
+      "hint": "Bazza贪心出牌时，每对(a,b)满足a²+b²=2。这推出a+b有什么下界？",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["invariant", "pair_sum", "greedy_play"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI理解了Bazza一方但未看到Alice的蓄力策略",
+      "hint": "λ>√2/2时Alice出0直到未花线性预算增长到足以压倒Bazza的二次预算，然后一次性花光",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["budget_accumulation", "zero_strategy", "one_shot_strike", "linear_growth"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有双方策略但未检查边界λ=√2/2",
+      "hint": "在阈值处两种策略都退化——验证双方都无法逼死对方",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["boundary_case", "degenerate_strategy", "neither_wins"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "full_solution_path",
+      "observation_point": null,
+      "tell": "阈值√2/2从任何单一步骤都不可见——它从线性预算λn与二次预算n之间的全局张力中涌现，由Cauchy-Schwarz连接",
+      "hint": "临界阈值是√2/2，由Cauchy-Schwarz涌现：Bazza的k步平方和≤k给出线性和≤√2·k，与Alice的线性预算λ·2k竞争",
+      "hint_level": 0.7,
+      "generalizability": "high — 线性vs二次预算的张力通过Cauchy-Schwarz连接是博弈/优化问题中可泛化的模式",
+      "why_not_visible_locally": "阈值√2/2需要看到全局图景：配对结构(a²+b²=2)、Cauchy-Schwarz对Bazza线性和的界、以及渐近比较k√2 vs λ(2k+1)。没有单一步骤揭示阈值——它是整个解题路径的全局性质。",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["cauchy_schwarz", "threshold", "linear_quadratic_tension", "asymptotic_comparison"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "strategy_design",
+      "observation_point": "R6",
+      "tell": "Alice的蓄力策略（出0后一击毙命）隐含在问题结构中——线性预算与二次预算的非对称性意味着线性预算可累积而二次预算不可",
+      "hint": "关键策略洞察是Alice可以通过出0来累积线性预算，因为线性预算是可加的而二次预算是次可加的（由Cauchy-Schwarz）",
+      "hint_level": 0.6,
+      "generalizability": "medium — 蓄力策略适用于类似的非对称约束博弈，但具体的出0后一击毙命模式有一定问题特异性",
+      "why_not_visible_locally": "蓄力策略在任何单步中都不可见——它需要理解Alice的线性预算是可存储的（可以延迟花费）而Bazza的二次预算在局部约束他。这种非对称性只有在全局比较两种预算类型时才可见。",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["budget_accumulation", "linear_additivity", "quadratic_subadditivity", "deferred_spending"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试对不同λ值逐案分析或直接模拟博弈，不识别Cauchy-Schwarz作为连接线性预算和二次预算的桥梁。可能找到贪心策略但不发现蓄力策略，或反之。很可能遗漏边界λ=√2/2的平局分析。",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "topology_matching",
+    "knowledge_bottleneck_detection",
+    "path_feature_extraction"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "这个博弈的结构是什么？Alice和Bazza各自面临什么类型的约束？两个约束之间有什么本质区别？",
+        "expected_answer": "Alice有线性预算（∑xᵢ ≤ λn），Bazza有二次预算（∑xᵢ² ≤ n）。线性预算是可累加的（可以不花攒着），二次预算是局部的（每步都要满足）。两人交替出牌，谁先无法满足约束谁就输。关键在于两种预算的增长速率不同。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "要确定λ的阈值，有哪些可能的分析方向？列出你能想到的所有方法。",
+        "expected_answer": "可以尝试：①取特定λ值分析；②找双方的最优策略；③用不等式联系线性和二次和；④考虑连续松弛；⑤分析渐近行为；⑥找不变量；⑦考虑贪心策略；⑧考虑蓄力策略。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试着取λ=1分析。Alice的线性预算很充裕，她能直接出大数逼死Bazza吗？",
+        "expected_answer": "λ=1时Alice预算充裕，但直接出大数不一定有效——因为Bazza的二次预算每步重置（只需∑xᵢ² ≤ n）。关键不是单步大小，而是累积效应。这个方向可能走错——应该关注的是累积预算的竞争，而非单步。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "用Cauchy-Schwarz不等式分析：如果Bazza的k步满足∑xᵢ² ≤ k，那么他的线性和∑xᵢ有什么上界？这个上界和Alice的线性预算λ·2k有什么关系？",
+        "expected_answer": "由Cauchy-Schwarz，(∑xᵢ)² ≤ k·∑xᵢ² ≤ k·k = k²，故∑xᵢ ≤ k。但更精确地，如果Alice出0，Bazza的N/2步的线性和≤ √(N/2 · N) = N/√2 = √2·(N/2)。这就是阈值√2/2的来源：当λ > √2/2时，Alice的预算λN增长快于Bazza的最大线性和√2·(N/2)。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "当λ < √2/2时，Bazza采用贪心策略（每步花光二次预算）。验证：每对(Alice的a, Bazza的b)满足a²+b²=2，这推出a+b≥√2。为什么这能让Bazza赢？",
+        "expected_answer": "贪心策略下Bazza每步使∑xᵢ²恰好等于当前步数。每对(a,b)中a²+b²=2，由QM-AM或Cauchy-Schwarz得a+b≥√2。2k步后线性和≥k√2。而Alice的预算是λ(2k+1)。当λ < √2/2时，k√2 > λ(2k+1)对大k成立，Alice无法出牌。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "当λ > √2/2时，Alice如何利用线性预算的可累加性？她可以一直出0，等到什么时候再出手？出手时要满足什么条件才能让Bazza无法应对？",
+        "expected_answer": "Alice一直出0，她的未花线性预算λ(N+1) - √2·(N/2) = (λ-√2/2)·N + λ线性增长（Bazza线性和由Cauchy-Schwarz控制≤√2·(N/2)）。等到这个预算超过√(N+2)时，Alice一次性花光，使x_N² > N+2，即∑xᵢ² > N+2，Bazza在第N+1步无法满足二次预算。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "最后检查边界λ = √2/2。两个策略在边界处如何退化？为什么双方都没有必胜策略？",
+        "expected_answer": "λ=√2/2时：Alice出0可永远存活——她的预算√2/2·(2k+1)恰好≥Bazza的最大线性和√2·k（差距为√2/2，恰好够每步出0）。Bazza贪心也可永远存活——k√2 = √2/2·(2k)恰好不超过Alice的预算。两种策略都只能保证存活，无法逼死对方，故平局。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-20T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "IMO 2025 P5. 核心难点在于识别Cauchy-Schwarz作为连接线性预算和二次预算的桥梁，以及设计蓄力策略。阈值√2/2是全局路径特征，不可从单步推导。"
+  }
+}

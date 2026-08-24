@@ -1,0 +1,266 @@
+{
+  "_key": "omni_math_003830",
+  "source_id": "3830",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "A site is any point (x, y) in the plane such that x and y are both positive integers less than or equal to 20. Initially, each of the 400 sites is unoccupied. Amy and Ben take turns placing stones with Amy going first. On her turn, Amy places a new red stone on an unoccupied site such that the distance between any two sites occupied by red stones is not equal to sqrt(5). On his turn, Ben places a new blue stone on any unoccupied site. (A site occupied by a blue stone is allowed to be at any distance from any other occupied site.) They stop as soon as a player cannot place a stone. Find the greatest K such that Amy can ensure that she places at least K red stones, no matter how Ben places his blue stones.",
+  "solution_text": "The distance sqrt(5) occurs when the coordinates of two stones differ by 2 in one coordinate and 1 in the other, equivalent to vector differences (±2, ±1) or (±1, ±2) — a knight's move in chess. Under the checkerboard coloring (x+y) mod 2, a knight's move always changes the parity of x+y (since ±2±1 = ±3 or ±1, both odd), so no two sites of the same color are at distance sqrt(5). Each color class has 200 sites. Lower bound: Amy plays only on one color (200 sites, all pairwise distance ≠ sqrt(5)). Ben can occupy at most 100 of these (one per turn, alternating), so Amy guarantees at least 100 red stones. Upper bound: Ben mirrors Amy's color choice (plays on the same color as Amy). Each color has 200 sites, allowing at most 100 rounds per color. If Amy attempts to play on both colors, her stones on one color forbid sites on the other color via knight's moves (each stone forbids up to 8 sites), preventing her from exceeding 100 total. Therefore K = 100.",
+  "solution_summary": "sqrt(5) distance = knight's move; checkerboard coloring makes each color class an independent set of 200 sites; Amy plays on one color guaranteeing 100, Ben mirrors to limit Amy to 100.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_game_theory",
+  "answer_type": "numerical",
+  "answer": "100",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_transformation",
+  "structure_features": "20x20 grid combinatorial game; distance constraint (sqrt(5) = knight's move) defines a forbidden-pair graph; core is translating distance constraint into graph coloring problem, using bipartite property of knight's graph to construct independent set strategy",
+  "key_objects": [
+    "20x20 integer grid (400 sites)",
+    "sqrt(5) distance constraint (knight's move graph)",
+    "checkerboard coloring (bipartite graph partition)",
+    "Amy's red stone independent set strategy",
+    "Ben's mirror blocking strategy"
+  ],
+  "thinking_patterns": [
+    "distance_condition_to_graph_structure",
+    "bipartite_coloring_independent_set",
+    "game_mirror_strategy",
+    "lower_upper_bound_squeeze"
+  ],
+  "primary_pattern": "distance_condition_to_graph_structure",
+  "knowledge_required": [
+    "sqrt(5) distance as coordinate difference",
+    "knight's move and checkerboard coloring relationship",
+    "bipartite graph and independent sets",
+    "combinatorial game strategy construction"
+  ],
+  "key_insight": "sqrt(5) distance is exactly a knight's move, and knight's moves always change checkerboard color, so same-color sites are pairwise distance != sqrt(5) — translating the distance constraint into a coloring problem lets Amy play on one color class with constraint automatically satisfied",
+  "translation_from": "Euclidean distance constraint (sqrt(5) condition)",
+  "translation_to": "Graph coloring and independent sets (knight's move graph + checkerboard bipartite coloring)",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "sqrt(5) distance",
+    "knight's move",
+    "checkerboard coloring",
+    "bipartite graph",
+    "independent set",
+    "mirror strategy",
+    "coordinate difference",
+    "parity"
+  ],
+  "expected_ai_method": "Bare AI may attempt greedy placement or enumerate possible stone placement sequences, failing to discover the structural connection between distance constraint and checkerboard coloring",
+  "correct_method": "Translate sqrt(5) distance into knight's move graph, use checkerboard bipartite coloring to construct independent set strategy, combined with mirror strategy for upper and lower bounds",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI describes the problem structure but does not identify the specific meaning of the sqrt(5) distance constraint or its combinatorial implications",
+      "hint": "What is the structure of this problem? Identify the known conditions, unknown quantity, and constraints.",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["problem structure", "constraints", "game rules", "grid sites"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible frameworks but does not prioritize graph coloring or identify the knight's move connection as the key direction",
+      "hint": "What mathematical tools or frameworks could apply here? List all directions you can think of.",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["graph theory", "coloring", "game theory", "combinatorics", "tiling"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries greedy placement but realizes it cannot guarantee a lower bound independent of Ben's play — the approach lacks structural insight",
+      "hint": "Try a greedy strategy: Amy places a stone at a valid site each turn. How many can she guarantee?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["greedy strategy", "guaranteed lower bound", "Ben's blocking", "site selection"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI does not recognize that sqrt(5) corresponds to knight's move coordinate differences — this is the key knowledge bottleneck",
+      "hint": "Analyze the sqrt(5) distance condition: what coordinate differences produce distance sqrt(5)? Translate the distance condition into coordinate language.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["sqrt(5)", "coordinate difference", "knight's move", "vector (±2,±1)", "vector (±1,±2)"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI identifies knight's move but does not see the connection to checkerboard coloring and bipartite graph structure — the thinking bottleneck",
+      "hint": "What property does a knight's move have under checkerboard coloring? How can coloring construct a safe region for Amy?",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["checkerboard coloring", "parity", "bipartite graph", "independent set", "color class"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI sees the coloring property but has not yet constructed Amy's strategy or computed the lower bound",
+      "hint": "Using the property that same-color sites are pairwise distance != sqrt(5), construct Amy's strategy and compute the lower bound.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["independent set strategy", "200 sites", "alternating turns", "lower bound 100", "color class"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the lower bound but has not verified the upper bound — needs to show Ben can limit Amy to 100",
+      "hint": "Verify the upper bound: can Ben limit Amy to at most 100? Complete the solution.",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["mirror strategy", "upper bound", "cross-color constraint", "knight's move blocking", "K=100"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "R4→R5→R6: the complete translation chain from distance constraint to coloring strategy to independent set guarantee",
+      "observation_point": null,
+      "tell": "The full solution path requires a three-step translation chain: sqrt(5) → knight's move → checkerboard coloring → independent set → game strategy. Each step is a structural transformation that builds on the previous one.",
+      "hint": "The key to this problem is a chain of structural translations: first recognize sqrt(5) as knight's move, then use checkerboard coloring to find independent sets, then construct a game strategy from the independent set property. No single step suffices alone.",
+      "hint_level": 0.7,
+      "generalizability": "high — this translation chain pattern (distance constraint → graph structure → coloring → independent set → game strategy) applies to many combinatorial game problems on grids with distance constraints",
+      "why_not_visible_locally": "Each step in the chain only reveals the next step's input, not the full chain. From R4 alone, seeing 'sqrt(5) = knight's move' doesn't reveal that checkerboard coloring is needed. From R5 alone, seeing 'bipartite coloring' doesn't reveal the game strategy. The complete path feature — that all three translations are needed in sequence — is only visible from the global perspective after all steps are connected.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["translation chain", "knight's move", "checkerboard coloring", "independent set", "game strategy", "structural transformation"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "R4: the observation that sqrt(5) = knight's move implicitly contains the bipartite graph structure",
+      "observation_point": "R4",
+      "tell": "The identification of sqrt(5) as knight's move implicitly reveals that the forbidden-pair graph is bipartite (since knight's moves change checkerboard color). This bipartite property is the hidden structure that makes the independent set strategy possible.",
+      "hint": "When you identify a distance constraint as a knight's move, check whether the resulting graph is bipartite — knight's move graphs on grids are always bipartite under checkerboard coloring, which means each color class is an independent set.",
+      "hint_level": 0.5,
+      "generalizability": "high — the bipartite property of knight's move graphs on rectangular grids is a general structural fact that applies to any grid size and any knight-like move pattern",
+      "why_not_visible_locally": "The statement 'sqrt(5) = knight's move' only explicitly reveals the coordinate difference structure. The bipartite property is implicit — it requires the additional reasoning step that knight's moves change parity of x+y, which is not directly stated in the knight's move identification. A local view of R4 sees only the coordinate translation, not the graph-theoretic consequence.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["bipartite graph", "knight's move", "parity", "implicit structure", "checkerboard coloring"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely attempt greedy placement or enumeration methods, failing to identify the sqrt(5)-knight's move connection. Even if it recognizes the knight's move, it may not discover the checkerboard coloring strategy for constructing independent sets, and will struggle to prove both the lower and upper bounds required for the complete answer.",
+  "suitable_for_poc": [
+    "hint_injection_effectiveness",
+    "tell_identification_accuracy",
+    "structural_translation_verification"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "这道题的结构是什么？已知条件、未知量、约束分别是什么？",
+        "expected_answer": "20×20网格400个site；Amy放红石（约束：红石间距离≠√5），Ben放蓝石（无约束），轮流放石先手Amy；求最大K使Amy保证≥K个红石。这是一个组合博弈问题。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "这个问题可能涉及哪些数学工具或框架？列出你能想到的所有方向。",
+        "expected_answer": "图论（独立集、染色）、博弈论（策略、配对）、组合学（网格染色、tiling）、数论（距离条件分析）、贪心策略、构造性方法"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试试直接用贪心策略：Amy每次选一个满足条件的site放石，能保证多少个？",
+        "expected_answer": "贪心策略无法保证确定下界，因为Ben的阻挡位置影响Amy后续可选site。需要一种不依赖Ben具体策略的保证方法，比如将Amy限制在某个子集上。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "分析√5这个距离条件：什么样的坐标差会产生距离√5？将距离条件翻译成坐标语言。",
+        "expected_answer": "√5 = √(4+1)，所以坐标差为(±2,±1)或(±1,±2)时距离为√5。这正是国际象棋中骑士的走法（knight's move）。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "骑士跳在棋盘黑白染色下有什么性质？如何用染色构造一个Amy的安全区域？",
+        "expected_answer": "骑士跳改变坐标和的奇偶性（(±2,±1)改变3，(±1,±2)改变3，都是奇数），所以骑士跳总从黑格跳到白格。因此同一颜色的site两两距离≠√5。棋盘有200黑200白。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "基于同色site两两距离≠√5的性质，构造Amy的策略并计算下界。",
+        "expected_answer": "Amy只在黑色site（200个）上放红石。同色无√5冲突，所以Amy的约束自动满足。Ben每轮最多占1个黑色site，100轮后200个黑色site满（100红+100蓝），Amy保证≥100。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "验证上界：Ben能否将Amy限制在不超过100？完成解答。",
+        "expected_answer": "Ben镜像Amy的颜色选择（Amy选黑则Ben选黑，Amy选白则Ben选白），每种颜色200个site最多100轮。若Amy跨颜色放石，她的黑石通过骑士跳禁止大量白色site（每颗黑石禁止至多8个白格），跨颜色策略无法超过100。故K=100。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "approx 15 minutes",
+    "notes": "IMO combinatorial game problem. Key insight is the translation chain: sqrt(5) distance → knight's move → checkerboard bipartite coloring → independent set → game strategy. The knowledge bottleneck is at R4 (identifying sqrt(5) as knight's move) and the thinking bottleneck is at R5 (deriving coloring strategy from knight's move property). Solution file was truncated but answer (100) and core approach were reconstructable."
+  }
+}

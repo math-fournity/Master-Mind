@@ -1,0 +1,300 @@
+{
+  "_key": "compfiles_imo1976p5",
+  "source_id": "compfiles_imo1976p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "n is a positive integer and m = 2n. a_{ij} = 0, 1 or -1 for 1 <= i <= n, 1 <= j <= m. The m unknowns x_1, x_2, ..., x_m satisfy the n equations: a_{i1}x_1 + a_{i2}x_2 + ... + a_{im}x_m = 0, for i = 1, 2, ..., n. Prove that the system has a solution in integers of absolute value at most m, not all zero.",
+  "solution_text": "Consider all tuples (x_1, ..., x_m) where each x_j is an integer with |x_j| <= n. There are (2n+1)^m = (2n+1)^{2n} such tuples. For each tuple, the LHS values (sum_j a_{ij} x_j for i=1..n) are integers. Since |a_{ij}| <= 1 and |x_j| <= n, each |sum_j a_{ij} x_j| <= sum_j |x_j| <= m*n = 2n*n = 2n^2. So each LHS value lies in {-2n^2, ..., 2n^2}, giving (4n^2+1) possible values per equation, and (4n^2+1)^n possible LHS vectors. Now (2n+1)^{2n} = ((2n+1)^2)^n = (4n^2+4n+1)^n > (4n^2+1)^n. By the pigeonhole principle, two distinct tuples x and x' have the same LHS vector. Then x - x' is non-zero (since x != x'), satisfies the system (by linearity), and |x_j - x'_j| <= |x_j| + |x'_j| <= 2n = m. Thus x - x' is the desired solution.",
+  "solution_summary": "Count bounded integer tuples (2n+1)^{2n} vs possible LHS values (4n^2+1)^n; since the former exceeds the latter, pigeonhole gives two tuples with same LHS; their difference is a non-zero bounded solution.",
+  "domain": "mathematics",
+  "subfield": "combinatorics",
+  "answer_type": "existence_proof",
+  "answer": "The system has a non-trivial integer solution with |x_j| <= 2n = m for all j.",
+  "problem_type": "structural_existence",
+  "solution_method_type": "pigeonhole_counting",
+  "structure_features": "Homogeneous linear system with n equations and m=2n unknowns; coefficients constrained to {0,1,-1}; requires non-trivial integer solution bounded by m=2n in absolute value; the key structural feature is that m=2n is calibrated so the pigeonhole inequality holds",
+  "key_objects": [
+    "coefficient matrix a (n x 2n, entries in {0,1,-1})",
+    "integer solution vector x (length 2n)",
+    "candidate tuple set (integers with |x_j| <= n)",
+    "LHS value set (integers with |sum| <= 2n^2)",
+    "pigeonhole principle"
+  ],
+  "thinking_patterns": [
+    "pigeonhole_principle",
+    "counting_argument",
+    "bounded_search",
+    "difference_trick"
+  ],
+  "primary_pattern": "pigeonhole_principle",
+  "knowledge_required": [
+    "pigeonhole_principle",
+    "linear_algebra_basics",
+    "integer_bounds",
+    "counting_finite_sets",
+    "triangle_inequality"
+  ],
+  "key_insight": "Count candidate tuples with bounded entries and possible LHS values; since (2n+1)^{2n} > (4n^2+1)^n, pigeonhole gives two tuples with same LHS, and their difference is the desired non-trivial bounded solution.",
+  "translation_from": "algebraic_equation_solving",
+  "translation_to": "combinatorial_counting",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "equation_solving",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "pigeonhole",
+    "bounded_integer_tuple",
+    "lhs_value_count",
+    "difference_of_tuples",
+    "nontrivial_solution"
+  ],
+  "expected_ai_method": "Try to solve the linear system directly via Gaussian elimination or linear algebra over the rationals, obtaining a solution but failing to control the bound on absolute values",
+  "correct_method": "Count bounded candidate tuples (2n+1)^{2n} and possible LHS values (4n^2+1)^n, apply pigeonhole principle to find two tuples with same LHS, take their difference as the solution",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a homogeneous linear system but doesn't notice the key structural features: m=2n means more unknowns than equations, and the coefficient constraint {0,+-1} bounds the LHS values",
+      "hint": "Describe the problem structure: how many equations vs unknowns? What constraints on coefficients? What does the bound on the solution mean?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "equation_count_vs_unknown_count",
+        "coefficient_constraint",
+        "solution_bound"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists algebraic methods (Gaussian elimination, null space) but doesn't include counting/pigeonhole as a candidate direction",
+      "hint": "List all possible approaches: algebraic methods, counting arguments, pigeonhole principle, lattice methods, Siegel's lemma...",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "approach_space",
+        "pigeonhole_candidate",
+        "counting_argument"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries Gaussian elimination and gets a solution but cannot control the size of the solution entries — the bound is the hard part",
+      "hint": "Try solving via Gaussian elimination. Can you bound the solution? What goes wrong with the bound?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "gaussian_elimination",
+        "solution_bound_failure",
+        "uncontrolled_growth"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is stuck on bounding the solution and hasn't thought about counting how many candidate tuples exist vs how many LHS values are possible",
+      "hint": "Instead of solving directly, count: how many tuples (x_1,...,x_m) have each |x_j| <= n? How many possible values can the LHS vector take?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "candidate_tuple_count",
+        "lhs_value_range",
+        "pigeonhole_setup"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has started counting but needs to compare the two counts and recognize the pigeonhole opportunity",
+      "hint": "Compute (2n+1)^{2n} vs (4n^2+1)^n. Which is larger? What does that mean?",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "count_comparison",
+        "inequality_verification",
+        "pigeonhole_application"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has found two tuples with same LHS but hasn't realized their difference is the desired solution",
+      "hint": "If two distinct tuples x and x' give the same LHS, what can you say about x - x'? Does it satisfy the system? Is it non-zero? Is it bounded?",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "difference_trick",
+        "homogeneous_system",
+        "bound_verification"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the candidate solution x-x' and needs to verify all three conditions: non-zero, bounded by m=2n, satisfies the system",
+      "hint": "Verify: x-x' is non-zero (since x!=x'), |x_j - x'_j| <= 2n (since each |x_j|,|x'_j| <= n), and it satisfies the system (by linearity). You're done!",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "nonzero_verification",
+        "bound_verification",
+        "system_satisfaction"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire approach path from direct algebraic solving to pigeonhole counting",
+      "observation_point": null,
+      "tell": "The problem asks for a bounded non-trivial solution to a homogeneous system — the bound is the key constraint, not existence itself, which suggests a counting/pigeonhole approach rather than direct solving",
+      "hint": "When a problem asks for a solution with a specific size bound, consider counting arguments: count candidates within the bound and count possible outputs, then apply pigeonhole to find two candidates mapping to the same output",
+      "hint_level": 0.6,
+      "generalizability": "high — this pattern (bounded solution via pigeonhole) applies to many existence problems with size constraints, including Siegel's lemma and various lattice problems",
+      "why_not_visible_locally": null,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "bounded_solution",
+        "pigeonhole_pattern",
+        "counting_candidates_vs_outputs"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The relationship between m=2n (more unknowns than equations) and the pigeonhole bound",
+      "observation_point": "R4",
+      "tell": "The fact that m=2n is not just 'more unknowns than equations' — it is precisely calibrated so that (2n+1)^{2n} > (4n^2+1)^n, making the pigeonhole argument work",
+      "hint": "The choice of m=2n is not arbitrary: it ensures the pigeonhole inequality holds. The bound n on each x_j gives LHS range 2n^2, and (2n+1)^2 = 4n^2+4n+1 > 4n^2+1",
+      "hint_level": 0.7,
+      "generalizability": "medium — the specific calibration depends on the coefficient constraint {0,+-1} and the relationship between the number of unknowns and equations",
+      "why_not_visible_locally": "The connection between the parameter choice m=2n and the pigeonhole inequality only becomes visible after computing both counts and comparing them",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "parameter_calibration",
+        "pigeonhole_inequality",
+        "coefficient_constraint_role"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "AI would attempt to solve the system algebraically via Gaussian elimination or null space computation, obtain a rational solution, and struggle to bound the integer solution's absolute value. The pigeonhole counting approach is non-obvious because the problem is framed as a linear algebra problem, not a combinatorial one.",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "method_translation_poc",
+    "pigeonhole_recognition"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the problem structure: how many equations vs unknowns? What constraints on coefficients? What does the bound on the solution mean?",
+        "expected_answer": "There are n equations and m=2n unknowns (more unknowns than equations). Coefficients a_{ij} are in {0,1,-1}. We need a non-trivial integer solution where each |x_j| <= m = 2n. The system is homogeneous."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible approaches to find a bounded non-trivial solution: algebraic methods, counting arguments, pigeonhole principle, lattice methods, Siegel's lemma...",
+        "expected_answer": "Possible approaches: (1) Gaussian elimination to find null space, (2) linear algebra over Q to parametrize solutions, (3) pigeonhole principle by counting candidates, (4) lattice theory / Minkowski's theorem, (5) Siegel's lemma, (6) probabilistic method."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try solving via Gaussian elimination. Can you bound the solution? What goes wrong with the bound?",
+        "expected_answer": "Gaussian elimination gives a parametric solution, but the entries can grow large during elimination. The bound |x_j| <= 2n is hard to guarantee — the solution from elimination may have much larger entries. The direct algebraic approach doesn't naturally control solution size."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Instead of solving directly, count: how many tuples (x_1,...,x_m) have each |x_j| <= n? How many possible values can the LHS vector (a_{i1}x_1+...+a_{im}x_m)_{i=1..n} take?",
+        "expected_answer": "Candidate tuples: each x_j ranges over {-n,...,n} = 2n+1 values, and there are m=2n coordinates, so (2n+1)^{2n} tuples. LHS values: each |sum_j a_{ij}x_j| <= sum_j |x_j| <= 2n*n = 2n^2, so each LHS component is in {-2n^2,...,2n^2} = 4n^2+1 values, and there are n components, so (4n^2+1)^n possible LHS vectors."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Compute (2n+1)^{2n} vs (4n^2+1)^n. Which is larger? What does that mean?",
+        "expected_answer": "(2n+1)^{2n} = ((2n+1)^2)^n = (4n^2+4n+1)^n. Since 4n^2+4n+1 > 4n^2+1 for n >= 1, we have (2n+1)^{2n} > (4n^2+1)^n. This means there are more candidate tuples than possible LHS values, so by the pigeonhole principle, two distinct tuples must give the same LHS vector."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "If two distinct tuples x and x' give the same LHS, what can you say about x - x'? Does it satisfy the system? Is it non-zero? Is it bounded?",
+        "expected_answer": "Let y = x - x'. Since x and x' give the same LHS: sum_j a_{ij}x_j = sum_j a_{ij}x'_j for all i, so sum_j a_{ij}(x_j - x'_j) = 0 — y satisfies the system. Since x != x', y is non-zero. Since |x_j| <= n and |x'_j| <= n, |y_j| = |x_j - x'_j| <= |x_j| + |x'_j| <= 2n = m."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "Verify: y = x - x' is non-zero (since x!=x'), |y_j| <= 2n (since each |x_j|,|x'_j| <= n), and it satisfies the system (by linearity). You're done!",
+        "expected_answer": "All three conditions verified: (1) y != 0 because x != x', (2) |y_j| <= 2n = m for all j by triangle inequality, (3) sum_j a_{ij}y_j = 0 for all i by linearity of the system. This completes the proof."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 1,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": null,
+      "thinking_bottleneck": 4
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO 1976 P5 — classic pigeonhole principle application. The key challenge is method translation from algebraic solving to combinatorial counting. The problem structure (m=2n, coefficients in {0,+-1}) is precisely calibrated for the pigeonhole inequality to work. No new topology dimensions needed — existing categories (structural_existence, equation_solving, method_translation) fit well."
+  }
+}

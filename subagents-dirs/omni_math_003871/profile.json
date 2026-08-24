@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_003871",
+  "source_id": "3871",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "We are given an infinite deck of cards, each with a real number on it. For every real number x, there is exactly one card in the deck that has x written on it. Now two players draw disjoint sets A and B of 100 cards each from this deck. We would like to define a rule that declares one of them a winner. This rule should satisfy the following conditions:\n1. The winner only depends on the relative order of the 200 cards: if the cards are laid down in increasing order face down and we are told which card belongs to which player, but not what numbers are written on them, we can still decide the winner.\n2. If we write the elements of both sets in increasing order as A = {a_1, a_2, ..., a_100} and B = {b_1, b_2, ..., b_100}, and a_i > b_i for all i, then A beats B.\n3. If three players draw three disjoint sets A, B, C from the deck, A beats B and B beats C then A also beats C.\nHow many ways are there to define such a rule? Here, we consider two rules as different if there exist two sets A and B such that A beats B according to one rule, but B beats A according to the other.",
+  "solution_text": "The rules satisfying all three conditions are in bijection with k = 1, 2, ..., 100. For each k, the rule R_k says: A beats B if and only if a_k > b_k (comparing the k-th smallest elements). Each R_k satisfies: (1) depends only on relative order, (2) if a_i > b_i for all i then a_k > b_k so A wins, (3) transitivity of > gives transitivity of R_k. The key theorem is that these are the ONLY rules: transitivity forces the rule to depend on a single comparison. The proof uses the structure of interleaving patterns (lattice paths from (0,0) to (100,100)) and shows that any transitive rule respecting condition 2 must be of the form R_k. The answer is 100.",
+  "solution_summary": "The valid rules are exactly R_k: 'A beats B iff a_k > b_k' for k=1,...,100. Transitivity of > ensures each R_k is transitive, and transitivity of the rule forces it to be a single-element comparison. Answer: 100.",
+  "domain": "Combinatorics",
+  "subfield": "Order theory / combinatorial game theory",
+  "answer_type": "numerical",
+  "answer": "100",
+  "problem_type": "characterization",
+  "solution_method_type": "structural_characterization",
+  "structure_features": "Counting rules on interleaving patterns of 200 cards (100 A's, 100 B's) satisfying order-dependence, dominance, and transitivity constraints. The rule is a function from interleaving patterns to {A wins, B wins}, constrained by transitivity across triples of sets.",
+  "key_objects": ["interleaving pattern of 200 cards", "sorted sequences a_1<...<a_100 and b_1<...<b_100", "transitivity relation on sets", "lattice path from (0,0) to (100,100)", "single-element comparison rule R_k"],
+  "thinking_patterns": ["small_case_analysis", "pattern_recognition", "structural_characterization", "proof_by_classification"],
+  "primary_pattern": "structural_characterization",
+  "knowledge_required": ["interleaving patterns and lattice paths", "transitivity of order relations", "proof by characterization/classification", "bijection counting"],
+  "key_insight": "Transitivity forces the rule to be a single-element comparison a_k > b_k for some fixed k, giving exactly 100 valid rules.",
+  "translation_from": "constraint_satisfaction (enumerating rules satisfying three conditions over C(200,100) interleaving patterns)",
+  "translation_to": "structural_characterization (showing transitivity alone determines the rule form as single-element comparison)",
+  "translation_type": "constraint_to_structure",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["interleaving pattern", "transitivity constraint", "k-th element comparison", "lattice path", "single comparison rule", "bijection counting"],
+  "expected_ai_method": "Bare AI would try to enumerate all C(200,100) interleaving patterns and check which rule assignments satisfy all three conditions, getting lost in combinatorial complexity without realizing transitivity completely determines the rule structure.",
+  "correct_method": "Use small cases to conjecture n rules for n cards, then prove transitivity forces the rule to be a single-element comparison R_k, yielding exactly 100 rules.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI faces a complex counting problem with three conditions and doesn't know what structure to look for or what is being counted precisely",
+      "hint": "Describe the problem structure: what are the three conditions, what does 'rule' mean formally, and what are we counting?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["rule definition", "three conditions", "counting rules"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists many possible approaches but cannot prioritize which is feasible given the enormous search space of C(200,100) interleaving patterns",
+      "hint": "List all possible approaches: brute force enumeration, small case analysis, structural characterization using transitivity, lattice path methods. Which seems most tractable?",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["brute force enumeration", "small case analysis", "structural characterization", "search space size"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI has not tried empirical exploration and is stuck at the abstract level with 200 cards",
+      "hint": "Try small cases: for n=1 (each player draws 1 card), how many valid rules? For n=2? What pattern emerges?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["n=1 case", "n=2 case", "pattern from small cases"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI sees the pattern n rules for n cards from small cases but does not understand what mechanism (transitivity) forces this structure",
+      "hint": "From small cases, conjecture the answer is 100. Then ask: what does transitivity (condition 3) actually force about the rule's structure? Think about what happens if the rule depends on multiple comparisons.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["conjecture from pattern", "transitivity implication", "multi-comparison failure"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has not realized that transitivity completely determines the rule form — this is the critical thinking bottleneck where the AI must make the leap from 'transitivity is a constraint' to 'transitivity is a characterization tool'",
+      "hint": "Prove that transitivity forces the rule to be a single-element comparison a_k > b_k for some fixed k. Key: if the rule depends on more than one comparison, construct a counterexample to transitivity using three carefully chosen sets A, B, C.",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["transitivity forces single comparison", "counterexample construction", "R_k rule form"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the key insight but needs to complete the two-direction proof: (1) each R_k satisfies all conditions, (2) no other rule does",
+      "hint": "Complete the characterization: verify each R_k = 'a_k > b_k' satisfies all three conditions (easy), then prove no other rule works by showing any transitive rule respecting condition 2 must equal some R_k.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["two-direction proof", "R_k verification", "uniqueness proof"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI is near completion with the characterization proven, just needs to count and conclude",
+      "hint": "Count the valid rules: there are exactly 100 choices of k (k=1,...,100), each giving a distinct rule. The answer is 100.",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["counting R_k rules", "100 choices of k", "final answer"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from small case exploration to structural characterization",
+      "observation_point": null,
+      "tell": "The path from small cases (n=1 gives 1 rule, n=2 gives 2 rules) to the general characterization (transitivity forces single comparison) requires both empirical pattern recognition and structural proof — neither alone suffices",
+      "hint": "Use small cases to conjecture the answer is n for n cards, then prove the characterization by showing transitivity forces the rule to be R_k = 'a_k > b_k'",
+      "hint_level": 0.6,
+      "generalizability": "high — the small-case-to-characterization pattern applies broadly to counting problems where constraints determine structure",
+      "why_not_visible_locally": "The full strategy of 'conjecture from small cases then prove via transitivity characterization' is not visible at any single step: small cases alone only give a conjecture, and the transitivity argument alone doesn't suggest which rules to consider. The complete path requires synthesizing both.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["small case pattern", "conjecture to proof", "characterization via transitivity"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the role of the transitivity condition (condition 3) in the problem",
+      "observation_point": "Q4",
+      "tell": "Transitivity is not merely a constraint to verify but the sole determining factor that completely characterizes all valid rules — this is implicit in the problem structure",
+      "hint": "Exploit transitivity as a characterization tool: show that any rule satisfying transitivity and condition 2 must be of the form R_k, making transitivity the key that unlocks the counting",
+      "hint_level": 0.5,
+      "generalizability": "medium — transitivity as a structural characterization tool appears in order theory, social choice theory (Arrow's theorem), and tournament theory",
+      "why_not_visible_locally": "In each local step, transitivity appears as just one of three conditions to satisfy alongside order-dependence and dominance. Its role as the sole determining factor for the rule's structure is only visible from the global perspective after attempting to use all three conditions together.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["transitivity as characterization", "single comparison rule", "constraint determines structure"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to enumerate all C(200,100) interleaving patterns and try to count which rule assignments satisfy all three conditions, getting lost in the enormous combinatorial space. Without the insight that transitivity forces single-element comparison, the AI cannot reduce the problem to a tractable characterization.",
+  "suitable_for_poc": ["tell_identification", "hint_injection", "structural_transformation_poc"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem. What are the three conditions, what does a 'rule' mean formally, and what exactly are we counting?",
+        "expected_answer": "A rule is a function from interleaving patterns of 200 cards (100 A's, 100 B's) to {A wins, B wins}. Condition 1: rule depends only on relative order. Condition 2: if a_i > b_i for all i, A wins. Condition 3: transitivity. We count the number of such rules, where two rules differ if they disagree on some pair A, B."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible approaches to count the number of valid rules. Which seem tractable given the search space?",
+        "expected_answer": "Possible approaches: (1) brute force enumeration over all 2^C(200,100) possible rules — intractable. (2) Small case analysis with n=1,2,3 to find a pattern. (3) Structural characterization: use transitivity to constrain the rule's form. (4) Lattice path methods. Approach (2) combined with (3) seems most tractable."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Try small cases. For n=1 (each player draws 1 card), how many valid rules? For n=2? What pattern emerges?",
+        "expected_answer": "For n=1: 2 cards, interleaving AB or BA. Condition 2 forces A wins when a_1 > b_1 (pattern BA). So only 1 rule. For n=2: 4 cards, 6 interleavings. Condition 2 forces A wins when both a_i > b_i. Checking transitivity constrains further. The answer is 2 rules. Pattern: n rules for n cards each."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "From the small cases, conjecture the answer is 100. Then think: what does transitivity (condition 3) actually force about the rule's structure? What if the rule depends on multiple comparisons?",
+        "expected_answer": "Conjecture: 100 rules. Transitivity means if A beats B and B beats C then A beats C. If the rule depends on multiple comparisons (e.g., 'A wins if a_1 > b_1 AND a_2 > b_2'), we can likely find A, B, C where A beats B and B beats C but A doesn't beat C, violating transitivity. So transitivity likely forces the rule to depend on a single comparison."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "Prove that transitivity forces the rule to be a single-element comparison a_k > b_k for some fixed k. If the rule depends on more than one comparison, construct a counterexample to transitivity.",
+        "expected_answer": "Key proof: For each k, R_k = 'A beats B iff a_k > b_k' is transitive because > is transitive. For uniqueness: if a rule R is not any R_k, then there exist interleaving patterns where R's decision differs from all R_k. Using such patterns, construct three sets A, B, C where R(A,B)=A wins, R(B,C)=B wins, but R(A,C)=C wins, violating transitivity. The construction uses the fact that different k values can be independently manipulated."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Complete the characterization: verify each R_k satisfies all three conditions, and prove no other rule works.",
+        "expected_answer": "Verification: (1) R_k depends only on relative order — yes, a_k vs b_k is determined by the interleaving. (2) If a_i > b_i for all i, then a_k > b_k, so A wins — yes. (3) If a_k > b_k and b_k > c_k then a_k > c_k — yes, transitivity of >. Uniqueness: any rule satisfying all conditions must equal some R_k, proven by the counterexample construction in R5."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "Count the valid rules and conclude. How many choices of k are there?",
+        "expected_answer": "There are exactly 100 choices of k (k = 1, 2, ..., 100), each giving a distinct rule R_k. Two rules R_j and R_k (j ≠ k) are different because we can find sets A, B where a_j > b_j but a_k < b_k. The answer is 100."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": null,
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO Shortlist combinatorics problem. Key difficulty is realizing transitivity is a characterization tool, not just a constraint. The provided solution in the source is hand-wavy; the actual proof requires showing transitivity forces single-element comparison. Thinking bottleneck at R5 where the critical structural insight is needed."
+  }
+}

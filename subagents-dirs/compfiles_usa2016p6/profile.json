@@ -1,0 +1,334 @@
+{
+  "_key": "compfiles_usa2016p6",
+  "source_id": "usa2016p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Integers n and k are given, with n >= k >= 2. You play the following game against an evil wizard. The wizard has 2n cards; for each i = 1, ..., n, there are two cards labeled i. Initially, the wizard places all cards face down in a row, in unknown order. You may repeatedly make moves of the following form: you point to any k of the cards. The wizard then turns those cards face up. If any two of the cards match, the game is over and you win. Otherwise, you must look away, while the wizard arbitrarily permutes the k chosen cards and then turns them back face-down. Then, it is your turn again. We say this game is winnable if there exist some positive integer m and some strategy that is guaranteed to win in at most m moves, no matter how the wizard responds. For which values of n and k is the game winnable?",
+  "solution_text": "The game is winnable if and only if k < n.\n\nPart 1 (k < n is winnable): Use the sliding window strategy. Query positions {j, j+1, ..., j+k-1} for j = 0, 1, ..., 2n-k (total 2n-k+1 queries). If any query reveals a match, we win immediately. If no match occurs, all k cards in each window are distinct. Consecutive windows j and j+1 overlap in k-1 positions. The label at position j can be deduced as the unique label appearing in window j but not in window j+1 (set difference of revealed label sets). This deduces labels at positions 0, 1, ..., 2n-k-1, giving 2n-k labeled positions. Since k < n, we have 2n-k > n, but there are only n distinct labels. By the pigeonhole principle, two of these 2n-k positions must share the same label. Query a set of k cards containing those two positions to win. Total moves: at most 2n-k+2.\n\nPart 2 (k = n is not winnable): The wizard uses an evasive strategy. The wizard's initial arrangement places cards so that the first query set and its complement each contain exactly one card of each label (a bijection to labels on both parts). The wizard maintains the invariant: after each round, the current arrangement is injective on both the last query set and the next query set. When k = n, any set of n positions with all distinct labels covers all n labels. The key lemma shows: given a valid arrangement where a is injective on sets S and Q (both of size n), for any next query Qn of size n, there exists a permutation tau fixing everything outside Q such that a composed with tau is injective on Qn. This permutation exists because a maps both Q and its complement bijectively onto all n labels, allowing the wizard to rearrange cards within Q to avoid collisions in Qn. The wizard maintains this invariant forever, so the player never wins.",
+  "solution_summary": "The game is winnable iff k < n. For k < n, slide a window of k consecutive positions across the row (2n-k+1 moves), deduce labels at 2n-k positions via overlapping window set differences, then apply pigeonhole (2n-k > n) to find a matching pair and query it. For k = n, the wizard maintains an invariant that the arrangement is injective on the next query set, always permuting to prevent matches.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_game_theory",
+  "answer_type": "characterization",
+  "answer": "The game is winnable if and only if k < n (i.e., 2 <= k < n)",
+  "problem_type": "characterization",
+  "solution_method_type": "case_analysis",
+  "structure_features": "Two-player adversarial game with hidden information; player queries k of 2n cards, wizard reveals and permutes; win condition is finding a matching pair; requires both constructive strategy (k<n) and impossibility proof (k=n)",
+  "key_objects": [
+    "card arrangement",
+    "player strategy",
+    "wizard permutation",
+    "sliding window of k positions",
+    "injective function on query set",
+    "pigeonhole principle"
+  ],
+  "thinking_patterns": [
+    "case_analysis",
+    "sliding_window",
+    "pigeonhole_principle",
+    "invariant_maintenance",
+    "adversarial_strategy"
+  ],
+  "primary_pattern": "case_analysis",
+  "knowledge_required": [
+    "combinatorial game theory",
+    "pigeonhole principle",
+    "permutation groups",
+    "injective functions",
+    "set difference computation"
+  ],
+  "key_insight": "When k < n, sliding a window of k positions reveals enough information to deduce labels at 2n-k > n positions, forcing a match by pigeonhole; when k = n, the wizard can always permute to keep the next query injective since both the query and its complement map bijectively to all labels.",
+  "translation_from": "game-theoretic formulation (cards, wizard, queries, face-down/face-up)",
+  "translation_to": "combinatorial formulation (injective functions on finite sets, pigeonhole principle, permutation groups)",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "sliding window",
+    "pigeonhole principle",
+    "injective on query set",
+    "overlapping windows",
+    "evasive wizard",
+    "permutation invariant",
+    "two-case split"
+  ],
+  "expected_ai_method": "enumeration_brute_force",
+  "correct_method": "case_by_case with sliding window + pigeonhole for k<n, invariant-based adversarial strategy for k=n",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a game problem but doesn't identify the two-case structure (k<n vs k=n) or the hidden information dynamics",
+      "hint": "Describe the game structure: what are the key parameters, what information does the player accumulate, and what power does the wizard have?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "game structure",
+        "two-case split",
+        "hidden information dynamics"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible strategies but doesn't identify sliding window, pigeonhole, or the k=n impossibility direction",
+      "hint": "List all possible approaches. Consider splitting into cases k < n and k = n. What techniques might work for each?",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "sliding window",
+        "pigeonhole",
+        "case split k<n vs k=n",
+        "adversarial strategy"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries the k=n case but doesn't see that the wizard can maintain an injectivity invariant on the next query",
+      "hint": "Try the k=n case. When k=n, each query covers exactly n cards. If all are distinct, they cover all n labels. Can the wizard always permute to keep the next query also all-distinct?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "injective on query set",
+        "evasive wizard",
+        "permutation invariant",
+        "n labels covered by n cards"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI doesn't see that overlapping consecutive windows reveal individual labels through set differences",
+      "hint": "For k < n, think about what information overlapping queries give you. If you query positions {i,...,i+k-1} and then {i+1,...,i+k}, what can you deduce from the set difference of revealed labels?",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "overlapping windows",
+        "set difference of labels",
+        "sliding window",
+        "label deduction"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the sliding window idea but doesn't connect the count 2n-k to pigeonhole with n labels",
+      "hint": "Develop the sliding window strategy fully. How many positions can you deduce labels for? How does pigeonhole apply when k < n?",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "pigeonhole principle",
+        "2n-k > n",
+        "matching positions",
+        "label count"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI doesn't formalize the wizard's invariant or the permutation extension lemma for k=n",
+      "hint": "Formalize the wizard's evasive strategy for k=n. What invariant does the wizard maintain? Prove that a suitable permutation always exists using the fact that both Q and its complement map bijectively to all n labels.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "injective on next query",
+        "permutation extension lemma",
+        "bijective mapping to labels",
+        "complement bijection"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both directions but hasn't combined them into a complete characterization",
+      "hint": "Combine both directions: k < n is winnable (sliding window + pigeonhole) and k = n is not winnable (evasive wizard invariant). State the complete answer.",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "k < n iff winnable",
+        "two-direction proof",
+        "complete characterization"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire solution path from problem statement to complete characterization",
+      "observation_point": null,
+      "tell": "The solution requires a two-case split (k<n vs k=n) with fundamentally different techniques: constructive strategy for one direction and invariant-based impossibility for the other",
+      "hint": "Split into k<n (constructive sliding window strategy) and k=n (adversarial impossibility via permutation invariant)",
+      "hint_level": 0.7,
+      "generalizability": "high - two-case split with constructive + impossibility directions is a common competition proof pattern for characterization problems",
+      "why_not_visible_locally": "From any single round, the need for a two-case split with completely different techniques is not visible - it emerges from the global structure requiring both a winning strategy construction and an impossibility proof, which are complementary directions that only make sense together",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "two-case split",
+        "constructive vs impossibility",
+        "k<n vs k=n",
+        "characterization proof"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The sliding window strategy for k < n",
+      "observation_point": "Q4",
+      "tell": "Overlapping windows of size k reveal individual labels through set differences of consecutive observations",
+      "hint": "Use sliding windows and compare consecutive observations: the label at the departing position is the set difference of revealed labels between consecutive windows",
+      "hint_level": 0.5,
+      "generalizability": "medium - sliding window with overlap is a general technique, but the specific deduction via set difference of revealed label sets is problem-specific",
+      "why_not_visible_locally": "The power of overlapping windows to reveal individual labels is not visible from a single query - it requires seeing the relationship between consecutive queries and recognizing that the overlap creates a set difference of size exactly 1, which only becomes apparent when comparing two adjacent observations",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "overlapping windows",
+        "set difference",
+        "label deduction",
+        "consecutive observations",
+        "window overlap"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The pigeonhole argument completing the k < n direction",
+      "observation_point": "Q5",
+      "tell": "2n-k deduced labels with only n possible values forces a matching pair when k < n, since 2n-k > n",
+      "hint": "Count the number of deduced positions (2n-k) and compare to n labels: since k < n implies 2n-k > n, pigeonhole forces two positions to share a label",
+      "hint_level": 0.4,
+      "generalizability": "medium - pigeonhole is universal but the specific counting argument (2n-k vs n) and the connection to k < n is problem-specific",
+      "why_not_visible_locally": "The pigeonhole argument requires knowing both how many labels are deduced (2n-k from the sliding window) and the constraint k < n that makes 2n-k > n - this connection between the sliding window count and the parameter constraint is not visible from any single step, as it bridges the information-gathering phase and the winning phase",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "pigeonhole principle",
+        "2n-k > n",
+        "matching pair query",
+        "parameter constraint"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI likely attempts to find a universal strategy without splitting into cases, or gets stuck on the k=n impossibility direction without knowing the permutation invariant technique. May also miss the sliding window insight and try brute-force enumeration of query patterns.",
+  "suitable_for_poc": [
+    "tell_extraction",
+    "hint_injection",
+    "two_case_split_detection",
+    "structural_transformation_detection"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this game. What are the key parameters, what information does the player accumulate over time, and what power does the wizard have?",
+        "expected_answer": "The game has 2n cards with pairs labeled 1..n, placed face down. Player queries k cards each turn, wizard reveals them. If two match, player wins. Otherwise wizard permutes the k cards and turns them back. Key parameters: n >= k >= 2. Player accumulates observations (which labels appeared at which positions), but wizard can rearrange queried cards each turn. The game is winnable if some strategy guarantees a win in bounded moves."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible approaches to determine winnability. What cases should we consider, and what techniques might work for each?",
+        "expected_answer": "Consider splitting into k < n and k = n. For k < n, need a constructive winning strategy - perhaps using information from multiple queries to deduce card positions. For k = n, might need to show the wizard can always evade. Possible techniques: information theory, pigeonhole principle, sliding window queries, invariant-based adversarial strategy."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Try the case k = n. When k = n, each query covers exactly n cards. If all n are distinct, they cover all n labels. Can the wizard always permute to keep the next query also all-distinct?",
+        "expected_answer": "When k = n, if a query of n cards has no match, all n labels appear exactly once. The wizard can potentially permute the queried cards so that the next query also has all distinct labels. This requires that the arrangement remains injective on the next query set. The key insight is that both the queried set and its complement map bijectively to all n labels, giving the wizard enough freedom to rearrange."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "For k < n, think about what information overlapping queries give you. If you query positions {i, i+1, ..., i+k-1} and then {i+1, ..., i+k}, what can you deduce from comparing the revealed labels?",
+        "expected_answer": "The two consecutive windows overlap in k-1 positions. If no match occurred, all k cards in each window are distinct. The set of labels in window j minus the set of labels in window j+1 gives exactly one label - the label at position j (which leaves the window). This is the sliding window technique: by comparing consecutive overlapping observations, we can deduce individual labels."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Develop the sliding window strategy fully. How many positions can you deduce labels for, and how does the pigeonhole principle apply when k < n?",
+        "expected_answer": "Sliding from j=0 to j=2n-k gives 2n-k+1 queries. From consecutive pairs, deduce labels at positions 0 through 2n-k-1, giving 2n-k labeled positions. Since k < n, we have 2n-k > n, but there are only n distinct labels. By pigeonhole, two of the 2n-k positions must share the same label. Query a set of k cards containing those two matching positions to win. Total: at most 2n-k+2 moves."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "Formalize the wizard's evasive strategy for k = n. What invariant does the wizard maintain, and why can a suitable permutation always be found?",
+        "expected_answer": "The wizard maintains: the current arrangement is injective on both the last query set and the next query set. The key lemma: given a valid arrangement where a is injective on sets S and Q (both size n), for any next query Qn of size n, there exists a permutation tau fixing everything outside Q such that a composed with tau is injective on Qn. This works because a maps both Q and its complement bijectively onto all n labels, allowing the wizard to rearrange cards within Q to target any desired labeling on Qn."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "Combine both directions to state the complete answer with the move bound.",
+        "expected_answer": "The game is winnable if and only if k < n. For k < n: the sliding window strategy wins in at most 2n-k+2 moves. For k = n: the evasive wizard maintains injectivity on every query, preventing the player from ever winning. The answer is k < n."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T00:00:00Z",
+    "analysis_duration": "moderate",
+    "notes": "USAMO 2016 P6 - characterization problem with two-direction proof. Key difficulty: (1) seeing the sliding window + pigeonhole for k<n, (2) formalizing the wizard's permutation invariant for k=n. The k=n direction is the main knowledge bottleneck requiring permutation extension theory. No new topology dimensions needed."
+  }
+}

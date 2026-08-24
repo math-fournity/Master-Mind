@@ -1,0 +1,309 @@
+{
+  "_key": "compfiles_usa2020p5",
+  "source_id": "compfiles_usa2020p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "A finite set S of points in the coordinate plane is called overdetermined if |S| >= 2 and there exists a nonzero polynomial P(t), with real coefficients and of degree at most |S| - 2, satisfying P(x) = y for every point (x, y) in S. For each integer n >= 2, find the largest integer k (in terms of n) such that there exists a set of n distinct points that is not overdetermined, but has k overdetermined subsets.",
+  "solution_text": "Call a set of points flooded if it is not overdetermined. Key lemma: a flooded set of m >= 3 points has at most one overdetermined (m-1)-subset, because two different overdetermined deletion sets would give interpolating polynomials of degree at most m-3 agreeing on m-2 points, hence equal, which would witness that the whole set is overdetermined. A double-counting argument on the incidence relation between flooded m-sets and flooded (m+1)-sets shows that an n-element flooded set has at least C(n-1, m-1) flooded m-subsets for every 2 <= m <= n, so at most 2^(n-1) - n of its subsets are overdetermined. This bound is attained by the set {(1,1), (2,2), (3,2), ..., (n,2)}.",
+  "solution_summary": "定义flooded=非overdetermined。关键引理：flooded m点集最多1个overdetermined (m-1)-子集（多项式插值唯一性）。Double counting+归纳得flooded子集数下界C(n-1,m-1)，故overdetermined子集数<=2^(n-1)-n。构造{(1,1),(2,2),...,(n,2)}达到此界。",
+  "domain": "Combinatorics",
+  "subfield": "Extremal Combinatorics",
+  "answer_type": "numerical",
+  "answer": "k = 2^(n-1) - n",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "double_counting",
+  "structure_features": "极值组合优化问题，涉及点集的多项式拟合性质（overdetermined定义），需要在'本身不overdetermined'约束下最大化overdetermined子集数。核心结构是flooded/overdetermined的互补关系和子集层次结构。",
+  "key_objects": [
+    "有限点集S",
+    "实系数多项式P(t)",
+    "overdetermined子集",
+    "flooded子集（非overdetermined）",
+    "二项式系数C(n-1,m)",
+    "double counting关联矩阵"
+  ],
+  "thinking_patterns": [
+    "complementary_counting",
+    "double_counting",
+    "polynomial_interpolation_uniqueness",
+    "structural_induction",
+    "extremal_construction"
+  ],
+  "primary_pattern": "double_counting",
+  "knowledge_required": [
+    "多项式插值唯一性（次数<=|T|-1的多项式在|T|个点上唯一确定）",
+    "double counting / 关联计数技巧",
+    "二项式系数恒等式（Pascal恒等式、求和公式）",
+    "极值构造方法"
+  ],
+  "key_insight": "一个flooded的m点集最多有1个overdetermined (m-1)-子集——因为两个不同的overdetermined删除集会给出两个次数<=m-3的多项式在m-2个点上相等，由插值唯一性它们相等，从而整个集合overdetermined，矛盾。",
+  "translation_from": "直接枚举overdetermined子集计数（brute force enumeration）",
+  "translation_to": "互补计数（数flooded子集）+ double counting关联不等式 + 归纳 + 极值构造",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "overdetermined",
+    "flooded",
+    "polynomial interpolation uniqueness",
+    "double counting",
+    "complementary counting",
+    "extremal construction",
+    "binomial identity",
+    "Pascal identity"
+  ],
+  "expected_ai_method": "enumeration_brute_force（bare AI会尝试直接枚举/计数overdetermined子集，但无法给出紧的上界）",
+  "correct_method": "互补计数flooded子集 + 多项式插值唯一性引理 + double counting关联不等式 + 归纳 + 极值构造",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到极值优化问题但未识别互补结构——overdetermined与flooded的互补关系",
+      "hint": "描述overdetermined的结构含义，思考'不overdetermined'意味着什么",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "overdetermined",
+        "polynomial degree bound",
+        "extremal optimization"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出方向但遗漏互补计数和double counting",
+      "hint": "列出所有方向，特别注意互补计数（数不是overdetermined的子集）",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "complementary counting",
+        "approach enumeration",
+        "double counting"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试直接计数overdetermined子集但无法给出紧的上界",
+      "hint": "试直接计数——发现2^n个子集中难以区分哪些overdetermined，需要结构性约束",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "subset counting",
+        "2^n subsets",
+        "structural constraint needed"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未发现关键引理：flooded m点集最多1个overdetermined (m-1)-子集",
+      "hint": "定义flooded=非overdetermined，用多项式插值唯一性分析flooded集的子集结构",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "flooded",
+        "polynomial interpolation uniqueness",
+        "at most one overdetermined deletion"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI有引理但不知如何用于计数——未想到double counting",
+      "hint": "用flooded m-子集和flooded (m+1)-子集的关联建立double counting不等式",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "double counting",
+        "incidence relation",
+        "recursive inequality"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有递推不等式但未归纳出闭式下界",
+      "hint": "用归纳法和递推不等式推导F_m>=C(n-1,m-1)，求和得overdetermined上界2^{n-1}-n",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "induction",
+        "binomial coefficient",
+        "Pascal identity",
+        "sum formula"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有上界但需构造达到界的例子",
+      "hint": "构造{(1,1),(2,2),...,(n,2)}验证非overdetermined且恰有2^{n-1}-n个overdetermined子集",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "extremal construction",
+        "constant polynomial",
+        "tail subset",
+        "tightness"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整证明路径：互补计数→关键引理→double counting→归纳→极值构造",
+      "observation_point": null,
+      "tell": "整道题的解答需要从直接枚举翻译到互补计数+double counting的结构性方法，这个路径特征在任何单一步骤中都看不到",
+      "hint": "不要直接数overdetermined子集——定义flooded=非overdetermined，用插值唯一性建立结构引理，再用double counting和归纳得到紧的上界，最后构造极值例子",
+      "hint_level": 0.7,
+      "generalizability": "high — 互补计数+double counting是极值组合问题的通用范式，可泛化到任何'在约束下最大化某类子集数'的问题",
+      "why_not_visible_locally": "完整路径特征——从直接枚举到互补计数再到double counting的方法翻译，以及关键引理→递推→归纳→构造的完整链条——在任何单一步骤中只能看到局部片段，无法看到全局的方法选择和步骤间的因果依赖",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "complementary counting",
+        "double counting",
+        "polynomial interpolation uniqueness",
+        "structural induction",
+        "extremal construction"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "多项式插值唯一性在overdetermined定义中的蕴含信息",
+      "observation_point": "R4",
+      "tell": "overdetermined的定义中隐含了多项式插值唯一性——次数<=|S|-2的多项式在|S|个点上被唯一确定（如果存在的话），这个蕴含信息在定义本身中不可见，需要通过分析flooded集的子集结构才能发现",
+      "hint": "overdetermined意味着多项式次数比正常插值低1次——利用这个'低1次'的结构：两个低次多项式在足够多点上相等则必相等，这就是插值唯一性",
+      "hint_level": 0.4,
+      "generalizability": "high — 多项式插值唯一性是代数几何/组合中的通用工具，可泛化到任何涉及多项式拟合与点集关系的问题",
+      "why_not_visible_locally": "overdetermined的定义只说'存在一个低次多项式通过所有点'，但'低1次'这个条件隐含的插值唯一性约束——两个这样的多项式在|S|-1个点上相等则必相等——在定义的局部表述中完全不可见，需要跨步骤分析flooded集的子集关系才能提取",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "polynomial interpolation uniqueness",
+        "degree bound",
+        "flooded subset structure",
+        "at most one overdetermined deletion"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接枚举overdetermined子集或对小n做归纳，但无法发现'flooded集最多1个overdetermined (m-1)-子集'这个关键引理，也无法想到互补计数+double counting的方法翻译，因此无法给出紧的上界2^{n-1}-n。AI可能给出一些松的上界如2^n-n-1，但无法证明最优性。",
+  "suitable_for_poc": [
+    "POC-VMS-hint-injection（hint端验证：注入互补计数+double counting方向后AI能否完成）",
+    "POC-VMS-tell-detection（tell端验证：从AI thinking中检测到直接枚举的分叉信号）",
+    "POC-VMS-level-discrimination（区分能力强弱AI：能想到double counting的AI vs 只会直接枚举的AI）"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：什么是'overdetermined'？我们在优化什么？已知条件和目标分别是什么？",
+        "expected_answer": "overdetermined意味着一个点集可以被一个次数<=|S|-2的多项式拟合（比正常插值次数|S|-1更低）。我们需要找一个n点集，本身不是overdetermined的，但最大化其overdetermined子集数k。这是一个极值组合问题。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "对于这个极值组合问题，列出你能想到的所有可能方向和策略。",
+        "expected_answer": "直接枚举overdetermined子集并计数；构造特殊点集计算；用互补计数（数不是overdetermined的子集）；用归纳法；用double counting；用多项式插值理论分析结构。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试着直接计数：一个n点集有多少个子集？其中多少可能是overdetermined的？能直接给出上界吗？",
+        "expected_answer": "n点集有2^n个子集，其中>=2元的有2^n-n-1个。直接计数overdetermined子集很难，因为依赖于点集的具体几何结构。需要找到结构性的约束。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "定义'flooded'=不是overdetermined。考虑一个flooded的m点集（m>=3），它的(m-1)-子集中最多有多少个是overdetermined的？用多项式插值唯一性来分析。",
+        "expected_answer": "最多1个。如果有两个不同的overdetermined (m-1)-子集U1=S\\{p1}和U2=S\\{p2}，它们对应次数<=m-3的多项式f,g。f和g在U1∩U2的m-2个点上相等，而m-3 < m-2，由插值唯一性f=g。但这样f就通过了S的所有点，说明S本身overdetermined——矛盾。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "利用上面的关键引理，建立flooded m-子集和flooded (m+1)-子集之间的double counting不等式。",
+        "expected_answer": "设F_m是flooded m-子集数。每个flooded (m+1)-集至少有m个flooded m-子集（因为最多1个overdetermined的），每个flooded m-子集最多属于(n-m)个flooded (m+1)-子集。所以m*F_{m+1} <= (n-m)*F_m。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "用这个递推不等式和归纳法，推导出flooded n-集的flooded m-子集数的下界，然后求出overdetermined子集数的上界。",
+        "expected_answer": "归纳得F_m >= C(n-1,m-1)。overdetermined m-子集数 = C(n,m) - F_m <= C(n,m) - C(n-1,m-1) = C(n-1,m)。求和sum_{m=2}^{n} C(n-1,m) = 2^{n-1}-n。所以k <= 2^{n-1}-n。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "构造一个达到上界的例子。考虑点集{(1,1),(2,2),(3,2),...,(n,2)}，验证它不是overdetermined的，且恰有2^{n-1}-n个overdetermined子集。",
+        "expected_answer": "这个集合不是overdetermined的：任何通过所有点的多项式P满足P(i)=2对i=2,...,n（n-1个点），若deg P <= n-2则P-2有n-1个根但次数<=n-2，矛盾（除非P=2，但P(1)=1!=2）。overdetermined子集恰为tail {(2,2),...,(n,2)}的>=2元子集（常数多项式P=2通过它们，次数0<=|S|-2），共2^{n-1}-n个。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 2020 P5, extremal combinatorics with polynomial interpolation. Key difficulty: discovering complementary counting + double counting method translation and the critical lemma (flooded set has at most one overdetermined deletion subset). No new topology dimensions needed."
+  }
+}

@@ -1,0 +1,303 @@
+{
+  "_key": "omni_math_004123",
+  "source_id": "omni_math_004123",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "The Fibonacci numbers F_0, F_1, F_2, ... are defined inductively by F_0=0, F_1=1, and F_{n+1}=F_n+F_{n-1} for n>=1. Given an integer n>=2, determine the smallest size of a set S of integers such that for every k=2,3,...,n there exist some x,y in S such that x-y=F_k.",
+  "solution_text": "The key insight is to use even-indexed Fibonacci numbers. Place S = {0, F_2, F_4, F_6, ..., F_{2*floor(n/2)}} (and add F_n if n is odd). Even-indexed Fibonacci numbers F_{2j} appear as differences F_{2j} - 0. Odd-indexed Fibonacci numbers F_{2j+1} appear as differences F_{2j+2} - F_{2j} via the identity F_{k+2} - F_k = F_{k+1}. The set has ceil(n/2)+1 elements. The lower bound follows from a counting argument: each element beyond the first can account for at most 2 Fibonacci differences (one even-indexed, one odd-indexed), so 2(m-1) >= n-1 gives m >= ceil(n/2)+1.",
+  "solution_summary": "Use even-indexed Fibonacci numbers {0, F_2, F_4, ..., F_{2*floor(n/2)}} (plus F_n for odd n) to cover all required differences. Even F_k are direct differences from 0; odd F_k arise from F_{2j+2}-F_{2j}=F_{2j+1}. The minimum size is ceil(n/2)+1.",
+  "domain": "combinatorics",
+  "subfield": "additive_combinatorics",
+  "answer_type": "formula",
+  "answer": "ceil(n/2)+1",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_construction",
+  "structure_features": "Fibonacci recurrence creates parity-based pairing: even-indexed terms directly cover even F_k as differences from 0, consecutive even-indexed terms cover odd F_k via F_{2j+2}-F_{2j}=F_{2j+1}. The exponential growth of F_k rules out naive interval constructions.",
+  "key_objects": [
+    "Fibonacci sequence",
+    "difference set S",
+    "pairwise differences",
+    "even-indexed Fibonacci numbers",
+    "parity of Fibonacci indices"
+  ],
+  "thinking_patterns": [
+    "structural_construction",
+    "recurrence_exploitation",
+    "parity_pairing",
+    "lower_bound_counting"
+  ],
+  "primary_pattern": "recurrence_exploitation",
+  "knowledge_required": [
+    "Fibonacci sequence definition",
+    "identity F_{k+2}-F_k=F_{k+1}",
+    "difference set concept",
+    "ceil function"
+  ],
+  "key_insight": "Even-indexed Fibonacci numbers placed in S directly give even F_k as differences from 0, and consecutive even-indexed Fibonacci numbers differ by odd F_k via F_{2j+2}-F_{2j}=F_{2j+1}, so ceil(n/2)+1 elements suffice and are necessary",
+  "translation_from": "brute_force_difference_covering",
+  "translation_to": "recurrence_based_parity_construction",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "Fibonacci recurrence",
+    "even-indexed",
+    "difference cover",
+    "parity pairing",
+    "F_{k+2}-F_k=F_{k+1}"
+  ],
+  "expected_ai_method": "enumeration_brute_force",
+  "correct_method": "recurrence_based_parity_construction",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI does not recognize the difference-cover structure of the problem and treats it as a generic optimization problem",
+      "hint": "Describe what structure the problem has: it is about covering a specific set of required differences using pairs from S",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "difference set",
+        "covering constraint",
+        "minimization"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists generic construction approaches (greedy, interval, etc.) without noticing the Fibonacci recurrence can be exploited to halve the set size",
+      "hint": "Consider how the Fibonacci recurrence relation F_{k+2}=F_{k+1}+F_k might help reduce the number of elements needed in S",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "greedy construction",
+        "Fibonacci recurrence",
+        "interval approach"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries consecutive integers {0,1,...,m} and fails because F_k grows exponentially while the interval only covers differences up to m",
+      "hint": "The exponential growth of F_k means consecutive integers will not work. Think about what specific values to place in S to cover large Fibonacci differences efficiently",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "consecutive integers",
+        "exponential growth",
+        "interval failure"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI does not see the parity-based pairing of Fibonacci numbers and cannot find the key identity that connects even and odd indexed terms",
+      "hint": "Use the identity F_{k+2}-F_k=F_{k+1}. If you place even-indexed Fibonacci numbers F_2, F_4, F_6, ... in S along with 0, what differences do you get?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "F_{k+2}-F_k=F_{k+1}",
+        "even-indexed",
+        "parity pairing",
+        "identity application"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the construction idea but has not verified that it covers all required Fibonacci differences",
+      "hint": "Verify: even F_k come from differences with 0, odd F_k come from differences of consecutive even-indexed elements. Check for n=8: S={0,1,3,8,21}",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "verification",
+        "difference coverage",
+        "concrete check"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has not handled the odd n case and has not proved that ceil(n/2)+1 is a lower bound",
+      "hint": "For odd n, add F_n to S. For the lower bound: each element beyond the first can account for at most 2 Fibonacci differences (one even-indexed, one odd-indexed), so 2(m-1)>=n-1",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "odd case handling",
+        "lower bound",
+        "counting argument",
+        "tightness"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all the pieces but has not synthesized them into a complete answer with construction and lower bound",
+      "hint": "Combine the construction (even-indexed Fibonacci numbers) and the lower bound (counting argument) to state the final answer: ceil(n/2)+1",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "synthesis",
+        "final answer",
+        "construction plus lower bound"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire construction from R4 through R7: parity-based placement of even-indexed Fibonacci numbers threads through construction, verification, odd case handling, and lower bound",
+      "observation_point": null,
+      "tell": "The construction uses even-indexed Fibonacci numbers as anchors, exploiting the parity structure of Fibonacci indices to halve the required set size. This parity structure is a path feature visible only when tracing the full construction from R4 to R7.",
+      "hint": "Consider the parity of Fibonacci indices as the organizing principle: even-indexed terms serve as direct differences from 0, odd-indexed terms arise as differences between consecutive even-indexed terms via F_{2j+2}-F_{2j}=F_{2j+1}",
+      "hint_level": 0.6,
+      "generalizability": "high - the parity-based construction principle applies to any sequence satisfying a recurrence a_{k+2}=a_{k+1}+a_k, not just Fibonacci",
+      "why_not_visible_locally": "In any single round, the AI sees either the construction idea (R4) or the verification (R5) or the lower bound (R6), but the parity structure as an organizing principle that threads through the entire argument from construction to tightness proof is only visible when viewing the complete path",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "parity pairing",
+        "even-indexed Fibonacci",
+        "path-level structure",
+        "recurrence exploitation"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The lower bound argument spanning R6-R7: the tightness of the construction is implicit in the counting structure",
+      "observation_point": "R6",
+      "tell": "The minimum is exactly ceil(n/2)+1, meaning the construction is tight. This tightness is non-obvious and requires a separate counting argument that each element covers at most 2 Fibonacci differences.",
+      "hint": "Count how many Fibonacci differences each element can account for in an optimal arrangement: at most 2 per element (one even-indexed via direct difference, one odd-indexed via consecutive pair), giving 2(m-1)>=n-1 hence m>=ceil(n/2)+1",
+      "hint_level": 0.7,
+      "generalizability": "medium - the counting argument for tightness depends on the specific additive structure of Fibonacci numbers and may not generalize to arbitrary difference cover problems",
+      "why_not_visible_locally": "The lower bound requires a global counting argument over all n-1 Fibonacci differences simultaneously. In any single construction step, the AI only sees local coverage and cannot derive the global constraint that limits how many differences each element can efficiently cover",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "lower bound",
+        "counting argument",
+        "tightness",
+        "global constraint"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try consecutive integers {0,1,...,m} or a greedy approach adding elements one by one. The consecutive integer approach fails because F_k grows exponentially. The greedy approach would not discover the parity-based pairing of even/odd indexed Fibonacci numbers and would produce a suboptimal set much larger than ceil(n/2)+1. The key identity F_{k+2}-F_k=F_{k+1} and its implication for construction is non-obvious without specific guidance.",
+  "suitable_for_poc": [
+    "tell_hint_validation",
+    "topology_discrimination",
+    "knowledge_bottleneck_detection"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "What is the problem asking? Describe the structure: what are the constraints on S, and what makes this difficult?",
+        "expected_answer": "We need a set S of integers where every Fibonacci number F_k (k=2..n) appears as a difference x-y of some pair in S. The challenge is minimizing |S| while covering all n-1 required differences. The Fibonacci numbers grow exponentially, so naive approaches like using consecutive integers will fail for large k."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "List possible strategies for constructing such a minimal set S.",
+        "expected_answer": "1) Greedy: add elements one by one to cover uncovered F_k. 2) Use consecutive integers {0,1,...,m}. 3) Use Fibonacci numbers themselves as elements. 4) Exploit the recurrence relation F_{k+2}=F_{k+1}+F_k to reduce elements. 5) Pair even and odd indexed Fibonacci numbers. 6) Use a difference cover approach."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try S = {0, 1, 2, ..., m}. For what m does this cover all F_k for k=2,...,n?",
+        "expected_answer": "S = {0,1,...,m} has differences 1,2,...,m. This covers F_k only if F_k <= m for all k=2,...,n. But F_n grows exponentially (F_n ~ phi^n/sqrt(5)), so m would need to be at least F_n, giving |S| = F_n + 1, which is exponentially large and far from optimal."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Use the identity F_{k+2} - F_k = F_{k+1}. If you place even-indexed Fibonacci numbers F_2, F_4, F_6, ... in S along with 0, what differences do you get?",
+        "expected_answer": "With S containing 0 and F_2, F_4, F_6, ..., the differences include: F_{2j} - 0 = F_{2j} (even-indexed Fibonacci numbers directly), and F_{2j+2} - F_{2j} = F_{2j+1} (odd-indexed Fibonacci numbers via the identity). So all F_k for k=2,...,2m are covered with just m+1 elements! This is the key insight."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Verify this construction for n=8: S = {0, F_2, F_4, F_6, F_8} = {0, 1, 3, 8, 21}. Check that all F_k for k=2,...,8 are covered.",
+        "expected_answer": "Differences: 1-0=1=F_2, 3-0=3=F_4, 8-0=8=F_6, 21-0=21=F_8, 3-1=2=F_3, 8-3=5=F_5, 21-8=13=F_7. All F_2 through F_8 are covered! |S|=5=ceil(8/2)+1. The construction works perfectly."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "For odd n, say n=7, the set {0, F_2, F_4, F_6} = {0,1,3,8} covers F_2,...,F_6 but not F_7=13. How do you fix this? And why can't we do it with fewer than ceil(n/2)+1 elements?",
+        "expected_answer": "Add F_7=13 to S: {0,1,3,8,13}, now 13-0=13=F_7. |S|=5=ceil(7/2)+1. For the lower bound: each element beyond the first can cover at most one even-indexed F_k (as a direct difference from another element) and at most one odd-indexed F_k (as a difference between two even-indexed elements). So m elements cover at most 2(m-1) Fibonacci numbers, requiring 2(m-1) >= n-1, thus m >= ceil(n/2)+1."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Put it all together. State the answer and the construction.",
+        "expected_answer": "The answer is ceil(n/2)+1. Construction: S = {0, F_2, F_4, ..., F_{2*floor(n/2)}} for even n, adding F_n for odd n. Even-indexed F_k are covered as differences from 0; odd-indexed F_k are covered as differences of consecutive even-indexed elements via F_{2j+2}-F_{2j}=F_{2j+1}. The lower bound follows from the counting argument that each element covers at most 2 Fibonacci differences."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-08-09T17:10:00Z",
+    "analysis_duration": "approximately 15 minutes",
+    "notes": "The solution in problem.lean claims S={0,1,...,ceil(n/2)} which is incorrect for n>=6 due to exponential Fibonacci growth. The correct construction uses even-indexed Fibonacci numbers {0, F_2, F_4, ..., F_{2*floor(n/2)}} plus F_n for odd n. The answer ceil(n/2)+1 is correct. Key knowledge bottleneck is the identity F_{k+2}-F_k=F_{k+1} and its parity implications. No new topology dimensions needed - existing categories (discrete_combinatorial, enumeration_brute_force, structural_transformation, knowledge_gap) are sufficient."
+  }
+}

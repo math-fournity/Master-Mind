@@ -1,0 +1,271 @@
+{
+  "_key": "compfiles_usa2019p5",
+  "source_id": "Usa2019P5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Let m and n be relatively prime positive integers. The numbers m/n and n/m are written on a blackboard. At any point, Evan may pick two of the numbers x and y written on the board and write either their arithmetic mean (x+y)/2 or their harmonic mean 2xy/(x+y). For which (m, n) can Evan write 1 on the board in finitely many steps?",
+  "solution_text": "Evan can write 1 if and only if m+n is a power of 2. Forward: If m+n=2^k, then 1 = (n*(m/n) + m*(n/m))/2^k is a dyadic weighted average of the two initial numbers, obtainable by repeated arithmetic means (writable_combo by induction on k). Backward: If m+n is not a power of 2, it has an odd prime factor p. Key invariant: every writable number a/b satisfies p|(a+b) and p does not divide b. Base case: m/n has a=m, b=n, p|(m+n), and p does not divide n (since gcd(m,n)=1 and p|m+n implies if p|n then p|m, contradiction). Arithmetic mean preserves: (a/b+c/d)/2 = (ad+bc)/(2bd), new numerator+denominator = ad+bc+2bd = d(a+b)+b(c+d), divisible by p; p does not divide 2bd since p is odd and p does not divide b or d. Harmonic mean preserves: 2ac/(ad+bc), new numerator+denominator = 2ac+ad+bc = a(2c+d)+bc, using c≡-d mod p gives 2c+d≡c mod p, so a*c+b*c = c(a+b) ≡ 0 mod p; ad+bc ≡ -2bd mod p, p does not divide 2bd so p does not divide ad+bc. If 1=a/b is writable, then a=b, p|2a, p odd so p|a, but p does not divide b=a, contradiction.",
+  "solution_summary": "Evan can write 1 iff m+n is a power of 2. Forward uses dyadic weighted averages; backward uses an odd prime factor invariant p|(a+b), p∤b preserved by both operations.",
+  "domain": "Number Theory",
+  "subfield": "Combinatorial Number Theory",
+  "answer_type": "characterization",
+  "answer": "Evan can write 1 on the board if and only if m + n is a power of 2 (i.e., there exists k such that m + n = 2^k)",
+  "problem_type": "characterization",
+  "solution_method_type": "invariant_method",
+  "structure_features": "给定递归生成的数集（从 m/n, n/m 出发，反复取算术平均和调和平均），刻画目标值 1 是否在集合中。核心结构是操作闭包+不变量——操作定义了可达集，不变量约束了可达集的边界。",
+  "key_objects": [
+    "互质正整数 m, n",
+    "有理数 m/n 和 n/m",
+    "算术平均 (x+y)/2",
+    "调和平均 2xy/(x+y)",
+    "不变量 p|(a+b) 且 p∤b",
+    "m+n 的素因子分解",
+    "dyadic 加权平均"
+  ],
+  "thinking_patterns": [
+    "不变量方法",
+    "小例子实验归纳",
+    "充要条件双向证明",
+    "模运算保持性验证",
+    "dyadic加权平均构造"
+  ],
+  "primary_pattern": "不变量方法",
+  "knowledge_required": [
+    "算术平均与调和平均的定义",
+    "模运算与同余",
+    "素因子分解",
+    "互质性",
+    "dyadic 有理数",
+    "归纳法"
+  ],
+  "key_insight": "关键转折是注意到 m+n 的奇素因子 p 给出不变量 p|(a+b) 且 p∤b，这个不变量在两种操作下都保持，从而 1=a/a 违反不变量；而 m+n=2^k 时无奇素因子，不变量约束消失，1 可达。",
+  "translation_from": "组合操作语言（算术平均/调和平均的递归生成过程）",
+  "translation_to": "数论不变量语言（模 p 同余、素因子分解、整除性）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "不变量",
+    "奇素因子",
+    "模p同余",
+    "算术平均保持性",
+    "调和平均保持性",
+    "dyadic加权平均",
+    "互质性",
+    "m+n的素因子分解"
+  ],
+  "expected_ai_method": "bare AI 预期会尝试枚举小例子、尝试直接计算可达数集、或尝试用代数恒等式直接构造 1，但不会想到用数论不变量来约束可达集",
+  "correct_method": "用 m+n 的奇素因子构造不变量 p|(a+b) 且 p∤b，证明不变量在两种操作下保持，从而排除 1 的可达性；正向用 dyadic 加权平均构造",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI面对操作闭包问题，未识别初始数互为倒数且乘积为1的结构",
+      "hint": "描述题目结构，识别已知/未知，注意 m/n·n/m=1",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["互为倒数", "乘积为1", "算术平均", "调和平均"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI只看到操作规则，未想到用不变量约束可达集",
+      "hint": "列出所有可能方向：小例子、不变量、m+n结构",
+      "hint_level": 0.6,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["小例子", "不变量", "m+n结构", "2的幂"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试枚举小例子但未发现 m+n 与 2 的幂的关联",
+      "hint": "试 m=1,n=3 和 m=1,n=5，观察 m+n 与可行性的关系",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["小例子枚举", "m+n=2^k", "可行性猜想"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未想到用奇素因子构造不变量来约束可达集",
+      "hint": "考虑 m+n 的奇素因子 p，验证 p|(a+b) 且 p∤b 在操作下保持",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["奇素因子", "不变量p|(a+b)", "模p同余", "base case验证", "算术平均保持性"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已建立算术平均不变量但未验证调和平均",
+      "hint": "验证调和平均 2ac/(ad+bc) 也保持不变量",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["调和平均保持性", "2ac/(ad+bc)", "模p同余推导", "p∤(ad+bc)"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI已有不变量但未将其与 1 的不可达性联系",
+      "hint": "用不变量完成反向证明：1=a/a 违反 p∤a",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["反向证明", "1=a/a矛盾", "p|2a", "p奇故p|a"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已有正反两方向但未整合为完整充要条件",
+      "hint": "整合正向（dyadic加权平均）和反向（不变量）为完整证明",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["充要条件", "dyadic加权平均", "奇素因子不变量", "完整证明"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "整个证明路径——从枚举小例子到发现 m+n=2^k 规律到不变量证明",
+      "observation_point": null,
+      "tell": "AI在小例子阶段看到可行/不可行的分界，但无法从局部例子中看出全局规律是 m+n 的素因子结构决定可达性",
+      "hint": "从小例子的 m+n 值（4=2^2 可行, 6=2×3 不可行）归纳出 m+n 的 2-adic 结构是关键",
+      "hint_level": 0.6,
+      "generalizability": "high——操作闭包的可达性由初始值的数论结构决定，这一模式可泛化到其他操作闭包问题",
+      "why_not_visible_locally": "在单个小例子中只能看到可行或不可行的二元结果，无法看出决定性的因素是 m+n 的素因子结构而非 m 或 n 的个别性质。需要跨多个例子的对比才能发现 m+n=2^k 的规律，而这个规律本身还需要翻译为不变量语言才能证明。",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["小例子对比", "m+n的2-adic结构", "可达性分界", "素因子决定性"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "调和平均操作的不变量保持性——隐含在算术平均不变量的推导中",
+      "observation_point": "R5",
+      "tell": "算术平均的不变量推导中已经使用了 a≡-b(mod p) 和 c≡-d(mod p) 的技巧，但这个技巧隐含了调和平均也可用同样方法处理的信息，AI不会自动意识到",
+      "hint": "注意算术平均推导中 ad+bc ≡ -2bd(mod p) 这个中间结果，它恰好是调和平均不变量证明的关键——调和平均的分母就是 ad+bc",
+      "hint_level": 0.5,
+      "generalizability": "medium——两种平均操作共享同一模运算结构，这一观察可泛化到其他成对的平均操作",
+      "why_not_visible_locally": "在验证算术平均不变量时，AI的注意力集中在证明 p|(ad+bc+2bd) 上，不会注意到 ad+bc 本身在同余意义下的值 (-2bd) 恰好是调和平均不变量证明的核心。这个蕴含关系需要跳出当前步骤、回顾整个推导结构才能看到。",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["ad+bc的同余值", "调和平均分母", "共享模运算结构", "-2bd中间结果"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI 会尝试枚举小例子并可能猜到 m+n=2^k 的规律，但很难自行发现需要用奇素因子构造不变量来完成反向证明。AI 可能会尝试直接构造或用代数方法证明，但不会想到将操作闭包问题翻译为数论不变量问题。正向的 dyadic 加权平均构造也可能被忽略。",
+  "suitable_for_poc": [
+    "tell端验证——不变量方法的tell识别",
+    "hint端验证——数论翻译方向的注入",
+    "拓扑分类验证——characterization+method_translation的tell去特化"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "这道题的结构是什么？已知条件有哪些？目标是什么？操作（算术平均、调和平均）的本质是什么？",
+        "expected_answer": "已知 m/n 和 n/m（互为倒数），操作是取两个数的算术平均或调和平均，目标是写出 1。注意 m/n · n/m = 1，两个初始数的乘积已经是 1。算术平均和调和平均都保持某种中间性。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.6,
+        "question": "列出所有可能的分析方向：哪些 (m,n) 可能可行？你能想到什么不变量或特殊结构？",
+        "expected_answer": "方向1：先试小例子 m=1,n=1 → 已有1。m=1,n=3 → 1/3 和 3，算术平均=5/3，调和平均=3/5... 能否到1？方向2：算术平均和调和平均的关系——两者互为某种对偶。方向3：寻找不变量——什么量在操作下不变？方向4：m+n 的结构——2的幂有什么特殊性？"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试 m=1, n=3 的情况。从 1/3 和 3 出发，能否写出 1？尝试几步看看有没有规律。",
+        "expected_answer": "1/3 和 3：AM=(1/3+3)/2=5/3, HM=2·(1/3)·3/(1/3+3)=3/5。再取 1/3 和 5/3：AM=1, 成功！(1/3+5/3)/2 = 1。所以 m=1,n=3 可以！但 1+3=4=2^2。再试 m=1,n=5：1+5=6 不是2的幂。1/5 和 5：AM=13/5, HM=10/13... 似乎很难到1。猜想：m+n 是2的幂时可行。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "现在聚焦不变量方法。考虑 m+n 的素因子。如果奇素数 p 整除 m+n，对每个可写数 a/b（最简分数），p | (a+b) 这个性质是否被两个操作保持？请验证 base case 和归纳步骤。",
+        "expected_answer": "Base case: m/n → a=m, b=n, p|(m+n) ✓, p∤n（因 gcd(m,n)=1 且 p|m+n, 若 p|n 则 p|m, 矛盾）。AM: (a/b+c/d)/2 = (ad+bc)/(2bd)。新表示 (ad+bc)/(2bd)，需要 p|(ad+bc+2bd)。ad+bc+2bd = d(a+b)+b(c+d)，p|(a+b) 且 p|(c+d) 所以 p|(ad+bc+2bd) ✓。且 p∤2bd ✓。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "调和平均的情况呢？2xy/(x+y) = 2ac/(ad+bc)。验证不变量：新分子 2ac，新分母 ad+bc。需要 p|(2ac+ad+bc) 和 p∤(ad+bc)。请推导。",
+        "expected_answer": "新表示 2ac/(ad+bc)。需要 p|(2ac + ad+bc) = a(2c+d)+bc。由 c≡-d(mod p)，2c+d ≡ c(mod p)，所以 a(2c+d)+bc ≡ ac+bc = c(a+b) ≡ 0(mod p) ✓。需要 p∤(ad+bc)：ad+bc ≡ -2bd(mod p)，p∤2bd 所以 p∤(ad+bc) ✓。不变量保持！"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "现在用不变量完成反向证明：如果 m+n 不是 2 的幂，为什么 1 不可写？",
+        "expected_answer": "若 m+n 不是 2 的幂，则存在奇素数 p|m+n。由不变量，每个可写数 a/b 满足 p|(a+b) 且 p∤b。若 1=a/b 可写，则 a=b，p|2a，p 奇故 p|a，但 p∤b=a，矛盾。所以 1 不可写。正向：m+n=2^k 时，1=(n·(m/n)+m·(n/m))/2^k 是 dyadic 加权平均，可由反复取算术平均得到。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "整合所有部分，写出完整的充要条件证明。你已经有了正向（dyadic加权平均）和反向（奇素因子不变量），把它们合在一起。",
+        "expected_answer": "充要条件：Evan 能写出 1 ⟺ m+n 是 2 的幂。正向：m+n=2^k 时，1 是 m/n 和 n/m 的 dyadic 加权平均，由 writable_combo 归纳可写。反向：m+n 非 2 的幂时有奇素因子 p，不变量 p|(a+b), p∤b 在两种操作下保持，1=a/a 违反不变量。证毕。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R3"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "USA 2019 P5, Number Theory. 核心是不变量方法+method_translation。bare AI预期fail——枚举可猜规律但无法自行发现数论不变量。"
+  }
+}

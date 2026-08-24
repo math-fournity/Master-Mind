@@ -1,0 +1,265 @@
+{
+  "_key": "omni_math_004176",
+  "source_id": "omni_math_004176",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "A square (n-1) × (n-1) is divided into (n-1)^2 unit squares in the usual manner. Each of the n^2 vertices of these squares is to be coloured red or blue. Find the number of different colourings such that each unit square has exactly two red vertices. (Two colouring schemes are regarded as different if at least one vertex is coloured differently in the two schemes.)",
+  "solution_text": "The key insight is that the local constraint (each unit square has exactly 2 red vertices) translates to a global algebraic structure. The even-parity condition a[i][j] ⊕ a[i+1][j] ⊕ a[i][j+1] ⊕ a[i+1][j+1] = 0 forces the coloring matrix to have the form a[i][j] = r[i] ⊕ c[j] for binary vectors r, c. The 'exactly 2' (not 0 or 4) condition requires that for every 2×2 block, either r[i] ≠ r[i+1] or c[j] ≠ c[j+1], which forces either r to be alternating or c to be alternating. Counting: 2·2^n (r alternating) + 2·2^n (c alternating) - 4 (overlap) = 2^(n+2) - 4 pairs, divided by 2 for the (r,c) ~ (r⊕1, c⊕1) equivalence, giving 2^(n+1) - 2.",
+  "solution_summary": "Local 'exactly 2 red per unit square' constraint decomposes into even-parity (forcing XOR factorization a[i][j]=r[i]⊕c[j]) plus non-degeneracy (forcing r or c alternating). Counting with equivalence gives 2^(n+1)-2.",
+  "domain": "combinatorics",
+  "subfield": "algebraic_combinatorics",
+  "answer_type": "numerical_formula",
+  "answer": "2^{n+1} - 2",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_decomposition_counting",
+  "structure_features": "Grid coloring with uniform local constraints (each 2x2 submatrix has exactly two 1s) that force a global algebraic structure via XOR factorization. The local-to-global bridge is the key structural feature.",
+  "key_objects": [
+    "n×n binary vertex grid",
+    "unit squares (2×2 submatrices)",
+    "XOR decomposition a[i][j] = r[i] ⊕ c[j]",
+    "alternating binary sequences",
+    "parameterization equivalence (r,c) ~ (r⊕1, c⊕1)"
+  ],
+  "thinking_patterns": [
+    "local_to_global",
+    "structural_decomposition",
+    "algebraic_translation",
+    "small_case_pattern_recognition",
+    "equivalence_aware_counting"
+  ],
+  "primary_pattern": "local_to_global",
+  "knowledge_required": [
+    "XOR algebra on binary matrices",
+    "parity conditions on grids",
+    "row-column factorization of binary matrices",
+    "inclusion-exclusion counting",
+    "equivalence classes in parameterized counting"
+  ],
+  "key_insight": "The local 'exactly 2 red per unit square' constraint decomposes into even-parity (forcing XOR factorization a[i][j]=r[i]⊕c[j]) and non-degeneracy (forcing r or c to be alternating), turning an intractable local enumeration into a clean global counting problem.",
+  "translation_from": "local combinatorial constraint (each unit square has exactly 2 red vertices)",
+  "translation_to": "global algebraic structure (XOR factorization + alternating condition + equivalence-aware counting)",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "XOR decomposition",
+    "alternating sequences",
+    "parity condition",
+    "equivalence counting",
+    "local-to-global"
+  ],
+  "expected_ai_method": "Bare AI would attempt case-by-case enumeration or generating functions without recognizing the XOR algebraic structure that the local constraint imposes globally.",
+  "correct_method": "XOR algebraic decomposition: translate local constraint to even-parity condition, factor as r[i]⊕c[j], derive alternating condition from non-degeneracy, count with equivalence.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a grid coloring counting problem but hasn't identified the key structural constraint or the relationship between local and global structure",
+      "hint": "Describe the problem structure: n² vertices in an n×n grid, each unit square (2×2 submatrix) must have exactly 2 red vertices. What are the knowns and unknowns?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["grid coloring", "unit square constraint", "vertex counting"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches (enumeration, generating functions, symmetry) but doesn't identify the XOR/algebraic structure approach as a candidate",
+      "hint": "Consider algebraic approaches: can you express the 'exactly 2 red' constraint using XOR or parity? What global structure might uniform local constraints impose?",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["XOR algebra", "global structure", "binary matrix", "parity"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI computes small cases (n=2: 6, n=3: 14) but doesn't recognize the pattern 2^(n+1)-2 or understand its structural origin",
+      "hint": "The pattern 6, 14 suggests 2^(n+1)-2. What binary parameterization with 2 redundant cases could produce this?",
+      "hint_level": 0.6,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["pattern recognition", "binary parameterization", "redundancy"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI hasn't recognized that the parity condition forces a[i][j]=r[i]⊕c[j] decomposition — this is the core knowledge bottleneck",
+      "hint": "Express 'exactly 2 red' as two conditions: (1) even parity: a[i][j]⊕a[i+1][j]⊕a[i][j+1]⊕a[i+1][j+1]=0, and (2) not all same. Even parity means row-differences are column-independent, forcing a[i][j]=r[i]⊕c[j].",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["XOR decomposition", "parity condition", "row-column factorization", "even parity"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the XOR decomposition but hasn't derived that 'exactly 2 not 0 or 4' forces r or c to be alternating — this is the thinking bottleneck",
+      "hint": "For a[i][j]=r[i]⊕c[j], a 2×2 block has sum 2 iff r[i]≠r[i+1] OR c[j]≠c[j+1]. If any adjacent rows are equal, ALL adjacent columns must differ (c alternating). So either r is alternating or c is alternating.",
+      "hint_level": 0.65,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["alternating condition", "exactly-2 constraint", "row-column alternation", "non-degeneracy"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the characterization (r or c alternating) but hasn't accounted for the (r,c)~(r⊕1,c⊕1) equivalence in counting",
+      "hint": "Count pairs: 2·2^n (r alternating) + 2·2^n (c alternating) - 4 (both alternating) = 2^(n+2)-4. But (r,c) and (r⊕1,c⊕1) give the same matrix, so divide by 2: 2^(n+1)-2.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["equivalence class", "inclusion-exclusion", "parameterization redundancy", "XOR symmetry"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the final formula but hasn't verified against small cases for confidence",
+      "hint": "Verify: n=2 gives 2^3-2=6=C(4,2) ✓ (single square, any 2 of 4 red). n=3 gives 2^4-2=14 ✓. The answer is 2^(n+1)-2.",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["verification", "small case check", "final answer"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Complete solution path: local constraint → parity decomposition → XOR factorization → alternating condition → equivalence-aware counting",
+      "observation_point": null,
+      "tell": "The local 'exactly 2 red' constraint on each unit square determines a global algebraic structure that makes counting tractable",
+      "hint": "When facing grid coloring with uniform local constraints, always look for a global algebraic structure (parity, XOR factorization) that the local constraint imposes",
+      "hint_level": 0.8,
+      "generalizability": "high — applicable to any grid coloring problem where uniform local constraints can be expressed as parity or algebraic conditions",
+      "why_not_visible_locally": "Each local step (parity check, XOR decomposition, alternating derivation, equivalence counting) appears as a separate insight. The complete path from local constraint to global structure to clean counting is only visible when tracing the full solution trajectory — no single step reveals that the local constraint will lead to such a clean algebraic factorization.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["local-to-global", "XOR decomposition", "alternating sequences", "equivalence counting", "parity factorization"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The double-counting due to parameterization equivalence (r,c) ~ (r⊕1, c⊕1)",
+      "observation_point": "R6",
+      "tell": "The XOR parameterization a[i][j]=r[i]⊕c[j] has a built-in equivalence: (r,c) and (r⊕1,c⊕1) produce the identical matrix, causing overcounting by factor 2",
+      "hint": "When counting via parameterization, always check for symmetries in the parameter space that map to the same object — XOR parameterizations have a Z₂ symmetry",
+      "hint_level": 0.7,
+      "generalizability": "high — applicable to any counting problem with parameterized solutions, especially XOR-based or group-based parameterizations",
+      "why_not_visible_locally": "The equivalence only becomes apparent after the full parameterization is established and you attempt to count. When working on the XOR decomposition (R4) or the alternating condition (R5), the equivalence is invisible — it emerges only at the counting stage when you realize each matrix is counted twice.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["parameterization equivalence", "overcounting", "XOR symmetry", "Z2 symmetry"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt case-by-case enumeration or generating functions without recognizing the XOR algebraic structure. It might correctly compute small cases (n=2,3) but fail to find the general formula because the key insight — that the local parity constraint forces a global r[i]⊕c[j] factorization — requires algebraic translation that is not obvious from the combinatorial statement. AI might also find the formula 2^(n+1)-2 from pattern matching but be unable to prove it rigorously.",
+  "suitable_for_poc": [
+    "POC-VMS-8: hint injection — the XOR decomposition hint (R4) is a high-value knowledge hint that should dramatically improve bare AI performance",
+    "POC-VMS-9: tell detection — the 'AI doesn't consider algebraic/XOR approach' tell is clearly detectable from thinking traces",
+    "POC-VMS-10: tell disambiguation — the knowledge gap (R4: XOR decomposition) vs thinking gap (R5: alternating derivation) are distinguishable tells"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the structure of this problem. What are the key objects, constraints, and what are we asked to find?",
+        "expected_answer": "We have an n×n grid of vertices (n² vertices total), each colored red or blue. Each unit square (2×2 submatrix of vertices) must have exactly 2 red vertices. We need to count the number of valid colorings."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "What approaches could you try to count valid colorings? List as many as you can, including algebraic ones.",
+        "expected_answer": "Possible approaches: brute force enumeration for small n, generating functions, symmetry-based counting, transfer matrices, algebraic methods (XOR/parity), pattern recognition from small cases, inclusion-exclusion."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.6,
+        "question": "Try computing the answer for small cases n=2 and n=3. Do you see a pattern?",
+        "expected_answer": "n=2: single unit square, C(4,2)=6 colorings. n=3: 2×2 grid of unit squares, 14 colorings. Pattern: 6, 14 suggests 2^(n+1)-2 (2^3-2=6, 2^4-2=14)."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Express 'exactly 2 red' as two separate conditions using XOR/parity. What global structure does the parity condition force on the binary matrix?",
+        "expected_answer": "'Exactly 2 red' = (1) even parity: a[i][j]⊕a[i+1][j]⊕a[i][j+1]⊕a[i+1][j+1]=0, AND (2) not all four same. Even parity means a[i][j]⊕a[i+1][j] is independent of j, so row-differences are constant across columns. This forces a[i][j]=r[i]⊕c[j] for binary vectors r,c."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.65,
+        "question": "Given a[i][j]=r[i]⊕c[j], what does the 'not all same' condition (exactly 2, not 0 or 4) impose on r and c?",
+        "expected_answer": "A 2×2 block has sum 2 iff r[i]≠r[i+1] OR c[j]≠c[j+1]. If any adjacent pair in r is equal, then ALL adjacent pairs in c must differ (c is alternating). Conversely if any adjacent pair in c is equal, r must be alternating. So either r is alternating or c is alternating (or both)."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "Count the number of distinct valid colorings. Remember that (r,c) and (r⊕1,c⊕1) give the same matrix.",
+        "expected_answer": "r alternating: 2 choices × 2^n for c = 2^(n+1) pairs. c alternating: 2 × 2^n = 2^(n+1) pairs. Overlap (both alternating): 4 pairs. Total pairs: 2^(n+2)-4. Divide by 2 for (r,c)~(r⊕1,c⊕1) equivalence: 2^(n+1)-2."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "Verify your answer against the small cases and state the final result with confidence.",
+        "expected_answer": "n=2: 2^3-2=6=C(4,2) ✓. n=3: 2^4-2=14 ✓. The answer is 2^(n+1)-2."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 3.55,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "Problem involves a beautiful local-to-global algebraic structure: the parity constraint on each 2×2 submatrix forces a global XOR factorization. The key knowledge bottleneck is recognizing the XOR decomposition (R4), and the key thinking bottleneck is deriving the alternating condition from the non-degeneracy requirement (R5). The equivalence (r,c)~(r⊕1,c⊕1) is an implicit global tell that is invisible at any single step."
+  }
+}

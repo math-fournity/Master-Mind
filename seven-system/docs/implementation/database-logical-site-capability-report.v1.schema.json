@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.invalid/seven/docs/database-logical-site-capability-report.v1.schema.json",
+  "title": "Seven DatabaseLogicalSiteCapabilityReport v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "report_kind",
+    "contract",
+    "scope",
+    "generated_at",
+    "expected_database",
+    "database_name",
+    "current_database",
+    "database_identity_hash",
+    "site_fingerprint",
+    "site_fingerprint_hash",
+    "catalog_snapshot",
+    "catalog_hash",
+    "seven_collection_enumeration",
+    "conflict_check",
+    "write_count",
+    "zero_write_receipt",
+    "verdict",
+    "checks",
+    "claims",
+    "side_effects",
+    "blockers",
+    "explicit_nonclaims",
+    "report_hash_algorithm",
+    "report_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": "db1l-logical-site-capability-report/v1"},
+    "report_kind": {"const": "DatabaseLogicalSiteCapabilityReport"},
+    "contract": {"const": "seven-database-port/v1"},
+    "scope": {"const": "READONLY_LOGICAL_SITE_V2"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "expected_database": {"const": "xishujuzhen_math_glm52"},
+    "database_name": {"const": "xishujuzhen_math_glm52"},
+    "current_database": {"const": "xishujuzhen_math_glm52"},
+    "database_identity_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "site_fingerprint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endpoint", "server_version", "driver_name", "driver_version", "principal"],
+      "properties": {
+        "endpoint": {"type": "string", "minLength": 1},
+        "server_version": {"type": "string", "minLength": 1},
+        "driver_name": {"type": "string", "minLength": 1},
+        "driver_version": {"type": "string", "minLength": 1},
+        "principal": {"type": "string", "minLength": 1}
+      }
+    },
+    "site_fingerprint_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "catalog_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["collections"],
+      "properties": {
+        "collections": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "collection_type", "indexes"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "collection_type": {"enum": ["document", "edge"]},
+              "indexes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["name", "type", "fields", "unique", "sparse"],
+                  "properties": {
+                    "name": {"type": "string", "minLength": 1},
+                    "type": {"type": "string", "minLength": 1},
+                    "fields": {"type": "array", "items": {"type": "string"}},
+                    "unique": {"type": "boolean"},
+                    "sparse": {"type": "boolean"}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "catalog_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "seven_collection_enumeration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["versioned_collections", "unversioned_seven_collections", "forbidden_collections", "conflicts"],
+      "properties": {
+        "versioned_collections": {"type": "array", "items": {"type": "string"}},
+        "unversioned_seven_collections": {"type": "array", "items": {"type": "string"}},
+        "forbidden_collections": {"type": "array", "items": {"type": "string"}},
+        "conflicts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "conflict_check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["has_conflicts", "conflicts"],
+      "properties": {
+        "has_conflicts": {"type": "boolean"},
+        "conflicts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "write_count": {"type": "integer", "const": 0},
+    "zero_write_receipt": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "verdict": {"const": "PASS"},
+    "checks": {
+      "type": "array",
+      "minItems": 9,
+      "maxItems": 9,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check_id", "verdict", "evidence"],
+        "properties": {
+          "check_id": {"type": "string", "minLength": 1},
+          "verdict": {"const": "PASS"},
+          "evidence": {"type": "array"}
+        }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "database_name_exact_match",
+        "current_database_verified_after_connection",
+        "site_fingerprint_captured",
+        "readonly_permissions_verified",
+        "catalog_snapshot_captured",
+        "seven_collections_versioned_only",
+        "no_math_system_collection_reuse",
+        "conflict_enumeration_complete",
+        "zero_write_evidence_captured"
+      ],
+      "properties": {
+        "database_name_exact_match": {"const": true},
+        "current_database_verified_after_connection": {"const": true},
+        "site_fingerprint_captured": {"const": true},
+        "readonly_permissions_verified": {"const": true},
+        "catalog_snapshot_captured": {"const": true},
+        "seven_collections_versioned_only": {"const": true},
+        "no_math_system_collection_reuse": {"const": true},
+        "conflict_enumeration_complete": {"const": true},
+        "zero_write_evidence_captured": {"const": true}
+      }
+    },
+    "side_effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "database_connections",
+        "database_writes",
+        "migrations_applied",
+        "container_restarts",
+        "solver_launches",
+        "redis_writes"
+      ],
+      "properties": {
+        "database_connections": {"type": "integer", "const": 0},
+        "database_writes": {"type": "integer", "const": 0},
+        "migrations_applied": {"type": "integer", "const": 0},
+        "container_restarts": {"type": "integer", "const": 0},
+        "solver_launches": {"type": "integer", "const": 0},
+        "redis_writes": {"type": "integer", "const": 0}
+      }
+    },
+    "blockers": {"type": "array", "maxItems": 0},
+    "explicit_nonclaims": {"type": "array", "items": {"type": "string"}},
+    "report_hash_algorithm": {"const": "sha256(canonical-json-with-report_hash-null)"},
+    "report_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

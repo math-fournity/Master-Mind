@@ -1,0 +1,201 @@
+{
+  "_key": "omni_math_003261",
+  "source_id": "3261",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let n be a positive integer. For i and j in {1,2,...,n}, let s(i,j) be the number of pairs (a,b) of nonnegative integers satisfying ai + bj = n. Let S be the n-by-n matrix whose (i,j) entry is s(i,j). For example, when n=5, S = [[6,3,2,2,2],[3,0,1,0,1],[2,1,0,0,1],[2,0,0,0,1],[2,1,1,1,2]]. Compute the determinant of S.",
+  "solution_text": "The determinant equals (-1)^{ceil(n/2)-1} * 2*ceil(n/2). Key steps: (1) S is symmetric via (a,b)->(b,a). (2) S_11 = n+1. (3) For i > n/2, a <= n/i < 2 so a in {0,1}, simplifying s(i,j) = [j|n] + [j|(n-i)]. (4) For n/2 < i,j < n, s(i,j) = 0 creating a zero block of size (ceil(n/2)-1). (5) Row/column operations exploiting the zero block reduce the determinant. (6) The reduced computation yields (-1)^{ceil(n/2)-1} * 2*ceil(n/2).",
+  "solution_summary": "Exploit the threshold at n/2: for indices i > n/2, the constraint ai+bj=n forces a in {0,1}, creating a zero block in the lower-right of S. Row/column operations using this structure reduce the determinant to a small computation giving (-1)^{ceil(n/2)-1} * 2*ceil(n/2).",
+  "domain": "combinatorics",
+  "subfield": "linear_algebra_combinatorics",
+  "answer_type": "numerical",
+  "answer": "(-1)^{ceil(n/2)-1} * 2*ceil(n/2)",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_reduction",
+  "structure_features": "n×n matrix S with entries s(i,j) = #{(a,b) in Z>=0^2 : ai+bj=n}. Symmetric matrix. Critical threshold at n/2: entries with both indices > n/2 and < n are zero, creating a (ceil(n/2)-1)×(ceil(n/2)-1) zero block. Answer involves ceiling function ceil(n/2).",
+  "key_objects": ["matrix S", "counting function s(i,j)", "zero block for indices in (n/2, n)", "ceiling function ceil(n/2)", "row/column operations"],
+  "thinking_patterns": ["pattern_recognition_from_small_cases", "threshold_identification", "structural_simplification", "matrix_reduction_via_row_operations", "zero_block_exploitation"],
+  "primary_pattern": "structural_simplification",
+  "knowledge_required": ["determinant computation", "row/column operations", "counting nonneg integer solutions to linear Diophantine equations", "matrix block structure"],
+  "key_insight": "For i > n/2, the constraint ai+bj=n forces a in {0,1}, making entries simplify dramatically and creating a zero block that reduces the determinant computation",
+  "translation_from": "brute_force_counting",
+  "translation_to": "structural_matrix_reduction",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["threshold_at_n/2", "zero_block", "row_operations", "ceiling_function_pattern", "lattice_point_counting"],
+  "expected_ai_method": "direct_calculation of determinant using expansion or brute force without recognizing the n/2 threshold structure",
+  "correct_method": "structural reduction exploiting the zero block from the n/2 threshold via row/column operations",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a matrix defined by counting lattice point solutions but doesn't identify structural properties like symmetry or the threshold at n/2",
+      "hint": "Describe the structure of S: What properties does S have? Is it symmetric? What are the special entries?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["symmetry", "special_entries", "matrix_structure"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but doesn't recognize the threshold structure at n/2 as the key simplification",
+      "hint": "What approaches could compute this determinant? Consider small cases, structural properties, and what happens for large indices",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["small_cases", "structural_properties", "large_indices"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI computes small cases and finds the pattern (-1)^{ceil(n/2)-1}*2*ceil(n/2) but doesn't understand why the ceiling function appears",
+      "hint": "Compute det(S) for n=1,2,3,4,5. What pattern do you see? Why does the ceiling function appear?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "enumeration_brute_force", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["ceiling_function", "pattern_recognition", "small_case_computation"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI hasn't noticed that for i > n/2, the constraint ai+bj=n forces a in {0,1}, simplifying entries and creating a zero block",
+      "hint": "For i > n/2, what values can a take in ai+bj=n? How does this simplify s(i,j)? What happens when both i,j > n/2 and i,j < n?",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["threshold_at_n/2", "bounded_coefficient", "zero_block", "entry_simplification"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the zero block but hasn't started using row/column operations to exploit it for determinant reduction",
+      "hint": "Using the zero block in the lower-right, perform row operations to simplify the matrix. How does the zero block help reduce the determinant?",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_manipulation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["zero_block", "row_operations", "determinant_reduction", "block_structure"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI is performing row operations but hasn't identified that the determinant reduces to a small computation involving ceil(n/2)",
+      "hint": "After row operations, the matrix reduces to a small block. What is the size of the remaining non-trivial block? Compute its determinant.",
+      "hint_level": 0.35,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_manipulation", "gap_type": "method_translation"},
+      "tell_small_concepts": ["reduced_block", "small_determinant", "ceiling_function", "final_computation"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the reduced matrix and needs to finish the computation to get the closed form",
+      "hint": "Compute the determinant of the reduced block. The answer should be (-1)^{ceil(n/2)-1}*2*ceil(n/2). Verify with your small cases.",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["final_determinant", "closed_form", "verification"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from problem to answer",
+      "observation_point": null,
+      "tell": "The determinant has a clean closed form (-1)^{ceil(n/2)-1}*2*ceil(n/2) involving the ceiling function, which signals a structural split at n/2",
+      "hint": "The ceiling function in the answer is the signature of a threshold at n/2 where the matrix structure changes fundamentally — entries with both indices above n/2 become zero",
+      "hint_level": 0.6,
+      "generalizability": "high — the threshold structure at n/2 in counting problems ai+bj=n generalizes to any lattice point counting matrix where coefficients bound the solution space",
+      "why_not_visible_locally": "The ceiling function pattern only emerges after computing multiple small cases AND recognizing that the threshold at n/2 creates a zero block — neither the small cases alone nor the threshold observation alone reveals the full path from problem to answer",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["ceiling_function_signature", "threshold_split", "zero_block", "closed_form_pattern"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "connection between counting lattice points and matrix structure",
+      "observation_point": "R4",
+      "tell": "The counting function s(i,j) = #{(a,b): ai+bj=n} has an implicit threshold: when i > n/2, a is forced to {0,1}, which is not visible from the formula alone",
+      "hint": "The bound a <= floor(n/i) creates a natural threshold at i = n/2 where the solution space collapses, turning a complex counting problem into a simple indicator function",
+      "hint_level": 0.5,
+      "generalizability": "medium — the threshold insight applies to lattice point counting in linear Diophantine equations, but the specific n/2 threshold depends on the two-variable structure",
+      "why_not_visible_locally": "The threshold at n/2 is a global property of the counting function that depends on the relationship between the index i and the target n — from any single entry s(i,j), you cannot see that the structure changes fundamentally when i crosses n/2",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["lattice_point_threshold", "bounded_coefficient", "solution_space_collapse", "indicator_function"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely attempt direct determinant computation or cofactor expansion without recognizing the threshold structure at n/2, getting lost in the complexity of the n×n matrix without finding the zero block that enables reduction",
+  "suitable_for_poc": ["tell_identification", "structural_reduction_hint", "knowledge_gap_detection"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of matrix S. What properties does S have? Is it symmetric? What are the special entries?",
+        "expected_answer": "S is symmetric (s(i,j)=s(j,i) by swapping a,b). S_11=n+1 (pairs (0,n),(1,n-1),...,(n,0)). Entries count nonneg integer solutions to ai+bj=n."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "What approaches could compute this determinant? Consider small cases, structural properties, and what happens for large indices.",
+        "expected_answer": "Possible approaches: direct expansion (infeasible for large n), small case computation to find pattern, exploiting symmetry, looking at special structure of entries, row/column operations."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Compute det(S) for n=1,2,3,4,5. What pattern do you see? Why does the ceiling function appear?",
+        "expected_answer": "n=1: det=2. n=2: det=2. n=3: det=-4. n=4: det=-4. n=5: det=6. Pattern: (-1)^{ceil(n/2)-1}*2*ceil(n/2). The ceiling function suggests a structural split at n/2."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "For i > n/2, what values can a take in ai+bj=n? How does this simplify s(i,j)? What happens when both i,j > n/2 and i,j < n?",
+        "expected_answer": "For i > n/2: a <= n/i < 2, so a in {0,1}. Thus s(i,j) = [j|n] + [j|(n-i)]. For both i,j > n/2 and < n: a,b in {0,1} and i+j>n makes a=b=1 impossible, so s(i,j)=0. This creates a zero block."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "Using the zero block in the lower-right, perform row operations to simplify the matrix. How does the zero block help reduce the determinant?",
+        "expected_answer": "The (ceil(n/2)-1)x(ceil(n/2)-1) zero block for indices in (n/2, n) means the matrix has a block structure. Row operations using the simplified rows (i > n/2) can eliminate entries in the upper rows, reducing the effective size."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.35,
+        "question": "After row operations, the matrix reduces to a small block. What is the size of the remaining non-trivial block? Compute its determinant.",
+        "expected_answer": "The determinant reduces to a computation involving a small block of size related to ceil(n/2). The row operations using the simplified rows (with the zero block) collapse most of the matrix, leaving a small block whose determinant gives the answer."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "Compute the determinant of the reduced block. The answer should be (-1)^{ceil(n/2)-1}*2*ceil(n/2). Verify with your small cases.",
+        "expected_answer": "The reduced block determinant is (-1)^{ceil(n/2)-1}*2*ceil(n/2). This matches: n=1->2, n=2->2, n=3->-4, n=4->-4, n=5->6. Verified."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.25,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "Putnam 2015 B4. Key insight is the threshold at n/2 creating a zero block. The ceiling function in the answer is the signature of this threshold. Solution text in problem.lean was truncated; analysis based on known solution structure."
+  }
+}

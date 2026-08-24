@@ -1,0 +1,303 @@
+{
+  "_key": "omni_math_004250",
+  "source_id": "omni_math_004250",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "The Bank of Oslo issues two types of coin: aluminum (denoted A) and bronze (denoted B). Marianne has n aluminum coins and n bronze coins arranged in a row in some arbitrary initial order. A chain is any subsequence of consecutive coins of the same type. Given a fixed positive integer k <= 2n, Gilberty repeatedly performs the following operation: he identifies the longest chain containing the k-th coin from the left and moves all coins in that chain to the left end of the row. Find all pairs (n,k) with 1 <= k <= 2n such that for every initial ordering, at some moment during the process, the leftmost n coins will all be of the same type.",
+  "solution_text": "Key Insight: If k >= n, the k-th coin will definitely involve both aluminum and bronze coins in its chain because the k-th position cannot be fully occupied by fewer than n coins of one type. If k <= n, there is no assurance that the operation will result in all n coins of the same type on the left. If k > ceil(3n/2), a chain may get interrupted because the further k is to the right, the less it coincides with the largest chains. Conclusion: n <= k <= ceil(3n/2).",
+  "solution_summary": "通过分析k相对于n的位置，用鸽巢原理推导下界k>=n（第k位不可能被少于n枚同类型硬币占据），用链长度极值分析推导上界k<=ceil(3n/2)（k太远时链太短无法合并n枚同类型硬币），最终答案为n <= k <= ceil(3n/2)。",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_process_analysis",
+  "answer_type": "characterization",
+  "answer": "n <= k <= ceil(3n/2)",
+  "problem_type": "characterization",
+  "solution_method_type": "structural_boundary_analysis",
+  "structure_features": "2n长度序列中n个A和n个B，固定位置k的链操作，目标是最左n枚同类型。参数空间是(n,k)的二维区域，答案是k关于n的连续区间[n, ceil(3n/2)]。",
+  "key_objects": [
+    "chain（同类型极大连续子序列）",
+    "第k枚硬币的位置",
+    "最长链操作（移到最左端）",
+    "最左n枚硬币的同类型条件",
+    "参数对(n,k)"
+  ],
+  "thinking_patterns": [
+    "case_analysis",
+    "boundary_identification",
+    "extremal_argument",
+    "structural_reasoning"
+  ],
+  "primary_pattern": "boundary_identification",
+  "knowledge_required": [
+    "chain（极大同类型连续子序列）",
+    "鸽巢原理",
+    "极值论证",
+    "ceiling函数",
+    "反例构造"
+  ],
+  "key_insight": "答案是一个连续区间[n, ceil(3n/2)]：下界k>=n来自鸽巢原理保证链涉及足够多硬币，上界k<=ceil(3n/2)来自链长度不足以合并n枚同类型硬币的反例构造。",
+  "translation_from": "枚举小例子试错",
+  "translation_to": "结构化边界分析",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "chain",
+    "longest chain containing k-th coin",
+    "leftmost n coins same type",
+    "move to left end",
+    "boundary condition",
+    "3n/2 threshold",
+    "pigeonhole principle"
+  ],
+  "expected_ai_method": "枚举小n值的所有排列和k值，观察哪些(n,k)满足条件，尝试猜出模式",
+  "correct_method": "分析k相对于n的结构位置，用鸽巢原理推导下界k>=n，用链长度极值分析推导上界k<=ceil(3n/2)",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到问题但未识别关键结构参数（n, k, 链长度关系），对操作机制缺乏结构化理解",
+      "hint": "描述这个问题的结构：已知什么、未知什么、操作做了什么？什么是链？目标条件是什么？",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "operation description",
+        "chain definition",
+        "initial ordering"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出方向但未识别边界分析这一关键方法路径，倾向于枚举而非结构分析",
+      "hint": "列出所有可能的分析方向。考虑k的极端值（k=1, k=2n）会发生什么？",
+      "hint_level": 0.3,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "extreme values",
+        "boundary cases",
+        "k=1",
+        "k=2n"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试k<n但可能未找到反例构造的正确方向，缺乏构造性思维",
+      "hint": "尝试k < n的情况。能否构造一个初始排列使得过程永远无法让最左n枚同类型？",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "counterexample construction",
+        "k < n",
+        "first k coins same type"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI考虑k>=n但未看到链必然涉及两种类型的鸽巢原理论证",
+      "hint": "考虑k >= n的情况。为什么第k枚硬币所在的链必然涉及两种类型？用鸽巢原理分析。",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "k >= n",
+        "chain spans both types",
+        "pigeonhole principle"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI未识别上界阈值的存在性，只关注下界而忽略k过大时的问题",
+      "hint": "现在考虑上界。当k非常大（比如k接近2n）时，链可能太短。什么情况下链太短以至于无法合并n枚同类型硬币到左边？",
+      "hint_level": 0.7,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "upper bound",
+        "chain too short",
+        "k very large"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI需要形式化ceil(3n/2)阈值的精确推导，缺乏链长度极值分析的知识",
+      "hint": "形式化为什么ceil(3n/2)是精确的上界阈值。考虑2n长度序列中n个A和n个B的最大可能链长度，以及k的位置约束。",
+      "hint_level": 0.8,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "3n/2 threshold",
+        "maximum chain length",
+        "ceiling function"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已有上下界但未将它们组合为完整答案，缺乏综合收尾的信心",
+      "hint": "综合下界k >= n和上界k <= ceil(3n/2)，写出完整的答案。",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "combine bounds",
+        "final answer",
+        "n <= k <= ceil(3n/2)"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "full solution path",
+      "observation_point": null,
+      "tell": "AI倾向于寻找离散的(n,k)对而非刻画连续区间，枚举方法无法发现答案的区间结构",
+      "hint": "答案是一个关于k的连续区间[n, ceil(3n/2)]，需要通过上下界分析来刻画而非枚举具体值",
+      "hint_level": 0.7,
+      "generalizability": "high - 区间刻画在竞赛问题中常见，从枚举到区间刻画的翻译可泛化",
+      "why_not_visible_locally": "每个局部步骤只分析一个边界（下界或上界），连续区间的整体结构只有在两个边界都建立后才显现，局部视角无法看到完整区间",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "contiguous range",
+        "lower and upper bound",
+        "range characterization"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "upper bound derivation",
+      "observation_point": "Q6",
+      "tell": "AI无法从局部步骤中看出3n/2是精确阈值，这一阈值需要全局链长度分析",
+      "hint": "3n/2阈值来自2n长度序列中n个A和n个B的全局排列分析：当k超过3n/2时，存在排列使第k位附近链长度不足n",
+      "hint_level": 0.8,
+      "generalizability": "medium - 阈值推导是问题特定的，但极值分析技术可泛化到类似链操作问题",
+      "why_not_visible_locally": "3n/2阈值需要考虑所有可能排列中链长度的极值，而非仅分析第k位的局部链。局部步骤只能看到单个排列的行为，无法发现全局阈值",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "3n/2 threshold",
+        "chain length analysis",
+        "global ordering analysis"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会枚举小例子猜出k>=n的下界直觉，但对上界可能猜错为k<=2n或k<=n+某个值，无法精确推导ceil(3n/2)阈值。可能遗漏反例构造的严谨性，也难以从枚举结果中发现连续区间结构。",
+  "suitable_for_poc": [
+    "tell端去特化验证——此题的tell是'AI枚举而非结构分析'，可形式化过滤",
+    "hint端脉络注入验证——上下界分析的双步提示可验证脉络继承效果",
+    "小概念标记分辨——3n/2阈值与n阈值是拓扑相同但概念不同的tell"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "描述这个问题的结构：已知什么、未知什么、操作做了什么？什么是链？目标条件是什么？",
+        "expected_answer": "已知n个A币和n个B币排成2n长的行，固定k。操作是找包含第k枚硬币的最长同类型连续链并移到最左端。目标是找所有(n,k)使得对任意初始排列，某时刻最左n枚全同类型。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.3,
+        "question": "列出所有可能的分析方向。考虑k的极端值（k=1, k=2n）会发生什么？",
+        "expected_answer": "可以尝试小例子枚举；分析k小时的行为；分析k大时的行为；考虑链长度的极值性质；考虑操作的不变量。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "尝试k < n的情况。能否构造一个初始排列使得过程永远无法让最左n枚同类型？",
+        "expected_answer": "当k < n时，可以构造排列使前k枚全为A，操作只移动A链到左边，但B币分散在右侧无法被合并到左边。存在反例。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "考虑k >= n的情况。为什么第k枚硬币所在的链必然涉及两种类型？用鸽巢原理分析。",
+        "expected_answer": "因为前n个位置最多有n个同类型硬币，若k >= n则第k位不可能在纯A或纯B的长度<=n的链中完全被一种类型包围。链必然跨越类型边界。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.7,
+        "question": "现在考虑上界。当k非常大（比如k接近2n）时，链可能太短。什么情况下链太短以至于无法合并n枚同类型硬币到左边？",
+        "expected_answer": "当k > ceil(3n/2)时，存在排列使得第k枚硬币所在的链长度不足以将n枚同类型硬币移到左边。关键阈值在3n/2附近。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.8,
+        "question": "形式化为什么ceil(3n/2)是精确的上界阈值。考虑2n长度序列中n个A和n个B的最大可能链长度，以及k的位置约束。",
+        "expected_answer": "在2n长度的序列中，当k > 3n/2时，可以构造排列使得第k位附近的链长度 < n，无法通过移动达到n枚同类型在左边。ceil(3n/2)是链长度恰好能保证合并的临界点。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "综合下界k >= n和上界k <= ceil(3n/2)，写出完整的答案。",
+        "expected_answer": "答案为 n <= k <= ceil(3n/2)。下界保证链涉及足够多的硬币，上界保证链不会太短。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "N/A",
+    "notes": "竞赛级组合问题，核心难点在于上界ceil(3n/2)的精确推导。bare AI预期fail，适合tell端去特化和小概念标记分辨POC实验。"
+  }
+}

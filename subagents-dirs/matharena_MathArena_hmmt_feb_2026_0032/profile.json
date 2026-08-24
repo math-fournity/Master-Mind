@@ -1,0 +1,302 @@
+{
+  "_key": "matharena_MathArena_hmmt_feb_2026_0032",
+  "source_id": "hmmt_feb_2026_0032",
+  "source_dataset": "matharena",
+  "schema_version": 3,
+  "problem_text": "The numbers 1, 2, ..., 2026 are written on a blackboard. An operation consists of replacing any number on the blackboard with the positive difference between the largest and smallest numbers currently on the blackboard. Determine, with proof, the least number of operations required to make all the numbers on the blackboard equal.",
+  "solution_text": "The answer is 3037 = floor(3*2025/2).\n\nConstruction (upper bound): Let n=2026, d=floor(n/2)=1013.\nPhase 1 (setup): Starting from {1,2,...,2026} with max=2026, min=1, diff=2025. Repeatedly replace the current minimum with (max-min): replace 1->2025 (min becomes 2, diff=2024), replace 2->2024 (min becomes 3, diff=2023), ..., replace 1012->1014 (min becomes 1013, diff=1013). This takes 1012 operations. Now the board has min=1013, max=2026, diff=1013=d. The value 1014 appears twice (original 1014 and the one created from replacing 1012). Replace both 1014's with 1013: 2 more operations. Now we have 3 copies of d=1013, and max=2026, min=1013, diff=1013. Phase 1 total: 1014 operations.\nPhase 2 (filling): Replace all remaining non-1013 values with 1013. There are 2026-3=2023 such values. Each replacement uses diff=1013 (which stays constant as long as we don't touch min=1013 or max=2026). Phase 2 total: 2023 operations (the last one replaces 2026 itself with 1013).\nTotal: 1014 + 2023 = 3037.\n\nLower bound: Let v be the final common value. At most one number initially equals v, so at least n-1=2025 operations are needed to change the other numbers. Additionally, to perform any filling operation, we need (max-min)=v at that moment. Starting from diff=n-1=2025, each operation can reduce diff by at most 1 (when replacing the current min). To reach diff=v, we need at least (n-1-v) operations that reduce the diff. These operations create values != v (they create n-1, n-2, ..., v+1), which must later be filled. The optimal v minimizes total cost: filling cost = n-1 (minus copies of v), setup cost = (n-1-v) + (extra clearing). For v=d=floor(n/2), the total is exactly floor(3(n-1)/2). Any other choice of v gives a higher total. For n=2026: floor(3*2025/2) = floor(3037.5) = 3037.",
+  "solution_summary": "The minimum number of operations is floor(3(n-1)/2) = 3037 for n=2026. The strategy has two phases: (1) setup phase where we reduce the minimum from 1 to d=floor(n/2)=1013 by repeatedly replacing the current minimum with (max-min), then create extra copies of d (cost ~n/2+1); (2) filling phase where we replace all remaining non-d values with d (cost n-3). The lower bound follows from needing n-1 filling operations plus at least floor((n-1)/2) setup operations to narrow the range.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "numerical",
+  "answer": "3037",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "two_phase_construction",
+  "structure_features": "Blackboard replacement operation with global max-min dependency. The operation replaces one element with the current range (max-min), creating a feedback loop between the state and available replacements. Two-phase structure: setup (narrow the range to target value) then filling (homogenize all values). The optimal target value is floor(n/2), balancing setup cost against filling cost.",
+  "key_objects": [
+    "set {1, 2, ..., 2026} on blackboard",
+    "operation: replace x with (max - min)",
+    "target value d = floor(n/2) = 1013",
+    "diff = max - min (the only value that can be written)",
+    "two-phase decomposition: setup + filling"
+  ],
+  "thinking_patterns": [
+    "small_case_exploration",
+    "pattern_recognition_from_sequence",
+    "two_phase_decomposition",
+    "amortized_cost_analysis",
+    "lower_bound_matching_upper_bound"
+  ],
+  "primary_pattern": "two_phase_decomposition",
+  "knowledge_required": [
+    "invariant analysis for replacement operations",
+    "optimization of target value selection",
+    "lower bound via counting argument",
+    "small case enumeration and pattern extraction"
+  ],
+  "key_insight": "The problem decomposes into a setup phase (narrow max-min to the target value d=floor(n/2)) and a filling phase (replace all non-d values with d), and the optimal d balances these two costs giving floor(3(n-1)/2).",
+  "translation_from": "small_case_enumeration",
+  "translation_to": "closed_form_formula_with_two_phase_proof",
+  "translation_type": "inductive_generalization",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "max-min replacement",
+    "two_phase_decomposition",
+    "target_value_optimization",
+    "setup_cost_vs_filling_cost",
+    "range_narrowing",
+    "lower_bound_counting"
+  ],
+  "expected_ai_method": "A bare AI would likely try to simulate the process greedily or attempt a direct formula without recognizing the two-phase structure. It might get stuck trying to prove optimality without decomposing into setup and filling phases.",
+  "correct_method": "Enumerate small cases to find the pattern floor(3(n-1)/2), then prove it by constructing a two-phase strategy (setup: narrow range to d=floor(n/2), filling: homogenize) and matching lower bound (n-1 filling + floor((n-1)/2) setup).",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees numbers 1..2026 on a blackboard with a replacement operation but hasn't identified the key structural features: what values can be produced, what the final state must look like, and how the operation depends on the global state.",
+      "hint": "Describe the structure of this problem: what are the knowns, what is the unknown, and what makes this operation unusual compared to standard replacement problems?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "global_state_dependency",
+        "max_min_replacement",
+        "problem_structure_identification"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI understands the operation but doesn't know what approaches could work. It might list simulation or greedy but miss the key approach of small case enumeration.",
+      "hint": "List all possible approaches you can think of for solving this optimization problem: simulation, greedy, small cases, invariant analysis, formula guessing, etc.",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "approach_enumeration",
+        "small_case_analysis",
+        "invariant_analysis"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI might try a greedy approach: always replace the minimum to shrink the range. This is on the right track but AI doesn't know when to stop the setup phase and start filling.",
+      "hint": "Try computing the answer for small cases (n=1 through n=10) by brute force or careful simulation. What pattern do you notice in the sequence of minimum operation counts?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "small_case_enumeration",
+        "pattern_recognition",
+        "sequence_analysis"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has found the pattern floor(3(n-1)/2) from small cases but doesn't understand WHY this formula holds — it cannot decompose the process into phases or identify the optimal target value.",
+      "hint": "The formula floor(3(n-1)/2) suggests a two-phase structure. Think about what the final common value d should be, and how the process splits into a 'setup' phase (making max-min equal to d) and a 'filling' phase (replacing all non-d values with d). What is the optimal d?",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "two_phase_decomposition",
+        "target_value_optimization",
+        "setup_phase",
+        "filling_phase",
+        "optimal_d_floor_n_over_2"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI understands the two-phase structure and target d=floor(n/2) but hasn't proven the lower bound — it can construct the upper bound but cannot show no fewer operations suffice.",
+      "hint": "For the lower bound: argue that at least n-1 operations are needed for filling (changing n-1 values to d), and at least floor((n-1)/2) additional operations are needed for setup (narrowing the range from n-1 to d). Why can't setup and filling overlap more than they do?",
+      "hint_level": 0.35,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "lower_bound_counting",
+        "filling_cost_n_minus_1",
+        "setup_cost_floor_n_minus_1_over_2",
+        "non_overlap_argument"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has both upper and lower bounds matching at floor(3(n-1)/2) but needs to finalize the proof and compute the numerical answer for n=2026.",
+      "hint": "Now compute the final answer: floor(3*(2026-1)/2) = floor(3*2025/2) = floor(3037.5) = 3037. Verify that the construction and lower bound both give this value, and write up the complete proof.",
+      "hint_level": 0.15,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "final_computation",
+        "floor_3_n_minus_1_over_2",
+        "proof_completion"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire solution path from problem statement to final answer",
+      "observation_point": null,
+      "tell": "The solution path has a non-obvious two-phase decomposition: setup (narrow range to target) + filling (homogenize). This structure is invisible from any single step because each step looks like the same operation, but the strategic purpose differs between phases.",
+      "hint": "Decompose the process into a setup phase (where you narrow max-min to the target value d) and a filling phase (where you replace all non-d values with d). The optimal d=floor(n/2) balances setup cost against filling cost.",
+      "hint_level": 0.3,
+      "generalizability": "high — the two-phase decomposition pattern applies to many blackboard replacement problems where the operation depends on global state",
+      "why_not_visible_locally": "From any single operation's perspective, the operation is always 'replace x with (max-min)'. The strategic distinction between setup (reducing the range) and filling (homogenizing) only becomes visible when viewing the entire trajectory as a sequence with changing purposes. A local view sees identical operations; only the global path view reveals the phase transition.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "two_phase_decomposition",
+        "setup_vs_filling",
+        "phase_transition_in_strategy",
+        "global_path_structure"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The choice of optimal target value d=floor(n/2)",
+      "observation_point": "Q4",
+      "tell": "The optimal target value d=floor(n/2) is not obvious — it emerges from balancing setup cost (which decreases with smaller d) against filling cost (which is roughly constant at n-1 minus copies of d). The balance point is at d=floor(n/2).",
+      "hint": "When choosing the target value d, consider that setup cost is roughly (n-1-d) operations (to narrow the range) while filling cost is roughly (n - copies_of_d). The optimal d balances these, and d=floor(n/2) is the sweet spot.",
+      "hint_level": 0.25,
+      "generalizability": "medium — the optimization of target value by balancing two costs is a general technique, but the specific balance point depends on the problem structure",
+      "why_not_visible_locally": "The optimality of d=floor(n/2) is an implicit consequence of the cost balance between setup and filling. In the local context of any single phase, the target value appears as a given parameter, not as an optimized choice. Only by comparing total costs across different d values does the optimum emerge.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "target_value_optimization",
+        "cost_balancing",
+        "optimal_d_floor_n_over_2",
+        "setup_filling_tradeoff"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The lower bound argument requiring non-overlap of setup and filling",
+      "observation_point": "Q5",
+      "tell": "The lower bound proof requires showing that setup and filling operations cannot overlap — operations that reduce the range create values != d that must later be filled, so they don't count toward filling. This non-overlap is the key to the lower bound.",
+      "hint": "For the lower bound, argue that operations which reduce the range (setup) necessarily create values different from d, so they cannot simultaneously serve as filling operations. This non-overlap forces the total to be at least (setup cost) + (filling cost).",
+      "hint_level": 0.3,
+      "generalizability": "medium — the non-overlap argument is specific to problems where range-narrowing operations produce values outside the target set",
+      "why_not_visible_locally": "In the local view of a single operation that reduces the range, it looks like progress toward the goal (getting closer to all-equal). The fact that this operation creates a value that will need to be replaced later (and thus doesn't reduce the total count) is only visible when tracking the full lifecycle of each created value across the entire solution path.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "non_overlap_argument",
+        "setup_creates_non_d_values",
+        "lower_bound_decomposition",
+        "value_lifecycle_tracking"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "A bare AI would likely attempt a greedy simulation or try to find a direct formula without small case enumeration. It would miss the two-phase decomposition and the optimal target value d=floor(n/2). Without the pattern from small cases, it cannot guess the formula floor(3(n-1)/2). Even if it finds the formula, it would struggle with the lower bound proof because the non-overlap argument is non-obvious.",
+  "suitable_for_poc": [
+    "tell_extraction: the two-phase decomposition is a clear path feature tell",
+    "hint_injection: the target value optimization is a knowledge bottleneck hint",
+    "topology_classification: discrete_combinatorial with structural_transformation gap"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem: what are the knowns, what is the unknown, and what makes this operation unusual compared to standard replacement problems?",
+        "expected_answer": "We have numbers 1..2026 on a blackboard. The operation replaces any number with (max - min), which depends on the current global state. The unknown is the minimum number of operations to make all numbers equal. The unusual feature is that the replacement value is not fixed — it changes as the board state changes, creating a feedback loop."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible approaches you can think of for solving this optimization problem: simulation, greedy, small cases, invariant analysis, formula guessing, etc.",
+        "expected_answer": "Possible approaches: (1) Greedy — always replace the minimum to shrink the range; (2) Small case enumeration — compute answers for n=1,2,...,10 and look for a pattern; (3) Invariant analysis — find an invariant that constrains the final state; (4) Direct formula — try to derive a closed form; (5) Simulation — simulate the process for n=2026."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try computing the answer for small cases (n=1 through n=10) by brute force or careful simulation. What pattern do you notice in the sequence of minimum operation counts?",
+        "expected_answer": "For n=1: 0, n=2: 1, n=3: 3, n=4: 4, n=5: 6, n=6: 7, n=7: 9, n=8: 10, n=9: 12, n=10: 13. The pattern is floor(3(n-1)/2): 0, 1, 3, 4, 6, 7, 9, 10, 12, 13. This matches perfectly."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "The formula floor(3(n-1)/2) suggests a two-phase structure. Think about what the final common value d should be, and how the process splits into a 'setup' phase (making max-min equal to d) and a 'filling' phase (replacing all non-d values with d). What is the optimal d?",
+        "expected_answer": "The optimal target value is d = floor(n/2). Phase 1 (setup): narrow the range from [1, n] to [d, 2d] by repeatedly replacing the current minimum with (max-min), which takes about n/2 operations. Then create a few extra copies of d. Phase 2 (filling): replace all remaining non-d values with d, taking about n-3 operations. Total: approximately 3(n-1)/2."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.35,
+        "question": "For the lower bound: argue that at least n-1 operations are needed for filling (changing n-1 values to d), and at least floor((n-1)/2) additional operations are needed for setup (narrowing the range from n-1 to d). Why can't setup and filling overlap more than they do?",
+        "expected_answer": "At least n-1 operations are needed because at most 1 number starts as d. Additionally, setup operations (replacing min to reduce the range) create values != d (they create n-1, n-2, ..., d+1), so these operations cannot simultaneously serve as filling operations. This non-overlap means the total is at least (n-1) + floor((n-1)/2) = floor(3(n-1)/2)."
+      },
+      {
+        "round": 6,
+        "situation_type": "能量传递引导",
+        "level": 0.15,
+        "question": "Now compute the final answer: floor(3*(2026-1)/2) = floor(3*2025/2) = floor(3037.5) = 3037. Verify that the construction and lower bound both give this value, and write up the complete proof.",
+        "expected_answer": "For n=2026: d=1013. Setup: 1012 operations to reduce min from 1 to 1013, plus 2 operations to create extra copies of d (replacing the two 1014's). Filling: 2026-3=2023 operations. Total: 1014+2023=3037. Lower bound: (n-1) + floor((n-1)/2) = 2025 + 1012 = 3037. Both match, so the answer is 3037."
+      }
+    ],
+    "stats": {
+      "total_rounds": 6,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 1,
+      "level_sum": 2.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-02-15T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "Problem solved by small case enumeration (n=1..17 verified by brute force BFS), pattern recognition (floor(3(n-1)/2)), and two-phase decomposition proof. The key insight is the two-phase structure with optimal target d=floor(n/2). No solution was provided; derived from problem statement. Answer 3037 confirmed by formula and brute force."
+  }
+}

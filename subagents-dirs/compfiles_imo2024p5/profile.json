@@ -1,0 +1,304 @@
+{
+  "_key": "compfiles_imo2024p5",
+  "source_id": "compfiles_Imo2024P5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Turbo the snail plays a game on a board with 2024 rows and 2023 columns. There are hidden monsters in 2022 of the cells. Initially, Turbo does not know where any of the monsters are, but he knows that there is exactly one monster in each row except the first row and the last row, and that each column contains at most one monster. Turbo makes a series of attempts to go from the first row to the last row. On each attempt, he chooses to start on any cell in the first row, then repeatedly moves to an adjacent cell sharing a common side. (He is allowed to return to a previously visited cell.) If he reaches a cell with a monster, his attempt ends and he is transported back to the first row to start a new attempt. The monsters do not move, and Turbo remembers whether or not each cell he has visited contains a monster. If he reaches any cell in the last row, his attempt ends and the game is over. Determine the minimum value of n for which Turbo has a strategy that guarantees reaching the last row on the nth attempt or earlier, regardless of the locations of the monsters.",
+  "solution_text": "The answer is n=3. Lower bound: 2 attempts are not enough. The adversary can adaptively place a monster in the first cell of the second row that Turbo enters on his first attempt, and a monster in the first cell of the third row that Turbo enters on his second attempt (these are in different columns, satisfying the constraint). Upper bound: 3 attempts suffice. First attempt: scan along the second row to locate the monster there (column c1). If c1 is not at an edge (c1≠0 and c1≠N): second attempt goes down column c1-1, third attempt goes down column c1+1. Since each column has at most one monster, the third-row monster cannot be in both columns c1-1 and c1+1, so at least one attempt succeeds. If c1=0 (left edge): second attempt takes a zigzag path across the board. If it encounters a monster in row r, the third attempt follows the same zigzag but turns early to column 0 and goes down. Since column 0's only monster is in row 2 (known), the third attempt avoids all monsters. If c1=N (right edge): by symmetry (reflect operation), the same strategy as c1=0 applies.",
+  "solution_summary": "Answer n=3. Lower bound via adaptive adversary placing monsters in rows 2 and 3 at Turbo's entry points. Upper bound via three-phase strategy: scout to locate row-2 monster, then exploit column-uniqueness constraint for middle positions (two-sided bypass) or zigzag path for edge positions (with symmetry for right edge).",
+  "domain": "Combinatorics",
+  "subfield": "combinatorial_game_theory",
+  "answer_type": "numerical",
+  "answer": "3",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "constructive_strategy_with_bounds",
+  "structure_features": "网格上的路径规划博弈，信息不完全（怪物隐藏），策略需要利用失败获取的信息+约束条件（每列最多一个怪物）设计保证性策略。上下界证明结构——下界用对手自适应策略，上界用构造性策略分情况讨论。",
+  "key_objects": [
+    "棋盘网格(2024行×2023列)",
+    "隐藏怪物(每行一个/每列最多一个)",
+    "路径(相邻格子移动)",
+    "策略(基于历史信息的自适应路径选择)",
+    "尝试次数n(最小化)"
+  ],
+  "thinking_patterns": [
+    "信息获取优先——先牺牲一次尝试获取精确信息",
+    "约束利用——利用每列最多一个怪物的约束设计绕行",
+    "分情况讨论——中间位置vs边缘位置不同策略",
+    "对称性论证——右边缘复用左边缘策略",
+    "上下界证明——下界用对手策略+上界用构造性策略"
+  ],
+  "primary_pattern": "信息获取优先（先侦察再利用信息+约束设计策略）",
+  "knowledge_required": [
+    "网格路径规划",
+    "组合博弈论基础",
+    "信息论概念（信息获取与利用）",
+    "对称性论证(reflect操作)",
+    "对手策略构造(最坏情况分析)"
+  ],
+  "key_insight": "第一次尝试用于侦察第二行怪物位置，然后利用\"每列最多一个怪物\"约束从两侧绕行——中间位置两侧必有一侧安全，边缘位置用zigzag路径+对称性处理",
+  "translation_from": "逐次尝试排除法（每次尝试走不同路径逐步排除怪物位置，不系统利用约束）",
+  "translation_to": "信息获取+约束利用的结构化策略（先侦察定位，再利用列约束设计绕行路径，分情况处理边缘）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "信息获取策略",
+    "每列最多一个怪物约束",
+    "zigzag路径",
+    "对称性论证",
+    "上下界证明",
+    "侦察-绕行",
+    "边缘情况处理"
+  ],
+  "expected_ai_method": "逐次尝试走不同路径排除怪物位置，不系统利用\"每列最多一个怪物\"约束，不区分中间和边缘情况",
+  "correct_method": "三阶段策略——第一次侦察定位第二行怪物，中间位置两侧绕行利用列约束，边缘位置zigzag+对称性，下界用对手自适应策略",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI面对复杂博弈题目，尚未识别关键约束结构（信息不完全+列约束）",
+      "hint": "描述题目中Turbo的信息状态——知道什么、不知道什么、每次尝试获得什么信息，以及棋盘的约束条件",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["信息状态分析", "已知/未知区分", "约束条件识别"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但未识别'侦察'这一关键策略类型，倾向于逐次排除",
+      "hint": "列出所有可能的策略类型，特别关注'用一次尝试获取信息'这种策略类型",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["策略类型枚举", "信息获取策略", "搜索空间评估"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI倾向于直接走最短路径，未利用信息和约束",
+      "hint": "试一下每次都走最短路径的策略，分析为什么这个策略不好",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["最短路径策略", "信息利用缺失", "约束未利用"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未想到用一次尝试专门侦察某行怪物位置——这是关键知识缺口",
+      "hint": "考虑用第一次尝试专门定位第二行怪物——如何沿第二行水平移动来找到怪物？",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["侦察策略", "水平扫描", "行内怪物定位", "信息获取"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已知怪物位置但未想到利用列约束设计两侧绕行——这是关键思维转折",
+      "hint": "已知第二行怪物在列c₁（非边缘），利用'每列最多一个怪物'设计第二次和第三次尝试的绕行路径",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["列约束利用", "两侧绕行", "不可能同时占据两列", "保证性推理"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI遇到边缘情况无法从一侧绕行，缺乏zigzag思路和对称性论证——这是最难的知识瓶颈",
+      "hint": "c₁=0时无法左侧绕行，考虑zigzag路径——之字形穿越棋盘，遇怪物后在第三次尝试提前转弯到第0列。c₁=N由对称性处理。",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["zigzag路径", "边缘情况", "提前转弯", "对称性论证", "reflect操作"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有上界策略但未证明下界，缺乏自适应对手策略概念",
+      "hint": "为什么2次不够？构造对手策略：第一次尝试进入第二行的格子放怪物，第二次尝试进入第三行的格子放怪物",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["下界证明", "对手策略构造", "两行同时阻击", "自适应对手"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI已完成上下界证明的各部分，需要整合确认",
+      "hint": "总结完整策略，确认n=3既是上界也是下界",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["上下界整合", "最终确认", "策略完整性"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从侦察到绕行的完整三阶段策略路径",
+      "observation_point": null,
+      "tell": "完整策略需要三阶段——侦察定位、中间位置两侧绕行、边缘位置zigzag——这三个阶段通过'每列最多一个怪物'约束串联成一个连贯的路径特征",
+      "hint": "将问题分解为三个阶段：信息获取（第一次尝试）、约束利用（中间位置两侧绕行）、特殊处理（边缘位置zigzag+对称性），三个阶段通过列约束逻辑串联",
+      "hint_level": 0.7,
+      "generalizability": "high - 三阶段策略模式（侦察+利用约束+特殊处理）可泛化到其他信息不完全的组合博弈问题",
+      "why_not_visible_locally": "在局部视角中，每个阶段（侦察、绕行、zigzag）看起来是独立的策略选择，看不到它们之间的逻辑串联——'每列最多一个怪物'约束如何将三个阶段连接成一个完整证明，只有在俯瞰整条路径时才能看到这个串联关系",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["三阶段策略", "侦察-绕行-zigzag串联", "列约束贯穿全局", "路径特征"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "对称性论证蕴含在边缘情况处理中",
+      "observation_point": "R6",
+      "tell": "c₁=N（右边缘）的情况不需要单独设计策略——通过对称反射（reflect）直接从c₁=0的情况推导，这个蕴含信息在局部处理左边缘时不可见",
+      "hint": "注意到棋盘左右对称性：c₁=N的情况是c₁=0情况的镜像，通过reflect操作可以直接复用左边缘的策略，无需重新设计",
+      "hint_level": 0.6,
+      "generalizability": "medium - 对称性论证可泛化到具有对称结构的组合问题，但需要问题本身具有对称性",
+      "why_not_visible_locally": "在R6中处理c₁=0的zigzag策略时，对称性论证是隐含的——局部视角只看到左边缘的具体路径设计，看不到'右边缘不需要重新设计'这个蕴含信息，因为对称性是一个全局性质而非局部步骤的可见属性",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["对称性论证", "reflect操作", "边缘情况归约", "镜像复用"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "下界证明中的对手自适应策略",
+      "observation_point": "R7",
+      "tell": "下界证明中对手不是固定放怪物，而是根据Turbo的策略自适应选择——这是博弈论中'最坏情况'的真正含义，在局部视角中容易被误解为静态放置",
+      "hint": "理解对手策略是自适应的——对手看到Turbo第一次尝试的路径后，在Turbo进入第二行的第一个格子放怪物；看到第二次尝试后，在进入第三行的第一个格子放怪物",
+      "hint_level": 0.5,
+      "generalizability": "high - 自适应对手策略的概念可泛化到所有博弈论下界证明",
+      "why_not_visible_locally": "在R7的局部视角中，AI可能只看到'在某行放怪物'这个静态操作，看不到对手是'根据Turbo的路径自适应选择怪物位置'这个动态博弈结构——这个蕴含信息需要理解博弈论中'最坏情况'的真正含义，即对手在看到你的策略后才选择最不利的配置",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["自适应对手", "最坏情况分析", "博弈论下界", "动态策略交互"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试逐次排除怪物位置，走不同路径逐步缩小搜索空间，但不会系统利用\"每列最多一个怪物\"约束来设计保证性策略。具体错误：1) 不会想到用第一次尝试专门侦察第二行怪物；2) 即使定位了怪物，不会想到两侧绕行利用列约束；3) 边缘情况不会设计zigzag路径；4) 不会用对称性简化右边缘情况；5) 下界证明不会构造自适应对手策略。",
+  "suitable_for_poc": [
+    "hint注入验证——验证侦察策略hint能否引导AI找到正确方向",
+    "tell识别验证——验证系统能否从AI的thinking中识别'未利用列约束'的tell",
+    "拓扑匹配验证——验证discrete_combinatorial+case_by_case+structural_transformation拓扑能否匹配"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "这道题中Turbo知道什么、不知道什么？每次尝试后Turbo获得了什么信息？棋盘的约束条件有哪些？",
+        "expected_answer": "Turbo知道棋盘大小(2024行2023列)、怪物总数(2022个)、每行恰好一个(除首尾行)、每列最多一个。不知道怪物具体位置。每次尝试后Turbo知道访问过的格子是否有怪物——如果遇到怪物，精确知道怪物在哪个格子。关键约束：每列最多一个怪物意味着不同行的怪物在不同列。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "Turbo可以采取什么类型的策略？列出所有可能的方向来保证到达最后一行。",
+        "expected_answer": "可能方向：1) 每次尝试走不同路径逐步排除怪物位置；2) 用第一次尝试专门侦察某行怪物位置；3) 利用每列最多一个怪物的约束设计绕行路径；4) 从两侧绕过已知怪物；5) 之字形路径覆盖更多区域；6) 对称性简化分析。关键是要利用每次失败获得的信息。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "如果Turbo每次都走最短路径（直接从第一行到最后一行），需要多少次尝试？这个策略有什么问题？",
+        "expected_answer": "直接向下走可能每次都遇到不同行的怪物，最坏情况需要2022次（每行一个怪物逐个排除）。问题是没有利用信息——每次尝试应该利用之前获得的信息来避开已知怪物。而且没有利用\"每列最多一个怪物\"这个关键约束。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "考虑用第一次尝试专门来定位第二行的怪物。如何设计一条路径，使得在一次尝试中确定第二行怪物的确切位置？",
+        "expected_answer": "从(0,0)出发走到(1,0)，然后沿第二行水平移动：(1,0)→(1,1)→(1,2)→...→(1,N)。因为第二行恰好有一个怪物，Turbo会在遇到它时被送回，从而精确知道怪物在第二行的哪个列位置c₁。这是一次\"侦察\"尝试，牺牲这次尝试换取精确信息。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "已知第二行怪物在列c₁后，如果c₁不在边缘（c₁≠0且c₁≠N），如何设计第二次和第三次尝试？利用\"每列最多一个怪物\"的约束。",
+        "expected_answer": "第二次尝试从c₁-1列向下走（绕过第二行怪物左侧），第三次尝试从c₁+1列向下走（绕过右侧）。关键推理：第三行的怪物最多在一个列中（每列最多一个怪物），不可能同时在c₁-1和c₁+1列。因此第二次或第三次尝试至少有一次不会在第三行遇到怪物，且后续行也不会遇到。所以至少一次成功。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "如果c₁=0（怪物在最左列），无法从左侧绕行。如何设计策略？考虑用zigzag（之字形）路径，使得如果遇到怪物，第三次尝试可以避开所有怪物。",
+        "expected_answer": "第二次尝试走zigzag路径：之字形穿越棋盘覆盖所有列。如果第二次成功，游戏结束。如果遇到怪物在某行r的某列，第三次尝试：沿着与zigzag相同的路径走，但在到达行r之前一行的位置提前转弯到第0列，然后沿第0列向下走到最后一行。因为第0列的怪物只在第二行（已知位置c₁=0），第三次沿第0列走时只需避开第二行。c₁=N的情况由棋盘左右对称性（reflect操作）直接复用左边缘策略。"
+      },
+      {
+        "round": 7,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "现在有了上界策略（3次足够），还需要证明下界。为什么2次尝试不够？构造对手策略。",
+        "expected_answer": "对手策略是自适应的：看Turbo第一次尝试的路径，在Turbo进入第二行的第一个格子放怪物（第二行有且仅有一个怪物）。Turbo被送回后，第二次尝试的路径不同，对手在Turbo进入第三行的第一个格子放怪物（第三行有且仅有一个怪物）。两个怪物在不同行不同列，满足约束。因此2次尝试无法保证到达最后一行。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "总结完整策略，确认n=3既是上界也是下界。",
+        "expected_answer": "下界：2次不够——对手自适应在第二行和第三行Turbo进入的格子放怪物。上界：3次足够——第一次侦察定位第二行怪物c₁；若c₁在中间，第二次走c₁-1列、第三次走c₁+1列，列约束保证至少一次成功；若c₁在边缘，第二次走zigzag、第三次提前转弯到边缘列，对称性处理右边缘。因此n=3。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 3,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "completed",
+    "notes": "IMO 2024 P5 - 组合博弈策略题。核心tell是AI不会系统利用'每列最多一个怪物'约束来设计保证性策略，需要从'逐次排除'翻译到'信息获取+约束利用'的结构化思维。关键知识瓶颈在zigzag路径设计(R6)，关键思维转折在两侧绕行(R5)。"
+  }
+}

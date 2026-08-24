@@ -1,0 +1,342 @@
+{
+  "_key": "omni_math_004108",
+  "source_id": "omni_math_004108",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "On some planet, there are 2^N countries (N >= 4). Each country has a flag N units wide and one unit high composed of N fields of size 1x1, each field being either yellow or blue. No two countries have the same flag. We say that a set of N flags is diverse if these flags can be arranged into an N x N square so that all N fields on its main diagonal will have the same color. Determine the smallest positive integer M such that among any M distinct flags, there exist N flags forming a diverse set.",
+  "solution_text": "Each flag can be represented as a binary string of length N where '0' represents yellow and '1' represents blue. With N fields, there are 2^N possible unique flags. A set of N flags is diverse if, when arranged in an N x N square, all diagonal elements are the same color. This is equivalent to finding a permutation of the N flags such that position i of the i-th flag (in the arrangement) has the same color for all i. Using the pigeonhole principle: partition the 2^N flags into 2^{N-2} groups based on positions 3,...,N (the suffix). Each group has exactly 4 flags (corresponding to the 4 choices for positions 1,2). Among M = 2^{N-2}+1 flags, by pigeonhole, at least two flags fall in the same group. These two flags agree on positions 3,...,N but differ in positions 1,2, so they can cover positions 1 and 2 for some monochromatic color. The remaining positions 3,...,N are covered by the common suffix or by additional flags via Hall's theorem. The lower bound is achieved by taking all 2^{N-2} flags with a fixed suffix, which can be shown to contain no diverse subset of size N. Thus M = 2^{N-2} + 1.",
+  "solution_summary": "Represent flags as binary strings of length N. Reformulate the diverse condition as a perfect matching in a bipartite graph (positions vs flags, edge if color matches). Partition flags by their suffix (positions 3..N) into 2^{N-2} classes. By pigeonhole, M = 2^{N-2}+1 flags guarantee two from the same class, which can cover positions 1,2 for some color. Apply Hall's theorem to complete the matching for remaining positions. Lower bound: take all 2^{N-2} flags with a fixed suffix to construct a non-diverse extremal set.",
+  "domain": "combinatorics",
+  "subfield": "extremal_combinatorics",
+  "answer_type": "numerical",
+  "answer": "2^{N-2} + 1",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "pigeonhole_matching",
+  "structure_features": "Binary strings of length N; permutation arrangement for monochromatic diagonal; extremal set size problem; partition into equivalence classes by suffix; pigeonhole principle combined with Hall's marriage theorem",
+  "key_objects": [
+    "binary strings of length N",
+    "N x N flag arrangement",
+    "monochromatic diagonal",
+    "diverse set of N flags",
+    "pigeonhole partition classes",
+    "bipartite matching (positions vs flags)"
+  ],
+  "thinking_patterns": [
+    "pigeonhole_principle",
+    "matching_reformulation",
+    "extremal_construction",
+    "bipartite_matching_hall",
+    "partition_strategy"
+  ],
+  "primary_pattern": "pigeonhole_matching_combination",
+  "knowledge_required": [
+    "binary string representation",
+    "pigeonhole principle",
+    "Hall's marriage theorem",
+    "bipartite perfect matching",
+    "extremal combinatorics",
+    "permutation and arrangement"
+  ],
+  "key_insight": "Reformulate the monochromatic diagonal condition as a perfect matching in a bipartite graph, then partition flags by their suffix (positions 3..N) into 2^{N-2} classes so that pigeonhole gives two same-class flags covering positions 1,2, and Hall's theorem completes the matching for the rest",
+  "translation_from": "geometric/visual arrangement condition (monochromatic diagonal of flag square)",
+  "translation_to": "graph-theoretic matching condition (perfect matching in bipartite graph of positions vs flags)",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_problem_mismatch"
+  },
+  "tell_small_concepts": [
+    "binary string",
+    "pigeonhole principle",
+    "perfect matching",
+    "Hall's theorem",
+    "monochromatic diagonal",
+    "bipartite graph",
+    "permutation",
+    "extremal construction",
+    "suffix partition"
+  ],
+  "expected_ai_method": "Direct enumeration or naive pigeonhole on first two positions without recognizing the matching structure or applying Hall's theorem",
+  "correct_method": "Partition flags by suffix (positions 3..N) into 2^{N-2} classes, apply pigeonhole to find same-class pair covering positions 1,2, then use Hall's theorem to complete the perfect matching for the remaining positions",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees flags as binary strings but hasn't identified the combinatorial structure of the diverse condition or the matching reformulation",
+      "hint": "Describe the problem structure: flags as binary strings of length N, diverse set means a permutation exists where the diagonal is monochromatic. What are the knowns and unknowns?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "binary string",
+        "flag representation",
+        "monochromatic diagonal"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but likely misses the matching/Hall's theorem direction and the suffix partition strategy",
+      "hint": "List all possible approaches: pigeonhole principle, matching theory, Ramsey theory, induction, direct construction, probabilistic method. Which seem most relevant?",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "pigeonhole",
+        "matching",
+        "Ramsey theory",
+        "induction"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries pigeonhole on the first two positions but gets stuck connecting the grouping to the diverse condition",
+      "hint": "Try grouping flags by their first two positions. There are 4 groups. What does each group look like? Can you find N diverse flags within one group?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "positional grouping",
+        "pigeonhole",
+        "first two positions"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI doesn't see the connection between the monochromatic diagonal condition and bipartite matching — this is a pure knowledge gap",
+      "hint": "Reformulate 'diverse' as a perfect matching problem: create a bipartite graph with positions on one side and flags on the other, edge (i, F) exists iff flag F has the target color at position i. A diverse set is exactly a perfect matching.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "perfect matching",
+        "Hall's theorem",
+        "bipartite graph",
+        "permutation reformulation"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the matching formulation but doesn't know which partition to use for pigeonhole — the suffix partition is non-obvious",
+      "hint": "Consider partitioning flags by their suffix (positions 3,...,N). How many equivalence classes are there? If M = 2^{N-2}+1, what does pigeonhole guarantee?",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "equivalence class",
+        "pigeonhole partition",
+        "suffix",
+        "class size"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has two flags from the same class but doesn't see how to complete the matching for all N positions using Hall's theorem",
+      "hint": "Two same-class flags with different first-two-bits can cover positions 1,2 for some color c. For positions 3,...,N where the suffix matches c, they're already covered. For remaining positions, use Hall's theorem with the other M-2 flags to find the matching.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "Hall's condition",
+        "matching completion",
+        "positional coverage",
+        "suffix color"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the upper bound argument but hasn't constructed the lower bound — the extremal example is missing",
+      "hint": "Construct a set of 2^{N-2} flags with no diverse subset. Consider all flags with a fixed suffix. Show that no N of them can form a diverse set by analyzing Hall's condition.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "extremal construction",
+        "lower bound",
+        "non-diverse set",
+        "fixed suffix"
+      ]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI has both bounds but hasn't verified they match and concluded the final answer",
+      "hint": "Verify that upper bound gives M >= 2^{N-2}+1 and lower bound gives M <= 2^{N-2}+1. They match, so M = 2^{N-2}+1. You've solved it!",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "bound verification",
+        "conclusion",
+        "tight bound"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Full solution path: binary representation -> matching reformulation -> suffix partition -> pigeonhole -> Hall's theorem completion -> extremal lower bound construction",
+      "observation_point": null,
+      "tell": "The solution requires a non-obvious combination of pigeonhole principle and matching theory: partition by suffix, use pigeonhole to find same-class pair for positions 1,2, then Hall's theorem for the rest",
+      "hint": "The key strategy is to partition flags by their suffix (positions 3..N) into 2^{N-2} classes, use pigeonhole to find two same-class flags that cover positions 1,2 for some color, then apply Hall's theorem to complete the perfect matching with remaining flags for positions 3..N",
+      "hint_level": 0.7,
+      "generalizability": "high - the combination of pigeonhole partition and matching completion via Hall's theorem is a general technique in extremal combinatorics problems involving permutations and color conditions",
+      "why_not_visible_locally": "Each individual step (pigeonhole, matching, Hall's theorem) is standard, but the specific combination—choosing the suffix partition rather than the more obvious first-two-positions partition, and using pigeonhole to cover exactly positions 1,2 while delegating the rest to Hall's theorem—is an emergent strategy that only becomes visible when the full solution path is traced end-to-end",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "pigeonhole",
+        "matching",
+        "suffix partition",
+        "Hall's theorem",
+        "pigeonhole_matching_combination"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Connection between geometric diagonal condition and bipartite matching existence",
+      "observation_point": "R4",
+      "tell": "The geometric/visual condition of arranging flags for a monochromatic diagonal is equivalent to finding a perfect matching in a bipartite graph, which is a non-obvious reformulation",
+      "hint": "Reformulate: arrange N flags as rows, diagonal entry (i,i) has color c iff flag at row i has color c at position i. This is exactly a perfect matching between positions {1,...,N} and flags, where edge (i,F) exists iff F[i]=c. Hall's marriage theorem gives the existence condition.",
+      "hint_level": 0.6,
+      "generalizability": "high - the diagonal-to-matching reformulation is a general technique in combinatorics: any permutation-with-condition problem can be reformulated as a matching problem",
+      "why_not_visible_locally": "The equivalence between 'arranging flags for monochromatic diagonal' and 'finding a perfect matching in a bipartite graph' requires a graph-theoretic abstraction that is completely invisible from the problem's geometric language about flag arrangements and diagonals. The problem speaks in terms of physical flags and colors, not graphs and matchings.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "perfect matching",
+        "bipartite graph",
+        "Hall's theorem",
+        "monochromatic diagonal",
+        "permutation reformulation"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try direct enumeration or naive pigeonhole on the first two positions without recognizing the matching structure. It might group flags by first two positions but fail to connect this to Hall's theorem for the diverse condition. It would also likely miss the suffix partition strategy (partitioning by positions 3..N instead of 1,2) and fail to construct the extremal lower bound example. The combination of pigeonhole + matching is non-obvious and requires both knowledge (Hall's theorem) and strategic thinking (which partition to use).",
+  "suitable_for_poc": [
+    "tell_hint_validation",
+    "matching_reformulation_detection",
+    "pigeonhole_strategy_selection",
+    "knowledge_gap_identification"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the structure of this problem. What are the key objects, what does 'diverse' mean, and what are we trying to find?",
+        "expected_answer": "Flags are binary strings of length N (2^N total). A diverse set of N flags means there exists a permutation arranging them as rows of an N×N square where all diagonal entries share the same color. We need the smallest M such that any M distinct flags contain a diverse subset of size N."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible approaches you can think of for this problem. Which seem most promising?",
+        "expected_answer": "Possible approaches: pigeonhole principle, matching theory / Hall's theorem, Ramsey theory, induction on N, direct construction, probabilistic method, double counting. Pigeonhole and matching seem most relevant given the extremal flavor."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try grouping flags by their first two positions. There are 4 groups. What does each group look like? Can you find N diverse flags within one group?",
+        "expected_answer": "Grouping by first two positions gives 4 groups of size 2^{N-2}. Within one group (say type 00), all flags share the same first two bits. For color 0, positions 1,2 are automatically covered. But we still need to cover positions 3..N with flags having 0 at those positions, which requires a matching. This approach gets stuck because the matching condition for positions 3..N is not automatically satisfied."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Reformulate the 'diverse' condition as a graph theory problem. Can you express it as a matching condition?",
+        "expected_answer": "A diverse set with color c means: there exists a permutation π such that flag_{π(i)} has color c at position i for all i. This is exactly a perfect matching in the bipartite graph G_c where left vertices are positions {1,...,N}, right vertices are the N flags, and edge (i, F) exists iff F[i] = c. By Hall's marriage theorem, a perfect matching exists iff for every subset S of positions, at least |S| flags have color c at some position in S."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Now consider partitioning flags by their suffix (positions 3,...,N) instead. How many equivalence classes are there? If M = 2^{N-2}+1, what does pigeonhole guarantee?",
+        "expected_answer": "There are 2^{N-2} equivalence classes based on the suffix (positions 3..N), each containing exactly 4 flags (corresponding to the 4 choices for positions 1,2). With M = 2^{N-2}+1 flags, by pigeonhole, at least two flags fall in the same class. These two flags agree on positions 3..N but differ in positions 1,2."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Two flags from the same class agree on positions 3..N but differ in positions 1,2. How can they help cover positions 1,2 for some color? And how do you complete the matching for the remaining positions using Hall's theorem?",
+        "expected_answer": "Since the two flags differ in positions 1,2, for at least one color c, one flag has c at position 1 and the other has c at position 2 (or one flag has c at both). Assign these two flags to cover positions 1,2 for color c. For positions 3..N where the common suffix already has color c, these flags also cover them. For remaining positions, use Hall's theorem with the other M-2 flags: each such position i needs a flag with color c at position i, and since M-2 is large enough, Hall's condition is satisfied."
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "Construct a set of 2^{N-2} flags with no diverse subset of size N. What structure prevents diversity?",
+        "expected_answer": "Take all 2^{N-2} flags with a fixed suffix, e.g., all flags where positions 3..N are all 1. For color 0: positions 3..N cannot be covered (all flags have 1 there), so Hall's condition fails for S = {3,...,N}. For color 1: all flags have 1 at positions 3..N, so those are covered, but we need to check positions 1,2. With only 4 possible types for positions 1,2 and needing a matching, the structure can be shown to prevent a diverse set of size N. Thus 2^{N-2} flags can avoid diversity."
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Verify that the upper and lower bounds both give M = 2^{N-2}+1. Conclude the answer.",
+        "expected_answer": "Upper bound: any 2^{N-2}+1 flags contain a diverse set of N (by pigeonhole + Hall's theorem). Lower bound: there exist 2^{N-2} flags with no diverse subset (fixed suffix construction). Therefore M = 2^{N-2}+1 is the smallest positive integer satisfying the condition."
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 4.4,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T12:00:00Z",
+    "analysis_duration": "N/A",
+    "notes": "Problem involves non-trivial combination of pigeonhole principle and matching theory (Hall's marriage theorem). The source solution is somewhat hand-wavy; the actual proof requires careful reformulation of the diagonal condition as a perfect matching and strategic choice of suffix partition for pigeonhole. Key difficulty: (1) recognizing matching reformulation (knowledge gap at R4), (2) choosing suffix partition over the more obvious first-two-positions partition (thinking gap at R5). No new topology dimensions needed — existing categories (discrete_combinatorial, logical_deduction, method_problem_mismatch, knowledge_gap, structural_transformation, method_translation) are sufficient."
+  }
+}

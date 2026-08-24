@@ -1,0 +1,368 @@
+{
+  "_key": "compfiles_imo1996p6",
+  "source_id": "compfiles_imo1996p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Let p, q, n be three positive integers with p + q < n. Let (x_0, x_1, ..., x_n) be an (n+1)-tuple of integers satisfying the following conditions: (a) x_0 = x_n = 0. (b) For each i with 1 <= i <= n, either x_i - x_{i-1} = p or x_i - x_{i-1} = -q. Show that there exist indices i < j with (i, j) != (0, n), such that x_i = x_j.",
+  "solution_text": "Step 1 (Reduction): If gcd(p,q) = d > 1, divide p, q, and all x_i by d to reduce to a smaller problem; recurse. Step 2 (Counting): Let r be the number of +p steps and s the number of -q steps. Since x_n - x_0 = 0, we have r*p = s*q and r + s = n. Step 3 (Coprime case): When gcd(p,q) = 1, p | s and q | r, so s = kp, r = kq, n = k(p+q) with k > 1 (since p+q < n). Let h = p+q, so n = kh. Step 4 (Auxiliary function): Define d(i) = x(i+h) - x(i). Prove h | d(i): d(i) is the sum of h consecutive steps, say t of +p and h-t of -q, giving d(i) = t*p - (h-t)*q = (t-q)*h. Step 5 (Adjacent difference): d(i+1) - d(i) = g(i+h) - g(i) where g(j) in {p, -q}, so the difference is in {0, h, -h}. Step 6 (If some d(i) = 0): Then x(i) = x(i+h), done. Step 7 (All d(i) != 0): If d(i) and d(i+1) have different signs, both are nonzero multiples of h, so |d(i+1) - d(i)| >= 2h, contradicting d(i+1) - d(i) in {0, +-h}. So all d(i) have the same sign. Step 8 (Telescoping contradiction): Sum of d(i*h) for i = 0..k-1 telescopes to x(n) - x(0) = 0, but same-sign nonzero terms cannot sum to 0. Contradiction.",
+  "solution_summary": "Reduce to gcd(p,q)=1, count steps to get n=k(p+q) with k>1, define auxiliary d(i)=x(i+h)-x(i) with h=p+q, prove h|d(i) and adjacent differences in {0,+-h}, show all nonzero d(i) have same sign, then telescoping sum = 0 gives contradiction.",
+  "domain": "mathematics",
+  "subfield": "number_theory",
+  "answer_type": "proof",
+  "answer": "There exist indices i < j with (i, j) != (0, n) such that x_i = x_j.",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_transformation",
+  "structure_features": "Discrete integer sequence with two-step walk (+p or -q), start and end both 0, need to prove an intermediate value repeats. Core structure is the combination of step constraints + return constraint.",
+  "key_objects": [
+    "integer sequence x_0,...,x_n",
+    "step sizes p, q",
+    "step counts r, s",
+    "auxiliary function d(i)=x(i+h)-x(i)",
+    "period h=p+q",
+    "coprime reduction gcd(p,q)"
+  ],
+  "thinking_patterns": [
+    "structural reduction (divide by gcd to reduce to coprime case)",
+    "counting constraint analysis (r*p=s*q to derive structure of n)",
+    "auxiliary function construction (define d(i)=x(i+h)-x(i))",
+    "sign consistency argument (same sign + adjacent difference constraint)",
+    "telescoping sum contradiction (same-sign nonzero terms cannot sum to 0)"
+  ],
+  "primary_pattern": "auxiliary function construction (defining d(i) and using its properties to derive contradiction is the core turning point of the entire proof)",
+  "knowledge_required": [
+    "pigeonhole principle",
+    "Bezout theorem / coprime properties",
+    "divisibility",
+    "telescoping sum",
+    "sign analysis"
+  ],
+  "key_insight": "Define d(i)=x(i+h)-x(i) where h=p+q, prove d(i) is a multiple of h and adjacent differences are in {0,+-h}, so all nonzero d(i) have the same sign, but telescoping sum equals 0 giving a contradiction",
+  "translation_from": "direct search for repeated values (looking for x_i=x_j in the original sequence x_0,...,x_n)",
+  "translation_to": "auxiliary function + sign contradiction (define d(i)=x(i+h)-x(i), use divisibility, adjacent difference constraint and sign consistency to derive contradiction)",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "two-step walk",
+    "return constraint",
+    "coprime reduction",
+    "counting equation rp=sq",
+    "period h=p+q",
+    "auxiliary function d(i)",
+    "divisibility",
+    "adjacent difference constraint",
+    "sign consistency",
+    "telescoping sum contradiction"
+  ],
+  "expected_ai_method": "Direct pigeonhole principle searching for repeated values among x_i, or case analysis on step patterns, without constructing auxiliary functions",
+  "correct_method": "reduce to coprime case -> count to get n=k(p+q) -> construct auxiliary function d(i)=x(i+h)-x(i) -> use divisibility and adjacent difference constraint to prove sign consistency -> telescoping sum contradiction",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees the two-step walk + return constraint but does not know how to exploit it",
+      "hint": "Describe the problem structure: what are the known conditions? What needs to be proved? What type of mathematical object is this?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "two-step walk",
+        "return constraint",
+        "problem structure identification"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists multiple methods but cannot judge which one is effective",
+      "hint": "List all possible approaches to prove some x_i = x_j with (i,j) != (0,n)",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "pigeonhole principle",
+        "modular arithmetic",
+        "step pattern analysis",
+        "periodic structure",
+        "graph interpretation"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries pigeonhole but the value range is too large",
+      "hint": "Try direct pigeonhole: how large is the range of x_i? How many indices are there? Can pigeonhole work?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "pigeonhole principle",
+        "value range estimation",
+        "index count"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI does not notice that step count constraints can derive key equations",
+      "hint": "Let r be the number of +p steps and s the number of -q steps. Use x_0=x_n=0 to derive the relationship between r, s, p, q.",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "step count r, s",
+        "counting equation rp=sq",
+        "total sum constraint"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI does not use coprimality to derive the structure of n",
+      "hint": "First reduce to the gcd(p,q)=1 case (divide by gcd to recurse). Then under coprime conditions, derive the structure of n from r*p=s*q.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "coprime reduction",
+        "Bezout theorem",
+        "period h=p+q",
+        "n=k(p+q) structure"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI does not think of constructing the auxiliary function d(i)",
+      "hint": "Define d(i)=x(i+h)-x(i) where h=p+q. Prove: (1) h divides d(i); (2) d(i+1)-d(i) is in {0, h, -h}.",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "auxiliary function d(i)",
+        "divisibility h|d(i)",
+        "adjacent difference constraint",
+        "step sum decomposition"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI does not connect sign consistency to contradiction",
+      "hint": "If all d(i) are nonzero, prove all d(i) have the same sign (hint: what happens at a sign change?). Then look at the telescoping sum of d(i*h).",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "sign consistency",
+        "adjacent difference constraint",
+        "telescoping sum contradiction",
+        "same-sign nonzero sum"
+      ]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI needs to synthesize all steps into a complete proof",
+      "hint": "You have reached the contradiction! Summarize the complete proof structure.",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "proof synthesis",
+        "reduction to coprime",
+        "counting to n=k(p+q)",
+        "auxiliary function construction",
+        "sign consistency",
+        "telescoping sum contradiction"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "full_proof_path",
+      "observation_point": "complete_solution",
+      "tell": "The complete proof path 'reduction -> counting -> auxiliary function -> sign contradiction' has a structural feature: the key transformation is from direct existence search to indirect contradiction via an auxiliary function, which is not visible from any single step",
+      "hint": "The proof requires a structural transformation: instead of directly finding x_i=x_j, construct an auxiliary function d(i)=x(i+h)-x(i) and derive a contradiction from its properties",
+      "hint_level": 0.6,
+      "generalizability": "high - this pattern of 'construct auxiliary function on a natural period to convert existence into contradiction' applies to many discrete walk problems",
+      "why_not_visible_locally": "The full path structure (reduction -> counting -> auxiliary function -> sign contradiction) is only visible from the complete solution. At any individual step, the AI cannot see that the auxiliary function d(i) is the key bridge - it appears as an unmotivated construction until the sign consistency and telescoping contradiction reveal its purpose. The decision to define d(i) with period h=p+q depends on knowing n=k(p+q) from the counting step, which itself depends on the coprime reduction. No single step reveals the full chain.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "coprime reduction",
+        "counting equation rp=sq",
+        "period h=p+q",
+        "auxiliary function d(i)",
+        "sign consistency",
+        "telescoping sum contradiction"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "counting_step",
+      "observation_point": "round_5",
+      "tell": "The counting equation r*p=s*q implicitly contains the periodic structure n=k(p+q) - the period h=p+q is hidden in the arithmetic relationship between step counts and step sizes",
+      "hint": "From r*p=s*q with gcd(p,q)=1, derive that p|s and q|r, so s=kp and r=kq, giving n=k(p+q). The period h=p+q emerges naturally from the counting constraint.",
+      "hint_level": 0.5,
+      "generalizability": "medium - the pattern of 'counting constraints reveal hidden periodicity' applies to walk problems with return conditions",
+      "why_not_visible_locally": "The equation r*p=s*q is just a counting relationship - it does not obviously suggest that h=p+q is a natural period for defining an auxiliary function. The connection between 'r*p=s*q implies n=k(p+q)' and 'therefore h=p+q is the right window size for d(i)' is an implicit leap. The AI sees the equation but does not see that it defines the period that makes the auxiliary function work. This is visible only when you simultaneously know that you need a period for d(i) and that the counting gives you one.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "counting equation rp=sq",
+        "coprime reduction",
+        "period h=p+q",
+        "n=k(p+q) structure",
+        "hidden periodicity"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "sign_consistency_step",
+      "observation_point": "round_7",
+      "tell": "The adjacent difference constraint {0,+-h} combined with divisibility (h|d(i)) implicitly forces sign consistency, which then contradicts the telescoping sum being zero - this two-step implication is not visible from either constraint alone",
+      "hint": "If d(i) and d(i+1) have different signs, both are nonzero multiples of h, so |d(i+1)-d(i)| >= 2h, but d(i+1)-d(i) is in {0,+-h}, contradiction. So all d(i) have the same sign. But the telescoping sum equals 0, and same-sign nonzero terms cannot sum to 0.",
+      "hint_level": 0.4,
+      "generalizability": "medium - the pattern of 'discrete constraint + divisibility forces sign consistency, which contradicts a zero sum' applies to auxiliary function arguments in combinatorial number theory",
+      "why_not_visible_locally": "The adjacent difference constraint {0,+-h} and the divisibility h|d(i) are two separate properties proved in different steps. Their combination forcing sign consistency is not obvious from either alone - you need to see that 'nonzero multiple of h' means |d(i)| >= h, and 'difference in {0,+-h}' means |difference| <= h, so a sign change would require |difference| >= 2h > h, contradiction. Then connecting sign consistency to the telescoping sum = 0 is a second implicit leap. The AI has both ingredients but does not see they combine to produce a contradiction.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "adjacent difference constraint",
+        "divisibility h|d(i)",
+        "sign consistency",
+        "telescoping sum contradiction",
+        "same-sign nonzero sum"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will try direct pigeonhole on x_i values to find repeats, but the value range is too large (O(n*max(p,q))) relative to the number of indices (n+1). Or it will try case analysis on step patterns but cannot discover the auxiliary function d(i) and the sign consistency argument. Most likely stuck on 'how to use the condition p+q < n' - not knowing it implies n=k(p+q) with k>1, making h=p+q the natural period for the auxiliary function.",
+  "suitable_for_poc": [
+    "tell_extraction",
+    "hint_injection",
+    "topology_classification",
+    "difficulty_benchmark"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem: what are the known conditions? What needs to be proved? What type of mathematical object is this?",
+        "expected_answer": "We have an integer sequence x_0,...,x_n starting from 0 and returning to 0, each step either +p or -q. We need to prove some intermediate value repeats (x_i=x_j, (i,j)!=(0,n)). This is a discrete random walk type problem on integers, essentially a pigeonhole principle variant - but we need to find the right 'boxes'."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible methods to prove some x_i = x_j with (i,j) != (0,n).",
+        "expected_answer": "1. Direct pigeonhole: if value range is finite then repeats must exist. 2. Modular arithmetic: look at x_i mod m. 3. Analyze step patterns. 4. Use total sum = 0 constraint. 5. Find periodic structure. 6. Induction on n. 7. Graph interpretation (path must self-intersect). 8. Continuous/analytic methods."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try direct pigeonhole: how large is the range of x_i? How many indices are there? Can pigeonhole work?",
+        "expected_answer": "The range of x_i in the worst case can reach O(n*max(p,q)), i.e., O(n^2) magnitude, while there are only n+1 indices. Pigeonhole cannot be directly applied because the value range is much larger than the number of indices. More refined structural analysis is needed."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "Let r be the number of +p steps and s the number of -q steps. Use x_0=x_n=0 to derive the relationship between r, s, p, q.",
+        "expected_answer": "Since x_n - x_0 = 0, the total step sum is 0: r*p - s*q = 0, i.e., r*p = s*q. Also r + s = n. This is the key constraint connecting step counts with p, q."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "First reduce to the gcd(p,q)=1 case (divide by gcd to recurse). Then under coprime conditions, derive the structure of n from r*p=s*q.",
+        "expected_answer": "If gcd(p,q)=d>1, divide p, q, x_i all by d to reduce. When gcd(p,q)=1, p|s and q|r, so s=kp, r=kq, n=k(p+q). Since p+q<n, k>1. Let h=p+q, then n=kh."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "Define d(i)=x(i+h)-x(i) where h=p+q. Prove: (1) h|d(i); (2) d(i+1)-d(i) is in {0, h, -h}.",
+        "expected_answer": "(1) d(i) is the sum of h consecutive steps, say t of +p and h-t of -q, so d(i)=t*p-(h-t)*q=(t-q)*h, hence h|d(i). (2) d(i+1)-d(i)=g(i+h)-g(i) where g(j) in {p,-q}, four combinations give 0, p+q=h, -(p+q)=-h, 0."
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "If all d(i) are nonzero, prove all d(i) have the same sign (hint: what happens at a sign change?). Then look at the telescoping sum of d(i*h).",
+        "expected_answer": "If d(i), d(i+1) have different signs, both are nonzero multiples of h, so |d(i)|>=h, |d(i+1)|>=h and opposite signs, |d(i+1)-d(i)|>=2h. But d(i+1)-d(i) is in {0,+-h}, contradiction. So all d(i) have the same sign. But sum of d(i*h) = x(n)-x(0) = 0, and same-sign nonzero terms cannot sum to 0, contradiction!"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "You have reached the contradiction! Summarize the complete proof structure.",
+        "expected_answer": "1. Reduce to coprime case. 2. Count to get n=k(p+q), k>1. 3. Define d(i)=x(i+h)-x(i), prove h|d(i) and adjacent differences in {0,+-h}. 4. If some d(i)=0 then x(i)=x(i+h), done. 5. Otherwise all d(i) have same sign. 6. Telescoping sum=0 but same-sign nonzero contradiction. QED."
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 3,
+      "level_sum": 3.6,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R7"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-08-08T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO 1996 P6 - widely regarded as one of the hardest IMO problems ever. The key difficulty is the structural transformation from direct existence search to auxiliary function + sign contradiction. The auxiliary function d(i)=x(i+h)-x(i) with period h=p+q is the core insight, and it depends on the counting step revealing n=k(p+q). No topology evolution needed - existing classification system is sufficient."
+  }
+}

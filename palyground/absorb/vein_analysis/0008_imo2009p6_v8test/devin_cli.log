@@ -1,0 +1,20 @@
+我已经加载了 AGENTS.md 和 prompt.md。现在按照文件拆分流程控制执行。
+
+**第0步：创建空输出文件****第1步：格化（段划分+所有特征标注）**
+
+我已读取 step1_requirements.md 和 input.md。现在做完整格化——段划分+常规思维特征+关键实体角色特征。
+
+识别到的关键实体（贯穿多段）：x（前n-1项和，情况划分标准）、aₙ（最大元，放最后）、M'（归约后的禁集，归纳子问题）、aᵣ（Case1的good index元素）、swap技巧（Case1和Case3共用）。**第2步：形式上下文矩阵构造**
+
+从 segments.json 提取所有特征去重并集构成 M（22个特征），构造 I 矩阵（21段 × 22特征）。全部完成。执行总结：
+
+**第0步**：创建空文件 `segments.json`、`formal_context.json`
+
+**第1步（格化）**：将 IMO 2009 P6 蚂蚱题解答划分为 **21个段**，每段标注常规思维特征 + 关键实体角色特征。
+- 识别的5个关键实体：x（前n-1项和，情况划分标准）、aₙ（最大元，放最后）、M'（归约禁集，归纳子问题）、aᵣ（Case1的good index元素）、swap技巧（Case1/Case3共用）
+- 产出 `segments.json`，创建 `step1_done.md`
+
+**第2步（矩阵构造）**：从 segments.json 提取特征去重并集得 **22个特征** 构成 M，构造 I 矩阵（21×22）。
+- 产出 `formal_context.json`，创建 `step2_done.md` 和 `DONE.md`
+
+格化结构概览：WLOG排序+定义x+强归纳声明 → 以x划分三情况 → Case1（bad index→单射→鸽巢→good index r→子问题M'→归纳→构造→验证）→ Case2（子问题M'→归纳→延伸aₙ→验证）→ Case3（子问题M'→归纳→swap构造/无需swap→验证）→ WLOG收口。

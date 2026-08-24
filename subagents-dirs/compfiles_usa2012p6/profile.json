@@ -1,0 +1,316 @@
+{
+  "_key": "compfiles_usa2012p6",
+  "source_id": "compfiles_usa2012p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "For integer n >= 2, let x_1, x_2, ..., x_n be real numbers satisfying x_1 + x_2 + ... + x_n = 0 and x_1^2 + x_2^2 + ... + x_n^2 = 1. For each subset A subseteq {1, 2, ..., n}, define S_A = sum_{i in A} x_i. (If A is the empty set, then S_A = 0.) Prove that for any positive number lambda, the number of sets A satisfying S_A >= lambda is at most 2^(n-3)/lambda^2. For which choices of x_1, x_2, ..., x_n, lambda does equality hold?",
+  "solution_text": "Step 1 (Master Identity): Expand S_A^2 = sum_{i,j} x_i x_j [i in A and j in A]. Sum over all subsets A: sum_A S_A^2 = sum_{i,j} x_i x_j * (number of A containing both i and j). For i=j, count = 2^(n-1); for i!=j, count = 2^(n-2). So sum_A S_A^2 = 2^(n-2) * (2*sum_i x_i^2 + sum_{i!=j} x_i x_j) = 2^(n-2) * (sum_i x_i^2 + (sum_i x_i)^2) = 2^(n-2) * (1 + 0) = 2^(n-2). Step 2 (Complement Pairing): Since sum x_i = 0, S_{A^c} = -S_A. Partition subsets into positive (P), negative (N), zero (Z). The complement map gives a bijection P <-> N with S_{A^c}^2 = S_A^2. So sum_{A in P} S_A^2 = sum_{A in N} S_A^2 = 2^(n-2)/2 = 2^(n-3). Step 3 (Markov Bound): Let T = {A : S_A >= lambda} subseteq P. For A in T, S_A^2 >= lambda^2. So |T| * lambda^2 <= sum_{A in T} S_A^2 <= sum_{A in P} S_A^2 = 2^(n-3). Hence |T| <= 2^(n-3)/lambda^2. Step 4 (Equality Case): Equality forces all positive subset sums to equal exactly lambda. This implies each x_i is in {lambda, -lambda, 0}, with exactly one positive and one negative value. From sum x_i^2 = 1, we get 2*lambda^2 = 1, so lambda = 1/sqrt(2). Equality holds iff x is a permutation of (1/sqrt(2), -1/sqrt(2), 0, ..., 0) and lambda = 1/sqrt(2).",
+  "solution_summary": "Compute the master identity sum_A S_A^2 = 2^(n-2) by expanding S_A^2 and counting subsets containing pairs (i,j). Use the zero-sum constraint to pair subsets with complements (S_{A^c} = -S_A), yielding sum_{S_A>0} S_A^2 = 2^(n-3). Apply Markov-type bound: |T|*lambda^2 <= sum_{S_A>0} S_A^2 = 2^(n-3). Equality holds iff x is a permutation of (1/sqrt(2), -1/sqrt(2), 0, ..., 0) and lambda = 1/sqrt(2).",
+  "domain": "Combinatorics",
+  "subfield": "Combinatorial Inequalities",
+  "answer_type": "proof",
+  "answer": "The number of sets A with S_A >= lambda is at most 2^(n-3)/lambda^2. Equality holds if and only if x is a permutation of (1/sqrt(2), -1/sqrt(2), 0, ..., 0) and lambda = 1/sqrt(2).",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "second_moment_method",
+  "structure_features": [
+    "Counting subsets with large partial sums under linear and quadratic constraints",
+    "Zero-sum constraint enables complement pairing",
+    "Unit norm constraint fixes the second moment",
+    "Equality case requires characterization of extremal configuration"
+  ],
+  "key_objects": [
+    "subset partial sums S_A = sum_{i in A} x_i",
+    "power set of {1, ..., n}",
+    "second moment sum_A S_A^2",
+    "complement pairing A <-> A^c",
+    "positive/negative/zero partition of subsets"
+  ],
+  "thinking_patterns": [
+    "second_moment_method",
+    "complement_pairing",
+    "markov_inequality_bound",
+    "double_counting",
+    "equality_case_analysis"
+  ],
+  "primary_pattern": "second_moment_method",
+  "knowledge_required": [
+    "subset sums and power set counting",
+    "second moment method / Markov inequality",
+    "complement pairing using zero-sum constraint",
+    "double counting technique",
+    "equality case analysis in moment bounds"
+  ],
+  "key_insight": "Instead of directly counting subsets with S_A >= lambda, compute the second moment sum_A S_A^2 = 2^(n-2) by expanding and counting, then use complement pairing (sum x_i = 0 implies S_{A^c} = -S_A) to get sum_{S_A>0} S_A^2 = 2^(n-3), and finally apply |T|*lambda^2 <= sum_{S_A>0} S_A^2.",
+  "translation_from": "direct_counting",
+  "translation_to": "second_moment_method",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "second_moment",
+    "complement_pairing",
+    "markov_bound",
+    "master_identity",
+    "zero_sum_constraint",
+    "subset_sum_threshold"
+  ],
+  "expected_ai_method": "A bare AI would likely attempt direct enumeration of subsets satisfying S_A >= lambda, or try induction on n, without recognizing the second moment method. The approach of computing sum S_A^2 and using it as an indirect bound is non-obvious.",
+  "correct_method": "Second moment method: (1) compute master identity sum_A S_A^2 = 2^(n-2) via expansion and double counting, (2) use complement pairing from zero-sum to get sum_{positive} S_A^2 = 2^(n-3), (3) apply Markov-type bound |T|*lambda^2 <= 2^(n-3), (4) analyze equality case to characterize extremal configuration.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a problem about counting subsets with large partial sums under constraints on total sum and sum of squares, but doesn't yet see the structural role of the constraints",
+      "hint": "Describe the problem structure: what are the given constraints (sum=0, sum of squares=1), what is being counted (subsets with S_A >= lambda), and what is the target bound (2^(n-3)/lambda^2)?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "subset_sum",
+        "zero_sum_constraint",
+        "unit_norm_constraint",
+        "counting_bound"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI considers various approaches including direct counting, induction, and probabilistic arguments, but hasn't identified the second moment method as the right tool",
+      "hint": "List all possible approaches to bound the number of subsets with S_A >= lambda. Consider both direct methods (counting, induction) and indirect methods (moment bounds, probabilistic arguments).",
+      "hint_level": 0.3,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "direct_counting",
+        "induction",
+        "probabilistic_method",
+        "moment_method"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries to directly count or enumerate subsets with S_A >= lambda, but the exponential search space and complex dependency on x_i values make this intractable",
+      "hint": "Try directly bounding the count of subsets with S_A >= lambda. What makes this difficult? The subset sums depend on all x_i values in a complex way.",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "subset_enumeration",
+        "partial_sum_threshold",
+        "exponential_search_space"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has not considered computing the second moment sum_A S_A^2 as an indirect way to bound the count of large subset sums",
+      "hint": "Instead of counting directly, consider computing sum_A S_A^2 over all subsets A. This second moment can give an upper bound on the count of subsets with large sums via a Markov-type argument.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "second_moment",
+        "sum_of_squares_over_subsets",
+        "markov_bound"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI is trying to compute sum_A S_A^2 and needs to expand S_A^2 and count how many subsets contain each pair (i,j), using the constraints to simplify",
+      "hint": "Expand S_A^2 = sum_{i,j} x_i x_j [i in A and j in A], then count how many subsets A contain both i and j (2^(n-1) if i=j, 2^(n-2) if i!=j). Use sum x_i = 0 and sum x_i^2 = 1 to simplify to 2^(n-2).",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "double_counting",
+        "subset_containment_count",
+        "expansion_of_square",
+        "master_identity"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has computed sum_A S_A^2 = 2^(n-2) but hasn't used the zero-sum constraint to pair subsets with their complements, which is needed to restrict to positive subsets",
+      "hint": "Use the constraint sum x_i = 0 to show S_{A^c} = -S_A. This means the complement map pairs positive subsets with negative subsets, so sum of S_A^2 over positive subsets equals half the total, i.e., 2^(n-3).",
+      "hint_level": 0.65,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "complement_pairing",
+        "zero_sum_constraint",
+        "positive_negative_partition",
+        "bijection_argument"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has sum_{S_A>0} S_A^2 = 2^(n-3) and needs to connect this to the count of subsets with S_A >= lambda, then handle the equality case",
+      "hint": "For any A with S_A >= lambda, S_A^2 >= lambda^2. Since T subseteq P, |T|*lambda^2 <= sum_{A in P} S_A^2 = 2^(n-3). This gives the bound. For equality, all positive sums must equal lambda exactly, forcing x to be a permutation of (1/sqrt(2), -1/sqrt(2), 0, ..., 0) with lambda = 1/sqrt(2).",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "markov_inequality",
+        "threshold_bound",
+        "equality_case",
+        "tight_bound"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire proof strategy from problem statement to final bound: second moment computation -> complement pairing -> Markov bound",
+      "observation_point": null,
+      "tell": "The proof requires a three-step strategy: (1) compute second moment sum S_A^2 over all subsets, (2) use complement pairing to halve it to positive subsets only, (3) apply Markov-type bound to convert moment to count. No single step reveals this overall strategy.",
+      "hint": "Recognize this as a second moment method problem: the key is to compute sum_A S_A^2 as an intermediate quantity, use structural constraints (zero-sum for complement pairing, unit norm for fixing the value) to simplify, then bound the count via the moment.",
+      "hint_level": 0.7,
+      "generalizability": "high - the second moment method (compute a moment, then use Markov/Chebyshev to bound a count) is a broadly applicable technique in combinatorics, probability, and analysis",
+      "why_not_visible_locally": "Each individual step (expanding S_A^2, counting subsets containing pairs, pairing complements, applying Markov) appears as a standalone algebraic manipulation. The overall strategy of using the second moment as an indirect bound on a count is only visible when all steps are connected as a coherent proof path. From any single step, the purpose of the computation and its role in the larger strategy is not apparent.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "second_moment_method",
+        "complement_pairing",
+        "markov_bound",
+        "master_identity",
+        "indirect_counting"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The equality case analysis hidden within the inequality proof structure",
+      "observation_point": "R7",
+      "tell": "Equality in the Markov bound |T|*lambda^2 <= sum S_A^2 requires every positive subset sum to equal exactly lambda, which severely constrains the x_i values to a permutation of (1/sqrt(2), -1/sqrt(2), 0, ..., 0) with lambda = 1/sqrt(2)",
+      "hint": "When equality holds in the bound, trace back through all inequalities: equality in Markov means all S_A for A in T satisfy S_A = lambda, and equality in the subset containment means all positive sums equal lambda. This forces each x_i into {lambda, -lambda, 0} with exactly one positive and one negative, giving lambda = 1/sqrt(2) from the norm constraint.",
+      "hint_level": 0.75,
+      "generalizability": "medium - equality case analysis from moment bounds is a standard technique but requires problem-specific reasoning about the structure of extremal configurations",
+      "why_not_visible_locally": "The equality case requires synthesizing information from multiple steps simultaneously: the master identity (which subsets contribute), the complement pairing (which half is positive), and the Markov bound (when equality holds). From any single step, the constraint on x_i values is not apparent - it emerges only when all equality conditions are combined and their implications traced back to the original variables.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "equality_case_analysis",
+        "tight_markov_bound",
+        "forced_structure",
+        "all_positive_sums_equal",
+        "extremal_configuration"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt direct enumeration of subsets satisfying S_A >= lambda, or try induction on n, without recognizing the second moment method. The key insight of computing sum_A S_A^2 as an intermediate quantity and using it as an indirect bound via Markov inequality is non-obvious. Additionally, the complement pairing trick using the zero-sum constraint to restrict to positive subsets is a creative step that requires recognizing the structural role of the constraint.",
+  "suitable_for_poc": [
+    "hint_injection_effectiveness",
+    "tell_identification",
+    "method_translation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the problem structure: what are the given constraints, what is being counted, and what is the target bound?",
+        "expected_answer": "We have n real numbers with sum 0 and sum of squares 1. For each subset A, S_A is the partial sum. We need to bound the count of subsets with S_A >= lambda by 2^(n-3)/lambda^2, and find when equality holds. The constraints are a zero-sum condition and a unit-norm condition."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.3,
+        "question": "List all possible approaches to bound the number of subsets with S_A >= lambda. Consider both direct and indirect methods.",
+        "expected_answer": "Possible approaches: (1) Direct counting - enumerate subsets and count those with S_A >= lambda, (2) Induction on n, (3) Probabilistic method - view random subset and use expectation, (4) Moment methods - compute sum S_A^2 or sum S_A^k and use Markov/Chebyshev, (5) Generating functions, (6) Linear algebra / convexity arguments."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try directly bounding the count of subsets with S_A >= lambda. What makes this difficult?",
+        "expected_answer": "Direct counting is very hard because the subset sums S_A depend on all x_i values in a complex, non-independent way. There are 2^n subsets, and the distribution of S_A values depends on the specific x_i configuration. Without knowing the x_i values, we can't directly count. The exponential number of subsets also makes case analysis intractable."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Instead of counting directly, consider computing sum_A S_A^2 over all subsets A. This second moment can give an upper bound on the count of large sums via a Markov-type argument. How would you compute this sum?",
+        "expected_answer": "We can compute sum_A S_A^2 by expanding S_A^2 = (sum_{i in A} x_i)^2 = sum_{i,j} x_i x_j [i in A and j in A]. Then sum over all A: sum_A S_A^2 = sum_{i,j} x_i x_j * (number of A containing both i and j). For fixed i,j, the number of subsets containing both is 2^(n-|{i,j}|), which is 2^(n-1) if i=j and 2^(n-2) if i!=j."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "You've expanded S_A^2 and need to count subsets containing pairs (i,j). Use the constraints sum x_i = 0 and sum x_i^2 = 1 to simplify the master identity.",
+        "expected_answer": "sum_A S_A^2 = 2^(n-2) * (2*sum_i x_i^2 + sum_{i!=j} x_i x_j) = 2^(n-2) * (sum_i x_i^2 + (sum_i x_i)^2) = 2^(n-2) * (1 + 0) = 2^(n-2). The key simplification: the diagonal terms (i=j) contribute 2^(n-1) * x_i^2, off-diagonal contribute 2^(n-2) * x_i x_j, and combining gives 2^(n-2) * (sum x_i^2 + (sum x_i)^2) = 2^(n-2)."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.65,
+        "question": "You have sum_A S_A^2 = 2^(n-2) over all subsets. But we need the sum over only positive subsets. Use the constraint sum x_i = 0 to show S_{A^c} = -S_A and derive the sum over positive subsets.",
+        "expected_answer": "Since sum x_i = 0, we have S_{A^c} = sum_{i not in A} x_i = sum_i x_i - sum_{i in A} x_i = 0 - S_A = -S_A. So S_{A^c}^2 = S_A^2. The complement map is a bijection between positive subsets (S_A > 0) and negative subsets (S_A < 0). Zero-sum subsets contribute 0. So sum over positive = sum over negative = 2^(n-2)/2 = 2^(n-3)."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "Now connect the moment to the count. For T = {A : S_A >= lambda}, show |T| <= 2^(n-3)/lambda^2. Then determine when equality holds.",
+        "expected_answer": "Since T subseteq P (positive subsets) and for A in T, S_A^2 >= lambda^2, we get |T|*lambda^2 <= sum_{A in T} S_A^2 <= sum_{A in P} S_A^2 = 2^(n-3). So |T| <= 2^(n-3)/lambda^2. Equality forces all positive sums to equal lambda exactly, which means each x_i is in {lambda, -lambda, 0} with one positive and one negative. From sum x_i^2 = 1: 2*lambda^2 = 1, so lambda = 1/sqrt(2). Equality holds iff x is a permutation of (1/sqrt(2), -1/sqrt(2), 0, ..., 0) and lambda = 1/sqrt(2)."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 2.95,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "unknown",
+    "notes": "USA 2012 P6 is a classic second moment method problem. The key challenge is recognizing that direct counting is intractable and that the second moment sum_A S_A^2 provides an indirect bound. The complement pairing step (using zero-sum to halve the moment) is the creative thinking bottleneck. The equality case analysis requires synthesizing conditions from all three steps."
+  }
+}

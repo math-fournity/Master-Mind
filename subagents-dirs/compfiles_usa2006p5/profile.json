@@ -1,0 +1,267 @@
+{
+  "_key": "compfiles_usa2006p5",
+  "source_id": "compfiles_usa2006p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "A mathematical frog jumps along the number line. The frog starts at 1, and jumps according to the following rule: if the frog is at integer n, then it can jump either to n + 1 or to n + 2^(m_n + 1), where 2^m_n is the largest power of 2 that is a factor of n. Show that if k >= 2 is a positive integer and i is a nonnegative integer, then the minimum number of jumps needed to reach 2^i * k is greater than the minimum number of jumps needed to reach 2^i.",
+  "solution_text": "The proof uses a filtration/deletion argument with structural induction. Define the 2-adic valuation nu(n) as the exponent of the largest power of 2 dividing n. A valid path is a sequence of jumps where each jump is either +1 or +2^(nu(n)+1) from position n. The key idea is a filtration operation filt that deletes jumps of length 2^(e+1) landing beyond a threshold 2^i from a valid path. The crucial lemma nu_congr states that if 2^e divides (y-y') and nu(y) < e, then nu(y') = nu(y) — the 2-adic valuation is preserved under shifts by multiples of 2^e. This ensures filt_valid: the filtered path remains valid. Additional lemmas filt_count (deleted jumps count and total length are multiples of 2^(e+1)), filt_lower (existence of position with exact valuation e), and filt_bigbound (remaining jumps bounded by 2^e) support the main key_lemma proved by induction on e: from any valid path to a target >= 2^i with appropriate divisibility and bound conditions, one can extract a valid path to 2^i of at most the same length, strictly shorter if the endpoint exceeds 2^i. The main theorem applies key_lemma to the minimal path to 2^i*k: since k>=2, the endpoint 2^i*k > 2^i, so the extracted path to 2^i is strictly shorter, proving minJumps(2^i) < minJumps(2^i*k).",
+  "solution_summary": "From any valid path to 2^i*k (k>=2, so 2^i*k > 2^i), use a filtration operation to delete jumps of certain sizes landing beyond 2^i, prove the remaining path is still valid (via 2-adic valuation preservation under shifts) and reaches 2^i with strictly fewer jumps, by induction on maximum jump size.",
+  "domain": "mathematics",
+  "subfield": "combinatorics",
+  "answer_type": "proof",
+  "answer": "minJumps(2^i * k) > minJumps(2^i) for all integers k >= 2 and i >= 0",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "filtration_induction",
+  "structure_features": "路径优化比较问题；2-adic赋值依赖的跳跃规则；过滤/删除操作保持路径有效性；对最大跳跃大小做归纳提取更短路径",
+  "key_objects": [
+    "2-adic赋值ν₂(n)",
+    "有效路径(ValidPath)",
+    "跳跃序列",
+    "过滤操作(filt)",
+    "最少跳跃次数(minJumps)",
+    "BigBound界"
+  ],
+  "thinking_patterns": [
+    "filtration/deletion",
+    "structural_induction",
+    "path_extraction",
+    "2-adic_valuation_preservation",
+    "bound_reduction"
+  ],
+  "primary_pattern": "filtration/deletion",
+  "knowledge_required": [
+    "2-adic赋值ν₂(n)的定义和性质",
+    "2的幂的整除性",
+    "路径有效性条件",
+    "自然数归纳法",
+    "整数的整除传递性"
+  ],
+  "key_insight": "删除长度为2^(e+1)的跳跃后，后续位置平移了2^(e+1)的倍数，而2-adic赋值在平移2^e的倍数下不变（当赋值<e时），因此过滤后路径仍然有效",
+  "translation_from": "直接路径比较/贪心优化",
+  "translation_to": "过滤操作+结构归纳",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "2-adic赋值",
+    "路径过滤",
+    "跳跃删除",
+    "有效性保持",
+    "归纳提取",
+    "最少跳跃比较"
+  ],
+  "expected_ai_method": "direct_calculation——bare AI会试图直接计算minJumps或对小例子找规律，可能尝试贪心策略",
+  "correct_method": "过滤删除+结构归纳——正确方法是从到达更大目标的路径中通过过滤操作提取到达更小目标的严格更短路径",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "青蛙跳跃问题结构未识别——AI看到2-adic赋值依赖的跳跃规则但未理清已知/未知和证明目标的结构",
+      "hint": "描述这道题的结构：跳跃规则是什么？ν₂(n)在这里起什么作用？需要证明什么？已知和未知分别是什么？",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["2-adic赋值", "跳跃规则", "最少跳跃次数", "比较目标"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "未识别关键结构方法——AI描述了问题但未意识到路径提取是正确方向，可能倾向于直接计算",
+      "hint": "列出所有可能的方法来比较到达2^i·k和2^i的最少跳跃次数：直接计算、贪心策略、对i归纳、对k归纳、路径操作、路径提取等",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["方法枚举", "贪心策略", "归纳方向", "路径操作", "路径提取"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "直接计算小例子陷入搜索空间——AI试算具体minJumps值但无法发现一般性规律",
+      "hint": "试着直接计算小例子：minJumps(2), minJumps(4), minJumps(6), minJumps(8)等，看看能否发现规律",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["小例子计算", "模式识别", "搜索空间", "具体路径构造"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "未想到路径提取策略——AI困在直接比较minJumps的思路中，没有想到从到达更大目标的路径中提取更短路径",
+      "hint": "不要直接计算minJumps。换一个角度思考：给定到达2^i·k（其中k≥2，所以2^i·k>2^i）的任意一条有效路径，能否从中提取出一条到达2^i的有效路径，且这条新路径严格更短？",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["路径提取", "更短路径", "有效性保持", "跳跃删除", "结构变换"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "不知道2-adic赋值平移不变性——AI理解要从路径中删除跳跃但不知道删除后路径为何仍有效",
+      "hint": "考虑从有效路径中删除某些跳跃。关键问题：删除一个长度为2^(e+1)的跳跃后，后续位置的2-adic赋值是否改变？思考：若2^e整除位置差y-y'，且ν₂(y)<e，则ν₂(y')=ν₂(y)是否成立？",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["2-adic赋值不变性", "平移2^e倍数", "nu_congr引理", "跳跃删除有效性", "整除性保持"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "理解赋值不变性但未形式化过滤操作——AI知道nu_congr但未将其组装为完整的过滤操作和归纳结构",
+      "hint": "定义过滤操作filt：删除所有长度被2^(e+1)整除且落在2^i之后的跳跃。证明：(1)过滤后路径仍有效(filt_valid)；(2)删除的跳跃数和长度都是2^(e+1)的倍数(filt_count)；(3)剩余跳跃长度≤2^e(filt_bigbound)。然后对e做归纳建立key_lemma。",
+      "hint_level": 0.2,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["过滤操作filt", "对e归纳", "BigBound", "filt_valid", "filt_count", "filt_bigbound", "key_lemma"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "有key_lemma需组装主定理——AI已建立核心引理但需要将其与题目条件连接完成最终证明",
+      "hint": "现在将key_lemma应用到主定理：取到达2^i·k的最短路径，验证条件后应用key_lemma提取到达2^i的严格更短路径，完成证明。",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["key_lemma应用", "严格不等式", "最少跳跃比较", "最终组装", "条件验证"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "整个证明结构——从直接比较minJumps到路径提取+过滤归纳的完整策略转变",
+      "observation_point": null,
+      "tell": "证明需要非显然的结构变换：不是直接比较两个minJumps值，而是从到达更大目标(2^i·k)的任意有效路径中提取出到达更小目标(2^i)的严格更短的有效路径",
+      "hint": "用过滤操作从到达2^i·k的路径提取到达2^i的更短路径：定义filt删除特定大小的跳跃，证明剩余路径有效且更短，对最大跳跃大小做归纳",
+      "hint_level": 0.3,
+      "generalizability": "high——过滤/删除技术适用于任何跳跃大小有依赖条件的路径优化问题，核心是删除操作保持有效性的结构论证",
+      "why_not_visible_locally": "从证明的任何单个步骤看，整体策略（路径提取而非直接比较）是不可见的——每个局部步骤（证明filt_valid、filt_count等）看起来都是技术性引理，只有完整路径才揭示提取策略的全貌。局部视角中AI看到的是一个个技术引理，无法从任何一个引理推断出'从更大目标路径提取更短路径'这一全局策略。",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["路径提取", "过滤操作", "跳跃删除", "有效性保持", "更短路径构造", "结构变换"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "2-adic赋值在平移2^e倍数下的不变性——隐藏在filt_valid证明中的核心数学事实",
+      "observation_point": "R5",
+      "tell": "2-adic赋值在平移2^e的倍数下保持不变（当原赋值<e时），这是使整个过滤论证成立的隐藏数学事实",
+      "hint": "证明nu_congr引理：若2^e | (y-y')且ν₂(y)<e，则ν₂(y')=ν₂(y)。这是支撑整个过滤论证的基础——删除2^(e+1)大小的跳跃后位置平移2^(e+1)的倍数，而赋值不变保证后续跳跃仍合法。",
+      "hint_level": 0.2,
+      "generalizability": "medium——这一特定的2-adic赋值平移不变性质对涉及2-adic结构和路径操作的问题具有关键意义",
+      "why_not_visible_locally": "在filt_valid证明的局部上下文中，对赋值不变性的需求表现为'为什么删除跳跃不影响后续跳跃合法性'的技术细节——整除平移与赋值不变之间的深层联系在不理解全局过滤策略的情况下是不可见的。局部步骤中只看到需要验证某个整除条件，看不到这个条件背后是赋值不变性这一深层数学事实。",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["2-adic赋值", "nu_congr", "平移不变性", "整除性保持", "赋值不变"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接计算minJumps的小例子或使用贪心策略，可能证明特殊情况但无法发现过滤/删除操作这一关键结构变换。AI可能陷入搜索空间的计算而无法跳出到路径提取的抽象层面。",
+  "suitable_for_poc": [
+    "tell_de_specialization",
+    "formal_filtering",
+    "concept_disambiguation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：跳跃规则是什么？ν₂(n)在这里起什么作用？需要证明什么？已知和未知分别是什么？",
+        "expected_answer": "题目定义了一个青蛙跳跃问题：从1出发，在n处可跳到n+1或n+2^(ν₂(n)+1)。需要证明对k≥2和i≥0，到达2^i·k的最少跳跃次数严格大于到达2^i的最少跳跃次数。已知是跳跃规则，未知是两个最少跳跃次数的大小关系。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能的方法来比较到达2^i·k和2^i的最少跳跃次数：直接计算、贪心策略、对i归纳、对k归纳、路径操作、路径提取等",
+        "expected_answer": "可能的方法包括：(1)直接计算小例子找规律；(2)贪心策略——总跳最大步；(3)对i归纳；(4)对k归纳；(5)路径操作——从一条路径变换出另一条；(6)路径提取——从到达2^i·k的路径中提取到达2^i的更短路径"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试着直接计算小例子：minJumps(2), minJumps(4), minJumps(6), minJumps(8)等，看看能否发现规律",
+        "expected_answer": "计算小例子：从1出发，1→2(1步), 1→2→4(2步), 1→2→4→8(3步)...到达6: 1→2→4→5→6(4步)或1→2→3→6(3步,因ν₂(3)=0故跳2^1=2)。到达2^i的步数似乎与i有关，但一般性规律难以直接总结。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "不要直接计算minJumps。换一个角度思考：给定到达2^i·k（其中k≥2，所以2^i·k>2^i）的任意一条有效路径，能否从中提取出一条到达2^i的有效路径，且这条新路径严格更短？",
+        "expected_answer": "关键思路转变：不是直接比较两个minJumps，而是从到达更大目标的路径中提取到达更小目标的更短路径。如果能证明对任意到达2^i·k的路径都能提取出严格更短的到达2^i的路径，则minJumps(2^i)<minJumps(2^i·k)自然成立。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "考虑从有效路径中删除某些跳跃。关键问题：删除一个长度为2^(e+1)的跳跃后，后续位置的2-adic赋值是否改变？思考：若2^e整除位置差y-y'，且ν₂(y)<e，则ν₂(y')=ν₂(y)是否成立？",
+        "expected_answer": "这是核心知识瓶颈。当删除一个长度为2^(e+1)的跳跃时，后续所有位置都平移了2^(e+1)的倍数。关键引理nu_congr：若2^e | (y-y')且ν₂(y)<e，则ν₂(y')=ν₂(y)。这意味着只要后续位置的赋值小于e，删除2^(e+1)大小的跳跃不会改变这些位置的赋值，从而保持路径有效性。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.2,
+        "question": "定义过滤操作filt：删除所有长度被2^(e+1)整除且落在2^i之后的跳跃。证明：(1)过滤后路径仍有效(filt_valid)；(2)删除的跳跃数和长度都是2^(e+1)的倍数(filt_count)；(3)剩余跳跃长度≤2^e(filt_bigbound)。然后对e做归纳建立key_lemma。",
+        "expected_answer": "过滤操作的核心性质：filt_valid依赖nu_congr保证删除跳跃后路径有效性不变；filt_count保证过滤后端点仍被2^min(i,e)整除；filt_bigbound保证剩余跳跃的界降一级。对e归纳：e=0时所有超过2^i的跳跃长度为1，前缀恰好到达2^i；e→e+1时先过滤2^(e+1)大小的跳跃，再用归纳假设处理剩余的≤2^e的跳跃。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "现在将key_lemma应用到主定理：取到达2^i·k的最短路径，验证条件后应用key_lemma提取到达2^i的严格更短路径，完成证明。",
+        "expected_answer": "主定理证明：取ss为到达2^i·k的最短路径(长度=minJumps(2^i·k))。因k≥2，端点2^i·k>2^i。所有跳跃长度≤2^(i+ss.sum)（因每步≤sum≤2^sum）。端点被2^i整除。应用key_lemma(i, i+ss.sum, ss)得到到达2^i的有效路径ss'，长度严格小于ss。故minJumps(2^i)≤|ss'|<|ss|=minJumps(2^i·k)。证毕。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 2006 P5: 青蛙跳跃问题，核心技巧是过滤/删除操作+结构归纳。关键知识瓶颈在2-adic赋值平移不变性(nu_congr)，关键思维瓶颈在路径提取策略(从更大目标路径提取更短路径)。拓扑分类无需进化。"
+  }
+}

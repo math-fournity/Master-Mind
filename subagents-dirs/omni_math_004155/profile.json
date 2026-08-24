@@ -1,0 +1,264 @@
+{
+  "_key": "omni_math_004155",
+  "source_id": "omni_math_004155",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Determine the largest integer N for which there exists a table T of integers with N rows and 100 columns that has the following properties: (i) Every row contains the numbers 1, 2, ..., 100 in some order. (ii) For any two distinct rows r and s, there is a column c such that |T(r,c) - T(s,c)| >= 2.",
+  "solution_text": "Each row is a permutation of 1..100. The condition requires that for any two rows, at least one column has entries differing by at least 2. By pairing consecutive numbers (1,2), (3,4), ..., (99,100) into M=50 pairs, the problem reduces to counting permutations where no two rows have all pairs aligned. Using orthogonal array / Latin square theory, the maximum N = (2M)! / 2^M where M = 50, i.e., N = 100! / 2^50.",
+  "solution_summary": "Pair consecutive numbers into 50 pairs, reduce to orthogonal array construction, the maximum N = (2M)!/2^M = 100!/2^50.",
+  "domain": "combinatorics",
+  "subfield": "extremal_combinatorics",
+  "answer_type": "numerical_expression",
+  "answer": "N = (2M)! / 2^M = 100! / 2^50, where M = 50",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_construction",
+  "structure_features": "N rows × 100 columns table; each row is a permutation of [1..100]; pairwise separation condition: any two rows differ by ≥2 in some column; extremal problem asking for maximum N",
+  "key_objects": [
+    "permutation of [1..100]",
+    "pairwise column difference condition |T(r,c)-T(s,c)|>=2",
+    "consecutive number pairs (1,2),(3,4),...,(99,100)",
+    "orthogonal array / Latin square structure",
+    "M = 50 (number of pairs)"
+  ],
+  "thinking_patterns": [
+    "structural_pairing",
+    "reduction_to_known_construction",
+    "extremal_argument",
+    "combinatorial_counting"
+  ],
+  "primary_pattern": "structural_pairing",
+  "knowledge_required": [
+    "permutation theory",
+    "orthogonal arrays",
+    "Latin squares",
+    "extremal combinatorics",
+    "pairing / matching arguments"
+  ],
+  "key_insight": "Pair consecutive numbers (1,2),(3,4),...,(99,100) into 50 pairs — the condition |T(r,c)-T(s,c)|>=2 means two rows cannot have the same pair-member in the same column for all columns, reducing to orthogonal array construction with N = (2M)!/2^M.",
+  "translation_from": "raw permutation counting with pairwise difference constraints",
+  "translation_to": "orthogonal array / paired-permutation construction",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "consecutive pairing",
+    "orthogonal array",
+    "extremal bound",
+    "permutation family",
+    "pairwise separation"
+  ],
+  "expected_ai_method": "enumeration_brute_force — bare AI would try to count permutations satisfying the pairwise condition directly or attempt case-by-case analysis without seeing the pairing structure",
+  "correct_method": "structural_construction — pair consecutive numbers, recognize orthogonal array structure, derive extremal bound (2M)!/2^M",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a table of permutations with a pairwise difference condition but hasn't identified the structural meaning of 'difference >= 2'",
+      "hint": "Describe the problem structure: what are the knowns, unknowns, and constraints?",
+      "hint_level": 0.1,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["permutation table", "pairwise condition", "extremal N"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but doesn't notice that 'difference >= 2' has a special meaning for consecutive integers",
+      "hint": "List all possible approaches to bound N — counting, construction, probabilistic, algebraic",
+      "hint_level": 0.2,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["approach enumeration", "bound strategy", "construction vs counting"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries direct counting of valid permutation families but gets lost in the combinatorial explosion",
+      "hint": "Try directly counting how many permutations can coexist — what goes wrong?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["combinatorial explosion", "direct counting failure", "permutation family size"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is stuck on direct counting and hasn't noticed that |a-b|>=2 for integers means a and b cannot be equal or consecutive",
+      "hint": "Think about what |T(r,c)-T(s,c)|>=2 means structurally — which pairs of numbers are forbidden in the same column?",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["difference >= 2", "forbidden pairs", "consecutive integers", "structural meaning"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI now sees that consecutive numbers are forbidden in the same column but hasn't formed the pairing (1,2),(3,4),...",
+      "hint": "If consecutive numbers can't be in the same column across two rows, group the numbers into pairs — what natural pairing emerges?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["consecutive pairing", "(1,2),(3,4),...", "pair structure", "M=50"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has formed the 50 pairs but doesn't see the connection to orthogonal arrays or how to count the maximum",
+      "hint": "With 50 pairs, each row assigns pair-members to columns — this is an orthogonal array structure. How many such arrangements exist?",
+      "hint_level": 0.7,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["orthogonal array", "pair assignment", "Latin square", "arrangement counting"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI recognizes the orthogonal array structure and is ready to derive the final count",
+      "hint": "Now compute the maximum N from the orthogonal array construction — each pair contributes a factor, giving (2M)!/2^M",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["(2M)!/2^M", "extremal bound", "final count", "M=50"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire solution path from raw permutation counting to paired orthogonal array construction",
+      "observation_point": null,
+      "tell": "The solution requires a global structural transformation — pairing consecutive numbers and recognizing orthogonal array structure — that is not visible from any single step",
+      "hint": "The key structural insight is pairing (1,2),(3,4),...,(99,100) which transforms the problem into an orthogonal array counting problem",
+      "hint_level": 0.7,
+      "generalizability": "high — the pairing + orthogonal array technique generalizes to many extremal permutation problems with difference constraints",
+      "why_not_visible_locally": "The pairing structure emerges only when one simultaneously considers the difference>=2 condition AND the structure of consecutive integers — no single step reveals this; it requires synthesizing the constraint meaning with the number structure across the entire problem",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["consecutive pairing", "orthogonal array", "global structural transformation", "extremal bound"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The connection between pairwise difference >= 2 and the forbidden-pair structure of consecutive integers",
+      "observation_point": "Q4",
+      "tell": "The condition |T(r,c)-T(s,c)|>=2 implicitly forbids equal and consecutive integers in the same column across rows — this implicit constraint is the bridge to the pairing construction",
+      "hint": "Decode the meaning of 'difference >= 2' for integers: it excludes both equality and adjacency, creating a natural pairing structure",
+      "hint_level": 0.6,
+      "generalizability": "medium — the decoding of metric conditions into combinatorial structure applies to many distance-based constraints, but the specific pairing depends on the integer structure",
+      "why_not_visible_locally": "In a single step, one sees 'difference >= 2' as just a numerical inequality; the implicit connection to pairing consecutive integers only becomes visible when one asks 'which pairs of values are actually forbidden' — a question that spans the constraint interpretation and the number structure simultaneously",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["difference >= 2 decoding", "forbidden pairs", "consecutive integers", "implicit constraint"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely attempt direct counting or brute-force enumeration of valid permutation families, getting lost in combinatorial explosion. It will not see the pairing structure of consecutive numbers or the orthogonal array connection, leading to either no answer or an incorrect bound.",
+  "suitable_for_poc": [
+    "tell_extraction_poc — the structural transformation from raw counting to paired construction is a clear tell",
+    "hint_injection_poc — the pairing hint at R4-R5 is a high-value knowledge injection point",
+    "level_discrimination_poc — distinguishes AI that sees structural pairing from AI that brute-forces"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.1,
+        "question": "Describe the problem structure: what are the knowns, unknowns, and constraints? What kind of mathematical object is this table?",
+        "expected_answer": "We have an N×100 table where each row is a permutation of 1..100. The unknown is the maximum N. The constraint is that any two rows must differ by at least 2 in some column. This is an extremal combinatorics problem about permutation families."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.2,
+        "question": "List all possible approaches to bound N — counting valid families, explicit construction, probabilistic method, algebraic structure, etc.",
+        "expected_answer": "Possible approaches: (1) Direct counting of valid permutation families, (2) Explicit construction achieving a large N plus upper bound proof, (3) Probabilistic method, (4) Connection to known combinatorial structures like orthogonal arrays or Latin squares, (5) Inductive argument on column count."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try directly counting how many permutations can coexist under the pairwise condition. What goes wrong?",
+        "expected_answer": "Direct counting is intractable — the number of permutations of 100 elements is 100!, and checking pairwise conditions for all pairs explodes combinatorially. We need a structural insight to reduce the problem."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "Think about what |T(r,c)-T(s,c)|>=2 means structurally — which pairs of numbers are forbidden in the same column across two rows?",
+        "expected_answer": "If |a-b|>=2, then a and b cannot be equal (difference 0) and cannot be consecutive (difference 1). So in the same column, two rows cannot have the same number or consecutive numbers. This means the numbers 1,2,...,100 have a special structure: consecutive pairs like (1,2), (3,4), etc. are 'conflicting'."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "If consecutive numbers can't be in the same column across two rows, group the numbers into pairs — what natural pairing emerges?",
+        "expected_answer": "The natural pairing is (1,2), (3,4), (5,6), ..., (99,100) — 50 pairs. Each row places one member of each pair in each relevant position. The condition becomes: for any two rows, at least one pair must have its members swapped (different member in the same column). This is related to orthogonal arrays."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.7,
+        "question": "With 50 pairs, each row assigns pair-members to columns — this is an orthogonal array structure. How many such arrangements exist?",
+        "expected_answer": "With M=50 pairs, each pair can be assigned in 2 ways (which member goes where), and the pairs can be permuted among positions. The orthogonal array / Latin square theory gives us that the maximum number of rows is (2M)!/2^M, accounting for the pairing structure and the separation condition."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Now compute the maximum N from the orthogonal array construction — each pair contributes a factor, giving (2M)!/2^M. Confirm the final answer.",
+        "expected_answer": "With M=50, the maximum N = (2M)!/2^M = 100!/2^50. This is the largest integer N for which such a table exists, achieved by the orthogonal array construction over the 50 consecutive pairs."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "approx 15 min",
+    "notes": "Problem is an extremal combinatorics problem requiring structural pairing insight. The key tell is the transformation from raw permutation counting to paired orthogonal array construction. Knowledge bottleneck at R4 (decoding difference>=2 into forbidden pairs), thinking bottleneck at R5 (forming the consecutive pairing). Topology classification is adequate — no new dimensions needed."
+  }
+}

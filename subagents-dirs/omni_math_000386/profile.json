@@ -1,0 +1,261 @@
+{
+  "_key": "omni_math_000386",
+  "source_id": "omni_math_386",
+  "source_dataset": "aops_omni_math",
+  "schema_version": 3,
+  "problem_text": "Let k be a fixed even positive integer, N is the product of k distinct primes p_1,...,p_k, a,b are two positive integers, a,b<=N. Denote S_1={d | d|N, a<=d<=b, d has even number of prime factors}, S_2={d | d|N, a<=d<=b, d has odd number of prime factors}. Prove: |S_1|-|S_2|<=C(k,k/2).",
+  "solution_text": "Key idea: Express |S_1|-|S_2| as a sum of consecutive coefficients of the generating polynomial P(x)=prod_{i=1}^k (1-x^{p_i}), then prove by induction on k that any such sum is bounded by binom(k, floor(k/2)).\n\nProof: Each divisor d of N corresponds to a subset S of [k], with d=prod_{i in S} p_i and omega(d)=|S|. The polynomial P(x)=prod_{i=1}^k (1-x^{p_i}) has coefficient (-1)^{|S|} at x^d for each divisor d. Therefore |S_1|-|S_2| = sum_{n=a}^{b} [x^n] P(x), a sum of consecutive coefficients.\n\nInduction on k: Base case k=0: P(x)=1, any consecutive coefficient sum is at most 1 = binom(0,0).\n\nInductive step: Let Q(x)=prod_{i=1}^{k-1} (1-x^{p_i}), so P(x)=Q(x)(1-x^{p_k}). Then [x^n]P = [x^n]Q - [x^{n-p_k}]Q, so sum_{n=a}^b [x^n]P = sum_{n=a}^b [x^n]Q - sum_{n=a-p_k}^{b-p_k} [x^n]Q. Both terms are consecutive coefficient sums of Q, each bounded by binom(k-1, floor((k-1)/2)) by induction.\n\nTherefore |sum| <= 2*binom(k-1, floor((k-1)/2)). When k is even, floor((k-1)/2)=k/2-1, and binom(k-1,k/2-1)=binom(k-1,k/2), so 2*binom(k-1,k/2-1) = binom(k-1,k/2-1)+binom(k-1,k/2) = binom(k,k/2) by Pascal's identity. The bound is tight when k is even.",
+  "solution_summary": "将|S_1|-|S_2|重构为生成多项式P(x)=∏(1-x^{p_i})的连续系数和，对k归纳：P=Q(1-x^{p_k})将和分解为Q的两个连续系数和之差，每个≤C(k-1,⌊(k-1)/2⌋)，Pascal恒等式2·C(k-1,k/2-1)=C(k,k/2)在k为偶时精确闭合。",
+  "domain": "number_theory",
+  "subfield": "combinatorial_number_theory",
+  "answer_type": "proof",
+  "answer": "\\binom{k}{k/2}",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "generating_function_induction",
+  "structure_features": "约数与子集的对应关系；交替符号求和在数值区间上的界；生成多项式的连续系数和",
+  "key_objects": [
+    "N=p_1...p_k（k个不同素数之积）",
+    "约数d↔子集S⊆[k]",
+    "(-1)^{ω(d)}交替符号",
+    "生成多项式P(x)=∏(1-x^{p_i})",
+    "C(k,k/2)中心二项系数"
+  ],
+  "thinking_patterns": [
+    "generating_function_reformulation",
+    "induction_on_structure",
+    "algebraic_factorization",
+    "pascal_identity_application"
+  ],
+  "primary_pattern": "generating_function_reformulation",
+  "knowledge_required": [
+    "约数与子集的对应关系",
+    "生成多项式/形式幂级数",
+    "多项式系数与求和的关系",
+    "数学归纳法",
+    "Pascal恒等式/二项式系数性质"
+  ],
+  "key_insight": "将|S_1|-|S_2|重构为P(x)=∏(1-x^{p_i})的连续系数和，利用P=Q(1-x^{p_k})的因式分解做归纳，Pascal恒等式在k为偶时精确闭合。",
+  "translation_from": "直接计数法（按素因子个数分组计数约数）",
+  "translation_to": "生成多项式系数分析（多项式连续系数和的归纳界）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "约数-子集对应",
+    "交替符号求和",
+    "生成多项式∏(1-x^p)",
+    "连续系数和",
+    "Pascal恒等式",
+    "归纳因式分解"
+  ],
+  "expected_ai_method": "直接计数法——按素因子个数分组，用n_j≤C(k,j)求和，得到2^k的平凡界，无法利用交替符号的抵消结构",
+  "correct_method": "生成多项式重构+归纳法——将交替和重构为∏(1-x^{p_i})的连续系数和，利用乘积结构做归纳，Pascal恒等式闭合",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到题目结构但未识别关键重构方向，停留在表面理解约数和区间约束",
+      "hint": "描述这道题的结构：N的约数与[1,k]的子集有什么对应关系？|S_1|-|S_2|在代数上是什么？",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["divisor-subset correspondence", "alternating sum", "interval constraint"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方法但可能遗漏多项式/生成函数方法，搜索空间不完整",
+      "hint": "列出所有你能想到的逼近这个问题的方法",
+      "hint_level": 0.8,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["generating function", "Mobius function", "Sperner theorem", "symmetric chain decomposition"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试直接计数，按素因子个数分组得到2^k的弱界，方法与问题不匹配",
+      "hint": "试用直接计数法：按素因子个数j分组，n_j=[a,b]中恰有j个素因子的约数个数，能否得到C(k,k/2)的界？",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["binomial coefficient sum", "trivial bound 2^k", "parity grouping"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI需要发现从计数到多项式系数的关键重构——这是核心知识瓶颈",
+      "hint": "构造一个生成多项式P(x)，使其系数恰好为(-1)^{ω(d)}。什么样的多项式满足这个性质？",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["generating polynomial", "coefficient extraction", "product of (1-x^p)", "consecutive coefficient sum"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已有生成多项式但需识别乘积结构可做归纳——结构变换瓶颈",
+      "hint": "现在你有P(x)=∏(1-x^{p_i})，如何利用其乘积结构对连续系数和进行归纳？",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["polynomial factorization", "coefficient shift", "induction step", "P=Q(1-x^{p_k})"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI需用Pascal恒等式闭合归纳——第二个知识瓶颈，需要二项式系数性质",
+      "hint": "对Q应用归纳假设，每个连续系数和≤C(k-1,⌊(k-1)/2⌋)。如何用Pascal恒等式得到C(k,k/2)？",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["Pascal identity", "binomial coefficient identity", "induction hypothesis", "central binomial coefficient"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有所有证明部件，需要验证奠基和组装完整证明",
+      "hint": "验证奠基情形(k=0)，检查等号成立的条件，完成证明",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["base case verification", "tightness check", "proof assembly"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整证明路径：直接计数失败→多项式重构→乘积结构归纳→Pascal恒等式闭合",
+      "observation_point": null,
+      "tell": "证明需要从直接计数到多项式系数分析的非平凡重构，再利用乘积结构做归纳，最后用Pascal恒等式精确闭合——三步缺一不可",
+      "hint": "关键路径是：重构为多项式连续系数和→用P=Q(1-x^{p_k})做归纳→Pascal恒等式2·C(k-1,k/2-1)=C(k,k/2)闭合",
+      "hint_level": 0.7,
+      "generalizability": "high - 多项式重构+归纳的模式适用于许多约数上的交替求和问题",
+      "why_not_visible_locally": "多项式重构从任何单步直接计数中都看不到——它需要将整个交替和的结构视为乘积多项式的系数。归纳步骤与Pascal恒等式的联系只有在重构和因式分解都建立后才可见。完整路径特征是全局的，不在任何局部步骤中显现。",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["polynomial coefficient reformulation", "induction on factors", "Pascal identity closure", "complete proof path"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "区间[a,b]约束与连续多项式系数和之间的隐含对应关系",
+      "observation_point": "R4",
+      "tell": "区间[a,b]对约数数值的约束隐含地转化为生成多项式P(x)的连续系数求和——这个对应关系是重构的关键但非显然",
+      "hint": "认识到对d∈[a,b]求和(-1)^{ω(d)}等价于对P(x)的连续系数求和",
+      "hint_level": 0.5,
+      "generalizability": "medium - 此翻译特定于约数对应多项式系数的问题结构",
+      "why_not_visible_locally": "数值区间约束与多项式系数求和之间的隐含联系在任何单独的计数步骤中都不可见——它需要全局洞察：生成多项式同时编码了符号模式和数值大小。这个蕴含信息只有在构造出P(x)后才能被识别，而P(x)的构造本身就是知识瓶颈。",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["interval-to-coefficient translation", "consecutive coefficient sum", "generating polynomial encoding"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI会尝试直接计数法，按素因子个数j分组用n_j≤C(k,j)求和，得到2^k的平凡界。无法识别交替符号的抵消结构需要生成多项式重构，也不会想到利用∏(1-x^{p_i})的乘积结构做归纳。关键瓶颈在于从计数语言翻译到多项式系数语言的方法转换。",
+  "suitable_for_poc": ["tell_extraction_poc", "hint_injection_poc", "method_translation_poc"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "描述这道题的结构：N的约数与[1,k]的子集有什么对应关系？|S_1|-|S_2|在代数上是什么？",
+        "expected_answer": "N的每个约数d对应子集S⊆[k]，ω(d)=|S|。|S_1|-|S_2|=Σ_{d|N,a≤d≤b}(-1)^{ω(d)}是一个带符号交替的求和，区间[a,b]选取了部分约数。目标是证明这个和≤C(k,k/2)。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.8,
+        "question": "列出所有你能想到的逼近这个问题的方法",
+        "expected_answer": "直接计数法、Möbius函数、生成函数/多项式方法、归纳法、Sperner定理、对称链分解、Bonferroni不等式、组合恒等式等"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试用直接计数法：按素因子个数j分组，n_j=[a,b]中恰有j个素因子的约数个数，能否得到C(k,k/2)的界？",
+        "expected_answer": "直接计数给出|S_1|-|S_2|≤Σn_j≤2^k，远大于C(k,k/2)≈2^k/√(πk/2)。问题在于没有利用交替符号的抵消结构和区间约束。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "构造一个生成多项式P(x)，使其系数恰好为(-1)^{ω(d)}。什么样的多项式满足这个性质？",
+        "expected_answer": "P(x)=∏_{i=1}^k(1-x^{p_i})。展开后x^d的系数恰为(-1)^{|S|}，其中d=∏_{i∈S}p_i。因此|S_1|-|S_2|=Σ_{n=a}^b [x^n]P(x)，即P(x)在[a,b]上的连续系数和。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "现在你有P(x)=∏(1-x^{p_i})，如何利用其乘积结构对连续系数和进行归纳？",
+        "expected_answer": "设Q(x)=∏_{i<k}(1-x^{p_i})，则P=Q(1-x^{p_k})。[x^n]P=[x^n]Q-[x^{n-p_k}]Q。因此Σ_{n=a}^b[x^n]P = Σ_{n=a}^b[x^n]Q - Σ_{n=a-p_k}^{b-p_k}[x^n]Q，即Q的两个连续系数和之差。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "对Q应用归纳假设，每个连续系数和≤C(k-1,⌊(k-1)/2⌋)。如何用Pascal恒等式得到C(k,k/2)？",
+        "expected_answer": "差的绝对值≤2·C(k-1,⌊(k-1)/2⌋)。当k为偶时，⌊(k-1)/2⌋=k/2-1，且C(k-1,k/2-1)=C(k-1,k/2)，所以2·C(k-1,k/2-1)=C(k-1,k/2-1)+C(k-1,k/2)=C(k,k/2)（Pascal恒等式）。归纳完成。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "验证奠基情形(k=0)，检查等号成立的条件，完成证明",
+        "expected_answer": "k=0: P(x)=1，连续系数和≤1=C(0,0)✓。k为偶时Pascal恒等式取等，界是紧的。完整证明：重构→归纳→Pascal恒等式，三步完成。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.6,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-08-09T12:30:00Z",
+    "analysis_duration": "15min",
+    "notes": "中国国家队选拔考试数论题。核心难点在于从直接计数到生成多项式系数分析的方法翻译。problem.lean中solution被截断，根据数学内容重构完整解答。"
+  }
+}

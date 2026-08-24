@@ -1,0 +1,306 @@
+{
+  "_key": "omni_math_004157",
+  "source_id": "omni_math_004157",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "2500 chess kings have to be placed on a 100×100 chessboard so that (i) no king can capture any other one (i.e. no two kings are placed in two squares sharing a common vertex); (ii) each row and each column contains exactly 25 kings. Find the number of such arrangements. (Two arrangements differing by rotation or symmetry are supposed to be different.)",
+  "solution_text": "Partition the 100×100 board into 50×50 = 2500 disjoint 2×2 blocks. Since any two cells in a 2×2 block share a common vertex, each block can contain at most 1 king. With exactly 2500 kings to place and 2500 blocks, each block contains exactly 1 king. The row constraint forces a 25-25 split between top and bottom rows within each row-pair; the column constraint forces a 25-25 split between left and right columns within each column-pair. Inter-block adjacency constraints (no two kings in neighboring blocks may be adjacent) force a globally consistent diagonal choice: either all blocks use the main diagonal (top-left/bottom-right alternating by checkerboard parity) or all use the anti-diagonal (top-right/bottom-left alternating). Each choice yields exactly one valid arrangement. The number of distinct arrangements is 2.",
+  "solution_summary": "Partition the 100×100 board into 50×50 = 2500 disjoint 2×2 blocks. Each block holds at most 1 king (vertex-sharing constraint), and 2500 kings in 2500 blocks forces exactly 1 per block. Row/column constraints force 25-25 splits within each row-pair and column-pair. Inter-block adjacency forces a globally consistent diagonal choice (main or anti-diagonal), yielding exactly 2 valid arrangements.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_counting",
+  "answer_type": "numerical",
+  "answer": "2",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_decomposition",
+  "structure_features": "Grid placement with dual constraints: non-adjacency (including diagonal) and uniform row/column counts. The key structural feature is that the 100×100 board decomposes into 2500 disjoint 2×2 blocks, each admitting at most 1 king, creating a tight pigeonhole bound that forces exactly 1 king per block.",
+  "key_objects": [
+    "100×100 chessboard",
+    "2500 non-attacking kings",
+    "2×2 block partition (50×50 grid of blocks)",
+    "row-pair and column-pair constraints (25-25 split)",
+    "diagonal choice within each 2×2 block"
+  ],
+  "thinking_patterns": [
+    "structural_decomposition",
+    "pigeonhole_counting",
+    "constraint_propagation",
+    "global_consistency_forcing"
+  ],
+  "primary_pattern": "structural_decomposition",
+  "knowledge_required": [
+    "king movement rules (attacks all 8 surrounding squares)",
+    "pigeonhole principle",
+    "2×2 block partition of grid",
+    "checkerboard parity coloring"
+  ],
+  "key_insight": "Partition the board into 2×2 blocks; since each block can hold at most 1 king and there are exactly 2500 blocks for 2500 kings, each block has exactly 1 king, reducing the problem to choosing positions within blocks subject to inter-block adjacency that forces a globally consistent diagonal choice.",
+  "translation_from": "direct_pattern_search",
+  "translation_to": "structural_block_decomposition",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "2x2 block partition",
+    "pigeonhole bound",
+    "vertex sharing",
+    "diagonal consistency",
+    "row-column balance"
+  ],
+  "expected_ai_method": "Bare AI would attempt checkerboard-like patterns or direct enumeration of placements without recognizing the 2×2 block decomposition, likely failing to count correctly or prove uniqueness.",
+  "correct_method": "Partition into 2×2 blocks, apply pigeonhole to force 1 king per block, then use inter-block adjacency constraints to show exactly 2 globally consistent diagonal arrangements.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees two constraints (non-adjacency and 25-per-row/column) but does not connect the number 2500 to the board's 2×2 block structure",
+      "hint": "Describe the problem structure: what are the constraints, and what is the relationship between 2500 kings and the 100×100 board dimensions?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "constraint identification",
+        "row-column balance",
+        "king non-adjacency"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but does not consider block decomposition or tiling arguments",
+      "hint": "List all possible approaches: brute force, pattern-based, tiling/block decomposition, symmetry analysis. Which seem most promising?",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "approach enumeration",
+        "pattern search",
+        "tiling argument",
+        "block decomposition"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries a checkerboard pattern and finds it gives 50 kings per row (too many) or fails column constraints",
+      "hint": "Try a simple checkerboard pattern. How many kings per row does it give? Does it satisfy all constraints?",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "checkerboard pattern",
+        "row count overflow",
+        "diagonal adjacency failure"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has not recognized that 2×2 blocks can contain at most 1 king, and that 2500 blocks = 2500 kings is a pigeonhole argument",
+      "hint": "Consider partitioning the board into 2×2 blocks. How many blocks are there? What is the maximum number of kings per block? How does this relate to the total number of kings needed?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "2x2 block partition",
+        "pigeonhole counting",
+        "vertex sharing constraint",
+        "block capacity"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI knows each block has 1 king but does not see how row/column constraints force a 25-25 split within each row-pair and column-pair",
+      "hint": "Given each 2×2 block has exactly 1 king, and each row-pair spans 50 blocks, how must the kings split between the two rows? Similarly for column-pairs.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "row-pair split",
+        "column-pair split",
+        "block position choice",
+        "25-25 balance"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI sees the 25-25 split but does not realize that inter-block adjacency forces a globally consistent diagonal choice",
+      "hint": "Now consider adjacency between neighboring 2×2 blocks. If one block places its king on the right column and the next block on the left column in the same row, what happens? What constraint does this impose on the diagonal choice across all blocks?",
+      "hint_level": 0.8,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "inter-block adjacency",
+        "diagonal consistency",
+        "constraint propagation",
+        "global forcing"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has identified the two diagonal choices but has not confirmed they are the only solutions and counted them",
+      "hint": "You have found two globally consistent diagonal choices (main diagonal and anti-diagonal), each giving one valid arrangement. Can there be any mixed solutions? What is the final count?",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "two diagonal choices",
+        "uniqueness proof",
+        "final count",
+        "arrangement counting"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from block decomposition to diagonal counting",
+      "observation_point": null,
+      "tell": "The 2×2 block decomposition is the key structural insight that transforms an intractable enumeration into a pigeonhole argument followed by constraint propagation",
+      "hint": "Partition into 2×2 blocks, use pigeonhole to get 1 king per block, then use inter-block adjacency to force a globally consistent diagonal choice, yielding exactly 2 arrangements",
+      "hint_level": 0.7,
+      "generalizability": "high — the 2×2 block decomposition + pigeonhole + constraint propagation pattern applies to many grid placement problems with non-adjacency and uniform count constraints",
+      "why_not_visible_locally": "The power of the 2×2 decomposition only becomes apparent when you see the full chain: block partition → pigeonhole bound (2500=2500) → forced 1-per-block → row/column splits → inter-block adjacency → global diagonal consistency → count of 2. Each individual step is a small observation, but the global path from decomposition to final count requires seeing the entire chain of implications simultaneously. From any single step, the destination is not visible.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "2x2 block decomposition",
+        "pigeonhole chain",
+        "constraint propagation path",
+        "global diagonal forcing"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "constraint propagation across entire board forcing global diagonal consistency",
+      "observation_point": "Q6",
+      "tell": "The diagonal choice within each 2×2 block must be globally consistent across all 2500 blocks — mixing diagonals creates adjacency violations at block boundaries",
+      "hint": "Show that if any block uses the main diagonal while an adjacent block uses the anti-diagonal, the resulting king positions are adjacent. Therefore the diagonal choice propagates globally, giving exactly 2 solutions (all main or all anti-diagonal).",
+      "hint_level": 0.8,
+      "generalizability": "medium — the global consistency forcing pattern applies to tiling and placement problems where local choices propagate through adjacency constraints, but the specific diagonal argument is tailored to 2×2 block structures",
+      "why_not_visible_locally": "The global consistency of the diagonal choice is not visible from any single block's perspective. A single block has 4 position choices, and locally any choice seems valid. Only when you trace the adjacency constraint through a chain of neighboring blocks does it become clear that the diagonal choice must be the same everywhere. This requires seeing the propagation across the entire 50×50 block grid, which is invisible from any local viewpoint.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "global diagonal consistency",
+        "adjacency propagation",
+        "boundary constraint",
+        "binary choice forcing"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt checkerboard-like patterns or try to enumerate placements directly without recognizing the 2×2 block decomposition. It would either get the wrong count (e.g., suggesting more solutions by not proving uniqueness) or fail to find any valid pattern. The key missed insight is that 2×2 blocks can contain at most 1 king and that 2500 blocks for 2500 kings is a tight pigeonhole bound forcing the structure.",
+  "suitable_for_poc": [
+    "tell_extraction",
+    "hint_injection",
+    "topology_matching"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "What structure do you notice in this problem? What are the key constraints, and what is the relationship between the number 2500 and the board dimensions?",
+        "expected_answer": "The problem has two constraints: (i) no two kings share a vertex (non-adjacency including diagonal), and (ii) each row and column has exactly 25 kings. The board is 100×100 with 2500 kings total. 2500 = 25 × 100, and 100 = 4 × 25, suggesting a possible 4-based or 2-based block structure."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "List all possible approaches you could try to count valid arrangements. Which seem most promising?",
+        "expected_answer": "Possible approaches: (1) brute force enumeration (infeasible for 100×100), (2) checkerboard-like patterns, (3) tiling/block decomposition, (4) symmetry analysis, (5) constraint propagation. Block decomposition seems most promising because the constraints are structural."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try a simple checkerboard pattern where kings are placed on alternating squares. How many kings per row does it give? Does it satisfy all constraints?",
+        "expected_answer": "A standard checkerboard gives 50 kings per row (every other square), which violates the 25-per-row constraint. Even with a sparser pattern, ensuring both row and column constraints simultaneously while maintaining non-adjacency is difficult. This approach doesn't easily work."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Consider partitioning the board into 2×2 blocks. How many such blocks are there? What is the maximum number of kings per block (given that any two cells in a 2×2 block share a vertex)? How does this relate to the total number of kings needed?",
+        "expected_answer": "There are 50×50 = 2500 disjoint 2×2 blocks. Since any two cells in a 2×2 block share a common vertex, each block can contain at most 1 king. We need exactly 2500 kings, and there are exactly 2500 blocks, so by the pigeonhole principle, each block contains exactly 1 king."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Given each 2×2 block has exactly 1 king, and each row-pair (two consecutive rows) spans 50 blocks, how must the kings split between the two rows? Similarly for column-pairs.",
+        "expected_answer": "Each row-pair {2k-1, 2k} spans 50 blocks. We need 25 kings in row 2k-1 and 25 in row 2k, so exactly 25 blocks place their king in the top row and 25 in the bottom row. Similarly, each column-pair has 25 kings in the left column and 25 in the right column."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.8,
+        "question": "Now consider adjacency between neighboring 2×2 blocks. If one block places its king on the right column and the next block (horizontally adjacent) places its king on the left column in the same row, what happens? What constraint does this impose on the diagonal choice across all blocks?",
+        "expected_answer": "If a block places its king at the right column and the horizontally adjacent block places at the left column in the same row, the two kings are in adjacent columns and the same row — they attack each other. This means the position choices must be coordinated. Analyzing all adjacency constraints (horizontal, vertical, diagonal) shows that the king in each block must be on the same diagonal type (main or anti-diagonal) across all blocks. The choice propagates globally: once one block uses the main diagonal, all blocks must use the main diagonal (with checkerboard parity determining top-left vs bottom-right)."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "You have found two globally consistent diagonal choices (main diagonal and anti-diagonal), each giving one valid arrangement. Can there be any mixed solutions where some blocks use one diagonal and others use the other? What is the final count?",
+        "expected_answer": "No mixed solutions exist: any boundary between blocks using different diagonals creates an adjacency violation. Therefore there are exactly 2 valid arrangements: one using the main diagonal pattern (top-left/bottom-right alternating by parity) and one using the anti-diagonal pattern (top-right/bottom-left alternating by parity). The answer is 2."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "N/A",
+    "notes": "Problem involves a tight pigeonhole argument (2500 blocks = 2500 kings) followed by global constraint propagation forcing exactly 2 diagonal arrangements. The key knowledge bottleneck is recognizing the 2×2 block decomposition; the key thinking bottleneck is seeing that adjacency constraints propagate globally to force a consistent diagonal choice."
+  }
+}

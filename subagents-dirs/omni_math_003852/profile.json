@@ -1,0 +1,201 @@
+{
+  "_key": "omni_math_003852",
+  "source_id": "3852",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let n > 1 be a given integer. An n×n×n cube is composed of n^3 unit cubes. Each unit cube is painted with one colour. For each n×n×1 box consisting of n^2 unit cubes (in any of the three possible orientations), we consider the set of colours present in that box (each colour is listed only once). This way, we get 3n sets of colours, split into three groups according to the orientation. It happens that for every set in any group, the same set appears in both of the other groups. Determine, in terms of n, the maximal possible number of colours that are present.",
+  "solution_text": "The answer is n(n+1)(2n+1)/6 = 1^2 + 2^2 + ... + n^2. Key steps: (1) The matching condition implies that for each colour c, the set of x-layers, y-layers, and z-layers containing c are the same set L_c (after relabeling layers). (2) Each colour c needs at least |L_c| cubes forming a matching in L_c^3, and using exactly |L_c| is optimal. (3) Upper bound: for each t, colours with max(L_c)=t must be assigned to distinct cubes (t,j,k) with j,k in [t], giving at most t^2 such colours. (4) Summing: total colours <= sum of t^2 = n(n+1)(2n+1)/6. (5) Construction achieves this bound by tiling [n]^3 with matchings grouped by level.",
+  "solution_summary": "The condition forces each colour to have identical layer-membership sets across all three orientations (A_c = B_c = C_c = L_c). Grouping colours by max(L_c) = t and counting available cube positions in layer t within [t]^2 gives a_t <= t^2. Summing yields the bound n(n+1)(2n+1)/6, achieved by a matching tiling construction.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "formula",
+  "answer": "n(n+1)(2n+1)/6",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_decomposition",
+  "structure_features": "n×n×n cube with 3n layer colour-sets; symmetry condition across three orientations; optimization of colour count under matching constraint",
+  "key_objects": ["unit cubes", "layer colour-sets", "three orientation groups", "colour layer-membership set L_c", "matching in L_c^3", "level decomposition by max(L_c)"],
+  "thinking_patterns": ["structural_decomposition", "double_counting", "matching_tiling", "level_wise_bound", "symmetry_exploitation"],
+  "primary_pattern": "structural_decomposition",
+  "knowledge_required": ["layer-set symmetry implication", "matching in 3D grids", "sum of squares formula", "tiling with matchings"],
+  "key_insight": "Group colours by max(L_c) = t; each such colour must occupy a distinct cube (t, j, k) with j, k <= t, giving at most t^2 colours per level",
+  "translation_from": "direct_incidence_counting",
+  "translation_to": "level_structured_decomposition_with_matching_constraints",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["layer set equality", "level decomposition", "max element grouping", "matching tiling", "per-level cube counting"],
+  "expected_ai_method": "Direct incidence counting: compute sum of m_c = n^3 and try to maximize number of colours without structural insight",
+  "correct_method": "Level decomposition: group colours by max(L_c), bound each level by t^2 via cube-position counting, sum to get n(n+1)(2n+1)/6",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a complex combinatorial optimization with orientation symmetry but cannot identify the key structural objects",
+      "hint": "Describe the problem structure: n×n×n cube, 3n layer colour-sets in 3 orientation groups, matching condition across groups, goal is maximizing colours",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["layer colour-set", "orientation matching", "maximization goal"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches but misses the colour-by-colour structural analysis that reveals the L_c structure",
+      "hint": "List all possible approaches: direct counting, layer-by-layer analysis, colour-by-colour structural analysis, algebraic methods, extremal arguments",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "enumeration_brute_force", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["incidence counting", "colour-layer relationship", "approach enumeration"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries direct incidence counting, gets sum of m_c = n^3, but cannot tightly bound the number of colours; may try m_c=1 for all which violates the matching condition",
+      "hint": "Try direct counting of colour-layer incidences. Observe that sum m_c = n^3 but this alone does not tightly bound the colour count. Consider why m_c=1 for all fails.",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["incidence sum", "minimum matching size", "counting insufficiency"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has not realized that the matching condition forces A_c = B_c = C_c = L_c for each colour; this is the critical structural knowledge bottleneck",
+      "hint": "For each colour c, analyze what the layer-matching condition implies about its layer memberships across the three orientations. Show that the set of x-layers, y-layers, and z-layers containing c must be identical after relabeling.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["layer set equality", "orientation relabeling", "L_c structure", "structural implication"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the L_c structure but does not see how to decompose by levels; the level-by-max(L_c) grouping is the key thinking bottleneck",
+      "hint": "Group colours by max(L_c) = t. For each level t, count how many colours can exist by examining the available cube positions (t, j, k) with j, k in [t] in x-layer t.",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["level decomposition", "max element grouping", "layer position counting", "per-level bound"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the per-level bound a_t <= t^2 but has not summed the series or described the construction",
+      "hint": "Sum t^2 for t=1 to n to get n(n+1)(2n+1)/6. Then describe how to achieve this bound by tiling [n]^3 with matchings grouped by level.",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "method_translation"},
+      "tell_small_concepts": ["sum of squares", "matching tiling", "construction verification"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has found the answer and construction but needs to consolidate the key insight",
+      "hint": "Summarize the key insight: the level decomposition by max(L_c) combined with per-level cube-position counting gives the tight bound, and the matching tiling construction achieves it.",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "method_translation"},
+      "tell_small_concepts": ["key insight summary", "level decomposition", "answer formula"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from problem statement to answer",
+      "observation_point": null,
+      "tell": "The solution requires a non-obvious level decomposition by max(L_c), which is invisible from any single step of the analysis",
+      "hint": "Decompose colours by max(L_c) = t and bound each level separately using cube-position counting in specific layers",
+      "hint_level": 0.7,
+      "generalizability": "high - level decomposition by a natural ordering of subsets is applicable to many combinatorial optimization problems with layered structure",
+      "why_not_visible_locally": "The level decomposition emerges only after synthesizing two insights: the L_c structural equality (Step 4) and the cube-position counting technique (Step 5). From any single step, the decomposition is not apparent. The path from direct counting to level-structured bound requires a structural transformation that no individual step reveals on its own.",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["level decomposition", "max element grouping", "per-level bound", "path synthesis"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the matching condition implies A_c = B_c = C_c for each colour",
+      "observation_point": "Q4",
+      "tell": "The condition 'every set in any group appears in both other groups' implies that each colour has identical layer-membership sets across all three orientations, which is a deep structural consequence not obvious from the problem statement",
+      "hint": "The layer-matching condition forces each colour to have the same layer set L_c in all three orientations after relabeling, transforming the problem from a global set-matching condition to a per-colour structural constraint",
+      "hint_level": 0.5,
+      "generalizability": "medium - this structural implication is specific to problems with multi-orientation symmetry conditions on set-valued objects",
+      "why_not_visible_locally": "The implication A_c = B_c = C_c requires translating the global condition on layer colour-sets into a per-colour constraint on layer memberships. From the problem statement, the condition appears to be about sets of colours in layers, not about individual colour layer memberships. The translation from 'layer colour-sets match across orientations' to 'each colour has the same layer set in all orientations' is a non-trivial logical step that is not visible in any single layer analysis.",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["layer set equality", "orientation symmetry", "structural implication", "per-colour constraint"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely attempt direct incidence counting, get sum m_c = n^3, and either give an untight bound or try m_c=1 for all colours which violates the matching condition. Without the structural insight that A_c = B_c = C_c = L_c and the level decomposition, the AI cannot find the correct bound.",
+  "suitable_for_poc": ["tell_identification", "hint_injection_effectiveness", "structural_transformation_gap"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem. What are the key objects, constraints, and what are we trying to optimize?",
+        "expected_answer": "We have an n×n×n cube of n^3 unit cubes, each painted one colour. There are 3n layer colour-sets (n per orientation). The condition is that every colour-set in any orientation group also appears in both other groups. We want to maximize the total number of distinct colours."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible approaches to bound the number of colours. What mathematical tools could be relevant?",
+        "expected_answer": "Possible approaches: (1) Direct incidence counting between colours and layers, (2) Layer-by-layer analysis of colour-sets, (3) Colour-by-colour structural analysis examining what layers each colour appears in, (4) Algebraic methods using the symmetry condition, (5) Extremal arguments with constructions."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Try a direct counting approach: count the total number of colour-layer incidences. What bound does this give? Why is it insufficient?",
+        "expected_answer": "Each colour c appears in m_c x-layers, m_c y-layers, and m_c z-layers. The total incidences sum to n^3 per orientation. So sum m_c = n^3. But this only gives number of colours <= n^3 (when all m_c=1), which is not tight. The m_c=1 case fails because the matching condition cannot be satisfied: all colours in one x-layer would need the same y-layer, limiting to at most n colours per layer."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "For each colour c, what does the matching condition imply about its layer memberships across the three orientations? Can you show that the set of x-layers, y-layers, and z-layers containing c must be related?",
+        "expected_answer": "The condition that every layer colour-set appears in all three groups means there exist permutations sigma, tau such that the colour-set of x-layer i equals that of y-layer sigma(i) equals that of z-layer tau(i). For colour c, this means c is in x-layer i iff c is in y-layer sigma(i) iff c is in z-layer tau(i). After relabeling, A_c = B_c = C_c =: L_c. So each colour has the same layer-membership set in all three orientations."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "Given that each colour c has a layer set L_c, and its cubes form a matching in L_c^3, how can you bound the number of colours with max(L_c) = t for each t?",
+        "expected_answer": "Colours with max(L_c) = t have L_c subset of [t] with t in L_c. Their cube in x-layer t is at position (t, j, k) with j, k in L_c subset [t], so (j,k) in [t]^2. There are t^2 such positions, each assigned to at most one colour. So the number of colours with max(L_c) = t is at most t^2."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "Sum the per-level bounds to get the total upper bound. How can this bound be achieved by a construction?",
+        "expected_answer": "Total colours <= sum_{t=1}^{n} t^2 = n(n+1)(2n+1)/6. The construction: for each level t, create t^2 colours with max(L_c) = t, assign each to a distinct cube (t, j, k) with j, k in [t], and extend each to a matching in L_c^3. The matchings tile [n]^3 by carefully choosing L_c subsets and matching structures."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "You've found the answer. Summarize the key insight that made this problem tractable.",
+        "expected_answer": "The key insight was the level decomposition by max(L_c). The structural observation that A_c = B_c = C_c = L_c transformed the global matching condition into a per-colour constraint. Then grouping colours by max(L_c) = t and counting available cube positions (t, j, k) with j, k <= t gave the tight per-level bound of t^2, summing to n(n+1)(2n+1)/6."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-07-18T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO Shortlist combinatorics problem. Solution truncated in problem.lean but reconstructed from known result. Key difficulty: the structural implication A_c=B_c=C_c (knowledge bottleneck at R4) and the level decomposition idea (thinking bottleneck at R5)."
+  }
+}

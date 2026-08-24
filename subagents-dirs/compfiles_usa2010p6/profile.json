@@ -1,0 +1,274 @@
+{
+  "_key": "compfiles_usa2010p6",
+  "source_id": "compfiles_usa2010p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "There are 68 ordered pairs (not necessarily distinct) of nonzero integers on a blackboard. It's known that for no integer k does both (k, k) and (-k, -k) appear. A student erases some of the 136 integers such that no two erased integers have sum zero, and scores one point for each ordered pair with at least one erased integer. What is the maximum possible score the student can guarantee?",
+  "solution_text": "The answer is 43. Lower bound: For each absolute value k appearing on the board, randomly choose to erase +k with probability q or -k with probability 1-q, where q = (sqrt(5)-1)/2 ≈ 0.618. For each pair type, the expected score is at least q (the board condition excludes the worst case (-a,-a) which would give only q^2). Total expected score >= 68q > 42, so some strategy achieves >= 43. Upper bound: Construct a board with 8 absolute values {1,...,8}, with 5 loops (i,i) for each i (40 pairs) and all C(8,2)=28 negative edges (-i,-j) for 1<=j<i<=8. For any valid erasure choosing a positive values, loops give 5a points, but at least C(a,2) negative edges are unscored, so score <= 5a + 28 - C(a,2) <= 43 for a <= 8.",
+  "solution_summary": "Answer is 43. Lower bound via probabilistic method with q=(sqrt(5)-1)/2: each pair has expected score >= q, total >= 68q > 42, so >= 43. Upper bound via extremal construction: 8 values with 5 loops each + K_8 negative edges, score <= 5a + 28 - C(a,2) <= 43.",
+  "domain": "Combinatorics",
+  "subfield": "Combinatorial optimization / Probabilistic method",
+  "answer_type": "numerical",
+  "answer": "43",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "probabilistic_method",
+  "structure_features": "68 ordered pairs of nonzero integers, erasure constraint (no two erased sum to zero), board condition (no (k,k) and (-k,-k) both appear), guaranteed score maximization (min-max structure)",
+  "key_objects": ["ordered pairs", "absolute values", "erasure set", "score function", "probabilistic strategy", "extremal board"],
+  "thinking_patterns": ["structural reduction (binary choice)", "probabilistic method", "per-type expectation analysis", "extremal construction", "quadratic optimization"],
+  "primary_pattern": "probabilistic method",
+  "knowledge_required": ["probabilistic method (random strategy + expectation argument)", "expected value computation", "binomial coefficients C(n,2)", "quadratic function optimization", "extremal construction technique"],
+  "key_insight": "The problem reduces to binary choices per absolute value. The probabilistic method with q=(sqrt(5)-1)/2 gives expected score >= q per pair (board condition excludes worst case), 68q > 42 yields lower bound 43. Extremal construction with 8 values, 5 loops + K_8 negative edges matches upper bound 43 exactly.",
+  "translation_from": "greedy/direct enumeration (deterministic per-pair analysis)",
+  "translation_to": "probabilistic method + extremal construction (random strategy expectation + matching construction)",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_problem_mismatch"
+  },
+  "tell_small_concepts": ["binary choice", "probabilistic method", "expectation argument", "golden ratio q", "extremal construction", "board condition excludes worst case", "matching bounds"],
+  "expected_ai_method": "Greedy strategy (erase all positives) or case-by-case enumeration, unable to handle the guarantee/min-max structure",
+  "correct_method": "Probabilistic method (random strategy + expectation argument) for lower bound + extremal construction for upper bound",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees 68 ordered pairs and an erasure constraint but hasn't identified the key structural simplification",
+      "hint": "Describe the problem structure: what are the knowns, unknowns, and constraints? What does 'no two erased integers sum to zero' imply about the erasure strategy?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["ordered pairs", "erasure constraint", "sum zero", "guaranteed score"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI understands the problem but hasn't considered what methods could apply",
+      "hint": "List all possible approaches: greedy, case analysis, probabilistic method, extremal construction, algebraic optimization",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["greedy", "case analysis", "probabilistic method", "extremal construction"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries greedy: erase all positive values, but this fails on boards with negative loops",
+      "hint": "Try a greedy strategy: erase all positive integers. What score does this give? Can the adversary construct a board where this is suboptimal?",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["greedy strategy", "positive values", "suboptimal", "adversarial board"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is stuck on greedy and hasn't recognized the binary choice structure",
+      "hint": "Observe: for each absolute value k, you must choose to erase +k or -k (not both). This reduces to a binary choice per distinct absolute value. What structure does this create?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["binary choice", "absolute value", "representative selection", "structural reduction"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI recognizes binary choices but doesn't know how to analyze the guaranteed score across all boards",
+      "hint": "Use the probabilistic method: for each absolute value, randomly choose to erase +k with probability q and -k with probability 1-q. Compute the expected score for each pair type. What role does the board condition play?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["probabilistic method", "random strategy", "expected score", "probability q", "board condition"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI knows to use probabilistic method but hasn't computed the per-pair expected scores or optimal q",
+      "hint": "Compute the expected score for each pair type: (a,a) loop gives q, (a,-a) gives 1, (a,b) with a!=b gives 1-(1-q)^2. Find the q that maximizes the minimum over all pair types, requiring q^2+q<=1.",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["expected score per pair", "pair types", "optimal q", "golden ratio", "q^2+q<=1"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the lower bound (68q > 42, so >=43) but hasn't constructed a matching upper bound",
+      "hint": "Construct an extremal board: use 8 absolute values, with 5 loops (i,i) each and all C(8,2)=28 negative edges (-i,-j). Show any valid erasure scores at most 43.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["extremal construction", "loops", "negative edges", "K_8", "upper bound matching"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI has both bounds and needs to assemble the final answer",
+      "hint": "Combine: lower bound gives >=43, upper bound gives <=43, so the answer is exactly 43. You've solved it!",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["lower bound", "upper bound", "matching bounds", "answer 43"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Full solution path from binary choice recognition through probabilistic method to extremal construction",
+      "observation_point": null,
+      "tell": "The solution requires three connected insights: (1) binary choice per absolute value, (2) probabilistic method with golden ratio q, (3) extremal construction matching the lower bound. No single step reveals the full picture.",
+      "hint": "The problem decomposes into a lower bound (probabilistic method) and an upper bound (extremal construction), connected by the binary choice structure. The golden ratio q=(sqrt(5)-1)/2 is the bridge.",
+      "hint_level": 0.8,
+      "generalizability": "high - the probabilistic method + extremal construction pattern applies to many combinatorial optimization problems with min-max structure",
+      "why_not_visible_locally": "The connection between the binary choice structure, the optimal probability q satisfying q^2+q<=1, and the specific extremal construction with 8 values is only visible when the entire solution path is traced. Locally, each step (binary choice, expectation computation, construction) appears independent and the tight matching of bounds is not apparent from any single step.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["binary choice", "probabilistic method", "golden ratio", "extremal construction", "matching bounds"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The board condition 'no (k,k) and (-k,-k) both appear' is essential for the probabilistic argument to work",
+      "observation_point": "R5",
+      "tell": "The board condition is not just a constraint on the board - it is precisely what makes the probabilistic method viable by excluding the worst-case pair type (-a,-a) whose expected score would be q^2 < q.",
+      "hint": "When computing the worst-case per-pair expected score, the excluded case (-a,-a) would have bad probability q^2, which is worse than 1-q. The board condition precisely eliminates this worst case, making the minimum expected score equal to q instead of q^2.",
+      "hint_level": 0.7,
+      "generalizability": "medium - the insight that problem constraints are designed to make certain methods work is generalizable, but the specific connection to q^2 vs q is problem-specific",
+      "why_not_visible_locally": "In the local step of computing per-pair expected scores, the constraint appears as just one case being excluded among several. The deeper reason - that this exclusion is what makes the probabilistic method viable by raising the worst-case from q^2 to q - is only visible when comparing the excluded case's probability (q^2) with the worst included case (1-q for loops) and noting q^2 < 1-q iff q^2+q < 1, which is exactly the condition for optimal q.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["board condition", "excluded case", "worst-case probability", "q^2 vs 1-q", "constraint enables method"]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "The extremal construction parameters (8 values, 5 loops) are designed to exactly match the lower bound",
+      "observation_point": null,
+      "tell": "The extremal board (8 values, 5 loops each, K_8 on negative side) is not arbitrary - the parameters are chosen so that the score function 5a + 28 - C(a,2) has maximum exactly 43, matching the lower bound.",
+      "hint": "The number 8 and the multiplier 5 are chosen so that the quadratic 5a + 28 - a(a-1)/2 peaks at 43. This is the tightness condition that makes the construction work.",
+      "hint_level": 0.7,
+      "generalizability": "medium - the pattern of constructing extremal examples to match lower bounds is generalizable, but the specific parameter selection is problem-specific",
+      "why_not_visible_locally": "When constructing the upper bound, the choice of 8 values and 5 loops seems arbitrary. The reason for these specific numbers - that they make the quadratic 5a + 28 - C(a,2) peak at exactly 43 - is only visible when comparing with the lower bound and solving the optimization. The tightness is a global property of the construction, not apparent from any local step.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["extremal construction", "tightness", "quadratic optimization", "matching bounds", "parameter selection"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try greedy (erase all positives) or case-by-case enumeration, getting stuck on the guarantee/min-max aspect. Without recognizing the binary choice structure and probabilistic method, it cannot establish the lower bound. It would also struggle to construct the matching extremal board for the upper bound. May guess an answer without proof.",
+  "suitable_for_poc": ["tell_identification", "hint_injection", "probabilistic_method_translation", "extremal_construction_guidance"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "描述题目结构：已知什么、未知什么、约束条件是什么？'没有两个被擦除的数之和为零'对擦除策略意味着什么？",
+        "expected_answer": "68个有序对，每个对有两个非零整数。约束意味着如果擦了x就不能擦-x，所以对每个绝对值k，只能选+k或-k之一（或都不选）。目标是最大化保证得分。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "列出所有可能的方法：贪心、分类讨论、概率方法、极值构造、代数优化等",
+        "expected_answer": "贪心（擦所有正数）、分类讨论（按对类型分析）、概率方法（随机策略+期望分析）、极值构造（构造最坏棋盘）、代数优化（建模为优化问题）"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "试贪心策略：擦所有正整数。这能保证多少分？对手能否构造一个棋盘使贪心表现差？",
+        "expected_answer": "擦所有正数：对(k,k)型对得分，但对(-k,-k)型对不得分。如果棋盘全是(-k,-k)型对，贪心得0分。所以贪心不能保证好分数。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "观察关键结构：对每个出现的绝对值k，你必须选择擦+k或-k（不能同时）。这把问题化为了什么结构？每个有序对被得分的条件是什么？",
+        "expected_answer": "化为n个二元选择问题。对(a,b)型对，得分当且仅当选了+a或选了-b。关键是分析不同对类型在不同选择下的得分概率。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "用概率方法：对每个绝对值k，以概率q独立随机选择擦+a_k或-a_k。计算每种对类型的期望得分。棋盘条件'不存在(k,k)和(-k,-k)同时出现'在这里起什么作用？",
+        "expected_answer": "对类型分析：(a,a)环→期望q；(a,-a)→期望1；(a,b)异值→期望1-(1-q)^2。棋盘条件排除了(-a,-a)型对（其期望仅q^2，比q更差），使最坏期望≥q。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "计算最优q：要求最坏对类型期望≥q，即q^2+q≤1。求q并验证68q>42。",
+        "expected_answer": "q^2+q=1给出q=(√5-1)/2≈0.618。68×0.618≈42.02>42，所以存在策略得分≥43。"
+      },
+      {
+        "round": 7,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "构造极值棋盘证明上界：用8个绝对值，每个5个环(i,i)共40对，加C(8,2)=28条负边(-i,-j)。证明任何合法擦除得分≤43。",
+        "expected_answer": "设选了a个正值，环贡献5a分。负边中至少C(a,2)条不得分。得分≤5a+28-C(a,2)≤43（a≤8时二次函数最大值在a=5附近取43）。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "组合上下界：下界≥43，上界≤43，答案是多少？",
+        "expected_answer": "答案是43。下界由概率方法保证，上界由极值构造封顶，两者精确匹配。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 3,
+      "level_sum": 3.6,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "approximately 30 minutes",
+    "notes": "USA 2010 P6 is a combinatorial optimization problem requiring probabilistic method for lower bound and extremal construction for upper bound. The key insight is the binary choice structure and the golden ratio probability q=(sqrt(5)-1)/2. The board condition is essential for the probabilistic argument - it excludes the worst-case pair type. No new topology dimensions needed."
+  }
+}

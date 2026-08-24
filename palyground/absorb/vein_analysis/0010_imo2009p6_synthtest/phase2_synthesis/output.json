@@ -1,0 +1,2682 @@
+{
+  "phase": "synthesis",
+  "problem_id": "IMO2009 P6 (grasshopper)",
+  "base_grading": "V10",
+  "grading_comparison": {
+    "V5": {
+      "segments": 21,
+      "features": "描述性自由标注（如'WLOG归约'、'鸽巢论证'、'反面量构造'），无形式上下文，无FCA枚举",
+      "closed_elements": null,
+      "characteristic": "自由直觉段划分——21段对应证明的21个自然思维步，特征名是AI对每段思维类型的直觉描述，未做形式化"
+    },
+    "V7": {
+      "segments": 21,
+      "features": 15,
+      "closed_elements": 23,
+      "characteristic": "结构化约束——15个特征是证明的标准操作类型（WLOG排序/强归纳框架/构造子问题/应用归纳假设/构造完整排列/验证构造正确性/边界情况处理/交换技巧/归约化简等），段划分与V5一致但特征标注统一化，首次产生形式上下文"
+    },
+    "V8": {
+      "segments": 23,
+      "features": 41,
+      "closed_elements": 39,
+      "characteristic": "角色化细粒度引导——把V7的单一特征拆成角色特征（x的定义角色/x的归属角色/x的判定角色/x的运算角色/x的上界角色/x的分类标准角色/x的归纳目标角色），并引入实体使用特征（s的使用/M'的使用/M'的构造/aₙ的最大性/aₙ的位置角色/aᵣ的位置角色/z的定义/z的使用），段划分细化（21→23，把'基数估计'和'边界处理'拆成独立段）"
+    },
+    "V10": {
+      "segments": 25,
+      "features": 37,
+      "closed_elements": 52,
+      "characteristic": "显式元模式编码——采用'实体:角色'命名约定（实体x:分类标准/实体x:缩减边界/实体x:子问题和/实体aₙ:跳过障碍/实体aₙ:放最后/实体bad-index:核心概念/实体M':子问题M/实体swap:跨Case复用/实体t:缩减边界/实体z:跳过目标/实体前缀和验证:跨Case验证/实体强归纳:框架），把跨Case复用模式直接编码为特征；段划分最细（25段，Case3的swap分支与无hit分支分离，Case2的退化处理与扩展排列分离），并新增'跳过障碍'作为独立操作特征"
+    }
+  },
+  "formal_context_review": {
+    "is_complete": false,
+    "corrections": [
+      {
+        "version": "V10",
+        "reason": "V10缺少'aᵢ正性'特征——段7的注入映射论证的核心依据是aᵢ>0（保证x-aᵢ<x从而映到M\\{x}），但V10只标了'注入论证'和'映射构造'，未显式标注aᵢ正性这个前提条件",
+        "change": "为段7补充'aᵢ正性'特征（来自V8），使段7的闭元素intent包含注入论证的前提条件"
+      },
+      {
+        "version": "V10",
+        "reason": "V10缺少's'作为实体的跟踪——s=a₁+...+aₙ是证明的总量，在段6/7/8/13/19中出现，V10未把s作为实体特征跟踪",
+        "change": "补充'实体s:总和'特征到段6,7,8,13,19（来自V8的's的使用'），使FCA能枚举'所有使用s的段'这个闭元素"
+      },
+      {
+        "version": "V10",
+        "reason": "V10缺少'aₙ最大性'作为底层性质的跟踪——V10用'实体aₙ:跳过障碍'和'实体aₙ:放最后'捕捉了aₙ的角色，但aₙ是最大元这个性质是这些角色的前提，未被独立跟踪",
+        "change": "补充'实体aₙ:最大性'特征到段1,2,11,13,15,20,21（来自V8的'aₙ的最大性'），使FCA能枚举'所有依赖aₙ最大性的段'这个闭元素"
+      },
+      {
+        "version": "V10",
+        "reason": "V10缺少'good index r'作为实体的跟踪——r是Case 1的核心产物，在段8-13中被使用，V10的key_entities列出了r但特征中未跟踪",
+        "change": "补充'实体good-index-r:存在性产物'特征到段8,9,11,12,13，使FCA能枚举r的完整使用链"
+      }
+    ]
+  },
+  "closed_elements": [
+    {
+      "id": "ce_V10_0",
+      "extent": [],
+      "intent": [
+        "所有37个特征"
+      ],
+      "source_version": "V10",
+      "judgment": "excluded",
+      "reason": "平凡闭元素（空外延，全特征intent），不对应任何思维模式"
+    },
+    {
+      "id": "ce_V10_51",
+      "extent": [
+        "段1-段25（全部25段）"
+      ],
+      "intent": [],
+      "source_version": "V10",
+      "judgment": "excluded",
+      "reason": "平凡闭元素（全外延，空intent），不对应任何思维模式"
+    },
+    {
+      "id": "ce_V10_1",
+      "extent": [
+        "段25"
+      ],
+      "intent": [
+        "归约(收口)",
+        "排序"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "WLOG还原闭合——一般情形通过复合排序置换归约到已排序情形",
+      "trace_type": "local",
+      "reason": "证明的收口步骤，与段1的WLOG排序形成开口-收口结构"
+    },
+    {
+      "id": "ce_V10_2",
+      "extent": [
+        "段24"
+      ],
+      "intent": [
+        "实体z:跳过目标",
+        "实体前缀和验证:跨Case验证",
+        "退化情况",
+        "验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case3无hit分支——p'已避开M'∪{z}=M，z从未被命中，无需调整",
+      "trace_type": "local",
+      "reason": "Case3的退化验证分支，捕捉'前缀和未命中z则证明已完成'这个思维"
+    },
+    {
+      "id": "ce_V10_3",
+      "extent": [
+        "段23"
+      ],
+      "intent": [
+        "swap技巧",
+        "实体aₙ:跳过障碍",
+        "实体swap:跨Case复用",
+        "实体z:跳过目标",
+        "实体前缀和验证:跨Case验证",
+        "排列构造",
+        "跳过障碍"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case3 swap分支——aₙ放到命中z的位置k，利用aₙ>a_{p'(k)}跳过z",
+      "trace_type": "local",
+      "reason": "Case3的核心构造步骤，aₙ跳过障碍的语义在此段最集中体现"
+    },
+    {
+      "id": "ce_V10_4",
+      "extent": [
+        "段23",
+        "段24"
+      ],
+      "intent": [
+        "实体z:跳过目标",
+        "实体前缀和验证:跨Case验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case3两分支共享z和前缀和验证——swap分支和无hit分支都以z为目标做前缀和验证",
+      "trace_type": "local",
+      "reason": "捕捉Case3内部两分支的统一结构：都以z为验证目标"
+    },
+    {
+      "id": "ce_V10_5",
+      "extent": [
+        "段22"
+      ],
+      "intent": [
+        "子问题构造",
+        "实体M':子问题M",
+        "实体强归纳:框架",
+        "归纳应用",
+        "排列构造"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case3归纳应用——对a₁,...,a_{n-1}及M'(|M'|=n-2)应用归纳得排列p'",
+      "trace_type": "local",
+      "reason": "Case3的归纳应用步骤，强归纳框架在Case3中的实例"
+    },
+    {
+      "id": "ce_V10_6",
+      "extent": [
+        "段21"
+      ],
+      "intent": [
+        "M'缩减构造",
+        "定义变量",
+        "实体M':子问题M",
+        "实体z:跳过目标"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case3 M'构造——令z=max(M)，M'=M\\{z}，从M中剥离最大元素",
+      "trace_type": "local",
+      "reason": "Case3独特的M'构造方式（剥离而非截断），与Case1/2的截断式M'构造形成对比"
+    },
+    {
+      "id": "ce_V10_7",
+      "extent": [
+        "段21",
+        "段23",
+        "段24"
+      ],
+      "intent": [
+        "实体z:跳过目标"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case3的z使用链——z从M中剥离(段21)、swap命中位置(段23)、验证未命中(段24)",
+      "trace_type": "local",
+      "reason": "捕捉z在Case3中的完整生命周期：定义→跳过→验证"
+    },
+    {
+      "id": "ce_V10_8",
+      "extent": [
+        "段19"
+      ],
+      "intent": [
+        "前缀和分析",
+        "实体M':子问题M",
+        "实体aₙ:放最后",
+        "实体x:缩减边界",
+        "实体前缀和验证:跨Case验证",
+        "验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case2验证——前n-1跳前缀和≤x避M'，最终和s∉M",
+      "trace_type": "local",
+      "reason": "Case2的验证步骤，前缀和验证+终点验证s∉M的实例"
+    },
+    {
+      "id": "ce_V10_9",
+      "extent": [
+        "段17"
+      ],
+      "intent": [
+        "实体M':子问题M",
+        "排列构造",
+        "退化情况"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case2退化处理——M'为空时直接用恒等排列",
+      "trace_type": "local",
+      "reason": "Case2的边界情况处理，捕捉'M'为空时归纳无对象'的退化思维"
+    },
+    {
+      "id": "ce_V10_10",
+      "extent": [
+        "段17",
+        "段24"
+      ],
+      "intent": [
+        "退化情况"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case退化情况——Case2的M'为空(段17)和Case3的无前缀和命中z(段24)都是退化情况",
+      "trace_type": "nonlocal",
+      "reason": "两个Case的退化处理共享'退化情况'模式：当不需要构造性调整时，证明已自动完成"
+    },
+    {
+      "id": "ce_V10_11",
+      "extent": [
+        "段17",
+        "段22"
+      ],
+      "intent": [
+        "实体M':子问题M",
+        "排列构造"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case排列构造(M'相关)——Case2退化处理(段17)和Case3归纳应用(段22)都涉及M'和排列构造",
+      "trace_type": "nonlocal",
+      "reason": "捕捉两个Case中M'与排列构造的关联"
+    },
+    {
+      "id": "ce_V10_12",
+      "extent": [
+        "段16"
+      ],
+      "intent": [
+        "子问题构造",
+        "实体M':子问题M",
+        "实体x:子问题和",
+        "实体强归纳:框架",
+        "归纳应用"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case2归纳应用——对a₁,...,a_{n-1}及M'=M∩(-∞,x]应用归纳（其和x∉M'）",
+      "trace_type": "local",
+      "reason": "Case2的归纳应用步骤，x在此段扮演'归纳目标和'角色"
+    },
+    {
+      "id": "ce_V10_13",
+      "extent": [
+        "段14"
+      ],
+      "intent": [
+        "Case条件",
+        "基数估计",
+        "实体x:分类标准",
+        "实体x:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case2条件——x∉M且∃y∈M,y>x，故|M∩(-∞,x]|≤n-2",
+      "trace_type": "local",
+      "reason": "Case2的条件识别+规模估计，x同时扮演分类标准和缩减边界"
+    },
+    {
+      "id": "ce_V10_14",
+      "extent": [
+        "段13"
+      ],
+      "intent": [
+        "前缀和分析",
+        "实体M':子问题M",
+        "实体t:缩减边界",
+        "实体前缀和验证:跨Case验证",
+        "验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1验证——aᵣ前的前缀和≤t避M'，到aᵣ的和=s-aₙ避M，最终和s∉M",
+      "trace_type": "local",
+      "reason": "Case1的三层验证（前缀和避M'、中间和避M、终点s∉M），最复杂的验证段"
+    },
+    {
+      "id": "ce_V10_15",
+      "extent": [
+        "段13",
+        "段19"
+      ],
+      "intent": [
+        "前缀和分析",
+        "实体M':子问题M",
+        "实体前缀和验证:跨Case验证",
+        "验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1&2验证共享——两个Case都以'前缀和分析+M'验证'验证构造正确性",
+      "trace_type": "nonlocal",
+      "reason": "Case1和Case2的验证段共享前缀和验证模式，区别仅在边界(t vs x)"
+    },
+    {
+      "id": "ce_V10_16",
+      "extent": [
+        "段13",
+        "段19",
+        "段24"
+      ],
+      "intent": [
+        "实体前缀和验证:跨Case验证",
+        "验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "三Case验证共享——Case1(段13)、Case2(段19)、Case3无hit分支(段24)都以前缀和验证构造正确性",
+      "trace_type": "nonlocal",
+      "reason": "前缀和验证是跨三个Case的统一验证方法"
+    },
+    {
+      "id": "ce_V10_17",
+      "extent": [
+        "段13",
+        "段19",
+        "段23",
+        "段24"
+      ],
+      "intent": [
+        "实体前缀和验证:跨Case验证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有前缀和验证段——四个验证段(段13,19,23,24)共享前缀和验证模式",
+      "trace_type": "nonlocal",
+      "reason": "前缀和验证是贯穿整个证明的统一验证范式，V10用'实体前缀和验证:跨Case验证'特征显式编码"
+    },
+    {
+      "id": "ce_V10_18",
+      "extent": [
+        "段12"
+      ],
+      "intent": [
+        "swap技巧",
+        "实体aₙ:放最后",
+        "实体aₙ:跳过障碍",
+        "实体swap:跨Case复用",
+        "排列构造"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1排列构造——p'在前，aᵣ中间，aₙ最后（swap把aₙ放到倒数第二位）",
+      "trace_type": "local",
+      "reason": "Case1的排列构造步骤，aₙ同时扮演'放最后'和'跳过障碍'双重角色"
+    },
+    {
+      "id": "ce_V10_19",
+      "extent": [
+        "段12",
+        "段23"
+      ],
+      "intent": [
+        "swap技巧",
+        "实体aₙ:跳过障碍",
+        "实体swap:跨Case复用",
+        "排列构造"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case swap——Case1(段12)和Case3(段23)都用swap技巧让aₙ跳过障碍",
+      "trace_type": "nonlocal",
+      "reason": "swap技巧的跨Case复用，V10用'实体swap:跨Case复用'特征显式编码"
+    },
+    {
+      "id": "ce_V10_20",
+      "extent": [
+        "段12",
+        "段18"
+      ],
+      "intent": [
+        "实体aₙ:放最后",
+        "排列构造"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case aₙ放最后——Case1(段12)和Case2(段18)都把aₙ放在排列最后扩展",
+      "trace_type": "nonlocal",
+      "reason": "aₙ放最后是Case1和Case2共享的排列扩展模式"
+    },
+    {
+      "id": "ce_V10_21",
+      "extent": [
+        "段12",
+        "段17",
+        "段18",
+        "段22",
+        "段23"
+      ],
+      "intent": [
+        "排列构造"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有排列构造段——五个段都涉及排列构造，是证明中构造性最强的部分",
+      "trace_type": "nonlocal",
+      "reason": "排列构造贯穿三个Case，是证明的核心构造活动"
+    },
+    {
+      "id": "ce_V10_22",
+      "extent": [
+        "段11"
+      ],
+      "intent": [
+        "子问题构造",
+        "实体M':子问题M",
+        "实体aₙ:放最后",
+        "实体强归纳:框架",
+        "归纳应用"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1归纳应用——对去掉aᵣ和aₙ后的n-2个元素及M'应用归纳，得排列p'",
+      "trace_type": "local",
+      "reason": "Case1的归纳应用步骤，排除两个元素(aᵣ和aₙ)是Case1独特的子问题构造"
+    },
+    {
+      "id": "ce_V10_23",
+      "extent": [
+        "段11",
+        "段19"
+      ],
+      "intent": [
+        "实体M':子问题M",
+        "实体aₙ:放最后"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case M'和aₙ——Case1归纳应用(段11)和Case2验证(段19)都涉及M'使用和aₙ放最后",
+      "trace_type": "nonlocal",
+      "reason": "捕捉M'和aₙ在Case1和Case2中的联合使用模式"
+    },
+    {
+      "id": "ce_V10_24",
+      "extent": [
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "intent": [
+        "子问题构造",
+        "实体M':子问题M",
+        "实体强归纳:框架",
+        "归纳应用"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "三Case归纳应用——Case1(段11)、Case2(段16)、Case3(段22)都对子问题(M',缩减元素集)应用归纳",
+      "trace_type": "nonlocal",
+      "reason": "强归纳在三个Case中的统一应用模式：构造子问题→应用归纳→得排列p'"
+    },
+    {
+      "id": "ce_V10_25",
+      "extent": [
+        "段10"
+      ],
+      "intent": [
+        "基数估计",
+        "实体M':子问题M",
+        "实体t:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1基数估计——|M'|≤n-3（x和y都被排除在M'之外），t作为缩减边界",
+      "trace_type": "local",
+      "reason": "Case1的规模估计步骤，确保子问题满足归纳条件"
+    },
+    {
+      "id": "ce_V10_26",
+      "extent": [
+        "段10",
+        "段14"
+      ],
+      "intent": [
+        "基数估计"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case基数估计——Case1(段10)和Case2(段14)都做基数估计确保子问题规模满足归纳条件",
+      "trace_type": "nonlocal",
+      "reason": "基数估计是Case1和Case2共享的规模控制模式"
+    },
+    {
+      "id": "ce_V10_27",
+      "extent": [
+        "段9"
+      ],
+      "intent": [
+        "M'缩减构造",
+        "定义变量",
+        "实体M':子问题M",
+        "实体t:缩减边界",
+        "实体x:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1 M'构造——令t=x-aᵣ，M'=M∩(-∞,t]，x和t都作为缩减边界",
+      "trace_type": "local",
+      "reason": "Case1独特的M'构造方式（基于good index r的t截断），最复杂的M'构造"
+    },
+    {
+      "id": "ce_V10_28",
+      "extent": [
+        "段21",
+        "段9"
+      ],
+      "intent": [
+        "M'缩减构造",
+        "定义变量",
+        "实体M':子问题M"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case M'构造(定义变量)——Case1(段9)和Case3(段21)都通过定义新变量构造M'",
+      "trace_type": "nonlocal",
+      "reason": "Case1定义t、Case3定义z，都是通过定义新变量来构造M'"
+    },
+    {
+      "id": "ce_V10_29",
+      "extent": [
+        "段15",
+        "段9"
+      ],
+      "intent": [
+        "M'缩减构造",
+        "实体M':子问题M",
+        "实体x:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case M'构造(x边界)——Case1(段9)和Case2(段15)都用x作为缩减边界构造M'",
+      "trace_type": "nonlocal",
+      "reason": "Case1的M'=M∩(-∞,t]和Case2的M'=M∩(-∞,x]都是基于x的截断构造"
+    },
+    {
+      "id": "ce_V10_30",
+      "extent": [
+        "段15",
+        "段21",
+        "段9"
+      ],
+      "intent": [
+        "M'缩减构造",
+        "实体M':子问题M"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "三Case M'构造——Case1: M∩(-∞,t](段9)、Case2: M∩(-∞,x](段15)、Case3: M\\{z}(段21)",
+      "trace_type": "nonlocal",
+      "reason": "M'缩减构造的跨Case统一模式：每个Case用不同方式构造M'，但都服务于'缩减M使归纳适用'"
+    },
+    {
+      "id": "ce_V10_31",
+      "extent": [
+        "段15",
+        "段19",
+        "段9"
+      ],
+      "intent": [
+        "实体M':子问题M",
+        "实体x:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "M'使用+x边界——Case1的M'构造(段9)和验证(段19)、Case2的M'构造(段15)都涉及M'和x作为缩减边界",
+      "trace_type": "nonlocal",
+      "reason": "捕捉M'使用和x缩减边界的交集模式"
+    },
+    {
+      "id": "ce_V10_32",
+      "extent": [
+        "段10",
+        "段13",
+        "段9"
+      ],
+      "intent": [
+        "实体M':子问题M",
+        "实体t:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1 M'和t使用链——M'构造(段9)、基数估计(段10)、验证(段13)都涉及M'和t",
+      "trace_type": "local",
+      "reason": "Case1内部M'和t的完整使用链：构造→估计→验证"
+    },
+    {
+      "id": "ce_V10_33",
+      "extent": [
+        "段9",
+        "段10",
+        "段11",
+        "段13",
+        "段15",
+        "段16",
+        "段17",
+        "段19",
+        "段21",
+        "段22"
+      ],
+      "intent": [
+        "实体M':子问题M"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有M'使用段——M'贯穿三个Case的构造、归纳、验证，是连接整个证明的核心实体",
+      "trace_type": "nonlocal",
+      "reason": "M'是跨Case复用的归纳子问题M，10个段使用M'，是证明中覆盖面最广的实体"
+    },
+    {
+      "id": "ce_V10_34",
+      "extent": [
+        "段8"
+      ],
+      "intent": [
+        "存在性论证",
+        "实体bad-index:核心概念",
+        "计数论证",
+        "鸽巢"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1鸽巢论证——|M\\{x}|=n-2，n-1个中至多n-2个bad，至少存在一个good index r",
+      "trace_type": "local",
+      "reason": "Case1的存在性论证核心，鸽巢论证是Case1独有的思维技巧"
+    },
+    {
+      "id": "ce_V10_35",
+      "extent": [
+        "段7"
+      ],
+      "intent": [
+        "实体bad-index:核心概念",
+        "实体x:分类标准",
+        "映射构造",
+        "注入论证"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1注入映射——构造bad index到M\\{x}的注入映射，x-aᵢ映到M\\{x}，s-aᵢ映到M∩(x,∞)",
+      "trace_type": "local",
+      "reason": "Case1的注入性论证，是鸽巢论证的技术前提"
+    },
+    {
+      "id": "ce_V10_36",
+      "extent": [
+        "段6"
+      ],
+      "intent": [
+        "定义概念",
+        "实体bad-index:核心概念",
+        "实体x:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1 bad index定义——i是bad当且仅当x-aᵢ∈M或s-aᵢ∈M",
+      "trace_type": "local",
+      "reason": "Case1的核心概念定义，bad index是Case1独有的概念工具"
+    },
+    {
+      "id": "ce_V10_37",
+      "extent": [
+        "段6",
+        "段9",
+        "段14",
+        "段15",
+        "段19"
+      ],
+      "intent": [
+        "实体x:缩减边界"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有x作为缩减边界的段——x在Case1(bad index定义段6、M'构造段9)、Case2(条件段14、M'构造段15、验证段19)中都作为缩减边界",
+      "trace_type": "nonlocal",
+      "reason": "x作为缩减边界是跨Case1和Case2的统一角色，x的值控制M'的截断点"
+    },
+    {
+      "id": "ce_V10_38",
+      "extent": [
+        "段6",
+        "段7",
+        "段8"
+      ],
+      "intent": [
+        "实体bad-index:核心概念"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1 bad index三段——定义(段6)、注入映射(段7)、鸽巢得good index(段8)",
+      "trace_type": "local",
+      "reason": "bad index概念的完整论证链：定义→注入→计数，Case1独有的三段论证"
+    },
+    {
+      "id": "ce_V10_39",
+      "extent": [
+        "段5"
+      ],
+      "intent": [
+        "Case条件",
+        "实体x:分类标准",
+        "边界条件"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "Case1条件——x∈M且∃y∈M,y>x，由此推出n≥3",
+      "trace_type": "local",
+      "reason": "Case1的条件识别，包含边界条件n≥3的推导"
+    },
+    {
+      "id": "ce_V10_40",
+      "extent": [
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "intent": [
+        "Case条件",
+        "实体x:分类标准"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "三Case条件——Case1(段5: x∈M)、Case2(段14: x∉M)、Case3(段20: m≤x)都以x为分类标准",
+      "trace_type": "nonlocal",
+      "reason": "三个Case的条件识别都以x相对M的位置为分类标准，x是Case划分的依据"
+    },
+    {
+      "id": "ce_V10_41",
+      "extent": [
+        "段4"
+      ],
+      "intent": [
+        "实体x:分类标准",
+        "情况划分"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "情况划分框架——按M中元素相对x的位置把问题分成三种情况",
+      "trace_type": "local",
+      "reason": "证明的情况划分框架声明，x被确立为分类标准"
+    },
+    {
+      "id": "ce_V10_42",
+      "extent": [
+        "段4",
+        "段5",
+        "段7",
+        "段14",
+        "段20"
+      ],
+      "intent": [
+        "实体x:分类标准"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有x作为分类标准的段——情况划分(段4)、Case1条件(段5)、注入映射(段7)、Case2条件(段14)、Case3条件(段20)",
+      "trace_type": "nonlocal",
+      "reason": "x作为分类标准贯穿情况划分和三个Case的条件识别，是证明的结构骨架"
+    },
+    {
+      "id": "ce_V10_43",
+      "extent": [
+        "段3"
+      ],
+      "intent": [
+        "实体强归纳:框架",
+        "强归纳",
+        "归纳框架"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "强归纳声明——对n做强归纳作为整体证明策略",
+      "trace_type": "local",
+      "reason": "证明的框架声明，强归纳是贯穿三个Case的统一策略"
+    },
+    {
+      "id": "ce_V10_44",
+      "extent": [
+        "段3",
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "intent": [
+        "实体强归纳:框架"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有强归纳段——框架声明(段3)和三个Case的归纳应用(段11,16,22)",
+      "trace_type": "nonlocal",
+      "reason": "强归纳从框架声明到三个Case的实例化，是证明的统一推理引擎"
+    },
+    {
+      "id": "ce_V10_45",
+      "extent": [
+        "段2"
+      ],
+      "intent": [
+        "定义变量",
+        "实体aₙ:放最后",
+        "实体x:子问题和"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "x定义——定义x=a₁+...+a_{n-1}（除最大元aₙ外所有元素之和）",
+      "trace_type": "local",
+      "reason": "证明的关键变量定义，x作为子问题和、aₙ作为被排除的最大元，两个实体的角色在此段确立"
+    },
+    {
+      "id": "ce_V10_46",
+      "extent": [
+        "段2",
+        "段16"
+      ],
+      "intent": [
+        "实体x:子问题和"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "x作为子问题和——x在定义(段2)和Case2归纳应用(段16)中扮演子问题和角色",
+      "trace_type": "nonlocal",
+      "reason": "x作为子问题和是Case2归纳的关键——子问题a₁,...,a_{n-1}的和恰为x∉M'"
+    },
+    {
+      "id": "ce_V10_47",
+      "extent": [
+        "段2",
+        "段11",
+        "段12",
+        "段18",
+        "段19"
+      ],
+      "intent": [
+        "实体aₙ:放最后"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "所有aₙ放最后段——x定义中排除aₙ(段2)、Case1归纳排除aₙ(段11)、Case1排列aₙ最后(段12)、Case2排列aₙ最后(段18)、Case2验证aₙ最后(段19)",
+      "trace_type": "nonlocal",
+      "reason": "aₙ放最后是跨Case1和Case2的统一排列扩展模式，aₙ的最大性使其放最后时前缀和最大"
+    },
+    {
+      "id": "ce_V10_48",
+      "extent": [
+        "段2",
+        "段9",
+        "段21"
+      ],
+      "intent": [
+        "定义变量"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "跨Case定义变量——x定义(段2)、t和M'定义(段9)、z和M'定义(段21)",
+      "trace_type": "nonlocal",
+      "reason": "三个Case都通过定义新变量来推进证明，变量定义是构造子问题的第一步"
+    },
+    {
+      "id": "ce_V10_49",
+      "extent": [
+        "段1"
+      ],
+      "intent": [
+        "归约(WLOG)",
+        "排序"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "WLOG排序——通过施加置换把a排序为a₁<a₂<...<aₙ",
+      "trace_type": "local",
+      "reason": "证明的开口步骤，WLOG归约把一般情形化为有序情形"
+    },
+    {
+      "id": "ce_V10_50",
+      "extent": [
+        "段1",
+        "段25"
+      ],
+      "intent": [
+        "排序"
+      ],
+      "source_version": "V10",
+      "judgment": "included",
+      "trace_description": "WLOG开口-收口——段1排序归约(开口)和段25排序复合(收口)形成WLOG的完整结构",
+      "trace_type": "nonlocal",
+      "reason": "WLOG归约的开口和收口共享'排序'特征，形成证明的外层结构括号"
+    }
+  ],
+  "traces": [
+    {
+      "id": "ce_V10_1",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段25"
+      ],
+      "description": "WLOG还原闭合——一般情形通过复合排序置换归约到已排序情形",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "证明的收口步骤，与段1的WLOG排序形成开口-收口结构"
+    },
+    {
+      "id": "ce_V10_2",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段24"
+      ],
+      "description": "Case3无hit分支——p'已避开M'∪{z}=M，z从未被命中，无需调整",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case3的退化验证分支，捕捉'前缀和未命中z则证明已完成'这个思维"
+    },
+    {
+      "id": "ce_V10_3",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段23"
+      ],
+      "description": "Case3 swap分支——aₙ放到命中z的位置k，利用aₙ>a_{p'(k)}跳过z",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case3的核心构造步骤，aₙ跳过障碍的语义在此段最集中体现"
+    },
+    {
+      "id": "ce_V10_4",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段23",
+        "段24"
+      ],
+      "description": "Case3两分支共享z和前缀和验证——swap分支和无hit分支都以z为目标做前缀和验证",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "捕捉Case3内部两分支的统一结构：都以z为验证目标"
+    },
+    {
+      "id": "ce_V10_5",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段22"
+      ],
+      "description": "Case3归纳应用——对a₁,...,a_{n-1}及M'(|M'|=n-2)应用归纳得排列p'",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case3的归纳应用步骤，强归纳框架在Case3中的实例"
+    },
+    {
+      "id": "ce_V10_6",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段21"
+      ],
+      "description": "Case3 M'构造——令z=max(M)，M'=M\\{z}，从M中剥离最大元素",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case3独特的M'构造方式（剥离而非截断），与Case1/2的截断式M'构造形成对比"
+    },
+    {
+      "id": "ce_V10_7",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段21",
+        "段23",
+        "段24"
+      ],
+      "description": "Case3的z使用链——z从M中剥离(段21)、swap命中位置(段23)、验证未命中(段24)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "捕捉z在Case3中的完整生命周期：定义→跳过→验证"
+    },
+    {
+      "id": "ce_V10_8",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段19"
+      ],
+      "description": "Case2验证——前n-1跳前缀和≤x避M'，最终和s∉M",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case2的验证步骤，前缀和验证+终点验证s∉M的实例"
+    },
+    {
+      "id": "ce_V10_9",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段17"
+      ],
+      "description": "Case2退化处理——M'为空时直接用恒等排列",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case2的边界情况处理，捕捉'M'为空时归纳无对象'的退化思维"
+    },
+    {
+      "id": "ce_V10_10",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段17",
+        "段24"
+      ],
+      "description": "跨Case退化情况——Case2的M'为空(段17)和Case3的无前缀和命中z(段24)都是退化情况",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "两个Case的退化处理共享'退化情况'模式：当不需要构造性调整时，证明已自动完成"
+    },
+    {
+      "id": "ce_V10_11",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段17",
+        "段22"
+      ],
+      "description": "跨Case排列构造(M'相关)——Case2退化处理(段17)和Case3归纳应用(段22)都涉及M'和排列构造",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "捕捉两个Case中M'与排列构造的关联"
+    },
+    {
+      "id": "ce_V10_12",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段16"
+      ],
+      "description": "Case2归纳应用——对a₁,...,a_{n-1}及M'=M∩(-∞,x]应用归纳（其和x∉M'）",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case2的归纳应用步骤，x在此段扮演'归纳目标和'角色"
+    },
+    {
+      "id": "ce_V10_13",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段14"
+      ],
+      "description": "Case2条件——x∉M且∃y∈M,y>x，故|M∩(-∞,x]|≤n-2",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case2的条件识别+规模估计，x同时扮演分类标准和缩减边界"
+    },
+    {
+      "id": "ce_V10_14",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段13"
+      ],
+      "description": "Case1验证——aᵣ前的前缀和≤t避M'，到aᵣ的和=s-aₙ避M，最终和s∉M",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的三层验证（前缀和避M'、中间和避M、终点s∉M），最复杂的验证段"
+    },
+    {
+      "id": "ce_V10_15",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段13",
+        "段19"
+      ],
+      "description": "Case1&2验证共享——两个Case都以'前缀和分析+M'验证'验证构造正确性",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1和Case2的验证段共享前缀和验证模式，区别仅在边界(t vs x)"
+    },
+    {
+      "id": "ce_V10_16",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段13",
+        "段19",
+        "段24"
+      ],
+      "description": "三Case验证共享——Case1(段13)、Case2(段19)、Case3无hit分支(段24)都以前缀和验证构造正确性",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "前缀和验证是跨三个Case的统一验证方法"
+    },
+    {
+      "id": "ce_V10_17",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段13",
+        "段19",
+        "段23",
+        "段24"
+      ],
+      "description": "所有前缀和验证段——四个验证段(段13,19,23,24)共享前缀和验证模式",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "前缀和验证是贯穿整个证明的统一验证范式，V10用'实体前缀和验证:跨Case验证'特征显式编码"
+    },
+    {
+      "id": "ce_V10_18",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段12"
+      ],
+      "description": "Case1排列构造——p'在前，aᵣ中间，aₙ最后（swap把aₙ放到倒数第二位）",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的排列构造步骤，aₙ同时扮演'放最后'和'跳过障碍'双重角色"
+    },
+    {
+      "id": "ce_V10_19",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段12",
+        "段23"
+      ],
+      "description": "跨Case swap——Case1(段12)和Case3(段23)都用swap技巧让aₙ跳过障碍",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "swap技巧的跨Case复用，V10用'实体swap:跨Case复用'特征显式编码"
+    },
+    {
+      "id": "ce_V10_20",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段12",
+        "段18"
+      ],
+      "description": "跨Case aₙ放最后——Case1(段12)和Case2(段18)都把aₙ放在排列最后扩展",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "aₙ放最后是Case1和Case2共享的排列扩展模式"
+    },
+    {
+      "id": "ce_V10_21",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段12",
+        "段17",
+        "段18",
+        "段22",
+        "段23"
+      ],
+      "description": "所有排列构造段——五个段都涉及排列构造，是证明中构造性最强的部分",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "排列构造贯穿三个Case，是证明的核心构造活动"
+    },
+    {
+      "id": "ce_V10_22",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段11"
+      ],
+      "description": "Case1归纳应用——对去掉aᵣ和aₙ后的n-2个元素及M'应用归纳，得排列p'",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的归纳应用步骤，排除两个元素(aᵣ和aₙ)是Case1独特的子问题构造"
+    },
+    {
+      "id": "ce_V10_23",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段11",
+        "段19"
+      ],
+      "description": "跨Case M'和aₙ——Case1归纳应用(段11)和Case2验证(段19)都涉及M'使用和aₙ放最后",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "捕捉M'和aₙ在Case1和Case2中的联合使用模式"
+    },
+    {
+      "id": "ce_V10_24",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "description": "三Case归纳应用——Case1(段11)、Case2(段16)、Case3(段22)都对子问题(M',缩减元素集)应用归纳",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "强归纳在三个Case中的统一应用模式：构造子问题→应用归纳→得排列p'"
+    },
+    {
+      "id": "ce_V10_25",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段10"
+      ],
+      "description": "Case1基数估计——|M'|≤n-3（x和y都被排除在M'之外），t作为缩减边界",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的规模估计步骤，确保子问题满足归纳条件"
+    },
+    {
+      "id": "ce_V10_26",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段10",
+        "段14"
+      ],
+      "description": "跨Case基数估计——Case1(段10)和Case2(段14)都做基数估计确保子问题规模满足归纳条件",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "基数估计是Case1和Case2共享的规模控制模式"
+    },
+    {
+      "id": "ce_V10_27",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段9"
+      ],
+      "description": "Case1 M'构造——令t=x-aᵣ，M'=M∩(-∞,t]，x和t都作为缩减边界",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1独特的M'构造方式（基于good index r的t截断），最复杂的M'构造"
+    },
+    {
+      "id": "ce_V10_28",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段21",
+        "段9"
+      ],
+      "description": "跨Case M'构造(定义变量)——Case1(段9)和Case3(段21)都通过定义新变量构造M'",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1定义t、Case3定义z，都是通过定义新变量来构造M'"
+    },
+    {
+      "id": "ce_V10_29",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段15",
+        "段9"
+      ],
+      "description": "跨Case M'构造(x边界)——Case1(段9)和Case2(段15)都用x作为缩减边界构造M'",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的M'=M∩(-∞,t]和Case2的M'=M∩(-∞,x]都是基于x的截断构造"
+    },
+    {
+      "id": "ce_V10_30",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段15",
+        "段21",
+        "段9"
+      ],
+      "description": "三Case M'构造——Case1: M∩(-∞,t](段9)、Case2: M∩(-∞,x](段15)、Case3: M\\{z}(段21)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "M'缩减构造的跨Case统一模式：每个Case用不同方式构造M'，但都服务于'缩减M使归纳适用'"
+    },
+    {
+      "id": "ce_V10_31",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段15",
+        "段19",
+        "段9"
+      ],
+      "description": "M'使用+x边界——Case1的M'构造(段9)和验证(段19)、Case2的M'构造(段15)都涉及M'和x作为缩减边界",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "捕捉M'使用和x缩减边界的交集模式"
+    },
+    {
+      "id": "ce_V10_32",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段10",
+        "段13",
+        "段9"
+      ],
+      "description": "Case1 M'和t使用链——M'构造(段9)、基数估计(段10)、验证(段13)都涉及M'和t",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1内部M'和t的完整使用链：构造→估计→验证"
+    },
+    {
+      "id": "ce_V10_33",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段13",
+        "段15",
+        "段16",
+        "段17",
+        "段19",
+        "段21",
+        "段22"
+      ],
+      "description": "所有M'使用段——M'贯穿三个Case的构造、归纳、验证，是连接整个证明的核心实体",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "M'是跨Case复用的归纳子问题M，10个段使用M'，是证明中覆盖面最广的实体"
+    },
+    {
+      "id": "ce_V10_34",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段8"
+      ],
+      "description": "Case1鸽巢论证——|M\\{x}|=n-2，n-1个中至多n-2个bad，至少存在一个good index r",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的存在性论证核心，鸽巢论证是Case1独有的思维技巧"
+    },
+    {
+      "id": "ce_V10_35",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段7"
+      ],
+      "description": "Case1注入映射——构造bad index到M\\{x}的注入映射，x-aᵢ映到M\\{x}，s-aᵢ映到M∩(x,∞)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的注入性论证，是鸽巢论证的技术前提"
+    },
+    {
+      "id": "ce_V10_36",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段6"
+      ],
+      "description": "Case1 bad index定义——i是bad当且仅当x-aᵢ∈M或s-aᵢ∈M",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的核心概念定义，bad index是Case1独有的概念工具"
+    },
+    {
+      "id": "ce_V10_37",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段6",
+        "段9",
+        "段14",
+        "段15",
+        "段19"
+      ],
+      "description": "所有x作为缩减边界的段——x在Case1(bad index定义段6、M'构造段9)、Case2(条件段14、M'构造段15、验证段19)中都作为缩减边界",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "x作为缩减边界是跨Case1和Case2的统一角色，x的值控制M'的截断点"
+    },
+    {
+      "id": "ce_V10_38",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段6",
+        "段7",
+        "段8"
+      ],
+      "description": "Case1 bad index三段——定义(段6)、注入映射(段7)、鸽巢得good index(段8)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "bad index概念的完整论证链：定义→注入→计数，Case1独有的三段论证"
+    },
+    {
+      "id": "ce_V10_39",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段5"
+      ],
+      "description": "Case1条件——x∈M且∃y∈M,y>x，由此推出n≥3",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "Case1的条件识别，包含边界条件n≥3的推导"
+    },
+    {
+      "id": "ce_V10_40",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "description": "三Case条件——Case1(段5: x∈M)、Case2(段14: x∉M)、Case3(段20: m≤x)都以x为分类标准",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "三个Case的条件识别都以x相对M的位置为分类标准，x是Case划分的依据"
+    },
+    {
+      "id": "ce_V10_41",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段4"
+      ],
+      "description": "情况划分框架——按M中元素相对x的位置把问题分成三种情况",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "证明的情况划分框架声明，x被确立为分类标准"
+    },
+    {
+      "id": "ce_V10_42",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段4",
+        "段5",
+        "段7",
+        "段14",
+        "段20"
+      ],
+      "description": "所有x作为分类标准的段——情况划分(段4)、Case1条件(段5)、注入映射(段7)、Case2条件(段14)、Case3条件(段20)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "x作为分类标准贯穿情况划分和三个Case的条件识别，是证明的结构骨架"
+    },
+    {
+      "id": "ce_V10_43",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段3"
+      ],
+      "description": "强归纳声明——对n做强归纳作为整体证明策略",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "证明的框架声明，强归纳是贯穿三个Case的统一策略"
+    },
+    {
+      "id": "ce_V10_44",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段3",
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "description": "所有强归纳段——框架声明(段3)和三个Case的归纳应用(段11,16,22)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "强归纳从框架声明到三个Case的实例化，是证明的统一推理引擎"
+    },
+    {
+      "id": "ce_V10_45",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段2"
+      ],
+      "description": "x定义——定义x=a₁+...+a_{n-1}（除最大元aₙ外所有元素之和）",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "证明的关键变量定义，x作为子问题和、aₙ作为被排除的最大元，两个实体的角色在此段确立"
+    },
+    {
+      "id": "ce_V10_46",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段2",
+        "段16"
+      ],
+      "description": "x作为子问题和——x在定义(段2)和Case2归纳应用(段16)中扮演子问题和角色",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "x作为子问题和是Case2归纳的关键——子问题a₁,...,a_{n-1}的和恰为x∉M'"
+    },
+    {
+      "id": "ce_V10_47",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段2",
+        "段11",
+        "段12",
+        "段18",
+        "段19"
+      ],
+      "description": "所有aₙ放最后段——x定义中排除aₙ(段2)、Case1归纳排除aₙ(段11)、Case1排列aₙ最后(段12)、Case2排列aₙ最后(段18)、Case2验证aₙ最后(段19)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "aₙ放最后是跨Case1和Case2的统一排列扩展模式，aₙ的最大性使其放最后时前缀和最大"
+    },
+    {
+      "id": "ce_V10_48",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段2",
+        "段9",
+        "段21"
+      ],
+      "description": "跨Case定义变量——x定义(段2)、t和M'定义(段9)、z和M'定义(段21)",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "三个Case都通过定义新变量来推进证明，变量定义是构造子问题的第一步"
+    },
+    {
+      "id": "ce_V10_49",
+      "type": "local",
+      "level": "L1",
+      "segments": [
+        "段1"
+      ],
+      "description": "WLOG排序——通过施加置换把a排序为a₁<a₂<...<aₙ",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "证明的开口步骤，WLOG归约把一般情形化为有序情形"
+    },
+    {
+      "id": "ce_V10_50",
+      "type": "local",
+      "level": "L2",
+      "segments": [
+        "段1",
+        "段25"
+      ],
+      "description": "WLOG开口-收口——段1排序归约(开口)和段25排序复合(收口)形成WLOG的完整结构",
+      "generalizable": true,
+      "is_ai_advantage": false,
+      "reason": "WLOG归约的开口和收口共享'排序'特征，形成证明的外层结构括号"
+    },
+    {
+      "id": "trace_CEM1",
+      "type": "cross_element_meta_pattern",
+      "level": "L3",
+      "segments": [
+        "段2",
+        "段4",
+        "段5",
+        "段6",
+        "段7",
+        "段9",
+        "段14",
+        "段15",
+        "段16",
+        "段19",
+        "段20"
+      ],
+      "description": "x的结构骨架角色——x同时扮演分类标准(段4,5,14,20)、缩减边界(段6,9,14,15,19)、子问题和(段2,16)三重角色，是连接所有Case的结构骨架",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "x的三重角色分散在ce_V10_42(分类标准)、ce_V10_37(缩减边界)、ce_V10_46(子问题和)三个闭元素中，没有单一闭元素能捕获x的多功能角色。但x的多功能性是本证明的核心结构特征——x既是Case划分的依据，又是M'截断的边界，还是Case2归纳子问题的和。这个元模式的泛化价值在于：在强归纳证明中，'选择一个关键量使其同时服务于情况划分、子问题构造和归纳目标'是一种通用的证明设计策略。"
+    },
+    {
+      "id": "trace_CEM2",
+      "type": "cross_element_meta_pattern",
+      "level": "L3",
+      "segments": [
+        "段2",
+        "段11",
+        "段12",
+        "段18",
+        "段19",
+        "段23"
+      ],
+      "description": "aₙ的最大性驱动的双重角色——aₙ的最大性使其同时扮演'放最后扩展排列'(段2,11,12,18,19)和'跳过障碍'(段12,23)两个角色",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "aₙ的两个角色分散在ce_V10_47(放最后)和ce_V10_19(跳过障碍)两个闭元素中，没有单一闭元素能捕获'aₙ的最大性是其双重角色的共同前提'这个语义。aₙ放最后时前缀和最大（不会命中M中更大的元素），aₙ跳过障碍时其最大性保证aₙ>a_{p'(k)}从而跳过z。这个元模式的泛化价值在于：'利用最大元的极端性质同时服务于排列扩展和障碍跳过'是一种通用的构造性证明技巧。V10的comparison.json中已指出V10缺少'实体aₙ:最大性'特征——这个跨闭元素元模式正是V10特征遗漏的语义层面补充。"
+    },
+    {
+      "id": "trace_CEM3",
+      "type": "cross_element_meta_pattern",
+      "level": "L3",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段13",
+        "段15",
+        "段16",
+        "段17",
+        "段19",
+        "段21",
+        "段22"
+      ],
+      "description": "M'的统一缩减功能——M'在三个Case中用不同方式构造（Case1: M∩(-∞,t]、Case2: M∩(-∞,x]、Case3: M\\{z}），但都服务于'缩减M使归纳适用'的统一功能",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "M'的构造方式分散在ce_V10_30(三Case M'构造)中，M'的使用分散在ce_V10_33(所有M'使用段)中，但'不同构造方式服务于统一功能'这个语义没有单一闭元素能捕获。Case1截断到t（基于good index r）、Case2截断到x（基于x∉M）、Case3剥离z（基于z=max(M)），三种构造方式各异但目标统一：让|M'|≤n-2使归纳适用。这个元模式的泛化价值在于：'同一功能可以有多种构造实现，选择哪种取决于Case的具体条件'是一种通用的Case分析设计策略。"
+    },
+    {
+      "id": "trace_CEM4",
+      "type": "cross_element_meta_pattern",
+      "level": "L3",
+      "segments": [
+        "段5",
+        "段9",
+        "段11",
+        "段12",
+        "段13",
+        "段14",
+        "段15",
+        "段16",
+        "段18",
+        "段19",
+        "段20",
+        "段21",
+        "段22",
+        "段23",
+        "段24"
+      ],
+      "description": "Case结构的平行性——三个Case都有'条件→M'构造→归纳应用→排列构造→验证'的平行五步结构",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case结构的平行性分散在五组闭元素中：条件(ce_V10_40)、M'构造(ce_V10_30)、归纳应用(ce_V10_24)、排列构造(ce_V10_21)、验证(ce_V10_17)。没有单一闭元素能捕获'三个Case的平行五步结构'这个全局模式。这个元模式的泛化价值在于：'在Case分析证明中，让每个Case遵循统一的步骤结构'是一种通用的证明组织策略，使证明可读、可验证。"
+    },
+    {
+      "id": "trace_CEM5",
+      "type": "cross_element_meta_pattern",
+      "level": "L3",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段15",
+        "段16",
+        "段21",
+        "段22"
+      ],
+      "description": "归纳子问题构造模式——每个Case都通过'缩减元素集+缩减M'构造子问题，然后应用强归纳",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "子问题构造分散在ce_V10_30(M'构造)、ce_V10_24(归纳应用)中，但'缩减元素集+缩减M'的联合构造模式没有单一闭元素能捕获。Case1缩减元素集(去掉aᵣ和aₙ)+缩减M(M∩(-∞,t])、Case2缩减元素集(去掉aₙ)+缩减M(M∩(-∞,x])、Case3不缩减元素集(只去掉aₙ)+缩减M(M\\{z})。这个元模式的泛化价值在于：'强归纳证明的核心是构造满足归纳条件的子问题，子问题=缩减的元素集+缩减的M'是一种通用的强归纳证明模式。"
+    },
+    {
+      "id": "trace_CEM6",
+      "type": "cross_element_meta_pattern",
+      "level": "L2",
+      "segments": [
+        "段12",
+        "段23"
+      ],
+      "description": "swap的机械操作与跳过障碍的语义目的统一——swap技巧(段12,23)是机械操作，跳过障碍(段12,23)是语义目的，两者在ce_V10_19中并列但'操作服务于目的'的语义关系没有闭元素捕获",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "ce_V10_19的intent同时包含swap技巧和实体aₙ:跳过障碍，但FCA只能表达'两者共存'不能表达'前者服务于后者'的语义关系。swap是操作层面的描述（交换两个位置），跳过障碍是语义层面的描述（aₙ跳过M中的元素）。这个元模式的泛化价值在于：'构造性证明中，机械操作和语义目的的区分'有助于理解证明的为什么——不是为了swap而swap，而是为了跳过障碍而swap。"
+    },
+    {
+      "id": "trace_CEM7",
+      "type": "cross_element_meta_pattern",
+      "level": "L2",
+      "segments": [
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13"
+      ],
+      "description": "good index r的完整使用链——r从计数论证获得(段8)，用于定义t(段9)，从子问题排除(段11)，放入排列(段12)，验证中和避M(段13)",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "r的使用链分散在ce_V10_34(鸽巢得r)、ce_V10_27(定义t=x-aᵣ)、ce_V10_22(从子问题排除aᵣ)、ce_V10_18(放入排列)、ce_V10_14(验证)中，没有单一闭元素能捕获r的完整生命周期。V10的key_entities列出了r但特征中未跟踪（comparison.json已指出此遗漏）。这个元模式的泛化价值在于：'存在性论证的产物（good index r）如何在后续步骤中被使用'是一种通用的存在性论证使用模式——存在性论证不是终点，而是构造的起点。"
+    },
+    {
+      "id": "trace_NL1",
+      "type": "nonlocal",
+      "level": "L3",
+      "segments": [
+        "段6",
+        "段7",
+        "段8"
+      ],
+      "description": "bad index存在性论证链——定义bad index(段6)→构造注入映射(段7)→鸽巢论证得good index r(段8)，三段构成完整的存在性论证",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "这是一个完整的存在性论证链：定义反面量(bad index)→证明反面量有界(注入映射+鸽巢)→得正面量存在(good index r)。这个模式的泛化价值在于：'通过定义反面量并证明其有界来获得正面量的存在性'是一种通用的存在性论证策略。"
+    },
+    {
+      "id": "trace_NL2",
+      "type": "nonlocal",
+      "level": "L3",
+      "segments": [
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13"
+      ],
+      "description": "good index r的完整使用链——r从鸽巢论证获得(段8)→用于定义t=x-aᵣ(段9)→从子问题中排除(段11)→放入排列(段12)→验证中和=s-aₙ避M(段13)",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "r的使用链展示了存在性论证的产物如何在后续构造中被使用：r不仅是'存在'的结论，而是构造的起点——r的选择决定了M'的截断点t、子问题的元素集、排列的结构、验证的依据。这个模式的泛化价值在于：'存在性论证的产物是构造的输入'。"
+    },
+    {
+      "id": "trace_NL3",
+      "type": "nonlocal",
+      "level": "L2",
+      "segments": [
+        "段1",
+        "段25"
+      ],
+      "description": "WLOG开口-收口呼应——段1(WLOG排序归约)和段25(排序复合收口)形成证明的外层结构括号",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "段1把一般情形归约到排序情形，段25把排序情形的结果推广回一般情形。这种'开口-收口'结构是WLOG归约的标准模式。泛化价值在于：'WLOG归约必须有开口和收口的配对'。"
+    },
+    {
+      "id": "trace_NL4",
+      "type": "nonlocal",
+      "level": "L3",
+      "segments": [
+        "段6",
+        "段7",
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13",
+        "段23"
+      ],
+      "description": "Case1的预防性避障 vs Case3的修复性避障——Case1通过good index r预防命中M(段6-13)，Case3通过swap修复命中z(段23)，两种避障策略形成对比",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case1的避障是预防性的——在选择r时就确保x-aᵣ和s-aᵣ都不在M中，从源头避免命中。Case3的避障是修复性的——先让归纳跑完，如果命中了z再用swap修复。两种策略的对比展示了'预防vs修复'的证明设计选择。泛化价值在于：'避障可以在构造前预防（选择参数时避开）或在构造后修复（调整排列时跳过）'。"
+    },
+    {
+      "id": "trace_NL5",
+      "type": "nonlocal",
+      "level": "L2",
+      "segments": [
+        "段9",
+        "段11"
+      ],
+      "description": "Case1的子问题双重缩减——段9(M'缩减:M∩(-∞,t])和段11(元素集缩减:去掉aᵣ和aₙ)联合构成Case1独特的双重缩减",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case1同时缩减了M(构造M')和元素集(去掉aᵣ和aₙ两个元素)，是三个Case中唯一做双重缩减的。Case2只缩减M(元素集只去掉aₙ)，Case3只缩减M(元素集只去掉aₙ)。Case1的双重缩减是因为它的条件最复杂(x∈M且∃y>x)，需要更激进的缩减才能满足归纳条件。泛化价值在于：'当Case条件更复杂时，需要更激进的子问题缩减'。"
+    },
+    {
+      "id": "trace_NL6",
+      "type": "nonlocal",
+      "level": "L2",
+      "segments": [
+        "段6",
+        "段7",
+        "段8",
+        "段13",
+        "段19"
+      ],
+      "description": "s=a₁+...+aₙ的跨段使用链——s在bad index定义(段6:s-aᵢ∈M)、注入映射(段7:s-aᵢ>x)、鸽巢论证(段8)、Case1验证(段13:s-aₙ避M和s∉M)、Case2验证(段19:s∉M)中使用",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "s作为总和贯穿Case1的bad index论证和两个Case的验证。s的双重角色——既是bad index定义中的判定量(s-aᵢ)，又是验证中的终点量(s∉M)——展示了总量在证明中的多功能性。V10未把s作为实体跟踪（comparison.json已指出此遗漏），这个nonlocal trace补充了s的使用链。"
+    },
+    {
+      "id": "trace_NL7",
+      "type": "nonlocal",
+      "level": "L3",
+      "segments": [
+        "段2",
+        "段4",
+        "段5",
+        "段6",
+        "段9",
+        "段13",
+        "段14",
+        "段15",
+        "段19",
+        "段20"
+      ],
+      "description": "x的角色演化链——x从定义(段2)→分类标准(段4)→Case条件依据(段5,14,20)→bad index基准(段6)→M'缩减边界(段9,15)→验证依据(段13,19)",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "x在证明中扮演了至少6种角色，且角色按证明推进有序演化：先定义，再作为分类标准划分Case，再在Case1中作为bad index的基准，再作为M'的缩减边界，最后在验证中作为前缀和的上界。这种'一个量从定义到分类到构造到验证的角色演化'是复杂数学证明的典型特征。"
+    },
+    {
+      "id": "trace_NL8",
+      "type": "nonlocal",
+      "level": "L2",
+      "segments": [
+        "段23",
+        "段24"
+      ],
+      "description": "Case3的分支决策——段23(swap分支:前缀和命中z时用aₙ跳过)和段24(无hit分支:前缀和未命中z时p'已避开M)，Case3内部的条件分支",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case3根据'p'的前缀和是否命中z'分两个分支处理：命中则swap修复，未命中则无需调整。这种'构造后检测+条件分支'是修复性避障的标准模式。泛化价值在于：'当预防性避障不可行时，可以构造后检测并分支处理'。"
+    },
+    {
+      "id": "trace_NL9",
+      "type": "nonlocal",
+      "level": "L2",
+      "segments": [
+        "段14",
+        "段15",
+        "段16",
+        "段17",
+        "段18",
+        "段19"
+      ],
+      "description": "Case2的简洁性对比——Case2(段14-19)不需要bad index论证(段6-8)、不需要swap(段12,23)、不需要分支处理(段23,24)，是三个Case中最简洁的",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case2的简洁性来自其条件x∉M——x不在M中意味着M'的截断点x不会命中M，归纳可以直接跑，aₙ放最后扩展即可。与Case1(需要bad index论证)和Case3(需要swap修复)形成复杂度对比。泛化价值在于：'Case条件的复杂度决定了Case证明的复杂度——条件越宽松，证明越简洁'。"
+    },
+    {
+      "id": "trace_NL10",
+      "type": "nonlocal",
+      "level": "L3",
+      "segments": [
+        "段2",
+        "段11",
+        "段12",
+        "段18",
+        "段19",
+        "段23"
+      ],
+      "description": "aₙ的贯穿链——aₙ从定义最大性(段2)→Case1排除(段11)→Case1放最后/跳过(段12)→Case2放最后(段18)→Case2验证(段19)→Case3跳过z(段23)",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "aₙ贯穿定义和三个Case的构造验证，其最大性是所有这些角色的前提。aₙ在Case1和Case2中放最后扩展排列，在Case1和Case3中跳过障碍——两种角色都依赖aₙ的最大性。泛化价值在于：'最大元的极端性质可以同时服务于排列扩展和障碍跳过'。"
+    },
+    {
+      "id": "trace_NL11",
+      "type": "nonlocal",
+      "level": "L2",
+      "segments": [
+        "段10",
+        "段11"
+      ],
+      "description": "Case1的基数估计→归纳条件验证链——段10估计|M'|≤n-3，确保子问题(段11)满足归纳条件(n-2个元素，|M'|≤n-3≤n-3=n-2-1)",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "基数估计不是孤立的计算，而是归纳应用的前提——必须先验证|M'|≤n-2才能应用归纳假设。这种'估计→验证条件→应用归纳'的链式结构是强归纳证明的标准模式。"
+    },
+    {
+      "id": "trace_CCM1",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "description": "三Case条件识别合并——Case1(段5:x∈M且∃y>x)、Case2(段14:x∉M且∃y>x)、Case3(段20:所有m≤x)都以x相对M的位置为条件",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case的条件识别本质相同——都是判断x相对M的位置关系。合并视角下，这三个段是'同一决策点(x相对M的位置)的三个分支'。"
+    },
+    {
+      "id": "trace_CCM2",
+      "type": "cross_case_merge",
+      "level": "L3",
+      "segments": [
+        "段9",
+        "段15",
+        "段21"
+      ],
+      "description": "三Case M'缩减构造合并——Case1(段9:M∩(-∞,t])、Case2(段15:M∩(-∞,x])、Case3(段21:M\\{z})都以不同方式缩减M",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case的M'构造方式不同（截断到t、截断到x、剥离z），但本质相同——都是缩减M使|M'|≤n-2满足归纳条件。合并视角下，这三个段展示了'同一目标(缩减M)的多种实现方式'。"
+    },
+    {
+      "id": "trace_CCM3",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "description": "三Case归纳应用合并——Case1(段11:对n-2个元素及M')、Case2(段16:对a₁,...,a_{n-1}及M')、Case3(段22:对a₁,...,a_{n-1}及M')都应用归纳假设",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case的归纳应用本质相同——都是对缩减后的子问题(缩减的元素集+缩减的M)应用强归纳。合并视角下，这三个段是'强归纳框架的三个实例化'。"
+    },
+    {
+      "id": "trace_CCM4",
+      "type": "cross_case_merge",
+      "level": "L3",
+      "segments": [
+        "段12",
+        "段18",
+        "段23"
+      ],
+      "description": "三Case排列构造合并——Case1(段12:p'+aᵣ+aₙ with swap)、Case2(段18:p'+aₙ)、Case3(段23:swap aₙ到命中z的位置)都构造完整排列",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case的排列构造方式不同（Case1和Case3用swap，Case2直接放最后），但本质相同——都是把归纳得到的p'扩展为完整排列。合并视角下，这三个段展示了'排列扩展的多种方式'。"
+    },
+    {
+      "id": "trace_CCM5",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段13",
+        "段19",
+        "段24"
+      ],
+      "description": "三Case验证合并——Case1(段13:前缀和≤t避M'+s-aₙ避M+s∉M)、Case2(段19:前缀和≤x避M'+s∉M)、Case3(段24:p'已避M'∪{z})都验证构造正确性",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case的验证本质相同——都验证前缀和避开M'且终点s∉M。Case1的验证最复杂(三层)，Case2次之(两层)，Case3最简洁(自动成立)。合并视角下，这三个段是'前缀和验证模式的三种复杂度实例'。"
+    },
+    {
+      "id": "trace_CCM6",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段10",
+        "段14"
+      ],
+      "description": "Case1&2基数估计合并——Case1(段10:|M'|≤n-3)和Case2(段14:|M∩(-∞,x]|≤n-2)都做基数估计确保子问题满足归纳条件",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case1和Case2都需要基数估计来验证子问题满足归纳条件，Case3不需要(因为|M'|=n-2直接由构造保证)。合并视角下，这两个段是'归纳条件验证'的实例。"
+    },
+    {
+      "id": "trace_CCM7",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段17",
+        "段24"
+      ],
+      "description": "Case2&3退化情况合并——Case2(段17:M'为空用恒等排列)和Case3(段24:无前缀和命中z则p'已避M)都是退化处理",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "两个Case的退化处理本质相同——当不需要构造性调整时，证明已自动完成。合并视角下，这两个段是'退化情况自动成立'的实例。"
+    },
+    {
+      "id": "trace_CCM8",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段12",
+        "段18"
+      ],
+      "description": "Case1&2 aₙ放最后扩展合并——Case1(段12:aₙ放倒数第二)和Case2(段18:aₙ放最后)都把aₙ放在排列末尾扩展",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case1和Case2都用aₙ放最后来扩展排列，区别在于Case1还用了swap调整aₙ到倒数第二位。合并视角下，这两个段是'aₙ放最后扩展排列'的实例。"
+    },
+    {
+      "id": "trace_CCM9",
+      "type": "cross_case_merge",
+      "level": "L3",
+      "segments": [
+        "段12",
+        "段23"
+      ],
+      "description": "Case1&3 swap技巧合并——Case1(段12:swap把aₙ放到倒数第二)和Case3(段23:swap把aₙ放到命中z的位置)都用swap重新定位aₙ",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "Case1和Case3都用swap重新定位aₙ，但目的不同——Case1是为了让aᵣ在aₙ前(使中间和=s-aₙ)，Case3是为了让aₙ跳过z。合并视角下，这两个段展示了'swap重新定位aₙ'的两种目的。"
+    },
+    {
+      "id": "trace_CCM10",
+      "type": "cross_case_merge",
+      "level": "L2",
+      "segments": [
+        "段13",
+        "段19",
+        "段23",
+        "段24"
+      ],
+      "description": "三Case前缀和验证合并——Case1(段13)、Case2(段19)、Case3(段23,24)都以前缀和分析验证构造正确性",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "前缀和验证是三个Case统一的验证方法——都验证蚱蜢的跳跃路径(前缀和)避开M中的点。合并视角下，这四个段是'前缀和验证范式'的实例。"
+    },
+    {
+      "id": "trace_G1",
+      "type": "global",
+      "level": "L2",
+      "segments": [
+        "段3",
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "description": "强归纳统一框架——段3声明强归纳，段11/16/22在三个Case中分别应用，强归纳是连接整个证明的推理引擎",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "强归纳是证明的结构骨架——所有Case的证明都归结为'对缩减后的子问题应用强归纳'。没有强归纳，三个Case的证明都无法成立。强归纳的'对n归纳'意味着子问题的规模必须小于n，这驱动了每个Case的元素集缩减和M缩减。"
+    },
+    {
+      "id": "trace_G2",
+      "type": "global",
+      "level": "L3",
+      "segments": [
+        "段2",
+        "段4",
+        "段5",
+        "段6",
+        "段9",
+        "段13",
+        "段14",
+        "段15",
+        "段16",
+        "段19",
+        "段20"
+      ],
+      "description": "x作为核心枢纽量贯穿全证明——x在段2定义，在段4作为分类标准，在段5/14/20作为Case条件依据，在段6/9/14/15作为缩减边界，在段16作为子问题和，在段13/19作为验证依据",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "x贯穿了25个段中的11个段(44%)，是证明中覆盖面最广的量。x的多重角色(分类标准/缩减边界/子问题和/验证依据)使它成为证明的结构枢纽——x的定义决定了Case划分，x的值决定了M'的截断，x作为子问题和保证了Case2的归纳条件。这个global trace捕捉了'选择一个关键量使其同时服务于分类、构造和验证'的证明设计策略。"
+    },
+    {
+      "id": "trace_G3",
+      "type": "global",
+      "level": "L2",
+      "segments": [
+        "段1",
+        "段25"
+      ],
+      "description": "WLOG归约框架——段1(WLOG排序开口)和段25(排序复合收口)构成证明的外层结构",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "WLOG归约是证明的最外层结构——先把一般情形归约到排序情形(段1)，在排序情形中完成证明(段2-24)，再把结果推广回一般情形(段25)。这种'开口-证明-收口'的三段结构是WLOG归约的标准模式。虽然只涉及2个段，但它是证明的框架性决策。"
+    },
+    {
+      "id": "trace_G4",
+      "type": "global",
+      "level": "L3",
+      "segments": [
+        "段9",
+        "段11",
+        "段15",
+        "段16",
+        "段21",
+        "段22"
+      ],
+      "description": "三Case统一归纳模式(M'缩减+强归纳应用)——每个Case都遵循'缩减M构造M'→对缩减子问题应用强归纳'的统一模式",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case的证明核心都是'缩减M→应用归纳'，这个统一模式是证明的推理骨架。每个Case的M'构造方式不同(截断到t/截断到x/剥离z)，但目标统一：让|M'|≤n-2使归纳适用。这个global trace和cross_case_merge的CCM2/CCM3有重叠，但global视角强调的是'这个模式是证明的结构骨架'而非'这些段是相同操作'。"
+    },
+    {
+      "id": "trace_G5",
+      "type": "global",
+      "level": "L2",
+      "segments": [
+        "段13",
+        "段19",
+        "段23",
+        "段24"
+      ],
+      "description": "三Case统一验证模式(前缀和避开M)——每个Case都以前缀和验证收尾，验证蚱蜢的跳跃路径避开M",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "前缀和验证是三个Case统一的验证范式——都验证构造的排列的前缀和(蚱蜢的落点)避开M中的点。这个global trace和cross_case_merge的CCM10有重叠，但global视角强调的是'前缀和验证是证明的统一收尾范式'而非'这些段是相同操作'。"
+    },
+    {
+      "id": "trace_G6",
+      "type": "global",
+      "level": "L3",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段13",
+        "段15",
+        "段16",
+        "段17",
+        "段19",
+        "段21",
+        "段22"
+      ],
+      "description": "M'作为跨Case的归纳子问题M贯穿全证明——M'在段9/10/11/13/15/16/17/19/21/22中使用，贯穿10个段(40%)",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "M'是证明中覆盖面第二广的实体(10个段,40%)，是连接三个Case的核心变量。M'的统一角色是'缩减的M使归纳适用'——每个Case用不同方式构造M'，但M'在后续步骤(归纳应用、验证)中的使用方式统一。这个global trace捕捉了'M'是强归纳证明中连接Case分析和归纳应用的桥梁'。"
+    },
+    {
+      "id": "trace_G7",
+      "type": "global",
+      "level": "L2",
+      "segments": [
+        "段4",
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "description": "情况划分以x为标准——段4(情况划分框架)以x相对M的位置为标准，段5/14/20(三Case条件)是这个标准的三分支",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "x相对M的位置(x∈M或x∉M或所有m≤x)决定了Case的划分，这是证明的全局结构决策。情况划分的完备性(三个Case覆盖所有可能性)是证明正确性的基础。这个global trace和trace_G2有重叠，但G2强调x的多重角色，G7强调x作为分类标准的框架性决策。"
+    },
+    {
+      "id": "trace_G8",
+      "type": "global",
+      "level": "L2",
+      "segments": [
+        "段12",
+        "段13",
+        "段18",
+        "段19",
+        "段22",
+        "段23",
+        "段24"
+      ],
+      "description": "构造-验证的统一节奏——每个Case都遵循'构造排列→验证排列'的统一节奏，证明在构造和验证的交替中推进",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "三个Case都遵循'先构造排列，再验证排列'的统一节奏。这种'构造-验证'的配对是构造性证明的标准模式——构造给出排列，验证证明排列的正确性。这个global trace捕捉了证明的节奏性结构。"
+    },
+    {
+      "id": "mrt_1",
+      "type": "meta_reflection",
+      "level": "L3",
+      "segments": [
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "description": "Case条件的递进结构——Case1(x∈M,x是障碍)→Case2(x∉M但∃y>x,x安全但远方有障碍)→Case3(所有m≤x,所有障碍在x这边)，三个Case的条件按'x相对M的障碍位置'递进，证明策略复杂度随之递减",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "前面的系统化步骤把三个Case条件作为cross_case_merge(CCM1)和global(G7)识别——都是'以x为分类标准'。但没有识别出三个Case条件之间的递进关系：Case1中x本身是障碍(最危险)，Case2中x安全但存在更远的障碍(中等)，Case3中所有障碍都在x这边(最可控)。这种递进决定了证明策略的复杂度递减——Case1需要bad index论证(最复杂)，Case2直接归纳扩展(中等)，Case3只需swap修复(最简洁)。这个递进结构的泛化价值在于：'Case条件的危险程度决定证明策略的复杂度'。"
+    },
+    {
+      "id": "mrt_2",
+      "type": "meta_reflection",
+      "level": "L3",
+      "segments": [
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13",
+        "段23"
+      ],
+      "description": "'跳过'机制的统一语义——Case1的r选择使前缀和从≤t跳到s-aₙ(跳过x)和Case3的swap使aₙ跳过z，两种避障策略在语义层面统一为'跳过M中的障碍点'",
+      "generalizable": true,
+      "is_ai_advantage": true,
+      "reason": "前面的trace_NL4捕捉了'预防vs修复'的策略对比，trace_CEM2捕捉了aₙ的双重角色，但没有识别出两种避障策略在语义层面的统一性——都是'让蚱蜢的跳跃跳过M中的障碍点'。Case1通过选择r使前缀和从≤t直接跳到s-aₙ(跳过x和M∩(t,x])，Case3通过swap使aₙ替换a_{p'(k)}跳过z。实现方式不同(选择参数 vs 交换位置)，但语义目的统一(跳过障碍)。这个同构异构模式的泛化价值在于：'避障可以有多种实现方式，但语义目的是统一的——控制前缀和使其跳过M中的点'。"
+    }
+  ],
+  "ai_advantage_elements": [
+    {
+      "id": "adv_trace_CEM1",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "x的结构骨架角色——x同时扮演分类标准(段4,5,14,20)、缩减边界(段6,9,14,15,19)、子问题和(段2,16)三重角色，是连接所有Case的结构骨架",
+      "segments": [
+        "段2",
+        "段4",
+        "段5",
+        "段6",
+        "段7",
+        "段9",
+        "段14",
+        "段15",
+        "段16",
+        "段19",
+        "段20"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。x的三重角色分散在ce_V10_42(分类标准)、ce_V10_37(缩减边界)、ce_V10_46(子问题和)三个闭元素中，没有单一闭元素能捕获x的多功能角色。但x的多功能性是本证明的核心结构特征—..."
+    },
+    {
+      "id": "adv_trace_CEM2",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "aₙ的最大性驱动的双重角色——aₙ的最大性使其同时扮演'放最后扩展排列'(段2,11,12,18,19)和'跳过障碍'(段12,23)两个角色",
+      "segments": [
+        "段2",
+        "段11",
+        "段12",
+        "段18",
+        "段19",
+        "段23"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。aₙ的两个角色分散在ce_V10_47(放最后)和ce_V10_19(跳过障碍)两个闭元素中，没有单一闭元素能捕获'aₙ的最大性是其双重角色的共同前提'这个语义。aₙ放最后时前缀和最大（不会命中M中更..."
+    },
+    {
+      "id": "adv_trace_CEM3",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "M'的统一缩减功能——M'在三个Case中用不同方式构造（Case1: M∩(-∞,t]、Case2: M∩(-∞,x]、Case3: M\\{z}），但都服务于'缩减M使归纳适用'的统一功能",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段13",
+        "段15",
+        "段16",
+        "段17",
+        "段19",
+        "段21",
+        "段22"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。M'的构造方式分散在ce_V10_30(三Case M'构造)中，M'的使用分散在ce_V10_33(所有M'使用段)中，但'不同构造方式服务于统一功能'这个语义没有单一闭元素能捕获。Case1截断到..."
+    },
+    {
+      "id": "adv_trace_CEM4",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "Case结构的平行性——三个Case都有'条件→M'构造→归纳应用→排列构造→验证'的平行五步结构",
+      "segments": [
+        "段5",
+        "段9",
+        "段11",
+        "段12",
+        "段13",
+        "段14",
+        "段15",
+        "段16",
+        "段18",
+        "段19",
+        "段20",
+        "段21",
+        "段22",
+        "段23",
+        "段24"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。Case结构的平行性分散在五组闭元素中：条件(ce_V10_40)、M'构造(ce_V10_30)、归纳应用(ce_V10_24)、排列构造(ce_V10_21)、验证(ce_V10_17)。没有单一..."
+    },
+    {
+      "id": "adv_trace_CEM5",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "归纳子问题构造模式——每个Case都通过'缩减元素集+缩减M'构造子问题，然后应用强归纳",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段15",
+        "段16",
+        "段21",
+        "段22"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。子问题构造分散在ce_V10_30(M'构造)、ce_V10_24(归纳应用)中，但'缩减元素集+缩减M'的联合构造模式没有单一闭元素能捕获。Case1缩减元素集(去掉aᵣ和aₙ)+缩减M(M∩(-∞..."
+    },
+    {
+      "id": "adv_trace_CEM6",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "swap的机械操作与跳过障碍的语义目的统一——swap技巧(段12,23)是机械操作，跳过障碍(段12,23)是语义目的，两者在ce_V10_19中并列但'操作服务于目的'的语义关系没有闭元素捕获",
+      "segments": [
+        "段12",
+        "段23"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。ce_V10_19的intent同时包含swap技巧和实体aₙ:跳过障碍，但FCA只能表达'两者共存'不能表达'前者服务于后者'的语义关系。swap是操作层面的描述（交换两个位置），跳过障碍是语义层面..."
+    },
+    {
+      "id": "adv_trace_CEM7",
+      "advantage_type": "cross_element_meta_pattern",
+      "description": "good index r的完整使用链——r从计数论证获得(段8)，用于定义t(段9)，从子问题排除(段11)，放入排列(段12)，验证中和避M(段13)",
+      "segments": [
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13"
+      ],
+      "reason": "FCA能枚举出涉及这些段的所有闭元素，但无法识别跨闭元素的语义统一性。r的使用链分散在ce_V10_34(鸽巢得r)、ce_V10_27(定义t=x-aᵣ)、ce_V10_22(从子问题排除aᵣ)、ce_V10_18(放入排列)、ce_V10_14(验证)中，没有单一闭..."
+    },
+    {
+      "id": "adv_trace_CCM1",
+      "advantage_type": "cross_case_merge",
+      "description": "三Case条件识别合并——Case1(段5:x∈M且∃y>x)、Case2(段14:x∉M且∃y>x)、Case3(段20:所有m≤x)都以x相对M的位置为条件",
+      "segments": [
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。三个Case的条件识别本质相同——都是判断x相对M的位置关系。合并视角下，这三个段是'同一决策点(x相对M的位置)的三个分支'。..."
+    },
+    {
+      "id": "adv_trace_CCM2",
+      "advantage_type": "cross_case_merge",
+      "description": "三Case M'缩减构造合并——Case1(段9:M∩(-∞,t])、Case2(段15:M∩(-∞,x])、Case3(段21:M\\{z})都以不同方式缩减M",
+      "segments": [
+        "段9",
+        "段15",
+        "段21"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。三个Case的M'构造方式不同（截断到t、截断到x、剥离z），但本质相同——都是缩减M使|M'|≤n-2满足归纳条件。合并视角下，这三个段展示了'同一目标(缩减..."
+    },
+    {
+      "id": "adv_trace_CCM3",
+      "advantage_type": "cross_case_merge",
+      "description": "三Case归纳应用合并——Case1(段11:对n-2个元素及M')、Case2(段16:对a₁,...,a_{n-1}及M')、Case3(段22:对a₁,...,a_{n-1}及M')都应用归纳假设",
+      "segments": [
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。三个Case的归纳应用本质相同——都是对缩减后的子问题(缩减的元素集+缩减的M)应用强归纳。合并视角下，这三个段是'强归纳框架的三个实例化'。..."
+    },
+    {
+      "id": "adv_trace_CCM4",
+      "advantage_type": "cross_case_merge",
+      "description": "三Case排列构造合并——Case1(段12:p'+aᵣ+aₙ with swap)、Case2(段18:p'+aₙ)、Case3(段23:swap aₙ到命中z的位置)都构造完整排列",
+      "segments": [
+        "段12",
+        "段18",
+        "段23"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。三个Case的排列构造方式不同（Case1和Case3用swap，Case2直接放最后），但本质相同——都是把归纳得到的p'扩展为完整排列。合并视角下，这三个段..."
+    },
+    {
+      "id": "adv_trace_CCM5",
+      "advantage_type": "cross_case_merge",
+      "description": "三Case验证合并——Case1(段13:前缀和≤t避M'+s-aₙ避M+s∉M)、Case2(段19:前缀和≤x避M'+s∉M)、Case3(段24:p'已避M'∪{z})都验证构造正确性",
+      "segments": [
+        "段13",
+        "段19",
+        "段24"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。三个Case的验证本质相同——都验证前缀和避开M'且终点s∉M。Case1的验证最复杂(三层)，Case2次之(两层)，Case3最简洁(自动成立)。合并视角下..."
+    },
+    {
+      "id": "adv_trace_CCM6",
+      "advantage_type": "cross_case_merge",
+      "description": "Case1&2基数估计合并——Case1(段10:|M'|≤n-3)和Case2(段14:|M∩(-∞,x]|≤n-2)都做基数估计确保子问题满足归纳条件",
+      "segments": [
+        "段10",
+        "段14"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。Case1和Case2都需要基数估计来验证子问题满足归纳条件，Case3不需要(因为|M'|=n-2直接由构造保证)。合并视角下，这两个段是'归纳条件验证'的实..."
+    },
+    {
+      "id": "adv_trace_CCM7",
+      "advantage_type": "cross_case_merge",
+      "description": "Case2&3退化情况合并——Case2(段17:M'为空用恒等排列)和Case3(段24:无前缀和命中z则p'已避M)都是退化处理",
+      "segments": [
+        "段17",
+        "段24"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。两个Case的退化处理本质相同——当不需要构造性调整时，证明已自动完成。合并视角下，这两个段是'退化情况自动成立'的实例。..."
+    },
+    {
+      "id": "adv_trace_CCM8",
+      "advantage_type": "cross_case_merge",
+      "description": "Case1&2 aₙ放最后扩展合并——Case1(段12:aₙ放倒数第二)和Case2(段18:aₙ放最后)都把aₙ放在排列末尾扩展",
+      "segments": [
+        "段12",
+        "段18"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。Case1和Case2都用aₙ放最后来扩展排列，区别在于Case1还用了swap调整aₙ到倒数第二位。合并视角下，这两个段是'aₙ放最后扩展排列'的实例。..."
+    },
+    {
+      "id": "adv_trace_CCM9",
+      "advantage_type": "cross_case_merge",
+      "description": "Case1&3 swap技巧合并——Case1(段12:swap把aₙ放到倒数第二)和Case3(段23:swap把aₙ放到命中z的位置)都用swap重新定位aₙ",
+      "segments": [
+        "段12",
+        "段23"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。Case1和Case3都用swap重新定位aₙ，但目的不同——Case1是为了让aᵣ在aₙ前(使中间和=s-aₙ)，Case3是为了让aₙ跳过z。合并视角下，这..."
+    },
+    {
+      "id": "adv_trace_CCM10",
+      "advantage_type": "cross_case_merge",
+      "description": "三Case前缀和验证合并——Case1(段13)、Case2(段19)、Case3(段23,24)都以前缀和分析验证构造正确性",
+      "segments": [
+        "段13",
+        "段19",
+        "段23",
+        "段24"
+      ],
+      "reason": "FCA基于特征共现枚举闭元素，但跨Case的非相邻段如果特征标注不完全相同，不会被归入同一闭元素。AI能从段内容识别出本质相同的操作。前缀和验证是三个Case统一的验证方法——都验证蚱蜢的跳跃路径(前缀和)避开M中的点。合并视角下，这四个段是'前缀和验证范式'的实例。..."
+    },
+    {
+      "id": "adv_trace_NL1",
+      "advantage_type": "nonlocal",
+      "description": "bad index存在性论证链——定义bad index(段6)→构造注入映射(段7)→鸽巢论证得good index r(段8)，三段构成完整的存在性论证",
+      "segments": [
+        "段6",
+        "段7",
+        "段8"
+      ],
+      "reason": "这个nonlocal trace从段内容和段间关系出发，不依赖闭元素。这是一个完整的存在性论证链：定义反面量(bad index)→证明反面量有界(注入映射+鸽巢)→得正面量存在(good index r)。这个模式的泛化价值在于..."
+    },
+    {
+      "id": "adv_trace_NL4",
+      "advantage_type": "nonlocal",
+      "description": "Case1的预防性避障 vs Case3的修复性避障——Case1通过good index r预防命中M(段6-13)，Case3通过swap修复命中z(段23)，两种避障策略形成对比",
+      "segments": [
+        "段6",
+        "段7",
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13",
+        "段23"
+      ],
+      "reason": "这个nonlocal trace从段内容和段间关系出发，不依赖闭元素。Case1的避障是预防性的——在选择r时就确保x-aᵣ和s-aᵣ都不在M中，从源头避免命中。Case3的避障是修复性的——先让归纳跑完，如果命中了z再用swap..."
+    },
+    {
+      "id": "adv_trace_NL7",
+      "advantage_type": "nonlocal",
+      "description": "x的角色演化链——x从定义(段2)→分类标准(段4)→Case条件依据(段5,14,20)→bad index基准(段6)→M'缩减边界(段9,15)→验证依据(段13,19)",
+      "segments": [
+        "段2",
+        "段4",
+        "段5",
+        "段6",
+        "段9",
+        "段13",
+        "段14",
+        "段15",
+        "段19",
+        "段20"
+      ],
+      "reason": "这个nonlocal trace从段内容和段间关系出发，不依赖闭元素。x在证明中扮演了至少6种角色，且角色按证明推进有序演化：先定义，再作为分类标准划分Case，再在Case1中作为bad index的基准，再作为M'的缩减边界，..."
+    }
+  ],
+  "key_entities": [
+    {
+      "name": "x",
+      "type": "变量",
+      "segments": [
+        "段2",
+        "段4",
+        "段5",
+        "段6",
+        "段9",
+        "段13",
+        "段14",
+        "段15",
+        "段16",
+        "段19",
+        "段20"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "x的结构骨架角色——同时扮演分类标准(段4,5,14,20)、缩减边界(段6,9,14,15,19)、子问题和(段2,16)三重角色，是连接所有Case的结构枢纽"
+    },
+    {
+      "name": "aₙ (最大元素)",
+      "type": "变量",
+      "segments": [
+        "段2",
+        "段11",
+        "段12",
+        "段18",
+        "段19",
+        "段23"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "aₙ的最大性驱动的双重角色——放最后扩展排列(段2,11,12,18,19)和跳过障碍(段12,23)，两种角色都依赖aₙ的最大性"
+    },
+    {
+      "name": "s = a₁+...+aₙ",
+      "type": "变量",
+      "segments": [
+        "段6",
+        "段7",
+        "段8",
+        "段13",
+        "段19"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "s的双重角色——bad index定义中的判定量(s-aᵢ∈M)和验证中的终点量(s∉M)，贯穿Case1的bad index论证和两个Case的验证"
+    },
+    {
+      "name": "强归纳",
+      "type": "策略",
+      "segments": [
+        "段3",
+        "段11",
+        "段16",
+        "段22"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "强归纳统一框架——段3声明，段11/16/22在三个Case中实例化，是连接整个证明的推理引擎"
+    },
+    {
+      "name": "bad index",
+      "type": "概念",
+      "segments": [
+        "段6",
+        "段7",
+        "段8"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "bad index存在性论证工具——定义反面量(段6)→注入映射(段7)→鸽巢得good index r(段8)，是Case1独有的存在性论证链"
+    },
+    {
+      "name": "good index r",
+      "type": "变量",
+      "segments": [
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "good index r的完整使用链——从鸽巢论证获得(段8)→定义t(段9)→从子问题排除(段11)→放入排列(段12)→验证依据(段13)，存在性论证的产物成为构造的输入"
+    },
+    {
+      "name": "M' (缩减的M)",
+      "type": "变量",
+      "segments": [
+        "段9",
+        "段10",
+        "段11",
+        "段13",
+        "段15",
+        "段16",
+        "段17",
+        "段19",
+        "段21",
+        "段22"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "M'的统一缩减功能——三个Case用不同方式构造M'(截断到t/截断到x/剥离z)，但都服务于'缩减M使归纳适用'，贯穿10个段(40%)"
+    },
+    {
+      "name": "swap技巧",
+      "type": "技巧",
+      "segments": [
+        "段12",
+        "段23"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "swap的跨Case复用——Case1(段12:swap把aₙ放到倒数第二)和Case3(段23:swap把aₙ放到命中z的位置)，机械操作服务于跳过障碍的语义目的"
+    },
+    {
+      "name": "前缀和验证",
+      "type": "策略",
+      "segments": [
+        "段13",
+        "段19",
+        "段23",
+        "段24"
+      ],
+      "is_meta_pattern": true,
+      "meta_pattern_description": "前缀和验证的跨Case统一范式——三个Case都以前缀和分析验证构造正确性，验证蚱蜢的跳跃路径(前缀和)避开M中的点"
+    },
+    {
+      "name": "t (x-aᵣ)",
+      "type": "变量",
+      "segments": [
+        "段9",
+        "段10",
+        "段13"
+      ],
+      "is_meta_pattern": false,
+      "meta_pattern_description": null
+    },
+    {
+      "name": "z (max M)",
+      "type": "变量",
+      "segments": [
+        "段21",
+        "段23",
+        "段24"
+      ],
+      "is_meta_pattern": false,
+      "meta_pattern_description": null
+    }
+  ],
+  "meta_reflection_traces": [
+    {
+      "id": "mrt_1",
+      "description": "Case条件的递进结构——Case1(x∈M,x是障碍)→Case2(x∉M但∃y>x,x安全但远方有障碍)→Case3(所有m≤x,所有障碍在x这边)，三个Case的条件按'x相对M的障碍位置'递进，证明策略复杂度随之递减",
+      "pattern_type": "递进",
+      "segments": [
+        "段5",
+        "段14",
+        "段20"
+      ],
+      "reason": "前面的系统化步骤把三个Case条件作为cross_case_merge(CCM1)和global(G7)识别——都是'以x为分类标准'。但没有识别出三个Case条件之间的递进关系：Case1中x本身是障碍(最危险)，Case2中x安全但存在更远的障碍(中等)，Case3中所有障碍都在x这边(最可控)。这种递进决定了证明策略的复杂度递减——Case1需要bad index论证(最复杂)，Case2直接归纳扩展(中等)，Case3只需swap修复(最简洁)。这个递进结构的泛化价值在于：'Case条件的危险程度决定证明策略的复杂度'。"
+    },
+    {
+      "id": "mrt_2",
+      "description": "'跳过'机制的统一语义——Case1的r选择使前缀和从≤t跳到s-aₙ(跳过x)和Case3的swap使aₙ跳过z，两种避障策略在语义层面统一为'跳过M中的障碍点'",
+      "pattern_type": "同构异构",
+      "segments": [
+        "段8",
+        "段9",
+        "段11",
+        "段12",
+        "段13",
+        "段23"
+      ],
+      "reason": "前面的trace_NL4捕捉了'预防vs修复'的策略对比，trace_CEM2捕捉了aₙ的双重角色，但没有识别出两种避障策略在语义层面的统一性——都是'让蚱蜢的跳跃跳过M中的障碍点'。Case1通过选择r使前缀和从≤t直接跳到s-aₙ(跳过x和M∩(t,x])，Case3通过swap使aₙ替换a_{p'(k)}跳过z。实现方式不同(选择参数 vs 交换位置)，但语义目的统一(跳过障碍)。这个同构异构模式的泛化价值在于：'避障可以有多种实现方式，但语义目的是统一的——控制前缀和使其跳过M中的点'。"
+    }
+  ],
+  "most_valuable_traces": [
+    "trace_CEM1",
+    "trace_G1",
+    "trace_NL1",
+    "trace_CEM3",
+    "trace_NL4"
+  ],
+  "audit_report": {
+    "trace_completeness": {
+      "all_closed_elements_judged": true,
+      "nonlocal_traces_identified": 11,
+      "cross_element_meta_patterns_identified": 7,
+      "cross_case_merge_traces_identified": 10,
+      "global_traces_identified": 8,
+      "meta_reflection_traces_identified": 2,
+      "total_traces": 88,
+      "notes": "所有52个闭元素都有入选/排除判定(50入选,2排除);11个nonlocal trace从段内容出发识别;7个跨闭元素元模式识别;10个跨Case合并识别;8个global trace识别;2个元反思新trace发现。"
+    },
+    "closed_element_completeness": {
+      "program_enumeration_complete": true,
+      "issues_found": 4,
+      "notes": "程序枚举的闭元素在段集合层面完备，但形式上下文有4个特征标注遗漏(见formal_context_review)，不影响闭元素枚举的完备性但影响语义层面trace的识别。"
+    },
+    "redundancy_check": {
+      "redundant_traces_merged": 0,
+      "notes": "未发现需要合并的冗余trace。不同类型的trace(local/nonlocal/global/cross_case_merge/cross_element_meta_pattern)是5个不同的抽象视角，同一模式从不同视角看得到不同类型的trace，不合并。"
+    },
+    "trace_quality_check": {
+      "traces_too_specific": 0,
+      "traces_too_abstract": 0,
+      "notes": "所有trace的描述都在'具体'和'抽象'之间——具体到可匹配tell，抽象到可泛化。"
+    },
+    "complex_pattern_check": {
+      "nested_structure": false,
+      "cross_domain_construction": false,
+      "contradiction_plus_reduction": false,
+      "construct_analyze_eliminate": false,
+      "explore_diagnose_repair": true,
+      "explore_diagnose_repair_description": "Case3的swap分支(段23)和无hit分支(段24)构成'探索(归纳跑完)→诊断(检测前缀和是否命中z)→修复(swap跳过z)'循环",
+      "auxiliary_function_plus_nonnegativity": false,
+      "modular_analysis_endless_pursuit": false,
+      "segment_dependencies": true,
+      "segment_dependencies_description": "段间有强依赖关系：段8(鸽巢得r)→段9(用r定义t)→段11(用r排除元素)→段12(用r构造排列)→段13(用r验证)，r的使用链构成5段依赖链"
+    }
+  }
+}

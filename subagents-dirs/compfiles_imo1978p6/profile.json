@@ -1,0 +1,265 @@
+{
+  "_key": "compfiles_imo1978p6",
+  "source_id": "compfiles_imo1978p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "An international society has its members from six different countries. The list of members has 1978 names, numbered 1, 2, ..., 1978. Prove that there is at least one member whose number is the sum of the numbers of two (not necessarily distinct) members from his own country.",
+  "solution_text": "Proof by contradiction. Assume no member's number equals the sum of two members from the same country. Define an inductive invariant: a set Cdone of processed countries and a set Delta of names such that (1) for each country y in Cdone, there exists a base member a0 in country y with the property that for every x in Delta, x + a0 is also in country y; (2) the countries of elements in Delta are disjoint from Cdone; (3) |Delta| >= k. Base case: Cdone = empty, Delta = {1,...,1978}, k = 1978. Inductive step: given n countries processed and |Delta| >= k, by pigeonhole among the N-n remaining countries, some country y has at least ceil(k/(N-n)) elements of Delta. Let xmin be the minimum element of Delta in country y. Form new Delta' = {(x - xmin) : x in Delta intersect country_y, x != xmin}, which has size ceil(k/(N-n)) - 1. For each previously processed country with base a0, the shifted element (x-xmin) + (a0+xmin) = x + a0 remains in that country by hypothesis. For the new country y, xmin serves as the base. The countries of Delta' are disjoint from Cdone union {y}. Starting from k=1978, N=6: k(1)=ceil(1978/6)-1=329, k(2)=ceil(329/5)-1=65, k(3)=ceil(65/4)-1=16, k(4)=ceil(16/3)-1=5, k(5)=ceil(5/2)-1=2, k(6)=ceil(2/1)-1=1. After all 6 countries are processed, k=1>0 but Delta must be empty (all countries are in Cdone, so no element can be in Delta) -- contradiction.",
+  "solution_summary": "Proof by contradiction using inductive shifting with iterative pigeonhole. Assume no monochromatic sum triple exists. Process countries one by one, maintaining a shifted set Delta. At each step, pigeonhole finds a country with >= ceil(|Delta|/(remaining)) elements in Delta; shifting by the minimum reduces |Delta| to ceil(|Delta|/(remaining)) - 1. Chain: 1978->329->65->16->5->2->1>0, but after all 6 countries Delta must be empty -- contradiction.",
+  "domain": "combinatorics",
+  "subfield": "ramsey_theory",
+  "answer_type": "proof",
+  "answer": "There exist members i, j, k (with i, k not necessarily distinct) from the same country such that i + k = j, i.e., at least one member's number is the sum of two members' numbers from the same country.",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "inductive_contradiction_with_pigeonhole",
+  "structure_features": [
+    "1978 elements partitioned into 6 groups",
+    "sum-free constraint on each group under contradiction assumption",
+    "iterative reduction via pigeonhole and shifting",
+    "numerical verification of contradiction chain"
+  ],
+  "key_objects": [
+    "partition function C: {1,...,1978} -> {1,...,6}",
+    "sum-free sets (country member sets under contradiction)",
+    "shifted set Delta (inductive invariant)",
+    "minimum element xmin (shift anchor per step)"
+  ],
+  "thinking_patterns": [
+    "proof_by_contradiction",
+    "inductive_construction",
+    "iterative_pigeonhole",
+    "shifting_transformation",
+    "numerical_verification"
+  ],
+  "primary_pattern": "inductive_shifting_with_iterative_pigeonhole",
+  "knowledge_required": [
+    "pigeonhole principle",
+    "sum-free sets",
+    "mathematical induction",
+    "proof by contradiction",
+    "Schur-type Ramsey problems"
+  ],
+  "key_insight": "Instead of applying pigeonhole once on the full set, process countries iteratively: at each step use pigeonhole to find a country with many elements in the current shifted set, then shift by the minimum element to maintain the sum-free property for all processed countries, reducing the set size by a factor of (remaining countries) each time.",
+  "translation_from": "static_pigeonhole_on_fixed_partition",
+  "translation_to": "dynamic_inductive_shifting_with_iterative_pigeonhole",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "sum-free partition",
+    "pigeonhole",
+    "inductive shifting",
+    "iterative reduction",
+    "numerical contradiction"
+  ],
+  "expected_ai_method": "Direct pigeonhole: one country has at least 330 members, try to find sum triple within those 330 numbers, or cite Schur's theorem without constructing the specific inductive argument.",
+  "correct_method": "Inductive shifting with iterative pigeonhole: process countries one by one, shift by minimum element at each step, track size reduction, verify numerical contradiction.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a partition of 1978 numbers into 6 groups and needs to find a sum triple, but doesn't yet recognize the Ramsey-type structure",
+      "hint": "Describe the problem structure: what is given (a partition), what must be proved (existence of a monochromatic sum triple), and what kind of mathematical object is this?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["partition", "sum-free", "monochromatic triple"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but may not identify the inductive shifting path as a candidate",
+      "hint": "List all possible approaches: pigeonhole principle, induction, proof by contradiction, density arguments, Schur's theorem, generating functions. Which seem most promising?",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["pigeonhole", "induction", "sum-free set", "Schur number"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries direct pigeonhole -- largest country has ceil(1978/6) = 330 members -- but cannot find a sum triple within 330 numbers alone",
+      "hint": "Try the simplest pigeonhole: the largest country has at least 330 members. Can you guarantee a sum triple i+k=j within those 330 numbers? What goes wrong?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["pigeonhole", "330", "sum-free", "largest country"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI realizes direct pigeonhole is insufficient and needs to use the no-sum-triple constraint more deeply, but doesn't yet see the contradiction framework",
+      "hint": "Assume for contradiction that no such triple exists. What does this mean for each country's member set? Each set must be sum-free. Now think about what structural constraint this places on the partition.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["sum-free", "contradiction", "constraint", "sum-free set"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI understands the sum-free constraint and contradiction setup, but doesn't see the shifting technique that enables induction",
+      "hint": "Process countries one by one. At each step, remove one country's contribution and shift the remaining elements. If you pick the minimum element xmin in a country's portion of your current set and subtract it from all others, what structure is preserved?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["shifting", "inductive step", "minimum element", "shift anchor"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI sees the shifting idea but needs to formalize the size reduction and the pigeonhole application at each step",
+      "hint": "Formalize the inductive step: by pigeonhole, among N-n remaining countries, some country y has at least ceil(|Delta|/(N-n)) elements in Delta. After shifting by xmin, the new Delta has size ceil(|Delta|/(N-n)) - 1. Track the size reduction.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["ceil division", "size reduction", "pigeonhole", "iterative"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the full inductive structure and needs to verify the numerical computation yields a contradiction",
+      "hint": "Compute the chain: 1978 -> ceil(1978/6)-1=329 -> ceil(329/5)-1=65 -> ceil(65/4)-1=16 -> ceil(16/3)-1=5 -> ceil(5/2)-1=2 -> ceil(2/1)-1=1 > 0. But after all 6 countries, Delta must be empty. Contradiction!",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["numerical verification", "contradiction", "1978", "6 countries", "reduction chain"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The complete reduction chain from 1978 to 1 across all 6 inductive steps",
+      "observation_point": null,
+      "tell": "The full iterative reduction chain 1978->329->65->16->5->2->1>0 is only visible when tracing the complete inductive path through all 6 countries -- no single step reveals the final contradiction",
+      "hint": "Trace the entire computation: starting from 1978 with 6 countries, each step divides by the number of remaining countries (ceiling) and subtracts 1. The chain 1978->329->65->16->5->2->1 shows k remains positive after all countries are processed, contradicting the requirement that Delta be empty.",
+      "hint_level": 0.4,
+      "generalizability": "high -- this iterative reduction pattern applies to any Schur-type partition problem with different parameters (M members, N countries); the specific numbers change but the structural argument remains",
+      "why_not_visible_locally": "Each individual inductive step only shows a local reduction (e.g., 1978->329), but the fact that the entire 6-step chain reaches exactly 1>0 (creating the contradiction) requires seeing all steps together -- no single step or pair of steps reveals that the chain stays positive throughout and terminates at a positive value",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["iterative reduction", "ceil division chain", "numerical contradiction", "6-step path"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The preservation of the sum-free invariant across the shifting operation for all previously processed countries",
+      "observation_point": "R5",
+      "tell": "The shift operation (subtracting xmin from each element) simultaneously preserves the sum-free property for ALL previously processed countries -- this is implicit in the construction and not visible at any single step",
+      "hint": "When you shift by xmin, for each already-processed country with base a0, the shifted element (x-xmin) + (a0+xmin) = x + a0, which is in the same country by the inductive hypothesis. The shift preserves the invariant for all processed countries at once.",
+      "hint_level": 0.7,
+      "generalizability": "medium -- the shift-preserves-invariant pattern is specific to sum-free type problems, but the idea of maintaining invariants under transformations generalizes broadly",
+      "why_not_visible_locally": "The preservation of the sum-free property across the shift is not visible in any single step -- it requires understanding how the shift operation interacts with ALL previously processed countries' base elements simultaneously. At step n, the shift must preserve properties established at steps 1 through n-1, which is a global constraint on the local operation.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["shift preservation", "sum-free invariant", "inductive maintenance", "base element"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely try direct pigeonhole (one country has at least 330 members) and attempt to find a sum triple within those 330 numbers, or cite Schur's theorem without constructing the specific inductive shifting argument. It won't discover the iterative shifting technique that reduces the set size at each step while maintaining the sum-free invariant for all processed countries.",
+  "suitable_for_poc": ["tell_extraction", "hint_injection", "topology_matching", "path_feature_detection"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "描述题目结构：给定什么（1978个数分成6组的划分），要证什么（存在同国三数i+k=j），这是什么类型的数学对象？",
+        "expected_answer": "这是Ramsey型问题：对{1,...,1978}的6-着色，证明存在单色x+y=z。核心对象是划分函数和sum-free性质。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "列出所有可能方法：鸽巢原理、归纳法、反证法、密度论证、Schur定理、生成函数。哪些最有前景？",
+        "expected_answer": "鸽巢原理自然（6国1978人）。Schur定理直接相关（保证大集合中有单色x+y=z）。归纳和反证是标准框架。最有前景的是鸽巢+反证+归纳的组合。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "试最简单的鸽巢：最大的国家至少有⌈1978/6⌉=330个成员。能在330个数中保证存在i+k=j吗？哪里出了问题？",
+        "expected_answer": "330个数不一定包含和三元组。sum-free集可以很大（如所有奇数到1978构成大小989的sum-free集）。所以对单个国家的直接鸽巢不够——需要同时利用所有国家的结构。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "假设不存在这样的三元组（反证）。这意味着每个国家的成员集都是sum-free的。思考这个约束对划分施加了什么结构性限制。",
+        "expected_answer": "若无三元组，每个国家成员集sum-free。这是强约束。需要证明6个sum-free集不能覆盖{1,...,1978}。关键是如何利用这个约束推出矛盾。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "逐国处理。每步取出一个国家在当前集合Δ中的元素，取最小元素xmin做平移（其余元素减去xmin）。这个平移保持了什么结构？",
+        "expected_answer": "若Δ中country y有若干元素，xmin为最小，平移集{(x-xmin): x∈Δ∩y, x≠xmin}满足：对每个已处理国家的base a0，(x-xmin)+(a0+xmin)=x+a0仍在该国（归纳假设）。xmin成为y国的base。sum-free性质对所有已处理国家同时保持。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "形式化归纳步：鸽巢原理保证在N-n个剩余国家中，某国y在Δ中至少有⌈|Δ|/(N-n)⌉个元素。平移后新Δ大小为⌈|Δ|/(N-n)⌉-1。追踪缩减过程。",
+        "expected_answer": "第n步（n国已处理），|Δ|≥k(n)。鸽巢保证某剩余国家有≥⌈k(n)/(N-n)⌉个Δ元素。去掉xmin后平移，新|Δ|=⌈k(n)/(N-n)⌉-1=k(n+1)。不变量保持：|Δ|≥k(n+1)且所有已处理国家有合法base。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "计算缩减链：1978→⌈1978/6⌉-1=329→⌈329/5⌉-1=65→⌈65/4⌉-1=16→⌈16/3⌉-1=5→⌈5/2⌉-1=2→⌈2/1⌉-1=1>0。但6国全处理后Δ必须为空。矛盾！",
+        "expected_answer": "k(0)=1978, k(1)=329, k(2)=65, k(3)=16, k(4)=5, k(5)=2, k(6)=1。6国全在Cdone后，Δ必须为空（其元素所属国家全在Cdone中，违反不相交性），但k(6)=1>0要求|Δ|≥1。矛盾！故假设不成立，单色和三元组必存在。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": 5,
+      "thinking_bottleneck": 4
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO 1978 P6 is a classic Schur-type Ramsey problem. The key difficulty is discovering the inductive shifting technique -- the idea that processing countries one by one with a shift operation maintains the sum-free invariant. The numerical verification (1978->329->65->16->5->2->1) is a path feature invisible to local analysis. The shift-preserves-invariant property is an implicit global constraint. No topology evolution needed -- existing classification system fully covers this problem."
+  }
+}

@@ -1,0 +1,237 @@
+{
+  "_key": "compfiles_usa1996p6",
+  "source_id": "compfiles_usa1996p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Determine, with proof, whether there is a subset X of the integers with the following property: for any integer n there is exactly one pair (a, b) of elements of X satisfying a + 2b = n.",
+  "solution_text": "The answer is yes. Define X as the set of all integers representable in base -4 using only binary digits {0,1}, i.e., X = {negFourValue(digits) : digits ∈ List(Fin 2)}. Every integer n has a unique base -4 expansion with digits {0,1,2,3} (proved by well-founded induction on |n|). Each digit d ∈ {0,1,2,3} splits as d = lowBit(d) + 2·highBit(d) where lowBit, highBit ∈ {0,1}. Thus n = Σ d_i·(-4)^i = Σ lowBit(d_i)·(-4)^i + 2·Σ highBit(d_i)·(-4)^i = a + 2b, with a,b ∈ X. Uniqueness follows from the fact that if negFourValue(cs) + 2·negFourValue(ds) = negFourValue(as) + 2·negFourValue(bs) with all lists binary, then by induction on length, cs=as and ds=bs, hence (a,b) is unique.",
+  "solution_summary": "Use base -4 representation: every integer has a unique base -4 expansion with digits {0,1,2,3}. Split each digit d into lowBit(d) + 2·highBit(d) (two binary bits). Define X as integers representable in base -4 with binary digits {0,1}. Then a+2b=n decomposes uniquely via the base -4 expansion's digit splitting.",
+  "domain": "Mathematics",
+  "subfield": "Combinatorics",
+  "answer_type": "existence_construction",
+  "answer": "Yes, such a subset X exists. X is the set of all integers representable in base -4 with binary digits {0,1}, i.e., X = {Σ e_i·(-4)^i : e_i ∈ {0,1}}.",
+  "problem_type": "structural_existence",
+  "solution_method_type": "structural_construction",
+  "structure_features": "存在性问题——寻找整数子集X，使得线性形式a+2b=n对每个整数n有唯一表示。核心是'唯一表示'约束与'全覆盖'要求的结合。",
+  "key_objects": ["整数子集X", "线性形式a+2b", "唯一表示对(a,b)", "负四进制展开", "二进制数字拆分"],
+  "thinking_patterns": ["structural_construction", "base_representation", "digit_decomposition", "uniqueness_proof", "negative_base_system"],
+  "primary_pattern": "structural_construction",
+  "knowledge_required": ["负进制表示（base -4的唯一展开定理）", "数字拆分（digit splitting into binary components）", "进位制中唯一表示的性质", "良基归纳法"],
+  "key_insight": "用负四进制（base -4）表示每个整数，每个数字{0,1,2,3}拆分为两个二进制位d=lowBit+2·highBit，从而a+2b=n的分解自然对应于base -4展开的数字拆分，X取base -4二进制数字表示的整数集合即可。",
+  "translation_from": "逐元素贪心构造（incremental/greedy construction of set X）",
+  "translation_to": "负四进制全局表示系统（base -4 positional number system with binary digit splitting）",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["unique representation", "a+2b decomposition", "negative base -4", "digit splitting", "binary decomposition", "positional number system"],
+  "expected_ai_method": "enumeration_brute_force",
+  "correct_method": "structural construction via negative base -4 representation with binary digit splitting",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到一个关于唯一表示的存在性问题，但不知道该寻找什么结构",
+      "hint": "描述题目结构：需要X⊆Z使得每个n恰好有一对(a,b)∈X²满足a+2b=n，这是存在性+唯一性双重要求",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["unique representation", "existence", "a+2b form"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出可能方向但未识别到进制表示系统的关键连接",
+      "hint": "列出所有可能方向：贪心构造、模运算、进制表示、奇偶性论证、递归构造",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["greedy construction", "modular arithmetic", "base representation", "positional system"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试贪心构造遇到矛盾——唯一性约束在增量构造中极难维护",
+      "hint": "试贪心构造：从空集开始逐个添加元素，检查唯一表示性质是否维持",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["greedy construction", "incremental building", "contradiction", "coverage"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI困在逐元素构造中，未考虑全局表示系统",
+      "hint": "放弃逐元素构造，思考什么样的表示系统能自然给出a+2b=n的唯一分解，想想进位制",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["positional number system", "representation", "decomposition", "unique expansion"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI考虑进制表示但不知道负四进制或如何拆分数字为二进制分量",
+      "hint": "考虑base -4：每个整数有唯一展开（数字{0,1,2,3}），每个数字d=lowBit(d)+2·highBit(d)拆为两个二进制位",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["negative base", "base -4", "digit splitting", "binary decomposition", "lowBit", "highBit"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI理解数字拆分但需要连接到集合X的定义并证明唯一性",
+      "hint": "定义X为base -4二进制数字{0,1}表示的整数集合，证明存在性和唯一性",
+      "hint_level": 0.3,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["binary digits", "set construction", "existence proof", "uniqueness proof", "base -4 expansion"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已有构造，需要验证并整理完整证明",
+      "hint": "验证构造：检查存在性（base -4展开给出对）和唯一性（二进制对唯一性），整理完整证明",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["verification", "existence", "uniqueness", "complete proof"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从贪心构造失败到负四进制构造的完整解题路径",
+      "observation_point": null,
+      "tell": "解题路径需要放弃增量构造，转向全局表示系统。关键转折是从逐元素贪心尝试失败到识别负四进制提供结构框架。",
+      "hint": "当唯一表示存在性问题抗拒增量构造时，寻找全局代数结构（如进位制表示系统）来内在地提供唯一性。",
+      "hint_level": 0.7,
+      "generalizability": "high——从局部/增量转向全局/结构的模式适用于许多带唯一性约束的存在性问题",
+      "why_not_visible_locally": "从贪心构造的任何单步看，失败表现为可能通过更努力尝试来解决的局部矛盾。只有看到从失败的贪心尝试到成功的负四进制构造的完整路径，才显现出模式：问题需要全局结构方法，而非局部优化。",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["incremental to global", "representation system", "negative base", "structural approach"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "a+2b分解与base -4数字拆分之间的隐含连接",
+      "observation_point": "R5",
+      "tell": "a+2b的形式自然对应于将base-4数字拆分为两个二进制数字。问题中线性形式的系数2与表示系统中数字拆分之间的连接从题目本身不可见。",
+      "hint": "当问题涉及线性形式a+2b=n且带唯一性时，考虑系数2是否暗示进位制表示中的二进制数字拆分。",
+      "hint_level": 0.6,
+      "generalizability": "medium——线性形式系数与数字拆分的连接特定于进位制表示问题，但将问题结构匹配到表示结构的模式是通用的",
+      "why_not_visible_locally": "在计算base -4展开的局部步骤中，将数字拆分为lowBit和highBit是机械操作。隐含洞见——a+2b中系数2正是使二进制数字拆分可行的关键——只有将问题的线性形式连接到表示系统结构时才可见。这个连接在任何单一计算步骤中都不可见。",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["linear form coefficient", "digit splitting", "binary decomposition", "base -4", "a+2b structure"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI会尝试贪心构造或模运算分析，无法识别负四进制表示的连接。它会在维护唯一表示性质的局部调整中陷入困境，可能错误地认为这样的X不存在，或给出不完整的构造。",
+  "suitable_for_poc": ["tell_extraction", "hint_injection", "knowledge_bottleneck_detection"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "描述这道题的结构：已知条件是什么？我们要找什么？这个'恰好一对'的约束意味着什么？",
+        "expected_answer": "我们需要找到一个整数子集X，使得对任意整数n，恰好存在一对(a,b)∈X²满足a+2b=n。这是一个存在性问题，带有唯一性约束。'恰好一对'意味着存在性（覆盖所有整数）和唯一性（不重复表示）双重要求。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "列出所有可能的构造X的方法方向，不需要深入任何一个方向。",
+        "expected_answer": "贪心构造（逐个添加元素）、模运算分析（利用a+2b的模性质）、进制表示（用某种进制的数字分解）、奇偶性论证、递归构造、概率方法……"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "试着用贪心方法构造X：从空集开始，逐个添加整数，每次添加时检查是否维持唯一表示性质。",
+        "expected_answer": "尝试贪心构造：添加0后，n=0需要(0,0)。添加1后，n=1需要(1,0)，n=2需要(0,1)。但继续添加会遇到矛盾——某些n会被多对(a,b)表示。贪心方法难以系统性地覆盖所有整数，且唯一性约束极难在增量构造中维护。这条路看起来走不通。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "放弃逐元素构造。换一个思维操作：思考什么样的'表示系统'能自然地给出a+2b=n的唯一分解。如果每个整数n有一个唯一的'展开'，这个展开自然分成两部分a和b，那X就是其中一部分的值域。想想进位制。",
+        "expected_answer": "如果n在某种进制下有唯一展开n=Σd_i·r^i，且每个数字d_i可以分解为d_i = a_i + 2·b_i，那么a=Σa_i·r^i和b=Σb_i·r^i就给出a+2b=n。关键是找到一个进制r，使得{0,1,2,3}的数字能唯一地拆成两个二进制位，且整个系统对所有整数（包括负数）都有唯一展开。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "考虑负四进制（base -4）。每个整数在base -4下有唯一展开，数字取{0,1,2,3}。如何将每个数字d∈{0,1,2,3}拆分为两个二进制分量？",
+        "expected_answer": "每个数字d∈{0,1,2,3}可以写为d = lowBit(d) + 2·highBit(d)，其中lowBit和highBit∈{0,1}。具体：0=(0,0), 1=(1,0), 2=(0,1), 3=(1,1)。这样base -4展开n=Σd_i·(-4)^i就分解为a=ΣlowBit(d_i)·(-4)^i和b=ΣhighBit(d_i)·(-4)^i，两者都是base -4下用二进制数字{0,1}表示的数。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.3,
+        "question": "现在定义X为所有可用base -4二进制数字{0,1}表示的整数集合。证明对任意n，存在唯一的(a,b)∈X²使a+2b=n。",
+        "expected_answer": "存在性：取n的base -4展开，按lowBit/highBit拆分得到a,b∈X，a+2b=n。唯一性：若另有(c,d)∈X²使c+2d=n，则c和d也有base -4二进制展开。由a+2b=c+2d，逐位比较（利用base -4二进制表示的唯一性），可得a=c且b=d。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "验证构造的正确性，整理完整证明。结论是什么？",
+        "expected_answer": "构造验证通过：X存在，即所有可用base -4二进制数字{0,1}表示的整数集合。每个整数n的base -4展开给出唯一的(a,b)对。存在性由base -4展开的完备性保证，唯一性由二进制位拆分的双射性和base -4展开的唯一性保证。答案是：这样的子集X存在。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 2.2,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "subagent_session",
+    "notes": "USA 1996 P6 - existence of subset X with unique a+2b=n representation. Key insight: negative base -4 representation with binary digit splitting. Knowledge bottleneck at R5 (negative base concept), thinking bottleneck at R4 (recognizing representation system approach)."
+  }
+}

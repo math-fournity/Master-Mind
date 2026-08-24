@@ -1,0 +1,275 @@
+{
+  "_key": "omni_math_003853",
+  "source_id": "imo_shortlist_2022_c7",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Lucy starts by writing s integer-valued 2022-tuples on a blackboard. After doing that, she can take any two (not necessarily distinct) tuples v=(v_1,...,v_2022) and w=(w_1,...,w_2022) that she has already written, and apply one of the following operations to obtain a new tuple: v+w=(v_1+w_1,...,v_2022+w_2022) and v∨w=(max(v_1,w_1),...,max(v_2022,w_2022)), and then write this tuple on the blackboard. It turns out that, in this way, Lucy can write any integer-valued 2022-tuple on the blackboard after finitely many steps. What is the smallest possible number s of tuples that she initially wrote?",
+  "solution_text": "Answer: s=3. We solve for n-tuples with n>=3; the answer is s=3 regardless of n.\n\nThree tuples suffice: Let c=(-1,...,-1). It suffices to generate e(1),...,e(n) and c, since any tuple v can be written as k*c + (k+v_1)*e(1) + ... + (k+v_n)*e(n) for large enough k.\n\nStart with a_i=-i^2, b_i=i, c_i=-1. Define d(j) = 2a + 4j*b + (2j^2-1)*c. Then d(j)_i = -2i^2 + 4ij - (2j^2-1) = 1 - 2(i-j)^2. This equals 1 when i=j and is <= -1 otherwise.\n\nSo 1 = d(1)∨...∨d(n) (all-ones tuple), 0 = 1+c (zero tuple), and e(j) = d(j)∨0 (standard basis vector). From e(1),...,e(n) and c, any tuple can be made.\n\nTwo tuples do not suffice: Key observation: if v_j >= a*v_k and w_j >= a*w_k for some a>=0, then the same inequality holds for v+w and v∨w. So if all starting tuples satisfy such an inequality, all generated tuples do too.\n\nCase 1: If some coordinate i has v_i, w_i >= 0 (or both <= 0), sign is preserved, can't generate tuples with opposite sign in that coordinate.\n\nCase 2: For every i, v_i and w_i have opposite signs. By pigeonhole (n>=3, only 2 sign patterns), there exist j!=k with same sign pattern. WLOG v_j,v_k>0 and w_j,w_k<0. Let a = v_j/v_k. If w_j/w_k <= a, then v_j >= a*v_k and w_j >= a*w_k. Otherwise w_k >= (1/a)*w_j and v_k >= (1/a)*v_j. Either way, both starting tuples satisfy a ratio inequality, contradicting the observation.",
+  "solution_summary": "s=3. Construction: start with a=(-i^2), b=(i), c=(-1); use d(j)=2a+4j*b+(2j^2-1)*c = 1-2(i-j)^2 which peaks at coordinate j, then max over all d(j) gives all-ones, from which basis vectors and any tuple follow. Impossibility with 2: ratio inequality v_j>=a*v_k is preserved under both addition and max; by pigeonhole two coordinates share sign pattern, forcing such an invariant.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_algebra",
+  "answer_type": "numerical",
+  "answer": "3",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "constructive_generation_with_invariant",
+  "structure_features": "Two closure operations (coordinatewise addition and coordinatewise max) on integer n-tuples; need minimum size of generating set; construction uses quadratic polynomial to create spike tuples; impossibility uses ratio inequality invariant preserved under both operations",
+  "key_objects": [
+    "integer-valued n-tuples",
+    "coordinatewise addition",
+    "coordinatewise maximum",
+    "standard basis vectors e(j)",
+    "generating set",
+    "ratio inequality invariant",
+    "quadratic polynomial 1-2(i-j)^2"
+  ],
+  "thinking_patterns": [
+    "invariant_preservation",
+    "constructive_generation",
+    "quadratic_polynomial_trick",
+    "pigeonhole_principle",
+    "ratio_inequality_argument",
+    "reduction_to_basis_vectors"
+  ],
+  "primary_pattern": "constructive_generation",
+  "knowledge_required": [
+    "coordinatewise operations on tuples",
+    "tropical semiring (max-plus algebra) structure",
+    "invariant arguments in combinatorics",
+    "pigeonhole principle",
+    "quadratic polynomials and completing the square",
+    "generating sets and basis vectors"
+  ],
+  "key_insight": "Use the quadratic polynomial 1-2(i-j)^2 to create tuples that equal 1 at one coordinate and are <= -1 elsewhere, then use the max operation to extract standard basis vectors from these spike tuples",
+  "translation_from": "linear algebra (generating sets, basis vectors, linear combinations)",
+  "translation_to": "tropical semiring operations (addition + coordinatewise max)",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "coordinatewise operations",
+    "generating set",
+    "invariant preservation",
+    "quadratic polynomial",
+    "max operation",
+    "standard basis vectors",
+    "ratio inequality",
+    "pigeonhole principle",
+    "spike tuple",
+    "tropical semiring"
+  ],
+  "expected_ai_method": "enumeration_brute_force",
+  "correct_method": "constructive generation with quadratic polynomial spike tuples plus invariant ratio inequality argument for impossibility",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees two operations on tuples but does not identify the algebraic structure they form or what generating any tuple requires",
+      "hint": "Describe what each operation does algebraically: addition gives linear combinations, max gives coordinatewise supremum. What set of tuples do you need to generate to produce everything?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["coordinatewise operations", "tuple algebra", "generating set concept"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but focuses on linear algebra thinking and misses the invariant preservation approach for the impossibility direction",
+      "hint": "Consider two directions: (1) what can you construct with these operations, and (2) what properties are preserved under both operations that could prove impossibility?",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["generating set", "closure operations", "invariant approach", "constructive approach"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries s=2 and observes sign preservation but does not find the deeper invariant that rules out all cases",
+      "hint": "Try s=2 with specific tuples. What happens when both starting tuples have the same sign in some coordinate? What about when they always have opposite signs?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["sign preservation", "small cases", "opposite signs"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI recognizes sign preservation for one case but does not see the ratio inequality invariant that handles the opposite-signs case",
+      "hint": "For the opposite-signs case with n>=3: use pigeonhole to find two coordinates j,k with the same sign pattern. Then consider the ratio v_j/v_k — can you find an inequality involving this ratio that is preserved under both addition and max?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["invariant preservation", "ratio inequality", "pigeonhole principle", "sign patterns"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI needs to construct basis vectors but tries linear combinations only, not seeing how the max operation can extract individual coordinates",
+      "hint": "To generate e(j) (1 at position j, 0 elsewhere), you need a tuple that is large at position j and small (negative) elsewhere. Think about what function of the index i gives a peak at i=j and negative values elsewhere — try a quadratic in (i-j).",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["quadratic polynomial", "spike pattern", "standard basis vectors", "completing the square"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the quadratic idea but needs to verify the construction produces exactly the right values and connect it to generating all tuples",
+      "hint": "Verify: with a_i=-i^2, b_i=i, c=-1, the tuple d(j)=2a+4j*b+(2j^2-1)*c has i-th coordinate 1-2(i-j)^2, which is 1 at i=j and <=-1 otherwise. Then d(1)∨...∨d(n) gives all-ones, and d(j)∨0 gives e(j).",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["completing the square", "max operation extraction", "basis vector construction", "all-ones tuple"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both directions but needs to confirm the construction generates all tuples and the impossibility covers all cases",
+      "hint": "Confirm: from e(1),...,e(n) and c, any tuple v is k*c + sum of (k+v_i)*e(i) for large k. Confirm the impossibility: pigeonhole gives two coordinates with same sign pattern, ratio inequality gives the invariant. Both directions complete.",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["construction verification", "impossibility completeness", "linear combination from basis"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire construction path from initial tuples to basis vectors",
+      "observation_point": null,
+      "tell": "The quadratic polynomial 1-2(i-j)^2 construction is a global path feature: it requires seeing that (1) you need spike tuples, (2) quadratics give spikes, (3) max extracts coordinates from spikes, and (4) basis vectors generate everything — none of these steps alone motivates the quadratic",
+      "hint": "The construction path requires: identify need for basis vectors → realize max can extract coordinates from spike tuples → find quadratic polynomial creating spikes → verify and assemble. The quadratic choice is motivated by the entire path, not any single step.",
+      "hint_level": 0.6,
+      "generalizability": "medium — the quadratic polynomial spike trick generalizes to any tropical semiring generation problem where coordinate extraction is needed, but the specific polynomial depends on the operations available",
+      "why_not_visible_locally": "At any single step of the construction, the motivation for using a quadratic polynomial is not apparent. The need for a spike tuple only emerges after realizing that max can extract coordinates, which only makes sense after identifying that basis vectors are needed, which requires understanding the generating set structure. The quadratic is invisible until the entire path is traced.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["quadratic polynomial", "spike tuple", "max extraction", "basis vector generation", "path dependency"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "interaction between addition and max operations",
+      "observation_point": "Q4",
+      "tell": "The ratio inequality v_j >= a*v_k is preserved under both addition and max simultaneously — this invariant is implicit in the interaction of the two operations and is not visible when examining either operation alone",
+      "hint": "Consider what happens to the ratio v_j/v_k under addition (ratios combine by weighted average) and under max (ratios are preserved from the larger tuple). The invariant emerges from both operations preserving the same inequality structure.",
+      "hint_level": 0.65,
+      "generalizability": "high — the invariant preservation argument under multiple operations generalizes to any closure problem with multiple operations; finding what is preserved under all operations simultaneously is a universal technique",
+      "why_not_visible_locally": "The ratio inequality invariant requires considering both operations simultaneously and their interaction. When examining addition alone, one might think of linear invariants; when examining max alone, one might think of order-based invariants. Only by considering both together does the ratio inequality emerge as the common preserved structure. This is not visible in any single operation step.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["ratio inequality", "invariant preservation", "operation interaction", "simultaneous preservation"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to enumerate what tuples can be generated from small starting sets, or try linear algebra approaches treating addition as the primary operation. It would miss the quadratic polynomial construction for generating basis vectors and the ratio inequality invariant for proving impossibility. The max operation's role in coordinate extraction is non-obvious without the quadratic insight.",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "topology_matching",
+    "knowledge_bottleneck_detection",
+    "path_feature_extraction"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the problem structure: what are the two operations, what does it mean to 'generate any tuple', and what would a generating set need to contain?",
+        "expected_answer": "Two operations: coordinatewise addition (linear combinations) and coordinatewise max (supremum). To generate any integer tuple, Lucy needs to be able to produce standard basis vectors e(j) and the constant tuple c, since any tuple is a linear combination of these."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible approaches for both directions: (1) showing s=3 suffices (construction) and (2) showing s=2 does not suffice (impossibility). What tools could each direction use?",
+        "expected_answer": "Construction: try to build basis vectors using combinations of starting tuples with both operations. Impossibility: find an invariant preserved under both operations that prevents full generation with only 2 starting tuples. Also consider sign preservation and small cases."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try s=2 with specific starting tuples. What goes wrong? Consider cases where both tuples have the same sign in some coordinate versus always having opposite signs.",
+        "expected_answer": "If both tuples have v_i, w_i >= 0 in some coordinate i, then all generated tuples have non-negative i-th coordinate (both operations preserve non-negativity). So we can't generate tuples with negative entries there. If they always have opposite signs, it's less clear what goes wrong."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "For the opposite-signs case with n>=3 coordinates: use pigeonhole to find two coordinates j,k with the same sign pattern across both tuples. Then consider the ratio v_j/v_k — find an inequality involving this ratio that is preserved under both addition and max operations.",
+        "expected_answer": "By pigeonhole (n>=3, only 2 sign patterns), there exist j!=k with v_j, v_k having the same sign and w_j, w_k having the same sign. WLOG v_j,v_k>0, w_j,w_k<0. Let a=v_j/v_k. If w_j/w_k <= a, then v_j >= a*v_k and w_j >= a*w_k, and this inequality is preserved under both + and ∨. Otherwise swap roles. So an invariant exists, preventing full generation."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "For the construction with s=3: to generate basis vectors e(j), you need tuples that peak at one coordinate and are negative elsewhere. What function of the index i gives a peak at i=j and negative values elsewhere? Try a quadratic in (i-j).",
+        "expected_answer": "A quadratic like 1-2(i-j)^2 gives value 1 when i=j and values <= -1 when i!=j. This can be realized as a combination of starting tuples if we choose a_i=-i^2, b_i=i, c=-1: then d(j)=2a+4j*b+(2j^2-1)*c gives d(j)_i = -2i^2+4ij-(2j^2-1) = 1-2(i-j)^2."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "Verify the construction: d(j)_i = 1-2(i-j)^2 is 1 at i=j and <=-1 otherwise. How do you get the all-ones tuple, the zero tuple, and the basis vectors e(j) from these d(j)?",
+        "expected_answer": "All-ones: 1 = d(1)∨d(2)∨...∨d(n) since each coordinate i gets max=1 from d(i). Zero: 0 = 1+c = (1,...,1)+(-1,...,-1). Basis: e(j) = d(j)∨0 since d(j)_j=1>=0 and d(j)_i<=-1<0 for i!=j, so max gives 1 at j and 0 elsewhere."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "Confirm both directions are complete: (1) from e(1),...,e(n) and c, can any tuple be generated? (2) does the impossibility argument cover all cases for s=2?",
+        "expected_answer": "Yes: any tuple v = k*c + (k+v_1)*e(1) + ... + (k+v_n)*e(n) for large enough k. The impossibility covers: Case 1 (same sign in some coordinate → sign preserved) and Case 2 (opposite signs everywhere → pigeonhole gives ratio inequality invariant). Both directions complete, so s=3."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.4,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "approx 15 min",
+    "notes": "IMO Shortlist 2022 C7. Problem file was truncated at line 19; full solution retrieved from IMO official shortlist PDF via HuggingFace olympiads dataset. Difficulty 9.0. Key insight is the quadratic polynomial spike construction for the upper bound and the ratio inequality invariant for the lower bound."
+  }
+}

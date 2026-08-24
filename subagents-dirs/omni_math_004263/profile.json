@@ -1,0 +1,305 @@
+{
+  "_key": "omni_math_004263",
+  "source_id": "omni_math_004263",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Find all positive integers n such that there exists a unique integer a such that 0 <= a < n! with the following property: n! | a^n + 1.",
+  "solution_text": "Case n=1: a=0 is the only choice, 0^1+1=1 ≡ 0 (mod 1). Works.\nCase n prime p: For each prime power q^k || p! with q < p, since p is prime and p > q, gcd(p, φ(q^k)) = 1 (because φ(q^k) = q^(k-1)(q-1) and all prime factors of φ(q^k) are ≤ q-1 < p). Therefore x → x^p is an automorphism of (Z/q^kZ)*, so x^p ≡ -1 (mod q^k) has a unique solution x ≡ -1 (mod q^k). For q = p, by Fermat's little theorem x^p ≡ x (mod p), so x ≡ -1 (mod p), unique. By CRT, x^p ≡ -1 (mod p!) has a unique solution a = p!-1.\nCase n composite > 1: Take any prime p | n. Then p | n and p | φ(p^k) where p^k || n!, so gcd(n, φ(p^k)) ≥ p > 1. The map x → x^n is not injective on (Z/p^kZ)*, so x^n ≡ -1 (mod p^k) has either 0 or multiple solutions. Either way, uniqueness fails.\nConclusion: All prime numbers or n = 1.",
+  "solution_summary": "For n prime p, the map x→x^p is an automorphism of (Z/q^kZ)* for all q<p dividing p! (since gcd(p,φ(q^k))=1), giving unique solution a=p!-1 via CRT. For composite n, gcd(n,φ(p^k))>1 for primes p|n destroys uniqueness. n=1 is trivial.",
+  "domain": "number_theory",
+  "subfield": "combinatorial_number_theory",
+  "answer_type": "characterization",
+  "answer": "All prime numbers or n = 1",
+  "problem_type": "characterization",
+  "solution_method_type": "group_theoretic_bijection_with_CRT",
+  "structure_features": "Find all n such that a^n ≡ -1 (mod n!) has a unique solution in [0, n!). The problem couples a divisibility condition with a uniqueness constraint, requiring analysis of the multiplicative group structure (Z/n!Z)* and the map x → x^n.",
+  "key_objects": [
+    "n!",
+    "a^n + 1",
+    "multiplicative group (Z/n!Z)*",
+    "Euler's totient φ(q^k)",
+    "Chinese Remainder Theorem",
+    "Fermat's little theorem",
+    "group automorphism x → x^n"
+  ],
+  "thinking_patterns": [
+    "case_analysis",
+    "group_theoretic_bijection",
+    "CRT_decomposition",
+    "special_case_exploration",
+    "contrapositive_argument"
+  ],
+  "primary_pattern": "group_theoretic_bijection",
+  "knowledge_required": [
+    "Fermat's little theorem",
+    "Euler's theorem",
+    "Chinese Remainder Theorem",
+    "group theory: automorphisms of (Z/nZ)*",
+    "p-adic valuations v_p(n!)",
+    "Wilson's theorem"
+  ],
+  "key_insight": "For n prime p, gcd(p, φ(q^k)) = 1 for all prime powers q^k || p! with q < p, making x → x^p an automorphism that forces unique solution a = p!-1 via CRT. For composite n, any prime p | n gives gcd(n, φ(p^k)) > 1, destroying injectivity and hence uniqueness.",
+  "translation_from": "divisibility_condition",
+  "translation_to": "group_theoretic_automorphism",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "case_by_case",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "automorphism of (Z/q^kZ)*",
+    "gcd(n, φ(q^k))",
+    "CRT uniqueness",
+    "composite non-uniqueness",
+    "Fermat little theorem mod p"
+  ],
+  "expected_ai_method": "case_by_case with Wilson's theorem — bare AI would verify small cases, try Wilson's theorem for primes, and attempt direct computation, missing the group-theoretic automorphism argument",
+  "correct_method": "group_theoretic_bijection: show x→x^n is automorphism of (Z/q^kZ)* when gcd(n,φ(q^k))=1 (primes), and non-injective when gcd>1 (composites), then apply CRT",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI has not identified the tension between the divisibility condition n!|a^n+1 and the uniqueness requirement on a",
+      "hint": "Describe the problem structure: what are the knowns, unknowns, and the key constraint coupling?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "divisibility vs uniqueness tension",
+        "range [0, n!)",
+        "congruence a^n ≡ -1"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists standard number theory tools but misses the group-theoretic angle of analyzing x→x^n as a map on multiplicative groups",
+      "hint": "List all possible approaches including group-theoretic ones: what structures does (Z/n!Z)* have?",
+      "hint_level": 0.3,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "group automorphism x→x^n",
+        "CRT decomposition of n!",
+        "Euler totient φ(q^k)"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries n=4 and finds no solution but does not generalize the obstruction pattern to all composites",
+      "hint": "Try n=4 specifically: compute a^4 mod 8 for all residues. What goes wrong?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "mod 8 obstruction for n=4",
+        "odd a^4 ≡ 1 mod 8",
+        "composite failure pattern"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI does not recognize that x→x^p is an automorphism of (Z/q^kZ)* when gcd(p,φ(q^k))=1 — this is a pure knowledge gap",
+      "hint": "For n prime p, consider the map x→x^p on (Z/q^kZ)* where q^k||p! and q<p. What is gcd(p, φ(q^k))? What does that imply about the map?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "gcd(p, φ(q^k)) = 1",
+        "group automorphism criterion",
+        "φ(q^k) = q^(k-1)(q-1)",
+        "prime factors of φ(q^k) ≤ q-1 < p"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the local bijection result but does not connect it to global uniqueness via CRT — the translation from local to global is the thinking bottleneck",
+      "hint": "Given that x^p ≡ -1 (mod q^k) has a unique solution for each prime power q^k || p!, and also mod p by Fermat, what does the Chinese Remainder Theorem tell you about the total number of solutions mod p!?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "CRT combines local uniqueness to global",
+        "unique solution a = p!-1",
+        "local-to-global bridge"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI does not see why composite n must fail — the connection between compositeness and gcd(n,φ(p^k))>1 is not made",
+      "hint": "For composite n > 1, take any prime p dividing n. What is gcd(n, φ(p^k)) where p^k || n!? What does this imply about injectivity of x→x^n on (Z/p^kZ)*?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "gcd(n, φ(p^k)) ≥ p > 1 for p|n",
+        "non-injective map destroys uniqueness",
+        "composite case contrapositive"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all three cases analyzed but has not synthesized them into a final characterization",
+      "hint": "Combine n=1 (trivial), n prime (unique via automorphism+CRT), n composite (non-unique). What is the complete answer?",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "three-case synthesis",
+        "final characterization: primes ∪ {1}",
+        "case completeness check"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "full solution path from case analysis to group-theoretic automorphism to CRT synthesis",
+      "observation_point": null,
+      "tell": "The entire solution path requires translating a divisibility/uniqueness problem into a group-theoretic automorphism problem, then back to a CRT counting problem. No single step reveals this full trajectory.",
+      "hint": "The solution path is: (1) identify the congruence structure, (2) decompose n! into prime powers, (3) analyze x→x^n on each (Z/q^kZ)*, (4) use gcd(n,φ(q^k)) to determine injectivity, (5) apply CRT for global count. This path feature is invisible from any single step.",
+      "hint_level": 0.7,
+      "generalizability": "high — the pattern of decomposing a congruence mod n! into prime power components and analyzing the power map as a group homomorphism generalizes to many problems involving uniqueness of solutions to polynomial congruences",
+      "why_not_visible_locally": "The full path from divisibility condition to group automorphism to CRT counting is a multi-step translation that cannot be seen from any single QA round. Each round only reveals one segment of the path, and the critical insight (that primality of n controls the automorphism property) emerges only after the group-theoretic framework is established in R4 and applied in R5-R6.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "divisibility-to-group-theory translation",
+        "automorphism-CRT pipeline",
+        "primality controls injectivity"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "connection between primality of n and the automorphism property of x→x^n on (Z/q^kZ)*",
+      "observation_point": "R4",
+      "tell": "The primality of n is not just a case label — it is the structural reason why x→x^n is an automorphism. This connection between 'n is prime' and 'gcd(n,φ(q^k))=1 for all q<n' is implicit in the group structure and not visible without the group-theoretic framework.",
+      "hint": "Recognize that primality of n is equivalent to gcd(n, φ(q^k))=1 for ALL prime powers q^k with q<n. This is why primes give uniqueness and composites don't — the primality condition is secretly a group-theoretic injectivity condition.",
+      "hint_level": 0.8,
+      "generalizability": "high — the pattern of recognizing that a number-theoretic property (primality) is equivalent to a group-theoretic property (automorphism criterion) generalizes to many problems where case distinctions have deeper structural explanations",
+      "why_not_visible_locally": "In R4, the AI sees the computation gcd(p, φ(q^k))=1 for a specific prime p, but the deeper implication — that this is exactly why primes work and composites fail — is not visible until R6 where the composite case shows gcd(n,φ(p^k))>1. The implicit connection is that primality IS the injectivity condition, which only becomes visible when both cases are analyzed.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "primality as injectivity condition",
+        "gcd(n,φ(q^k))=1 iff n prime to all q<n",
+        "structural equivalence of cases"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely: (1) verify small cases n=1,2,3 correctly, (2) attempt to use Wilson's theorem directly for primes (as the lean solution sketch does) without rigorously proving uniqueness, (3) fail to identify the group-theoretic automorphism argument as the key to uniqueness, (4) for composite n, either not prove non-uniqueness systematically or give hand-wavy arguments about 'additional factors'. The AI would miss that gcd(n,φ(q^k)) is the critical invariant controlling uniqueness.",
+  "suitable_for_poc": [
+    "hint_injection_bijection — inject the group automorphism insight at R4 to test if AI can complete the proof",
+    "tell_detection_case_analysis — test whether the system can detect AI missing the group-theoretic angle from case enumeration",
+    "tell_detection_composite_failure — test whether the system can detect AI not generalizing the n=4 obstruction to all composites"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the structure of this problem. What are we looking for? What is the key tension between the divisibility condition and the uniqueness requirement?",
+        "expected_answer": "We need to find all positive integers n where there exists exactly one integer a in [0, n!) such that n! divides a^n + 1, i.e., a^n ≡ -1 (mod n!). The key tension is that the divisibility condition constrains which a work, while the uniqueness condition requires exactly one such a."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.3,
+        "question": "List all approaches you can think of to tackle this problem, including both elementary number theory and group-theoretic approaches.",
+        "expected_answer": "Possible approaches: (1) Try small cases n=1,2,3,4,5 to find patterns. (2) Use Wilson's theorem for prime cases. (3) Analyze the prime factorization of n! and use CRT. (4) Study the multiplicative group (Z/n!Z)* and the map x→x^n. (5) Use p-adic valuations to understand the structure of n!. (6) Consider when x→x^n is injective on (Z/q^kZ)*."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try n=4. Compute a^4 mod 8 for all residues. Does a unique a exist? What pattern do you notice?",
+        "expected_answer": "For n=4, n!=24. Need a^4 ≡ -1 (mod 24), in particular mod 8: a^4 ≡ 7 (mod 8). For odd a, a^2 ≡ 1 (mod 8), so a^4 ≡ 1 (mod 8). For even a, a^4 ≡ 0 (mod 8). Neither gives 7. So no solution exists for n=4. The obstruction is that the power map a→a^4 collapses all odd residues to 1 mod 8."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "For n prime p, consider the map x → x^p on (Z/q^kZ)* where q^k || p! and q < p. Compute gcd(p, φ(q^k)) where φ(q^k) = q^(k-1)(q-1). What property does the map x → x^p have?",
+        "expected_answer": "Since p is prime and p > q, all prime factors of φ(q^k) = q^(k-1)(q-1) are at most q-1 < p. Therefore gcd(p, φ(q^k)) = 1. This means x → x^p is an automorphism (bijection) of the group (Z/q^kZ)*, since the map x → x^p is a group homomorphism and its kernel is trivial when gcd(p, |G|) = 1."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Given that x^p ≡ -1 (mod q^k) has a unique solution for each prime power q^k || p! (from the automorphism property for q<p, and Fermat for q=p), what does the Chinese Remainder Theorem tell you about the total number of solutions mod p!?",
+        "expected_answer": "By CRT, the number of solutions to x^p ≡ -1 (mod p!) equals the product of the number of solutions mod each prime power q^k || p!. Each factor is 1 (unique solution x ≡ -1 mod q^k for q<p, and x ≡ -1 mod p by Fermat). So the total is 1·1·...·1 = 1. The unique solution is a = p!-1, which satisfies a ≡ -1 (mod q^k) for all q^k || p!."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "For composite n > 1, take any prime p dividing n. What is gcd(n, φ(p^k)) where p^k || n!? What does this imply about the injectivity of x → x^n on (Z/p^kZ)*, and hence about uniqueness?",
+        "expected_answer": "If p | n, then p | φ(p^k) = p^(k-1)(p-1) (since p | p^(k-1) for k≥2, or p | n and p | p-1+1... actually p | n and p | p^(k-1) when k≥2). So gcd(n, φ(p^k)) ≥ p > 1. The map x → x^n on (Z/p^kZ)* is not injective (kernel has size ≥ p). Therefore x^n ≡ -1 (mod p^k) has either 0 or at least p solutions. In either case, uniqueness mod n! fails (0 solutions means no a exists; multiple solutions means non-unique a)."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Combine all three cases: n=1, n prime, n composite. What is the complete answer?",
+        "expected_answer": "n=1: a=0 trivially works (unique). n prime p: unique a = p!-1 exists by the automorphism+CRT argument. n composite > 1: uniqueness fails because gcd(n, φ(p^k)) > 1 for primes p | n, making x→x^n non-injective. Therefore the answer is: all prime numbers, together with n = 1."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 3,
+      "knowledge_rounds": 3,
+      "level_sum": 4.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "The lean file solution is hand-wavy and incomplete — it mentions Wilson's theorem but does not rigorously prove uniqueness. The actual key insight is the group-theoretic automorphism argument: x→x^n is bijective on (Z/q^kZ)* iff gcd(n,φ(q^k))=1, which holds for all q<n exactly when n is prime. This is a method_translation from divisibility to group theory. The problem has a clean characterization structure with three cases. Topology classification is adequate with existing values — no new dimensions needed."
+  }
+}

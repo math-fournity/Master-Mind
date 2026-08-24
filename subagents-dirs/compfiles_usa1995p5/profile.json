@@ -1,0 +1,270 @@
+{
+  "_key": "compfiles_usa1995p5",
+  "source_id": "usa1995_p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "A graph with n points and k edges has no triangles. Show that it has a point P such that there are at most k(1 - 4k/n^2) edges between points not joined to P (by an edge).",
+  "solution_text": "Let G be a triangle-free graph with n vertices and k edges. For a vertex P, partition edges into 'near edges' (having an endpoint adjacent to P) and 'far edges' (no endpoint adjacent to P). Since G is triangle-free, each edge has at most one endpoint in N(P), so near edges = sum of degrees of neighbors of P. Thus far edges = k - sum_{Q in N(P)} deg(Q). Summing over all P: sum_P sum_{Q in N(P)} deg(Q) = sum_Q deg(Q)^2 (double counting). By Cauchy-Schwarz: (sum deg(Q))^2 <= n * sum deg(Q)^2. By handshaking lemma: sum deg(Q) = 2k. So sum deg(Q)^2 >= 4k^2/n. By averaging, some P has sum_{Q in N(P)} deg(Q) >= 4k^2/n^2. For this P, far edges <= k - 4k^2/n^2 = k(1 - 4k/n^2).",
+  "solution_summary": "利用三角形-free性质将边划分为近边和远边，近边数=邻居度数之和。对所有顶点双重计数得∑deg(Q)²，用Cauchy-Schwarz和握手定理建立下界4k²/n，再用平均论证找到满足条件的顶点P。",
+  "domain": "Combinatorics",
+  "subfield": "Extremal Graph Theory",
+  "answer_type": "proof",
+  "answer": "存在顶点P使得不与P相邻的顶点之间的边数至多为k(1 - 4k/n^2)",
+  "problem_type": "structural_existence",
+  "solution_method_type": "double_counting_averaging",
+  "structure_features": "三角形-free图，需要证明存在顶点P使得远边数有上界。核心结构是边的二分划分（近边/远边），以及三角形-free条件保证每条边至多一个端点在邻居集中。",
+  "key_objects": [
+    "triangle-free graph",
+    "neighbor set N(P)",
+    "degree sequence",
+    "far edges (edges not incident to N(P))",
+    "near edges (edges incident to N(P))",
+    "sum of squared degrees"
+  ],
+  "thinking_patterns": [
+    "double_counting",
+    "averaging_argument",
+    "structural_decomposition",
+    "inequality_application",
+    "sum_manipulation"
+  ],
+  "primary_pattern": "double_counting_averaging",
+  "knowledge_required": [
+    "triangle-free graph properties",
+    "double counting technique",
+    "Cauchy-Schwarz inequality",
+    "handshaking lemma",
+    "averaging/pigeonhole principle",
+    "edge partition by neighbor set"
+  ],
+  "key_insight": "将存在性问题转化为对所有顶点求和的双重计数——sum_P sum_{Q in N(P)} deg(Q) = sum_Q deg(Q)^2，然后用Cauchy-Schwarz和握手定理由全局下界推出个体存在性",
+  "translation_from": "存在性证明（寻找单个满足条件的顶点P）",
+  "translation_to": "全局求和+不等式+平均论证（对所有顶点求和，用Cauchy-Schwarz建立下界，再用平均论证回推个体存在性）",
+  "translation_type": "existence_to_averaging",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "triangle-free",
+    "double counting",
+    "Cauchy-Schwarz",
+    "averaging",
+    "edge partition",
+    "sum of squared degrees",
+    "handshaking lemma"
+  ],
+  "expected_ai_method": "bare AI会尝试直接对每个顶点计算远边数，试图找到满足条件的特定顶点，但无法建立全局下界",
+  "correct_method": "双重计数（sum_P sum_{Q in N(P)} deg(Q) = sum deg(Q)^2）+ Cauchy-Schwarz不等式 + 握手定理 + 平均论证",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到图论存在性问题但未识别三角形-free条件的关键结构性作用",
+      "hint": "描述问题结构：三角形-free图，需要找到顶点P使远边数有上界",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["triangle-free", "existence", "edge counting"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但未看到双重计数+平均论证的组合策略",
+      "hint": "列出所有可能方向，特别关注双重计数和平均论证",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["double counting", "averaging", "extremal graph theory"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试直接计算但未利用三角形-free条件对邻居集的约束",
+      "hint": "试直接计算远边数，利用三角形-free条件：每条边至多一个端点在N(P)中",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["triangle-free", "neighbor set", "edge partition", "near/far edges"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI得到远边=k-sum deg(Q)公式但未想到对所有顶点求和",
+      "hint": "对所有顶点P求和sum_P sum_{Q in N(P)} deg(Q)，交换求和顺序",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["sum over vertices", "double counting", "sum of squared degrees"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI得到sum deg(Q)^2但不知道如何建立下界",
+      "hint": "应用Cauchy-Schwarz不等式和握手定理",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["Cauchy-Schwarz", "handshaking lemma", "sum of squares", "lower bound"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有全局下界4k^2/n但未连接到个体存在性",
+      "hint": "用平均论证：n个顶点的和>=4k^2/n，故存在P>=4k^2/n^2",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["averaging", "pigeonhole", "existence from global bound"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有所有组件但未组装最终不等式",
+      "hint": "组装：远边<=k-4k^2/n^2=k(1-4k/n^2)",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["algebraic simplification", "final assembly", "target bound"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "整个证明路径（R1到R7）",
+      "observation_point": null,
+      "tell": "问题是存在性证明（找单个顶点P），但解答路径要求从局部存在性翻译到全局求和+不等式+平均论证，这条完整路径无法从任何单一步骤中看到",
+      "hint": "将存在性问题转化为全局求和，用Cauchy-Schwarz建立下界，再用平均论证回推个体存在性",
+      "hint_level": 0.7,
+      "generalizability": "high——存在性到平均论证的翻译模式在极值图论中广泛适用（如Turan定理、Ramsey理论的许多存在性证明）",
+      "why_not_visible_locally": "完整路径要求同时看到三个不相关的技术（双重计数、Cauchy-Schwarz、平均论证）的组合，从任何单一步骤看，只能看到局部计算，无法预见全局策略是将存在性翻译为平均论证",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["existence to averaging", "double counting", "Cauchy-Schwarz", "global to local"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "三角形-free条件在整个证明中的隐含作用",
+      "observation_point": "R3",
+      "tell": "三角形-free条件不仅用于排除三角形，更关键的是它保证了每条边至多有一个端点在N(P)中，从而使得近边数=sum_{Q in N(P)} deg(Q)这一精确等式成立，这是整个双重计数的基石",
+      "hint": "三角形-free条件是边划分精确性的保证：它使近边=邻居度数之和成为精确等式而非不等式",
+      "hint_level": 0.6,
+      "generalizability": "medium——图的结构条件保证计数精确性的模式在图论中常见，但三角形-free到边划分精确性这一具体蕴含需要领域知识",
+      "why_not_visible_locally": "在R3的局部步骤中，三角形-free条件看起来只是排除了三角形，但其作为每条边至多一个端点在邻居集中的保证——从而使近边计数精确等于邻居度数之和——这一蕴含在局部步骤中不可见，需要理解整个双重计数论证才能看到",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["triangle-free", "edge partition precision", "unique endpoint property", "double counting foundation"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接对每个顶点计算远边数，试图找到满足条件的特定顶点，但无法建立全局下界。具体错误：1) 不会想到对所有顶点求和的双重计数策略；2) 即使得到sum deg(Q)^2也不会想到用Cauchy-Schwarz；3) 不会将存在性问题转化为平均论证。AI可能在局部计算上花费大量时间而无法突破到全局视角。",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "path_comparison",
+    "method_translation_poc",
+    "knowledge_bottleneck_detection"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "这个问题的结构是什么？我们有哪些已知条件，需要证明什么？",
+        "expected_answer": "已知：无三角形的图G，n个顶点，k条边。需要证明：存在顶点P，使得不与P相邻的顶点之间的边数至多为k(1-4k/n^2)。这是一个存在性证明，关键在于三角形-free条件如何被利用。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "对于这个图论存在性问题，你能想到哪些可能的证明方向？",
+        "expected_answer": "1) 直接对每个顶点计算远边数；2) 归纳法；3) 概率方法（随机选P）；4) 双重计数+平均论证；5) 用Turan型定理的结论；6) 对邻居集的结构分析。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试着直接计算某个顶点P的远边数。三角形-free条件对P的邻居集有什么约束？",
+        "expected_answer": "三角形-free意味着P的邻居N(P)中任两个顶点不相邻（否则与P成三角形）。所以每条边至多有一个端点在N(P)中。远边=没有端点在N(P)中的边，近边=恰有一个端点在N(P)中的边。近边数=sum_{Q in N(P)} deg(Q)（因为每条近边唯一对应一个邻居端点）。所以远边 = k - sum_{Q in N(P)} deg(Q)。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "现在需要证明存在P使sum_{Q in N(P)} deg(Q) >= 4k^2/n^2。考虑对所有顶点P求和sum_P sum_{Q in N(P)} deg(Q)，这个双重和等于什么？",
+        "expected_answer": "交换求和顺序：sum_P sum_{Q in N(P)} deg(Q) = sum_Q deg(Q) * #{P : Q in N(P)} = sum_Q deg(Q) * deg(Q) = sum_Q deg(Q)^2。因为Q的邻居数=deg(Q)，每个邻居P都会把deg(Q)计入一次。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "我们得到了sum_P sum_{Q in N(P)} deg(Q) = sum_Q deg(Q)^2。现在需要下界，能用到什么不等式？",
+        "expected_answer": "Cauchy-Schwarz不等式：(sum_Q deg(Q))^2 <= n * sum_Q deg(Q)^2。由握手定理sum_Q deg(Q) = 2k，所以sum_Q deg(Q)^2 >= (2k)^2/n = 4k^2/n。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "我们有sum_P sum_{Q in N(P)} deg(Q) >= 4k^2/n。如何从中得出存在某个P满足我们需要的下界？",
+        "expected_answer": "平均论证：sum_P sum_{Q in N(P)} deg(Q) >= 4k^2/n，共有n个顶点，所以存在P使sum_{Q in N(P)} deg(Q) >= 4k^2/(n*n) = 4k^2/n^2。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "现在把所有部分组装起来，完成证明。",
+        "expected_answer": "对这个P：远边 = k - sum_{Q in N(P)} deg(Q) <= k - 4k^2/n^2 = k(1 - 4k/n^2)。这正是要证明的结论。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.8,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 1995 P5: 三角形-free图的极值存在性证明。核心翻译方向是从局部存在性到全局平均论证，需要双重计数+Cauchy-Schwarz+握手定理三个技术的组合。knowledge_bottleneck在R5（Cauchy-Schwarz的应用），thinking_bottleneck在R4（将存在性转化为全局求和的双重计数）。拓扑分类无需进化。"
+  }
+}

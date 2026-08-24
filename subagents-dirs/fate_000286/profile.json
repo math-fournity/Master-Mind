@@ -1,0 +1,351 @@
+{
+  "_key": "fate_000286",
+  "source_id": "FATE-X-37",
+  "source_dataset": "FATE-X",
+  "schema_version": 3,
+  "problem_text": "Let R = C[x_11, x_12, ..., x_nn] / (det(x_ij) - 1). Show that R is a unique factorization domain. Formal Lean target: theorem ufd_quotDetSubOne (n : ℕ) (h : n ≥ 1) : ∃ (h : IsDomain (QuotDetSubOne n)), UniqueFactorizationMonoid (QuotDetSubOne n).",
+  "solution_text": "The Lean file contains `sorry`, so no formal proof is present. A standard mathematical proof is as follows. For n = 1 the quotient is C. For n ≥ 2, write A = C[x_ij]/(det X - 1). Use Nagata's UFD criterion with the coordinate a = x_nn. One verifies that A is a Noetherian domain and that a is a prime element, equivalently A/(a) is a domain. After localizing at a, write X in block form X = [[B, c], [r, a]]. Since a is invertible, replace B by the Schur complement Y = B - c a^{-1} r; then det X = a det Y. Hence A_a is isomorphic to C[Y_ij, det(Y)^{-1}, r, c], the coordinate ring of GL_{n-1} times an affine space. This is a UFD because it is a localization and polynomial extension of a polynomial UFD. Nagata's criterion then descends the UFD property from A_a to A, using the primality of a.",
+  "solution_summary": "Prove the coordinate ring of SL_n is factorial by localizing at one matrix entry, using Schur complement to identify the local chart with a GL_{n-1} coordinate ring times free variables, then applying Nagata's criterion to descend from the localized UFD to the original ring.",
+  "domain": "Algebra",
+  "subfield": "Commutative Algebra",
+  "answer_type": "proof",
+  "answer": "For every n ≥ 1, QuotDetSubOne n is an integral domain and admits a UniqueFactorizationMonoid structure; equivalently C[x_ij]/(det(x_ij)-1) is a UFD.",
+  "problem_type": "structural_existence",
+  "solution_method_type": "localization_descent_nagata",
+  "structure_features": "A single determinant relation defines a hypersurface quotient of a multivariable polynomial ring. The target is not just domainhood but factoriality, so the proof must move from the global quotient to a local open chart where the determinant relation simplifies, then descend the UFD property through a prime divisor.",
+  "key_objects": [
+    "MvPolynomial ((Fin n) × (Fin n)) ℂ",
+    "generic matrix X",
+    "determinant polynomial det(X)",
+    "ideal (det(X)-1)",
+    "quotient ring QuotDetSubOne n",
+    "coordinate ring of SL_n",
+    "coordinate function x_nn",
+    "localization at x_nn",
+    "Schur complement",
+    "coordinate ring of GL_{n-1}",
+    "prime divisor",
+    "Nagata UFD criterion"
+  ],
+  "thinking_patterns": [
+    "识别几何对象",
+    "排除直接商环误推",
+    "选择可逆坐标开图",
+    "Schur complement变量替换",
+    "局部UFD验证",
+    "Nagata下降",
+    "基例与素除子补齐"
+  ],
+  "primary_pattern": "localization_descent_after_structural_transformation",
+  "knowledge_required": [
+    "polynomial rings over fields are UFDs",
+    "UFD is preserved by polynomial extension and localization",
+    "domain quotient corresponds to a prime ideal",
+    "Nagata UFD criterion",
+    "block determinant formula and Schur complement",
+    "coordinate ring of GL_n as det-localized polynomial ring",
+    "primality of the coordinate divisor x_nn on SL_n"
+  ],
+  "key_insight": "The determinant equation becomes tractable only after inverting one matrix entry: the Schur complement identifies that open chart with a GL_{n-1} chart, and Nagata turns this local UFD computation into a global UFD proof.",
+  "translation_from": "global determinant hypersurface quotient / direct quotient-of-UFD reasoning",
+  "translation_to": "localized open chart plus Schur complement and Nagata UFD descent",
+  "translation_type": "global_quotient_to_localization_descent",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "SL_n coordinate ring",
+    "determinant minus one",
+    "UFD",
+    "localization at x_nn",
+    "Schur complement",
+    "GL_{n-1}",
+    "Nagata criterion",
+    "prime divisor"
+  ],
+  "expected_ai_method": "A bare AI is likely to try to prove det(X)-1 is irreducible or prime and then incorrectly infer that the quotient of a UFD is again a UFD, or to cite the high-level theorem that coordinate rings of simply connected semisimple groups are UFD without providing the local algebraic descent needed here.",
+  "correct_method": "Use Nagata's UFD criterion: show x_nn is a prime element in the coordinate ring of SL_n, compute the localization at x_nn via Schur complement as a GL_{n-1} coordinate ring times a polynomial ring, prove that localization is UFD, and descend factoriality to the original ring.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "The AI treats the statement as raw quotient notation and has not identified the quotient as the coordinate ring of SL_n or separated the IsDomain and UFD targets.",
+      "hint": "First name the algebraic object: this is the coordinate ring of SL_n. Then separate what must be proved: domainhood plus unique factorization.",
+      "hint_level": 0.85,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "SL_n coordinate ring",
+        "determinant hypersurface",
+        "IsDomain",
+        "UFD target"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "The AI has not explored the method space and may lock onto the first direct quotient argument it sees.",
+      "hint": "List possible UFD proof routes for determinant quotient rings: direct irreducibility, algebraic group theorem, class group, and Nagata localization; compare which one can actually supply factoriality.",
+      "hint_level": 0.8,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "UFD proof routes",
+        "irreducible hypersurface",
+        "class group",
+        "Popov theorem",
+        "Nagata localization"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "The AI is about to claim that because det(X)-1 is prime or irreducible, the quotient of the polynomial UFD is automatically a UFD.",
+      "hint": "Test that implication explicitly: a prime principal quotient of a UFD gives a domain hypersurface, not necessarily a UFD. Look for an additional UFD descent criterion instead.",
+      "hint_level": 0.55,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "det(X)-1 prime",
+        "quotient of UFD",
+        "domain versus UFD",
+        "false inheritance"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "The AI sees that direct quotient reasoning is insufficient but has no mechanism for descending UFD from a simpler ring.",
+      "hint": "Use Nagata's criterion: choose an element s, prove s is prime in A, prove A_s is UFD, then conclude A is UFD. For this determinant ring, try s = x_nn.",
+      "hint_level": 0.35,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "Nagata criterion",
+        "prime element",
+        "localized UFD",
+        "x_nn"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "The AI has chosen a localization but is still looking at the original determinant relation, not at the block coordinate change that makes the localized ring simple.",
+      "hint": "Invert x_nn and write the matrix in block form. Apply the Schur complement substitution Y = B - c x_nn^{-1} r so that det(X) = x_nn det(Y).",
+      "hint_level": 0.25,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "block matrix",
+        "Schur complement",
+        "x_nn inverse",
+        "det(X)=x_nn det(Y)",
+        "GL_{n-1} chart"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "The AI has computed a UFD localization but has not checked the descent hypotheses: base case, domainhood, and primality of the inverted coordinate.",
+      "hint": "Close the hypotheses one by one: handle n=1 separately, use the determinant ideal for domainhood, and verify A/(x_nn) is a domain so x_nn is prime.",
+      "hint_level": 0.45,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "base case n=1",
+        "A/(x_nn)",
+        "prime ideal",
+        "Noetherian domain",
+        "Nagata hypotheses"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "The AI has all ingredients but may leave them as disconnected facts rather than applying the exact final theorem that produces the UFD instance.",
+      "hint": "Now assemble the proof in theorem order: local UFD plus prime coordinate plus Noetherian domain implies global UFD by Nagata; include the IsDomain witness in the existential conclusion.",
+      "hint_level": 0.4,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "Nagata descent",
+        "global UFD",
+        "IsDomain witness",
+        "final assembly"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Full R1-R7 path: object recognition, rejection of the direct quotient shortcut, choice of Nagata criterion, Schur-complement local chart, prime-divisor check, and final descent.",
+      "observation_point": null,
+      "tell": "The proof only works when the path changes level twice: from a global quotient to a local open chart, then from the local UFD back to the global ring by a descent theorem.",
+      "hint": "When a quotient of a polynomial UFD is asked to be UFD, do not stop at irreducibility. Search for an element whose localization exposes a polynomial/localized-polynomial chart and pair it with a descent criterion.",
+      "hint_level": 0.68,
+      "generalizability": "high: applies broadly to factoriality questions for hypersurface coordinate rings where a standard open chart is much simpler than the global quotient.",
+      "why_not_visible_locally": "No single local step shows the entire detour. The need for this hint is visible only after seeing both the failure of the direct quotient attempt and the later success of the localization-plus-descent chain.",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "global quotient",
+        "local chart",
+        "UFD descent",
+        "Nagata",
+        "path-level detour"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The false inference in R3 from det(X)-1 being prime/irreducible to the quotient being UFD.",
+      "observation_point": "R3",
+      "tell": "The AI is confusing two different conclusions: prime quotient gives an integral domain, while unique factorization requires additional control of height-one primes or a descent theorem.",
+      "hint": "Separate domainhood from factoriality. After proving the relation is prime, ask which theorem specifically transfers UFD, rather than assuming quotient inheritance.",
+      "hint_level": 0.5,
+      "generalizability": "high: many algebra problems contain the same domain-versus-UFD confusion for hypersurface quotients.",
+      "why_not_visible_locally": "The local algebraic sentence 'det-1 is prime' sounds like a strong structural result; the missing non-implication is background knowledge about UFDs, not an explicit contradiction in that local computation.",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "prime quotient",
+        "domainhood",
+        "factoriality",
+        "non-inheritance"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The localized determinant calculation in R5 hides a coordinate change, not just a determinant identity.",
+      "observation_point": "R5",
+      "tell": "The AI may know a block determinant formula but fail to realize that the Schur complement variables give an isomorphism to a GL_{n-1} coordinate ring with free variables.",
+      "hint": "Treat Schur complement as a change of coordinates in the localized polynomial ring: introduce Y = B - c a^{-1}r, then read a det(Y)=1 as det(Y) being invertible.",
+      "hint_level": 0.35,
+      "generalizability": "medium: useful for determinant and matrix-coordinate problems where inverting a pivot turns a global relation into a smaller-rank relation.",
+      "why_not_visible_locally": "Before choosing and inverting the pivot, the variables Y do not exist in the original coordinate ring; the simplifying isomorphism is implicit in the localized coordinate change rather than visible in the original statement.",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "Schur complement",
+        "localized coordinate change",
+        "block determinant",
+        "GL_{n-1}",
+        "free variables"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "The likely failure is to assert that a quotient of a UFD by the prime element det(X)-1 is UFD, which proves at most domainhood. A second possible failure is an ungrounded appeal to a high-level theorem about coordinate rings of semisimple groups without providing the Nagata/localization proof obligations needed for formalization.",
+  "suitable_for_poc": [
+    "quotient_UFD_false_shortcut_detection",
+    "localization_descent_hint_injection",
+    "formal_commutative_algebra_theorem_selection",
+    "global_path_feature_tell_extraction"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.85,
+        "question": "先不要证明，描述这个Lean定理中的环、关系式和目标性质分别是什么。",
+        "expected_answer": "这是矩阵坐标多项式环对单个关系 det(X)-1 的商环，即 SL_n 的坐标环；目标是给出整环结构并证明它是唯一分解整环。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.8,
+        "question": "对这类“多项式环商环是UFD”的命题，列出可能路线，并指出每条路线的风险。",
+        "expected_answer": "可尝试直接用不可约超曲面、代数群坐标环定理、Class group、或Nagata局部化；直接“不可约即UFD”不成立，高阶代数群定理太重，Nagata+局部化最可控。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.55,
+        "question": "试一下最直接路线：证明 det(X)-1 不可约/素，然后看是否足够推出UFD。",
+        "expected_answer": "只能说明商环是整环或超曲面坐标环；UFD不从“UFD模掉一个素元”自动推出，所以这条路会卡在错误推理上。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.35,
+        "question": "改用UFD下降思路：找一个元素 s，使得 A_s 是UFD且 s 在 A 中是素元。你会选哪个元素、用什么定理？",
+        "expected_answer": "选一个矩阵坐标如 s=x_nn；准备用Nagata引理：Noether整环 A 中若 s 是素元且 A_s 是UFD，则 A 是UFD。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.25,
+        "question": "在 x_nn 可逆的局部环里，把矩阵写成块矩阵并做Schur complement，关系式会变成什么？",
+        "expected_answer": "写 X=[[B,c],[r,a]]，a=x_nn；令 Y=B-ca^{-1}r，则 det X=a det Y，所以 A_a 同构于 C[Y_ij,det(Y)^{-1},r,c]，这是 GL_{n-1} 坐标环加自由变量。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.45,
+        "question": "现在补齐Nagata的两个剩余假设：基例、整环性和 x_nn 的素性应该怎样验证？",
+        "expected_answer": "n=1 时商环是 C；一般情形可由 det-1 的素性得整环；A/(x_nn) 是不可约除子/整环（等价于 (det-1,x_nn) 为素理想），所以 x_nn 是素元。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.4,
+        "question": "把这些组件组织成最终证明，不要再展开计算细节，只给出逻辑闭环。",
+        "expected_answer": "基例成立；对 n≥2，A_{x_nn} 由Schur complement同构到 GL_{n-1} 坐标环的多项式扩张，是UFD；x_nn 为素元；由Nagata引理推出 A 是UFD，同时已知它是整环。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.65,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-08-09T10:10:11Z",
+    "analysis_duration": "single_session",
+    "notes": "problem.lean has no proof beyond sorry; profile records a reconstructed standard proof. Topology categories were sufficient; no new top-level dimension proposed."
+  }
+}

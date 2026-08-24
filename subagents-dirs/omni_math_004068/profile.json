@@ -1,0 +1,276 @@
+{
+  "_key": "omni_math_004068",
+  "source_id": "omni_math_004068",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let n >= 2 be a positive integer and lambda a positive real number. Initially there are n fleas on a horizontal line, not all at the same point. A move consists of choosing two fleas at points A and B (A left of B), and letting the flea from A jump over the flea from B to point C such that BC/AB = lambda. Determine all values of lambda such that, for any point M on the line and for any initial position of the n fleas, there exists a sequence of moves that will take them all to the position right of M.",
+  "solution_text": "The answer is lambda >= 1/(n-1).\n\nNecessity (lambda < 1/(n-1) fails): Place n fleas equally spaced at positions 0, 1, 2, ..., n-1. The total spread is n-1. When a flea at A jumps over B to C = (1-lambda)A + lambda*B, the new position satisfies BC = lambda*AB. Consider the maximum spread (rightmost minus leftmost). Each move can increase the spread by at most lambda times the current spread. When lambda*(n-1) < 1, the spread is bounded by a geometric series: the maximum spread is at most (n-1)/(1 - lambda*(n-1)), which is finite. Therefore the rightmost flea position is bounded, and we cannot push all fleas past an arbitrary point M.\n\nSufficiency (lambda >= 1/(n-1) works): Use the leapfrog strategy. Repeatedly have the leftmost flea jump over the rightmost flea. The new position is C = x_1 + lambda*(x_n - x_1). With lambda >= 1/(n-1), after cycling through all n-1 fleas, the rightmost position advances by at least the current spread. The spread grows without bound, so all fleas can be pushed past any point M.",
+  "solution_summary": "Characterize lambda by proving necessity (equally-spaced fleas have bounded spread when lambda < 1/(n-1) via geometric series) and sufficiency (leapfrog strategy pushes fleas arbitrarily far when lambda >= 1/(n-1)).",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_game_theory",
+  "answer_type": "inequality",
+  "answer": "lambda >= 1/(n-1)",
+  "problem_type": "characterization",
+  "solution_method_type": "invariant_analysis",
+  "structure_features": [
+    "characterization_problem: determine all valid parameter values",
+    "requires_both_necessity_and_sufficiency",
+    "worst_case_over_all_initial_configurations",
+    "move_is_affine_transformation: C = (1-lambda)*A + lambda*B",
+    "critical_threshold_emerges_from_geometric_series_convergence"
+  ],
+  "key_objects": [
+    "n fleas on a line",
+    "jump ratio lambda > 0",
+    "move: flea at A jumps over B to C where BC/AB = lambda",
+    "target point M (arbitrary)",
+    "spread = rightmost - leftmost position",
+    "equally-spaced configuration (worst case)"
+  ],
+  "thinking_patterns": [
+    "invariant_based_reasoning",
+    "potential_function_method",
+    "worst_case_configuration_analysis",
+    "constructive_strategy_design",
+    "geometric_series_convergence_analysis"
+  ],
+  "primary_pattern": "invariant_based_reasoning",
+  "knowledge_required": [
+    "potential functions / invariants in combinatorial games",
+    "geometric series and convergence criteria",
+    "affine transformations and their iterated behavior",
+    "worst-case analysis over configurations",
+    "constructive strategy for sufficiency proofs"
+  ],
+  "key_insight": "Place fleas equally spaced at 0,1,...,n-1 and observe that the spread is bounded by a geometric series when lambda*(n-1) < 1, giving the threshold lambda = 1/(n-1).",
+  "translation_from": "direct_simulation_case_analysis",
+  "translation_to": "invariant_potential_function_analysis",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "case_by_case",
+    "gap_type": "knowledge_gap"
+  },
+  "tell_small_concepts": [
+    "characterization",
+    "necessity and sufficiency",
+    "invariant",
+    "potential function",
+    "equally spaced configuration",
+    "geometric series",
+    "leapfrog strategy",
+    "bounded spread",
+    "threshold 1/(n-1)"
+  ],
+  "expected_ai_method": "Bare AI will try specific lambda values (lambda=1, lambda=1/2) and simulate moves, possibly getting sufficiency for large lambda but failing to find the necessary condition through invariant analysis. It won't identify equally-spaced fleas as the critical worst-case configuration.",
+  "correct_method": "Use potential function / invariant analysis for necessity (equally-spaced fleas, geometric series bound on spread) and constructive leapfrog strategy for sufficiency.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a parameter characterization problem but doesn't identify that 'determine all values' requires proving both necessity and sufficiency",
+      "hint": "Describe the problem structure: what is a move, what does 'determine all values' require, what are the two directions of proof needed?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["characterization", "necessity and sufficiency", "for all configurations"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches but doesn't prioritize invariant/potential function methods, focusing on direct simulation instead",
+      "hint": "List all possible approaches including invariant-based methods, potential functions, and worst-case configuration analysis",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["invariant", "potential function", "worst-case configuration", "direct simulation"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries lambda=1, sees it works easily, but gets stuck generalizing to find the threshold",
+      "hint": "Try lambda=1 to build intuition. What makes it work? Can you see what changes as lambda decreases?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["specific case", "lambda=1", "mirror jump", "generalization difficulty"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI doesn't think of using equally spaced fleas as the worst-case configuration and doesn't know to use a potential function",
+      "hint": "To find the necessary condition, consider the worst-case initial configuration. What configuration maximizes difficulty? Think about what potential function could bound the rightward progress.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["equally spaced", "potential function", "worst-case", "bounded spread"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI considers potential functions but struggles to find the right form that yields the threshold 1/(n-1)",
+      "hint": "Consider the maximum spread after any sequence of moves. When a flea jumps, the spread increases by at most lambda times the current spread. What does this give as a geometric series bound?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["geometric series", "bounded spread", "lambda*(n-1) < 1", "convergence threshold"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the necessity argument but doesn't construct an explicit strategy for sufficiency",
+      "hint": "Now show sufficiency: for lambda >= 1/(n-1), construct a leapfrog strategy where the leftmost flea repeatedly jumps over the rightmost. Show the spread grows without bound.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["leapfrog strategy", "sufficiency", "constructive proof", "unbounded spread"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both necessity and sufficiency but hasn't combined them into a clean final statement",
+      "hint": "Combine both directions: necessity gives lambda >= 1/(n-1) is required, sufficiency gives it is sufficient. State the final answer.",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["combine", "final answer", "threshold 1/(n-1)", "characterization complete"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Complete solution path from direct simulation to invariant analysis",
+      "observation_point": null,
+      "tell": "AI approaches through direct simulation and case analysis without recognizing the need for invariant-based necessity proof and constructive sufficiency strategy",
+      "hint": "Transform from direct simulation approach to invariant/potential function analysis for necessity, and constructive leapfrog strategy for sufficiency",
+      "hint_level": 0.7,
+      "generalizability": "high - the pattern of using potential functions for impossibility proofs and constructive strategies for possibility proofs in combinatorial games is broadly applicable",
+      "why_not_visible_locally": "The full method translation from simulation to invariant analysis spans multiple steps and requires seeing the problem as a characterization requiring two complementary proof directions, which no single step reveals",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["method translation", "invariant analysis", "potential function", "constructive strategy"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The critical threshold lambda = 1/(n-1) emerging from geometric series convergence",
+      "observation_point": "Q5",
+      "tell": "AI doesn't see that n-1 appears as the critical denominator because the worst case is equally spaced fleas with spread n-1, and the threshold comes from lambda*(n-1) = 1 as the geometric series convergence boundary",
+      "hint": "The worst case is equally spaced fleas where the spread is n-1. The threshold comes from the geometric series sum converging when lambda*(n-1) < 1, giving lambda = 1/(n-1) as the critical value",
+      "hint_level": 0.6,
+      "generalizability": "medium - the pattern of worst-case being equally spaced and threshold emerging from geometric series convergence is applicable to similar jump and spread problems",
+      "why_not_visible_locally": "The connection between equally-spaced configuration, the geometric series bound on spread, and the threshold 1/(n-1) requires analyzing the convergence condition of an iterated affine transformation, which is not visible in any single move analysis",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["equally spaced", "geometric series", "threshold 1/(n-1)", "convergence boundary", "lambda*(n-1)"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely try specific lambda values or simulate moves, possibly getting sufficiency for large lambda through intuition. However, it will fail to find the necessary condition because it won't identify equally-spaced fleas as the critical worst-case configuration and won't construct the geometric series bound on spread. It may guess the answer but cannot prove both directions rigorously.",
+  "suitable_for_poc": [
+    "tell_extraction: the method translation from simulation to invariant analysis is a clear tell",
+    "hint_injection: guiding AI from case analysis to potential function method",
+    "method_translation: testing whether hint about invariant analysis enables AI to find the threshold"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the problem structure: what is a move, what does 'determine all values' require, and what are the two directions of proof needed?",
+        "expected_answer": "A move takes flea at A (left of B) to C where BC/AB = lambda, so C = (1-lambda)A + lambda*B. We need all lambda > 0 such that for ANY initial config and ANY point M, we can push all fleas past M. 'Determine all values' is a characterization problem requiring both necessity (showing lambda < threshold fails) and sufficiency (showing lambda >= threshold works)."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "List all possible approaches to determine the complete set of valid lambda values.",
+        "expected_answer": "1) Try specific lambda values (lambda=1, lambda=1/2) and simulate. 2) Find an invariant or potential function that bounds how far fleas can go. 3) Construct explicit strategies for pushing fleas right. 4) Consider the worst-case initial configuration. 5) Analyze the maximum spread after sequences of moves. 6) Use geometric series to bound iterated jumps."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try lambda=1. What happens? Can you push all fleas past any M? What changes as lambda decreases?",
+        "expected_answer": "When lambda=1, C = 2B - A, so the flea jumps to the mirror image of A over B. The leftmost flea can jump over the rightmost, landing at 2*x_n - x_1, extending the range. Repeating this, the rightmost position grows without bound. So lambda=1 works. As lambda decreases, jumps become shorter and progress slows. There should be a threshold below which progress is bounded."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "To find the necessary condition, consider the worst-case initial configuration. What configuration maximizes difficulty? Think about what potential function could bound the rightward progress. What if fleas start equally spaced?",
+        "expected_answer": "If fleas are equally spaced at 0, 1, 2, ..., n-1, the total spread is n-1. Consider the maximum spread (rightmost minus leftmost). When a flea at A jumps over B, the spread can increase by at most lambda times the current spread. This suggests a geometric series bound: if lambda*(n-1) < 1, the spread is bounded. The potential function is the spread itself, and its growth is controlled by lambda."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Consider the maximum spread after any sequence of moves. When a flea jumps, the spread increases by at most lambda times the current spread. What does this give as a geometric series bound? What is the convergence condition?",
+        "expected_answer": "Starting with spread S_0 = n-1 (equally spaced), each move can increase the spread by at most lambda * S_current. So S_max <= S_0 * (1 + lambda + lambda^2 + ...) = S_0 / (1 - lambda) when lambda < 1. But more precisely, with n fleas, the effective multiplier per full cycle is lambda*(n-1), so the spread is bounded when lambda*(n-1) < 1, i.e., lambda < 1/(n-1). The maximum spread is (n-1)/(1 - lambda*(n-1)), which is finite. So the rightmost position is bounded, and we cannot pass an arbitrary M."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "Now show sufficiency: for lambda >= 1/(n-1), construct a leapfrog strategy where the leftmost flea repeatedly jumps over the rightmost. Show the spread grows without bound.",
+        "expected_answer": "When lambda >= 1/(n-1), use the leapfrog strategy: have the leftmost flea jump over the rightmost. The new position is C = x_1 + lambda*(x_n - x_1) >= x_1 + (x_n - x_1)/(n-1). After cycling through all fleas, the rightmost position advances by at least the current spread divided by (n-1). Since lambda >= 1/(n-1), the spread grows by a factor >= 1 each cycle, so it grows without bound. All fleas can be pushed past any point M."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "Combine both directions: necessity gives lambda >= 1/(n-1) is required, sufficiency gives it is sufficient. State the final answer.",
+        "expected_answer": "The answer is lambda >= 1/(n-1). Necessity: when lambda < 1/(n-1), equally spaced fleas have bounded spread (geometric series with ratio lambda*(n-1) < 1), so they cannot all pass an arbitrary M. Sufficiency: when lambda >= 1/(n-1), the leapfrog strategy pushes fleas arbitrarily far right. Therefore lambda >= 1/(n-1) is the complete set of valid values."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.3,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "approx 15 minutes",
+    "notes": "Classic competition problem (ISL 2009 C6 style). The key difficulty is identifying equally-spaced fleas as worst case and deriving the geometric series bound. The leapfrog strategy for sufficiency is more straightforward once the threshold is known. Bare AI expected to fail due to lack of invariant/potential function knowledge."
+  }
+}

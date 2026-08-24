@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_003792",
+  "source_id": "omni_math_003792",
+  "source_dataset": "AoPS_omni_math_imo",
+  "schema_version": 3,
+  "problem_text": "Turbo the snail plays a game on a board with 2024 rows and 2023 columns. There are hidden monsters in 2022 of the cells. Initially, Turbo does not know where any of the monsters are, but he knows that there is exactly one monster in each row except the first row and the last row, and that each column contains at most one monster. Turbo makes a series of attempts to go from the first row to the last row. On each attempt, he chooses to start on any cell in the first row, then repeatedly moves to an adjacent cell sharing a common side. (He is allowed to return to a previously visited cell.) If he reaches a cell with a monster, his attempt ends and he is transported back to the first row to start a new attempt. The monsters do not move, and Turbo remembers whether or not each cell he has visited contains a monster. If he reaches any cell in the last row, his attempt ends and the game is over. Determine the minimum value of n for which Turbo has a strategy that guarantees reaching the last row on the n-th attempt or earlier, regardless of the locations of the monsters.",
+  "solution_text": "Answer: 3. Lower bound (n>=3): The first cell Turbo encounters in row 2 on attempt 1 could contain a monster, and the first cell Turbo encounters in row 3 on attempt 2 could contain a monster, so 2 attempts don't suffice. Upper bound (n<=3): Attempt 1: sweep row 2 to locate the monster at (2,c). Case (a) c not at edge (2<=c<=2022): Attempt 2 go down column c-1 to row 3; if no monster, move to (3,c) (safe since column c's only monster is at row 2) and go straight down column c to bottom. If monster at (3,c-1), Attempt 3 go down column c+1 to row 3 (safe since row 3's monster is at c-1), move to (3,c), go down column c to bottom. Case (b) c at edge (c=1): Attempt 2 follow zigzag path (1,2)->(2,2)->(2,3)->(3,3)->(3,4)->...->(k,k)->(k,k+1)->...->(2024,2023). If no monster, reach bottom in 2 attempts. If monster at (r,r) or (r,r+1), Attempt 3: follow zigzag safe segment to row r-1, drop to (r,r-1) (safe since row r's monster is at column r or r+1), go left to (r,1) (all safe), go down column 1 to bottom (safe since column 1's only monster is at row 2 and r>=3).",
+  "solution_summary": "利用鸽巢原理（2023列2022怪物→至少一列无怪物）和'每列至多一个怪物'的结构约束，先定位第2行怪物，再利用怪物所在列的安全性绕过它到达底部。边界情况用zigzag路径，若遇怪物则通过左逃走廊到达第1列再直下。答案为3。",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_game_theory",
+  "answer_type": "numerical",
+  "answer": "3",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_constraint_navigation",
+  "structure_features": "网格上的路径规划问题，带有隐藏障碍物（怪物）。障碍物满足部分置换约束（每行至多一个，每列至多一个）。信息不完全但可通过探索获取。策略需要保证最坏情况下成功。关键结构：2023列vs2022怪物→鸽巢原理保证一列无怪物；每列至多一个怪物→知道一个怪物位置即可安全使用该列其他行。",
+  "key_objects": ["2024x2023棋盘", "2022个隐藏怪物（部分置换结构）", "Turbo的路径（从第1行到第2024行）", "尝试次数n", "zigzag对角线路径", "左逃走廊（row r中col 1到r-1）"],
+  "thinking_patterns": ["鸽巢原理计数（2023列vs2022怪物）", "结构约束推导（每列至多一个→列安全性）", "分情况讨论（边界vs非边界）", "路径设计双重目的（直达或信息收集+逃逸）", "对手论证（下界证明）", "信息利用（已知安全格子作为路径基础）"],
+  "primary_pattern": "结构约束推导——利用'每列至多一个怪物'的约束，从局部信息（一个怪物位置）推导全局安全性（整列安全），并据此设计路径",
+  "knowledge_required": ["鸽巢原理", "部分置换/匹配概念", "网格路径规划", "博弈论中的策略保证概念", "分情况讨论方法"],
+  "key_insight": "知道怪物在(r,c)意味着c列在所有其他行都安全——这个'一列至多一个怪物'的推论将局部信息转化为全局导航资源，使得3次尝试足以找到安全路径",
+  "translation_from": "逐列枚举搜索（暴力探索每列是否有怪物）",
+  "translation_to": "结构约束导航（利用'每列至多一个怪物'的约束，从已知怪物位置推导列安全性，设计利用部分信息的路径）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["鸽巢原理", "列安全性推论", "zigzag路径", "左逃走廊", "边界vs非边界分情况", "路径双重目的设计", "对手论证下界"],
+  "expected_ai_method": "逐列枚举——bare AI会尝试逐列探索或逐行扫掠所有怪物位置，试图收集完整信息后再规划路径，导致需要O(n)次尝试",
+  "correct_method": "结构约束导航——利用'每列至多一个怪物'将局部怪物位置转化为整列安全性，设计3次尝试的分情况策略（非边界用相邻列绕过，边界用zigzag+左逃走廊）",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI描述了题目结构但未识别关键约束（每列至多一个怪物）的战略意义",
+      "hint": "描述这道题的结构：棋盘规模、怪物放置规则、Turbo的行动规则、优化目标是什么？已知量和未知量分别是什么？",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["grid navigation", "hidden information", "attempt counting", "monster placement rules"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举了多种策略但聚焦于枚举型方法（逐列、逐行），未提及利用结构约束",
+      "hint": "列出Turbo可能采取的所有策略方向。考虑信息收集型策略和直接冲刺型策略。",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["column sweep", "row sweep", "path planning", "information gathering"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试逐列策略后发现最坏需2023次，意识到枚举太低效但不知道如何利用结构",
+      "hint": "试最简单的策略：直接走某一列到底。最坏情况需要多少次尝试？",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["worst case analysis", "column exploration", "attempt bound", "efficiency gap"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未注意到鸽巢原理（2023列vs2022怪物）和列安全性推论（怪物在(r,c)→c列其他行安全）",
+      "hint": "数一数：2023列、2022个怪物、每列至多一个怪物。这告诉你什么？进一步，如果怪物在(r,c)，'每列至多一个'对c列其他行意味着什么？",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["pigeonhole principle", "column safety", "monster-free column", "at most one per column", "structural deduction"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI理解了列安全性但不知道如何将其转化为导航策略——如何绕过第2行怪物到达底部",
+      "hint": "先定位第2行的怪物（沿第2行扫掠）。若怪物在(2,c)且c不在边界，如何利用'c列在row 3及以下安全'来到达底部？",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["row 2 sweep", "adjacent column bypass", "column safety below monster", "non-edge case strategy"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI处理了非边界情况但卡在边界情况——只有一列相邻时如何绕过怪物",
+      "hint": "处理边界情况：若第2行怪物在第1列(c=1)，只有一列相邻。设计一个zigzag路径作为尝试2，使得：(a)若无怪物直达底部，(b)若遇怪物在row r，则row r中路径左侧所有列安全，可左逃到第1列再直下。",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["zigzag path", "edge case", "leftward escape corridor", "column 1 safety", "dual purpose path design"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有上界策略但未验证下界——为什么2次不够",
+      "hint": "你已经证明了3次足够。现在验证下界：为什么2次不够？考虑对手能做什么。",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["lower bound", "adversary argument", "worst case blocking", "tight bound verification"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "整个策略路径：从鸽巢计数到列安全性推论到分情况路径设计到zigzag+左逃走廊",
+      "observation_point": null,
+      "tell": "问题的核心结构资源是双重的：(1)鸽巢原理保证一列无怪物，(2)'每列至多一个怪物'使已知怪物位置成为整列安全性的锚点。策略同时利用两者：先定位一个怪物（获得列安全性），再用列安全性导航。完整路径特征是'局部信息→全局安全→路径设计'的转化链。",
+      "hint": "先做鸽巢计数（2023 vs 2022），再推导列安全性（怪物在(r,c)→c列其他行安全），然后基于此设计分情况策略。关键是把'每列至多一个怪物'从描述性约束转化为操作性资源。",
+      "hint_level": 0.7,
+      "generalizability": "high——'将结构约束从描述性转化为操作性'的模式适用于所有带有隐藏信息和结构约束的博弈问题",
+      "why_not_visible_locally": "鸽巢计数和列安全性推论是全局结构观察，不从任何单步路径规划中涌现。zigzag策略的正确性依赖于zigzag几何与列约束在所有行上同时交互——任何单行视角都看不到左逃走廊的全局连通性。",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["pigeonhole principle", "column safety deduction", "local-to-global information transfer", "structural constraint as navigational resource"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "zigzag路径的设计意图：双重目的（直达或信息收集+逃逸）",
+      "observation_point": "Q6",
+      "tell": "zigzag路径被设计为具有隐含的双重目的：(a)若无怪物则直达底部，(b)若遇怪物则其几何结构保证左逃走廊存在。这个双重目的不是路径的任何单步可见的，而是整个路径形状与怪物约束的交互产物。",
+      "hint": "设计尝试2的路径时，要求它满足：若遇怪物在row r，则row r中路径左侧所有列（1到r-1）都安全（因row r怪物在col r或r+1），从而可左逃到第1列（已知安全）再直下。",
+      "hint_level": 0.5,
+      "generalizability": "medium——'路径双重目的设计'模式适用于需要信息收集和直接冲刺兼顾的博弈问题，但zigzag的具体几何依赖于网格结构和怪物分布约束",
+      "why_not_visible_locally": "zigzag的双重目的是隐含在设计中的约束——当考虑路径的任何单行时，看不到'若在此行遇怪物则左侧全安全'这个全局性质。它源于zigzag对角线几何（每行访问col r和r+1）与'每行一个怪物'约束的交互：怪物必在col r或r+1，故col 1..r-1全安全。",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["dual purpose path", "zigzag geometry", "leftward escape corridor", "implicit design constraint", "diagonal structure"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试逐列或逐行枚举策略，试图收集所有怪物位置后再规划路径。不会注意到'每列至多一个怪物'可以作为导航资源使用。在边界情况下更会卡住，因为只有一列相邻，无法直接绕过。预计会给出远大于3的答案或无法给出保证策略。",
+  "suitable_for_poc": ["tell端验证：检测AI是否注意到鸽巢原理和列安全性推论", "hint端验证：注入结构约束导航方向后AI能否设计3次策略", "分叉检测：AI在边界情况处是否分叉到zigzag路径设计"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：棋盘规模、怪物放置规则、Turbo的行动规则、优化目标是什么？已知量和未知量分别是什么？",
+        "expected_answer": "2024行2023列棋盘，2022个怪物（每行2-2023恰好一个，每列至多一个），Turbo从第1行到第2024行，遇怪物回第1行，记住访问过的格子。优化目标是最小化保证到达的尝试次数n。已知：棋盘尺寸、怪物数量和分布规则。未知：每个怪物的具体位置。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出Turbo可能采取的所有策略方向。考虑信息收集型策略和直接冲刺型策略。",
+        "expected_answer": "逐列探索（每列走一遍找怪物）、逐行扫掠（沿某行找该行怪物）、对角线/zigzag路径、二分搜索无怪物列、利用结构约束推导、混合策略（先收集信息再利用）等。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试最简单的策略：直接走某一列到底。最坏情况需要多少次尝试？",
+        "expected_answer": "如果走第c列，要么成功（c列无怪物），要么在(r,c)遇怪物。每次只了解一列，2023列最坏需2023次。太低效，需要利用结构约束。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "数一数：2023列、2022个怪物、每列至多一个怪物。这告诉你什么？进一步，如果怪物在(r,c)，'每列至多一个'对c列其他行意味着什么？",
+        "expected_answer": "鸽巢原理：2023列2022怪物→至少一列无怪物。关键推论：若怪物在(r,c)，则c列在所有其他行都安全！这意味着知道一个怪物位置就能安全使用该列的其他行。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "先定位第2行的怪物（沿第2行扫掠）。若怪物在(2,c)且c不在边界，如何利用'c列在row 3及以下安全'来到达底部？",
+        "expected_answer": "扫第2行找到(2,c)。若2≤c≤2022：尝试2走c-1列到row 3，若无怪物则移到(3,c)（安全，c列仅row2有怪物），直下c列到底。若(3,c-1)有怪物，尝试3走c+1列到row 3（安全，row3怪物在c-1），移到(3,c)直下到底。2-3次足够。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "处理边界情况：若第2行怪物在第1列(c=1)，只有一列相邻。设计一个zigzag路径作为尝试2，使得：(a)若无怪物直达底部，(b)若遇怪物在row r，则row r中路径左侧所有列安全，可左逃到第1列再直下。",
+        "expected_answer": "zigzag路径：(1,2)→(2,2)→(2,3)→(3,3)→(3,4)→...(k,k)→(k,k+1)→...→(2024,2023)。若遇怪物在(r,r)或(r,r+1)，则row r的怪物在col r或r+1，故col 1到r-1在row r都安全。尝试3：沿zigzag安全段到row r-1，下到(r,r-1)，左行到(r,1)，直下第1列到底（第1列仅row2有怪物，r≥3故安全）。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "你已经证明了3次足够。现在验证下界：为什么2次不够？考虑对手能做什么。",
+        "expected_answer": "对手可以在Turbo第1次尝试进入row 2的第一个格子放怪物，在第2次尝试进入row 3的第一个格子放怪物。因此2次尝试无法保证成功，n≥3。结合上界n≤3，答案为3。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-23T12:00:00Z",
+    "analysis_duration": "approximately 30 minutes",
+    "notes": "IMO 2024 Problem 5. Solution verified via Lean formalization (Archive.Imo.Imo2024Q5) and multiple online sources. Key insight: 'at most one monster per column' transforms from descriptive constraint to operational resource. The zigzag path's dual purpose (direct success OR leftward escape corridor) is the most non-trivial design element."
+  }
+}

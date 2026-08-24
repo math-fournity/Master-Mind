@@ -1,0 +1,1637 @@
+An integer $n$ is said to be [i]good[/i] if $|n|$ is not the square of an integer. Determine all integers $m$ with the following property: $m$ can be represented, in infinitely many ways, as a sum of three distinct good integers whose product is the square of an odd integer.
+
+[i]
+
+=== 你之前的思考过程（Round 2，被截断）===
+
+你已经在上一轮中开始了这道题的思考，但因为输出长度限制，思考过程被截断了。
+以下是你之前的完整思考过程，请仔细阅读，在此基础上**继续**思考并完成解答（不要从头开始）：
+
+Let me analyze this problem carefully.
+
+Problem: An integer $n$ is "good" if $|n|$ is not the square of an integer. Determine all integers $m$ with the property: $m$ can be represented, in infinitely many ways, as a sum of three distinct good integers whose product is the square of an odd integer.
+
+First, let me check for answer leaks. The problem statement is clean - no solutions, no sketches, no formalization notes. Good.
+
+Let me solve this problem.
+
+**Understanding "good":** $n$ is good iff $|n|$ is not a perfect square. So $n$ is NOT good iff $|n|$ is a perfect square, i.e., $n = k^2$ or $n = -k^2$ for some non-negative integer $k$. Note: $|0| = 0 = 0^2$, so $0$ is not good. Also $n = \pm 1, \pm 4, \pm 9, \pm 16, \ldots$ are not good.
+
+So good integers are all integers except $0, \pm 1, \pm 4, \pm 9, \pm 16, \ldots$
+
+**The condition:** We need $m = a + b + c$ where $a, b, c$ are distinct good integers, and $abc$ is the square of an odd integer.
+
+"Square of an odd integer" means $abc = (2k+1)^2$ for some integer $k$. So $abc$ is an odd perfect square. This means:
+1. $abc$ is odd → $a, b, c$ are all odd.
+2. $abc$ is a perfect square.
+3. $abc > 0$ (since it's a square of an odd integer, and $(2k+1)^2 \geq 1 > 0$). Actually $(2k+1)^2$ is always positive, so $abc > 0$.
+
+Wait, can $abc = 0$? No, because $0$ is not a square of an odd integer. $(2k+1)^2 \geq 1$. So $abc \geq 1$.
+
+So $a, b, c$ are all odd, $abc > 0$, and $abc$ is a perfect square.
+
+Since $abc > 0$ and all are odd, either all three are positive, or one is positive and two are negative.
+
+**$abc$ is a perfect square:** Let's think about this in terms of the prime factorization. $abc$ is a perfect square means that for every prime $p$, the total exponent of $p$ in $abc$ is even.
+
+Since $a, b, c$ are odd, they have no factor of 2.
+
+**Strategy:** We need to find all $m$ such that there are infinitely many representations.
+
+Let me think about what $m$ values work.
+
+**Construction approach:** Let's try to construct infinitely many representations for certain $m$.
+
+Let me try $m = 0$ first. Can we write $0 = a + b + c$ with $a, b, c$ distinct good odd integers, $abc$ an odd perfect square?
+
+If $a + b + c = 0$, then $c = -(a+b)$. We need $abc = ab(-(a+b)) = -ab(a+b)$ to be a positive odd perfect square.
+
+For $abc > 0$, we need $-ab(a+b) > 0$, so $ab(a+b) < 0$.
+
+Let me try specific constructions. Let $a = -(2t+1)^2 \cdot u$ type constructions...
+
+Actually, let me think more systematically.
+
+Let me try: $a = -p^2$, $b = -q^2$, $c = p^2 + q^2$ where $p, q$ are odd. Then $a + b + c = -p^2 - q^2 + p^2 + q^2 = 0$. And $abc = (-p^2)(-q^2)(p^2+q^2) = p^2 q^2 (p^2+q^2)$.
+
+For this to be a perfect square, we need $p^2 + q^2$ to be a perfect square (since $p^2 q^2$ is already a square). So we need $p^2 + q^2 = r^2$ for some integer $r$, i.e., $(p, q, r)$ is a Pythagorean triple with $p, q$ odd.
+
+But wait, in a Pythagorean triple $p^2 + q^2 = r^2$, if both $p$ and $q$ are odd, then $p^2 + q^2 \equiv 1 + 1 = 2 \pmod{4}$, but $r^2 \equiv 0$ or $1 \pmod{4}$. Contradiction. So there's no Pythagorean triple with both legs odd.
+
+So this exact construction doesn't work for $m = 0$.
+
+Let me try a different approach. Let me think about parametric families.
+
+Let me try: pick $a$ and $b$ such that $ab$ is a perfect square, and then set $c = m - a - b$, and require $abc$ to be a perfect square. If $ab$ is a perfect square, then $abc$ is a perfect square iff $c$ is a perfect square (up to sign). Wait, not exactly - $abc = (ab) \cdot c$, and if $ab$ is a perfect square, then $abc$ is a perfect square iff $c$ is a perfect square (since $ab > 0$... well we need $abc > 0$ too).
+
+Hmm, let me be more careful. $abc$ is a perfect square and $abc > 0$. If $ab = s^2$ for some positive integer $s$, then $abc = s^2 c$, which is a perfect square iff $c$ is a perfect square (and $c > 0$ for $abc > 0$). But $c$ must be good, meaning $|c|$ is not a perfect square. If $c > 0$ and $c$ is a perfect square, then $c$ is not good. Contradiction.
+
+So we can't have $ab$ be a perfect square with $c > 0$ being a perfect square.
+
+Let me reconsider. We need $abc$ to be a perfect square, but none of $a, b, c$ individually need to be perfect squares. The condition is on the product.
+
+Let me think about this differently. Write $a = \epsilon_a \cdot \alpha$, $b = \epsilon_b \cdot \beta$, $c = \epsilon_c \cdot \gamma$ where $\epsilon_i \in \{+1, -1\}$ and $\alpha, \beta, \gamma > 0$. Then $abc = \epsilon_a \epsilon_b \epsilon_c \cdot \alpha \beta \gamma$. For $abc > 0$, we need $\epsilon_a \epsilon_b \epsilon_c = +1$, so either all positive or exactly two negative.
+
+$abc$ is a perfect square means $\alpha \beta \gamma$ is a perfect square (since the sign is positive).
+
+So we need: $\alpha, \beta, \gamma$ are positive odd integers, none of which is a perfect square (since $a, b, c$ are good and $|a| = \alpha$ etc.), they're all distinct (as signed integers - so we need $a, b, c$ distinct, which means the signed values are distinct), $\alpha \beta \gamma$ is a perfect square, and $\epsilon_a a + \epsilon_b b + \epsilon_c c = m$... wait let me redo.
+
+$a + b + c = m$ where $a = \epsilon_a \alpha$, etc. So $\epsilon_a \alpha + \epsilon_b \beta + \epsilon_c \gamma = m$.
+
+Case 1: All positive. $a, b, c > 0$, all odd, distinct, good, $\alpha\beta\gamma$ is a perfect square, $\alpha + \beta + \gamma = m$. Need $m > 0$ (well, $m$ is a positive sum of three positive odd integers, so $m \geq 1+3+5 = 9$... but they need to be good, so not $1$. Smallest good positive odd integers: $3, 5, 7, 11, 13, \ldots$ (excluding $1, 9, 25, \ldots$). So $m \geq 3 + 5 + 7 = 15$.)
+
+Case 2: Two negative, one positive. Say $a, b < 0$, $c > 0$. Then $-\alpha - \beta + \gamma = m$, so $\gamma = m + \alpha + \beta$. Need $\gamma > 0$, $\gamma$ odd, good, and $\alpha\beta\gamma$ perfect square.
+
+This is getting complex. Let me think about which $m$ admit infinitely many representations.
+
+**Key insight:** For infinitely many representations, we need a parametric family. Let me try to construct one.
+
+**Attempt for general odd $m$:** 
+
+Let me try the two-negative-one-positive case. Let $a = -\alpha$, $b = -\beta$, $c = \gamma$ with $\alpha, \beta, \gamma > 0$ odd, good, distinct, and $\gamma = m + \alpha + \beta$, and $\alpha\beta\gamma$ a perfect square.
+
+To make $\alpha\beta\gamma$ a perfect square, one approach: let $\alpha = p \cdot u^2$, $\beta = p \cdot v^2$ for some squarefree $p$ (odd), so $\alpha\beta = p^2 u^2 v^2$ is a perfect square. Then we need $\gamma$ to be a perfect square. But $\gamma$ must be good, so $|\gamma| = \gamma$ is not a perfect square. Contradiction again.
+
+Another approach: let $\alpha = p \cdot u^2$, $\beta = q \cdot v^2$, $\gamma = pq \cdot w^2$ where $p, q$ are distinct odd squarefree numbers. Then $\alpha\beta\gamma = p \cdot u^2 \cdot q \cdot v^2 \cdot pq \cdot w^2 = p^2 q^2 u^2 v^2 w^2 = (pquvw)^2$. Perfect square!
+
+Now we need:
+- $\alpha = p u^2$ is good: $pu^2$ is not a perfect square. Since $p$ is squarefree and $p > 1$, $pu^2$ is not a perfect square. Good. (Need $p > 1$, i.e., $p$ is not 1.)
+- Similarly $\beta = qv^2$ good, $\gamma = pqw^2$ good (need $pq$ not a perfect square, which is true if $p \neq q$ and both squarefree).
+- All odd: $p, q, u, v, w$ all odd.
+- Distinct: $a = -pu^2$, $b = -qv^2$, $c = pqw^2$ must be distinct.
+- $\gamma = m + \alpha + \beta$: $pqw^2 = m + pu^2 + qv^2$.
+
+So we need: $pqw^2 - pu^2 - qv^2 = m$.
+
+This is a Diophantine equation. For infinitely many solutions, we need this to have infinitely many solutions in odd positive integers $u, v, w$ (with $p, q$ fixed odd squarefree $> 1$, $p \neq q$).
+
+Hmm, this is a ternary quadratic form. Let me think about whether this can have infinitely many solutions.
+
+Actually, let me try a simpler approach. Fix $p = 3, q = 5$ (both odd, squarefree, $> 1$, distinct). Then:
+$$15w^2 - 3u^2 - 5v^2 = m$$
+
+We need infinitely many odd positive solutions $(u, v, w)$.
+
+This is an indefinite ternary quadratic form (signature $(1, 2)$), so by the theory of such forms, if it has one solution, it typically has infinitely many (the automorphism group is infinite).
+
+But we also need $u, v, w$ all odd. Let me check: if $u, v, w$ are all odd, then $15w^2 - 3u^2 - 5v^2 \equiv 15 - 3 - 5 = 7 \pmod{8}$. Since odd squares are $\equiv 1 \pmod{8}$. So $m \equiv 7 \pmod{8}$.
+
+Hmm, that gives a specific residue class. Let me try other parities or other constructions.
+
+Wait, but we also need the three values $a = -3u^2, b = -5v^2, c = 15w^2$ to be distinct. Since $a, b < 0$ and $c > 0$, we just need $a \neq b$, i.e., $3u^2 \neq 5v^2$, which is true as long as $u, v > 0$ (since $3/5$ is not a perfect square).
+
+Also need $c \neq a$ and $c \neq b$: $15w^2 \neq -3u^2$ (always true since one is positive, other negative) and $15w^2 \neq -5v^2$ (always true). Good.
+
+So for $m \equiv 7 \pmod 8$, we might get infinitely many representations. But we need to verify the form actually represents $m$.
+
+Let me think about this more generally. The form $15w^2 - 3u^2 - 5v^2$ with $u, v, w$ odd represents $m \equiv 7 \pmod 8$. But does it represent ALL $m \equiv 7 \pmod 8$?
+
+Actually, I realize I should think about this problem more carefully. Let me consider different constructions for different residue classes of $m$.
+
+Actually, let me reconsider. The problem asks for ALL $m$. Let me think about what constraints $m$ must satisfy.
+
+**Necessary conditions:**
+
+Since $a, b, c$ are all odd, $m = a + b + c$ is a sum of three odd numbers, which is odd. So $m$ must be **odd**.
+
+Are there other necessary conditions? Let me think...
+
+Since $abc$ is an odd perfect square, $abc \equiv 1 \pmod{8}$ (odd squares are $\equiv 1 \pmod 8$). So $abc \equiv 1 \pmod 8$.
+
+Now $a, b, c$ are odd. Each is $\equiv 1, 3, 5,$ or $7 \pmod 8$. We need $abc \equiv 1 \pmod 8$.
+
+The product $abc \pmod 8$: We need the product of three odd numbers to be $\equiv 1 \pmod 8$.
+
+Also $m = a + b + c \pmod 8$.
+
+Let me enumerate. Each of $a, b, c \in \{1, 3, 5, 7\} \pmod 8$. We need $abc \equiv 1 \pmod 8$.
+
+The multiplicative group mod 8 is $\{1, 3, 5, 7\}$ with $3^2 = 1, 5^2 = 1, 7^2 = 1 \pmod 8$. So every element has order 1 or 2. The product of three elements is 1 iff an even number of them are non-1 (i.e., from $\{3, 5, 7\}$) and their product is 1, or all three are 1, or... let me just enumerate.
+
+Products $\equiv 1 \pmod 8$:
+- $1 \cdot 1 \cdot 1 = 1$ ✓
+- $3 \cdot 3 \cdot 1 = 1$ ✓ (and permutations)
+- $5 \cdot 5 \cdot 1 = 1$ ✓ (and permutations)
+- $7 \cdot 7 \cdot 1 = 1$ ✓ (and permutations)
+- $3 \cdot 5 \cdot 7 = 105 \equiv 1$ ✓ (and permutations)
+
+So the possible $(a, b, c) \pmod 8$ (up to permutation) with $abc \equiv 1 \pmod 8$:
+- $(1, 1, 1)$: sum $\equiv 3$
+- $(1, 3, 3)$: sum $\equiv 7$
+- $(1, 5, 5)$: sum $\equiv 3$
+- $(1, 7, 7)$: sum $\equiv 7$
+- $(3, 5, 7)$: sum $\equiv 7$
+
+So $m \pmod 8 \in \{3, 7\}$, i.e., $m \equiv 3 \pmod 4$.
+
+Wait: $3 \pmod 8$ and $7 \pmod 8$ means $m \equiv 3 \pmod 4$. So $m$ must be $\equiv 3 \pmod 4$.
+
+But wait, is this actually a necessary condition? We need $abc \equiv 1 \pmod 8$ because $abc$ is an odd perfect square, and odd perfect squares are $\equiv 1 \pmod 8$. Yes.
+
+So $m$ must be odd and $m \equiv 3 \pmod 4$, i.e., $m \equiv 3 \pmod 4$.
+
+Hmm wait, let me double-check. $m$ odd means $m \equiv 1, 3, 5, 7 \pmod 8$. And we showed $m \equiv 3$ or $7 \pmod 8$, which is $m \equiv 3 \pmod 4$. So the necessary condition is $m \equiv 3 \pmod 4$.
+
+Now the question is: is $m \equiv 3 \pmod 4$ sufficient? I.e., for every $m \equiv 3 \pmod 4$, are there infinitely many representations?
+
+Let me try to construct representations for each $m \equiv 3 \pmod 4$.
+
+**Construction for $m \equiv 3 \pmod 8$:**
+
+From the analysis, when $m \equiv 3 \pmod 8$, the possible residue patterns are $(1,1,1)$ or $(1,5,5) \pmod 8$.
+
+Let me try the all-positive case with $(1,1,1) \pmod 8$: $a \equiv b \equiv c \equiv 1 \pmod 8$.
+
+Or let me try a general construction. Let me use the form approach but with different parameters for different $m$.
+
+Actually, let me try a cleaner construction. 
+
+**Construction 1: $m \equiv 3 \pmod 4$.**
+
+I'll try to use the two-negative-one-positive setup. Let $a = -3s^2$, $b = -5t^2$, $c = 15r^2$ where $s, t, r$ are positive odd integers. Then:
+- $a, b, c$ are all odd ✓
+- $a, b, c$ are good (since $3, 5, 15$ are not perfect squares) ✓
+- $abc = (-3s^2)(-5t^2)(15r^2) = 225 s^2 t^2 r^2 = (15str)^2$ ✓ (perfect square, and odd since $s,t,r$ odd)
+- $a + b + c = -3s^2 - 5t^2 + 15r^2 = m$
+
+So we need $15r^2 - 3s^2 - 5t^2 = m$ with $s, t, r$ positive odd integers, and $a, b, c$ distinct.
+
+Distinctness: $a = -3s^2 \neq b = -5t^2$ iff $3s^2 \neq 5t^2$, which holds for positive $s, t$ (since $3/5$ is not a square). $c = 15r^2 > 0 > a, b$, so $c \neq a, c \neq b$. ✓
+
+So we need: for which $m$ does $15r^2 - 3s^2 - 5t^2 = m$ have infinitely many solutions in positive odd integers $s, t, r$?
+
+With $s, t, r$ odd: $15r^2 - 3s^2 - 5t^2 \equiv 15 - 3 - 5 = 7 \pmod 8$. So this construction gives $m \equiv 7 \pmod 8$.
+
+**Construction 2: For $m \equiv 3 \pmod 8$.**
+
+Let me try $a = -s^2 \cdot p$, $b = -t^2 \cdot q$, $c = r^2 \cdot pq$ with different $p, q$.
+
+Try $p = 3, q = 7$: $a = -3s^2, b = -7t^2, c = 21r^2$. Then $abc = 441 s^2 t^2 r^2 = (21str)^2$. And $a + b + c = 21r^2 - 3s^2 - 7t^2 = m$.
+
+With $s, t, r$ odd: $21 - 3 - 7 = 11 \equiv 3 \pmod 8$. So this gives $m \equiv 3 \pmod 8$. ✓
+
+So for $m \equiv 3 \pmod 8$, we need $21r^2 - 3s^2 - 7t^2 = m$ to have infinitely many odd positive solutions.
+
+For $m \equiv 7 \pmod 8$, we need $15r^2 - 3s^2 - 5t^2 = m$ to have infinitely many odd positive solutions.
+
+Now, the key question: do these indefinite ternary quadratic forms represent all integers in the appropriate residue class, with infinitely many odd solutions?
+
+**Theory of indefinite ternary quadratic forms:** An indefinite ternary quadratic form $Q(x,y,z)$ that primitively represents some integer $n$ represents $n$ infinitely many times (this follows from the spinor genus theory and the fact that the orthogonal group of an indefinite ternary form is infinite — actually, I need to be more careful).
+
+Actually, the key fact is: if $Q$ is an indefinite ternary quadratic form (over $\mathbb{Z}$) with discriminant not a perfect square, and $Q$ represents $n$ primitively (i.e., $\gcd(x,y,z) = 1$), then $Q$ represents $n$ infinitely many times. This is a consequence of the theory of spinor genera (Eichler's result or similar).
+
+But even without the primitive condition, if $Q$ represents $n$ at all, we can often get infinitely many representations by scaling.
+
+Hmm, but we need $s, t, r$ to be odd, which is a congruence condition. Let me think about this differently.
+
+Let me try a more explicit construction.
+
+**Explicit construction for $m \equiv 7 \pmod 8$:**
+
+We need $15r^2 - 3s^2 - 5t^2 = m$ with $s, t, r$ odd positive.
+
+Let me try $s = t = 1$: $15r^2 - 3 - 5 = 15r^2 - 8 = m$, so $r^2 = (m+8)/15$. This works only for specific $m$.
+
+Let me try a parametric approach. Fix $s = 2k+1, t = 2j+1$ and vary them, then $15r^2 = m + 3s^2 + 5t^2$, so $r^2 = (m + 3(2k+1)^2 + 5(2j+1)^2)/15$.
+
+This is hard to make work for all $m \equiv 7 \pmod 8$.
+
+Let me try yet another approach. Instead of fixing $p, q$, let me use a more flexible construction.
+
+**Alternative construction:** Let $a = -(2n+1)^2 \cdot d_1$, $b = -(2n+1)^2 \cdot d_2$, $c = (2n+1)^2 \cdot d_1 d_2 / ... $
+
+Hmm, this is getting complicated. Let me think differently.
+
+**Better approach:** Use the fact that we can scale. If we have one representation $m = a_0 + b_0 + c_0$ with $a_0 b_0 c_0$ an odd perfect square, then we can try to generate more by some transformation.
+
+Actually, let me think about this more carefully using a specific parametric family.
+
+**Parametric family for $m \equiv 3 \pmod 4$:**
+
+Let me try: $a = -(2k+1)^2 \cdot 3$, $b = -(2k+1)^2 \cdot 5$, $c = m - a - b = m + 8(2k+1)^2$.
+
+Then $abc = 15(2k+1)^4 \cdot c$. For this to be a perfect square, we need $15c$ to be a perfect square (since $(2k+1)^4$ is already a square). So $15c = 15(m + 8(2k+1)^2)$ must be a perfect square.
+
+This requires $15(m + 8(2k+1)^2) = s^2$ for some odd $s$. This is a Pell-like equation: $s^2 - 120(2k+1)^2 = 15m$.
+
+Let $u = 2k+1$ (odd positive). Then $s^2 - 120u^2 = 15m$.
+
+This is a generalized Pell equation. For it to have infinitely many solutions, we need it to have at least one solution, and then the Pell equation structure gives infinitely many.
+
+But this might not have solutions for all $m$.
+
+Let me try yet another approach.
+
+**Approach using three parameters:**
+
+Let me set $a = -3u^2$, $b = -5v^2$, $c = m + 3u^2 + 5v^2$. We need:
+1. $c$ is odd: $m + 3u^2 + 5v^2$ is odd. Since $u, v$ odd, $3u^2 + 5v^2$ is even (odd + odd = even), so $c$ has the same parity as $m$. So $m$ must be odd. ✓ (we already know $m \equiv 3 \pmod 4$)
+2. $c > 0$: $m + 3u^2 + 5v^2 > 0$, which holds for large enough $u, v$ (or even small ones if $m > 0$; if $m < 0$, need $3u^2 + 5v^2 > |m|$).
+3. $c$ is good: $|c| = c$ is not a perfect square.
+4. $abc = 15u^2 v^2 c$ is a perfect square: need $15c$ to be a perfect square, i.e., $c = 15w^2$ for some positive integer $w$ (since $15c = 15 \cdot 15w^2 = 225w^2 = (15w)^2$). Wait, $15c$ is a perfect square means $c = 15w^2 / \text{something}$... Let me redo.
+
+$abc = (-3u^2)(-5v^2)(c) = 15u^2 v^2 c$. For this to be a perfect square, since $u^2 v^2$ is a square, we need $15c$ to be a perfect square. $15c = $ perfect square means $c = 15 \cdot t^2$ for some positive rational... no. $15c$ is a perfect square means $15c = n^2$ for some positive integer $n$. Since $15 = 3 \cdot 5$, we need $c = 3 \cdot 5 \cdot k^2 / \gcd$... 
+
+Actually, $15c = n^2$ means $c = n^2/15$. For $c$ to be a positive integer, $15 | n^2$, so $15 | n$ (since 15 is squarefree), i.e., $n = 15w$, giving $c = 15w^2$. So $c = 15w^2$.
+
+But then $c = 15w^2$ is not good (since $|c| = 15w^2$ is... wait, $15w^2$ is a perfect square only if $15$ is a perfect square, which it's not. So $15w^2$ is NOT a perfect square (for $w \geq 1$), so $c = 15w^2$ IS good! ✓
+
+Wait, I confused myself. $c$ is good iff $|c|$ is not a perfect square. $|c| = 15w^2$. Is $15w^2$ a perfect square? Only if $15$ is a perfect square, which it's not. So $15w^2$ is not a perfect square, so $c$ is good. ✓✓
+
+So we need: $c = m + 3u^2 + 5v^2 = 15w^2$, i.e., $15w^2 - 3u^2 - 5v^2 = m$.
+
+And we need $c = 15w^2 \neq a = -3u^2$ and $c \neq b = -5v^2$ (automatic since $c > 0 > a, b$), and $a \neq b$ (i.e., $3u^2 \neq 5v^2$, automatic for positive $u, v$).
+
+Also need $u, v, w$ odd (so that $a, b, c$ are odd). $c = 15w^2$ is odd iff $w$ is odd. $a = -3u^2$ is odd iff $u$ is odd. $b = -5v^2$ is odd iff $v$ is odd.
+
+So we're back to: $15w^2 - 3u^2 - 5v^2 = m$ with $u, v, w$ positive odd integers, and infinitely many solutions.
+
+As computed, with $u, v, w$ odd, $m \equiv 7 \pmod 8$.
+
+For $m \equiv 3 \pmod 8$, use $p = 3, q = 7$: $21w^2 - 3u^2 - 7v^2 = m$ with $u, v, w$ odd. Check: $21 - 3 - 7 = 11 \equiv 3 \pmod 8$. ✓
+
+Now I need to show these equations have infinitely many odd positive solutions for every $m$ in the right residue class.
+
+**Key lemma:** For the indefinite ternary quadratic form $Q(u,v,w) = pqw^2 - pu^2 - qv^2$ (where $p, q$ are distinct odd squarefree integers $> 1$), and for any integer $m$ with $m \equiv pq - p - q \pmod 8$, the equation $Q(u,v,w) = m$ has infinitely many solutions in positive odd integers $(u, v, w)$.
+
+Hmm, this is a strong claim. Let me think about whether it's true.
+
+Actually, let me try a different, more explicit construction that avoids the heavy machinery of quadratic forms.
+
+**Explicit parametric construction:**
+
+Let me try to construct solutions explicitly. 
+
+For $m \equiv 7 \pmod 8$, consider $15w^2 - 3u^2 - 5v^2 = m$.
+
+Let me try $u = v = w = 1$: $15 - 3 - 5 = 7$. So $m = 7$ works.
+
+Now, can I generate more solutions from this? The form $Q(u,v,w) = 15w^2 - 3u^2 - 5v^2$ has an automorphism group. But finding explicit automorphisms is not trivial.
+
+Let me try a different approach: fix one variable and solve the resulting Pell equation.
+
+Fix $v = 1$: $15w^2 - 3u^2 - 5 = m$, i.e., $15w^2 - 3u^2 = m + 5$, i.e., $5w^2 - u^2 = (m+5)/3$. For this to have integer solutions, need $3 | (m+5)$, i.e., $m \equiv 1 \pmod 3$. Not always true.
+
+Fix $u = 1$: $15w^2 - 3 - 5v^2 = m$, i.e., $15w^2 - 5v^2 = m + 3$, i.e., $3w^2 - v^2 = (m+3)/5$. Need $5 | (m+3)$.
+
+These don't work for all $m$.
+
+Let me try a more flexible approach. Instead of fixing $p, q$, let me choose $p, q$ depending on $m$.
+
+**Even more flexible construction:**
+
+Let me use the following: pick any odd squarefree $d > 1$. Set $a = -d \cdot s^2$, $b = -d \cdot t^2$, $c = m + d(s^2 + t^2)$. Then $abc = d^2 s^2 t^2 \cdot c$, which is a perfect square iff $c$ is a perfect square. But $c$ must be good, so $c$ is not a perfect square. Contradiction (if $c > 0$). 
+
+Unless $c < 0$... but then $abc < 0$ (since $a, b < 0$ and $c < 0$ means $abc < 0$), which contradicts $abc > 0$.
+
+Or if all three are positive: $a = ds^2, b = dt^2, c = m - d(s^2 + t^2)$. Need $c > 0$, $c$ odd, good, and $abc = d^2 s^2 t^2 c$ perfect square, so $c$ perfect square. But $c$ must be good. Contradiction.
+
+So the "two share a common squarefree part" approach forces $c$ to be a perfect square, which contradicts goodness. That's why I need the three-prime approach: $a = -pu^2, b = -qv^2, c = pqw^2$.
+
+OK so let me go back to the ternary quadratic form approach and try to prove it works.
+
+**Approach: Show $15w^2 - 3u^2 - 5v^2 = m$ has infinitely many odd solutions for $m \equiv 7 \pmod 8$.**
+
+Let me try to use the theory more carefully. The form $f(u,v,w) = 15w^2 - 3u^2 - 5v^2$ is an indefinite ternary quadratic form with discriminant $15 \cdot 3 \cdot 5 = 225$ (up to sign). Actually the discriminant of $ax^2 + by^2 + cz^2$ is $abc$, so here it's $(-3)(-5)(15) = 225 = 15^2$.
+
+Hmm, the discriminant being a perfect square might cause issues. Let me check: for the form $pqw^2 - pu^2 - qv^2$, the discriminant is $(-p)(-q)(pq) = p^2 q^2 = (pq)^2$, which is always a perfect square. This means the form is "degenerate" in some sense — it factors!
+
+$15w^2 - 3u^2 - 5v^2 = (\sqrt{15}w - \sqrt{3}u)(\sqrt{15}w + \sqrt{3}u) - 5v^2$... not helpful over $\mathbb{Z}$.
+
+Actually, let me factor differently. $15w^2 - 3u^2 - 5v^2 = 3(5w^2 - u^2) - 5v^2$. Or $= 5(3w^2 - v^2) - 3u^2$.
+
+Let me try: $15w^2 - 3u^2 - 5v^2 = (3w-u)(5w+u) \cdot ... $ no, that doesn't factor nicely.
+
+Actually, $15w^2 - 3u^2 = 3(5w^2 - u^2) = 3(\sqrt{5}w - u)(\sqrt{5}w + u)$, which doesn't factor over $\mathbb{Z}$.
+
+Let me try a substitution. Let $u = w + 2a$, $v = w + 2b$ (to maintain oddness if $w$ is odd). Then:
+$15w^2 - 3(w+2a)^2 - 5(w+2b)^2 = 15w^2 - 3w^2 - 12aw - 12a^2 - 5w^2 - 20bw - 20b^2 = 7w^2 - (12a + 20b)w - 12a^2 - 20b^2$.
+
+Setting this equal to $m$: $7w^2 - (12a + 20b)w - 12a^2 - 20b^2 = m$.
+
+This is a quadratic in $w$: $7w^2 - (12a+20b)w - (12a^2 + 20b^2 + m) = 0$.
+
+Discriminant: $(12a+20b)^2 + 28(12a^2 + 20b^2 + m) = 144a^2 + 480ab + 400b^2 + 336a^2 + 560b^2 + 28m = 480a^2 + 480ab + 960b^2 + 28m = 480a^2 + 480ab + 960b^2 + 28m$.
+
+$= 4(120a^2 + 120ab + 240b^2 + 7m)$.
+
+For $w$ to be an integer, we need $120a^2 + 120ab + 240b^2 + 7m$ to be a perfect square. This is still complicated.
+
+Let me try a completely different approach to the problem.
+
+**Direct construction using Pell equations:**
+
+For each $m \equiv 3 \pmod 4$, I want to find infinitely many triples $(a, b, c)$ of distinct good odd integers with $a + b + c = m$ and $abc$ an odd perfect square.
+
+Let me try: fix $b = -(2k+1)^2 \cdot d$ for some squarefree odd $d > 1$, and let $a$ and $c = m - a - b$ vary. We need $abc = a \cdot b \cdot (m - a - b)$ to be a perfect square.
+
+With $b = -d(2k+1)^2$, $abc = -d(2k+1)^2 \cdot a \cdot (m - a + d(2k+1)^2)$. For this to be a positive perfect square, we need $a \cdot (m - a + d(2k+1)^2) < 0$ (so that the product with $-d(2k+1)^2$ is positive), and $d \cdot |a| \cdot |m - a + d(2k+1)^2|$ to be a perfect square (the $(2k+1)^2$ is already a square).
+
+This is getting complicated. Let me try yet another approach.
+
+**Approach: Use specific small constructions and Pell equations.**
+
+Let me try to construct for $m \equiv 3 \pmod 4$ using the following idea:
+
+Let $a = -3(2t+1)^2$, $c = 15(2t+1)^2 + m + 3(2t+1)^2 = 18(2t+1)^2 + m$... no wait, I need $a + b + c = m$ with $abc$ a perfect square.
+
+Let me try: $a = -3s^2$, $c = 5s^2 + m + 3s^2 = 8s^2 + m$... no, I need to be more careful.
+
+OK here's another idea. Let me use the identity:
+$$(-3u^2)(-5v^2)(15w^2) = (15uvw)^2$$
+
+and the sum is $15w^2 - 3u^2 - 5v^2$. I need this to equal $m$ for infinitely many odd $(u,v,w)$.
+
+Let me try to find solutions by setting $u = v$ and solving:
+$15w^2 - 8u^2 = m$ (with $u$ odd, but $8u^2$ is even, and $15w^2$ is odd when $w$ is odd, so $m$ is odd ✓).
+
+This is a generalized Pell equation: $15w^2 - 8u^2 = m$.
+
+For $m \equiv 7 \pmod 8$: with $u, w$ odd, $15w^2 - 8u^2 \equiv 15 - 0 = 7 \pmod 8$ (since $8u^2 \equiv 0 \pmod 8$). ✓
+
+But we also need $u = v$, which means $a = -3u^2 = b = -5u^2$... no! $a = -3u^2$ and $b = -5v^2 = -5u^2$ (since $u = v$). These are distinct as long as $u \neq 0$. ✓
+
+So we need: $15w^2 - 8u^2 = m$ has infinitely many solutions in positive odd integers $(u, w)$.
+
+This is a binary quadratic form (indefinite, since $15 \cdot (-8) < 0$). The equation $15w^2 - 8u^2 = m$ is a generalized Pell equation.
+
+The associated Pell equation is $15w^2 - 8u^2 = 1$... wait, but $15w^2 - 8u^2 = 1$ might not have solutions. Let me check: $w=1, u=1$: $15 - 8 = 7 \neq 1$. $w=3, u=4$: $135 - 128 = 7$. Hmm, seems like we always get $\equiv 7 \pmod 8$ or something.
+
+Actually, $15w^2 - 8u^2$ with $w$ odd: $15w^2 \equiv 15 \equiv 7 \pmod 8$, and $8u^2 \equiv 0 \pmod 8$, so $15w^2 - 8u^2 \equiv 7 \pmod 8$. So this equation only represents $m \equiv 7 \pmod 8$ with $w$ odd. Good, that's our case.
+
+But does $15w^2 - 8u^2 = m$ have solutions for every $m \equiv 7 \pmod 8$? And infinitely many?
+
+The form $15w^2 - 8u^2$ has discriminant $4 \cdot 15 \cdot 8 = 480$. The continued fraction of $\sqrt{15/8}$... this is getting complicated.
+
+Let me try a different substitution. Instead of $u = v$, let me try $v = 1$ (fixed) and solve $15w^2 - 3u^2 = m + 5$.
+
+$15w^2 - 3u^2 = m + 5$, i.e., $5w^2 - u^2 = (m+5)/3$. Need $3 | (m+5)$.
+
+For $m \equiv 7 \pmod 8$ and $m \equiv 1 \pmod 3$ (i.e., $m \equiv 7 \pmod{24}$... $7 \pmod 8$ and $1 \pmod 3$: $m \equiv 7 \pmod 8$ gives $m \in \{7, 15, 23, 31, ...\}$, $m \equiv 1 \pmod 3$ gives $m \in \{1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, ...\}$. So $m \equiv 7 \pmod{24}$ or $m \equiv 31 \pmod{24} = 7 \pmod{24}$... wait $7 \pmod 8$: $7, 15, 23, 31, 39, 47, 55, 63, ...$. Among these, $\equiv 1 \pmod 3$: $7 (7/3=2$ no), $15 (0)$, $23 (2)$, $31 (1)$ ✓, $39 (0)$, $47 (2)$, $55 (1)$ ✓. So $m \equiv 31 \pmod{24}$ or $m \equiv 55 \pmod{24} = 7 \pmod{24}$. So $m \equiv 7$ or $31 \pmod{24}$, i.e., $m \equiv 7 \pmod 8$ and $m \equiv 1 \pmod 3$.
+
+This only covers some $m$. Not good enough.
+
+Let me try a more general approach.
+
+**Using three different primes and varying all three parameters:**
+
+Actually, I think the right approach is to use the theory of indefinite ternary quadratic forms more carefully, or to find a clever explicit construction.
+
+Let me try the following construction:
+
+For any $m \equiv 3 \pmod 4$, write $m = 4j + 3$ for some integer $j$.
+
+**Construction:** Let $t$ be a positive odd integer parameter. Set:
+- $a = -(2t+1)^2 \cdot 3$
+- $b = m - a - c$ where $c$ is chosen to make things work.
+
+Hmm, I keep going in circles. Let me try to think about this more cleverly.
+
+**New idea:** Use the parametrization of Pythagorean-like triples.
+
+We want $abc = $ odd square, $a + b + c = m$, $a, b, c$ distinct good odd.
+
+Let me write $a = \epsilon_1 x$, $b = \epsilon_2 y$, $c = \epsilon_3 z$ where $x, y, z > 0$ odd and good, and $\epsilon_1 \epsilon_2 \epsilon_3 = 1$ (for $abc > 0$). Then $xyz$ is a perfect square.
+
+The condition "$xyz$ is a perfect square" with $x, y, z$ not perfect squares (since they're good) means: in terms of squarefree parts, if $x = s_1 a_1^2$, $y = s_2 a_2^2$, $z = s_3 a_3^2$ where $s_i$ are squarefree, then $s_1 s_2 s_3$ must be a perfect square, i.e., $s_1 s_2 s_3 = 1$ (as a squarefree number that's a perfect square). This means $s_1 s_2 s_3$ is a perfect square, which for squarefree $s_i$ means $s_1 s_2 s_3 = 1$ (since the only squarefree perfect square is 1). Wait, that's not right. $s_1 s_2 s_3$ being a perfect square with $s_i$ squarefree means each prime appears an even number of times across $s_1, s_2, s_3$. So $s_3 = s_1 s_2 / \gcd(s_1, s_2)^2$... more precisely, $s_3 = s_1 \oplus s_2$ (XOR in terms of prime sets), i.e., $s_3 = \text{sqfree}(s_1 s_2)$.
+
+So the squarefree parts must satisfy $s_1 \oplus s_2 \oplus s_3 = 0$ (every prime appears an even number of times).
+
+The simplest case: $s_1 = s_2 = s_3 = 1$, but then $x, y, z$ are perfect squares, contradicting goodness.
+
+Next: $s_1 = s_2 = s, s_3 = 1$. Then $z$ is a perfect square, contradicting goodness.
+
+Next: $s_1 = p, s_2 = q, s_3 = pq$ (distinct odd primes $p, q$). This is the case I had before.
+
+Or: $s_1 = p, s_2 = p, s_3 = 1$ — doesn't work (s3 = 1 means perfect square).
+
+Or: $s_1 = p, s_2 = q, s_3 = pq$ — works if $p, q, pq$ are all $> 1$ and squarefree, i.e., $p \neq q$ distinct odd primes (or squarefree numbers).
+
+Or: $s_1 = p, s_2 = p, s_3 = 1$ — no.
+
+Or: $s_1 = 6, s_2 = 10, s_3 = 15$ — $6 \oplus 10 = 2 \oplus 3 \oplus 2 \oplus 5 = 3 \oplus 5 = 15$. ✓ But these are even, so $x, y, z$ would be even. Not good.
+
+So for odd $x, y, z$, we need odd squarefree parts. The simplest is $s_1 = p, s_2 = q, s_3 = pq$ with $p, q$ distinct odd primes (or odd squarefree numbers $> 1$).
+
+So the structure is: $|a| = p \alpha^2$, $|b| = q \beta^2$, $|c| = pq \gamma^2$ (up to permutation and signs), with signs chosen so $abc > 0$.
+
+Now, the signs: either all positive or one positive and two negative.
+
+**Case 1: All positive.** $a = p\alpha^2, b = q\beta^2, c = pq\gamma^2$, all positive odd. Sum $= p\alpha^2 + q\beta^2 + pq\gamma^2 = m$. Need $m > 0$ and large enough. For infinitely many solutions, need the equation $p\alpha^2 + q\beta^2 + pq\gamma^2 = m$ to have infinitely many solutions. But this is a positive definite form (all coefficients positive), so it can only represent finitely many values for fixed $m$! So this case gives only finitely many representations. ✗
+
+**Case 2: One positive, two negative.** WLOG $a = -p\alpha^2, b = -q\beta^2, c = pq\gamma^2$. Sum $= pq\gamma^2 - p\alpha^2 - q\beta^2 = m$. This is an indefinite form, so can have infinitely many solutions. ✓
+
+So we need: $pq\gamma^2 - p\alpha^2 - q\beta^2 = m$ has infinitely many solutions in positive odd integers $\alpha, \beta, \gamma$, for some choice of distinct odd squarefree $p, q > 1$.
+
+And the residue condition: with $\alpha, \beta, \gamma$ odd, $pq\gamma^2 - p\alpha^2 - q\beta^2 \equiv pq - p - q \pmod 8$.
+
+For $p = 3, q = 5$: $15 - 3 - 5 = 7 \pmod 8$.
+For $p = 3, q = 7$: $21 - 3 - 7 = 11 \equiv 3 \pmod 8$.
+For $p = 3, q = 11$: $33 - 3 - 11 = 19 \equiv 3 \pmod 8$.
+For $p = 5, q = 7$: $35 - 5 - 7 = 23 \equiv 7 \pmod 8$.
+For $p = 5, q = 11$: $55 - 5 - 11 = 39 \equiv 7 \pmod 8$.
+For $p = 7, q = 11$: $77 - 7 - 11 = 59 \equiv 3 \pmod 8$.
+For $p = 3, q = 13$: $39 - 3 - 13 = 23 \equiv 7 \pmod 8$.
+For $p = 5, q = 13$: $65 - 5 - 13 = 47 \equiv 7 \pmod 8$.
+For $p = 7, q = 13$: $91 - 7 - 13 = 71 \equiv 7 \pmod 8$.
+For $p = 11, q = 13$: $143 - 11 - 13 = 119 \equiv 7 \pmod 8$.
+
+Hmm, let me check: $pq - p - q \pmod 8$. With $p, q$ odd, $pq \equiv p \cdot q \pmod 8$.
+
+If $p \equiv 1, q \equiv 1$: $1 - 1 - 1 = -1 \equiv 7$.
+If $p \equiv 1, q \equiv 3$: $3 - 1 - 3 = -1 \equiv 7$.
+If $p \equiv 1, q \equiv 5$: $5 - 1 - 5 = -1 \equiv 7$.
+If $p \equiv 1, q \equiv 7$: $7 - 1 - 7 = -1 \equiv 7$.
+If $p \equiv 3, q \equiv 3$: $9 - 3 - 3 = 3 \equiv 3$.
+If $p \equiv 3, q \equiv 5$: $15 - 3 - 5 = 7 \equiv 7$.
+If $p \equiv 3, q \equiv 7$: $21 - 3 - 7 = 11 \equiv 3$.
+If $p \equiv 5, q \equiv 5$: $25 - 5 - 5 = 15 \equiv 7$.
+If $p \equiv 5, q \equiv 7$: $35 - 5 - 7 = 23 \equiv 7$.
+If $p \equiv 7, q \equiv 7$: $49 - 7 - 7 = 35 \equiv 3$.
+
+So: $pq - p - q \equiv 3 \pmod 8$ when $p \equiv q \equiv 3$ or $p \equiv q \equiv 7 \pmod 8$ (i.e., $p \equiv q \pmod 4$ and both $\equiv 3 \pmod 4$). And $pq - p - q \equiv 7 \pmod 8$ otherwise.
+
+Wait, let me recheck:
+- $p \equiv 3, q \equiv 3$: $9 \equiv 1, 1 - 3 - 3 = -5 \equiv 3$ ✓
+- $p \equiv 3, q \equiv 7$: $21 \equiv 5, 5 - 3 - 7 = -5 \equiv 3$ ✓
+- $p \equiv 7, q \equiv 7$: $49 \equiv 1, 1 - 7 - 7 = -13 \equiv 3$ ✓
+- $p \equiv 5, q \equiv 5$: $25 \equiv 1, 1 - 5 - 5 = -9 \equiv 7$ ✓
+
+So $pq - p - q \equiv 3 \pmod 8$ iff $p \equiv 3 \pmod 4$ and $q \equiv 3 \pmod 4$ (both $\equiv 3 \pmod 4$). And $\equiv 7 \pmod 8$ otherwise (at least one $\equiv 1 \pmod 4$).
+
+So:
+- For $m \equiv 3 \pmod 8$: use $p \equiv q \equiv 3 \pmod 4$ (e.g., $p = 3, q = 7$).
+- For $m \equiv 7 \pmod 8$: use at least one of $p, q \equiv 1 \pmod 4$ (e.g., $p = 3, q = 5$).
+
+Great, so we can cover both $m \equiv 3 \pmod 8$ and $m \equiv 7 \pmod 8$ (i.e., all $m \equiv 3 \pmod 4$).
+
+Now the key question remains: does $pq\gamma^2 - p\alpha^2 - q\beta^2 = m$ have infinitely many solutions in positive odd integers for every $m$ in the right residue class?
+
+**Let me try to prove this using the Pell equation approach.**
+
+Fix $\beta = 1$ (odd). Then $pq\gamma^2 - p\alpha^2 = m + q$, i.e., $q\gamma^2 - \alpha^2 = (m+q)/p$. Need $p | (m + q)$.
+
+If $p | (m + q)$, then we need $q\gamma^2 - \alpha^2 = (m+q)/p$ to have infinitely many solutions in positive odd integers $(\alpha, \gamma)$.
+
+The equation $q\gamma^2 - \alpha^2 = N$ (where $N = (m+q)/p$) is a generalized Pell equation. The form $q\gamma^2 - \alpha^2$ has the Pell equation $q\gamma^2 - \alpha^2 = 1$... wait, but $\alpha^2 - q\gamma^2 = -N$, which is a negative Pell-type equation.
+
+The key fact about Pell equations: if $x^2 - Dy^2 = N$ has one solution, it has infinitely many (generated by multiplying by solutions of $x^2 - Dy^2 = 1$). Here our equation is $\alpha^2 - q\gamma^2 = -N$, i.e., $\alpha^2 - q\gamma^2 = -(m+q)/p$.
+
+The Pell equation $x^2 - qy^2 = 1$ always has infinitely many solutions (for non-square $q$). If $x^2 - qy^2 = -N$ has one solution $(\alpha_0, \gamma_0)$, then we can generate infinitely many by $(\alpha_0 + \gamma_0\sqrt{q})(x_1 + y_1\sqrt{q})^k$ where $x_1 + y_1\sqrt{q}$ is the fundamental solution of $x^2 - qy^2 = 1$.
+
+But we need the solutions to have $\alpha, \gamma$ both odd. Let's check: if $\alpha_0, \gamma_0$ are both odd, and the fundamental solution $(x_1, y_1)$ of $x^2 - qy^2 = 1$ has $x_1$ odd and $y_1$ even (or some specific parity), then the generated solutions might maintain oddness.
+
+Actually, for $q$ odd, $x^2 - qy^2 = 1$: if $y$ is even, $x^2 \equiv 1 \pmod 4$ so $x$ is odd. If $y$ is odd, $x^2 \equiv 1 + q \pmod 4$; if $q \equiv 1 \pmod 4$, $x^2 \equiv 2 \pmod 4$, impossible. If $q \equiv 3 \pmod 4$, $x^2 \equiv 0 \pmod 4$, so $x$ is even.
+
+For $q \equiv 1 \pmod 4$ (e.g., $q = 5$): all solutions of $x^2 - qy^2 = 1$ have $x$ odd, $y$ even. Then $(\alpha_0 + \gamma_0\sqrt{q})(x_1 + y_1\sqrt{q}) = (\alpha_0 x_1 + \gamma_0 y_1 q) + (\alpha_0 y_1 + \gamma_0 x_1)\sqrt{q}$. New $\alpha = \alpha_0 x_1 + \gamma_0 y_1 q$, new $\gamma = \alpha_0 y_1 + \gamma_0 x_1$. With $\alpha_0, \gamma_0$ odd, $x_1$ odd, $y_1$ even: $\alpha = \text{odd} \cdot \text{odd} + \text{odd} \cdot \text{even} \cdot q = \text{odd} + \text{even} = \text{odd}$. $\gamma = \text{odd} \cdot \text{even} + \text{odd} \cdot \text{odd} = \text{even} + \text{odd} = \text{odd}$. ✓ So parity is maintained!
+
+For $q \equiv 3 \pmod 4$ (e.g., $q = 3, 7$): solutions of $x^2 - qy^2 = 1$ have $x$ even, $y$ odd (from the analysis above). Then $\alpha = \alpha_0 \cdot \text{even} + \gamma_0 \cdot \text{odd} \cdot q = \text{even} + \text{odd} = \text{odd}$. $\gamma = \alpha_0 \cdot \text{odd} + \gamma_0 \cdot \text{even} = \text{odd} + \text{even} = \text{odd}$. ✓ Parity maintained!
+
+Wait, I need to double-check. For $q \equiv 3 \pmod 4$: $x^2 - qy^2 = 1$. If $y$ odd: $x^2 = 1 + qy^2 \equiv 1 + 3 = 0 \pmod 4$, so $x$ even. If $y$ even: $x^2 = 1 + qy^2 \equiv 1 \pmod 4$ (since $qy^2 \equiv 0$), so $x$ odd. So both parities of $y$ are possible. The fundamental solution could have either parity.
+
+Hmm, let me think about this more carefully with specific examples.
+
+$q = 3$: $x^2 - 3y^2 = 1$. Fundamental solution: $(2, 1)$: $4 - 3 = 1$. ✓ So $x = 2$ (even), $y = 1$ (odd).
+
+$q = 7$: $x^2 - 7y^2 = 1$. Fundamental solution: $(8, 3)$: $64 - 63 = 1$. ✓ So $x = 8$ (even), $y = 3$ (odd).
+
+$q = 5$: $x^2 - 5y^2 = 1$. Fundamental solution: $(9, 4)$: $81 - 80 = 1$. ✓ So $x = 9$ (odd), $y = 4$ (even).
+
+$q = 13$: $x^2 - 13y^2 = 1$. Fundamental: $(649, 180)$: $649^2 - 13 \cdot 180^2 = 421201 - 421200 = 1$. ✓ $x = 649$ (odd), $y = 180$ (even).
+
+So for $q \equiv 1 \pmod 4$: fundamental solution has $x$ odd, $y$ even.
+For $q \equiv 3 \pmod 4$: fundamental solution has $x$ even, $y$ odd.
+
+In both cases, if the initial solution $(\alpha_0, \gamma_0)$ has both odd, the Pell multiplication preserves oddness (as I checked above). ✓
+
+But wait, I also need $\gamma > 0$ and $\alpha > 0$, and the solutions should grow, which they do (Pell solutions grow exponentially).
+
+Also, I need $\beta = 1$ to give distinct $a, b, c$: $a = -p\alpha^2, b = -q, c = pq\gamma^2$. Need $a \neq b$: $p\alpha^2 \neq q$, i.e., $\alpha^2 \neq q/p$. Since $p \neq q$ and both $> 1$, this holds for $\alpha \geq 1$ (as long as $q/p$ is not a perfect square, which it isn't since $p \neq q$ are squarefree). Actually, we need $p\alpha^2 \neq q$, i.e., $\alpha^2 \neq q/p$. If $p | q$... but $p, q$ are distinct primes (or squarefree), so $p \nmid q$, and $q/p$ is not even an integer (unless $p | q$). So $p\alpha^2 \neq q$ for all positive integers $\alpha$. ✓
+
+Also $c = pq\gamma^2 \neq a = -p\alpha^2$ (different signs) and $c \neq b = -q$ (different signs). ✓
+
+And we need $c = pq\gamma^2$ to be good: $pq\gamma^2$ is not a perfect square. Since $pq$ is squarefree and $> 1$ (as $p \neq q$ are distinct primes), $pq\gamma^2$ is not a perfect square. ✓
+
+And $a = -p\alpha^2$ is good: $p\alpha^2$ is not a perfect square since $p$ is squarefree $> 1$. ✓
+
+And $b = -q$ is good: $q$ is not a perfect square since $q$ is an odd prime (or squarefree $> 1$). ✓
+
+So the construction works, provided:
+1. $p | (m + q)$ (so that $N = (m+q)/p$ is an integer)
+2. $\alpha^2 - q\gamma^2 = -N$ has at least one solution in positive odd integers $(\alpha_0, \gamma_0)$
+
+Then infinitely many solutions follow from the Pell equation machinery.
+
+**Condition 1:** $p | (m + q)$. We can choose $p, q$ to satisfy this. For instance, given $m$, choose $q$ first (an odd prime with the right residue mod 4), then choose $p$ to be an odd prime dividing $m + q$ (with the right residue mod 4 and $p \neq q$).
+
+But we need $m + q$ to have an odd prime factor $p$ with $p \neq q$ and $p$ in the right residue class mod 4. This might not always be possible.
+
+Hmm, let me think about this differently. Instead of fixing $\beta = 1$, let me fix $\beta$ to some other odd value, or not fix $\beta$ at all.
+
+**Alternative: Don't fix any variable. Use the full ternary form.**
+
+The form $Q(\alpha, \beta, \gamma) = pq\gamma^2 - p\alpha^2 - q\beta^2$ is an indefinite ternary quadratic form. By the theory of such forms (specifically, the result that indefinite ternary forms represent all sufficiently large integers in their represented residue classes, and represent them infinitely often), we might be able to conclude.
+
+But I want to be more constructive. Let me try a different approach.
+
+**Approach: Fix $\gamma$ and use Pell in two variables.**
+
+Actually, let me try fixing $\gamma = 1$ instead. Then $pq - p\alpha^2 - q\beta^2 = m$, i.e., $p\alpha^2 + q\beta^2 = pq - m$. This is a positive definite binary form, so only finitely many solutions. Not good.
+
+**Approach: Use a parametric family with two free parameters.**
+
+Let me try $\alpha = \gamma + 2s$, $\beta = \gamma + 2t$ (with $s, t$ integers, and $\gamma$ odd to keep all odd). Then:
+
+$pq\gamma^2 - p(\gamma + 2s)^2 - q(\gamma + 2t)^2 = m$
+
+$= pq\gamma^2 - p\gamma^2 - 4ps\gamma - 4ps^2 - q\gamma^2 - 4qt\gamma - 4qt^2$
+
+$= (pq - p - q)\gamma^2 - 4(ps + qt)\gamma - 4(ps^2 + qt^2)$
+
+$= m$
+
+Let $c_0 = pq - p - q$ (which is $\equiv 3 \pmod 4$ as we showed). Then:
+
+$c_0 \gamma^2 - 4(ps + qt)\gamma - 4(ps^2 + qt^2) = m$
+
+This is a quadratic in $\gamma$: $c_0 \gamma^2 - 4(ps+qt)\gamma - (4(ps^2 + qt^2) + m) = 0$.
+
+Discriminant: $16(ps+qt)^2 + 4c_0(4(ps^2 + qt^2) + m) = 16p^2s^2 + 32psqt + 16q^2t^2 + 16c_0 ps^2 + 16c_0 qt^2 + 4c_0 m$
+
+$= 16s^2(p^2 + c_0 p) + 32psqt + 16t^2(q^2 + c_0 q) + 4c_0 m$
+
+$= 16s^2 p(p + c_0) + 32psqt + 16t^2 q(q + c_0) + 4c_0 m$
+
+Now $p + c_0 = p + pq - p - q = pq - q = q(p-1)$. Similarly $q + c_0 = p(q-1)$.
+
+$= 16s^2 pq(p-1) + 32psqt + 16t^2 pq(q-1) + 4c_0 m$
+
+$= 4[4s^2 pq(p-1) + 8psqt + 4t^2 pq(q-1) + c_0 m]$
+
+$= 4pq[4s^2(p-1) + 8st + 4t^2(q-1)] + 4c_0 m$
+
+$= 16pq[s^2(p-1) + 2st + t^2(q-1)] + 4c_0 m$
+
+For $\gamma$ to be an integer, the discriminant must be a perfect square. So we need:
+
+$16pq[s^2(p-1) + 2st + t^2(q-1)] + 4c_0 m = D^2$
+
+for some non-negative integer $D$. Then $\gamma = \frac{4(ps+qt) \pm D}{2c_0}$.
+
+This is still complicated. Let me try a very specific approach.
+
+**Let me try to verify with specific small $m$ values and then argue generally.**
+
+For $m = 3$ ($\equiv 3 \pmod 8$): Use $p = 3, q = 7$. Need $21\gamma^2 - 3\alpha^2 - 7\beta^2 = 3$ with $\alpha, \beta, \gamma$ odd positive.
+
+Try $\beta = 1$: $21\gamma^2 - 3\alpha^2 - 7 = 3$, so $21\gamma^2 - 3\alpha^2 = 10$, so $7\gamma^2 - \alpha^2 = 10/3$. Not integer. ✗
+
+Try $\beta = 3$: $21\gamma^2 - 3\alpha^2 - 63 = 3$, so $21\gamma^2 - 3\alpha^2 = 66$, so $7\gamma^2 - \alpha^2 = 22$. Need $\alpha^2 = 7\gamma^2 - 22$. $\gamma = 3$: $63 - 22 = 41$, not a square. $\gamma = 5$: $175 - 22 = 153$, no. $\gamma = 7$: $343 - 22 = 321$, no. $\gamma = 9$: $567 - 22 = 545$, no. $\gamma = 11$: $847 - 22 = 825$, no. $\gamma = 13$: $1183 - 22 = 1161$, no. Hmm.
+
+Try $\beta = 5$: $21\gamma^2 - 3\alpha^2 - 175 = 3$, so $21\gamma^2 - 3\alpha^2 = 178$. $178/3$ is not integer. ✗ (Need $3 | 178$, but $178 = 3 \cdot 59 + 1$. ✗)
+
+Hmm, $21\gamma^2 - 3\alpha^2 = m + 7\beta^2$, so $3(7\gamma^2 - \alpha^2) = m + 7\beta^2$, need $3 | (m + 7\beta^2)$. For $m = 3$: $3 + 7\beta^2 \equiv 0 \pmod 3$, so $7\beta^2 \equiv 0 \pmod 3$, so $\beta^2 \equiv 0 \pmod 3$, so $3 | \beta$. So $\beta$ must be a multiple of 3.
+
+$\beta = 3$: $7\gamma^2 - \alpha^2 = 22$ (as above, no small solutions found).
+
+Let me check more: $\gamma = 15$: $7 \cdot 225 - 22 = 1575 - 22 = 1553$. $\sqrt{1553} \approx 39.4$. $39^2 = 1521, 40^2 = 1600$. No.
+
+$\gamma = 17$: $7 \cdot 289 - 22 = 2023 - 22 = 2001$. $\sqrt{2001} \approx 44.7$. $44^2 = 1936, 45^2 = 2025$. No.
+
+$\gamma = 19$: $7 \cdot 361 - 22 = 2527 - 22 = 2505$. $\sqrt{2505} \approx 50.05$. $50^2 = 2500$. Close! $2505 \neq 2500$.
+
+$\gamma = 21$: $7 \cdot 441 - 22 = 3087 - 22 = 3065$. $\sqrt{3065} \approx 55.4$. $55^2 = 3025, 56^2 = 3136$. No.
+
+Hmm, this might not have solutions. Let me try $p = 3, q = 7$ with $\beta = 3$ more carefully. The equation is $\alpha^2 - 7\gamma^2 = -22$, i.e., $\alpha^2 \equiv -22 \equiv -22 + 28 = 6 \pmod 7$, i.e., $\alpha^2 \equiv 6 \pmod 7$. But the quadratic residues mod 7 are $\{0, 1, 2, 4\}$. $6$ is not a QR mod 7! So no solution exists. ✗
+
+OK so $\beta = 3$ doesn't work for $p = 3, q = 7, m = 3$.
+
+Let me try $\beta = 9$: $3 + 7 \cdot 81 = 3 + 567 = 570$. $570/3 = 190$. So $7\gamma^2 - \alpha^2 = 190$. Need $\alpha^2 \equiv -190 \equiv -190 + 196 = 6 \pmod 7$. Again $6 \pmod 7$, not a QR. ✗
+
+The issue is that for $p = 3, q = 7, m = 3$: $m + 7\beta^2 = 3 + 7\beta^2$, and $(3 + 7\beta^2)/3 = 1 + 7\beta^2/3$. For this to be integer, $3 | \beta$. Then $7\gamma^2 - \alpha^2 = 1 + 7\beta^2/3$. With $\beta = 3k$: $= 1 + 21k^2$. So $\alpha^2 = 7\gamma^2 - 1 - 21k^2$. Need $\alpha^2 \equiv -1 - 21k^2 \equiv -1 \equiv 6 \pmod 7$. Not a QR. ✗
+
+So $p = 3, q = 7$ doesn't work for $m = 3$ with this approach (fixing $\beta$).
+
+Let me try $p = 7, q = 3$ (swap): $21\gamma^2 - 7\alpha^2 - 3\beta^2 = 3$. Fix $\beta = 1$: $21\gamma^2 - 7\alpha^2 - 3 = 3$, $21\gamma^2 - 7\alpha^2 = 6$, $7(3\gamma^2 - \alpha^2) = 6$. Not integer. ✗
+
+Fix $\alpha = 1$: $21\gamma^2 - 7 - 3\beta^2 = 3$, $21\gamma^2 - 3\beta^2 = 10$. $3(7\gamma^2 - \beta^2) = 10$. Not integer. ✗
+
+Fix $\alpha = 3$: $21\gamma^2 - 63 - 3\beta^2 = 3$, $21\gamma^2 - 3\beta^2 = 66$, $7\gamma^2 - \beta^2 = 22$. $\beta^2 = 7\gamma^2 - 22$. $\beta^2 \equiv -22 \equiv 6 \pmod 7$. Not QR. ✗
+
+Same issue. The problem is that $m = 3$ with $p, q \equiv 3 \pmod 4$ leads to a local obstruction.
+
+Let me try $p = 3, q = 11$ ($q \equiv 3 \pmod 4$): $33\gamma^2 - 3\alpha^2 - 11\beta^2 = 3$. Fix $\beta = 1$: $33\gamma^2 - 3\alpha^2 - 11 = 3$, $33\gamma^2 - 3\alpha^2 = 14$. $3(11\gamma^2 - \alpha^2) = 14$. Not integer. ✗
+
+Fix $\alpha = 1$: $33\gamma^2 - 3 - 11\beta^2 = 3$, $33\gamma^2 - 11\beta^2 = 6$, $11(3\gamma^2 - \beta^2) = 6$. Not integer. ✗
+
+Fix $\alpha = 3$: $33\gamma^2 - 27 - 11\beta^2 = 3$, $33\gamma^2 - 11\beta^2 = 30$, $11(3\gamma^2 - \beta^2) = 30$. Not integer. ✗
+
+Fix $\alpha = 5$: $33\gamma^2 - 75 - 11\beta^2 = 3$, $33\gamma^2 - 11\beta^2 = 78$, $11(3\gamma^2 - \beta^2) = 78$. Not integer. ✗
+
+Need $11 | (3 + 3\alpha^2) = 3(1 + \alpha^2)$. So $11 | (1 + \alpha^2)$, i.e., $\alpha^2 \equiv -1 \equiv 10 \pmod{11}$. QRs mod 11: $1, 3, 4, 5, 9$. $10$ is not a QR. ✗
+
+So $p = 3, q = 11$ doesn't work for $m = 3$ either (when fixing $\alpha$).
+
+Hmm. Let me try fixing $\beta$ instead: $33\gamma^2 - 3\alpha^2 = 3 + 11\beta^2$, $3(11\gamma^2 - \alpha^2) = 3 + 11\beta^2$. Need $3 | (3 + 11\beta^2)$, i.e., $11\beta^2 \equiv 0 \pmod 3$, i.e., $\beta^2 \equiv 0 \pmod 3$, i.e., $3 | \beta$.
+
+$\beta = 3$: $11\gamma^2 - \alpha^2 = (3 + 99)/3 = 34$. $\alpha^2 = 11\gamma^2 - 34$. $\alpha^2 \equiv -34 \equiv -34 + 44 = 10 \pmod{11}$. Not QR. ✗
+
+$\beta = 9$: $11\gamma^2 - \alpha^2 = (3 + 891)/3 = 298$. $\alpha^2 \equiv -298 \equiv -298 + 297 = -1 \equiv 10 \pmod{11}$. Not QR. ✗
+
+The obstruction is $\alpha^2 \equiv -1 \pmod{11}$ (or similar), which fails because $-1$ is not a QR mod primes $\equiv 3 \pmod 4$.
+
+This is a fundamental issue. When $q \equiv 3 \pmod 4$, $-1$ is not a QR mod $q$, which creates obstructions.
+
+Let me reconsider. Maybe I need to use $p, q$ not both $\equiv 3 \pmod 4$ for $m \equiv 3 \pmod 8$.
+
+Wait, but I showed that for $m \equiv 3 \pmod 8$, I need $p \equiv q \equiv 3 \pmod 4$. And for $q \equiv 3 \pmod 4$, $-1$ is not a QR mod $q$, which creates problems.
+
+Hmm, but maybe I don't need to fix $\beta$ or $\alpha$. Maybe I should use all three variables freely.
+
+Let me try $m = 3$ with $p = 3, q = 7$: $21\gamma^2 - 3\alpha^2 - 7\beta^2 = 3$, i.e., $7\gamma^2 - \alpha^2 - \frac{7}{3}\beta^2 = 1$... no, let me keep it as $21\gamma^2 - 3\alpha^2 - 7\beta^2 = 3$.
+
+Divide by... can't divide nicely. Let me just search for small solutions.
+
+$21\gamma^2 - 3\alpha^2 - 7\beta^2 = 3$ with $\alpha, \beta, \gamma$ odd positive.
+
+$\gamma = 1$: $21 - 3\alpha^2 - 7\beta^2 = 3$, $3\alpha^2 + 7\beta^2 = 18$. $\beta = 1$: $3\alpha^2 = 11$, no. $\beta = 3$: $3\alpha^2 + 63 = 18$, no (negative).
+
+$\gamma = 3$: $189 - 3\alpha^2 - 7\beta^2 = 3$, $3\alpha^2 + 7\beta^2 = 186$. $\beta = 1$: $3\alpha^2 = 179$, no. $\beta = 3$: $3\alpha^2 + 63 = 186$, $3\alpha^2 = 123$, $\alpha^2 = 41$, no. $\beta = 5$: $3\alpha^2 + 175 = 186$, $3\alpha^2 = 11$, no.
+
+$\gamma = 5$: $525 - 3\alpha^2 - 7\beta^2 = 3$, $3\alpha^2 + 7\beta^2 = 522$. $\beta = 1$: $3\alpha^2 = 515$, no. $\beta = 3$: $3\alpha^2 + 63 = 522$, $\alpha^2 = 153$, no. $\beta = 5$: $3\alpha^2 + 175 = 522$, $3\alpha^2 = 347$, no. $\beta = 7$: $3\alpha^2 + 343 = 522$, $3\alpha^2 = 179$, no. $\beta = 9$: $3\alpha^2 + 567 = 522$, negative.
+
+$\gamma = 7$: $1029 - 3\alpha^2 - 7\beta^2 = 3$, $3\alpha^2 + 7\beta^2 = 1026$. $\beta = 1$: $3\alpha^2 = 1019$, no. $\beta = 3$: $3\alpha^2 = 984$, $\alpha^2 = 328$, no. $\beta = 5$: $3\alpha^2 = 851$, no. $\beta = 7$: $3\alpha^2 = 683$, no. $\beta = 9$: $3\alpha^2 = 411$, $\alpha^2 = 137$, no. $\beta = 11$: $3\alpha^2 = 177$, $\alpha^2 = 59$, no. $\beta = 13$: $3\alpha^2 = -37$, negative.
+
+Hmm, no solutions found for $m = 3$ with $p = 3, q = 7$. Let me try other $p, q$.
+
+$p = 7, q = 11$ (both $\equiv 3 \pmod 4$): $77\gamma^2 - 7\alpha^2 - 11\beta^2 = 3$.
+
+$\gamma = 1$: $77 - 7\alpha^2 - 11\beta^2 = 3$, $7\alpha^2 + 11\beta^2 = 74$. $\beta = 1$: $7\alpha^2 = 63$, $\alpha^2 = 9$, $\alpha = 3$. ✓✓✓
+
+So $(\alpha, \beta, \gamma) = (3, 1, 1)$: $a = -7 \cdot 9 = -63$, $b = -11 \cdot 1 = -11$, $c = 77 \cdot 1 = 77$. Sum: $-63 - 11 + 77 = 3$. ✓ $abc = (-63)(-11)(77) = 63 \cdot 11 \cdot 77 = 63 \cdot 847 = 53361$. $\sqrt{53361} = 231$. $231^2 = 53361$. ✓ And $231$ is odd. ✓
+
+Now, are $a = -63, b = -11, c = 77$ good? $|-63| = 63$, not a perfect square ✓. $|-11| = 11$, not a perfect square ✓. $|77| = 77$, not a perfect square ✓. Distinct: $-63, -11, 77$ all different ✓.
+
+So $m = 3$ works with $p = 7, q = 11$. Now I need infinitely many solutions.
+
+Fix $\beta = 1$: $77\gamma^2 - 7\alpha^2 - 11 = 3$, $77\gamma^2 - 7\alpha^2 = 14$, $7(11\gamma^2 - \alpha^2) = 14$, $11\gamma^2 - \alpha^2 = 2$.
+
+So $\alpha^2 - 11\gamma^2 = -2$. This is a generalized Pell equation.
+
+Check: $\gamma = 1, \alpha = 3$: $9 - 11 = -2$. ✓
+
+Now, the Pell equation $x^2 - 11y^2 = 1$ has fundamental solution $(10, 3)$: $100 - 99 = 1$. ✓
+
+Starting from $(\alpha_0, \gamma_0) = (3, 1)$, multiply by $(10 + 3\sqrt{11})$:
+$\alpha_1 + \gamma_1\sqrt{11} = (3 + \sqrt{11})(10 + 3\sqrt{11}) = 30 + 9\sqrt{11} + 10\sqrt{11} + 33 = 63 + 19\sqrt{11}$.
+Check: $63^2 - 11 \cdot 19^2 = 3969 - 3969 = 0$... wait that's $-2$? $3969 - 11 \cdot 361 = 3969 - 3971 = -2$. ✓
+
+$\alpha_1 = 63, \gamma_1 = 19$. Both odd ✓. $\gamma_1 = 19 > 0$ ✓.
+
+Next: $(63 + 19\sqrt{11})(10 + 3\sqrt{11}) = 630 + 189\sqrt{11} + 190\sqrt{11} + 627 = 1257 + 379\sqrt{11}$.
+Check: $1257^2 - 11 \cdot 379^2 = 1580049 - 11 \cdot 143641 = 1580049 - 1580051 = -2$. ✓
+
+$\alpha_2 = 1257, \gamma_2 = 379$. Both odd ✓.
+
+So we get infinitely many solutions: $(\alpha, \beta, \gamma) = (3, 1, 1), (63, 1, 19), (1257, 1, 379), \ldots$
+
+Each gives a valid representation of $m = 3$. ✓
+
+Now, the parity: fundamental solution of $x^2 - 11y^2 = 1$ is $(10, 3)$: $x = 10$ (even), $y = 3$ (odd). Starting from $(3, 1)$ (both odd):
+New $\alpha = 3 \cdot 10 + 1 \cdot 3 \cdot 11 = 30 + 33 = 63$ (odd ✓)
+New $\gamma = 3 \cdot 3 + 1 \cdot 10 = 9 + 10 = 19$ (odd ✓)
+
+The pattern: $\alpha_{new} = \alpha \cdot x + \gamma \cdot y \cdot q$, $\gamma_{new} = \alpha \cdot y + \gamma \cdot x$. With $x$ even, $y$ odd, $q = 11$ odd:
+$\alpha_{new} = \text{odd} \cdot \text{even} + \text{odd} \cdot \text{odd} \cdot \text{odd} = \text{even} + \text{odd} = \text{odd}$ ✓
+$\gamma_{new} = \text{odd} \cdot \text{odd} + \text{odd} \cdot \text{even} = \text{odd} + \text{even} = \text{odd}$ ✓
+
+Great, parity is preserved. And the solutions grow, so we get infinitely many distinct representations. ✓
+
+So $m = 3$ works. Now I need to generalize to all $m \equiv 3 \pmod 4$.
+
+**General strategy:**
+
+For each $m \equiv 3 \pmod 4$, I need to find $p, q$ (distinct odd squarefree $> 1$) and a solution to $pq\gamma^2 - p\alpha^2 - q\beta^2 = m$ in positive odd integers, with $pq - p - q \equiv m \pmod 8$, and then use Pell to get infinitely many.
+
+The approach of fixing $\beta = 1$ and solving $pq\gamma^2 - p\alpha^2 = m + q$, i.e., $\alpha^2 - q\gamma^2 = -(m+q)/p$ (need $p | (m+q)$) as a Pell equation, works if:
+1. $p | (m + q)$
+2. $\alpha^2 - q\gamma^2 = -(m+q)/p$ has a solution with $\alpha, \gamma$ odd positive.
+3. The parity condition is maintained by Pell multiplication.
+
+For condition 3, we showed it's always maintained (regardless of whether $q \equiv 1$ or $3 \pmod 4$).
+
+For conditions 1 and 2, we need to choose $p, q$ wisely.
+
+**Choosing $p, q$:**
+
+Given $m \equiv 3 \pmod 4$:
+
+**Case $m \equiv 7 \pmod 8$:** Need $pq - p - q \equiv 7 \pmod 8$, which holds when at least one of $p, q \equiv 1 \pmod 4$. Use $p = 3, q = 5$ (or other).
+
+Fix $\beta = 1$: need $3 | (m + 5)$, i.e., $m \equiv 1 \pmod 3$. If $m \equiv 1 \pmod 3$: solve $\alpha^2 - 5\gamma^2 = -(m+5)/3$.
+
+If $m \not\equiv 1 \pmod 3$: try $p = 5, q = 3$ (swap). Fix $\beta = 1$: need $5 | (m + 3)$, i.e., $m \equiv 2 \pmod 5$. 
+
+If neither works, try other $p, q$ or fix $\beta$ to a different value.
+
+This case-by-case approach is getting unwieldy. Let me think about whether there's a cleaner argument.
+
+**Cleaner approach: Use the ternary quadratic form theory directly.**
+
+The form $Q(\alpha, \beta, \gamma) = pq\gamma^2 - p\alpha^2 - q\beta^2$ is an indefinite ternary quadratic form. A classical result (due to Dirichlet, or more generally the theory of ternary quadratic forms) states:
+
+**Theorem (Tartakowsky / Kloosterman):** An indefinite ternary quadratic form $Q$ over $\mathbb{Z}$ represents all sufficiently large integers $n$ that are locally represented (i.e., represented over $\mathbb{R}$ and over $\mathbb{Z}_p$ for all primes $p$), and represents them infinitely often.
+
+But I need to be careful about the conditions. Also, I need the solutions to have $\alpha, \beta, \gamma$ all odd, which is a congruence condition.
+
+Actually, let me think about this differently. Instead of using heavy machinery, let me try to give explicit constructions for all $m \equiv 3 \pmod 4$.
+
+**Explicit construction using Pell equations:**
+
+I'll use the following approach: for each $m \equiv 3 \pmod 4$, find appropriate $p, q, \beta_0$ such that the Pell equation $\alpha^2 - q\gamma^2 = -(m + q\beta_0^2)/p$ has a solution with $\alpha, \gamma$ odd positive.
+
+Let me try to use $p = 3, q = 5$ for $m \equiv 7 \pmod 8$ and $p = 7, q = 11$ for $m \equiv 3 \pmod 8$, but allow $\beta$ to vary.
+
+**For $m \equiv 7 \pmod 8$, using $p = 3, q = 5$:**
+
+$15\gamma^2 - 3\alpha^2 - 5\beta^2 = m$.
+
+Fix $\beta = \beta_0$ (odd): $15\gamma^2 - 3\alpha^2 = m + 5\beta_0^2$, $3(5\gamma^2 - \alpha^2) = m + 5\beta_0^2$. Need $3 | (m + 5\beta_0^2)$.
+
+Since $\beta_0$ is odd, $\beta_0^2 \equiv 1 \pmod 8$, so $5\beta_0^2 \equiv 5 \pmod 8$. And $m \equiv 7 \pmod 8$, so $m + 5\beta_0^2 \equiv 7 + 5 = 12 \equiv 4 \pmod 8$. Also $m + 5\beta_0^2 \equiv m + 5\beta_0^2 \pmod 3$.
+
+For $3 | (m + 5\beta_0^2)$: need $m + 5\beta_0^2 \equiv 0 \pmod 3$, i.e., $5\beta_0^2 \equiv -m \pmod 3$, i.e., $2\beta_0^2 \equiv -m \pmod 3$ (since $5 \equiv 2 \pmod 3$), i.e., $\beta_0^2 \equiv -2m \equiv m \pmod 3$ (since $-2 \equiv 1 \pmod 3$). So need $\beta_0^2 \equiv m \pmod 3$.
+
+If $m \equiv 0 \pmod 3$: need $\beta_0 \equiv 0 \pmod 3$.
+If $m \equiv 1 \pmod 3$: need $\beta_0^2 \equiv 1 \pmod 3$, so $\beta_0 \not\equiv 0 \pmod 3$.
+If $m \equiv 2 \pmod 3$: need $\beta_0^2 \equiv 2 \pmod 3$. But $2$ is not a QR mod 3! ✗
+
+So for $m \equiv 7 \pmod 8$ and $m \equiv 2 \pmod 3$ (i.e., $m \equiv 23 \pmod{24}$), this approach with $p = 3, q = 5, \beta$ fixed doesn't work.
+
+Let me try $p = 5, q = 3$ (swap) for this case: $15\gamma^2 - 5\alpha^2 - 3\beta^2 = m$. Fix $\beta = \beta_0$: $15\gamma^2 - 5\alpha^2 = m + 3\beta_0^2$, $5(3\gamma^2 - \alpha^2) = m + 3\beta_0^2$. Need $5 | (m + 3\beta_0^2)$, i.e., $3\beta_0^2 \equiv -m \pmod 5$, i.e., $\beta_0^2 \equiv -m \cdot 2 \pmod 5$ (since $3^{-1} \equiv 2 \pmod 5$), i.e., $\beta_0^2 \equiv -2m \pmod 5$.
+
+For $m \equiv 23 \pmod{24}$: $m \equiv 23 \pmod{24}$. $m \pmod 5$ can be anything. Let's say $m \equiv 23 \equiv 3 \pmod 5$. Then $\beta_0^2 \equiv -6 \equiv 4 \pmod 5$. $4$ is a QR mod 5 ($2^2 = 4$). ✓ So $\beta_0 \equiv \pm 2 \pmod 5$.
+
+Then $N = (m + 3\beta_0^2)/5$ and we need $\alpha^2 - 3\gamma^2 = -N$ to have odd positive solutions.
+
+This might work, but it's getting very case-heavy. Let me try to find a more unified approach.
+
+**Unified approach: Use different $p, q$ for different $m$.**
+
+The key insight is: for any $m \equiv 3 \pmod 4$, we can find $p, q$ (distinct odd primes) and $\beta_0$ (odd positive) such that:
+1. $pq - p - q \equiv m \pmod 8$
+2. $p | (m + q\beta_0^2)$
+3. $\alpha^2 - q\gamma^2 = -(m + q\beta_0^2)/p$ has a solution with $\alpha, \gamma$ odd positive.
+
+And then Pell gives infinitely many.
+
+But proving this in general seems hard. Let me think about whether there's a simpler construction.
+
+**Simpler construction: Use $p = q$ (but with different squarefree parts).**
+
+Wait, I assumed $p \neq q$. What if I use a different structure for the squarefree parts?
+
+Recall: we need $s_1 \oplus s_2 \oplus s_3 = 0$ (XOR of prime sets). The simplest non-trivial case is $s_1 = p, s_2 = q, s_3 = pq$. But there are other options:
+
+- $s_1 = p, s_2 = p, s_3 = 1$: $s_3 = 1$ means $|c|$ is a perfect square, not good. ✗
+- $s_1 = p, s_2 = q, s_3 = pq$: works if $p, q, pq$ all squarefree $> 1$.
+- $s_1 = p, s_2 = qr, s_3 = pqr$: works if all squarefree $> 1$.
+- $s_1 = pq, s_2 = pr, s_3 = qr$: $pq \oplus pr = q \oplus r$, and $qr$ should equal $q \oplus r$... $q \oplus r$ means the symmetric difference of prime sets. If $q, r$ are distinct primes, $q \oplus r = qr$. ✓ So $s_1 = pq, s_2 = pr, s_3 = qr$ works for distinct primes $p, q, r$.
+
+Let me try the three-prime construction: $s_1 = pq, s_2 = pr, s_3 = qr$ with distinct odd primes $p, q, r$.
+
+Then $|a| = pq \cdot \alpha^2, |b| = pr \cdot \beta^2, |c| = qr \cdot \gamma^2$.
+
+$abc = \pm (pq \alpha^2)(pr \beta^2)(qr \gamma^2) = \pm p^2 q^2 r^2 \alpha^2 \beta^2 \gamma^2 = \pm (pqr\alpha\beta\gamma)^2$. Perfect square! ✓
+
+With two negative, one positive: $a = -pq\alpha^2, b = -pr\beta^2, c = qr\gamma^2$. Sum: $qr\gamma^2 - pq\alpha^2 - pr\beta^2 = m$.
+
+$= qr\gamma^2 - p(q\alpha^2 + r\beta^2) = m$.
+
+Residue mod 8 with $\alpha, \beta, \gamma$ odd: $qr - pq - pr = qr - p(q + r) \pmod 8$.
+
+This gives more flexibility. Let me compute for various $p, q, r$:
+
+$p=3, q=5, r=7$: $35 - 3(12) = 35 - 36 = -1 \equiv 7 \pmod 8$.
+$p=3, q=5, r=11$: $55 - 3(16) = 55 - 48 = 7 \pmod 8$.
+$p=3, q=7, r=11$: $77 - 3(18) = 77 - 54 = 23 \equiv 7 \pmod 8$.
+$p=5, q=3, r=7$: $21 - 5(10) = 21 - 50 = -29 \equiv 3 \pmod 8$.
+$p=5, q=3, r=11$: $33 - 5(14) = 33 - 70 = -37 \equiv 3 \pmod 8$.
+$p=7, q=3, r=5$: $15 - 7(8) = 15 - 56 = -41 \equiv 7 \pmod 8$.
+$p=7, q=3, r=11$: $33 - 7(14) = 33 - 98 = -65 \equiv 7 \pmod 8$.
+$p=7, q=5, r=11$: $55 - 7(16) = 55 - 112 = -57 \equiv 7 \pmod 8$.
+$p=11, q=3, r=5$: $15 - 11(8) = 15 - 88 = -73 \equiv 7 \pmod 8$.
+$p=11, q=3, r=7$: $21 - 11(10) = 21 - 110 = -89 \equiv 7 \pmod 8$.
+$p=11, q=5, r=7$: $35 - 11(12) = 35 - 132 = -97 \equiv 7 \pmod 8$.
+$p=5, q=7, r=11$: $77 - 5(18) = 77 - 90 = -13 \equiv 3 \pmod 8$.
+$p=5, q=3, r=13$: $39 - 5(16) = 39 - 80 = -41 \equiv 7 \pmod 8$.
+
+Hmm, it seems like most give $\equiv 7 \pmod 8$. Let me check which give $\equiv 3 \pmod 8$:
+
+$qr - p(q+r) \equiv 3 \pmod 8$.
+
+$p=5, q=3, r=7$: $21 - 50 = -29 \equiv 3$ ✓
+$p=5, q=3, r=11$: $33 - 70 = -37 \equiv 3$ ✓
+$p=5, q=7, r=11$: $77 - 90 = -13 \equiv 3$ ✓
+$p=5, q=3, r=23$: $69 - 130 = -61 \equiv 3$ ✓
+
+Pattern: $p = 5, q \equiv 3 \pmod 4, r \equiv 3 \pmod 4$: $qr \equiv 1 \pmod 4$, $p(q+r) \equiv 1 \cdot (3+3) = 6 \equiv 2 \pmod 4$, so $qr - p(q+r) \equiv 1 - 2 = -1 \equiv 3 \pmod 4$. And mod 8: $q \equiv 3, r \equiv 3 \pmod 4$ means $q, r \in \{3, 7\} \pmod 8$.
+
+$q = 3, r = 3 \pmod 8$: $qr = 9 \equiv 1, p(q+r) = 5 \cdot 6 = 30 \equiv 6, 1 - 6 = -5 \equiv 3$ ✓
+$q = 3, r = 7 \pmod 8$: $qr = 21 \equiv 5, p(q+r) = 5 \cdot 10 = 50 \equiv 2, 5 - 2 = 3$ ✓
+$q = 7, r = 7 \pmod 8$: $qr = 49 \equiv 1, p(q+r) = 5 \cdot 14 = 70 \equiv 6, 1 - 6 = -5 \equiv 3$ ✓
+
+So with $p = 5$ and $q, r \equiv 3 \pmod 4$, we get $\equiv 3 \pmod 8$. ✓
+
+And with $p = 5$ and at least one of $q, r \equiv 1 \pmod 4$, we get $\equiv 7 \pmod 8$.
+
+This gives us more flexibility. But the fundamental question remains: can we always find solutions?
+
+Let me try a completely different approach.
+
+**Approach: Direct construction with a free parameter.**
+
+For $m \equiv 3 \pmod 4$, let me try the following construction:
+
+Let $t$ be a large odd positive integer (our free parameter). Set:
+- $a = -3t^2$
+- $b = -5t^2$
+- $c = m + 8t^2$
+
+Then $a + b + c = -3t^2 - 5t^2 + m + 8t^2 = m$. ✓
+
+$abc = (-3t^2)(-5t^2)(m + 8t^2) = 15t^4(m + 8t^2)$.
+
+For $abc$ to be a perfect square: $15t^4(m + 8t^2) = 15t^4 \cdot c$. Since $t^4$ is a square, need $15c = 15(m + 8t^2)$ to be a perfect square. So $15(m + 8t^2) = s^2$ for some odd positive integer $s$.
+
+$s^2 = 15m + 120t^2$, i.e., $s^2 - 120t^2 = 15m$.
+
+This is a generalized Pell equation in $s$ and $t$ (both odd positive). The associated Pell equation is $s^2 - 120t^2 = 1$.
+
+$120 = 4 \cdot 30$, so $\sqrt{120} = 2\sqrt{30}$. The Pell equation $s^2 - 120t^2 = 1$ has fundamental solution... let me compute. $\sqrt{120} \approx 10.954$. Continued fraction of $\sqrt{120}$:
+
+$120 = 10^2 + 20$. $\sqrt{120} =
+
+Let me continue the solution from where it was cut off. I was working on a Pell equation approach. Let me think about the key construction more carefully.
+
+The necessary condition is $m \equiv 3 \pmod{4}$. I need to show this is sufficient.
+
+Let me use a cleaner construction. The key idea: use $a = -3s^2, b = -5t^2, c = 15w^2$ (for $m \equiv 7 \pmod 8$) and $a = -7s^2, b = -11t^2, c = 77w^2$ (for $m \equiv 3 \pmod 8$), then fix one variable and use Pell equations.
+
+Actually, let me think about a cleaner unified approach. Let me use the construction $a = -3u^2, b = -5v^2, c = 15w^2$ for $m \equiv 7 \pmod 8$ and show the Pell equation works. For $m \equiv 3 \pmod 8$, I showed $m = 3$ works with $p=7, q=11$.
+
+Let me try a different, cleaner approach that handles all cases uniformly.
+
+**Key construction:** For $m \equiv 3 \pmod 4$, I'll use a construction where I fix two of the three variables in a specific way and solve a Pell equation for the third.
+
+Let me try: $a = -3(2k+1)^2$, $b = -5(2k+1)^2$, $c = m + 8(2k+1)^2$ for varying odd $k$. Then $abc = 15(2k+1)^4 \cdot c$. Need $15c$ to be a perfect square, i.e., $c = 15w^2$, so $m + 8(2k+1)^2 = 15w^2$, i.e., $15w^2 - 8u^2 = m$ where $u = 2k+1$ odd.
+
+This is a generalized Pell equation $15w^2 - 8u^2 = m$ with $u, w$ odd positive.
+
+For $m \equiv 7 \pmod 8$: $15w^2 - 8u^2 \equiv 15 \equiv 7 \pmod 8$ when $w$ odd. ✓
+
+The Pell equation $15w^2 - 8u^2 = 1$... let me check if it has solutions. $w=1, u=1$: $15-8=7$. $w=3, u=4$: $135-128=7$. Hmm, always 7? $15w^2 - 8u^2 \equiv 7 \pmod 8$ when $w$ odd. So $15w^2 - 8u^2 = 1$ has no solution with $w$ odd. 
+
+But $15w^2 - 8u^2 = 7$ has solution $(w,u) = (1,1)$. And the Pell equation $15w^2 - 8u^2 = 7$... the automorphisms come from $x^2 - 120y^2 = 1$ (the Pell equation of the discriminant).
+
+Actually, for the generalized Pell equation $15w^2 - 8u^2 = m$, the solutions (if any exist) can be generated using the fundamental solution of $x^2 - 120y^2 = 1$.
+
+$x^2 - 120y^2 = 1$: $\sqrt{120} \approx 10.954$. Let me find the fundamental solution. $11^2 - 120 = 1$. So $x=11, y=1$: $121 - 120 = 1$. ✓ Fundamental solution is $(11, 1)$.
+
+Now, if $(w_0, u_0)$ is a solution of $15w^2 - 8u^2 = m$, then we can generate more solutions using the automorphism. The key formula: if $15w^2 - 8u^2 = m$ and $x^2 - 120y^2 = 1$, then:
+
+$w' = xw + 8yu$, $u' = 15yw + xu$... let me verify. We have $15w^2 - 8u^2 = m$. The automorphism of the form $15w^2 - 8u^2$ comes from the Pell equation $X^2 - 15 \cdot 8 \cdot Y^2 = X^2 - 120Y^2 = 1$.
+
+The transformation is:
+$w' = Xw + 8Yu$
+$u' = 15Yw + Xu$
+
+Check: $15(w')^2 - 8(u')^2 = 15(Xw+8Yu)^2 - 8(15Yw+Xu)^2$
+$= 15(X^2w^2 + 16XYwu + 64Y^2u^2) - 8(225Y^2w^2 + 30XYwu + X^2u^2)$
+$= 15X^2w^2 + 240XYwu + 960Y^2u^2 - 1800Y^2w^2 - 240XYwu - 8X^2u^2$
+$= 15X^2w^2 + 960Y^2u^2 - 1800Y^2w^2 - 8X^2u^2$
+$= (15X^2 - 1800Y^2)w^2 + (960Y^2 - 8X^2)u^2$
+$= 15(X^2 - 120Y^2)w^2 - 8(X^2 - 120Y^2)u^2$
+$= 15 \cdot 1 \cdot w^2 - 8 \cdot 1 \cdot u^2$
+$= 15w^2 - 8u^2 = m$ ✓
+
+With fundamental solution $(X, Y) = (11, 1)$:
+$w' = 11w + 8u$
+$u' = 15w + 11u$
+
+Starting from $(w_0, u_0) = (1, 1)$ for $m = 7$:
+$w_1 = 11 + 8 = 19$, $u_1 = 15 + 11 = 26$. But $u_1 = 26$ is even! ✗
+
+Hmm, we need $u$ odd. $u_0 = 1$ (odd), $u_1 = 15 \cdot 1 + 11 \cdot 1 = 26$ (even). Parity not maintained.
+
+Let me check parity: $w' = 11w + 8u$. If $w$ odd, $u$ odd: $w' = 11 \cdot \text{odd} + 8 \cdot \text{odd} = \text{odd} + \text{even} = \text{odd}$ ✓. $u' = 15w + 11u = 15 \cdot \text{odd} + 11 \cdot \text{odd} = \text{odd} + \text{odd} = \text{even}$ ✗.
+
+So this automorphism doesn't preserve oddness of $u$. Problem!
+
+But wait, maybe I should use a different automorphism, or apply it twice. Let's apply twice:
+$(X, Y) = (11, 1)^2 = (11^2 + 120, 2 \cdot 11) = (241, 22)$.
+
+$w' = 241w + 8 \cdot 22 \cdot u = 241w + 176u$
+$u' = 15 \cdot 22 \cdot w + 241u = 330w + 241u$
+
+With $w$ odd, $u$ odd: $w' = 241 \cdot \text{odd} + 176 \cdot \text{odd} = \text{odd} + \text{even} = \text{odd}$ ✓. $u' = 330 \cdot \text{odd} + 241 \cdot \text{odd} = \text{even} + \text{odd} = \text{odd}$ ✓.
+
+So applying the automorphism twice preserves oddness. So from $(w_0, u_0) = (1, 1)$ (both odd), we get:
+$(w_1, u_1) = (241 + 176, 330 + 241) = (417, 571)$. Both odd ✓.
+
+Check: $15 \cdot 417^2 - 8 \cdot 571^2 = 15 \cdot 173889 - 8 \cdot 326041 = 2608335 - 2608328 = 7$ ✓.
+
+So for $m = 7$, we get infinitely many solutions: $(1,1), (417, 571), \ldots$ All with $u, w$ odd. ✓
+
+But wait, I also need $a = -3u^2 \neq b = -5u^2$... no, in this construction $a = -3u^2$ and $b = -5u^2$ (same $u$). These are distinct since $3 \neq 5$. ✓ And $c = 15w^2 > 0 > a, b$. ✓
+
+But I also need $c$ to be good: $15w^2$ is not a perfect square (since 15 is not a perfect square). ✓ And $a = -3u^2$ is good: $3u^2$ not a perfect square. ✓ $b = -5u^2$ good. ✓
+
+So for $m = 7$, this works. But does $15w^2 - 8u^2 = m$ have a solution for every $m \equiv 7 \pmod 8$?
+
+Not necessarily. The generalized Pell equation $15w^2 - 8u^2 = m$ might not have solutions for all $m \equiv 7 \pmod 8$.
+
+Hmm, let me think about this differently. Maybe I should use a more flexible construction where I don't set $u = v$ (i.e., don't use the same parameter for $a$ and $b$).
+
+Let me go back to the three-parameter approach: $a = -3s^2, b = -5t^2, c = 15w^2$ with $15w^2 - 3s^2 - 5t^2 = m$, and try to find solutions for each $m \equiv 7 \pmod 8$ by choosing $s, t$ appropriately and solving for $w$.
+
+Fix $s$ and $t$: $w^2 = (m + 3s^2 + 5t^2)/15$. Need $15 | (m + 3s^2 + 5t^2)$ and the result to be a perfect square.
+
+This is hard to control. Let me try a different approach entirely.
+
+**Approach: Use a parametric family that works for all $m \equiv 3 \pmod 4$.**
+
+Let me try the following: for $m \equiv 3 \pmod 4$, write $m = 4j + 3$.
+
+Consider the triple:
+- $a = -(2n+1)^2 \cdot 3$
+- $b = -(2n+1)^2 \cdot 5$  
+- $c = m + 8(2n+1)^2$
+
+We need $c = 15w^2$ for some odd $w$, i.e., $m + 8(2n+1)^2 = 15w^2$.
+
+This is $15w^2 - 8u^2 = m$ with $u = 2n+1$ odd, $w$ odd.
+
+As shown, this has solutions for $m = 7$ (and infinitely many via Pell). But for general $m \equiv 7 \pmod 8$, we need the equation to have at least one solution.
+
+Let me check: does $15w^2 - 8u^2 = m$ have a solution for all $m \equiv 7 \pmod 8$?
+
+The form $15w^2 - 8u^2$ represents $m$ iff $m$ is represented by the genus of this form. The local conditions: $m \equiv 7 \pmod 8$ is necessary (for $w$ odd). Are there other local obstructions?
+
+Mod 3: $15w^2 - 8u^2 \equiv -8u^2 \equiv u^2 \pmod 3$. So $m \equiv u^2 \pmod 3$, meaning $m \equiv 0$ or $1 \pmod 3$. If $m \equiv 2 \pmod 3$, no solution!
+
+So for $m \equiv 7 \pmod 8$ and $m \equiv 2 \pmod 3$ (i.e., $m \equiv 23 \pmod{24}$), this specific form doesn't work.
+
+So I need different forms for different $m$. Let me try to be more systematic.
+
+**Systematic approach using different $(p, q)$ pairs:**
+
+For $m \equiv 7 \pmod 8$:
+- Use $p = 3, q = 5$: form $15w^2 - 3s^2 - 5t^2$. Mod 3: $\equiv -5t^2 \equiv t^2 \pmod 3$. So $m \equiv t^2 \pmod 3$, need $m \equiv 0$ or $1 \pmod 3$.
+- Use $p = 5, q = 3$: form $15w^2 - 5s^2 - 3t^2$. Mod 3: $\equiv -5s^2 \equiv s^2 \pmod 3$. Same condition.
+- Use $p = 3, q = 13$: form $39w^2 - 3s^2 - 13t^2$. $39 - 3 - 13 = 23 \equiv 7 \pmod 8$ ✓. Mod 3: $\equiv -13t^2 \equiv -t^2 \equiv 2t^2 \pmod 3$. So $m \equiv 2t^2 \pmod 3$, need $m \equiv 0$ or $2 \pmod 3$.
+
+So:
+- $m \equiv 0$ or $1 \pmod 3$: use $p = 3, q = 5$.
+- $m \equiv 2 \pmod 3$: use $p = 3, q = 13$.
+
+But I also need to ensure the form actually represents $m$ (not just local conditions). And I need to handle the Pell equation part.
+
+This is getting very complicated. Let me try a completely different, cleaner approach.
+
+**Clean approach: Use a single parametric family that works for all $m \equiv 3 \pmod 4$.**
+
+Let me try the following construction. For any $m \equiv 3 \pmod 4$, let $k$ be a parameter (positive integer). Define:
+- $a = m - 2(2k+1)^2$
+- $b = (2k+1)^2$
+- $c = (2k+1)^2$
+
+Wait, $b = c$, not distinct. Let me modify.
+
+Actually, let me think about this more carefully. The condition is that $abc$ is an odd perfect square, $a + b + c = m$, $a, b, c$ distinct good odd integers.
+
+Let me try: $a = -d \cdot r^2$, $b = -e \cdot s^2$, $c = m + dr^2 + es^2$, where $d, e$ are squarefree odd $> 1$, and we need $c = de \cdot t^2$ for some odd $t$ (so that $abc = de \cdot r^2 \cdot e \cdot s^2 \cdot de \cdot t^2$... wait, $abc = (-dr^2)(-es^2)(de t^2) = d^2 e^2 r^2 s^2 t^2 = (dert s)^2$... hmm, $= d^2 e^2 r^2 s^2 t^2$? No: $(-dr^2)(-es^2)(det^2) = d \cdot e \cdot de \cdot r^2 s^2 t^2 = d^2 e^2 r^2 s^2 t^2 = (de rst)^2$. ✓
+
+So the condition is: $m + dr^2 + es^2 = det^2$, i.e., $det^2 - dr^2 - es^2 = m$.
+
+This is the same ternary form as before. The question is whether it has infinitely many odd solutions.
+
+Let me try a very different approach. Instead of using the "two negative, one positive" structure, let me try to use a construction where I have more freedom.
+
+**Approach: Use a polynomial identity.**
+
+Can I find polynomials $a(t), b(t), c(t)$ such that:
+1. $a(t) + b(t) + c(t) = m$ (constant)
+2. $a(t) \cdot b(t) \cdot c(t)$ is a perfect square (as a polynomial in $t$)
+3. For infinitely many integer $t$, $a(t), b(t), c(t)$ are distinct good odd integers
+
+This would give infinitely many representations.
+
+For condition 2, we need $a(t) b(t) c(t) = f(t)^2$ for some polynomial $f$.
+
+Let me try: $a(t) = -3(2t+1)^2$, $b(t) = -5(2t+1)^2$, $c(t) = m + 8(2t+1)^2$.
+
+Then $abc = 15(2t+1)^4 (m + 8(2t+1)^2)$. For this to be a perfect square, need $15(m + 8(2t+1)^2)$ to be a perfect square. This is $15m + 120(2t+1)^2$, which is a perfect square only for specific $t$ (it's a Pell equation, not a polynomial identity).
+
+So this doesn't give a polynomial identity. Let me try to find an actual polynomial identity.
+
+**Polynomial identity approach:**
+
+We need $a(t) + b(t) + c(t) = m$ and $a(t) b(t) c(t) = f(t)^2$.
+
+Let $a(t) = -3u(t)^2$, $b(t) = -5v(t)^2$, $c(t) = 15w(t)^2$ where $u, v, w$ are polynomials. Then $abc = (15 u v w)^2$ automatically. And $a + b + c = 15w^2 - 3u^2 - 5v^2 = m$.
+
+So I need polynomials $u(t), v(t), w(t)$ with integer values at odd integers, such that $15w(t)^2 - 3u(t)^2 - 5v(t)^2 = m$ identically.
+
+This is a polynomial solution to a ternary quadratic equation. Let me try $u(t) = at + b$, $v(t) = ct + d$, $w(t) = et + f$ (linear polynomials).
+
+$15(et+f)^2 - 3(at+b)^2 - 5(ct+d)^2 = m$
+
+Expanding:
+$15(e^2 t^2 + 2eft + f^2) - 3(a^2 t^2 + 2abt + b^2) - 5(c^2 t^2 + 2cdt + d^2) = m$
+
+Coefficient of $t^2$: $15e^2 - 3a^2 - 5c^2 = 0$.
+Coefficient of $t$: $30ef - 6ab - 10cd = 0$.
+Constant: $15f^2 - 3b^2 - 5d^2 = m$.
+
+From the $t^2$ equation: $15e^2 = 3a^2 + 5c^2$, i.e., $5e^2 = a^2 + \frac{5}{3}c^2$... need $3 | c^2$, so $3 | c$. Let $c = 3g$. Then $15e^2 = 3a^2 + 45g^2$, i.e., $5e^2 = a^2 + 15g^2$.
+
+Try $g = 0$: $5e^2 = a^2$, so $a = e\sqrt{5}$, not integer unless $e = 0$. Then $a = 0, c = 0$, and $u, v$ are constants. Not useful.
+
+Try $g = 1, a = 0$: $5e^2 = 15$, $e^2 = 3$, not integer.
+
+Try $g = 1, a = 5$: $5e^2 = 25 + 15 = 40$, $e^2 = 8$, no.
+
+Try $g = 2, a = 5$: $5e^2 = 25 + 60 = 85$, $e^2 = 17$, no.
+
+Try $g = 1, a = 10$: $5e^2 = 100 + 15 = 115$, $e^2 = 23$, no.
+
+Hmm, $5e^2 = a^2 + 15g^2$. Mod 5: $a^2 \equiv 0 \pmod 5$, so $5 | a$. Let $a = 5h$. Then $5e^2 = 25h^2 + 15g^2$, i.e., $e^2 = 5h^2 + 3g^2$.
+
+Try $h = 1, g = 0$: $e^2 = 5$, no. $h = 0, g = 1$: $e^2 = 3$, no. $h = 1, g = 2$: $e^2 = 5 + 12 = 17$, no. $h = 2, g = 1$: $e^2 = 20 + 3 = 23$, no. $h = 1, g = 4$: $e^2 = 5 + 48 = 53$, no. $h = 3, g = 1$: $e^2 = 45 + 3 = 48$, no. $h = 2, g = 3$: $e^2 = 20 + 27 = 47$, no. $h = 1, g = 6$: $e^2 = 5 + 108 = 113$, no. $h = 3, g = 4$: $e^2 = 45 + 48 = 93$, no. $h = 4, g = 1$: $e^2 = 80 + 3 = 83$, no. $h = 2, g = 5$: $e^2 = 20 + 75 = 95$, no. $h = 5, g = 2$: $e^2 = 125 + 12 = 137$, no. $h = 1, g = 8$: $e^2 = 5 + 192 = 197$, no. $h = 4, g = 5$: $e^2 = 80 + 75 = 155$, no. $h = 7, g = 2$: $e^2 = 245 + 12 = 257$, no. $h = 3, g = 8$: $e^2 = 45 + 192 = 237$, no. $h = 5, g = 6$: $e^2 = 125 + 108 = 233$, no. $h = 8, g = 3$: $e^2 = 320 + 27 = 347$, no. $h = 2, g = 9$: $e^2 = 20 + 243 = 263$, no. $h = 9, g = 4$: $e^2 = 405 + 48 = 453$, no. $h = 6, g = 7$: $e^2 = 180 + 147 = 327$, no. $h = 11, g = 2$: $e^2 = 605 + 12 = 617$, no.
+
+This doesn't seem to have small solutions. The equation $e^2 = 5h^2 + 3g^2$ might not have non-trivial solutions. Let me check: mod 3, $e^2 \equiv 5h^2 \equiv 2h^2 \pmod 3$. If $h \not\equiv 0 \pmod 3$, $e^2 \equiv 2 \pmod 3$, impossible. So $3 | h$, say $h = 3j$. Then $e^2 = 45j^2 + 3g^2 = 3(15j^2 + g^2)$, so $3 | e$, say $e = 3i$. Then $9i^2 = 3(15j^2 + g^2)$, i.e., $3i^2 = 15j^2 + g^2$. Mod 3: $g^2 \equiv 0 \pmod 3$, so $3 | g$. Let $g = 3k$. Then $3i^2 = 15j^2 + 9k^2 = 3(5j^2 + 3k^2)$, i.e., $i^2 = 5j^2 + 3k^2$. This is the same equation! So by infinite descent, the only solution is $e = h = g = 0$. 
+
+So there's no non-trivial linear polynomial solution with $p = 3, q = 5$. The form $15w^2 - 3u^2 - 5v^2$ is anisotropic over $\mathbb{Q}$! (Which makes sense because the discriminant is a perfect square, $225 = 15^2$.)
+
+Wait, that's an important point. The form $pqw^2 - pu^2 - qv^2$ has discriminant $p^2q^2 = (pq)^2$, which is a perfect square. This means the form is degenerate/isotropic over $\mathbb{Q}$ in a specific way... actually, let me reconsider.
+
+A ternary form $ax^2 + by^2 + cz^2$ with $abc$ a perfect square is isotropic over $\mathbb{Q}$ (it represents 0 non-trivially). This is because we can write $pqw^2 = pu^2 + qv^2$, and dividing by $pq$: $w^2 = u^2/q + v^2/p$. Over $\mathbb{Q}$, this has solutions like $u = q, v = p, w = \sqrt{q + p}$... only if $p + q$ is a square.
+
+Hmm, actually the isotropy of $pqw^2 - pu^2 - qv^2$ over $\mathbb{Q}$: we need $pqw^2 = pu^2 + qv^2$, i.e., $w^2 = u^2/q + v^2/p$. Setting $u = qt, v = ps$: $w^2 = q t^2 + p s^2$. So we need $w^2 - qs^2... $ no, $w^2 = qt^2 + ps^2$. This is a ternary equation itself.
+
+Actually, the form $15w^2 - 3u^2 - 5v^2$ represents 0: we need $15w^2 = 3u^2 + 5v^2$, i.e., $5w^2 = u^2 + \frac{5}{3}v^2$... need $3 | v$, $v = 3v'$. Then $5w^2 = u^2 + 15v'^2$. And $5 | u$, $u = 5u'$. Then $5w^2 = 25u'^2 + 15v'^2$, $w^2 = 5u'^2 + 3v'^2$. By the descent argument above, only trivial solution. So the form is anisotropic over $\mathbb{Q}$!
+
+This is a problem. An anisotropic form over $\mathbb{Q}$ can only represent finitely many values for each $m$ (by the Hasse principle and the theory of ternary forms). Wait, no—that's not right. An anisotropic ternary form over $\mathbb{Q}$ can still represent infinitely many integers.
+
+Actually, let me reconsider. The form $15w^2 - 3u^2 - 5v^2$ is indefinite (signature $(1,2)$), so it's isotropic over $\mathbb{R}$. But we showed it's anisotropic over $\mathbb{Q}$. By the Hasse-Minkowski theorem, a form is isotropic over $\mathbb{Q}$ iff it's isotropic over all completions. Since it's isotropic over $\mathbb{R}$ but anisotropic over $\mathbb{Q}$, it must be anisotropic over some $\mathbb{Q}_p$.
+
+For indefinite ternary forms that are anisotropic over $\mathbb{Q}$, the representation theory is different. By the work of Kneser and others, such forms represent only finitely many integers in each genus... actually, I'm not sure about the exact statement.
+
+Hmm, wait. Let me reconsider whether the form is really anisotropic. $15w^2 - 3u^2 - 5v^2 = 0$ over $\mathbb{Q}$. We need $15w^2 = 3u^2 + 5v^2$, i.e., $3 \cdot 5 \cdot w^2 = 3u^2 + 5v^2$. Dividing by $\gcd$: let's write $u = 3a, v = 5b$ (to clear denominators). Then $15w^2 = 27a^2 + 125b^2$... that doesn't simplify.
+
+Let me try $u = 5a, v = 3b$: $15w^2 = 75a^2 + 45b^2 = 15(5a^2 + 3b^2)$, so $w^2 = 5a^2 + 3b^2$. And we showed by descent that $w^2 = 5a^2 + 3b^2$ has only the trivial solution over $\mathbb{Z}$, hence over $\mathbb{Q}$ (by clearing denominators and applying the same descent). So yes, the form is anisotropic over $\mathbb{Q}$.
+
+This means the form $15w^2 - 3u^2 - 5v^2$ does NOT have a polynomial parametrization of its solutions (since it's anisotropic, the solution set is not a rational variety). 
+
+But it can still represent infinitely many integers! The form $x^2 + y^2 + z^2$ is anisotropic over $\mathbb{Q}$ but represents infinitely many integers. The difference is that $x^2 + y^2 + z^2$ is positive definite, while our form is indefinite.
+
+For indefinite anisotropic ternary forms over $\mathbb{Q}$, the situation is: they represent integers in certain square classes, and for each represented integer, there are infinitely many representations (since the orthogonal group of an indefinite form is infinite, even if anisotropic).
+
+Wait, is the orthogonal group of an anisotropic indefinite ternary form infinite? Let me think... The orthogonal group of an indefinite ternary form over $\mathbb{Q}$ is related to the units in a quaternion algebra. If the form is anisotropic, the associated quaternion algebra is a division algebra, and its unit group (over $\mathbb{Z}$) is... hmm, this is getting into deep number theory.
+
+Actually, let me reconsider the problem. Maybe I should use a different approach entirely.
+
+**Alternative approach: Don't require the product to be a perfect square via the squarefree part structure. Instead, use a direct construction.**
+
+Let me think about this differently. I want $a + b + c = m$, $abc = $ odd square, $a, b, c$ distinct good odd.
+
+Let me try: $a = -(2t+1)^2 \cdot d$, $b = -e$, $c = m + (2t+1)^2 d + e$, where $d, e$ are fixed and $t$ varies. Then $abc = d(2t+1)^2 \cdot e \cdot c$. For this to be a perfect square, need $dec$ to be a perfect square (since $(2t+1)^2$ is already a square). So $dec = $ perfect square. With $c = m + (2t+1)^2 d + e$, this is $de(m + (2t+1)^2 d + e) = $ perfect square.
+
+Let $d = 3, e = 5$: $15(m + 3(2t+1)^2 + 5) = 15(m + 5) + 45(2t+1)^2$. Need this to be a perfect square. $15(m+5) + 45u^2 = s^2$ where $u = 2t+1$ odd. So $s^2 - 45u^2 = 15(m+5)$, i.e., $s^2 - 45u^2 = 15m + 75$.
+
+Dividing by 15: not clean. Let me try $s = 15r$: $225r^2 - 45u^2 = 15m + 75$, $15r^2 - 3u^2 = m + 5$, $3(5r^2 - u^2) = m + 5$. Need $3 | (m+5)$.
+
+If $3 | (m+5)$: $5r^2 - u^2 = (m+5)/3$. This is a Pell equation $u^2 - 5r^2 = -(m+5)/3$.
+
+With $u$ odd, $r$ odd: $u^2 - 5r^2 \equiv 1 - 5 = -4 \equiv 4 \pmod 8$. And $-(m+5)/3 \pmod 8$... depends on $m$.
+
+For $m \equiv 7 \pmod 8$: $m + 5 \equiv 12 \equiv 4 \pmod 8$. $(m+5)/3 \pmod 8$... $m + 5 = 3N$, $N = (m+5)/3$. $m \equiv 7 \pmod 8$, $m + 5 \equiv 4 \pmod 8$, so $3N \equiv 4 \pmod 8$, $N \equiv 4 \cdot 3^{-1} \equiv 4 \cdot 3 \equiv 12 \equiv 4 \pmod 8$ (since $3 \cdot 3 = 9 \equiv 1 \pmod 8$). So $-(m+5)/3 \equiv -4 \equiv 4 \pmod 8$. ✓ Matches $u^2 - 5r^2 \equiv 4 \pmod 8$.
+
+So the Pell equation $u^2 - 5r^2 = -(m+5)/3$ with $u, r$ odd is consistent mod 8.
+
+Now, the Pell equation $x^2 - 5y^2 = 1$ has fundamental solution $(9, 4)$: $81 - 80 = 1$. $x = 9$ (odd), $y = 4$ (even).
+
+If $(u_0, r_0)$ is a solution with both odd, then multiplying by $(9 + 4\sqrt{5})$:
+$u' = 9u_0 + 4 \cdot 5 \cdot r_0 = 9u_0 + 20r_0$ (odd + even = odd ✓)
+$r' = 4u_0 + 9r_0$ (even + odd = odd ✓)
+
+Parity preserved! ✓
+
+So if the Pell equation $u^2 - 5r^2 = -(m+5)/3$ has one solution with $u, r$ odd positive, we get infinitely many.
+
+But we need $3 | (m+5)$, i.e., $m \equiv 1 \pmod 3$. For $m \equiv 7 \pmod 8$ and $m \equiv 1 \pmod 3$ (i.e., $m \equiv 7 \pmod{24}$... $7 \pmod 8$ and $1 \pmod 3$: $m = 7, 31, 55, ...$, i.e., $m \equiv 7 \pmod{24}$ or $m \equiv 31 \pmod{24} = 7 \pmod{24}$. Wait: $7 \pmod 8$: $7, 15, 23, 31, 39, 47, 55, ...$. $1 \pmod 3$: $1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, ...$. Common: $7, 31, 55, ...$, i.e., $m \equiv 7 \pmod{24}$.)
+
+For $m \equiv 7 \pmod 8$ and $m \not\equiv 1 \pmod 3$ (i.e., $m \equiv 0$ or $2 \pmod 3$), I need a different construction.
+
+For $m \equiv 0 \pmod 3$: try $d = 5, e = 3$: $15(m + 5u^2 + 3) = 15(m+3) + 75u^2$. $s^2 = 15(m+3) + 75u^2$, $s = 15r$: $15r^2 = m + 3 + 5u^2$, $15r^2 - 5u^2 = m + 3$, $5(3r^2 - u^2) = m + 3$. Need $5 | (m+3)$, i.e., $m \equiv 2 \pmod 5$.
+
+This is getting into a mess of case analysis. Let me try to think about this more cleverly.
+
+**Key realization:** Maybe I should use a construction where $a$ and $b$ share a common factor, making the product condition easier to satisfy.
+
+Let me try: $a = -3s^2$, $b = -3t^2$, $c = m + 3s^2 + 3t^2$. Then $abc = 9s^2 t^2 c$. For this to be a perfect square, need $c$ to be a perfect square. But $c$ must be good, so $c$ is not a perfect square. ✗ (If $c > 0$.)
+
+Unless $c < 0$ and $abc > 0$... but $a, b < 0$ and $c < 0$ gives $abc < 0$. ✗
+
+OK so sharing a common squarefree part between $a$ and $b$ doesn't work (as I noted before).
+
+**Let me try yet another approach: use the structure $s_1 = p, s_2 = q, s_3 = pq$ but with a clever choice.**
+
+For $m \equiv 3 \pmod 4$, I want to find $p, q$ (distinct odd squarefree $> 1$) and a solution to $pqw^2 - pu^2 - qv^2 = m$ with $u, v, w$ odd positive, and then use the Pell equation to get infinitely many.
+
+The key insight I was missing: even though the form is anisotropic over $\mathbb{Q}$, it can still represent integers, and for each represented integer, the number of representations can be infinite (because the orthogonal group over $\mathbb{Z}$ can still be infinite for indefinite forms).
+
+Actually, wait. For an indefinite anisotropic ternary form over $\mathbb{Q}$, the orthogonal group over $\mathbb{Z}$ is finite! This is because the form corresponds to a definite quaternion algebra (the anisotropy over some $\mathbb{Q}_p$ makes the quaternion algebra ramified, and the unit group of a definite quaternion order is finite).
+
+Hmm, but our form is indefinite (signature $(1,2)$), so the quaternion algebra is indefinite at $\mathbb{R}$. If it's also ramified at some finite prime (which it is, since the form is anisotropic over $\mathbb{Q}$), then... the quaternion algebra is indefinite but ramified at a finite prime. In this case, the unit group of the corresponding order is infinite (because the algebra is split at $\mathbb{R}$, giving $\mathrm{SL}_2(\mathbb{R})$-like structure).
+
+Actually, I think I'm overcomplicating this. Let me look at it from the Pell equation perspective.
+
+For the form $pqw^2 - pu^2 - qv^2 = m$, fix $v = v_0$ (odd). Then $pqw^2 - pu^2 = m + qv_0^2$, i.e., $qw^2 - u^2 = (m + qv_0^2)/p$ (need $p | (m + qv_0^2)$). This is a generalized Pell equation $u^2 - qw^2 = -(m + qv_0^2)/p$.
+
+The Pell equation $x^2 - qy^2 = 1$ has infinitely many solutions (for non-square $q$). If the generalized equation has one solution, it has infinitely many (by multiplying by Pell solutions). And we showed parity is preserved.
+
+So the question reduces to: for each $m \equiv 3 \pmod 4$, can we find $p, q, v_0$ such that:
+1. $p, q$ distinct odd squarefree $> 1$
+2. $pq - p - q \equiv m \pmod 8$
+3. $p | (m + qv_0^2)$
+4. $u^2 - qw^2 = -(m + qv_0^2)/p$ has a solution with $u, w$ odd positive
+5. The resulting $a, b, c$ are distinct and good
+
+For condition 4, we need the generalized Pell equation to have a solution. This is a local-global question. The equation $u^2 - qw^2 = N$ (where $N = -(m + qv_0^2)/p$) has a solution iff it has a solution in all completions.
+
+Over $\mathbb{R}$: $u^2 - qw^2 = N$ always has real solutions (indefinite form).
+Over $\mathbb{Q}_\ell$ for each prime $\ell$: need $N$ to be a norm from $\mathbb{Q}(\sqrt{q})$.
+
+The local conditions are: for each prime $\ell | q$ (or $\ell = 2$), $N$ must satisfy certain congruence conditions.
+
+This is getting very technical. Let me try a different, more elementary approach.
+
+**Elementary approach: Direct construction for each $m \equiv 3 \pmod 4$.**
+
+Let me try to construct solutions explicitly. The idea: for each $m \equiv 3 \pmod 4$, find one solution, then use Pell to get infinitely many.
+
+**For $m \equiv 7 \pmod 8$:**
+
+Try $p = 3, q = 5$, fix $v = v_0$ odd. Need $3 | (m + 5v_0^2)$. Since $v_0^2 \equiv 1 \pmod 3$ or $v_0^2 \equiv 0 \pmod 3$:
+- If $m \equiv 1 \pmod 3$: need $5v_0^2 \equiv 2 \pmod 3$, i.e., $2v_0^2 \equiv 2 \pmod 3$, i.e., $v_0^2 \equiv 1 \pmod 3$, so $v_0 \not\equiv 0 \pmod 3$. Take $v_0 = 1$.
+- If $m \equiv 0 \pmod 3$: need $5v_0^2 \equiv 0 \pmod 3$, i.e., $v_0 \equiv 0 \pmod 3$. Take $v_0 = 3$.
+- If $m \equiv 2 \pmod 3$: need $5v_0^2 \equiv 1 \pmod 3$, i.e., $2v_0^2 \equiv 1 \pmod 3$, i.e., $v_0^2 \equiv 2 \pmod 3$. Impossible! ✗
+
+So for $m \equiv 7 \pmod 8$ and $m \equiv 2 \pmod 3$, use different $p, q$.
+
+Try $p = 3, q = 13$ ($q \equiv 1 \pmod 4$, so $pq - p - q = 39 - 3 - 13 = 23 \equiv 7 \pmod 8$ ✓). Fix $v = v_0$: need $3 | (m + 13v_0^2)$. $13 \equiv 1 \pmod 3$, so $13v_0^2 \equiv v_0^2 \pmod 3$.
+- If $m \equiv 2 \pmod 3$: need $v_0^2 \equiv 1 \pmod 3$, so $v_0 \not\equiv 0 \pmod 3$. Take $v_0 = 1$.
+
+Then $N = -(m + 13)/3$ and we need $u^2 - 13w^2 = N$ to have a solution with $u, w$ odd.
+
+$u^2 - 13w^2 = -(m+13)/3$. With $u, w$ odd: $u^2 - 13w^2 \equiv 1 - 13 = -12 \equiv 4 \pmod 8$. And $-(m+13)/3 \pmod 8$: $m \equiv 7 \pmod 8$, $m + 13 \equiv 20 \equiv 4 \pmod 8$, $(m+13)/3 \pmod 8$: $3 \cdot ((m+13)/3) \equiv 4 \pmod 8$, so $(m+13)/3 \equiv 4 \cdot 3 \equiv 12 \equiv 4 \pmod 8$. So $-(m+13)/3 \equiv -4 \equiv 4 \pmod 8$. ✓
+
+So the congruence conditions are satisfied. But does the equation actually have a solution? This depends on whether $N = -(m+13)/3$ is a norm from $\mathbb{Q}(\sqrt{13})$.
+
+For the equation $u^2 - 13w^2 = N$ to have a solution, we need $N$ to be locally a norm everywhere. The main obstruction is at primes dividing the discriminant $4 \cdot 13 = 52$, i.e., at $p = 2$ and $p = 13$.
+
+At $p = 13$: $u^2 - 13w^2 \equiv u^2 \pmod{13}$. So $N \equiv u^2 \pmod{13}$, need $N$ to be a QR mod 13. $N = -(m+13)/3 \equiv -m/3 \pmod{13}$ (since $13 \equiv 0$). $3^{-1} \equiv 9 \pmod{13}$ (since $3 \cdot 9 = 27 \equiv 1$). So $N \equiv -9m \pmod{13}$. Need $-9m$ to be a QR mod 13.
+
+The QRs mod 13 are: $1, 3, 4, 9, 10, 12$ (i.e., $1^2=1, 2^2=4, 3^2=9, 4^2=3, 5^2=12, 6^2=10$).
+
+$-9m \pmod{13}$: $-9 \equiv 4 \pmod{13}$. So need $4m$ to be a QR mod 13. Since $4 = 2^2$ is a QR, $4m$ is a QR iff $m$ is a QR mod 13. QRs mod 13: $\{1, 3, 4, 9, 10, 12\}$. So need $m \pmod{13} \in \{1, 3, 4, 9, 10, 12\}$, i.e., $m$ is a QR mod 13.
+
+This is not always true! For example, $m = 23$ ($\equiv 7 \pmod 8$, $\equiv 2 \pmod 3$): $23 \equiv 10 \pmod{13}$, which is a QR. ✓. But $m = 47$: $47 \equiv 8 \pmod{13}$, which is not a QR. ✗
+
+So for $m = 47$ ($\equiv 7 \pmod 8$, $\equiv 2 \pmod 3$), the construction with $p = 3, q = 13, v_0 = 1$ doesn't work.
+
+I could try $v_0 = 5$ (next odd not divisible by 3): $N = -(47 + 13 \cdot 25)/3 = -(47 + 325)/3 = -372/3 = -124$. Need $u^2 - 13w^2 = -124$. $-124 \equiv -124 + 130 = 6 \pmod{13}$. Is $6$ a QR mod 13? QRs: $\{1, 3, 4, 9, 10, 12\}$. $6$ is not. ✗
+
+$v_0 = 7$: $N = -(47 + 13 \cdot 49)/3 = -(47 + 637)/3 = -684/3 = -228$. $-228 \equiv -228 + 234 = 6 \pmod{13}$. Still $6$. ✗
+
+Hmm, $N = -(m + 13v_0^2)/3$. $N \pmod{13} \equiv -m/(3) \pmod{13}$ (independent of $v_0$!). So changing $v_0$ doesn't help with the mod 13 obstruction.
+
+So I need to use a different $q$. The mod $q$ obstruction is $N \equiv -m \cdot (3)^{-1} \pmod{q}$, and we need this to be a QR mod $q$. By quadratic reciprocity and Dirichlet's theorem, we can choose $q$ such that $-m/3$ is a QR mod $q$.
+
+Actually, by Chebotarev's density theorem (or more elementarily, by quadratic reciprocity and Dirichlet's theorem on primes in arithmetic progressions), for any given $m$, there exist infinitely many primes $q$ such that $-3m$ is a QR mod $q$ (equivalently, $q$ splits in $\mathbb{Q}(\sqrt{-3m})$). 
+
+But I also need $q \equiv 1 \pmod 4$ (for $m \equiv 7 \pmod 8$) and $q \neq p = 3$ and $q$ squarefree. By Dirichlet's theorem, there are infinitely many primes $q \equiv 1 \pmod 4$ that split in $\mathbb{Q}(\sqrt{-3m})$.
+
+So for each $m$, I can find $q$ such that the local condition at $q$ is satisfied. But I also need the local condition at other primes (especially $p = 2$ and $p = 3$) and the global condition.
+
+This is getting very deep into number theory. Let me step back and think about whether there's a simpler approach to the whole problem.
+
+**Simpler approach: Maybe the answer is just $m \equiv 3 \pmod 4$, and the proof uses a simpler construction.**
+
+Let me think about what constructions might work more broadly.
+
+**Construction using $a = -n, b = -n \cdot k^2, c = m + n + nk^2 = m + n(1 + k^2)$:**
+
+$abc = n^2 k^2 \cdot c$. For $abc$ to be a perfect square, need $c$ to be a perfect square. But $c$ must be good. ✗
+
+**Construction using $a = -p \alpha^2, b = -q \beta^2, c = pq \gamma^2$ (the one I've been using):**
+
+This requires solving $pq\gamma^2 - p\alpha^2 - q\beta^2 = m$.
+
+**Let me try a construction where $c$ is not of the form $pq\gamma^2$ but rather the product condition is satisfied differently.**
+
+We need $abc = $ perfect square. Write $a = -A, b = -B, c = C$ with $A, B, C > 0$ odd. Then $abc = ABC$, and we need $ABC$ to be a perfect square, with $C = m + A + B$.
+
+So we need $AB(m + A + B)$ to be a perfect square.
+
+Let me try $A = d \cdot s^2, B = d \cdot t^2$ (same squarefree part $d$). Then $AB = d^2 s^2 t^2$, and $ABC = d^2 s^2 t^2 (m + ds^2 + dt^2)$. Need $m + d(s^2 + t^2)$ to be a perfect square. But $C = m + d(s^2 + t^2)$ must be good, so $C$ is not a perfect square. ✗
+
+Same issue as before.
+
+Let me try $A = ds^2, B = et^2, C = m + ds^2 + et^2$, with $d, e$ squarefree, $de$ not a perfect square (so $d \neq e$). Then $ABC = des^2t^2 C$. Need $deC$ to be a perfect square. $deC = de(m + ds^2 + et^2)$. 
+
+If $de$ is squarefree (which it is if $d, e$ are distinct squarefree and coprime), then $deC$ is a perfect square iff $C = de \cdot w^2$ for some integer $w$. Then $C = de w^2$, and $m + ds^2 + et^2 = dew^2$, i.e., $dew^2 - ds^2 - et^2 = m$.
+
+This is the same equation as before with $p = d, q = e$.
+
+OK so I keep coming back to the same equation. Let me try to prove the result using a different method.
+
+**Method: Use the Chinese Remainder Theorem and Dirichlet's theorem to find suitable $p, q$.**
+
+For each $m \equiv 3 \pmod 4$, I want to find $p, q$ (distinct odd primes) and $v_0$ (odd positive) such that:
+1. $pq - p - q \equiv m \pmod 8$
+2. $p | (m + qv_0^2)$
+3. $u^2 - qw^2 = -(m + qv_0^2)/p$ has a solution with $u, w$ odd
+
+Condition 3 is the hardest. By the Hasse norm theorem for quadratic extensions, $u^2 - qw^2 = N$ has a rational solution iff $N$ is a norm from $\mathbb{Q}(\sqrt{q})$ locally everywhere. The local conditions are:
+- At primes $\ell \nmid 2q$: always satisfied (the form is isotropic mod $\ell$ for $\ell \nmid 2q$... actually, $u^2 - qw^2 \pmod \ell$ represents all residues if $q$ is a QR mod $\ell$, and represents half the residues if $q$ is a QNR mod $\ell$).
+
+Hmm, actually the local condition for $u^2 - qw^2 = N$ to have a solution in $\mathbb{Z}_\ell$:
+- At $\ell = q$: $u^2 - qw^2 \equiv u^2 \pmod{q}$, so need $N \equiv u^2 \pmod{q}$, i.e., $N$ is a QR mod $q$ (or $N \equiv 0$).
+- At $\ell = 2$: depends on $q \pmod 8$ and $N \pmod 8$.
+- At other primes $\ell$: if $q$ is a QR mod $\ell$, then $u^2 - qw^2$ represents all residues mod $\ell$; if $q$ is a QNR, it represents residues $\{u^2 - qw^2\}$ which is all of $\mathbb{Z}/\ell\mathbb{Z}$ when $\ell$ is odd (since the form is isotropic mod $\ell$ when $\ell \nmid 2q$... actually, $u^2 - qw^2$ is a binary form, and it represents $N$ mod $\ell$ iff $N$ is a norm from $\mathbb{F}_{\ell^2}$ or $\mathbb{F}_\ell \times \mathbb{F}_\ell$, depending on whether $q$ is a QR or QNR mod $\ell$).
+
+Actually, for an odd prime $\ell \nmid q$: $u^2 - qw^2 = N \pmod \ell$. If $q$ is a QR mod $\ell$, say $q \equiv r^2$, then $u^2 - r^2w^2 = (u-rw)(u+rw) = N$, which can represent any $N$ (by choosing $u - rw = 1, u + rw = N$). If $q$ is a QNR mod $\ell$, then $u^2 - qw^2$ is anisotropic mod $\ell$, and it represents $(\ell + 1)/2$ residues (the norms from $\mathbb{F}_{\ell^2}^*$). Specifically, $N$ is represented iff $N^{(\ell-1)/2} \equiv 1 \pmod \ell$ or $N \equiv 0$.
+
+So the local conditions at primes $\ell \nmid 2q$ where $q$ is a QNR mod $\ell$ could be obstructed. But by quadratic reciprocity, the set of primes where $q$ is a QNR is half the primes. And the condition $N^{(\ell-1)/2} \equiv 1 \pmod \ell$ is also satisfied for half the primes (those where $N$ is a QR). So the obstruction happens when $q$ is a QNR mod $\ell$ AND $N$ is a QNR mod $\ell$.
+
+But by the Hasse norm theorem, $N$ is a norm from $\mathbb{Q}(\sqrt{q})$ iff it's a norm locally everywhere. The product formula for the Hilbert symbol says that the number of places where the Hilbert symbol $(N, q)_v = -1$ is even. So the local obstructions come in pairs.
+
+This is getting too deep. Let me try a completely different approach to the problem.
+
+**Completely different approach: Use a direct algebraic construction.**
+
+For $m \equiv 3 \pmod 4$, let me try to find infinitely many triples directly.
+
+Let $m = 4j + 3$. Consider triples of the form:
+- $a = -(2n+1)^2 \cdot r$
+- $b = -(2n+1)^2 \cdot s$  
+- $c = m + (2n+1)^2(r + s)$
+
+where $r, s$ are fixed odd squarefree $> 1$ with $r \neq s$, and $n$ varies.
+
+Then $abc = (2n+1)^4 rs \cdot c$. Need $rsc$ to be a perfect square. $c = m + (2n+1)^2(r+s)$. Need $rs(m + (2n+1)^2(r+s))$ to be a perfect square.
+
+Let $u = 2n+1$ (odd). Need $rs(m + u^2(r+s)) = $ perfect square. Since $rs$ is squarefree (if $\gcd(r,s) = 1$), need $m + u^2(r+s) = rs \cdot w^2$ for some integer $w$. So $rsw^2 - (r+s)u^2 = m$.
+
+This is a generalized Pell equation in $w$ and $u$ (both odd). The form $rsw^2 - (r+s)u^2$ is a binary indefinite form (since $rs > 0$ and $r + s > 0$, but we need $rsw^2 - (r+s)u^2$ to be indefinite, which requires $rs(r+s) > 0$... well, $rs > 0$ and $r + s > 0$, so $rsw^2 - (r+s)u^2$ is indefinite iff $rs$ and $r+s$ have the same sign, which they do since both positive).
+
+Wait, $rsw^2 - (r+s)u^2$: this is a binary form with coefficients $rs$ and $-(r+s)$. It's indefinite since $rs > 0$ and $-(r+s) < 0$. The discriminant is $4rs(r+s)$.
+
+For this to have infinitely many solutions (given one solution), we need the Pell equation $x^2 - rs(r+s)y^2 = 1$ to have solutions, which it does for any non-square $rs(r+s)$.
+
+But we also need $u, w$ odd. Let me check: $rsw^2 - (r+s)u^2 = m$ with $u, w$ odd. $rsw^2 \equiv rs \pmod 8$ and $(r+s)u^2 \equiv r+s \pmod 8$. So $m \equiv rs - (r+s) = rs - r - s = (r-1)(s-1) - 1 \pmod 8$.
+
+For $r = 3, s = 5$: $15 - 8 = 7 \pmod 8$. So $m \equiv 7 \pmod 8$.
+For $r = 3, s = 7$: $21 - 10 = 11 \equiv 3 \pmod 8$. So $m \equiv 3 \pmod 8$.
+For $r = 3, s = 11$: $33 - 14 = 19 \equiv 3 \pmod 8$. So $m \equiv 3 \pmod 8$.
+For $r = 3, s = 13$: $39 - 16 = 23 \equiv 7 \pmod 8$. So $m \equiv 7 \pmod 8$.
+For $r = 5, s = 7$: $35 - 12 = 23 \equiv 7 \pmod 8$. So $m \equiv 7 \pmod 8$.
+For $r = 5, s = 11$: $55 - 16 = 39 \equiv 7 \pmod 8$. So $m \equiv 7 \pmod 8$.
+For $r = 5, s = 13$: $65 - 18 = 47 \equiv 7 \pmod 8$. So $m \equiv 7 \pmod 8$.
+For $r = 7, s = 11$: $77 - 18 = 59 \equiv 3 \pmod 8$. So $m \equiv 3 \pmod 8$.
+For $r = 7, s = 13$: $91 - 20 = 71 \equiv 7 \pmod 8$. So $m \equiv 7 \pmod 8$.
+
+So:
+- $m \equiv 3 \pmod 8$: use $r = 3, s = 7$ (or $r = 3, s = 11$, or $r = 7, s = 11$).
+- $m \equiv 7 \pmod 8$: use $r = 3, s = 5$ (or many others).
+
+Now the equation is $rsw^2 - (r+s)u^2 = m$, a binary Pell-type equation. The key question: does it have a solution for every $m$ in the right residue class?
+
+For $r = 3, s = 5$: $15w^2 - 8u^2 = m$ with $u, w$ odd. This is the same equation I had before! And I showed it might not have solutions for all $m \equiv 7 \pmod 8$ (e.g., $m \equiv 2 \pmod 3$ has issues).
+
+Wait, let me recheck. $15w^2 - 8u^2 = m$. Mod 3: $-8u^2 \equiv u^2 \equiv m \pmod 3$. So need $m \equiv 0$ or $1 \pmod 3$. For $m \equiv 2 \pmod 3$, no solution. ✗
+
+So for $m \equiv 7 \pmod 8$ and $m \equiv 2 \pmod 3$, use $r = 3, s = 13$: $39w^2 - 16u^2 = m$. Mod 3: $-16u^2 \equiv -u^2 \equiv 2u^2 \pmod 3$. Need $2u^2 \equiv m \pmod 3$. If $m \equiv 2 \pmod 3$: $2u^2 \equiv 2 \pmod 3$, $u^2 \equiv 1 \pmod 3$, $u \not\equiv 0 \pmod 3$. ✓
+
+But mod 13: $39w^2 - 16u^2 \equiv -16u^2 \equiv -3u^2 \pmod{13}$ (since $39 = 3 \cdot 13$). Need $-3u^2 \equiv m \pmod{13}$, i.e., $u^2 \equiv -m/3 \equiv -m \cdot 9 \equiv -9m \pmod{13}$ (since $3^{-1} \equiv 9$). $-9 \equiv 4 \pmod{13}$. So need $4m$ to be a QR mod 13, i.e., $m$ is a QR mod 13 (since 4 is a QR). QRs mod 13: $\{0, 1, 3, 4, 9, 10, 12\}$. So need $m \pmod{13} \in \{0, 1, 3, 4, 9, 10, 12\}$.
+
+For $m \equiv 2 \pmod{13}$: not a QR. ✗ So this doesn't work for all $m$.
+
+Hmm. So for each choice of $r, s$, there are local obstructions. I need to choose $r, s$ to avoid these obstructions for each specific $m$.
+
+**Key idea: For each $m$, choose $r, s$ (depending on $m$) to avoid local obstructions.**
+
+Given $m \equiv 3 \pmod 4$, I need to find odd squarefree $r, s > 1$ with $r \neq s$, $\gcd(r, s) = 1$, $rs - r - s \equiv m \pmod 8$, and such that $rsw^2 - (r+s)u^2 = m$ has a solution with $u, w$ odd.
+
+The local obstructions for $rsw^2 - (r+s)u^2 = m$:
+- Mod $r$: $-(r+s)u^2 \equiv -su^2 \pmod{r}$. Need $-su^2 \equiv m \pmod{r}$, i.e., $m \equiv -su^2 \pmod{r}$. If $\gcd(s, r) = 1$, this is $u^2 \equiv -m/s \pmod{r}$. Need $-m/s$ to be a QR mod $r$ (or $0$).
+- Mod $s$: similarly, need $-m/r$ to be a QR mod $s$.
+- Mod primes $\ell | (r+s)$: $rsw^2 \equiv m \pmod{\ell}$, need $m/(rs)$ to be a QR mod $\ell$.
+- Mod 8: already handled by $rs - r - s \equiv m \pmod 8$.
+
+To avoid the mod $r$ obstruction: choose $r$ such that $-m/s$ is a QR mod $r$. Since $s$ is also being chosen, this is circular.
+
+Let me try a different approach: choose $r$ and $s$ to be primes that don't divide $m$, and such that $-m$ is a QR mod both $r$ and $s$ (and $-m \cdot s^{-1}$ is a QR mod $r$, $-m \cdot r^{-1}$ is a QR mod $s$).
+
+Actually, the condition is: $-ms^{-1}$ is a QR mod $r$ and $-mr^{-1}$ is a QR mod $s$. By quadratic reciprocity and Dirichlet's theorem, we can find such primes.
+
+But this is getting very complicated. Let me try to think about whether the answer might be simpler than I think.
+
+**Re-examination: Is $m \equiv 3 \pmod 4$ really the answer?**
+
+Let me check: is $m = 3$ achievable? Yes, I found a solution: $(-63, -11, 77)$ with $(-63)(-11)(77) = 53361 = 231^2$.
+
+Is $m = 7$ achievable? $(-3, -5, 15)$: $(-3)(-5)(15) = 225 = 15^2$. ✓ Sum: $-3 - 5 + 15 = 7$. ✓ All good? $|-3| = 3$ not a square ✓, $|-5| = 5$ not a square ✓, $|15| = 15$ not a square ✓. Distinct ✓. And $15$ is odd ✓.
+
+So $m = 7$ works with $(a, b, c) = (-3, -5, 15)$. And we can get infinitely many via the Pell equation $15w^2 - 8u^2 = 7$ with $(w, u) = (1, 1), (417, 571), \ldots$
+
+Is $m = 1$ achievable? $m = 1 \equiv 1 \pmod 4$, so by our necessary condition, NO.
+
+Is $m = 5$ achievable? $m = 5 \equiv 1 \pmod 4$, so NO.
+
+Is $m = -1$ achievable? $m = -1 \equiv 3 \pmod 4$. Let me check: need $a + b + c = -1$ with $abc$ an odd perfect square, $a, b, c$ distinct good odd.
+
+Try $a = -3, b = -5, c = 7$: sum $= -1$. $abc = (-3)(-5)(7) = 105$. $\sqrt{105}$ is not an integer. ✗
+
+Try $a = -3, b = -7, c = 9$: $|-7| = 7$ good, $|9| = 9 = 3^2$, not good! ✗
+
+Try $a = -3, b = -11, c = 13$: sum $= -1$. $abc = (-3)(-11)(13) = 429$. Not a perfect square. ✗
+
+Try $a = -7, b = -11, c = 17$: sum $= -1$. $abc = (-7)(-11)(17) = 1309$. Not a perfect square. ✗
+
+Let me use the construction: $a = -3u^2, b = -5v^2, c = 15w^2$ with $15w^2 - 3u^2 - 5v^2 = -1$. Need $m = -1 \equiv 7 \pmod 8$? $-1 \equiv 7 \pmod 8$. ✓
+
+$15w^2 - 3u^2 - 5v^2 = -1$. Fix $u = v = 1$: $15w^2 - 8 = -1$, $15w^2 = 7$, $w^2 = 7/15$. ✗
+
+Fix $v = 1$: $15w^2 - 3u^2 = 4$, $3(5w^2 - u^2) = 4$. Not integer. ✗
+
+Fix $u = 1$: $15w^2 - 5v^2 = 2$, $5(3w^2 - v^2) = 2$. Not integer. ✗
+
+Fix $u = 3$: $15w^2 - 27 - 5v^2 = -1$, $15w^2 - 5v^2 = 26$, $5(3w^2 - v^2) = 26$. Not integer. ✗
+
+Fix $v = 3$: $15w^2 - 3u^2 - 45 = -1$, $15w^2 - 3u^2 = 44$, $3(5w^2 - u^2) = 44$. Not integer. ✗
+
+Hmm, $15w^2 - 3u^2 - 5v^2 = m$ requires $3 | (m + 5v^2)$ and $5 | (m + 3u^2)$... no, it requires $3 | (m + 5v^2)$ (from $15w^2 - 3u^2 = m + 5v^2$, $3(5w^2 - u^2) = m + 5v^2$). For $m = -1$: $-1 + 5v^2 \equiv 0 \pmod 3$, $5v^2 \equiv 1 \pmod 3$, $2v^2 \equiv 1 \pmod 3$, $v^2 \equiv 2 \pmod 3$. Impossible! ✗
+
+So $p = 3, q = 5$ doesn't work for $m = -1$. Let me try $p = 3, q = 13$: $39w^2 - 3u^2 - 13v^2 = -1$. Fix $v = 1$: $39w^2 - 3u^2 = 12$, $3(13w^2 - u^2) = 12$, $13w^2 - u^2 = 4$. $u^2 = 13w^2 - 4$. $w = 1$: $u^2 = 9$, $u = 3$. ✓
+
+So $(u, v, w) = (3, 1, 1)$: $a = -3 \cdot 9 = -27$, $b = -13$, $c = 39$. Sum: $-27 - 13 + 39 = -1$. ✓ $abc = (-27)(-13)(39) = 27 \cdot 13 \cdot 39 = 27 \cdot 507 = 13689$. $\sqrt{13689} = 117$. $117^2 = 13689$. ✓ And $117$ is odd. ✓
+
+Good? $|-27| = 27$ not a square ✓, $|-13| = 13$ not a square ✓, $|39| = 39$ not a square ✓. Distinct ✓.
+
+So $m = -1$ works. Now for infinitely many: fix $v = 1$, $13w^2 - u^2 = 4$, i.e., $u^2 - 13w^2 = -4$. Solution $(u, w) = (3, 1)$. Pell equation $x^2 - 13y^2 = 1$: fundamental solution $(649, 180)$. $x = 649$ (odd), $y = 180$ (even).
+
+$(3 + \sqrt{13})(649 + 180\sqrt{13}) = 3 \cdot 649 + 3 \cdot 180\sqrt{13} + 649\sqrt{13} + 180 \cdot 13 = 1947 + 2340 + (540 + 649)\sqrt{13} = 4287 + 1189\sqrt{13}$.
+
+Check: $4287^2 - 13 \cdot 1189^2 = 18378369 - 13 \cdot 1413721 = 18378369 - 18378373 = -4$. ✓
+
+$u = 4287$ (odd ✓), $w = 1189$ (odd ✓). 
+
+So infinitely many solutions for $m = -1$. ✓
+
+Now let me try $m = -5$ ($\equiv 3 \pmod 4$, $\equiv 3 \pmod 8$). Use $p = 3, q = 7$: $21w^2 - 3u^2 - 7v^2 = -5$. Fix $v = 1$: $21w^2 - 3u^2 = 2$, $3(7w^2 - u^2) = 2$. Not integer. ✗
+
+Fix $v = 3$: $21w^2 - 3u^2 - 63 = -5$, $21w^2 - 3u^2 = 58$, $3(7w^2 - u^2) = 58$. Not integer. ✗
+
+Need $3 | (-5 + 7v^2)$, i.e., $7v^2 \equiv 5 \pmod 3$, $v^2 \equiv 2 \pmod 3$. Impossible. ✗
+
+Try $p = 7, q = 11$: $77w^2 - 7u^2 - 11v^2 = -5$. Fix $v = 1$: $77w^2 - 7u^2 = 6$, $7(11w^2 - u^2) = 6$. Not integer. ✗
+
+Fix $u = 1$: $77w^2 - 7 - 11v^2 = -5$, $77w^2 - 11v^2 = 2$, $11(7w^2 - v^2) = 2$. Not integer. ✗
+
+Fix $u = 3$: $77w^2 - 63 - 11v^2 = -5$, $77w^2 - 11v^2 = 58$, $11(7w^2 - v^2) = 58$. Not integer. ✗
+
+Fix $v = 3$: $77w^2 - 7u^2 - 99 = -5$, $77w^2 - 7u^2 = 94$, $7(11w^2 - u^2) = 94$. Not integer. ✗
+
+Need $7 | (-5 + 11v^2)$: $11v^2 \equiv 5 \pmod 7$, $4v^2 \equiv 5 \pmod 7$, $v^2 \equiv 5 \cdot 2 \equiv 10 \equiv 3 \pmod 7$ (since $4^{-1} \equiv 2 \pmod 7$). QRs mod 7: $\{0, 1, 2, 4\}$. $3$ is not a QR. ✗
+
+Need $11 | (-5 + 7u^2)$: $7u^2 \equiv 5 \pmod{11}$, $u^2 \equiv 5 \cdot 8 \equiv 40 \equiv 7 \pmod{11}$ (since $7^{-1} \equiv 8 \pmod{11}$). QRs mod 11: $\{0, 1, 3, 4, 5, 9\}$. $7$ is not a QR. ✗
+
+So $p = 7, q = 11$ doesn't work for $m = -5$ with fixed $v$ or $u$.
+
+Let me try $p = 7, q = 3$ (swap): $21w^2 - 7u^2 - 3v^2 = -5$. Fix $v = 1$: $21w^2 - 7u^2 = -2$, $7(3w^2 - u^2) = -2$. Not integer. ✗
+
+Fix $u = 1$: $21w^2 - 7 - 3v^2 = -5$, $21w^2 - 3v^2 = 2$, $3(7w^2 - v^2) = 2$. Not integer. ✗
+
+Fix $v = 3$: $21w^2 - 7u^2 - 27 = -5$, $21w^2 - 7u^2 = 22$, $7(3w^2 - u^2) = 22$. Not integer. ✗
+
+Fix $u = 3$: $21w^2 - 63 - 3v^2 = -5$, $21w^2 - 3v^2 = 58$, $3(7w^2 - v^2) = 58$. Not integer. ✗
+
+Need $7 | (-5 + 3v^2)$: $3v^2 \equiv 5 \pmod 7$, $v^2 \equiv 5 \cdot 5 \equiv 25 \equiv 4 \pmod 7$ (since $3^{-1} \equiv 5 \pmod 7$). $4$ is a QR mod 7. ✓ So $v \equiv \pm 2 \pmod 7$.
+
+$v = 5$ (odd, $5 \equiv 5 \pmod 7$, $5^2 = 25 \equiv 4$ ✓): $21w^2 - 7u^2 - 75 = -5$, $21w^2 - 7u^2 = 70$, $7(3w^2 - u^2) = 70$, $3w^2 - u^2 = 10$, $u^2 = 3w^2 - 10$.
+
+$w = 3$: $u^2 = 27 - 10 = 17$. No. $w = 5$: $u^2 = 75 - 10 = 65$. No. $w = 7$: $u^2 = 147 - 10 = 137$. No. $w = 9$: $u^2 = 243 - 10 = 233$. No. $w = 11$: $u^2 = 363 - 10 = 353$. No. $w = 13$: $u^2 = 507 - 10 = 497$. No. $w = 15$: $u^2 = 675 - 10 = 665$. No. $w = 17$: $u^2 = 867 - 10 = 857$. No. $w = 19$: $u^2 = 1083 - 10 = 1073$. No. $w = 21$: $u^2 = 1323 - 10 = 1313$. No.
+
+Hmm, $u^2 = 3w^2 - 10$. Mod 3: $u^2 \equiv -10 \equiv 2 \pmod 3$. But $2$ is not a QR mod 3! ✗
+
+So $u^2 \equiv 2 \pmod 3$ is impossible. The equation $u^2 = 3w^2 - 10$ has no solutions. ✗
+
+Let me try $v = 9$ ($9 \equiv 2 \pmod 7$, $9^2 = 81 \equiv 4$ ✓): $21w^2 - 7u^2 - 243 = -5$, $21w^2 - 7u^2 = 238$, $3w^2 - u^2 = 34$, $u^2 = 3w^2 - 34$. Mod 3: $u^2 \equiv -34 \equiv 2 \pmod 3$. Same problem. ✗
+
+The issue is: $3w^2 - u^2 = N$ implies $u^2 \equiv -N \pmod 3$. For $N = 10, 34, ...$: $-N \equiv 2 \pmod 3$ when $N \equiv 1 \pmod 3$. And $2$ is not a QR mod 3.
+
+$N = (m + 3v^2)/7 = (-5 + 3v^2)/7$. For $v = 5$: $N = (-5 + 75)/7 = 70/7 = 10 \equiv 1 \pmod 3$. ✗
+
+For $v = 19$ ($19 \equiv 5 \pmod 7$, $19^2 = 361 \equiv 4$ ✓): $N = (-5 + 3 \cdot 361)/7 = (-5 + 1083)/7 = 1078/7 = 154 \equiv 1 \pmod 3$. ✗
+
+$N = (-5 + 3v^2)/7$. $N \pmod 3 \equiv (-5 + 0)/7 \equiv -5/7 \equiv -5 \cdot 1 \equiv 1 \pmod 3$ (since $7 \equiv 1 \pmod 3$). So $N \equiv 1 \pmod 3$ always! And $u^2 \equiv -N \equiv 2 \pmod 3$ always. ✗
+
+So with $p = 7, q = 3$, fixing $v$, the equation $3w^2 - u^2 = N$ always has $N \equiv 1 \pmod 3$, giving $u^2 \equiv 2 \pmod 3$, impossible.
+
+What if I fix $u$ instead? $21w^2 - 7u^2 - 3v^2 = -5$. Fix $u$: $21w^2 - 3v^2 = -5 + 7u^2$, $3(7w^2 - v^2) = -5 + 7u^2$. Need $3 | (-5 + 7u^2)$, i.e., $7u^2 \equiv 5 \pmod 3$, $u^2 \equiv 2 \pmod 3$. Impossible! ✗
+
+So $p = 7, q = 3$ doesn't work for $m = -5$ at all (with one variable fixed).
+
+Let me try $p = 7, q = 19$ ($q \equiv 3 \pmod 4$, $pq - p - q = 133 - 7 - 19 = 107 \equiv 3 \pmod 8$ ✓): $133w^2 - 7u^2 - 19v^2 = -5$.
+
+Fix $v = 1$: $133w^2 - 7u^2 = 14$, $7(19w^2 - u^2) = 14$, $19w^2 - u^2 = 2$, $u^2 = 19w^2 - 2$. $w = 1$: $u^2 = 17$. No. $w = 3$: $u^2 = 169$. $u = 13$. ✓✓✓
+
+So $(u, v, w) = (13, 1, 1)$: $a = -7 \cdot 169 = -1183$, $b = -19$, $c = 133$. Sum: $-1183 - 19 + 133 = -1069$. That's not $-5$!
+
+Wait, let me recheck. $a = -7u^2 = -7 \cdot 169 = -1183$. $b = -19v^2 = -19$. $c = 133w^2 = 133$. Sum: $-1183 - 19 + 133 = -1069$. But we need sum $= -5$. 
+
+$133w^2 - 7u^2 - 19v^2 = 133 - 7 \cdot 169 - 19 = 133 - 1183 - 19 = -1069$. That's not $-5$!
+
+I made an error. Let me redo: $133w^2 - 7u^2 - 19v^2 = -5$ with $v = 1$: $133w^2 - 7u^2 - 19 = -5$, $133w^2 - 7u^2 = 14$, $7(19w^2 - u^2) = 14$, $19w^2 - u^2 = 2$.
+
+$w = 1$: $19 - u^2 = 2$, $u^2 = 17$. No.
+$w = 3$: $19 \cdot 9 - u^2 = 2$, $171 - u^2 = 2$, $u^2 = 169$, $u = 13$. ✓
+
+So $(u, v, w) = (13, 1, 3)$: $a = -7 \cdot 169 = -1183$, $b = -19$, $c = 133 \cdot 9 = 1197$. Sum: $-1183 - 19 + 1197 = -5$. ✓✓✓
+
+$abc = (-1183)(-19)(1197) = 1183 \cdot 19 \cdot 1197$. $1183 \cdot 19 = 22477$. $22477 \cdot 1197 = 26909369$. $\sqrt{26909369} = 5187.4...$. Hmm, let me check: $abc = 7 \cdot 169 \cdot 19 \cdot 133 \cdot 9 = 7 \cdot 13^2 \cdot 19 \cdot 7 \cdot 19 \cdot 9 = 7^2 \cdot 13^2 \cdot 19^2 \cdot 9 = (7 \cdot 13 \cdot 19 \cdot 3)^2 = (5187)^2$. $5187^2 = 26904969$. Let me recompute: $7 \cdot 13 = 91$, $91 \cdot 19 = 1729$, $1729 \cdot 3 = 5187$. $5187^2 = 26904969$.
+
+And $1183 \cdot 19 \cdot 1197 = 22477 \cdot 1197$. $22477 \cdot 1197 = 22477 \cdot 1200 - 22477 \cdot 3 = 26972400 - 67431 = 26904969$. ✓ And $5187$ is odd. ✓
+
+Good? $|-1183| = 1183 = 7 \cdot 169 = 7 \cdot 13^2$. Not a perfect square ✓. $|-19| = 19$ not a square ✓. $|1197| = 1197 = 9 \cdot 133 = 9 \cdot 7 \cdot 19$. Not a perfect square ✓. Distinct ✓.
+
+So $m = -5$ works with $p = 7, q = 19$.
+
+For infinitely many: fix $v = 1$, $19w^2 - u^2 = 2$, i.e., $u^2 - 19w^2 = -2$. Solution $(u, w) = (13, 3)$. Pell equation $x^2 - 19y^2 = 1$: fundamental solution $(170, 39)$. $x = 170$ (even), $y = 39$ (odd).
+
+$(13 + 3\sqrt{19})(170 + 39\sqrt{19}) = 13 \cdot 170 + 13 \cdot 39\sqrt{19} + 3 \cdot 170\sqrt{19} + 3 \cdot 39 \cdot 19 = 2210 + 2223 + (507 + 510)\sqrt{19} = 4433 + 1017\sqrt{19}$.
+
+Check: $4433^2 - 19 \cdot 1017^2 = 19651489 - 19 \cdot 1034289 = 19651489 - 19651491 = -2$. ✓
+
+$u = 4433$ (odd ✓), $w = 1017$ (odd ✓). ✓
+
+So $m = -5$ works. ✓
+
+OK so it seems like for each $m \equiv 3 \pmod 4$, we can find appropriate $p, q$ to make it work. The challenge is proving this in general.
+
+Let me think about a cleaner way to handle this.
+
+**Clean approach: For each $m \equiv 3 \pmod 4$, use $p = 3$ and choose $q$ appropriately.**
+
+With $p = 3$: $3qw^2 - 3u^2 - qv^2 = m$, i.e., $3(qw^2 - u^2) = m + qv^2$. Need $3 | (m + qv^2)$.
+
+Fix $v = 1$: $3(qw^2 - u^2) = m + q$, need $3 | (m + q)$, i.e., $q \equiv -m \pmod 3$.
+
+If $m \equiv 0 \pmod 3$: $q \equiv 0 \pmod 3$, so $q = 3$. But $p = q = 3$, not distinct. ✗ Use $q = 3 \cdot k$ for squarefree... but $q$ must be squarefree and $\neq p = 3$. If $q \equiv 0 \pmod 3$ and squarefree, $q = 3r$ with $r$ squarefree, $\gcd(r, 3) = 1$. But then $q = 3r$ and $p = 3$, and $pq = 9r$, which has $3^2$ in it, so $pq$ is not squarefree. The construction requires $p, q, pq$ all to be squarefree $> 1$, which needs $p, q$ coprime. So $q \neq 0 \pmod 3$.
+
+So for $m \equiv 0 \pmod 3$, $p = 3$ doesn't work with $v = 1$. Try $v = 3$: $3(qw^2 - u^2) = m + 9q$, need $3 | (m + 9q)$, i.e., $3 | m$. ✓ (since $m \equiv 0 \pmod 3$). So $qw^2 - u^2 = (m + 9q)/3 = m/3 + 3q$.
+
+Hmm, but $v = 3$ means $b = -q \cdot 9 = -9q$. Is $|b| = 9q$ good? $9q$ is a perfect square iff $q$ is a perfect square. Since $q$ is squarefree $> 1$, $9q$ is not a perfect square. ✓ (Actually, $9q = (3)^2 \cdot q$, which is a perfect square iff $q$ is a perfect square. Since $q$ is squarefree $> 1$, not a perfect square. ✓)
+
+But wait, I need $b = -qv^2 = -9q$ to be good, and also $a = -3u^2$ to be good (✓ since $3$ is squarefree), and $c = 3qw^2$ to be good (✓ since $3q$ is squarefree $> 1$). And distinct: $a = -3u^2, b = -9q, c = 3qw^2$. Need $a \neq b$: $3u^2 \neq 9q$, i.e., $u^2 \neq 3q$. Since $q$ is squarefree and $3 \nmid q$ (we need $\gcd(p, q) = 1$), $3q$ is squarefree, so $u^2 \neq 3q$ for any $u$ (since $3q$ is not a perfect square). ✓
+
+OK so for $m \equiv 0 \pmod 3$, use $p = 3, v = 3$, and $q$ any odd prime $\neq 3$ with $q \equiv 1 \pmod 4$ (for $m \equiv 7 \pmod 8$) or $q \equiv 3 \pmod 4$ (for $m \equiv 3 \pmod 8$).
+
+Then $qw^2 - u^2 = m/3 + 3q$, i.e., $u^2 - qw^2 = -(m/3 + 3q) = -m/3 - 3q$.
+
+For this to have a solution, we need $-m/3 - 3q$ to be a norm from $\mathbb{Q}(\sqrt{q})$. The local condition at $q$: $u^2 - qw^2 \equiv u^2 \pmod{q}$, so need $-m/3 - 3q \equiv -m/3 \pmod{q}$ to be a QR mod $q$ (or $0$). So need $-m/3$ to be a QR mod $q$.
+
+Since $m \equiv 0 \pmod 3$, $m/3$ is an integer. We need $-m/3$ to be a QR mod $q$. By quadratic reciprocity and Dirichlet's theorem, we can choose $q$ (an odd prime in the right residue class mod 4) such that $-m/3$ is a QR mod $q$. Specifically, $-m/3$ is a QR mod $q$ iff $q$ splits in $\mathbb{Q}(\sqrt{-m/3})$ (or $q | m/3$). By Chebotarev, there are infinitely many such $q$ in any residue class mod 4.
+
+But wait, I also need to check the local condition at other primes, and at $p = 2$.
+
+At $p = 2$: $u^2 - qw^2 \pmod 8$. With $u, w$ odd: $1 - q \pmod 8$. And $-m/3 - 3q \pmod 8$.
+
+For $m \equiv 7 \pmod 8, q \equiv 1 \pmod 4$: $q \equiv 1$ or $5 \pmod 8$.
+- $q \equiv 1 \pmod 8$: $1 - 1 = 0 \pmod 8$. $-m/3 - 3 \pmod 8$. $m \equiv 7$, $m/3 \pmod 8$: $3 \cdot (m/3) \equiv 7 \pmod 8$, $m/3 \equiv 7 \cdot 3 \equiv 21 \equiv 5 \pmod 8$ (since $3^{-1} \equiv 3 \pmod 8$). $-5 - 3 = -8 \equiv 0 \pmod 8$. ✓ ($0 \equiv 0$)
+- $q \equiv 5 \pmod 8$: $1 - 5 = -4 \equiv 4 \pmod 8$. $-5 - 15 = -20 \equiv 4 \pmod 8$. ✓ ($4 \equiv 4$)
+
+For $m \equiv 3 \pmod 8, q \equiv 3 \pmod 4$: $q \equiv 3$ or $7 \pmod 8$.
+- $q \equiv 3 \pmod 8$: $1 - 3 = -2 \equiv 6 \pmod 8$. $-m/3 - 9 \pmod 8$. $m \equiv 3$, $m/3 \equiv 3 \cdot 3 = 9 \equiv 1 \pmod 8$. $-1 - 9 = -10 \equiv 6 \pmod 8$. ✓
+- $q \equiv 7 \pmod 8$: $1 - 7 = -6 \equiv 2 \pmod 8$. $-1 - 21 = -22 \equiv 2 \pmod 8$. ✓
+
+So the mod 8 condition is always satisfied. ✓
+
+Now, the local condition at primes $\ell \nmid 2q$: as I discussed, the form $u^2 - qw^2$ represents $N$ mod $\ell$ iff $N$ is a norm from $\mathbb{F}_{\ell^2}/\mathbb{F}_\ell$ (when $q$ is a QNR mod $\ell$) or always (when $q$ is a QR mod $\ell$). The condition is that for all primes $\ell$ where $q$ is a QNR and $\ell \nmid N$, $N$ must be a QR mod $\ell$.
+
+But by quadratic reciprocity, $q$ is a QNR mod $\ell$ iff $\ell$ is a QNR mod $q$ (up to sign, depending on $q$ and $\ell$ mod 4). And $N$ is a QR mod $\ell$ iff... this is a condition on $\ell$.
+
+By the Hasse norm theorem, $N$ is a norm from $\mathbb{Q}(\sqrt{q})$ iff $N$ is a norm locally everywhere. The Hilbert symbol $(N, q)_v = 1$ for all places $v$. The product formula says $\prod_v (N, q)_v = 1$, so the number of places where $(N, q)_v = -1$ is even.
+
+The places where $(N, q)_v$ could be $-1$ are: $v = \infty$ (always $1$ since $q > 0$), $v = 2$, $v = q$, and $v = \ell$ for $\ell | N$.
+
+At $v = q$: $(N, q)_q = (N/q)$ (Legendre symbol) if $q \nmid N$, or depends on the $q$-adic valuation if $q | N$. We need $-m/3$ to be a QR mod $q$, which we can arrange by choosing $q$.
+
+At $v = 2$: we showed the condition is satisfied.
+
+At $v = \ell$ for $\ell | N$ (i.e., $\ell | (m/3 + 3q)$): need $(N, q)_\ell = 1$. This depends on $q$ mod $\ell$ and the $\ell$-adic valuation of $N$.
+
+This is getting very technical. Let me try to use a cleaner argument.
+
+**Clean argument using Dirichlet's theorem:**
+
+For each $m \equiv 3 \pmod 4$, I want to find an odd prime $q$ (with $q \neq 3$, $q$ in the right residue class mod 4) such that:
+1. $-m/3$ is a QR mod $q$ (or $q | m/3$) [for the local condition at $q$]
+2. For all odd primes $\ell | (m/3 + 3q)$ with $\ell \neq q$, $q$ is a QR mod $\ell$ (or $\ell | q$, but $\ell \neq q$) [for the local condition at $\ell$]
+
+Condition 2 is hard to control because $m/3 + 3q$ depends on $q$.
+
+Hmm, let me try a different approach. Instead of fixing $p = 3$, let me use a more flexible construction.
+
+**Approach: Use the ternary form directly, without fixing any variable.**
+
+The form $Q(u, v, w) = pqw^2 - pu^2 - qv^2$ is an indefinite ternary form. By the theory of indefinite ternary quadratic forms (specifically, the result of Tartakowsky and Kloosterman), if $Q$ locally represents $m$ (i.e., $Q$ represents $m$ over $\mathbb{R}$ and over $\mathbb{Z}_\ell$ for all $\ell$), then $Q$ represents $m$ over $\mathbb{Z}$, and moreover, the number of representations is infinite (for $|m|$ sufficiently large, or for all $m$ that are locally represented, depending on the exact theorem).
+
+But I need to be careful: the form $Q$ is anisotropic over $\mathbb{Q}$ (as I showed), which means it does NOT represent 0 non-trivially. For anisotropic indefinite ternary forms, the representation theory is different from the isotropic case.
+
+For anisotropic forms, the number of representations of $m$ can be finite (unlike isotropic forms where it's always infinite). However, for indefinite anisotropic forms, the orthogonal group is still infinite (it's related to the unit group of an indefinite quaternion order), so if $m$ is represented, it's represented infinitely many times.
+
+Wait, is the orthogonal group of an anisotropic indefinite ternary form infinite? Let me think again.
+
+The form $Q = pqw^2 - pu^2 - qv^2$ has signature $(1, 2)$, so it's indefinite. The special orthogonal group $\mathrm{SO}(Q)$ over $\mathbb{R}$ is $\mathrm{SO}(1, 2)$, which is a non-compact Lie group. Over $\mathbb{Z}$, the integral orthogonal group $\mathrm{SO}(Q, \mathbb{Z})$ is a discrete subgroup of $\mathrm{SO}(1, 2)$. For anisotropic forms, this group is a cocompact lattice in $\mathrm{SO}(1, 2)$, but it's still infinite (since $\mathrm{SO}(1, 2)$ has infinite volume fundamental domain for cocompact lattices... actually, cocompact lattices in $\mathrm{SO}(1, 2)$ are Fuchsian groups, which are infinite).
+
+Actually, I think the key fact is: for an indefinite ternary form $Q$ over $\mathbb{Z}$, if $Q$ represents $m$ (even anisotropically), then $Q$ represents $m$ infinitely many times. This is because the orthogonal group $\mathrm{SO}(Q, \mathbb{Z})$ is infinite (for indefinite forms), and acts on the set of representations.
+
+Let me verify: $\mathrm{SO}(Q, \mathbb{Z})$ for $Q = 15w^2 - 3u^2 - 5v^2$. This is the group of integer matrices preserving $Q$. Since $Q$ is indefinite (signature $(1,2)$), $\mathrm{SO}(Q, \mathbb{R}) \cong \mathrm{SO}(1, 2)$ is non-compact. The integer points $\mathrm{SO}(Q, \mathbb{Z})$ form a lattice. For anisotropic forms, this lattice is cocompact (uniform), but still infinite.
+
+So if $Q$ represents $m$ once, it represents $m$ infinitely many times (by applying the infinite group $\mathrm{SO}(Q, \mathbb{Z})$). But we need the representations to have $u, v, w$ all odd, which is a congruence condition. The subgroup of $\mathrm{SO}(Q, \mathbb{Z})$ preserving the parity condition (all odd) is a finite-index subgroup, hence also infinite. So infinitely many representations with all odd. ✓
+
+Wait, but I need to be more careful. The group $\mathrm{SO}(Q, \mathbb{Z})$ acts on the set of representations of $m$, but the orbit of a single representation might be finite if the stabilizer is large. However, for a generic representation, the stabilizer is trivial (or finite), and the orbit is infinite (since the group is infinite).
+
+Actually, for an indefinite form, the stabilizer of a vector $v$ with $Q(v) = m \neq 0$ is the orthogonal group of the restriction of $Q$ to $v^\perp$, which is a binary form. If this binary form is indefinite, the stabilizer is infinite, and the orbit is... hmm, this is getting complicated.
+
+Let me think about it differently. The set of representations of $m$ by $Q$ is $\{v \in \mathbb{Z}^3 : Q(v) = m\}$. This is a level set of $Q$, which is a hyperboloid (since $Q$ is indefinite). The integer points on this hyperboloid are acted on by $\mathrm{SO}(Q, \mathbb{Z})$. For an indefinite form, the number of integer points on a hyperboloid is either 0 or infinite. (This is because the hyperboloid is a non-compact surface, and the integer points, if non-empty, form an infinite set due to the non-compactness.)
+
+Actually, I think the correct statement is: for an indefinite ternary form $Q$ over $\mathbb{Z}$, the number of representations of any integer $m$ by $Q$ is either 0 or infinite. This is a consequence of the fact that the automorphism group of an indefinite binary form is infinite (the Pell equation), and the restriction of $Q$ to a suitable 2-dimensional subspace gives an indefinite binary form.
+
+More concretely: if $(u_0, v_0, w_0)$ is a representation of $m$, consider the 2-dimensional subspace orthogonal to $(u_0, v_0, w_0)$ (with respect to $Q$). The restriction of $Q$ to this subspace is an indefinite binary form (since $Q$ has signature $(1,2)$ and $(u_0, v
+
+=== 请继续思考并完成解答 ===
+
+你之前的思考在上方被截断了。请从截断处继续，完成这道题的解答。
+
+要求：
+1. **在之前的思考基础上继续**，不要重复已经做过的分析
+2. 给出完整的解答过程
+3. 最终答案用 \boxed{答案} 格式给出
+4. 数学公式用LaTeX
+5. 把证明写到proof.md文件中，不要在对话里输出完整证明

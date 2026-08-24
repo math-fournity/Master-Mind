@@ -1,0 +1,263 @@
+{
+  "_key": "omni_math_000041",
+  "source_id": "omni_math_41",
+  "source_dataset": "aops_omni_math",
+  "schema_version": 3,
+  "problem_text": "Let n=p_1^{a_1}p_2^{a_2}...p_t^{a_t} be the prime factorisation of n. Define omega(n)=t and Omega(n)=a_1+a_2+...+a_t. Prove or disprove: For any fixed positive integer k and positive reals alpha, beta, there exists a positive integer n>1 such that (i) omega(n+k)/omega(n) > alpha, (ii) Omega(n+k)/Omega(n) < beta.",
+  "solution_text": "True. We prove both conditions separately.\n\n(i) Let s be an integer with s > alpha. Choose s distinct primes q_1, ..., q_s not dividing k. By CRT, there exists n_0 such that n_0 + k ≡ 0 (mod q_i) for all i. Let Q = q_1 * q_2 * ... * q_s. Since gcd(n_0, Q) = 1 (as n_0 ≡ -k mod q_i and q_i does not divide k), by Dirichlet's theorem there exist infinitely many primes p ≡ n_0 (mod Q). Take n = p. Then omega(n) = 1 and n + k is divisible by q_1, ..., q_s, so omega(n+k) >= s > alpha = alpha * omega(n).\n\n(ii) Choose a prime q not dividing k. Let a be a positive integer with 1/a < beta. Since gcd(k, q^a) = 1, by Dirichlet's theorem there exist infinitely many primes p ≡ k (mod q^a). Take n = p - k (choosing p large enough so n > 1). Then n + k = p is prime, so Omega(n+k) = 1. Also q^a divides n (since n = p - k ≡ 0 mod q^a), so Omega(n) >= a. Therefore Omega(n+k)/Omega(n) <= 1/a < beta.\n\nBoth conditions can be satisfied, so the statement is True.",
+  "solution_summary": "两个条件分别构造：(i)用CRT让n+k被>s>alpha个不同素数整除+Dirichlet定理保证n为素数(omega(n)=1)；(ii)用Dirichlet定理保证n+k为素数(Omega(n+k)=1)+取n被q^a整除(Omega(n)>=a>1/beta)。",
+  "domain": "number_theory",
+  "subfield": "elementary_number_theory",
+  "answer_type": "proof",
+  "answer": "True — 对任意固定正整数k和正实数alpha,beta，存在n>1同时满足omega(n+k)/omega(n)>alpha和Omega(n+k)/Omega(n)<beta",
+  "problem_type": "structural_existence",
+  "solution_method_type": "existence_construction",
+  "structure_features": "两个独立的存在性条件，分别要求omega比值任意大和Omega比值任意小；需要构造n使两个条件分别满足；核心是算术函数在n和n+k处的极端比值控制",
+  "key_objects": [
+    "omega(n)——不同素因子个数",
+    "Omega(n)——素因子总数含重数",
+    "n+k的素因子结构",
+    "CRT同余方程组",
+    "Dirichlet素数定理"
+  ],
+  "thinking_patterns": [
+    "条件分离——两个看似矛盾的条件分别处理",
+    "极值化构造——让分子或分母取极端值(1或任意大)",
+    "CRT+Dirichlet组合——用CRT构造同余条件用Dirichlet保证素数存在",
+    "逆向构造——从目标比值出发设计n的性质"
+  ],
+  "primary_pattern": "条件分离与分别构造",
+  "knowledge_required": [
+    "omega(n)和Omega(n)的定义与性质",
+    "中国剩余定理(CRT)",
+    "Dirichlet素数定理(算术级数中素数无限)",
+    "素因子分解唯一性"
+  ],
+  "key_insight": "两个条件方向相反但可分别满足——(i)让omega(n)=1且omega(n+k)任意大(CRT+Dirichlet)，(ii)让Omega(n+k)=1且Omega(n)任意大(Dirichlet+高次幂整除)",
+  "translation_from": "存在性不等式条件（omega比值>alpha, Omega比值<beta）",
+  "translation_to": "CRT同余方程组构造 + Dirichlet素数存在性保证",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "knowledge_gap"
+  },
+  "tell_small_concepts": [
+    "条件分离",
+    "CRT构造",
+    "Dirichlet素数定理",
+    "omega极小化",
+    "Omega极大化",
+    "算术级数素数"
+  ],
+  "expected_ai_method": "bare AI会尝试直接枚举n或取简单形式(如n=素数)同时满足两个条件，发现矛盾后可能放弃或试图用复杂分析估计",
+  "correct_method": "分离两个条件分别构造——(i)CRT+Dirichlet让n为素数且n+k多素因子，(ii)Dirichlet让n+k为素数且n含高次素因子幂",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI未识别出两个条件方向相反但可以分别处理，试图同时满足",
+      "hint": "观察题目结构，描述两个条件的关系——一个要omega(n+k)大一个要Omega(n+k)小，看似矛盾",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["条件独立性", "omega与Omega的关系", "比值控制"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但未识别CRT+Dirichlet组合作为关键工具",
+      "hint": "列出所有可能的构造方向和工具，包括CRT、Dirichlet定理、素数幂等",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["CRT", "Dirichlet定理", "算术级数中的素数", "素数幂构造"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试n=素数发现条件(ii)在beta<1时不可能，在此分叉可能放弃或固守单一构造",
+      "hint": "试试直接取n为素数，检查两个条件能否同时满足",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["素数取值", "Omega(n)=1", "条件矛盾", "beta<1不可能"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未分离两个条件，仍试图用一个构造同时解决——这是关键思维分叉点",
+      "hint": "条件(i)和(ii)可能需要分开处理。对于条件(i)，思考omega(n)最小值和如何让omega(n+k)任意大",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["条件分离", "分别构造", "omega极小化", "CRT同余"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI在条件(i)上进展但未完成Dirichlet保证素数步骤，同时条件(ii)方向不明",
+      "hint": "条件(i)的CRT+Dirichlet已清晰，转向条件(ii)：如何让Omega(n)任意大而Omega(n+k)有界",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["中国剩余定理", "同余方程组", "Dirichlet保证素数", "Omega控制"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI在条件(ii)卡住——不知道用Dirichlet定理让n+k为素数同时n被高次幂整除，这是纯知识瓶颈",
+      "hint": "用Dirichlet定理：取q不整除k，存在素数p≡k mod q^a，令n=p-k则n+k为素数且q^a|n",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["Dirichlet素数定理", "算术级数", "Omega控制", "素数幂整除", "n+k为素数"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已有两个条件分别的证明但未组装成完整论证",
+      "hint": "两个条件都已分别证明，组装完整证明确认命题为True",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["综合论证", "存在性证明", "两个条件分别满足"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整解题路径——从识别条件矛盾到分别构造再到组装",
+      "observation_point": null,
+      "tell": "AI试图用一个构造同时满足两个方向相反的条件(omega比值大+Omega比值小)，未意识到需要分离",
+      "hint": "两个条件方向相反但可分别满足——(i)让omega(n)=1且omega(n+k)大(CRT+Dirichlet)，(ii)让Omega(n+k)=1且Omega(n)大(Dirichlet+高次幂)。分别构造后命题成立",
+      "hint_level": 0.5,
+      "generalizability": "high — 条件分离策略适用于所有多条件存在性问题，尤其是条件方向看似矛盾的情况",
+      "why_not_visible_locally": "在局部步骤中AI看到的是两个同时需要满足的不等式，容易试图用单一构造解决。只有纵观完整路径才能发现两个条件需要完全不同的构造策略——(i)需要omega(n)小omega(n+k)大，(ii)需要Omega(n)大Omega(n+k)小，方向相反但可分别处理",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["条件分离", "方向相反条件", "分别构造", "单一构造失败"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "两个条件(i)和(ii)的构造都依赖Dirichlet素数定理",
+      "observation_point": "R5,R6",
+      "tell": "AI未识别Dirichlet素数定理是贯穿两个条件证明的核心引擎——(i)用它保证n为素数，(ii)用它保证n+k为素数",
+      "hint": "Dirichlet素数定理(算术级数中素数无限)是两个条件共用的核心工具：(i)保证CRT解中存在素数n，(ii)保证存在素数p≡k mod q^a使n+k为素数",
+      "hint_level": 0.4,
+      "generalizability": "high — Dirichlet定理在涉及素数存在性构造的数论问题中广泛适用",
+      "why_not_visible_locally": "在处理条件(i)时CRT构造同余方程组后需要Dirichlet保证素数存在；在处理条件(ii)时同样需要Dirichlet保证n+k为素数。这个工具在两个局部步骤中分别出现，但只有纵观全局才能发现它是贯穿整个证明的核心引擎，而非局部技巧",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["Dirichlet素数定理", "算术级数素数", "素数存在性保证", "CRT后继工具"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试用一个构造同时满足两个条件（如取n为素数），发现条件(ii)在beta<1时不可能后可能放弃；或不知道Dirichlet素数定理无法完成构造；或不知道可以分离两个条件分别处理",
+  "suitable_for_poc": [
+    "hint注入实验——验证条件分离提示+Dirichlet定理知识注入能否引导AI完成证明",
+    "tell识别实验——验证系统能否从AI的thinking中识别出'未分离条件'和'缺乏Dirichlet知识'两个tell"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "观察这道题的结构。题目要求同时满足两个关于omega和Omega在n与n+k处比值的条件。你能描述出已知条件、目标和两个条件之间的关系吗？",
+        "expected_answer": "omega(n)=不同素因子个数，Omega(n)=素因子总数含重数。两个条件：(i)omega(n+k)/omega(n)>alpha要求n+k比n素因子种类更多；(ii)Omega(n+k)/Omega(n)<beta要求n+k比n素因子总数更少。两个条件方向看似矛盾。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "要控制omega(n+k)/omega(n)任意大同时Omega(n+k)/Omega(n)任意小，你有哪些可能的构造方向？列出所有能想到的工具和方法。",
+        "expected_answer": "可能方向：取n为素数(omega=1,Omega=1)、取n为素数幂(Omega大)、CRT构造同余、Dirichlet素数定理、取n为高度合成数、直接枚举搜索、用素数分布定理等。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试试直接取n为一个大素数，看看两个条件能否同时满足。",
+        "expected_answer": "n为素数时omega(n)=1,Omega(n)=1。条件(i)需omega(n+k)>alpha可能可行。但条件(ii)需Omega(n+k)<beta*Omega(n)=beta，当beta<1时需Omega(n+k)<1即Omega(n+k)=0不可能(n+k>1)。所以单纯取n为素数对条件(ii)失败。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "条件(i)和(ii)可能需要分开处理。对于条件(i)，如何让omega(n+k)/omega(n)任意大？思考omega(n)最小可以是多少，以及如何让omega(n+k)任意大。",
+        "expected_answer": "omega(n)最小为1。用CRT取s>alpha个不同素数q_1,...,q_s构造n_0+k≡0 mod q_i。再用Dirichlet定理保证n≡n_0 mod Q的解中存在素数p，取n=p则omega(n)=1且omega(n+k)>=s>alpha。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "很好，条件(i)的CRT+Dirichlet构造已经清晰。现在转向条件(ii)：如何让Omega(n+k)/Omega(n)任意小？思考如何让Omega(n)任意大而Omega(n+k)有界。",
+        "expected_answer": "需要Omega(n)很大但Omega(n+k)很小。取n=2^m则Omega(n)=m但Omega(n+k)≈m不够小。需要让n+k本身是素数(Omega=1)同时n含高次素因子幂。可用Dirichlet：取q不整除k，存在素数p≡k mod q^a，令n=p-k则n+k=p(Omega=1)且q^a|n故Omega(n)>=a。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "对于条件(ii)，关键是用Dirichlet素数定理：取一个不整除k的素数q，由Dirichlet定理存在无穷多素数p≡k mod q^a。令n=p-k，则n+k=p为素数(Omega(n+k)=1)而q^a|n使Omega(n)>=a。请完整写出这个论证。",
+        "expected_answer": "取素数q不整除k。对足够大的a使1/a<beta，由Dirichlet定理(gcd(k,q^a)=1)存在素数p≡k mod q^a。令n=p-k>1则n+k=p为素数故Omega(n+k)=1，而q^a|n故Omega(n)>=a。因此Omega(n+k)/Omega(n)<=1/a<beta。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "两个条件都已分别证明。现在请将完整证明组装起来，确认命题为True。",
+        "expected_answer": "条件(i)：CRT+Dirichlet构造n为素数(omega(n)=1)且n+k有>s>alpha个不同素因子。条件(ii)：Dirichlet构造n+k为素数(Omega(n+k)=1)且n被q^a整除(Omega(n)>=a>1/beta)。两个条件分别可满足，命题为True。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 4.0,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "approx 15min",
+    "notes": "中国国家队奥林匹克数论题。核心难点在于(1)识别两个条件可分别处理而非同时满足，(2)知道并应用Dirichlet素数定理作为构造工具。bare AI预期失败因为缺乏Dirichlet定理知识且倾向于用单一构造。"
+  }
+}

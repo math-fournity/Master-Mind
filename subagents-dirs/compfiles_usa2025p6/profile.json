@@ -1,0 +1,314 @@
+{
+  "_key": "compfiles_usa2025p6",
+  "source_id": "Usa2025P6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Let m and n be positive integers with m >= n. There are m cupcakes of different flavors arranged around a circle and n people who like cupcakes. Each person assigns a nonnegative real number score to each cupcake, depending on how much they like the cupcake. Suppose that for each person P, it is possible to partition the circle of m cupcakes into n groups of consecutive cupcakes so that the sum of P's scores of the cupcakes in each group is at least 1. Prove that it is possible to distribute the m cupcakes to the n people so that each person P receives cupcakes of total score at least 1 with respect to P.",
+  "solution_text": "Strong induction on n. Base case n=1 is trivial. For n>=2: fix person 0's circular partition P_pi into n arcs each with score >= 1. Apply Hall's deficiency theorem to get matched set M, arc set T, and bijection f:M->T where each person in M scores >= 1 on their matched arc. Person 0 is in M. People outside M (set B) score < 1 on all arcs in T. If B is empty, assign each cupcake to the person whose arc it belongs to. If B is nonempty: use surgery (skipMap/circular embedding) to remove the arcs assigned to M, obtaining a smaller circle of size m' = m - sum(deleted arc lengths). For each person in B, their original partition arcs overlapping with deleted regions have score < 1 (from Hall deficiency), so the mergeValues lemma gives a valid partition on the smaller circle (arcs reduced from n to n-|M|, each still scoring >= 1). Apply the inductive hypothesis to the smaller circle with |B| < n people. Combine: cupcakes in deleted arcs go to people in M (via matching f), cupcakes outside go to people in B (via inductive assignment mapped through circular embedding phi).",
+  "solution_summary": "Strong induction on n with Hall's deficiency theorem to split people into matched/unmatched sets, circular surgery to reduce the problem for unmatched people, and a merge lemma to preserve the partition validity on the smaller circle.",
+  "domain": "combinatorics",
+  "subfield": "matching_theory",
+  "answer_type": "proof",
+  "answer": "It is possible to distribute the m cupcakes to the n people so that each person P receives cupcakes of total score at least 1 with respect to P.",
+  "problem_type": "constraint_satisfaction",
+  "solution_method_type": "strong_induction_with_matching",
+  "structure_features": "Circular arrangement of m objects, n agents each with nonneg scoring function, each agent has a circular partition into n consecutive groups each scoring >= 1, need to prove global distribution existence. Core tension: individual partition conditions -> global assignment.",
+  "key_objects": [
+    "cupcake circle (ZMod m)",
+    "people (Fin n)",
+    "score functions (like: Fin n -> ZMod m -> R)",
+    "circular partitions (CirclePartition)",
+    "Hall deficiency matching (M, T, f)",
+    "circular embedding/surgery (skipMap, CircleEmb)"
+  ],
+  "thinking_patterns": [
+    "strong_induction",
+    "hall_deficiency_matching",
+    "structural_reduction_surgery",
+    "merge_conquer",
+    "circular_embedding"
+  ],
+  "primary_pattern": "strong_induction",
+  "knowledge_required": [
+    "Hall's marriage theorem (deficiency form)",
+    "circular partitions and arcs",
+    "strong induction",
+    "circular embedding and surgery (skipMap)",
+    "merge lemma (mergeValues)"
+  ],
+  "key_insight": "Use Hall's deficiency theorem to split people into matched set M and unmatched set B; for people in B, exploit that matched arcs have score < 1 to merge adjacent arcs on a smaller circle via the merge lemma, then apply the inductive hypothesis.",
+  "translation_from": "matching theory (Hall's deficiency theorem) and circular combinatorial structure",
+  "translation_to": "combinatorial distribution existence proof (via strong induction + circular surgery)",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "constraint_satisfaction",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "Hall deficiency theorem",
+    "circular partition",
+    "circular surgery",
+    "merge arcs",
+    "strong induction",
+    "score < 1 implies mergeable",
+    "matched and unmatched sets"
+  ],
+  "expected_ai_method": "Greedy assignment or direct matching without considering the circular structure and inductive decomposition",
+  "correct_method": "Strong induction + Hall's deficiency theorem + circular surgery + merge lemma",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a distribution problem with per-person partitions but doesn't notice the tension between individual partitions and global assignment",
+      "hint": "Describe the structure: each person has their own partition, but we need one global distribution. What is the core tension?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "per-person partition",
+        "global distribution",
+        "circular arrangement"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches but may not consider Hall's theorem or induction as the key tools",
+      "hint": "List all possible approaches: Hall's marriage theorem, induction on n, greedy, LP, combinatorial arguments, circular structure exploitation",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "Hall's marriage theorem",
+        "induction",
+        "greedy",
+        "circular structure"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries greedy assignment ignoring the consecutive-group partition structure",
+      "hint": "Try greedy: assign each cupcake to highest scorer. Why does this fail to guarantee score >= 1?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "greedy assignment",
+        "consecutive groups",
+        "partition condition"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI considers induction but doesn't see how to decompose the problem using one person's partition",
+      "hint": "Consider strong induction on n. Fix one person's partition into n arcs. Think about assigning some arcs to some people and reducing the rest.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "fix partition",
+        "split problem",
+        "inductive step",
+        "arc assignment"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI needs Hall's deficiency theorem (not just standard Hall) to find the right split between matched and unmatched",
+      "hint": "Apply Hall's deficiency theorem: match people to arcs where they score >= 1. Unmatched people have score < 1 on all matched arcs. Person 0 must be in M.",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "Hall deficiency theorem",
+        "matched set M",
+        "unmatched set B",
+        "score < 1 on matched arcs"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the matched/unmatched split but doesn't see how to reduce the circle for unmatched people using the merge lemma",
+      "hint": "Remove matched arcs from the circle. For unmatched people, deleted arcs have score < 1, so merging adjacent arcs preserves score >= 1 (1+1-1=1).",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "surgery",
+        "merge arcs",
+        "score < 1 implies mergeable",
+        "smaller circle",
+        "circular embedding"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the smaller instance and needs to combine inductive assignment with matching to complete the proof",
+      "hint": "Apply induction on the smaller circle for |B| people. Combine with matching for M. The full proof is complete!",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "inductive hypothesis",
+        "combine assignments",
+        "circular embedding",
+        "final distribution"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from problem statement to complete proof",
+      "observation_point": null,
+      "tell": "The solution requires a non-obvious combination of Hall's deficiency theorem with circular surgery and strong induction - the path from individual partitions to global distribution goes through matching theory, structural reduction, and inductive composition",
+      "hint": "The key path is: fix one partition -> Hall's deficiency -> split into matched/unmatched -> surgery the circle -> merge arcs for unmatched -> induct on smaller instance -> combine assignments",
+      "hint_level": 0.7,
+      "generalizability": "high - the pattern of using Hall's theorem to split a problem, then reducing the unmatched part via structural surgery, generalizes to many constraint satisfaction problems on structured domains",
+      "why_not_visible_locally": "The full path - Hall's deficiency -> surgery -> merge -> induction -> combine - is not visible from any single step. Each step makes sense only in the context of the complete strategy. Locally, one might see 'use Hall's theorem' or 'use induction' but not the specific combination where Hall's deficiency creates the split, surgery reduces the circle, and the merge lemma bridges the gap between the deleted arcs and the inductive hypothesis.",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "Hall deficiency",
+        "circular surgery",
+        "merge arcs",
+        "strong induction",
+        "combine assignments"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the merge lemma insight connecting Hall deficiency to inductive reduction",
+      "observation_point": "R6",
+      "tell": "When an arc with score < 1 is removed from a partition where all arcs have score >= 1, the two adjacent arcs can be merged and the merged arc still has score >= 1 (because 1 + 1 - 1 = 1)",
+      "hint": "The key inequality: if arc A has score < 1 and it overlaps with arcs B, C each having score >= 1, then the merged arc (B union C minus A) has score >= 1 + 1 - 1 = 1",
+      "hint_level": 0.4,
+      "generalizability": "medium - the merge principle (removing a low-value region preserves the high-value guarantee of neighbors) applies to other partition-based problems with nonneg scores",
+      "why_not_visible_locally": "This inequality is only visible when you simultaneously know (1) the unmatched people have score < 1 on matched arcs (from Hall's deficiency), (2) their own partitions have score >= 1 on all arcs, and (3) the geometric relationship between the deleted arcs and the partition arcs on the circle. No single step reveals all three pieces simultaneously - the merge lemma is an implicit consequence of combining Hall's deficiency output with the partition structure.",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "merge lemma",
+        "score < 1",
+        "adjacent arcs",
+        "score >= 1 preserved",
+        "circular surgery"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely try direct greedy assignment or standard Hall's theorem without the deficiency version, missing the need for circular surgery and the merge lemma. It won't see the inductive structure combined with Hall's deficiency, and won't recognize that the deficiency version (not standard Hall) is needed to create the matched/unmatched split that enables the inductive reduction.",
+  "suitable_for_poc": [
+    "tell_extraction",
+    "hint_injection",
+    "topology_matching"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构。关键对象有哪些？已知条件和待证结论之间的核心张力是什么？",
+        "expected_answer": "题目有m个cupcake排成圆圈、n个人各打非负分。每人都有自己的圆圈分割使每组得分≥1，但需要证明存在一个全局分配方案使每人总分≥1。核心张力：每人有各自的分割，但需要统一的分配——个体分割条件如何推出全局分配存在性。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能解决这个问题的方法方向。",
+        "expected_answer": "可能方向：Hall婚配定理、对n做归纳、贪心分配、线性规划、组合论证、圆形结构利用、分治法、概率方法等。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试一个直接贪心方法：把每个cupcake分给打分最高的人。这能保证每人得分≥1吗？",
+        "expected_answer": "不能。贪心分配不尊重分割条件——每人得分≥1的保证来自连续弧段，贪心打散了连续性。一个人可能得到分散的cupcake，总分无法保证≥1。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "考虑对n做强归纳。n=1时平凡。归纳步骤中，固定一个人的分割为n个弧段，思考如何将问题分解为已解决部分和更小的子问题。",
+        "expected_answer": "固定person 0的分割Pπ为n个弧段。如果能把某些弧段分配给某些人（他们在该弧段得分≥1），剩余问题就缩小了。但不同人有不同分割，需要一种系统方法确定哪些人能匹配到哪些弧段。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "应用Hall婚配定理的亏值形式(deficiency version)。每人需要一个弧段（来自person 0的分割）使其得分≥1。Hall亏值定理给出什么结构？",
+        "expected_answer": "Hall亏值定理给出匹配集M、弧段集T和双射f:M→T，使M中人在f(p)弧段得分≥1。关键：M外的人（集合B）对T中所有弧段得分<1。person 0一定在M中（他对所有弧段得分≥1）。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "现在有M匹配到T中弧段，B未匹配。T中弧段覆盖的cupcake可以分给M中人。对B中人，删除这些弧段后得到更小圆圈。B中人的原分割在删除弧段上得分<1，能否合并相邻弧段保持得分≥1？",
+        "expected_answer": "可以。合并引理(mergeValues)：若一个弧段得分<1被删除，它两侧的分割弧段各得分≥1，合并后弧段得分≥1+1-1=1。因此B中每人都能在更小圆圈上得到有效分割（弧段数从n减到n-|M|）。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "更小圆圈上有|B|<n个人，每人都有有效分割。对更小问题用归纳假设得到B中人的分配，再与M中人的匹配合并。完整证明就完成了！",
+        "expected_answer": "对更小圆圈（m'=m-Σ删除弧段长度，|B|<n人）应用归纳假设，得到分配方案a'。最终分配：删除弧段中的cupcake分给M中人（通过f），圆圈外cupcake通过圆形嵌入φ映射分给B中人（通过a'）。每人得分≥1，归纳完成。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.7,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "USA 2025 P6 is a complex combinatorics proof combining Hall's deficiency theorem, circular surgery, and strong induction. The key insight is using Hall's deficiency (not standard Hall) to create a matched/unmatched split, then using the merge lemma to reduce the unmatched problem to a smaller instance. The merge lemma's core inequality (1+1-1>=1) is the implicit bridge between Hall's deficiency output and the inductive hypothesis."
+  }
+}

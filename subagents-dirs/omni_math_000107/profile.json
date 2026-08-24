@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_000107",
+  "source_id": "omni_math_107",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let a, b, c, p, q, r be positive integers with p, q, r >= 2. Denote Q = {(x, y, z) in Z^3 : 0 <= x <= a, 0 <= y <= b, 0 <= z <= c}. Initially, some pieces are put on each point in Q, with a total of M pieces. Then, one can perform the following three types of operations repeatedly: (1) Remove p pieces on (x, y, z) and place a piece on (x-1, y, z); (2) Remove q pieces on (x, y, z) and place a piece on (x, y-1, z); (3) Remove r pieces on (x, y, z) and place a piece on (x, y, z-1). Find the smallest positive integer M such that one can always perform a sequence of operations, making a piece placed on (0,0,0), no matter how the pieces are distributed initially.",
+  "solution_text": "Lower bound: Place all M pieces at (a,b,c), the farthest point from the origin. To move a piece from (a,b,c) to (0,0,0), each step in x requires factor p, each step in y requires factor q, each step in z requires factor r. So we need at least p^a * q^b * r^c pieces. Thus M >= p^a * q^b * r^c.\n\nUpper bound: Define weight function w(x,y,z) = p^{-x} * q^{-y} * r^{-z}. Under each operation, total weight is conserved: Operation 1 removes p pieces from (x,y,z) with total weight p * p^{-x} * q^{-y} * r^{-z} = p^{1-x} * q^{-y} * r^{-z}, and adds 1 piece at (x-1,y,z) with weight p^{1-x} * q^{-y} * r^{-z}. Similarly for operations 2 and 3. The minimum weight of a point in Q is w(a,b,c) = p^{-a} * q^{-b} * r^{-c}, so total weight >= M * p^{-a} * q^{-b} * r^{-c} = 1 when M = p^a * q^b * r^c.\n\nBy induction on dimensions: 1D case - p^a pieces on {0,...,a} always suffice to reach 0. Base case a=0: trivial. Inductive step: if any piece at 0, done. Otherwise all p^a pieces on {1,...,a}. By induction, p^{a-1} pieces on {1,...,a} suffice to get one to position 1. Repeat p times to get p pieces at position 1, then one operation gives a piece at 0. For 3D, apply iteratively: reduce z-dimension using r^c, then y-dimension using q^b, then x-dimension using p^a. Thus M = p^a * q^b * r^c suffices.",
+  "solution_summary": "下界用最不利分布（全放(a,b,c)）得p^a·q^b·r^c；上界用权函数w=p^{-x}·q^{-y}·r^{-z}（操作不变量）+逐维归纳证明p^a·q^b·r^c个棋子总够。答案p^a·q^b·r^c。",
+  "domain": "combinatorics",
+  "subfield": "extremal_combinatorics",
+  "answer_type": "numerical",
+  "answer": "p^a * q^b * r^c",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "invariant_induction",
+  "structure_features": "三维整数格点上的棋子操作问题，三种操作沿坐标轴方向以不同压缩比率(p,q,r)移动棋子，求保证到达原点的最小棋子总数。本质是图pebbling问题的三维推广。",
+  "key_objects": ["格点集合Q", "棋子分布", "三种压缩操作", "权函数w(x,y,z)=p^{-x}·q^{-y}·r^{-z}", "原点(0,0,0)"],
+  "thinking_patterns": ["adversarial_argument", "invariant_construction", "induction_on_dimension", "reduction_to_simpler_case"],
+  "primary_pattern": "invariant_construction",
+  "knowledge_required": ["graph_pebbling", "weight_functions", "mathematical_induction", "extremal_arguments", "invariant_method"],
+  "key_insight": "构造权函数w(x,y,z)=p^{-x}·q^{-y}·r^{-z}作为操作不变量，将'能否到达原点'转化为'总权值是否>=1'，底数精确匹配操作压缩比率",
+  "translation_from": "组合操作语言（棋子在格点上以压缩比率移动）",
+  "translation_to": "代数不变量语言（权函数守恒+归纳论证）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "case_by_case",
+    "gap_type": "knowledge_gap"
+  },
+  "tell_small_concepts": ["权函数", "操作不变量", "逐维归纳", "最不利分布", "压缩比率匹配", "p^{-x}·q^{-y}·r^{-z}"],
+  "expected_ai_method": "枚举小情况尝试找规律，可能猜到p^a·q^b·r^c但无法严格证明上界",
+  "correct_method": "权函数不变量+逐维归纳：下界用最不利分布，上界用w=p^{-x}q^{-y}r^{-z}守恒+归纳",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI面对三维格点上的操作问题，尚未识别出操作的本质是'压缩'（p→1的比率转换），也未注意到三种操作沿不同坐标轴",
+      "hint": "观察每种操作的本质：它们都是'用k个棋子换1个棋子'的压缩操作，且分别沿x/y/z坐标轴方向移动。注意压缩比率p,q,r与坐标轴的对应关系。",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["格点操作", "压缩比率", "坐标轴移动", "p对1转换"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出了多种方法但未识别出'不变量/势函数'这一关键方向，可能倾向于枚举或直接计算",
+      "hint": "在列举的方向中，特别注意'不变量/势函数'方向——是否存在一个在所有操作下保持不变的量？这是组合优化中证明上界的经典技巧。",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["不变量", "势函数", "方法列举", "守恒量方向"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试一维情形但可能只猜答案p^a而无法严格证明充分性",
+      "hint": "在一维情形中用归纳法：p^a个棋子在{0,...,a}上，若全在{1,...,a}则用p^{a-1}个得到1个在位置1，重复p次得到p个在位置1，再操作一次得到位置0。",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["一维归约", "归纳法", "p^a", "重复p次"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未考虑最不利初始分布来建立下界，可能跳过下界直接猜答案",
+      "hint": "考虑最不利情况：所有M个棋子放在离(0,0,0)最远的点(a,b,c)。从此点到原点，x方向每步需p倍，共a步需p^a倍；y方向需q^b倍；z方向需r^c倍。",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["最不利分布", "下界论证", "p^a*q^b*r^c", " adversarial placement"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI不知道如何构造操作不变量来证明上界——这是核心知识瓶颈",
+      "hint": "构造权函数w(x,y,z)=p^{-x}·q^{-y}·r^{-z}。验证：操作1移除p个在(x,y,z)权值p·p^{-x}=p^{1-x}，放置1个在(x-1,y,z)权值p^{1-x}，守恒。同理操作2、3守恒。",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["权函数", "操作不变量", "p^{-x}·q^{-y}·r^{-z}", "守恒验证", "底数匹配压缩比率"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有一维归纳论证但未推广到三维，缺乏逐维消去的策略",
+      "hint": "将一维归纳逐维推广：先用r^c因子消去z维（把所有棋子移到z=0平面），再用q^b消去y维，最后用p^a消去x维到达原点。",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["逐维归纳", "三维推广", "维度消去", "z→y→x消去顺序"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已有下界p^a·q^b·r^c和上界证明的各组件，需要综合确认最终答案",
+      "hint": "下界=上界=p^a·q^b·r^c，答案确认。完整证明结构：下界(最不利分布)+上界(权函数守恒+逐维归纳)=精确答案。",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["下界上界匹配", "最终确认", "p^a·q^b·r^c", "证明结构闭合"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从一维归纳到三维推广的完整归纳结构路径",
+      "observation_point": null,
+      "tell": "完整解题路径需要先做一维归纳建立框架，再逐维推广到三维——这个路径特征在单步视角中不可见",
+      "hint": "先建立一维归纳框架（p^a个棋子总能到达原点），再逐维推广：z维用r^c消去，y维用q^b消去，x维用p^a消去",
+      "hint_level": 0.5,
+      "generalizability": "high - 逐维归纳推广策略适用于所有多维格点操作问题，维度消去顺序可变",
+      "why_not_visible_locally": "在任何一个单独的QA轮次中，AI只能看到当前步骤（如一维归纳或权函数构造），无法看到'一维归纳→逐维推广→三维完成'的完整路径结构。路径的递进关系只有在回顾完整解题过程时才可见，局部视角中每一步看起来独立。",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["逐维归纳", "路径结构", "维度消去", "一维到三维推广"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "权函数w(x,y,z)=p^{-x}·q^{-y}·r^{-z}作为操作不变量的蕴含信息",
+      "observation_point": "R5",
+      "tell": "权函数的具体形式p^{-x}·q^{-y}·r^{-z}不是任意选择的——它精确匹配了三种操作的压缩比率p,q,r，这个匹配关系蕴含在操作定义中但不可见",
+      "hint": "权函数的底数必须与操作的压缩比率匹配：x方向操作比率为p所以x权值底数为p；y方向比率为q；z方向比率为r。这是'不变量底数匹配操作参数'的一般原则",
+      "hint_level": 0.3,
+      "generalizability": "high - '权函数底数匹配操作压缩比率'原则适用于所有类似的格点操作不变量问题",
+      "why_not_visible_locally": "在R5的局部视角中，AI看到的是'构造一个不变量'的指令，但'为什么恰好是p^{-x}·q^{-y}·r^{-z}这个形式'的蕴含信息——即权函数底数必须匹配操作压缩比率——只有在理解了操作定义与权函数形式之间的精确对应关系后才可见。这个对应关系在单步中是隐含的，需要同时看到操作定义和权函数构造才能发现。",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["权函数底数匹配", "压缩比率对应", "不变量构造原理", "p/q/r与坐标轴对应"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "AI可能通过小案例猜到答案p^a·q^b·r^c，但无法严格证明上界。关键错误：不会构造权函数不变量w=p^{-x}q^{-y}r^{-z}，缺乏graph pebbling的背景知识。可能尝试枚举或归纳但无法完成逐维推广的严格论证。",
+  "suitable_for_poc": ["tell_hint_injection", "knowledge_bottleneck_identification", "invariant_construction_guidance"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "请描述这道题的结构：已知什么、求什么、三种操作的本质是什么？",
+        "expected_answer": "AI识别出三维格点Q上的棋子分布，三种操作分别沿x/y/z轴以压缩比率p/q/r移动棋子（k个换1个），目标是求保证到达(0,0,0)的最小M。本质是图pebbling问题的三维推广。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "请列出所有可能用来求解最小M的方法方向。",
+        "expected_answer": "AI列出：小案例枚举、归纳法、最不利论证(下界)、势函数/不变量(上界)、动态规划、直接计算等。关键是否识别出不变量方向。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "请先尝试最简单的一维情形：只有x轴，点集{0,1,...,a}，操作为'从位置x移除p个棋子，在x-1放1个'。最小M是多少？尝试证明。",
+        "expected_answer": "AI猜测M=p^a。尝试归纳：p^a个棋子在{0,...,a}上，若全在{1,...,a}，用p^{a-1}个得到1个在位置1，重复p次得p个在位置1，再操作得位置0。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "对于下界：考虑最不利的初始分布——所有M个棋子都放在哪个点？从这个点到(0,0,0)至少需要多少个棋子？",
+        "expected_answer": "最不利是全放(a,b,c)。x方向每步需p倍共a步需p^a，y方向需q^b，z方向需r^c，总计p^a·q^b·r^c。故M>=p^a·q^b·r^c。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "对于上界：能否构造一个权函数w(x,y,z)，使得每种操作下总权值不变？考虑什么样的函数能让'移除p个在(x,y,z)'和'放置1个在(x-1,y,z)'的权值相等？",
+        "expected_answer": "构造w(x,y,z)=p^{-x}·q^{-y}·r^{-z}。操作1：p·p^{-x}=p^{1-x}=p^{-(x-1)}，守恒。操作2、3同理。总权值>=M·p^{-a}q^{-b}r^{-c}=1。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "现在有了权函数不变量和下界。请用归纳法证明：当总权值>=1时，总能通过操作将一个棋子放到(0,0,0)。先完成一维归纳，再推广到三维。",
+        "expected_answer": "一维归纳如R3。三维推广：先用r^c因子消去z维（把棋子移到z=0平面），再用q^b消去y维，最后用p^a消去x维到达(0,0,0)。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "综合下界和上界，确认最终答案。",
+        "expected_answer": "下界=上界=p^a·q^b·r^c。最小M=p^a·q^b·r^c。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.6,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "中国国家队选拔考试题，graph pebbling三维推广。核心知识瓶颈在权函数不变量构造(R5)，思维瓶颈在逐维归纳推广(R6)。solution_text从problem.lean中的截断解答+标准pebbling论证重构。"
+  }
+}

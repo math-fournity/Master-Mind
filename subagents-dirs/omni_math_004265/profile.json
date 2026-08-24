@@ -1,0 +1,341 @@
+{
+  "_key": "omni_math_004265",
+  "source_id": "omni_math_004265",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Find all positive integers n for which there exists a polynomial P(x) in Z[x] such that for every positive integer m>=1, the numbers P^m(1), ..., P^m(n) leave exactly ceil(n/2^m) distinct remainders when divided by n. (Here, P^m means P applied m times.)",
+  "solution_text": "Consider two cases: (1) If n is prime, P(x) = x^k mod n exploits the multiplicative group structure of Z/nZ to halve the image set at each iteration. (2) If n = 2^k, P(x) = x + c exploits the binary structure so each iteration halves the effective set size. Analyzing both scenarios, only when n is either a prime number or a power of 2 can the polynomial P(x) be constructed to satisfy the designated residue conditions for all m >= 1.",
+  "solution_summary": "The answer is n prime or n=2^k. For prime n, use P(x)=x^k mod n leveraging multiplicative group structure; for n=2^k, use P(x)=x+c leveraging binary halving. These are the only two families where polynomial iteration can reliably halve the residue image.",
+  "domain": "number_theory",
+  "subfield": "modular_arithmetic",
+  "answer_type": "characterization",
+  "answer": "n is prime or n = 2^k for some positive integer k",
+  "problem_type": "characterization",
+  "solution_method_type": "case_analysis_with_algebraic_construction",
+  "structure_features": [
+    "existential quantifier over polynomials P(x) in Z[x]",
+    "universal quantifier over all iteration depths m>=1",
+    "ceiling function ceil(n/2^m) specifies exact residue count at each depth",
+    "halving pattern: each iteration roughly halves the number of distinct residues",
+    "two separate algebraic mechanisms needed for two families of n"
+  ],
+  "key_objects": [
+    "polynomial P(x) in Z[x]",
+    "iteration P^m (m-fold composition)",
+    "residue classes mod n",
+    "ceiling function ceil(n/2^m)",
+    "Z/nZ ring structure",
+    "multiplicative group (Z/nZ)* for prime n",
+    "2-adic structure for n=2^k"
+  ],
+  "thinking_patterns": [
+    "structural_classification",
+    "case_analysis",
+    "algebraic_construction",
+    "reverse_engineering_from_counting_constraint",
+    "exploiting_ring_structure"
+  ],
+  "primary_pattern": "structural_classification",
+  "knowledge_required": [
+    "polynomial iteration modulo n",
+    "structure of Z/nZ for prime n (field structure, multiplicative group)",
+    "structure of Z/2^k Z (2-adic valuation, binary halving)",
+    "Fermat's little theorem and multiplicative orders",
+    "image size of polynomial maps on finite rings"
+  ],
+  "key_insight": "The halving pattern ceil(n/2^m) demands that each iteration of P halves the residue image — this is only possible when n's algebraic structure supports clean halving, which happens exactly for primes (via multiplicative group) and powers of 2 (via additive binary structure).",
+  "translation_from": "enumeration_brute_force",
+  "translation_to": "structural_algebraic_analysis",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "polynomial iteration mod n",
+    "ceiling function halving",
+    "Z/nZ ring structure",
+    "multiplicative group for primes",
+    "binary halving for 2^k",
+    "residue image size"
+  ],
+  "expected_ai_method": "Bare AI would enumerate small values of n, try to find polynomials by brute force or pattern matching, and likely get stuck on proving the characterization is complete.",
+  "correct_method": "Classify n by algebraic structure: primes allow multiplicative halving via x^k, powers of 2 allow additive halving via x+c, and no other n supports the required halving.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI describes the problem surface (iteration, residue counting, ceiling function) but does not connect the halving pattern to algebraic structure of n",
+      "hint": "What does the ceiling function ceil(n/2^m) tell you about how the image size changes with each iteration? What structural property of n would allow this halving?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "iteration count",
+        "residue counting",
+        "ceiling function",
+        "halving pattern"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches (small cases, direct construction, induction) but does not prioritize analyzing the algebraic structure of Z/nZ",
+      "hint": "List all structural properties of n that could affect how a polynomial behaves mod n. Think about what makes primes and powers of 2 special.",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "small cases",
+        "pattern matching",
+        "ring structure",
+        "prime factorization"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries composite n (e.g. n=6, n=12) and finds it difficult to construct P — gets stuck without understanding why composites fail",
+      "hint": "Try n=6 specifically. Can you find P such that P^m gives exactly ceil(6/2^m) residues? What goes wrong? Now compare with n=5 (prime).",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "composite n",
+        "modular arithmetic",
+        "image size",
+        "prime comparison"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI does not know how polynomial maps behave on Z/pZ for prime p — specifically that x^k can halve the image via quadratic residue structure",
+      "hint": "For prime p, consider P(x) = x^2 mod p. How many distinct values does x^2 take on Z/pZ? How does this relate to the halving requirement?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "prime modulus",
+        "quadratic residues",
+        "x^k mod p",
+        "image halving"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI works through the prime case with x^2 but does not see why powers of 2 also work — misses the additive structure",
+      "hint": "Now consider n=2^k. What happens if P(x) = x + 2^(k-1)? How does the 2-adic structure allow halving at each iteration?",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "x^2 mod p",
+        "image halving",
+        "2-adic valuation",
+        "additive structure"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI does not connect the binary halving of ceil(2^k/2^m) to the 2-adic structure of Z/2^k Z — needs the insight that additive shifts exploit the filtration",
+      "hint": "Think about the chain of subgroups 2Z/2^k Z subset 4Z/2^k Z subset ... in Z/2^k Z. How does P(x)=x+c with appropriate c move elements down this chain at each iteration?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "2-adic filtration",
+        "subgroup chain",
+        "additive polynomial",
+        "binary halving"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both cases worked out but has not verified that no other n works — needs to confirm exhaustiveness of the classification",
+      "hint": "You have shown primes and 2^k work. Now argue why no other n can work: if n has an odd prime factor p and n is not prime, can the halving condition be satisfied? Combine the structural obstructions.",
+      "hint_level": 0.4,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "exhaustiveness",
+        "case verification",
+        "composite obstruction",
+        "classification completeness"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from enumeration to structural characterization",
+      "observation_point": null,
+      "tell": "The solution requires seeing that only primes and powers of 2 have the right algebraic structure for polynomial iteration to halve residues — this is a path-level insight not visible at any single step",
+      "hint": "Classify n by algebraic structure: primes allow multiplicative halving via x^k exploiting the group structure of (Z/pZ)*, powers of 2 allow additive halving via x+c exploiting the 2-adic filtration, and no other n supports clean halving because mixed structures create incompatible obstructions",
+      "hint_level": 0.7,
+      "generalizability": "high — the structural approach of connecting algebraic properties of the modulus to polynomial behavior generalizes to many modular arithmetic and number theory problems",
+      "why_not_visible_locally": "At any single step, you only see one case (prime or 2^k). The insight that these are the ONLY two families requires seeing the complete path and understanding why no other n works — the exclusivity is a path-level feature that emerges from comparing both successful cases against all failures",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "algebraic structure classification",
+        "exclusivity of primes and 2^k",
+        "polynomial iteration halving",
+        "multiplicative vs additive halving"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "connection between ceiling function ceil(n/2^m) and 2-adic structure of n",
+      "observation_point": "R1",
+      "tell": "The ceiling function ceil(n/2^m) encodes a halving process that implicitly connects to the 2-adic structure of n — this connection is not visible when just computing residues for a single m",
+      "hint": "The halving pattern in ceil(n/2^m) suggests that n's factorization by 2 is key: powers of 2 divide cleanly by 2^m, and for primes the multiplicative group has order p-1 which is even, allowing quadratic residue halving. The ceiling function is a signal pointing toward 2-adic and multiplicative structure.",
+      "hint_level": 0.6,
+      "generalizability": "medium — the connection between counting functions and algebraic structure appears in other problems but the specific halving-to-2-adic link is somewhat specialized",
+      "why_not_visible_locally": "When analyzing a single round of iteration, the ceiling function appears as just a counting constraint. The connection to 2-adic valuation and the classification of n only emerges when considering the full iteration sequence m=1,2,3,... and asking what structural property of n makes the halving work for ALL m simultaneously",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "ceiling function",
+        "2-adic structure",
+        "halving pattern",
+        "iteration sequence",
+        "multiplicative group order"
+      ]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "the exhaustiveness argument connecting both cases to exclusion of all other n",
+      "observation_point": null,
+      "tell": "After constructing P for primes and 2^k, the solution must argue no other n works — this requires synthesizing the structural obstructions from both cases into a unified exclusion argument",
+      "hint": "If n has two distinct prime factors or n=2^a * p^b with a,b>0, the polynomial must simultaneously satisfy halving on both the 2-part and the odd part, but these require incompatible mechanisms (additive vs multiplicative), making construction impossible",
+      "hint_level": 0.65,
+      "generalizability": "medium — the technique of combining structural obstructions from different prime factors appears in CRT-based arguments but the specific incompatibility argument is problem-specific",
+      "why_not_visible_locally": "The incompatibility between additive halving (for 2-parts) and multiplicative halving (for odd prime parts) is only visible after both individual cases are fully understood. At any single step, you see one mechanism working but cannot see why combining them fails",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "Chinese Remainder Theorem",
+        "structural incompatibility",
+        "mixed prime factorization",
+        "exclusion argument"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely enumerate small cases (n=2,3,4,5,8) and notice primes and powers of 2 work, but would struggle to: (1) identify the correct polynomial constructions (x^k for primes, x+c for 2^k), (2) prove these are the ONLY solutions by showing composites with mixed factors fail, (3) connect the ceiling function halving to the algebraic structure of Z/nZ. The AI would likely produce a partial answer with examples but incomplete proof.",
+  "suitable_for_poc": [
+    "tell_extraction_poc — the structural gap between enumeration and algebraic classification is a clear tell",
+    "hint_injection_poc — guiding from brute force to structural analysis is a well-defined hint direction",
+    "level_discrimination_poc — this problem separates AI that knows ring theory from AI that only does computation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the structure of this problem. What are the key constraints? What does the ceiling function ceil(n/2^m) tell you about how the image size changes with each iteration?",
+        "expected_answer": "The problem asks to find all n such that some polynomial P exists where iterating P m times on {1,...,n} gives exactly ceil(n/2^m) distinct residues mod n. The key constraint is that each iteration roughly halves the number of distinct residues. The ceiling function encodes a halving process."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "List all possible approaches to this problem. What structural properties of n could affect how a polynomial behaves mod n? What makes primes and powers of 2 special?",
+        "expected_answer": "Possible approaches: (1) test small cases, (2) direct construction of P, (3) analyze algebraic structure of Z/nZ. Primes give a field structure with multiplicative group. Powers of 2 give a ring with 2-adic filtration. Composite n with mixed factors have more complex structure via CRT."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try n=6 specifically. Can you find P such that P^m gives exactly ceil(6/2^m) residues for all m? What goes wrong? Now compare with n=5 (prime).",
+        "expected_answer": "For n=6, we need ceil(6/2)=3 residues after 1 iteration, ceil(6/4)=2 after 2, ceil(6/8)=1 after 3. Trying simple polynomials like x^2 or x+c mod 6: x^2 mod 6 gives {0,1,3,4} = 4 residues, not 3. x+c just shifts, giving 6 residues. It's hard to get exactly 3. For n=5 (prime), x^2 mod 5 gives {0,1,4} = 3 residues, which matches ceil(5/2)=3."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "For prime p, consider P(x) = x^2 mod p. How many distinct values does x^2 take on Z/pZ? How does this relate to the halving requirement? Can you generalize to x^(2^k)?",
+        "expected_answer": "For prime p, x^2 mod p takes (p+1)/2 distinct values (quadratic residues plus 0). This is ceil(p/2), matching the m=1 requirement. Iterating: (x^2)^2 = x^4 takes ceil(p/4) values (quartic residues), and in general x^(2^m) takes ceil(p/2^m) values. So P(x)=x^2 works for all prime p."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Good, primes work via x^2. Now consider n=2^k. What happens if P(x) = x + 2^(k-1)? How does the 2-adic structure allow halving at each iteration?",
+        "expected_answer": "For n=2^k, P(x) = x + 2^(k-1) mod 2^k. After one iteration, the image splits into two cosets that merge: values differ by 2^(k-1) so they collide in pairs, giving 2^(k-1) = ceil(2^k/2) residues. But we need to iterate further. Actually, we need a polynomial that continues halving. The 2-adic filtration 2Z/2^k Z ⊃ 4Z/2^k Z ⊃ ... provides the structure for progressive halving."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Think about the chain of subgroups 2Z/2^k Z ⊂ 4Z/2^k Z ⊂ ... in Z/2^k Z. How does P(x)=x+c with appropriate c move elements down this chain at each iteration? What is the right construction?",
+        "expected_answer": "The key is that Z/2^k Z has a natural filtration by the subgroups 2^j Z/2^k Z of size 2^(k-j). A polynomial like P(x) = x^2 + x or P(x) = x + 2^(k-m) at step m can collapse the image by half at each step. More precisely, one can construct P such that P maps Z/2^k Z onto a subgroup of half the size at each iteration, exploiting the 2-adic valuation. The ceiling function ceil(2^k/2^m) = 2^(k-m) for m <= k and 1 for m > k, matching the filtration sizes."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.4,
+        "question": "You have shown primes and 2^k work. Now argue why no other n can work: if n has an odd prime factor p and n is not prime, can the halving condition be satisfied? Combine the structural obstructions to complete the proof.",
+        "expected_answer": "If n is composite and not a power of 2, then n has either two distinct odd prime factors or n = 2^a * p^b with a,b > 0. By CRT, Z/nZ ≅ Z/2^a Z × Z/p^b Z. The polynomial P must simultaneously halve the image on both components. But the 2-part requires additive halving (2-adic filtration) while the odd part requires multiplicative halving (quadratic residues), and these mechanisms are incompatible in a single polynomial. Therefore only primes (pure multiplicative) and powers of 2 (pure additive) work. The answer is: n is prime or n = 2^k."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.1,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R3"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "15min",
+    "notes": "Problem is a characterization problem requiring deep understanding of polynomial behavior on Z/nZ. The key structural insight is that halving via polynomial iteration is only possible when n has a 'pure' algebraic structure (prime or power of 2). Mixed structures create incompatible halving mechanisms. The solution in problem.lean is somewhat informal — the actual construction for 2^k and the exclusion argument need more rigor, but the structural approach is correct."
+  }
+}

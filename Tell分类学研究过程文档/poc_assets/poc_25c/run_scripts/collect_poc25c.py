@@ -135,6 +135,37 @@ def main():
             arms[r["arm"]][1] += 1
     print(f"\nT: completed={arms['T'][0]}/12 truncated={arms['T'][1]}/12")
     print(f"C: completed={arms['C'][0]}/12 truncated={arms['C'][1]}/12")
+
+    # 配对视图（每题两臂并排）
+    pids = sorted({r["problem_id"] for r in results.values()})
+    print(f"\n{'problem':32s} {'T':16s} {'C':16s} 配对结果")
+    tally = {"T_WIN": 0, "C_WIN": 0, "BOTH": 0, "NEITHER": 0, "PENDING": 0}
+    for pid in pids:
+        t = results.get(f"{pid}__T", {})
+        c = results.get(f"{pid}__C", {})
+        tv = t.get("verdict", "PENDING")
+        cv = c.get("verdict", "PENDING")
+        if "PENDING" in (tv, cv) or not t or not c:
+            outcome = "PENDING"
+        elif tv == "COMPLETED" and cv != "COMPLETED":
+            outcome = "T_WIN"
+        elif cv == "COMPLETED" and tv != "COMPLETED":
+            outcome = "C_WIN"
+        elif tv == "COMPLETED" and cv == "COMPLETED":
+            outcome = "BOTH"
+        else:
+            outcome = "NEITHER"
+        tally[outcome] += 1
+
+        def cell(v):
+            if v == "COMPLETED":
+                return "COMPLETED"
+            if v == "TRUNCATED":
+                return "trunc"
+            return v.lower()[:6] if v != "PENDING" else "..."
+        print(f"{pid:32s} {cell(tv):16s} {cell(cv):16s} {outcome}")
+    print(f"\n配对计分: T_WIN={tally['T_WIN']} C_WIN={tally['C_WIN']} "
+          f"双成={tally['BOTH']} 双败={tally['NEITHER']} 未完={tally['PENDING']}")
     print(f"\nwritten: {out}")
 
 

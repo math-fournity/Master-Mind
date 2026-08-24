@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_004152",
+  "source_id": "omni_math_004152",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Find the largest possible integer k, such that the following statement is true: Let 2009 arbitrary non-degenerated triangles be given. In every triangle the three sides are coloured, such that one is blue, one is red and one is white. Now, for every colour separately, let us sort the lengths of the sides. We obtain b_1 <= b_2 <= ... <= b_{2009} (blue), r_1 <= r_2 <= ... <= r_{2009} (red), and w_1 <= w_2 <= ... <= w_{2009} (white). Then there exist k indices j such that we can form a non-degenerated triangle with side lengths b_j, r_j, w_j.",
+  "solution_text": "The answer is 1. Proof: (1) k >= 1: Consider the largest side among all 6027 sides. WLOG say it is w_{2009}. This side came from some triangle T with sides (b, r, w_{2009}) where b and r are the blue and red sides of T. By the triangle inequality in T, b + r > w_{2009}. Since b_{2009} is the largest blue side, b_{2009} >= b. Similarly r_{2009} >= r. Therefore b_{2009} + r_{2009} >= b + r > w_{2009}. Since w_{2009} is the largest of all sides, w_{2009} >= b_{2009} and w_{2009} >= r_{2009}, so r_{2009} + w_{2009} > b_{2009} and b_{2009} + w_{2009} > r_{2009} automatically. Thus (b_{2009}, r_{2009}, w_{2009}) forms a non-degenerate triangle. (2) k <= 1: Construct 2008 triangles with sides (epsilon, epsilon, 1) where epsilon is very small, coloring the side of length 1 as white and the two epsilon sides as blue and red. Construct 1 equilateral triangle with sides (1, 1, 1). After sorting: b_1=...=b_{2008}=epsilon, b_{2009}=1; r_1=...=r_{2008}=epsilon, r_{2009}=1; w_1=...=w_{2009}=1. For j <= 2008: b_j + r_j = 2*epsilon < 1 = w_j, so triangle inequality fails. For j = 2009: all triangle inequalities hold. Only one index works, so k = 1.",
+  "solution_summary": "Use the extremal principle: the largest side overall came from a valid triangle, and the largest blue and red sides are at least as large as that triangle's blue and red sides, guaranteeing the triangle inequality. A counterexample with 2008 flat triangles and 1 equilateral triangle shows k=1 is tight.",
+  "domain": "geometry",
+  "subfield": "combinatorial_geometry",
+  "answer_type": "numerical",
+  "answer": "1",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "extremal_argument_with_construction",
+  "structure_features": "Sorted sequences from independently colored triangle sides; need guaranteed count of valid triangles under worst-case coloring; extremal reasoning on the largest element; two-part proof structure (lower bound + tightness construction)",
+  "key_objects": ["sorted_sequences", "triangle_inequality", "extremal_element", "counterexample_construction"],
+  "thinking_patterns": ["extremal_principle", "worst_case_analysis", "counterexample_construction", "monotonicity_exploitation"],
+  "primary_pattern": "extremal_principle",
+  "knowledge_required": ["triangle_inequality", "sorted_sequences_monotonicity", "extremal_principle", "worst_case_construction"],
+  "key_insight": "The largest side among all 6027 sides came from a valid triangle, and since the largest blue and red sides are at least as large as that triangle's blue and red sides, the triangle inequality transfers to the sorted sequences.",
+  "translation_from": "per_triangle_local_reasoning",
+  "translation_to": "global_extremal_reasoning",
+  "translation_type": "local_to_global",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_problem_mismatch"
+  },
+  "tell_small_concepts": ["extremal_element", "largest_side", "triangle_inequality_transfer", "sorted_monotonicity", "flat_triangle_construction"],
+  "expected_ai_method": "Try to check or argue about specific indices or use counting/pigeonhole arguments without identifying the extremal element",
+  "correct_method": "Extremal argument on the largest side, transferring triangle inequality from original triangle to sorted sequences, plus counterexample construction for tightness",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees sorted sequences and triangle inequality but doesn't identify which structural feature guarantees existence",
+      "hint": "Describe the problem structure: what are the knowns (sorted sequences from colored triangle sides) and what must be guaranteed (k valid triangles for any coloring)?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["problem_structure", "sorted_sequences", "guaranteed_count"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but doesn't consider the extremal principle or counterexample construction",
+      "hint": "List all possible strategies for proving a lower bound on k: direct checking, counting arguments, extremal principle, induction, etc.",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["strategy_enumeration", "extremal_principle", "counterexample"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries checking j=1 (smallest sides) and finds it doesn't always work, but doesn't know what to try next",
+      "hint": "Try checking if j=1 (smallest of each color) always forms a valid triangle. Can you construct a counterexample where it fails?",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["smallest_index", "counterexample_to_j1", "flat_triangle"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is stuck after the small attempt fails, doesn't see that the extremal element (largest side) is the key entry point",
+      "hint": "Apply the extremal principle: look at the largest side among all 6027 sides. WLOG say it's w_{2009}. What can you deduce from the original triangle it came from?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["extremal_element", "largest_side", "original_triangle", "triangle_inequality_source"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI identifies w_{2009} as the largest but doesn't connect it to the sorted monotonicity to complete the inequality transfer",
+      "hint": "Given w_{2009} came from triangle T with sides (b, r, w_{2009}) where b+r > w_{2009}, and b_{2009} >= b, r_{2009} >= r, what follows? Check all three triangle inequalities for (b_{2009}, r_{2009}, w_{2009}).",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["monotonicity_transfer", "inequality_chain", "automatic_inequalities"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has proven k>=1 but doesn't think about constructing a counterexample to show k=1 is tight",
+      "hint": "Now show k=1 is tight. Construct 2009 triangles where only one index works. Consider using very flat triangles (two tiny sides, one large side).",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["counterexample_construction", "flat_triangle", "tightness_proof", "equilateral_triangle"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both parts but hasn't synthesized them into a complete argument",
+      "hint": "Summarize the complete proof: the extremal argument gives k>=1, and the flat-triangle construction shows k=1 is tight. Therefore k=1.",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["proof_synthesis", "lower_bound", "upper_bound", "tight_result"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire proof path from problem statement to answer",
+      "observation_point": null,
+      "tell": "The proof requires two complementary parts: an existence argument (extremal) and a tightness construction (counterexample). The path feature is that both parts use the same structural insight about triangle inequality and sorted sequences.",
+      "hint": "Recognize that this problem has a two-part structure: prove k>=1 via extremal argument, then prove k<=1 via construction. Both parts exploit the relationship between original triangle inequalities and sorted sequences.",
+      "hint_level": 0.7,
+      "generalizability": "high - the two-part structure (existence + tightness) is common in extremal combinatorics problems",
+      "why_not_visible_locally": "Each local step only addresses one direction (either lower or upper bound). The fact that both directions use the same structural insight (triangle inequality transfer through sorted monotonicity) is only visible when looking at the complete proof path.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["two_part_proof", "existence_and_tightness", "shared_structural_insight"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The relationship between the original triangle's inequality and the sorted sequences",
+      "observation_point": "Q4",
+      "tell": "The key implicit insight is that the triangle inequality from the original triangle transfers to the sorted sequences because the largest elements of each color are at least as large as the corresponding sides in any original triangle.",
+      "hint": "The triangle inequality b + r > w from the original triangle containing the largest side transfers to b_{2009} + r_{2009} > w_{2009} because b_{2009} >= b and r_{2009} >= r by the sorting property. This transfer is the core of the proof.",
+      "hint_level": 0.6,
+      "generalizability": "high - the monotonicity-based inequality transfer pattern applies to many sorted-sequence problems",
+      "why_not_visible_locally": "At the local step of identifying the extremal element, the connection to the original triangle's inequality is not yet made. The transfer only becomes visible when you combine the extremal identification with the monotonicity of sorted sequences, which spans multiple steps.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["inequality_transfer", "monotonicity_bridge", "original_to_sorted"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely try to argue about specific indices or use counting/pigeonhole arguments without identifying the extremal element. It may incorrectly conclude k>1 by assuming that multiple indices should work, or fail to construct the counterexample showing k=1 is tight. The hand-wavy solution in the source material suggests this is a difficult problem where the rigorous extremal argument is non-obvious.",
+  "suitable_for_poc": ["tell_extraction", "hint_injection", "extremal_reasoning_transfer"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the problem structure. What are the knowns (2009 triangles, colored sides, sorted sequences) and what must be guaranteed (largest k for k valid triangles under any coloring)?",
+        "expected_answer": "We have 2009 non-degenerate triangles, each with sides colored blue, red, white. After sorting each color's lengths, we get three non-decreasing sequences. We need the largest k such that for ANY coloring, at least k indices j have b_j, r_j, w_j satisfying the triangle inequality."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible strategies for proving a lower bound on k: direct checking of specific indices, counting arguments, extremal principle, induction, probabilistic methods, etc.",
+        "expected_answer": "Possible strategies: (1) Check if specific indices like j=1 or j=2009 always work. (2) Counting/pigeonhole: argue that many indices must work. (3) Extremal principle: look at the largest or smallest element. (4) Contradiction: assume no valid triangle exists. (5) Construction: build worst-case examples."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try checking if j=1 (smallest of each color) always forms a valid triangle. Can you construct a counterexample where it fails?",
+        "expected_answer": "No, j=1 doesn't always work. Consider triangles where the smallest blue and red sides are very small but the smallest white side is large. For example, if many triangles have white sides much larger than their blue and red sides, then b_1 + r_1 might be less than w_1."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Apply the extremal principle: look at the largest side among all 6027 sides. WLOG say it's w_{2009}. What can you deduce from the original triangle it came from?",
+        "expected_answer": "The largest side w_{2009} came from some triangle T with sides (b, r, w_{2009}) where b is blue, r is red. By the triangle inequality in T: b + r > w_{2009}. Also, since b_{2009} is the largest blue side, b_{2009} >= b, and similarly r_{2009} >= r."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Given w_{2009} came from triangle T with b + r > w_{2009}, and b_{2009} >= b, r_{2009} >= r, what follows? Check all three triangle inequalities for (b_{2009}, r_{2009}, w_{2009}).",
+        "expected_answer": "b_{2009} + r_{2009} >= b + r > w_{2009}. Since w_{2009} is the largest of all sides, w_{2009} >= b_{2009} and w_{2009} >= r_{2009}, so r_{2009} + w_{2009} > b_{2009} and b_{2009} + w_{2009} > r_{2009} automatically. All three inequalities hold, so (b_{2009}, r_{2009}, w_{2009}) forms a valid triangle. Thus k >= 1."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Now show k=1 is tight. Construct 2009 triangles where only one index works. Consider using very flat triangles (two tiny sides, one large side).",
+        "expected_answer": "Take 2008 triangles with sides (epsilon, epsilon, 1) where epsilon is very small, color the side of length 1 as white and the epsilon sides as blue and red. Take 1 equilateral triangle (1,1,1). After sorting: b_1=...=b_{2008}=epsilon, b_{2009}=1; r similarly; w_1=...=w_{2009}=1. For j<=2008: b_j+r_j=2*epsilon<1=w_j, fails. For j=2009: all inequalities hold. Only one index works."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Summarize the complete proof: the extremal argument gives k>=1, and the flat-triangle construction shows k=1 is tight. What is the final answer?",
+        "expected_answer": "k=1. The extremal argument proves that the index corresponding to the largest side always yields a valid triangle (k>=1), and the construction with 2008 flat triangles and 1 equilateral triangle shows that only one index can be guaranteed (k<=1). Therefore k=1."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.6,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-20T00:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "The original solution in the problem file is hand-wavy and doesn't provide a rigorous proof. The profile reconstructs the correct solution using the extremal principle and counterexample construction. The key insight is that the largest side's original triangle inequality transfers to the sorted sequences through monotonicity. No new topology dimensions needed - existing categories (discrete_combinatorial, logical_deduction, method_problem_mismatch, knowledge_gap, structural_transformation) are sufficient."
+  }
+}

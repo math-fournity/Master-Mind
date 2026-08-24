@@ -1,0 +1,201 @@
+{
+  "_key": "omni_math_003825",
+  "source_id": "3825",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "The leader of an IMO team chooses positive integers n and k with n > k, and announces them to the deputy leader and a contestant. The leader then secretly tells the deputy leader an n-digit binary string, and the deputy leader writes down all n-digit binary strings which differ from the leader's in exactly k positions. The contestant is allowed to look at the strings written by the deputy leader and guess the leader's string. What is the minimum number of guesses (in terms of n and k) needed to guarantee the correct answer?",
+  "solution_text": "The answer is 2 if n = 2k, and 1 otherwise. Key steps: (1) The deputy leader's list is the set of all strings at Hamming distance k from the leader's string x. (2) If two strings x and y have the same k-neighborhood, let d = d(x,y). For any z at distance k from x, we need d(y,z) = k, which gives d + k - 2a = k where a is the number of positions where z differs from x among the d positions where x and y differ. This requires a = d/2 for all such z. (3) By Vandermonde's identity, this forces d = 2k and n = 2k, meaning y is the complement of x. (4) When n = 2k, x and its complement share the same k-neighborhood since d(x,z) = k iff d(complement(x),z) = n-k = k, so 2 guesses are needed. (5) When n != 2k, no two distinct strings share a k-neighborhood, so 1 guess suffices.",
+  "solution_summary": "The minimum number of guesses is 2 if n=2k (because a string and its complement have identical k-neighborhoods), and 1 otherwise (because the k-neighborhood uniquely determines the string).",
+  "domain": "combinatorics",
+  "subfield": "hamming_distance_coding",
+  "answer_type": "characterization",
+  "answer": "2 if n = 2k, and 1 otherwise",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_argument",
+  "structure_features": "Binary strings of length n, Hamming distance k neighborhoods, question about uniqueness of center from neighborhood set",
+  "key_objects": ["n-digit binary strings", "Hamming distance k neighborhood", "complement of binary string", "Vandermonde identity"],
+  "thinking_patterns": ["small_case_analysis", "algebraic_condition_setting", "symmetry_recognition", "uniqueness_proof"],
+  "primary_pattern": "symmetry_recognition",
+  "knowledge_required": ["Hamming distance on binary strings", "Vandermonde identity / combinatorial counting", "complement of binary string", "basic counting arguments"],
+  "key_insight": "When n=2k, a string and its complement have identical k-neighborhoods because d(x,z)=k iff d(complement(x),z)=n-k=k; when n!=2k, the algebraic condition from Vandermonde forces uniqueness.",
+  "translation_from": "case_by_case enumeration of small examples",
+  "translation_to": "algebraic condition on Hamming distance parameters using Vandermonde identity",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["Hamming distance", "binary string complement", "Vandermonde identity", "neighborhood uniqueness", "n=2k threshold"],
+  "expected_ai_method": "Bare AI would try small cases (n=3,k=1; n=4,k=1) and observe that 1 guess usually works, then might incorrectly generalize to always 1, missing the n=2k special case where complements share neighborhoods.",
+  "correct_method": "Set up algebraic condition for when two strings share the same k-neighborhood, use Vandermonde to show this requires n=2k and d=n (complements), conclude 2 guesses when n=2k and 1 otherwise.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees the problem structure but hasn't identified what mathematical framework to use",
+      "hint": "Recognize that the deputy leader's list is the Hamming distance k neighborhood of the leader's string",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["Hamming distance", "neighborhood set", "binary strings"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but hasn't focused on the key question of neighborhood uniqueness",
+      "hint": "The core question is: when can two different strings have the same k-neighborhood?",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["neighborhood uniqueness", "coding theory", "sphere packing"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries small cases but may not notice the n=4,k=2 case where complements coincide",
+      "hint": "Pay special attention to n=4, k=2: check if a string and its bitwise complement have the same set of distance-2 neighbors",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "case_by_case", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["small cases", "complement symmetry", "n=2k pattern"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI needs to set up the algebraic condition but may not know how to parameterize the overlap",
+      "hint": "If d(x,y)=d, parameterize z by how many of the d differing positions it shares with x (call it a), then d(y,z) = d + k - 2a",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["Hamming distance decomposition", "parameterization by overlap", "d+k-2a formula"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the formula d+k-2a=k but needs to see why this forces d=2k and n=2k",
+      "hint": "Use Vandermonde's identity: C(n,k) = sum C(d,a)*C(n-d,k-a). For all terms except a=d/2 to vanish, need d=2k and n=2k",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["Vandermonde identity", "term vanishing condition", "d=2k constraint"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has derived the condition but needs to connect it to the complement and prove both directions",
+      "hint": "When n=2k, d=n means y is the complement of x, and d(x,z)=k iff d(complement(x),z)=n-k=k. When n!=2k, the condition d=2k=n is impossible.",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "algebraic_identity", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["complement of binary string", "d(x,z)+d(complement(x),z)=n", "bidirectional proof"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all the pieces and needs to state the final answer cleanly",
+      "hint": "Combine both cases: 2 guesses when n=2k (complement ambiguity), 1 guess otherwise (unique determination)",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "logical_deduction", "gap_type": "method_translation"},
+      "tell_small_concepts": ["final answer", "case distinction", "n=2k threshold"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire path from small cases through algebraic setup to the n=2k conclusion",
+      "observation_point": null,
+      "tell": "The critical threshold n=2k is not visible from any single small case; it emerges only when systematically checking when two neighborhoods can coincide",
+      "hint": "Systematically investigate when S_k(x) = S_k(y) for x!=y by setting up the algebraic overlap condition",
+      "hint_level": 0.6,
+      "generalizability": "high - the technique of checking neighborhood uniqueness via algebraic conditions on distance parameters generalizes to many coding theory problems",
+      "why_not_visible_locally": "In small cases like n=3,k=1, the complement symmetry doesn't manifest because n!=2k. The critical case n=4,k=2 requires specifically checking complement pairs, which is not suggested by the easier cases. The threshold n=2k is a global property of the parameter space, not visible at any single observation point.",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "case_by_case", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["n=2k threshold", "complement symmetry", "parameter space analysis"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The complement relationship d(x,z) + d(complement(x),z) = n is implicit in the Hamming cube structure",
+      "observation_point": "R4",
+      "tell": "The identity d(x,z) + d(complement(x),z) = n is always true but never explicitly stated in the problem; it's the hidden structural reason behind the n=2k threshold",
+      "hint": "Consider the complement of a string and use the identity d(x,z) + d(complement(x),z) = n to see when neighborhoods coincide",
+      "hint_level": 0.5,
+      "generalizability": "medium - the complement symmetry is specific to binary strings but the idea of looking for hidden dualities in distance structures is broadly applicable",
+      "why_not_visible_locally": "The complement relationship is a global property of the Hamming cube that connects any string to its complement through the identity d(x,z)+d(complement(x),z)=n. This relationship is not apparent when examining individual neighborhoods or small cases in isolation. It only becomes visible when asking 'what other string could produce the same neighborhood?', which is a global question about the structure of the entire Hamming cube.",
+      "tell_topology": {"problem_type": "discrete_combinatorial", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["complement duality", "d(x,z)+d(complement(x),z)=n", "hidden symmetry"]
+    }
+  ],
+  "bare_ai_expected": "marginal",
+  "bare_ai_error_prediction": "Bare AI would likely try small cases and correctly observe that 1 guess usually suffices, but would probably miss the n=2k special case where complements share neighborhoods. It might incorrectly conjecture the answer is always 1, or if it notices the n=4,k=2 case, it might not generalize to the full n=2k condition without the algebraic framework.",
+  "suitable_for_poc": ["tell_detection", "hint_injection", "symmetry_recognition"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem. What information does the contestant have, and what do they need to determine?",
+        "expected_answer": "The contestant sees all n-digit binary strings at Hamming distance k from the leader's string (the k-neighborhood). They need to identify the leader's string from this set. The question is about the uniqueness of the center given the neighborhood."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "What mathematical frameworks could model this situation? List all approaches you can think of.",
+        "expected_answer": "Hamming distance, coding theory, sphere packing in Hamming cube, combinatorial set theory, graph theory on hypercube. The core question is: when can two different strings have the same k-neighborhood?"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Try small cases. What happens when n=3, k=1? When n=4, k=1? When n=4, k=2? Pay special attention to whether any two different strings can produce the same set.",
+        "expected_answer": "For n=3,k=1: each string has 3 neighbors, all distinct sets, so 1 guess. For n=4,k=1: same, 1 guess. For n=4,k=2: a string like 0000 has neighbors at distance 2 (6 strings), and its complement 1111 also has the same 6 strings at distance 2! So 2 guesses needed here. This is the n=2k case."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "For two different strings x and y with d(x,y)=d, set up the algebraic condition for when they can have the same k-neighborhood. Parameterize by how many of the d differing positions z shares with x.",
+        "expected_answer": "Let a = number of positions where z differs from x among the d positions where x and y differ, and b = number among the remaining n-d positions. Then d(x,z)=a+b=k and d(y,z)=(d-a)+b=k. Subtracting: d-2a=0, so a=d/2 for all z at distance k from x. This means every z at distance k from x must differ from x in exactly d/2 of the d differing positions."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "Given that a=d/2 must hold for ALL z at distance k from x, use Vandermonde's identity to show what this implies about d and n.",
+        "expected_answer": "By Vandermonde: C(n,k) = sum_{a=0}^{d} C(d,a)*C(n-d,k-a). For S_k(x)=S_k(y), only the a=d/2 term can be nonzero, so all other terms must vanish. This requires: for a>d/2, k-a<0 (so d/2>=k, i.e. d>=2k); for a<d/2, k-a>n-d (so d/2<=k-n+d, giving d>=2(n-k)). Also a=d/2 must be valid: d<=2k and d<=2(n-k). Combining: d=2k and d=2(n-k), so n=2k and d=n."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "Now formalize: when n=2k, show that x and its complement have the same k-neighborhood. When n!=2k, show uniqueness.",
+        "expected_answer": "When n=2k: d(x,complement(x))=n, and for any z, d(x,z)+d(complement(x),z)=n (since they differ in every position). So d(x,z)=k iff d(complement(x),z)=n-k=k. Thus S_k(x)=S_k(complement(x)), needing 2 guesses. When n!=2k: the condition d=2k=n is impossible, so no two distinct strings share a k-neighborhood, and 1 guess suffices."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "You've identified the key condition. Now state the final answer cleanly.",
+        "expected_answer": "The minimum number of guesses is 2 if n=2k (because the leader's string and its complement produce identical k-neighborhoods), and 1 otherwise (because the k-neighborhood uniquely determines the string)."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 4.0,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "IMO Shortlist combinatorics problem about Hamming distance neighborhood uniqueness. Key insight is complement symmetry when n=2k. Solution uses Vandermonde identity to prove uniqueness in all other cases."
+  }
+}

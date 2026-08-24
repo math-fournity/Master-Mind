@@ -1,0 +1,313 @@
+{
+  "_key": "omni_math_000032",
+  "source_id": "omni_math_000032",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let C={z in C: |z|=1} be the unit circle. Let z_1,...,z_240 in C (not necessarily different) satisfying: (1) For any open arc Gamma of length pi on C, at most 200 of j have z_j in Gamma. (2) For any open arc gamma of length pi/3 on C, at most 120 of j have z_j in gamma. Find the maximum of |z_1+z_2+...+z_240|.",
+  "solution_text": "Sort z_k by angle. Define omega_k = z_k + z_{k+40} + z_{k+80} + z_{k+120} + z_{k+160} + z_{k+200} for k=1..40. Each group sums 6 numbers spread around the circle. Arc constraints imply at most 5 of 6 in any semicircle and at most 3 in any pi/3-arc, giving |omega_k| <= 2+sqrt(3). Then |sum| = |sum omega_k| <= 40*(2+sqrt(3)) = 80+40*sqrt(3). Achieved by: 40 copies of i, 40 copies of -i, 40 copies of sqrt(3)/2+i/2, 40 copies of sqrt(3)/2-i/2, 80 copies of 1.",
+  "solution_summary": "Partition 240 sorted points into 40 groups of 6 (stride 40), bound each group's magnitude by 2+sqrt(3) using arc constraints, apply triangle inequality for total bound 80+40*sqrt(3), construct achieving configuration.",
+  "domain": "mathematics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "numerical",
+  "answer": "80 + 40*sqrt(3)",
+  "problem_type": "constraint_satisfaction",
+  "solution_method_type": "structural_decomposition_bound",
+  "structure_features": "240 points on unit circle with two arc-density constraints (pi-arc: <=200, pi/3-arc: <=120), maximize vector sum magnitude. Key structure: 240=40*6 and pi/3 = 2*pi/6, linking group size to arc length.",
+  "key_objects": [
+    "unit_circle",
+    "240_complex_numbers",
+    "open_arc_pi",
+    "open_arc_pi_over_3",
+    "grouped_sum_omega_k",
+    "triangle_inequality",
+    "extremal_configuration"
+  ],
+  "thinking_patterns": [
+    "structural_decomposition",
+    "constraint_propagation",
+    "extremal_construction",
+    "triangle_inequality_application"
+  ],
+  "primary_pattern": "structural_decomposition",
+  "knowledge_required": [
+    "complex_numbers_on_unit_circle",
+    "triangle_inequality_for_complex_sums",
+    "arc_density_constraints",
+    "grouping_by_stride_for_circular_arrangements",
+    "extremal_configuration_verification"
+  ],
+  "key_insight": "Partition the 240 sorted points into 40 groups of 6 by taking every 40th point, so each group is spread around the circle and the arc constraints bound each group's sum magnitude to 2+sqrt(3).",
+  "translation_from": "direct_summation",
+  "translation_to": "grouped_summation_with_per_group_bounds",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "constraint_satisfaction",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "unit_circle",
+    "arc_density",
+    "stride_40_grouping",
+    "triangle_inequality",
+    "extremal_configuration",
+    "per_group_bound"
+  ],
+  "expected_ai_method": "Bare AI would try direct triangle inequality |sum| <= 240 (ignoring constraints) or attempt numerical optimization without the key grouping insight, failing to exploit the arc density structure.",
+  "correct_method": "Sort points by angle, partition into 40 groups of 6 with stride 40, apply arc constraints to bound each group's magnitude by 2+sqrt(3), use triangle inequality for total bound, construct achieving configuration.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees 240 points on unit circle with arc constraints but hasn't identified the key structural feature linking 240=40*6 to pi/3=2*pi/6",
+      "hint": "Focus on the arc density constraints as the key structure. Note the numbers 240, 200, 120 and the arc lengths pi and pi/3.",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "unit_circle",
+        "arc_density",
+        "240_points",
+        "constraint_identification"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches (triangle inequality, Fourier, optimization) but doesn't identify the grouping/partitioning strategy as a viable direction",
+      "hint": "Consider grouping the 240 points into smaller sets that are spread around the circle, so arc constraints can be applied per group.",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "grouping",
+        "partitioning",
+        "approach_listing",
+        "circular_spreading"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries triangle inequality directly, gets trivial bound of 240 that completely ignores the arc constraints",
+      "hint": "The direct approach wastes the arc constraints. You need a method that uses them to get a tighter bound.",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "triangle_inequality",
+        "trivial_bound",
+        "constraint_ignoring"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI doesn't see how to partition 240 points into groups that exploit the arc structure. The stride-40 grouping is not obvious.",
+      "hint": "Sort by angle and take every 40th point to form groups of 6. Since 240/6=40 and pi/3 is 1/6 of the circle, each group is spread around the full circle.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "sorting",
+        "stride_40",
+        "group_of_6",
+        "circular_spreading",
+        "240_divided_by_6"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the grouping but doesn't connect arc constraints to per-group density bounds",
+      "hint": "Apply the arc constraints to each group of 6: at most 5 of 6 in any semicircle (pi-arc), at most 3 in any pi/3-arc.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "semicircle_bound",
+        "pi_over_3_bound",
+        "per_group_constraint",
+        "at_most_5_of_6"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has per-group constraints but doesn't derive the magnitude bound 2+sqrt(3) from the alignment restrictions",
+      "hint": "Find the maximum |omega_k| given at most 5 of 6 points in any semicircle and at most 3 in any pi/3-arc. The worst case gives 2+sqrt(3).",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "magnitude_bound",
+        "2_plus_sqrt3",
+        "worst_case_alignment",
+        "constraint_optimization"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the bound 80+40*sqrt(3) but hasn't verified achievability or constructed the extremal configuration",
+      "hint": "Construct a specific configuration: 40 copies each at angles 0, pi/6, -pi/6, pi/2, -pi/2 (with 80 at angle 0) and verify it satisfies all constraints and achieves the bound.",
+      "hint_level": 0.4,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "extremal_configuration",
+        "achievability",
+        "constraint_verification",
+        "angular_clusters"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The complete solution path from direct approach to stride-40 grouped approach",
+      "observation_point": null,
+      "tell": "The stride-40 grouping creates groups that are optimally spread for applying arc constraints. This grouping is a path-level feature: it only makes sense when you see that 240/6=40 and pi/3=2*pi/6, connecting group size to arc length.",
+      "hint": "When facing density-constrained optimization on a circle with n points and arc constraints of length 2*pi/k, partition sorted points with stride n/k to form groups of size k that are spread around the full circle.",
+      "hint_level": 0.8,
+      "generalizability": "high - the stride-based grouping generalizes to any circle density optimization where n points are partitioned into groups of size k matching the arc constraint denominator",
+      "why_not_visible_locally": "The specific stride of 40 only makes sense when you see that 240/6=40 and pi/3 is 1/6 of the circle. This connection between the group size (6) and the arc constraint length (pi/3 = 2*pi/6) is a global feature of the solution path that cannot be deduced from any single step alone.",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "stride_grouping",
+        "circle_partition",
+        "density_optimization",
+        "n_divided_by_k"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The per-group bound 2+sqrt(3) implicitly encodes the extremal angular distribution",
+      "observation_point": "R6",
+      "tell": "The bound 2+sqrt(3) is not just a number—it encodes the specific angular structure of the extremal configuration. The value arises from the maximum alignment of 6 unit vectors subject to both arc constraints simultaneously.",
+      "hint": "The per-group bound reflects the maximum vector alignment allowed by both constraints acting together. When you see 2+sqrt(3), recognize it as |1 + e^{i*pi/6} + e^{-i*pi/6}| + |e^{i*pi/2} + e^{-i*pi/2}|... actually it comes from the optimal arrangement of 6 points under both constraints.",
+      "hint_level": 0.7,
+      "generalizability": "medium - the bound depends on the specific constraint parameters (pi and pi/3 arcs with 200/240 and 120/240 ratios), but the principle of deriving magnitude bounds from combined arc constraints generalizes",
+      "why_not_visible_locally": "The value 2+sqrt(3) appears as a computed bound in R6, but its deep connection to the extremal configuration's angular structure (clusters at 0, +/-pi/6, +/-pi/2) is only revealed when constructing the achieving configuration in R7. The bound and the construction are two sides of the same coin, but this duality is invisible at the step where the bound is first derived.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "per_group_bound",
+        "extremal_structure",
+        "angular_distribution",
+        "bound_construction_duality"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will try direct triangle inequality (getting trivial bound 240) or attempt numerical/computational optimization without the key stride-40 grouping insight. It will not identify the connection between 240=40*6 and pi/3=2*pi/6, and will fail to use the arc constraints effectively to tighten the bound.",
+  "suitable_for_poc": [
+    "tell_extraction",
+    "hint_injection",
+    "knowledge_bottleneck_detection",
+    "structural_transformation_identification"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the structure of this problem. What are the given conditions and what are we optimizing? Pay attention to the numbers 240, 200, 120 and the arc lengths pi and pi/3.",
+        "expected_answer": "We have 240 points on the unit circle with two arc density constraints: at most 200 in any open arc of length pi (semicircle), at most 120 in any open arc of length pi/3. We want to maximize |z_1+...+z_240|. The constraints limit how concentrated the points can be."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all approaches you can think of for bounding |z_1+...+z_240|. Which ones might use the arc constraints?",
+        "expected_answer": "1) Triangle inequality: |sum| <= 240 (ignores constraints). 2) Fourier analysis on the circle. 3) Grouping points and bounding per-group sums. 4) Lagrange multipliers / convex optimization. 5) Direct construction of extremal configuration. The grouping approach seems most promising for using the arc constraints."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try the direct triangle inequality approach. What bound do you get? Why is it insufficient?",
+        "expected_answer": "|sum| <= |z_1| + ... + |z_240| = 240. This completely ignores the arc constraints, so it's far too weak. The actual answer should be much smaller because the constraints prevent all points from clustering in one direction."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "The constraints are about arc density. Think about how to partition the 240 points into groups such that each group is spread around the circle. Hint: 240 = 40 * 6 and pi/3 = 2*pi/6.",
+        "expected_answer": "Sort the points by angle: theta_1 <= ... <= theta_240. Define omega_k = z_k + z_{k+40} + z_{k+80} + z_{k+120} + z_{k+160} + z_{k+200} for k=1..40. Each group takes every 40th point, so the 6 points in each group are spread around the full circle (roughly pi/3 apart on average). The total sum = sum of all omega_k."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "For each group of 6 points spread around the circle, how do the arc constraints limit their configuration? Translate the original constraints to per-group bounds.",
+        "expected_answer": "The original constraints (at most 200/240 in any pi-arc, at most 120/240 in any pi/3-arc) translate to per-group constraints: at most 5 of the 6 points in any semicircle (pi-arc), and at most 3 of the 6 in any pi/3-arc. These limit how aligned the 6 unit vectors can be."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Given these per-group arc constraints (at most 5 in any semicircle, at most 3 in any pi/3-arc), what is the maximum possible |omega_k|? Think about the worst-case alignment of 6 unit vectors under these constraints.",
+        "expected_answer": "The maximum |omega_k| is 2+sqrt(3). This occurs when the 6 points are as concentrated as the constraints allow - the pi/3-arc constraint limits 3 points to a small arc, and the semicircle constraint limits the remaining 3. The optimal arrangement gives |omega_k| = 2+sqrt(3)."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.4,
+        "question": "Now combine the per-group bound with the triangle inequality to get the total bound. Then construct a specific configuration achieving this bound and verify it satisfies all constraints.",
+        "expected_answer": "|sum| = |sum_{k=1}^{40} omega_k| <= sum |omega_k| <= 40*(2+sqrt(3)) = 80+40*sqrt(3). Achieving configuration: 40 copies of i, 40 of -i, 40 of sqrt(3)/2+i/2, 40 of sqrt(3)/2-i/2, 80 of 1. Sum = 80+40*sqrt(3). Check: any pi/3-arc contains at most 2 clusters (120 points), any pi-arc contains at most 4 clusters (200 points). All constraints satisfied."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-07-18T12:00:00+00:00",
+    "analysis_duration": "N/A",
+    "notes": "Problem involves arc density constraints on unit circle. Key insight is stride-40 grouping connecting 240=40*6 to pi/3=2*pi/6. The per-group bound 2+sqrt(3) and extremal configuration are dual aspects of the same structure. No new topology dimensions needed; existing categories (constraint_satisfaction, structural_transformation, knowledge_gap) suffice."
+  }
+}

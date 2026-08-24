@@ -1,0 +1,264 @@
+{
+  "_key": "compfiles_imo2008p5",
+  "source_id": "imo2008p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Let n and k be positive integers with k >= n and k - n an even number. There are 2n lamps labelled 1, 2, ..., 2n each of which can be either on or off. Initially all the lamps are off. We consider sequences of steps: at each step one of the lamps is switched (from on to off or from off to on). Let N be the number of such sequences consisting of k steps and resulting in the state where lamps 1 through n are all on, and lamps n+1 through 2n are all off. Let M be the number of such sequences consisting of k steps, resulting in the state where lamps 1 through n are all on, and lamps n+1 through 2n are all off, but where none of the lamps n+1 through 2n is ever switched on. Determine N/M.",
+  "solution_text": "Construct a mod-n reduction map psi from N-sequences to M-sequences: psi(f)(j) = f(j) if f(j) < n, else f(j) - n. This maps any lamp index in [n, 2n) to [0, n). Verify psi produces valid M-sequences: for each low lamp i, its switching count in the image = (original count for i, odd) + (original count for n+i, even) = odd. High lamps are never switched in the image. Key claim: each M-sequence f has exactly 2^(k-n) preimages under psi. For each low lamp i switched c_i times (odd) in f, we choose which subset of those c_i times actually goes to n+i (must be even-sized). The number of even-sized subsets of a c_i-element set is 2^(c_i-1) (proven via symmetric difference involution s -> s △ {a}). Product over all i: prod 2^(c_i-1) = 2^(sum(c_i-1)) = 2^(k-n) since sum c_i = k and there are n lamps. By counting lemma (uniform fiber size n implies |A| = |B| * n), N = M * 2^(k-n), so N/M = 2^(k-n).",
+  "solution_summary": "Construct mod-n reduction surjection psi from N-sequences to M-sequences, prove uniform fiber size 2^(k-n) via even subset counting (2^(c-1) by symmetric difference involution), apply counting lemma to get N = M * 2^(k-n).",
+  "domain": "combinatorics",
+  "subfield": "enumerative combinatorics",
+  "answer_type": "numerical",
+  "answer": "2^(k-n)",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "fiber_counting_via_reduction_map",
+  "structure_features": "Two sets of sequences with parity constraints (low lamps switched odd times, high lamps switched even times); ratio N/M where N allows switching high lamps and M does not; mod-n reduction maps former to latter with uniform fiber size",
+  "key_objects": [
+    "lamp switching sequences",
+    "parity constraints (odd/even switching counts)",
+    "mod-n reduction map psi",
+    "fiber cardinality",
+    "even subset counting 2^(c-1)",
+    "counting lemma (uniform fiber implies |A|=|B|*n)"
+  ],
+  "thinking_patterns": [
+    "structural_mapping",
+    "parity_argument",
+    "fiber_counting",
+    "power_of_2_counting",
+    "involution_bijection"
+  ],
+  "primary_pattern": "structural_mapping",
+  "knowledge_required": [
+    "parity of integers (odd+even=odd)",
+    "even subset counting (2^(n-1) via symmetric difference involution)",
+    "fiber/surjection counting lemma",
+    "modular arithmetic reduction",
+    "product-to-power-of-sum identity"
+  ],
+  "key_insight": "Map N-sequences to M-sequences via mod-n reduction; each M-sequence has exactly 2^(k-n) preimages because for each low lamp i (switched c_i times, odd), the number of ways to choose an even subset to redirect to high lamp n+i is 2^(c_i-1), and the product telescopes to 2^(k-n).",
+  "translation_from": "direct separate counting of N and M (enumeration / generating functions)",
+  "translation_to": "surjection construction + uniform fiber counting (via mod-n reduction map)",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "parity constraint",
+    "mod-n reduction",
+    "fiber cardinality",
+    "even subset counting",
+    "2^(c-1)",
+    "uniform fiber size",
+    "ratio via surjection"
+  ],
+  "expected_ai_method": "Try to compute N and M separately using direct combinatorial counting or generating functions, getting bogged down in the complex state space of 2n lamps with parity constraints",
+  "correct_method": "Construct mod-n reduction surjection psi from N-sequences to M-sequences, prove uniform fiber size 2^(k-n) using even subset counting, apply counting lemma to get N = M * 2^(k-n)",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a counting problem with two quantities N and M to ratio, with parity constraints on lamp switching",
+      "hint": "Describe the structure: what do N and M count, what are the constraints, what is the difference between them?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["lamp sequence", "parity constraint", "ratio N/M"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches: direct counting, generating functions, mapping, inclusion-exclusion, recursion, symmetry",
+      "hint": "List all possible approaches to compute N/M",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["direct counting", "generating function", "inclusion-exclusion", "mapping approach"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI attempts direct counting of N and M separately, finds state space too large with complex parity constraints",
+      "hint": "Try direct counting - can you compute N and M independently? What is the state space size?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["state space", "switching sequence", "final state", "parity constraint"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is stuck on direct counting; the key fork is to construct a map from N-sequences to M-sequences instead",
+      "hint": "Construct a surjective map from N-sequences to M-sequences by reducing lamp indices mod n",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["mod-n reduction", "surjective map", "lamp index mapping", "odd+even=odd"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the map but does not know how to count fiber size; needs to connect parity constraints to even subset counting",
+      "hint": "For each M-sequence, count preimages: each low lamp i switched c_i times (odd), choose even subset to redirect to n+i, giving 2^(c_i-1) choices",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["fiber cardinality", "parity split", "odd-even decomposition", "even subset", "2^(c-1)"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI sees the 2^(c_i-1) formula but needs to verify the even subset counting lemma",
+      "hint": "Verify: c-element set has 2^(c-1) even-sized subsets, via symmetric difference involution s -> s △ {a}",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["even subset counting", "2^(c-1)", "symmetric difference involution", "bijection proof"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all components: surjection, uniform fiber 2^(k-n), counting lemma; needs to assemble final answer",
+      "hint": "Combine: psi is surjective with uniform fiber 2^(k-n), so N = M * 2^(k-n), giving N/M = 2^(k-n)",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["counting lemma", "N = M * 2^(k-n)", "ratio", "uniform fiber"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "From R3 direct counting failure through R4-R7 map construction + fiber counting complete path",
+      "observation_point": null,
+      "tell": "The problem asks for a ratio N/M, suggesting that computing N and M independently is unnecessary; instead construct a surjection and exploit uniform fiber size",
+      "hint": "Construct a surjection from N-sequences to M-sequences, prove uniform fiber size, apply counting lemma to directly obtain the ratio",
+      "hint_level": 0.8,
+      "generalizability": "high - the ratio-via-surjection-with-uniform-fiber strategy applies to many combinatorial ratio problems where direct counting is intractable",
+      "why_not_visible_locally": "From any single step, the strategy of constructing a reduction map rather than counting separately is not visible - it requires seeing the complete path from ratio problem to fiber counting, including why direct counting fails, why mod-n reduction works, and why fibers are uniform, all three insights combined",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["ratio problem", "surjection construction", "uniform fiber", "counting lemma"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Parity constraints implicitly encode fiber size 2^(c-1)",
+      "observation_point": "R5",
+      "tell": "The parity constraints (odd for low lamps, even for high lamps) implicitly encode the fiber size 2^(c-1) through the odd-even split counting",
+      "hint": "Odd count c_i splits into (odd subset to low lamp, even subset to high lamp); even subset count is 2^(c_i-1) by symmetric difference involution; product telescopes to 2^(k-n)",
+      "hint_level": 0.7,
+      "generalizability": "medium - the parity-to-2^(c-1) split counting mapping applies to parity-constrained combinatorial problems with similar structure",
+      "why_not_visible_locally": "The connection between parity constraints and the 2^(c-1) split counting is not visible in any single step - it requires simultaneously recognizing: (1) odd count decomposes into odd+even, (2) even subset count is 2^(c-1), (3) product simplifies to 2^(k-n). The linking of these three steps is implicit.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["parity constraint", "odd-even split", "even subset counting", "2^(c-1)", "symmetric difference involution"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will attempt to compute N and M separately using direct combinatorial counting or generating functions, getting bogged down in the complex state space of 2n lamps with parity constraints. Even if it thinks of constructing a map, it is unlikely to independently discover the mod-n reduction + even subset counting combination, and even less likely to connect parity constraints to 2^(c-1) split counting.",
+  "suitable_for_poc": ["tell_identification", "hint_injection", "method_translation"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "请描述这道题的结构：N和M分别计数什么对象？它们之间的差异是什么？最终要求什么？",
+        "expected_answer": "N计数所有k步切换序列，最终状态为灯1..n开、灯n+1..2n关。M计数同样的序列但附加约束：灯n+1..2n从未被打开。差异在于M禁止切换高编号灯。最终要求N/M的比值。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "列出所有可能用来计算N/M的方法方向",
+        "expected_answer": "1)分别直接计数N和M再求比；2)生成函数/母函数方法；3)构造N到M的映射并数纤维；4)容斥原理；5)递推/动态规划；6)对称性论证"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "尝试直接分别计算N和M。N需要计数什么？状态空间有多大？",
+        "expected_answer": "N需要计数所有k步序列使得每个低灯被切换奇数次、每个高灯被切换偶数次。状态空间巨大：2n个灯，k步，每步2n种选择。直接计数需要处理复杂的奇偶约束，似乎很难得到闭式。M稍简单（只涉及n个灯）但也不容易。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "既然直接计数困难，考虑构造一个从N-序列到M-序列的映射。关键操作：如何把可能涉及高灯的N-序列\"归约\"为只涉及低灯的M-序列？",
+        "expected_answer": "自然想法：将高灯标号n+i映射为低灯标号i（模n归约）。定义psi(f)(j) = f(j) if f(j)<n, else f(j)-n。这样N-序列中切换高灯n+i的操作变成切换低灯i。需要验证：归约后低灯i的切换次数=原低灯i次数(奇)+原高灯n+i次数(偶)=奇数，满足M-序列条件。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "psi是满射。对每个M-序列f，psi的纤维|psi^{-1}(f)|有多大？关键：M-序列中低灯i被切换c_i次(奇数)，哪些次\"真正\"指向i vs n+i？",
+        "expected_answer": "对每个低灯i，c_i次切换中需选一个奇数子集\"真正\"指向i，其余偶数子集指向n+i。等价于选一个偶数子集指向n+i。c_i元集合的偶数大小子集个数为2^(c_i-1)。所以纤维大小=prod 2^(c_i-1)=2^(sum(c_i-1))=2^(k-n)，因为sum c_i=k且有n个灯。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "验证关键引理：c元集合的偶数大小子集个数为什么是2^(c-1)？",
+        "expected_answer": "取一个元素a，对称差s△{a}将偶子集双射到奇子集。所以偶子集=奇子集=2^c/2=2^(c-1)。这是经典的对合论证。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "现在把所有部分组合起来：psi是满射，每个纤维大小2^(k-n)，由计数引理N=M·2^(k-n)。写出最终答案。",
+        "expected_answer": "N/M = 2^(k-n)。完整论证：psi将N-序列满射到M-序列，每个M-序列恰好有2^(k-n)个原像（由偶子集计数和奇偶约束），因此N = M·2^(k-n)。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T12:00:00Z",
+    "analysis_duration": "approx 20 min",
+    "notes": "IMO 2008 P5 - combinatorial ratio problem solved via mod-n reduction surjection and uniform fiber counting. Key insight: parity constraints encode 2^(c-1) split counting. No new topology dimensions needed."
+  }
+}

@@ -1,0 +1,294 @@
+{
+  "_key": "compfiles_usa2022p6",
+  "source_id": "compfiles_usa2022p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "There are 2022 users on a social network called Mathbook, and some of them are Mathbook-friends. (On Mathbook, friendship is always mutual and permanent.) Starting now, Mathbook will only allow a new friendship to be formed between two users if they have at least two friends in common. What is the minimum number of friendships that must already exist so that every user could eventually become friends with every other user?",
+  "solution_text": "The answer is 3031. Lower bound: Maintain a clique cover of the graph where each clique K satisfies theta_bound: 3|K| <= 2*(owned original edges) + 4. A merge algorithm repeatedly merges cliques when a 4-cycle has edges with different labels, strictly reducing the clique count. When it terminates, all 4-cycle edges share the same label. If the graph is completable, the terminal graph is the complete graph with no legal moves, so all edges share one label K* = entire vertex set. The theta_bound gives 3n <= 2e + 4, so e >= (3*2022-4)/2 = 3031. Upper bound: Construct a graph with edge 0-1 and 1010 4-cycles 0-1-x_i-y_i-0 sharing the edge 0-1, giving 1 + 1010*3 = 3031 edges. Phase 1: add edges 0-x_i (common friends 1 and y_i) and 1-y_i (common friends 0 and x_i). Phase 2: after Phase 1, all non-{0,1} vertices are friends with both 0 and 1; use 0 and 1 as common friends to connect all 2020 remaining vertices into a clique, completing the graph.",
+  "solution_summary": "Lower bound via clique cover invariant (theta_bound 3|K|<=2e_K+4) with merge algorithm termination analysis giving 3n<=2e+4, i.e. e>=3031. Upper bound via hub-edge construction (shared edge 0-1 with 1010 4-cycles, 3031 edges) with two-phase completion.",
+  "domain": "combinatorics",
+  "subfield": "graph_theory",
+  "answer_type": "numerical",
+  "answer": "3031",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "clique_cover_invariant",
+  "structure_features": "Graph completion process with local rule (add edge if >=2 common neighbors), minimize initial edges for completability to complete graph. Lower bound uses clique cover invariant + merge algorithm termination; upper bound uses hub edge construction + two-phase completion.",
+  "key_objects": [
+    "simple_graph_2022_vertices",
+    "legal_move_CanAdd",
+    "Reachable_relation",
+    "Completable_property",
+    "clique_cover_Cover_structure",
+    "theta_bound_3K_le_2eK_plus_4",
+    "4_cycle",
+    "merge_algorithm",
+    "terminal_cover",
+    "hub_edge_0_1",
+    "4_cycle_family_0_1_xi_yi_0"
+  ],
+  "thinking_patterns": [
+    "potential_function_invariant",
+    "clique_cover_decomposition",
+    "merge_algorithm_termination",
+    "extremal_construction",
+    "phase_based_completion",
+    "hub_edge_design"
+  ],
+  "primary_pattern": "potential_function_invariant",
+  "knowledge_required": [
+    "graph_theory_basics",
+    "clique_cover",
+    "potential_function_invariant",
+    "4_cycle_structure",
+    "combinatorial_counting",
+    "graph_completion_process",
+    "merge_algorithm"
+  ],
+  "key_insight": "Maintain a clique cover where each clique K satisfies 3|K| <= 2*(owned original edges) + 4; the merge algorithm terminates with all 4-cycle edges sharing one label, forcing a single universal clique that yields 3n <= 2e + 4",
+  "translation_from": "direct_edge_counting",
+  "translation_to": "clique_cover_invariant",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "clique_cover",
+    "theta_bound",
+    "4_cycle_label",
+    "merge_algorithm",
+    "terminal_cover",
+    "potential_invariant",
+    "shared_edge_hub",
+    "phase_completion"
+  ],
+  "expected_ai_method": "direct_calculation",
+  "correct_method": "clique_cover_invariant",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a graph optimization problem and tries to identify the key constraint and goal",
+      "hint": "Describe the problem as a graph completion process with a local rule: add edge between non-adjacent vertices with >=2 common neighbors, minimize initial edges for completability to complete graph",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["graph_completion", "local_rule", "common_neighbors"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but gravitates toward direct counting and degree analysis",
+      "hint": "List all possible approaches including invariant-based methods, clique covers, and potential functions",
+      "hint_level": 0.3,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["degree_analysis", "potential_function", "clique_cover", "extremal_construction"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries degree-based lower bound, gets weak result (~2022 edges from minimum degree 2)",
+      "hint": "Try a simple degree-based argument and observe why it is insufficient: the completion process increases degrees, so static degree counting cannot capture the dynamic",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["minimum_degree", "weak_bound", "degree_counting", "dynamic_process"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI realizes direct counting is insufficient, needs a structural invariant preserved during completion",
+      "hint": "Think about what invariant is preserved during the completion process. Maintain a clique cover where each clique K owns at least 3|K|/2 - 2 original edges (theta_bound: 3|K| <= 2*owned + 4)",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["clique_cover", "theta_bound", "potential_invariant", "edge_ownership"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the invariant but does not see how the terminal state of the merge algorithm yields the bound",
+      "hint": "Analyze the terminal state: when no moves remain and graph is completable, G'=complete graph, all 4-cycle edges share one label K*=universal vertex set, theta_bound gives 3n<=2e+4",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["terminal_cover", "4_cycle_label", "universal_clique", "merge_termination"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the lower bound but needs a matching construction achieving exactly 3031 edges",
+      "hint": "Construct a graph with a shared hub edge 0-1 and 1010 4-cycles 0-1-x_i-y_i-0, giving 1+1010*3=3031 edges. The shared edge provides common friends for Phase 1",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["shared_edge_hub", "4_cycle_construction", "edge_count_3031"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the construction but needs to verify completability through explicit phases",
+      "hint": "Show two-phase completion: Phase 1 adds 0-x_i and 1-y_i using 4-cycle structure; Phase 2 uses 0 and 1 as common friends to connect all 2020 remaining vertices into a clique",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["phase_completion", "common_friends_hub", "clique_formation"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI has both bounds matching at 3031, ready to conclude",
+      "hint": "Verify the answer 3031 and summarize: lower bound 3n<=2e+4 gives e>=3031, construction achieves exactly 3031",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["answer_verification", "bound_matching", "3031"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from problem statement to answer 3031",
+      "observation_point": null,
+      "tell": "The solution requires a non-obvious invariant (clique cover with theta bound 3|K|<=2e_K+4) maintained through a merge algorithm, and the terminal state of this algorithm directly yields the lower bound 3n<=2e+4",
+      "hint": "Design a potential function based on clique covers that is preserved during the completion process, and analyze its terminal state to extract the bound",
+      "hint_level": 0.7,
+      "generalizability": "high - the clique cover invariant technique generalizes to many graph completion and extremal problems with local growth rules",
+      "why_not_visible_locally": "The clique cover invariant is a global structure that emerges only when considering the entire completion process as a sequence of clique merges. In any single step of adding an edge, the local operation does not reveal the need for a cover-based potential function. The terminal state analysis (all 4-cycle edges sharing one label, forcing a single universal clique) is only visible after understanding the full merge algorithm trajectory from initial cover to termination.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["clique_cover", "theta_bound", "merge_algorithm", "terminal_state", "potential_invariant"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the construction's shared hub edge design connecting lower bound to upper bound",
+      "observation_point": "R6",
+      "tell": "The construction uses a single shared edge (0-1) as a hub with 1010 4-cycles all sharing this edge. This design is not obvious from the lower bound alone - it requires recognizing that a shared edge enables efficient Phase 1 completion by providing two common friends for every 4-cycle",
+      "hint": "Design the construction around a shared hub edge that serves as the common friend pair for all 4-cycles, matching the linear-in-n structure of the lower bound",
+      "hint_level": 0.6,
+      "generalizability": "medium - the shared hub pattern applies to similar graph completion problems with common-neighbor constraints, but the specific 4-cycle sharing structure is tailored to the >=2 common friends rule",
+      "why_not_visible_locally": "The shared hub edge design is an implicit consequence of the lower bound structure (3n<=2e+4 implies each vertex contributes approximately 3/2 edges on average, suggesting a sparse hub-and-spoke design). The connection between the lower bound's linear-in-n coefficient 3/2 and the construction's hub edge with 3 edges per 4-cycle is not visible in any single step of the solution - it requires simultaneously understanding the lower bound proof and designing a matching construction.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["shared_edge_hub", "4_cycle_construction", "hub_spoke_design", "phase_completion"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try direct degree-counting or simple combinatorial arguments, getting a weak lower bound around 2022 (minimum degree 2). It would not discover the clique cover invariant or the theta bound. For the upper bound, it might try constructions without a shared hub edge, leading to either too many edges or graphs that cannot be completed.",
+  "suitable_for_poc": ["tell_detection", "hint_injection", "topology_matching"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "描述这道题的结构：有哪些数学对象？约束条件是什么？目标是什么？",
+        "expected_answer": "这是一个图论问题。2022个顶点的简单图，合法操作是在两个非邻接且有≥2个共同邻居的顶点间加边。目标是找到最少的初始边数使得图能通过合法操作序列到达完全图。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.3,
+        "question": "列出所有可能用于建立下界的方法",
+        "expected_answer": "直接度数分析、势函数/不变量、归纳法、clique cover、谱方法、极值图论、计数论证..."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试一个简单的度数论证：如果边太少，能否证明图无法完成？",
+        "expected_answer": "简单度数论证给出弱下界：每个顶点至少需要度数≥2才能获得第一条新边，这给出至少2022条边，远不够紧。问题在于完成过程会增加度数，度数论证无法捕捉动态过程。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "不要追踪度数，思考完成过程中什么不变量被保持。考虑维护一个clique cover，每个clique K\"拥有\"原图的一些边，满足3|K|≤2·(拥有的边数)+4",
+        "expected_answer": "可以维护一个cover：clique集合C+标签函数ℓ，每条边属于一个clique，每个clique K满足theta_bound: 3|K|≤2·(属于K的原始边数)+4。初始时每条边一个K₂，满足3×2≤2×1+4=6。当4-环的边标签不同时，可以合并这些clique，新clique仍满足theta_bound。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "发展这个clique cover论证。当完成过程终止时会发生什么？",
+        "expected_answer": "merge算法终止时（clique数有限），所有4-环的4条边共享同一标签。如果图可完成，终止态G'=⊤（完全图），无合法操作。所有边共享标签K*=全集，theta_bound给出3n≤2e+4，即e≥(3×2022-4)/2=3031。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "现在构造一个达到这个下界的图。思考什么结构允许高效完成",
+        "expected_answer": "需要一个图使得完成过程高效。关键想法：用一条共享hub边0-1，每个i创建4-环0-1-x_i-y_i-0。共1+1010×3=3031条边。共享边0-1为Phase 1提供所需的两个共同好友。"
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "证明这个构造是可完成的。完成的阶段是什么？",
+        "expected_answer": "Phase 1：对每个i，加边0-x_i（共同好友1和y_i）和1-y_i（共同好友0和x_i）。Phase 1后所有非{0,1}顶点都与0和1相邻。Phase 2：用0和1作为两个共同好友，将剩余2020个顶点两两连接成clique，完成完全图。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "验证答案并总结论证",
+        "expected_answer": "下界3n≤2e+4给出e≥3031，构造恰好达到3031条边。答案为3031。核心是clique cover不变量+merge算法终止分析，配合hub边构造的两阶段完成。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 3.8,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 2022 P6. Graph completion with >=2 common neighbors rule. Key insight: clique cover invariant with theta_bound 3|K|<=2e_K+4, merge algorithm termination gives 3n<=2e+4. Construction: hub edge 0-1 with 1010 4-cycles, 3031 edges, two-phase completion. No topology evolution needed."
+  }
+}

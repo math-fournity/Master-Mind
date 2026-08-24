@@ -1,0 +1,1688 @@
+For each integer $k\geq 2$, determine all infinite sequences of positive integers $a_1$, $a_2$, $\ldots$ for which there exists a polynomial $P$ of the form \[ P(x)=x^k+c_{k-1}x^{k-1}+\dots + c_1 x+c_0, \] where $c_0$, $c_1$, \dots, $c_{k-1}$ are non-negative integers, such that \[ P(a_n)=a_{n+1}a_{n+2}\cdots a_{n+k} \] for every integer $n\geq 1$.
+
+=== 你之前的思考过程（Round 2，被截断）===
+
+你已经在上一轮中开始了这道题的思考，但因为输出长度限制，思考过程被截断了。
+以下是你之前的完整思考过程，请仔细阅读，在此基础上**继续**思考并完成解答（不要从头开始）：
+
+Let me analyze this problem carefully.
+
+**Problem**: For each integer $k \geq 2$, determine all infinite sequences of positive integers $a_1, a_2, \ldots$ for which there exists a polynomial $P(x) = x^k + c_{k-1}x^{k-1} + \dots + c_1 x + c_0$ with non-negative integer coefficients, such that $P(a_n) = a_{n+1} a_{n+2} \cdots a_{n+k}$ for every $n \geq 1$.
+
+Let me think about this step by step.
+
+First, let me check for answer leaks in the problem text. The problem is stated cleanly without any solutions or hints. No leak detected.
+
+Let me explore. We have $P(a_n) = a_{n+1} a_{n+2} \cdots a_{n+k}$.
+
+Since $P(x) = x^k + c_{k-1}x^{k-1} + \dots + c_0$ with $c_i \geq 0$, we have $P(x) \geq x^k$ for all positive integers $x$.
+
+So $a_{n+1} a_{n+2} \cdots a_{n+k} \geq a_n^k$.
+
+Also $P(x) \geq c_0 \geq 0$, and since coefficients are non-negative, $P$ is increasing on positive reals.
+
+Let me try the simplest case: constant sequence $a_n = c$ for all $n$. Then $P(c) = c^k$. So $c^k + c_{k-1}c^{k-1} + \dots + c_0 = c^k$, which means $c_{k-1}c^{k-1} + \dots + c_0 = 0$, so all $c_i = 0$. Thus $P(x) = x^k$ works for any constant sequence $a_n = c$.
+
+So constant sequences work with $P(x) = x^k$.
+
+Now let me think about non-constant sequences.
+
+Let me try $a_n = n$ or geometric sequences.
+
+Try $a_n = r^n$ for some $r$. Then $P(r^n) = r^{n+1} \cdot r^{n+2} \cdots r^{n+k} = r^{(n+1)+(n+2)+\dots+(n+k)} = r^{kn + k(k+1)/2}$.
+
+And $P(r^n) = r^{kn} + c_{k-1} r^{(k-1)n} + \dots + c_0$.
+
+For this to equal $r^{kn + k(k+1)/2}$, we need $r^{kn}(1 + c_{k-1}r^{-n} + \dots + c_0 r^{-kn}) = r^{kn} \cdot r^{k(k+1)/2}$.
+
+So $1 + c_{k-1}r^{-n} + \dots + c_0 r^{-kn} = r^{k(k+1)/2}$ for all $n$. As $n \to \infty$, the LHS $\to 1$, so $r^{k(k+1)/2} = 1$, meaning $r = 1$. So geometric with $r > 1$ doesn't work.
+
+Let me try a different approach. Let me think about growth rates.
+
+Let $M_n = \max(a_n, a_{n+1}, \dots, a_{n+k})$ or something similar.
+
+Actually, let me think about this more carefully. Let's denote $b_n = a_{n+1} a_{n+2} \cdots a_{n+k} = P(a_n)$.
+
+Then $b_n = P(a_n) \geq a_n^k$.
+
+Also $b_{n+1} = P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1}$.
+
+So $\frac{b_{n+1}}{b_n} = \frac{a_{n+k+1}}{a_{n+1}}$.
+
+And $\frac{P(a_{n+1})}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}}$.
+
+Hmm, let me think about whether the sequence must be constant.
+
+Let me try small cases. For $k = 2$: $P(a_n) = a_{n+1} a_{n+2}$, where $P(x) = x^2 + c_1 x + c_0$.
+
+So $a_n^2 + c_1 a_n + c_0 = a_{n+1} a_{n+2}$.
+
+Let me try $a_n = n$. Then $n^2 + c_1 n + c_0 = (n+1)(n+2) = n^2 + 3n + 2$. So $c_1 = 3, c_0 = 2$. Both non-negative. This works!
+
+So $a_n = n$ works for $k = 2$ with $P(x) = x^2 + 3x + 2 = (x+1)(x+2)$.
+
+Interesting! Let me check: $P(a_n) = (n+1)(n+2) = a_{n+1} a_{n+2}$. Yes!
+
+So for $k = 2$, $a_n = n$ works. Let me try $a_n = n$ for general $k$.
+
+$P(n) = (n+1)(n+2)\cdots(n+k)$. This is a polynomial of degree $k$ in $n$ with leading coefficient 1, and all coefficients are positive (they're elementary symmetric polynomials of $1, 2, \ldots, k$ which are all positive). So $P(x) = (x+1)(x+2)\cdots(x+k) = \binom{x+k}{k} \cdot k!$... wait, let me just expand.
+
+$(x+1)(x+2)\cdots(x+k) = x^k + e_1 x^{k-1} + \dots + e_k$ where $e_j$ is the $j$-th elementary symmetric polynomial of $1, 2, \ldots, k$. All $e_j > 0$ since they're sums of products of positive integers. So all coefficients are positive integers. 
+
+So $a_n = n$ works for all $k$ with $P(x) = (x+1)(x+2)\cdots(x+k)$.
+
+Now, what about $a_n = n + d$ for some constant $d \geq 0$? Then $P(n+d) = (n+d+1)(n+d+2)\cdots(n+d+k)$. So $P(x) = (x+1)(x+2)\cdots(x+k)$, same polynomial. And $a_{n+1} a_{n+2} \cdots a_{n+k} = (n+d+1)(n+d+2)\cdots(n+d+k) = P(n+d)$. Yes, this works!
+
+So $a_n = n + d$ for any non-negative integer $d$ works for all $k$.
+
+Wait, but we need $a_n$ to be positive integers. $a_n = n + d$ with $d \geq 0$ gives positive integers. With $d = 0$, $a_n = n$. With $d \geq 1$, $a_n = n + d \geq d + 1 \geq 2$.
+
+Actually, let me reconsider. What about $a_n = cn + d$ for some $c$?
+
+If $a_n = cn + d$, then $a_{n+1} \cdots a_{n+k} = \prod_{i=1}^{k} (c(n+i) + d) = \prod_{i=1}^{k} (cn + ci + d)$.
+
+And $P(a_n) = P(cn + d)$. For this to work, $P(cn+d) = \prod_{i=1}^{k}(cn + ci + d)$, so $P(x) = \prod_{i=1}^{k}(x + ci)$. The leading coefficient is 1, and the coefficients are elementary symmetric polynomials of $c, 2c, \ldots, kc$, which are all non-negative (positive if $c > 0$). So this works for any $c \geq 1$ and $d \geq 0$.
+
+Wait, but we need $a_n$ to be positive integers. $a_n = cn + d$ with $c \geq 1, d \geq 0$ gives positive integers.
+
+So $a_n = cn + d$ works for all $k$, with $P(x) = \prod_{i=1}^{k}(x + ci)$.
+
+Hmm wait, let me double-check. $a_n = cn + d$. $P(a_n) = \prod_{i=1}^k (a_n + ci) = \prod_{i=1}^k (cn + d + ci) = \prod_{i=1}^k (c(n+i) + d) = \prod_{i=1}^k a_{n+i}$. Yes!
+
+So arithmetic progressions $a_n = cn + d$ with $c \geq 1, d \geq 0$ all work.
+
+Now, are there other solutions? Let me think about whether the sequence must be an arithmetic progression.
+
+Let me consider the general case more carefully. We have $P(a_n) = a_{n+1} \cdots a_{n+k}$.
+
+Let me think about this differently. Consider the "shift" operator. We have a recurrence-like relation.
+
+Actually, let me think about what happens if the sequence is eventually periodic or has some other structure.
+
+Let me try $a_n = 2^n$ for $k = 2$. $P(2^n) = 2^{n+1} \cdot 2^{n+2} = 2^{2n+3}$. And $P(2^n) = 2^{2n} + c_1 \cdot 2^n + c_0$. For this to equal $2^{2n+3} = 8 \cdot 2^{2n}$, we need $2^{2n}(1 + c_1 2^{-n} + c_0 2^{-2n}) = 8 \cdot 2^{2n}$, so $1 + c_1 2^{-n} + c_0 2^{-2n} = 8$ for all $n$. As $n \to \infty$, LHS $\to 1 \neq 8$. Contradiction. So exponential doesn't work.
+
+What about $a_n = n^2$ for $k = 2$? $P(n^2) = (n+1)^2 (n+2)^2$. $P(x) = (x + 2n + 1)(x + 2n + 3)$... no, this depends on $n$, so it's not a fixed polynomial. Let me compute: $(n+1)^2(n+2)^2 = (n^2+2n+1)(n^2+4n+4)$. Let $x = n^2$. Then this is $(x + 2n + 1)(x + 4n + 4)$, which depends on $n$ beyond just $x = n^2$. So no fixed polynomial works. So $a_n = n^2$ doesn't work.
+
+Let me think about this more generally. The key insight might be that the sequence must be an arithmetic progression.
+
+Let me try to prove this. Consider the relation $P(a_n) = a_{n+1} \cdots a_{n+k}$.
+
+Let me take logarithms or think about ratios. Actually, let me think about the growth rate.
+
+If $a_n \to \infty$, then $P(a_n) \sim a_n^k$, so $a_{n+1} \cdots a_{n+k} \sim a_n^k$. By AM-GM, $\left(\prod_{i=1}^k a_{n+i}\right)^{1/k} \leq \frac{1}{k}\sum_{i=1}^k a_{n+i}$, and the product is $\sim a_n^k$, so the geometric mean is $\sim a_n$.
+
+Let me think about whether the sequence can be unbounded but not an arithmetic progression.
+
+Actually, let me consider the case where the sequence is bounded. If $a_n \leq M$ for all $n$, then since $a_n$ are positive integers, the sequence takes finitely many values. By pigeonhole, some value repeats infinitely often. 
+
+Actually, if the sequence is bounded, it must be eventually periodic (since it's determined by a finite-state recurrence... wait, is it? The recurrence is $a_{n+1} \cdots a_{n+k} = P(a_n)$, which involves $k$ consecutive terms. So the state is $(a_n, a_{n+1}, \ldots, a_{n+k-1})$, and $a_{n+k}$ is determined by $a_{n+k} = P(a_n) / (a_{n+1} \cdots a_{n+k-1})$. For this to give an integer, we need divisibility. But if the sequence is bounded, there are finitely many states, so it's eventually periodic.
+
+If the sequence is eventually periodic with period $T$, then $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_{n+T}) = a_{n+T+1} \cdots a_{n+T+k}$. Since $a_{n+T+i} = a_{n+i}$, we get $P(a_{n+T}) = P(a_n)$, so $a_{n+T} = a_n$ (since $P$ is eventually injective on positive integers — actually $P$ is strictly increasing on positive reals since all coefficients are non-negative and leading coefficient is positive). So the sequence is periodic (not just eventually periodic, but actually periodic from the start, or at least the periodicity is consistent).
+
+Hmm, actually let me reconsider. If the sequence is periodic with period $T$, then for all $n$, $a_{n+T} = a_n$. The relation $P(a_n) = a_{n+1} \cdots a_{n+k}$ is automatically satisfied as long as it holds for one period. So we need a periodic sequence where $P(a_n) = a_{n+1} \cdots a_{n+k}$ for all $n$.
+
+For a constant sequence $a_n = c$, we already showed $P(x) = x^k$ works.
+
+For a non-constant periodic sequence, say period 2: $a, b, a, b, \ldots$ with $a \neq b$. For $k = 2$: $P(a) = b \cdot a$ and $P(b) = a \cdot b$. So $P(a) = P(b) = ab$. Since $P$ is strictly increasing on positive integers (as $P(x+1) - P(x) > 0$ for $x \geq 1$ when coefficients are non-negative), $P(a) = P(b)$ implies $a = b$. Contradiction. So non-constant period-2 doesn't work for $k = 2$.
+
+More generally, for any periodic sequence with period $T$, consider $n$ and $n+T$. We have $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_{n+T}) = a_{n+T+1} \cdots a_{n+T+k} = a_{n+1} \cdots a_{n+k}$. So $P(a_n) = P(a_{n+T})$, hence $a_n = a_{n+T}$. This is consistent but doesn't force $a = b$; it just confirms periodicity. 
+
+Wait, but the question is whether a non-constant periodic sequence can satisfy the relation. Let me reconsider for $k = 2$, period 2: $a_1 = a, a_2 = b, a_3 = a, a_4 = b, \ldots$
+
+$P(a_1) = a_2 a_3 = ba$, so $P(a) = ab$.
+$P(a_2) = a_3 a_4 = ab$, so $P(b) = ab$.
+
+Since $P$ is strictly increasing, $a = b$. So no non-constant period-2 for $k=2$.
+
+For $k = 3$, period 2: $a, b, a, b, a, b, \ldots$
+$P(a_1) = a_2 a_3 a_4 = b \cdot a \cdot b = ab^2$, so $P(a) = ab^2$.
+$P(a_2) = a_3 a_4 a_5 = a \cdot b \cdot a = a^2 b$, so $P(b) = a^2 b$.
+
+So $P(a) = ab^2$ and $P(b) = a^2 b$. If $a \neq b$, say $a < b$, then $P(a) < P(b)$ requires $ab^2 < a^2 b$, i.e., $b < a$. Contradiction. If $a > b$, then $P(a) > P(b)$ requires $ab^2 > a^2 b$, i.e., $b > a$. Contradiction. So $a = b$.
+
+For general $k$ and period 2: $a, b, a, b, \ldots$
+If $k$ is even, the product $a_{n+1} \cdots a_{n+k}$ has $k/2$ copies of $a$ and $k/2$ copies of $b$ regardless of starting point. So $P(a) = P(b) = a^{k/2} b^{k/2}$, forcing $a = b$.
+
+If $k$ is odd, starting from $a$: product has $(k-1)/2$ copies of $a$ and $(k+1)/2$ copies of $b$, so $P(a) = a^{(k-1)/2} b^{(k+1)/2}$. Starting from $b$: $P(b) = a^{(k+1)/2} b^{(k-1)/2}$. If $a < b$, then $P(a) < P(b)$ requires $a^{(k-1)/2} b^{(k+1)/2} < a^{(k+1)/2} b^{(k-1)/2}$, i.e., $b < a$. Contradiction. So $a = b$.
+
+So period 2 always forces constant. What about longer periods?
+
+For period $T$ and general $k$: Let $S_n = a_{n+1} \cdots a_{n+k}$. Since the sequence is periodic with period $T$, $S_n$ is also periodic with period $T$. And $P(a_n) = S_n$. Since $P$ is injective on positive integers, $a_n$ is determined by $S_n$, and $a_n$ has period $T$ as well.
+
+The question is: can we have a non-constant periodic sequence satisfying the relation? Let me try period 3 for $k = 2$: $a, b, c, a, b, c, \ldots$
+
+$P(a) = bc$, $P(b) = ca$, $P(c) = ab$.
+
+If $a \leq b \leq c$ (WLOG by reindexing... well, not exactly WLOG since the order matters, but let's say $a < b < c$). Then $P(a) < P(b) < P(c)$, so $bc < ca < ab$. But $bc < ca$ means $b < a$ (since $c > 0$), contradicting $a < b$. So no.
+
+If $a < b < c$: $P(a) = bc$, $P(b) = ca$, $P(c) = ab$. $P(a) < P(b) < P(c)$ gives $bc < ca < ab$. From $bc < ca$: $b < a$. Contradiction with $a < b$.
+
+If $a = b < c$: $P(a) = ac$, $P(b) = ca$, $P(c) = a^2$. $P(a) = P(b) = ac$ (consistent since $a = b$). $P(c) = a^2$. Since $c > a$, $P(c) > P(a)$, so $a^2 > ac$, i.e., $a > c$. Contradiction.
+
+If $a < b = c$: $P(a) = b^2$, $P(b) = ba$, $P(c) = ab$. $P(b) = P(c) = ab$ (consistent). $P(a) = b^2 > P(b) = ab$ since $b > a$. But $a < b$ means $P(a) < P(b)$. Contradiction since $b^2 > ab$.
+
+So for $k = 2$, period 3 also forces constant. 
+
+I suspect that for any period, the sequence must be constant. Let me try to prove this in general.
+
+For a periodic sequence with period $T$, let $m = \min(a_n)$ and $M = \max(a_n)$. Let $n_0$ be such that $a_{n_0} = m$. Then $P(m) = a_{n_0+1} \cdots a_{n_0+k} \geq m^k$ (since each $a_{n_0+i} \geq m$). But also $P(m) = m^k + c_{k-1}m^{k-1} + \dots + c_0 \geq m^k$. Equality $P(m) = m^k$ holds iff all $c_i = 0$ and all $a_{n_0+i} = m$.
+
+Similarly, let $n_1$ be such that $a_{n_1} = M$. Then $P(M) = a_{n_1+1} \cdots a_{n_1+k} \leq M^k$. But $P(M) = M^k + c_{k-1}M^{k-1} + \dots + c_0 \geq M^k$. So $P(M) = M^k$, meaning all $c_i = 0$ and all $a_{n_1+i} = M$.
+
+If all $c_i = 0$, then $P(x) = x^k$, and $a_{n+1} \cdots a_{n+k} = a_n^k$. By AM-GM, $\left(\prod a_{n+i}\right)^{1/k} \leq \frac{\sum a_{n+i}}{k}$, and the product equals $a_n^k$, so $a_n \leq \frac{\sum a_{n+i}}{k}$.
+
+Also, if all $c_i = 0$ and the sequence is periodic, then from $a_{n_0}$ being the minimum with all $a_{n_0+i} = m$, and from $a_{n_1}$ being the maximum with all $a_{n_1+i} = M$, we get that from any minimum, the next $k$ terms are all minimum, and from any maximum, the next $k$ terms are all maximum. By induction, all terms are equal. So the sequence is constant.
+
+Wait, I need to be more careful. From $n_0$ (where $a_{n_0} = m$), we get $a_{n_0+1} = \cdots = a_{n_0+k} = m$. Then from $n_0+1$ (where $a_{n_0+1} = m$), we get $a_{n_0+2} = \cdots = a_{n_0+k+1} = m$. Continuing, all terms are $m$. So the sequence is constant.
+
+Great, so periodic sequences must be constant.
+
+Now, for unbounded sequences, I need to show they must be arithmetic progressions.
+
+Let me think about this more carefully. Let me consider the relation $P(a_n) = a_{n+1} \cdots a_{n+k}$ and try to understand the structure.
+
+Let me try a different approach. Consider the polynomial $P(x) = x^k + c_{k-1}x^{k-1} + \dots + c_0$. We can write $P(x) = \prod_{i=1}^k (x + r_i)$ where $r_i$ are complex numbers (roots of $P(-x) = 0$, i.e., $r_i$ are such that $P(x) = \prod(x + r_i)$). Since the coefficients are non-negative integers, the $r_i$ are algebraic integers (roots of $(-1)^k P(-x) = x^k - c_{k-1}x^{k-1} + \dots$). Actually, $P(x) = \prod(x + r_i)$ means $r_i$ are roots of $P(-x) = (-x)^k + c_{k-1}(-x)^{k-1} + \dots + c_0 = (-1)^k x^k + c_{k-1}(-1)^{k-1}x^{k-1} + \dots + c_0$.
+
+Hmm, this might not lead anywhere nice since the $r_i$ might be complex.
+
+Let me try yet another approach. Let me consider the case where $P(x) = (x + d_1)(x + d_2) \cdots (x + d_k)$ for non-negative integers $d_1 \leq d_2 \leq \dots \leq d_k$. Then $P(a_n) = \prod(a_n + d_i)$. The condition becomes $\prod(a_n + d_i) = \prod a_{n+i}$.
+
+If $a_{n+i} = a_n + d_i$ for each $i$, then this works. This means $a_{n+1} = a_n + d_1, a_{n+2} = a_n + d_2, \ldots, a_{n+k} = a_n + d_k$. But this requires $a_{n+2} = a_n + d_2$ and also $a_{n+2} = a_{n+1} + d_1 = a_n + d_1 + d_1 = a_n + 2d_1$. So $d_2 = 2d_1$. Similarly, $a_{n+3} = a_n + d_3 = a_{n+1} + d_2 = a_n + d_1 + 2d_1 = a_n + 3d_1$, so $d_3 = 3d_1$. In general, $d_i = i \cdot d_1$.
+
+So if $d_i = i \cdot c$ for some constant $c$, then $a_n = cn + d$ (arithmetic progression with common difference $c$) and $P(x) = \prod_{i=1}^k (x + ic)$.
+
+But wait, I assumed $P$ factors as a product of linear factors with non-negative integer roots. Not all polynomials with non-negative integer coefficients factor this way over the integers. For example, $x^2 + 1$ doesn't factor over the integers.
+
+So the question is: does $P$ have to factor as $\prod(x + d_i)$ with non-negative integers $d_i$?
+
+Let me think about this differently. Let me consider the general case.
+
+We have $P(a_n) = a_{n+1} \cdots a_{n+k}$ for all $n \geq 1$.
+
+Let me consider the ratio $\frac{a_{n+k}}{a_n}$. We have:
+$P(a_n) = a_{n+1} \cdots a_{n+k}$
+$P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1}$
+
+Dividing: $\frac{P(a_{n+1})}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}}$.
+
+So $a_{n+k+1} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)}$.
+
+This is a recurrence relation. Given $a_1, \ldots, a_k$, we can determine $a_{k+1}$ from $P(a_1) = a_2 \cdots a_{k+1}$, so $a_{k+1} = P(a_1)/(a_2 \cdots a_k)$. Then $a_{k+2} = P(a_2)/(a_3 \cdots a_{k+1})$, etc.
+
+So the sequence is determined by $a_1, \ldots, a_k$ and $P$, subject to the divisibility conditions.
+
+Let me think about the asymptotic behavior. If $a_n \to \infty$, then $P(a_n) \sim a_n^k$, so $\prod_{i=1}^k a_{n+i} \sim a_n^k$. Taking logs: $\sum_{i=1}^k \log a_{n+i} \sim k \log a_n$.
+
+If $a_n \sim cn + d$ (linear growth), then $\sum \log(c(n+i)+d) \sim k \log(cn + d) + \sum \log(1 + \frac{ci}{cn+d}) \sim k \log a_n + \frac{c}{a_n} \sum i = k \log a_n + \frac{ck(k+1)}{2a_n}$.
+
+And $\log P(a_n) = k \log a_n + \log(1 + c_{k-1}/a_n + \dots) \sim k \log a_n + c_{k-1}/a_n$.
+
+So we need $c_{k-1}/a_n \sim \frac{ck(k+1)}{2a_n}$, giving $c_{k-1} = \frac{ck(k+1)}{2} = c \cdot \frac{k(k+1)}{2}$.
+
+For the arithmetic progression $a_n = cn + d$ with $P(x) = \prod_{i=1}^k (x + ic)$, the coefficient of $x^{k-1}$ is $\sum_{i=1}^k ic = c \cdot \frac{k(k+1)}{2}$. This matches!
+
+OK so the asymptotic analysis is consistent with arithmetic progressions. But I need to prove that these are the ONLY solutions.
+
+Let me think about this more carefully. Let me try to use the structure of the problem.
+
+Let me define $f(n) = \log a_n$ (working informally). The relation is $\sum_{i=1}^k f(n+i) = \log P(e^{f(n)})$. If $a_n$ is large, $\log P(a_n) \approx k f(n) + c_{k-1}/a_n + \ldots$.
+
+Actually, let me try a more algebraic approach.
+
+Consider the polynomial $Q(x) = P(x) - (x+d_1)(x+d_2)\cdots(x+d_k)$ for some choice of $d_i$. Hmm, this is getting complicated.
+
+Let me try a different tactic. Let me consider the "telescoping" structure.
+
+We have $P(a_n) = a_{n+1} \cdots a_{n+k}$.
+
+Let's write $P(x) = \prod_{j=1}^k (x + \alpha_j)$ where $\alpha_j$ are the roots of $P(-x) = 0$ (in $\mathbb{C}$). Then $P(a_n) = \prod_{j=1}^k (a_n + \alpha_j) = \prod_{i=1}^k a_{n+i}$.
+
+So $\prod_{j=1}^k (a_n + \alpha_j) = \prod_{i=1}^k a_{n+i}$.
+
+This means $\prod_{j=1}^k \frac{a_n + \alpha_j}{a_{n+j}} = 1$... no, that's not right because the indexing doesn't match up.
+
+Actually, we just have $\prod_{j=1}^k (a_n + \alpha_j) = \prod_{i=1}^k a_{n+i}$. This is an equality of products but the factors don't correspond.
+
+Let me think about this problem from the perspective of the original problem (this looks like an olympiad problem, possibly IMO). Let me think about what the answer should be.
+
+Based on my analysis:
+- Constant sequences $a_n = c$ work (with $P(x) = x^k$).
+- Arithmetic progressions $a_n = cn + d$ with $c \geq 1, d \geq 0$ work (with $P(x) = \prod_{i=1}^k (x + ic)$).
+
+Note that constant sequences are a special case of arithmetic progressions with $c = 0$... but wait, if $c = 0$, then $a_n = d$ for all $n$, and $P(x) = \prod_{i=1}^k (x + 0) = x^k$. So constant sequences are the case $c = 0$.
+
+But the problem says $c \geq 0$ for coefficients, and $a_n$ are positive integers. If $c = 0$ (common difference), then $a_n = d$ for all $n$, which requires $d \geq 1$.
+
+So the answer might be: all arithmetic progressions $a_n = cn + d$ where $c \geq 0, d \geq 1$ are integers, with $P(x) = \prod_{i=1}^k (x + ic)$ (where for $c = 0$, $P(x) = x^k$).
+
+Wait, but I should check: are there solutions where $P$ doesn't factor as $\prod(x + ic)$?
+
+For instance, for $k = 2$, could we have $P(x) = x^2 + x + 1$? Then $a_n^2 + a_n + 1 = a_{n+1} a_{n+2}$. Let me try $a_1 = 1$: $1 + 1 + 1 = 3 = a_2 a_3$. Possible: $a_2 = 1, a_3 = 3$. Then $P(a_2) = 1 + 1 + 1 = 3 = a_3 a_4$, so $a_4 = 1$. Then $P(a_3) = 9 + 3 + 1 = 13 = a_4 a_5 = a_5$, so $a_5 = 13$. Then $P(a_4) = 1 + 1 + 1 = 3 = a_5 a_6 = 13 a_6$, so $a_6 = 3/13$. Not an integer. So this doesn't work.
+
+Let me try $a_1 = 2$: $4 + 2 + 1 = 7 = a_2 a_3$. Options: $(1,7), (7,1)$. Try $a_2 = 1, a_3 = 7$: $P(1) = 3 = 7 a_4$, $a_4 = 3/7$. No. Try $a_2 = 7, a_3 = 1$: $P(7) = 49 + 7 + 1 = 57 = a_3 a_4 = a_4$, $a_4 = 57$. $P(1) = 3 = 57 a_5$, no.
+
+So $P(x) = x^2 + x + 1$ doesn't seem to work. This suggests that $P$ must factor as $\prod(x + ic)$.
+
+Let me try to prove that the only solutions are arithmetic progressions.
+
+**Key approach**: Let me consider the sequence $b_n = a_{n+1}/a_n$ (ratio of consecutive terms). For an arithmetic progression $a_n = cn + d$, $b_n = (c(n+1)+d)/(cn+d) = 1 + c/(cn+d) \to 1$.
+
+From the relation: $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1}$.
+
+Dividing: $\frac{P(a_{n+1})}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}}$.
+
+So $a_{n+k+1} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)}$.
+
+Also, from the original: $a_{n+1} \cdots a_{n+k} = P(a_n)$ and $a_{n+2} \cdots a_{n+k+1} = P(a_{n+1})$.
+
+Let me try to show that $a_{n+1} - a_n$ is constant.
+
+Hmm, this is a hard problem. Let me think about it differently.
+
+Let me consider the polynomial identity approach. Suppose $P(x) = \prod_{i=1}^k (x + d_i)$ where $d_i$ are non-negative integers (we'll show this must be the case). Then $P(a_n) = \prod(a_n + d_i) = \prod a_{n+i}$.
+
+So $\prod_{i=1}^k (a_n + d_i) = \prod_{i=1}^k a_{n+i}$.
+
+This means the multiset $\{a_n + d_1, \ldots, a_n + d_k\}$ and the multiset $\{a_{n+1}, \ldots, a_{n+k}\}$ have the same product. But they don't have to be the same multiset.
+
+However, if $a_{n+i} = a_n + d_i$ for all $i$, then it works. And this gives an arithmetic progression if $d_i = ic$.
+
+But could there be other arrangements? For instance, $a_{n+1} = a_n + d_2, a_{n+2} = a_n + d_1$? Then $a_{n+2} - a_{n+1} = d_1 - d_2$ and $a_{n+1} - a_n = d_2$. For consistency, $a_{n+3} - a_{n+2}$ should equal $a_{n+2} - a_{n+1}$ (if arithmetic) or follow some pattern.
+
+This is getting complicated. Let me try a cleaner approach.
+
+**Approach via polynomial factorization and growth:**
+
+Let me first establish that the sequence is either constant or unbounded.
+
+If the sequence is bounded, it's eventually periodic (as argued above), and periodic sequences must be constant. So either the sequence is constant or unbounded.
+
+Now assume the sequence is unbounded. I want to show it's an arithmetic progression.
+
+Let me consider the polynomial $P(x) = x^k + c_{k-1}x^{k-1} + \dots + c_0$. 
+
+**Step 1**: Show that $P(x) = \prod_{i=1}^k (x + r_i)$ where $r_i$ are non-negative integers.
+
+Hmm, actually this might not be necessary. Let me think about what constraints the recurrence places.
+
+Let me try to use the fact that $P(a_n) = a_{n+1} \cdots a_{n+k}$ and consider this modulo $a_n$.
+
+$P(a_n) \equiv c_0 \pmod{a_n}$, and $a_{n+1} \cdots a_{n+k} \equiv 0 \pmod{a_n}$ only if $a_n | a_{n+i}$ for some $i$. Actually, $P(a_n) = a_n^k + c_{k-1}a_n^{k-1} + \dots + c_1 a_n + c_0 \equiv c_0 \pmod{a_n}$.
+
+So $a_{n+1} \cdots a_{n+k} \equiv c_0 \pmod{a_n}$.
+
+If $c_0 = 0$, then $a_n | a_{n+1} \cdots a_{n+k}$.
+
+If $c_0 > 0$, then $a_{n+1} \cdots a_{n+k} \equiv c_0 \pmod{a_n}$, which means $\gcd(a_n, a_{n+1} \cdots a_{n+k}) | c_0$.
+
+This is getting complicated. Let me try a more direct approach.
+
+**Direct approach for $k = 2$:**
+
+$P(a_n) = a_{n+1} a_{n+2}$ where $P(x) = x^2 + c_1 x + c_0$.
+
+$P(a_{n+1}) = a_{n+2} a_{n+3}$.
+
+So $a_{n+3} = \frac{P(a_{n+1})}{a_{n+2}} = \frac{P(a_{n+1}) a_{n+1}}{P(a_n)} \cdot \frac{1}{a_{n+1}} \cdot a_{n+1}$... hmm, let me redo.
+
+From $P(a_n) = a_{n+1} a_{n+2}$: $a_{n+2} = P(a_n)/a_{n+1}$.
+From $P(a_{n+1}) = a_{n+2} a_{n+3}$: $a_{n+3} = P(a_{n+1})/a_{n+2} = P(a_{n+1}) a_{n+1} / P(a_n)$.
+
+So $a_{n+3} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)}$.
+
+For an arithmetic progression $a_n = cn + d$: $a_{n+3} = c(n+3) + d = cn + d + 3c = a_n + 3c$. And $a_{n+1} = a_n + c$. $\frac{P(a_{n+1})}{P(a_n)} = \frac{(a_{n+1}+c)(a_{n+1}+2c)}{(a_n+c)(a_n+2c)} = \frac{(a_n+2c)(a_n+3c)}{(a_n+c)(a_n+2c)} = \frac{a_n+3c}{a_n+c}$. So $a_{n+3} = (a_n+c) \cdot \frac{a_n+3c}{a_n+c} = a_n + 3c$. ✓
+
+Now, for general $k$, the recurrence is: given $a_1, \ldots, a_k$, we have $a_{n+k} = P(a_n) / (a_{n+1} \cdots a_{n+k-1})$.
+
+This is a $k$-th order recurrence. The sequence is determined by the first $k$ terms and $P$.
+
+Let me think about this problem from a higher level. This is likely an ISL or IMO problem. Let me think about what the complete answer is.
+
+I believe the answer is: **the sequence must be an arithmetic progression** $a_n = cn + d$ where $c \geq 0$ and $d \geq 1$ are integers (with $c = 0$ giving constant sequences), and the polynomial is $P(x) = \prod_{i=1}^k (x + ic)$.
+
+Wait, but I need to also check: for a given arithmetic progression $a_n = cn + d$, is $P(x) = \prod_{i=1}^k (x + ic)$ the unique polynomial that works? The problem asks for sequences for which there EXISTS a polynomial. So we just need existence.
+
+For $a_n = cn + d$ with $c \geq 1, d \geq 0$: $P(x) = \prod_{i=1}^k (x + ic)$ works, as shown. The coefficients are elementary symmetric polynomials of $c, 2c, \ldots, kc$, which are all positive integers.
+
+For $a_n = d$ (constant, $c = 0$): $P(x) = x^k$ works.
+
+Now I need to prove these are the only solutions. Let me think about the proof strategy.
+
+**Proof strategy:**
+
+1. Show that if the sequence is bounded, it must be constant.
+2. If the sequence is unbounded, show it must be an arithmetic progression.
+
+For part 1, I've essentially done this above: bounded → eventually periodic → periodic → constant (using the min/max argument).
+
+For part 2, this is the hard part. Let me think...
+
+Let me consider the unbounded case. Let $a_n \to \infty$ (since the sequence is unbounded and consists of positive integers, and... well, it might not be monotone, but let me think about subsequences).
+
+Actually, the sequence might not be monotone. But let me think about the growth.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k} \geq a_n^k$, we get that the product of any $k$ consecutive terms (starting from $n+1$) is at least $a_n^k$.
+
+Let me consider $M_n = \max(a_n, a_{n+1}, \ldots, a_{n+k})$. Then $P(a_n) = a_{n+1} \cdots a_{n+k} \leq M_n^k$. Also $P(a_n) \geq a_n^k$. So $a_n \leq M_n$. Similarly, $P(M_n) \geq M_n^k$ and... hmm, this isn't directly useful.
+
+Let me try a different approach. Let me consider the "log-convexity" or growth rate.
+
+Define $s_n = \log a_n$. Then $\sum_{i=1}^k s_{n+i} = \log P(a_n)$. Since $P(a_n) = a_n^k(1 + c_{k-1}/a_n + \ldots)$, we have $\log P(a_n) = k s_n + \log(1 + c_{k-1}/a_n + \ldots) \approx k s_n + c_{k-1}/a_n$ for large $a_n$.
+
+So $\sum_{i=1}^k s_{n+i} \approx k s_n + c_{k-1}/a_n$.
+
+If $s_n \approx \log(cn + d) \approx \log n + \log c$, then $\sum s_{n+i} \approx k \log n + k \log c + \frac{c}{cn} \cdot \frac{k(k+1)}{2} = k s_n + \frac{k(k+1)}{2n}$. And $c_{k-1}/a_n \approx c_{k-1}/(cn)$. So $c_{k-1}/c = k(k+1)/2$, i.e., $c_{k-1} = ck(k+1)/2$. This is consistent.
+
+OK let me try to think about this more carefully and come up with a rigorous proof.
+
+**Key lemma**: If $a_n$ is unbounded, then $a_{n+1} - a_n$ is eventually constant.
+
+Hmm, that's hard to prove directly. Let me think about another approach.
+
+**Approach via the polynomial $P$ and factorization:**
+
+Let $P(x) = x^k + c_{k-1}x^{k-1} + \dots + c_0$. Consider $P(x) = \prod_{j=1}^k (x - \lambda_j)$ where $\lambda_j$ are roots of $P$ (in $\mathbb{C}$). Since coefficients are non-negative, all real roots of $P$ are non-positive (by Descartes' rule or direct observation: $P(x) > 0$ for $x > 0$). So $\lambda_j \leq 0$ for real roots, and complex roots come in conjugate pairs.
+
+Actually, $P(x) = \prod(x + r_j)$ where $r_j = -\lambda_j$. The $r_j$ are roots of $P(-x) = 0$, i.e., $(-x)^k + c_{k-1}(-x)^{k-1} + \dots + c_0 = 0$, or $(-1)^k x^k + c_{k-1}(-1)^{k-1}x^{k-1} + \dots + c_0 = 0$.
+
+The $r_j$ are algebraic integers (since $P$ is monic with integer coefficients, $P(-x)$ is monic up to sign, so $r_j$ are algebraic integers). And $\text{Re}(r_j) \geq 0$ for all $j$ (since $P(x) = \prod(x + r_j)$ and $P$ has non-negative coefficients... actually, I need to check this).
+
+Hmm, the relationship between non-negative coefficients and the location of roots is not straightforward. Let me think differently.
+
+**Alternative approach**: Let me try to use the recurrence relation more directly.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$, we get:
+$$a_{n+k} = \frac{P(a_n)}{a_{n+1} \cdots a_{n+k-1}}$$
+
+And from $P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1}$:
+$$a_{n+k+1} = \frac{P(a_{n+1})}{a_{n+2} \cdots a_{n+k}} = \frac{P(a_{n+1}) \cdot a_{n+1}}{P(a_n)}$$
+
+Wait, $a_{n+2} \cdots a_{n+k} = P(a_n)/a_{n+1} \cdot a_{n+k}/a_{n+k}$... let me redo.
+
+$P(a_n) = a_{n+1} \cdot a_{n+2} \cdots a_{n+k}$
+$P(a_{n+1}) = a_{n+2} \cdot a_{n+3} \cdots a_{n+k+1}$
+
+$\frac{P(a_{n+1})}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}}$
+
+So $a_{n+k+1} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)}$.
+
+Similarly, $a_{n+k+2} = a_{n+2} \cdot \frac{P(a_{n+2})}{P(a_{n+1})}$.
+
+In general, $a_{n+k+j} = a_{n+j} \cdot \frac{P(a_{n+j})}{P(a_{n+j-1})}$ for $j \geq 1$.
+
+So the sequence from $a_{n+k+1}$ onwards is determined by $a_{n+1}, \ldots, a_{n+k}$ and $P$.
+
+Now, let me think about the sequence $d_n = a_{n+1} - a_n$ (differences). For an arithmetic progression, $d_n$ is constant. I want to show $d_n$ is constant.
+
+Let me try to use the relation $a_{n+k+1}/a_{n+1} = P(a_{n+1})/P(a_n)$.
+
+For large $a_n$, $P(a_{n+1})/P(a_n) \approx (a_{n+1}/a_n)^k \cdot \frac{1 + c_{k-1}/a_{n+1} + \ldots}{1 + c_{k-1}/a_n + \ldots}$.
+
+If $a_{n+1} = a_n + d$ for some constant $d$, then $P(a_{n+1})/P(a_n) \approx (1 + d/a_n)^k \approx 1 + kd/a_n$. And $a_{n+k+1}/a_{n+1} \approx 1 + kd/a_{n+1} \approx 1 + kd/a_n$. So this is consistent.
+
+But if $d$ varies, say $d_n = a_{n+1} - a_n$ is not constant, what happens?
+
+This is getting quite involved. Let me try to think about this problem from the competition math perspective and try to find the key ideas.
+
+**Key idea**: Consider the polynomial $P(x)$ and the sequence. The relation $P(a_n) = a_{n+1} \cdots a_{n+k}$ can be rewritten as:
+
+$$\frac{P(a_n)}{a_n^k} = \frac{a_{n+1} \cdots a_{n+k}}{a_n^k} = \prod_{i=1}^k \frac{a_{n+i}}{a_n}$$
+
+Let $r_n = a_{n+1}/a_n$. Then $\frac{a_{n+i}}{a_n} = r_n \cdot r_{n+1} \cdots r_{n+i-1}$.
+
+So $\prod_{i=1}^k (r_n \cdots r_{n+i-1}) = \frac{P(a_n)}{a_n^k} = 1 + \frac{c_{k-1}}{a_n} + \frac{c_{k-2}}{a_n^2} + \dots + \frac{c_0}{a_n^k}$.
+
+The LHS is $r_n^k \cdot r_{n+1}^{k-1} \cdots r_{n+k-1}$.
+
+So $r_n^k \cdot r_{n+1}^{k-1} \cdots r_{n+k-1} = 1 + O(1/a_n)$.
+
+Since $a_n \to \infty$ (in the unbounded case), the RHS $\to 1$. If all $r_{n+i} \to 1$ (which should be the case if $a_n$ grows at most polynomially), then this is consistent.
+
+Hmm, let me try yet another approach. Let me consider the problem for specific small $k$ and try to generalize.
+
+**Case $k = 2$ in detail:**
+
+$P(a_n) = a_{n+1} a_{n+2}$, $P(x) = x^2 + c_1 x + c_0$.
+
+From the ratio: $a_{n+3} = a_{n+1} \cdot P(a_{n+1})/P(a_n)$.
+
+Let me try to show that $a_{n+2} - a_{n+1} = a_{n+1} - a_n$ for all $n$.
+
+We have $a_{n+1} a_{n+2} = a_n^2 + c_1 a_n + c_0$ and $a_{n+2} a_{n+3} = a_{n+1}^2 + c_1 a_{n+1} + c_0$.
+
+From the first: $a_{n+2} = (a_n^2 + c_1 a_n + c_0)/a_{n+1}$.
+From the second: $a_{n+3} = (a_{n+1}^2 + c_1 a_{n+1} + c_0)/a_{n+2}$.
+
+For an AP with common difference $d$: $a_n = dn + e$, $P(x) = (x+d)(x+2d) = x^2 + 3dx + 2d^2$. So $c_1 = 3d, c_0 = 2d^2$.
+
+Let me try to prove that for $k = 2$, the only unbounded solutions are APs.
+
+We have $a_{n+1} a_{n+2} = a_n^2 + c_1 a_n + c_0$.
+
+Let $d_n = a_{n+1} - a_n$. Then $a_{n+1} = a_n + d_n$ and $a_{n+2} = a_n + d_n + d_{n+1}$.
+
+$(a_n + d_n)(a_n + d_n + d_{n+1}) = a_n^2 + c_1 a_n + c_0$
+
+$a_n^2 + a_n(2d_n + d_{n+1}) + d_n(d_n + d_{n+1}) = a_n^2 + c_1 a_n + c_0$
+
+$a_n(2d_n + d_{n+1}) + d_n(d_n + d_{n+1}) = c_1 a_n + c_0$
+
+$a_n(2d_n + d_{n+1} - c_1) = c_0 - d_n(d_n + d_{n+1})$
+
+Since $a_n \to \infty$ (unbounded case, and $a_n$ must tend to infinity... actually, I need to be more careful. The sequence is unbounded but might not tend to infinity. However, since $a_n$ are positive integers and the sequence is unbounded, there's a subsequence tending to infinity.)
+
+Actually, let me think about whether the sequence must tend to infinity. If the sequence is unbounded, there's a subsequence $a_{n_j} \to \infty$. From $P(a_{n_j}) = a_{n_j+1} \cdots a_{n_j+k} \geq a_{n_j}^k \to \infty$, so at least one of $a_{n_j+1}, \ldots, a_{n_j+k}$ also tends to infinity. By induction, we can propagate this to show that infinitely many terms tend to infinity. But does the whole sequence tend to infinity?
+
+Hmm, not necessarily. Consider a sequence that alternates between 1 and large values. But we showed that periodic sequences must be constant, and the recurrence structure might prevent such alternation.
+
+Let me think about this differently. From the equation for $k = 2$:
+
+$a_n(2d_n + d_{n+1} - c_1) = c_0 - d_n(d_n + d_{n+1})$
+
+The RHS is bounded (it depends on $d_n$ and $d_{n+1}$, which are differences of positive integers, but could be negative and unbounded in principle... wait, $d_n = a_{n+1} - a_n$ could be negative).
+
+Hmm, actually $d_n$ could be any integer (positive or negative), so $d_n(d_n + d_{n+1})$ could be unbounded. So this approach doesn't immediately work.
+
+Let me try a different approach. Let me think about the problem in terms of the polynomial $P$ factoring.
+
+**Claim**: $P(x)$ must factor as $\prod_{i=1}^k (x + r_i)$ where $r_i$ are non-negative integers with $r_i = ic$ for some non-negative integer $c$.
+
+Actually, wait. The problem says "there exists a polynomial $P$". So for a given sequence, we need to find SOME $P$ that works. The polynomial doesn't have to be unique.
+
+But I think the key insight is that the polynomial must factor in a specific way.
+
+Let me try to think about this using the theory of linear recurrences or generating functions.
+
+Actually, let me try a completely different approach. Let me consider the sequence $b_n = a_n - a_{n-1}$ (for $n \geq 2$) and try to show it's constant.
+
+Or, let me try the approach of considering the problem as a functional equation.
+
+**Functional equation approach:**
+
+We have $P(a_n) = \prod_{i=1}^k a_{n+i}$. Think of this as a "functional equation" for the sequence.
+
+Let me consider the substitution $a_n = f(n)$ for some function $f: \mathbb{N} \to \mathbb{N}$. Then $P(f(n)) = \prod_{i=1}^k f(n+i)$.
+
+If $f$ is a polynomial in $n$, say $f(n) = cn + d$, then $P(cn+d) = \prod_{i=1}^k (c(n+i)+d) = \prod_{i=1}^k (cn + d + ci)$. So $P(x) = \prod_{i=1}^k (x + ci)$, which is a polynomial with non-negative integer coefficients (elementary symmetric polynomials of $c, 2c, \ldots, kc$).
+
+Could $f$ be a higher-degree polynomial? If $f(n) = n^2$, then $P(n^2) = \prod_{i=1}^k (n+i)^2$. The LHS is a polynomial in $n^2$, i.e., only even powers of $n$. The RHS is $\prod(n+i)^2$, which has both even and odd powers (for $k \geq 1$). So for $k \geq 1$, this doesn't work (the LHS has only even powers of $n$ while the RHS has odd powers too). Actually wait, $P(n^2)$ is a polynomial in $n^2$, so it's a polynomial in $n$ with only even powers. But $\prod_{i=1}^k (n+i)^2$ is a perfect square polynomial, which generally has both even and odd powers. For example, $(n+1)^2(n+2)^2 = (n^2+2n+1)(n^2+4n+4) = n^4 + 6n^3 + 13n^2 + 12n + 4$, which has odd powers. So $P(n^2)$ can't equal this. So $f(n) = n^2$ doesn't work.
+
+More generally, if $f$ is a polynomial of degree $d \geq 2$, then $P(f(n))$ is a polynomial of degree $dk$ in $n$, while $\prod f(n+i)$ is also a polynomial of degree $dk$ in $n$. The leading coefficients match (both are $c^k$ where $c$ is the leading coefficient of $f$... wait, $P$ is monic, so $P(f(n))$ has leading coefficient equal to the leading coefficient of $f^k$, which is $c^k$ where $c$ is the leading coefficient of $f$. And $\prod f(n+i)$ has leading coefficient $c^k$ too. So leading coefficients match.
+
+But the issue is whether the polynomial $P$ can be chosen to make the identity hold. $P(f(n)) = \prod f(n+i)$ means $P(x) = \prod f(f^{-1}(x) + i)$, but $f^{-1}$ is not a polynomial in general, so $P$ might not be a polynomial.
+
+For $f(n) = cn + d$ (linear), $f^{-1}(x) = (x-d)/c$, and $P(x) = \prod_{i=1}^k (x + ci)$, which is a polynomial. ✓
+
+For $f(n) = n^2$, $f^{-1}(x) = \sqrt{x}$, and $P(x) = \prod_{i=1}^k (\sqrt{x} + i)^2 = \prod_{i=1}^k (x + 2i\sqrt{x} + i^2)$, which involves $\sqrt{x}$ and is not a polynomial. ✗
+
+For $f(n) = cn^d$ with $d \geq 2$, $f^{-1}(x) = (x/c)^{1/d}$, and $P(x) = \prod (c(f^{-1}(x) + i)^d) = \prod (x + \text{stuff involving } x^{1/d})$, not a polynomial.
+
+So polynomial $f$ of degree $\geq 2$ doesn't work. But the sequence $a_n$ doesn't have to be a polynomial in $n$.
+
+OK, I think I need to approach this more carefully. Let me try to find the key structural argument.
+
+**Key structural argument:**
+
+Let me consider the polynomial $P(x) = \prod_{j=1}^k (x + \alpha_j)$ where $\alpha_1, \ldots, \alpha_k$ are the roots of $P(-x) = 0$ (in $\mathbb{C}$, with multiplicity). Then:
+
+$$\prod_{j=1}^k (a_n + \alpha_j) = \prod_{i=1}^k a_{n+i}$$
+
+Now, consider this as an identity in the sequence. For each $n$, we have a product of $k$ terms on each side.
+
+**Key idea**: If we can show that $\{a_n + \alpha_j : 1 \leq j \leq k\} = \{a_{n+i} : 1 \leq i \leq k\}$ as multisets for each $n$, then $a_{n+i} = a_n + \alpha_{\sigma(i)}$ for some permutation $\sigma$. This would mean the sequence is determined by the $\alpha_j$ and would be an arithmetic progression if $\alpha_j$ are equally spaced.
+
+But why should the multisets be equal? Two multisets with the same product don't have to be equal. However, if we also use the relation for $n+1, n+2, \ldots$, we get more constraints.
+
+Let me think about this. We have:
+- $\prod_j (a_n + \alpha_j) = \prod_i a_{n+i}$
+- $\prod_j (a_{n+1} + \alpha_j) = \prod_i a_{n+1+i}$
+
+From the first: $\prod_j (a_n + \alpha_j) = a_{n+1} \cdots a_{n+k}$.
+From the second: $\prod_j (a_{n+1} + \alpha_j) = a_{n+2} \cdots a_{n+k+1}$.
+
+Dividing: $\frac{\prod_j (a_{n+1} + \alpha_j)}{\prod_j (a_n + \alpha_j)} = \frac{a_{n+k+1}}{a_{n+1}}$.
+
+So $\prod_j \frac{a_{n+1} + \alpha_j}{a_n + \alpha_j} = \frac{a_{n+k+1}}{a_{n+1}}$.
+
+This is one relation but doesn't immediately force the multiset equality.
+
+Let me try a different approach. Let me consider the problem using the concept of "interlacing" or "shift".
+
+**Approach via considering $P$ as a product of linear factors:**
+
+Actually, I realize that $P$ might not factor into linear factors over $\mathbb{Z}$ or even $\mathbb{R}$. For instance, $P(x) = x^2 + 1$ has complex roots. But we need $P$ to have non-negative integer coefficients. Let me check: does $P(x) = x^2 + 1$ work for any sequence?
+
+$a_n^2 + 1 = a_{n+1} a_{n+2}$. Try $a_1 = 1$: $2 = a_2 a_3$. So $(a_2, a_3) = (1, 2)$ or $(2, 1)$.
+
+Case $(1, 2)$: $a_2 = 1, a_3 = 2$. $P(a_2) = 2 = a_3 a_4 = 2 a_4$, so $a_4 = 1$. $P(a_3) = 5 = a_4 a_5 = a_5$, so $a_5 = 5$. $P(a_4) = 2 = a_5 a_6 = 5 a_6$, so $a_6 = 2/5$. Not integer. ✗
+
+Case $(2, 1)$: $a_2 = 2, a_3 = 1$. $P(a_2) = 5 = a_3 a_4 = a_4$, so $a_4 = 5$. $P(a_3) = 2 = a_4 a_5 = 5 a_5$, so $a_5 = 2/5$. ✗
+
+Try $a_1 = 2$: $5 = a_2 a_3$. $(1, 5)$: $a_2 = 1, a_3 = 5$. $P(1) = 2 = 5 a_4$, no. $(5, 1)$: $a_2 = 5, a_3 = 1$. $P(5) = 26 = a_4$, $P(1) = 2 = 26 a_5$, no.
+
+So $P(x) = x^2 + 1$ doesn't work for any infinite sequence. This suggests that $P$ must factor into linear factors with non-negative integer roots.
+
+**Conjecture**: $P(x) = \prod_{i=1}^k (x + d_i)$ where $d_i$ are non-negative integers, and $d_i = ic$ for some non-negative integer $c$.
+
+Let me try to prove that $P$ must factor this way.
+
+**Step 1**: Show that $P$ must have all roots as non-positive integers (i.e., $P(x) = \prod(x + d_i)$ with $d_i \in \mathbb{Z}_{\geq 0}$).
+
+Consider the sequence. We have $P(a_n) = \prod_{i=1}^k a_{n+i}$. 
+
+Let $p$ be a prime. Consider the $p$-adic valuation $v_p$. We have $v_p(P(a_n)) = \sum_{i=1}^k v_p(a_{n+i})$.
+
+If $p | a_n$, then $v_p(P(a_n)) = v_p(c_0)$ (since $P(a_n) \equiv c_0 \pmod{a_n}$, more precisely, $P(a_n) = a_n^k + c_{k-1}a_n^{k-1} + \dots + c_1 a_n + c_0$, so $v_p(P(a_n)) \geq \min(v_p(a_n^k), v_p(c_0))$... this is getting complicated.
+
+Let me try a different approach to show $P$ factors.
+
+**Approach via the recurrence and growth:**
+
+Let me consider the sequence more carefully. We have the recurrence:
+$$a_{n+k} = \frac{P(a_n)}{a_{n+1} \cdots a_{n+k-1}}$$
+
+For this to always give a positive integer, we need $a_{n+1} \cdots a_{n+k-1} | P(a_n)$ for all $n$.
+
+Now, let me think about the growth rate. If $a_n \sim Cn^\alpha$ for some $\alpha > 0$, then $P(a_n) \sim a_n^k \sim C^k n^{\alpha k}$, and $a_{n+1} \cdots a_{n+k} \sim C^k n^{\alpha k} \cdot \prod(1 + i/n)^\alpha \sim C^k n^{\alpha k}$. So the growth rates match for any $\alpha$. But we need more precise matching.
+
+$P(a_n) = a_n^k + c_{k-1} a_n^{k-1} + \dots = a_n^k(1 + c_{k-1}/a_n + \dots)$.
+
+$\prod_{i=1}^k a_{n+i} = a_n^k \prod_{i=1}^k (a_{n+i}/a_n)$.
+
+If $a_n = Cn^\alpha$, then $a_{n+i}/a_n = (1 + i/n)^\alpha \approx 1 + \alpha i / n$.
+
+$\prod_{i=1}^k (1 + \alpha i / n) \approx 1 + \frac{\alpha}{n} \sum i = 1 + \frac{\alpha k(k+1)}{2n}$.
+
+And $1 + c_{k-1}/a_n \approx 1 + c_{k-1}/(Cn^\alpha)$.
+
+For these to match, we need $c_{k-1}/(Cn^\alpha) \sim \frac{\alpha k(k+1)}{2n}$, so $\alpha = 1$ and $c_{k-1}/C = k(k+1)/2$.
+
+So the growth rate must be linear ($\alpha = 1$), i.e., $a_n \sim Cn$.
+
+This is a strong constraint. Let me make this rigorous.
+
+**Rigorous growth rate argument:**
+
+Let $A_n = \max_{1 \leq i \leq n} a_i$ and $a_n^* = \min_{i \geq n} a_i$ (if the sequence tends to infinity).
+
+Actually, let me first establish that $a_n \to \infty$ in the unbounded case.
+
+**Lemma**: If the sequence is unbounded, then $a_n \to \infty$.
+
+*Proof*: Suppose not. Then there exists $M$ such that $a_n \leq M$ for infinitely many $n$. Since the sequence is unbounded, there also exist $n$ with $a_n > M$. 
+
+Consider the set $S = \{n : a_n \leq M\}$, which is infinite. For $n \in S$, $P(a_n) \leq P(M)$ (since $P$ is increasing). So $a_{n+1} \cdots a_{n+k} \leq P(M)$. This means the product of any $k$ consecutive terms starting from $n+1$ (where $n \in S$) is bounded by $P(M)$. 
+
+Hmm, but this doesn't directly show that the terms after $n$ are bounded. Let me think more.
+
+If $a_n \leq M$ and $a_{n+1} \cdots a_{n+k} \leq P(M)$, then each $a_{n+i} \leq P(M)$ (since they're positive integers and their product is $\leq P(M)$). So $a_{n+1}, \ldots, a_{n+k} \leq P(M)$.
+
+Now, if $a_{n+1} \leq P(M)$, then $P(a_{n+1}) \leq P(P(M))$, so $a_{n+2} \cdots a_{n+k+1} \leq P(P(M))$, and each $a_{n+i} \leq P(P(M))$ for $i = 2, \ldots, k+1$.
+
+Continuing, $a_{n+j} \leq P^{(j)}(M)$ for all $j \geq 1$ (where $P^{(j)}$ is the $j$-fold composition). But $P^{(j)}(M)$ grows, so this doesn't give a uniform bound.
+
+Hmm, so the sequence might not tend to infinity. Let me think of a potential counterexample.
+
+Actually, wait. Let me reconsider. The sequence is unbounded, so there exist $n_j$ with $a_{n_j} \to \infty$. From $P(a_{n_j}) \to \infty$, we get $a_{n_j+1} \cdots a_{n_j+k} \to \infty$, so at least one of $a_{n_j+1}, \ldots, a_{n_j+k} \to \infty$. Call it $a_{m_j} \to \infty$ where $m_j = n_j + i_j$ for some $1 \leq i_j \leq k$. Then from $P(a_{m_j}) \to \infty$, we get more terms tending to infinity. 
+
+But can the sequence "come back down"? Suppose $a_{n_j} \to \infty$ but $a_{n_j + k + 1}$ is small. We have $a_{n_j+k+1} = a_{n_j+1} \cdot P(a_{n_j+1})/P(a_{n_j})$. If $a_{n_j+1}$ is bounded but $a_{n_j} \to \infty$, then $P(a_{n_j+1})/P(a_{n_j}) \to 0$, so $a_{n_j+k+1} \to 0$. But $a_{n_j+k+1}$ is a positive integer, so it can't tend to 0. Contradiction! So if $a_{n_j} \to \infty$, then $a_{n_j+1}$ must also tend to infinity.
+
+More precisely: $a_{n+k+1} = a_{n+1} \cdot P(a_{n+1})/P(a_n)$. If $a_n \to \infty$ and $a_{n+1}$ is bounded, then $P(a_{n+1})$ is bounded while $P(a_n) \to \infty$, so $a_{n+k+1} \to 0$, impossible. So $a_{n+1} \to \infty$.
+
+By induction (shifting $n$ by 1 each time), if $a_{n_j} \to \infty$, then $a_{n_j + i} \to \infty$ for all $i \geq 0$. 
+
+But wait, this only shows that the subsequence starting from $n_j$ tends to infinity. Different $n_j$'s might give different behavior. Let me be more careful.
+
+Actually, the argument shows: if $a_n \to \infty$ along a subsequence $n_j$, then $a_{n_j + 1} \to \infty$, $a_{n_j + 2} \to \infty$, etc. So the sequence tends to infinity along the subsequence $n_j, n_j+1, n_j+2, \ldots$ for each $j$.
+
+But can the sequence have "dips"? Suppose $a_n \to \infty$ for $n$ in some set $T$, but $a_m$ is small for $m \notin T$. 
+
+Let me think about this differently. Let me show that $a_n \to \infty$.
+
+Suppose $\liminf a_n = L < \infty$. Then there's a subsequence $a_{m_j} \leq L$ for all $j$. Since the sequence is unbounded, there's also a subsequence $a_{n_j} \to \infty$.
+
+Now, consider the "gap" between a large term and a small term. There must exist $n$ such that $a_n$ is large and $a_{n+1}$ is small (or vice versa). 
+
+If $a_n$ is large and $a_{n+1} \leq L$: From $a_{n+k+1} = a_{n+1} \cdot P(a_{n+1})/P(a_n)$. Since $a_n$ is large, $P(a_n)$ is large, and $a_{n+1} \cdot P(a_{n+1}) \leq L \cdot P(L)$, so $a_{n+k+1} \leq L \cdot P(L) / P(a_n) \to 0$. But $a_{n+k+1} \geq 1$, so $P(a_n) \leq L \cdot P(L)$, meaning $a_n$ is bounded. Contradiction with $a_n$ being large.
+
+Wait, this is the key! If $a_n$ is large and $a_{n+1} \leq L$, then $a_{n+k+1} = a_{n+1} P(a_{n+1})/P(a_n) \leq L \cdot P(L) / P(a_n)$. For $a_{n+k+1} \geq 1$, we need $P(a_n) \leq L \cdot P(L)$, so $a_n \leq P^{-1}(L \cdot P(L))$, which is a fixed bound. So if $a_n$ exceeds this bound, $a_{n+1}$ cannot be $\leq L$.
+
+Similarly, if $a_{n+1}$ is large and $a_n \leq L$: $a_{n+k+1} = a_{n+1} P(a_{n+1})/P(a_n) \geq a_{n+1} P(a_{n+1})/P(L) \to \infty$. So $a_{n+k+1}$ is large.
+
+But also, from $P(a_n) = a_{n+1} \cdots a_{n+k}$, if $a_n \leq L$, then $a_{n+1} \cdots a_{n+k} \leq P(L)$, so each $a_{n+i} \leq P(L)$. So if $a_n \leq L$, the next $k$ terms are bounded by $P(L)$.
+
+And if $a_n \leq L$, then $a_{n+1} \leq P(L)$. If $a_{n+1} \leq P(L)$, then $a_{n+2} \cdots a_{n+k+1} \leq P(P(L))$, so $a_{n+k+1} \leq P(P(L))/(a_{n+2} \cdots a_{n+k}) \leq P(P(L))$ (since the other terms are $\geq 1$). Actually, $a_{n+k+1} = P(a_{n+1})/(a_{n+2} \cdots a_{n+k}) \leq P(P(L))$.
+
+So from $a_n \leq L$, we get $a_{n+i} \leq P^{(\lceil i/k \rceil)}(L)$ for all $i \geq 0$. This grows, but the key point is that it's a deterministic bound depending only on $L$ and $i$.
+
+Now, the crucial observation: if $a_n$ is very large (larger than some threshold $T$), then $a_{n+1}$ must also be large (larger than some threshold $T'$). Specifically, from $P(a_n) = a_{n+1} \cdots a_{n+k}$, if $a_n > T$, then $P(a_n) > P(T)$, and $a_{n+1} \cdots a_{n+k} > P(T)$. If $a_{n+1} \leq L$, then $a_{n+2} \cdots a_{n+k} > P(T)/L$, so at least one of $a_{n+2}, \ldots, a_{n+k}$ is $> (P(T)/L)^{1/(k-1)}$. But we also showed that $a_{n+k+1} = a_{n+1} P(a_{n+1})/P(a_n) < L \cdot P(L)/P(T) \to 0$ as $T \to \infty$, which is impossible. So for $T$ large enough, $a_{n+1} > L$.
+
+More precisely: for $a_{n+k+1} \geq 1$, we need $a_{n+1} P(a_{n+1}) \geq P(a_n)$, so $a_{n+1} \geq $ some function of $a_n$ that tends to infinity as $a_n \to \infty$.
+
+So: if $a_n \to \infty$ along a subsequence, then $a_{n+1} \to \infty$ along the shifted subsequence, and by induction $a_{n+j} \to \infty$ for all $j \geq 0$.
+
+Now, let me show that $\liminf a_n = \infty$. Suppose $\liminf a_n = L < \infty$, with $a_{m_j} \leq L$ for infinitely many $m_j$. We showed that $a_{m_j + i} \leq P^{(\lceil i/k \rceil)}(L)$ for all $i \geq 0$. Now, consider a large term $a_{n_j} \to \infty$. We showed that $a_{n_j + i} \to \infty$ for all $i \geq 0$. 
+
+But the $m_j$ and $n_j$ subsequences might interleave. The key question is: can we have $a_{m_j}$ small and $a_{m_j + 1}$ large? We showed that if $a_{m_j} \leq L$, then $a_{m_j + 1} \leq P(L)$, so $a_{m_j + 1}$ is bounded. Then $a_{m_j + 2} \leq P(P(L))$, etc. So the sequence starting from $m_j$ is bounded (for each fixed offset). But $P^{(r)}(L) \to \infty$ as $r \to \infty$, so this doesn't give a uniform bound for all offsets.
+
+Hmm, but we need the sequence to be defined for all $n$, and the "small" subsequence and "large" subsequence must coexist. Let me think about whether this is possible.
+
+If $a_{m_j} \leq L$ and $a_{n_j} \to \infty$, and $m_j < n_j < m_{j+1}$ (interleaving), then between $m_j$ and $n_j$, the sequence goes from $\leq L$ to $\to \infty$. At some point $p_j$ with $m_j \leq p_j < n_j$, we have $a_{p_j} \leq L$ but $a_{p_j + 1}$ is larger. But we showed $a_{p_j+1} \leq P(L)$, $a_{p_j+2} \leq P(P(L))$, etc. So $a_{n_j} \leq P^{(r_j)}(L)$ where $r_j \approx (n_j - m_j)/k$. If $n_j - m_j$ is bounded, then $a_{n_j}$ is bounded, contradiction. So $n_j - m_j \to \infty$, meaning the gaps between small terms grow.
+
+But also, between $n_j$ and $m_{j+1}$, the sequence goes from large to small. At some point $q_j$ with $n_j \leq q_j < m_{j+1}$, $a_{q_j}$ is large but $a_{q_j+1} \leq L$. We showed this requires $P(a_{q_j}) \leq L \cdot P(L)$, so $a_{q_j} \leq P^{-1}(L \cdot P(L)) =: T$. But $a_{q_j}$ is supposed to be large (since $a_{n_j+i} \to \infty$ for all $i \geq 0$... wait, that was for a fixed subsequence $n_j$, not for all terms between $n_j$ and $m_{j+1}$).
+
+Hmm, I think I was too hasty. Let me reconsider. The argument that $a_{n+1} \to \infty$ when $a_n \to \infty$ applies to subsequences. If $a_{n_j} \to \infty$, then $a_{n_j + 1} \to \infty$, $a_{n_j + 2} \to \infty$, etc. So for any fixed offset $i$, $a_{n_j + i} \to \infty$ as $j \to \infty$.
+
+Now, if $m_j$ is between $n_j$ and $n_{j+1}$ (with $a_{m_j} \leq L$), then $m_j = n_j + i_j$ for some $i_j \geq 1$. Since $a_{n_j + i} \to \infty$ for each fixed $i$, we need $i_j \to \infty$ (the offset must grow). So $m_j - n_j \to \infty$.
+
+Similarly, $n_{j+1} - m_j \to \infty$ (by a symmetric argument, since from $a_{m_j} \leq L$, the sequence can only grow at a controlled rate).
+
+So the "small" terms become increasingly sparse. But can they exist at all?
+
+Let me think about this more carefully. Suppose $a_{m} \leq L$ for some large $m$. Then $a_{m+1} \leq P(L)$, and more generally, $a_{m+i}$ is bounded by $P^{(\lceil i/k \rceil)}(L)$. Now, $P^{(r)}(L)$ grows roughly like $L^{k^r}$ (since $P(x) \approx x^k$ for large $x$). So after about $\log_k \log (a_{n_j})$ steps from $m_j$, the bound exceeds $a_{n_j}$. This means $n_j - m_j \geq c \log \log a_{n_j}$ for some constant $c$.
+
+On the other hand, from $a_{n_j} \to \infty$, we have $a_{n_j - 1} \to \infty$ (by a similar argument: $a_{n_j} = P(a_{n_j - k - 1}) \cdot a_{n_j - k} / (a_{n_j - k + 1} \cdots a_{n_j - 1})$... hmm, this is getting complicated).
+
+Actually, let me use the reverse direction. From $P(a_{n-1}) = a_n \cdots a_{n+k-1}$, we get $a_n = P(a_{n-1})/(a_{n+1} \cdots a_{n+k-1})$. If $a_n$ is small (say $\leq L$) and $a_{n-1}$ is large, then $P(a_{n-1})$ is large, so $a_{n+1} \cdots a_{n+k-1}$ must be large, meaning some of $a_{n+1}, \ldots, a_{n+k-1}$ are large. But we also showed that if $a_n \leq L$, then $a_{n+i} \leq P^{(\lceil i/k \rceil)}(L)$, which for small $i$ is bounded. So $a_{n+1} \cdots a_{n+k-1} \leq P(L)^{k-1}$ (for $i \leq k-1$, the bound is $\leq P(L)$). So $P(a_{n-1}) \leq L \cdot P(L)^{k-1}$, meaning $a_{n-1} \leq P^{-1}(L \cdot P(L)^{k-1}) =: T'$.
+
+So if $a_n \leq L$, then $a_{n-1} \leq T'$. And by induction backward, $a_{n-j}$ is bounded by some function of $L$ and $j$.
+
+More precisely: if $a_n \leq L$, then $a_{n-1} \leq T'$, and $P(a_{n-1}) \leq P(T')$, so $a_n \cdots a_{n+k-1} \leq P(T')$, meaning $a_{n+i} \leq P(T')$ for $i = 0, \ldots, k-1$ (since $a_n \leq L \leq P(T')$). Then $a_{n-2}$: $P(a_{n-2}) = a_{n-1} \cdots a_{n+k-2} \leq T' \cdot P(T')^{k-1}$, so $a_{n-2} \leq P^{-1}(T' \cdot P(T')^{k-1})$.
+
+This gives backward bounds too. So if $a_n \leq L$ for some $n$, then $a_m$ is bounded for all $m$ (with bounds that depend on $|m - n|$). But the bounds grow with $|m - n|$, so this doesn't immediately give a global bound.
+
+However, combined with the forward bounds, we get: if $a_n \leq L$, then $a_m \leq f(|m - n|)$ for some function $f$ with $f(r) \sim L^{k^{r/k}}$ (growing doubly exponentially in $r/k$... no, $f(r) \sim L^{k^{r/k}}$ which is doubly exponential).
+
+Hmm, this isn't leading to a contradiction easily. Let me try a different approach.
+
+**Approach via the ratio $a_{n+1}/a_n$:**
+
+Let me go back to the equation (for general $k$):
+$$a_{n+k+1} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)}$$
+
+Let $r_n = a_{n+1}/a_n$. Then:
+$$a_{n+k+1} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)}$$
+
+For the sequence to consist of positive integers, we need $P(a_n) | a_{n+1} \cdot P(a_{n+1})$... no, we need $a_{n+1} \cdot P(a_{n+1})/P(a_n)$ to be a positive integer.
+
+Actually, from $P(a_n) = a_{n+1} \cdots a_{n+k}$, we need $a_{n+1} \cdots a_{n+k-1} | P(a_n)$, and then $a_{n+k} = P(a_n)/(a_{n+1} \cdots a_{n+k-1})$.
+
+This is a divisibility condition. Let me think about what this implies.
+
+OK, I think I'm overcomplicating this. Let me try to look at this from the perspective of the answer and work backwards.
+
+**Conjectured answer**: The sequences are exactly the arithmetic progressions $a_n = cn + d$ where $c \geq 0$ and $d \geq 1$ are integers (with $c = 0$ giving constant sequences $a_n = d$).
+
+The polynomial is $P(x) = \prod_{i=1}^k (x + ic)$, which has non-negative integer coefficients.
+
+**Proof that these work**: Already shown above.
+
+**Proof that these are the only ones**: Need to show.
+
+Let me try the following approach:
+
+1. First, show that $P$ must factor as $\prod_{i=1}^k (x + d_i)$ with non-negative integers $d_i$.
+2. Then, show that $d_i = ic$ for some constant $c$.
+3. Finally, show that the sequence must be $a_n = cn + d$.
+
+For step 1, let me think about what happens if $P$ doesn't factor completely over $\mathbb{Z}$.
+
+Actually, let me try a different approach. Let me use the fact that $P(a_n) = a_{n+1} \cdots a_{n+k}$ and consider the sequence of ratios.
+
+Define $R_n = \frac{a_{n+1} \cdots a_{n+k}}{a_n^k} = \frac{P(a_n)}{a_n^k} = 1 + \frac{c_{k-1}}{a_n} + \frac{c_{k-2}}{a_n^2} + \dots + \frac{c_0}{a_n^k}$.
+
+As $a_n \to \infty$, $R_n \to 1$.
+
+Also, $R_n = \prod_{i=1}^k \frac{a_{n+i}}{a_n}$.
+
+And $R_{n+1} = \prod_{i=1}^k \frac{a_{n+1+i}}{a_{n+1}}$.
+
+$\frac{R_{n+1}}{R_n} = \frac{a_{n+k+1}}{a_{n+1}} \cdot \frac{a_n}{a_{n+k+1}} \cdot \prod_{i=1}^k \frac{a_{n+1}}{a_n} $... hmm, this is getting messy.
+
+Let me try yet another approach. Let me consider the problem for general $k$ and try to use induction or a clever substitution.
+
+**Approach: Consider $P(x) = Q(x)^k$ or factored form.**
+
+Actually, let me try to think about what happens when we consider the sequence $b_n = a_n / c$ (if $c | a_n$ for all $n$). For an AP $a_n = cn + d$, if $c | d$, then $b_n = n + d/c$ is also an AP with common difference 1. But this scaling might not preserve the structure in general.
+
+Let me try to think about the problem differently. 
+
+**Key insight**: Consider the polynomial $P(x) - (x + c)^k$ for some $c$. If $P(x) = (x+c)^k$, then $P(a_n) = (a_n + c)^k$, and we need $(a_n + c)^k = a_{n+1} \cdots a_{n+k}$. By AM-GM, $(a_n + c)^k = a_{n+1} \cdots a_{n+k} \leq \left(\frac{a_{n+1} + \cdots + a_{n+k}}{k}\right)^k$, so $a_n + c \leq \frac{a_{n+1} + \cdots + a_{n+k}}{k}$. Also, by AM-GM applied differently, $a_{n+1} \cdots a_{n+k} \leq \left(\frac{\sum a_{n+i}}{k}\right)^k$, and $(a_n + c)^k \leq \left(\frac{\sum a_{n+i}}{k}\right)^k$.
+
+But for $P(x) = (x+c)^k$, the coefficients are $\binom{k}{j} c^j$, which are non-negative integers if $c$ is a non-negative integer. And the condition becomes $(a_n + c)^k = a_{n+1} \cdots a_{n+k}$. By AM-GM, this forces $a_{n+1} = \cdots = a_{n+k} = a_n + c$. So $a_{n+1} = a_n + c$ for all $n$, giving $a_n = a_1 + (n-1)c = cn + (a_1 - c)$. So $d = a_1 - c \geq 1 - c$. For $a_n$ to be positive, we need $d \geq 1$ if $c \geq 1$ (since $a_1 = c + d \geq 1$), or $d \geq 1$ if $c = 0$.
+
+Wait, but $P(x) = (x+c)^k$ is a very special case. The general answer has $P(x) = \prod_{i=1}^k (x + ic)$, which is NOT $(x + c)^k$ unless $k = 1$ (but $k \geq 2$).
+
+So the AM-GM approach for $(x+c)^k$ gives a subset of solutions (those with $P(x) = (x+c)^k$), which corresponds to $a_n = cn + d$ with the specific polynomial $(x+c)^k$. But we showed that $P(x) = \prod(x + ic)$ also works, and this is different from $(x+c)^k$ for $k \geq 2$.
+
+So the AM-GM approach is too restrictive. The general answer allows $P(x) = \prod(x + ic)$, and for this polynomial, the product $a_{n+1} \cdots a_{n+k} = \prod(a_n + ic) = P(a_n)$, but the individual $a_{n+i}$ are $a_n + ic$, which are NOT all equal (unless $c = 0$).
+
+OK so let me reconsider. The key equation is:
+$$\prod_{i=1}^k a_{n+i} = P(a_n) = \prod_{j=1}^k (a_n + \alpha_j)$$
+
+where $\alpha_j$ are the "roots" (i.e., $P(x) = \prod(x + \alpha_j)$, so $\alpha_j$ are roots of $P(-x) = 0$).
+
+If the sequence is an AP $a_n = cn + d$, then $a_{n+i} = a_n + ic = a_n + \alpha_i$ (with $\alpha_i = ic$). So the multiset $\{a_{n+1}, \ldots, a_{n+k}\} = \{a_n + c, a_n + 2c, \ldots, a_n + kc\} = \{a_n + \alpha_1, \ldots, a_n + \alpha_k\}$.
+
+So for APs, the two multisets are equal. The question is: does the equality of products $\prod a_{n+i} = \prod(a_n + \alpha_j)$ force the multisets to be equal?
+
+In general, no. But with the additional constraints from the recurrence (for all $n$), maybe yes.
+
+Let me think about this. We have:
+$$\prod_{i=1}^k a_{n+i} = \prod_{j=1}^k (a_n + \alpha_j) \quad \text{for all } n$$
+
+This means the polynomial $\prod_{i=1}^k (x - a_{n+i})$ and $\prod_{j=1}^k (x - a_n - \alpha_j)$ have the same value at $x = 0$ (namely, $(-1)^k \prod a_{n+i} = (-1)^k \prod(a_n + \alpha_j)$). But they're different polynomials in general.
+
+However, if we consider the power sums, we might get more information. Let $S_m = \sum_{i=1}^k a_{n+i}^m$ and $T_m = \sum_{j=1}^k (a_n + \alpha_j)^m$. The products being equal means the elementary symmetric polynomials of degree $k$ are equal, but not necessarily the lower-degree ones.
+
+Hmm, this approach requires more equations. Let me think about using the relations for different $n$.
+
+For $n$ and $n+1$:
+- $\prod a_{n+i} = \prod(a_n + \alpha_j)$
+- $\prod a_{n+1+i} = \prod(a_{n+1} + \alpha_j)$
+
+Dividing: $\frac{a_{n+k+1}}{a_{n+1}} = \prod \frac{a_{n+1} + \alpha_j}{a_n + \alpha_j}$.
+
+This is one equation relating $a_{n+k+1}$ to the previous terms. But it's not clear how to extract the multiset equality from this.
+
+Let me try a completely different approach.
+
+**Approach via the "shift" operator and formal power series:**
+
+Consider the generating function or the shift operator $E$ where $E(a_n) = a_{n+1}$. The relation is $P(a_n) = a_{n+1} \cdots a_{n+k} = \prod_{i=0}^{k-1} E^{i+1}(a_n)$.
+
+This is a nonlinear recurrence, so standard linear recurrence theory doesn't apply.
+
+**Approach via considering the sequence modulo primes:**
+
+Let $p$ be a prime dividing $c_0 = P(0)$. Then $P(a_n) \equiv 0 \pmod{p}$ when $p | a_n$ (since $P(a_n) \equiv c_0 \pmod{a_n}$, and if $p | a_n$ and $p | c_0$, then $p | P(a_n)$). So $p | a_{n+1} \cdots a_{n+k}$, meaning $p | a_{n+i}$ for some $i$.
+
+This gives some information about the prime factorization structure but is hard to use directly.
+
+**Let me try to think about this problem from the competition perspective.**
+
+This problem is likely from ISL (International Mathematical Olympiad Shortlist) or similar. The answer is probably that the sequences are exactly the arithmetic progressions $a_n = cn + d$ with $c \geq 0, d \geq 1$.
+
+Let me try to prove this. I'll structure the proof as follows:
+
+1. **Constant case**: If the sequence is bounded, it's constant.
+2. **Unbounded case**: If the sequence is unbounded, it's an arithmetic progression.
+
+For the unbounded case, the key steps:
+a. Show $a_n \to \infty$.
+b. Show $P$ factors as $\prod(x + d_i)$ with non-negative integers $d_i$.
+c. Show $d_i = ic$ for some $c$.
+d. Show $a_n = cn + d$.
+
+Let me try to work out step (a) more carefully.
+
+**Step (a): $a_n \to \infty$.**
+
+Suppose the sequence is unbounded but $\liminf a_n = L < \infty$. Let $a_{m_j} \leq L$ for infinitely many $m_j$.
+
+From $P(a_{m_j}) = a_{m_j+1} \cdots a_{m_j+k} \leq P(L)$, we get $a_{m_j+i} \leq P(L)$ for $i = 1, \ldots, k$.
+
+From $P(a_{m_j+1}) = a_{m_j+2} \cdots a_{m_j+k+1} \leq P(P(L))$, we get $a_{m_j+k+1} \leq P(P(L))$ (since $a_{m_j+2} \cdots a_{m_j+k} \geq 1$).
+
+More generally, $a_{m_j + i} \leq P^{(\lceil i/k \rceil + 1)}(L)$ for all $i \geq 1$ (roughly).
+
+Now, since the sequence is unbounded, there exist $n_j$ with $a_{n_j} \to \infty$. WLOG $m_j < n_j < m_{j+1}$ (by passing to subsequences). Then $n_j - m_j \to \infty$ (as argued, because $a_{m_j + i}$ is bounded for each fixed $i$).
+
+Now, consider the transition from large to small: $a_{n_j} \to \infty$ but $a_{m_{j+1}} \leq L$. There exists $p_j$ with $n_j \leq p_j < m_{j+1}$ and $a_{p_j} > L$ but $a_{p_j + 1} \leq L$ (or more precisely, $a_{p_j}$ is "large" and $a_{p_j+1}$ is "small"). 
+
+Wait, actually I need to be more careful. Let me define $p_j$ as the largest index $\leq m_{j+1}$ such that $a_{p_j} > T$ for some threshold $T$. Then $a_{p_j + 1} \leq T$ and $a_{p_j + 2}, \ldots$ might be anything.
+
+From $P(a_{p_j}) = a_{p_j+1} \cdots a_{p_j+k}$, with $a_{p_j} > T$ and $a_{p_j+1} \leq T$:
+$P(a_{p_j}) > P(T)$ and $a_{p_j+1} \leq T$, so $a_{p_j+2} \cdots a_{p_j+k} > P(T)/T$.
+
+Also, from the ratio relation: $a_{p_j+k+1} = a_{p_j+1} \cdot P(a_{p_j+1})/P(a_{p_j}) \leq T \cdot P(T)/P(a_{p_j})$.
+
+For $a_{p_j+k+1} \geq 1$: $P(a_{p_j}) \leq T \cdot P(T)$, so $a_{p_j} \leq P^{-1}(T \cdot P(T))$.
+
+So if we set $T = L$ (the liminf), then $a_{p_j} \leq P^{-1}(L \cdot P(L)) =: T_0$. So the "large" term just before a "small" term is actually bounded by $T_0$.
+
+Now, what about terms further back? $a_{p_j - 1}$: from $P(a_{p_j - 1}) = a_{p_j} \cdots a_{p_j + k - 1}$. We have $a_{p_j} \leq T_0$ and $a_{p_j + 1} \leq L, \ldots, a_{p_j + k - 1} \leq P(L)$ (or similar bounds). So $P(a_{p_j - 1}) \leq T_0 \cdot L \cdot P(L)^{k-2}$, giving $a_{p_j - 1} \leq P^{-1}(T_0 \cdot L \cdot P(L)^{k-2}) =: T_1$.
+
+Continuing backward, $a_{p_j - r}$ is bounded by some $T_r$ for each $r$. The $T_r$ grow, but for each fixed $r$, $T_r$ is a fixed constant.
+
+Now, $a_{n_j} \to \infty$ and $n_j \leq p_j$, so $a_{n_j} \leq T_{p_j - n_j}$. For $a_{n_j} \to \infty$, we need $T_{p_j - n_j} \to \infty$, so $p_j - n_j \to \infty$.
+
+So both $n_j - m_j \to \infty$ and $p_j - n_j \to \infty$, meaning the "large" region between consecutive "small" terms grows without bound.
+
+But within the large region, all terms are bounded (by the $T_r$ bounds from both sides). The maximum value in the large region is $\max_{r} T_r$ for $r$ up to $p_j - n_j$, which grows with $p_j - n_j$. So the sequence is unbounded, consistent with our assumption.
+
+Hmm, so it seems like it might be possible to have a sequence that
+
+Let me continue the analysis from where it was cut off. I was trying to prove that the only solutions are arithmetic progressions. Let me think about the key remaining steps.
+
+The previous thinking established:
+1. Constant sequences work with P(x) = x^k
+2. Arithmetic progressions a_n = cn + d work with P(x) = ∏(x + ic)
+3. Periodic sequences must be constant
+4. In the unbounded case, a_n → ∞
+
+The key remaining challenge is proving that in the unbounded case, the sequence must be an arithmetic progression.
+
+Let me think about the key insight. The crucial equation is:
+$$\prod_{i=1}^k a_{n+i} = P(a_n)$$
+
+And the ratio relation:
+$$\frac{a_{n+k+1}}{a_{n+1}} = \frac{P(a_{n+1})}{P(a_n)}$$
+
+Let me think about this more carefully. The key idea I want to pursue is:
+
+**Factoring P and matching multisets.**
+
+Let me write $P(x) = \prod_{j=1}^k (x + \alpha_j)$ where $\alpha_j$ are complex numbers (roots of $P(-x) = 0$). Then:
+$$\prod_{j=1}^k (a_n + \alpha_j) = \prod_{i=1}^k a_{n+i}$$
+
+Now, consider the polynomial in $t$:
+$$F_n(t) = \prod_{i=1}^k (t - a_{n+i}) \quad \text{and} \quad G_n(t) = \prod_{j=1}^k (t - a_n - \alpha_j)$$
+
+We know $F_n(0) = (-1)^k \prod a_{n+i} = (-1)^k P(a_n) = G_n(0)$.
+
+But we need more. Let me think about using the relations for consecutive $n$ to get more equations.
+
+Actually, let me try a different approach. Let me consider the "telescoping product."
+
+From $\frac{a_{n+k+1}}{a_{n+1}} = \frac{P(a_{n+1})}{P(a_n)}$, we get:
+$$\frac{a_{n+k+1}}{a_{n+1}} = \frac{\prod_j (a_{n+1} + \alpha_j)}{\prod_j (a_n + \alpha_j)}$$
+
+So $a_{n+k+1} \prod_j (a_n + \alpha_j) = a_{n+1} \prod_j (a_{n+1} + \alpha_j)$.
+
+This can be rewritten as:
+$$\frac{a_{n+k+1}}{\prod_j (a_{n+1} + \alpha_j)} = \frac{a_{n+1}}{\prod_j (a_n + \alpha_j)}$$
+
+Wait, that's not quite right. Let me redo:
+$$a_{n+k+1} = a_{n+1} \cdot \frac{P(a_{n+1})}{P(a_n)} = a_{n+1} \cdot \frac{\prod_j (a_{n+1} + \alpha_j)}{\prod_j (a_n + \alpha_j)}$$
+
+So $\frac{a_{n+k+1}}{a_{n+1}} = \frac{\prod_j (a_{n+1} + \alpha_j)}{\prod_j (a_n + \alpha_j)}$.
+
+Now, if we define $b_n = a_n + \alpha_j$ for some specific $j$... hmm, this doesn't simplify nicely because of the product.
+
+Let me try yet another approach. Let me think about the problem using the concept of a "linear recurrence with polynomial coefficients" or consider the sequence of differences.
+
+**Key approach: Show that $a_{n+1} - a_n$ is constant.**
+
+Let $d_n = a_{n+1} - a_n$. I want to show $d_n$ is constant.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$, taking the ratio with $P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1}$:
+
+$$\frac{P(a_{n+1})}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}}$$
+
+Now, $P(a_{n+1}) = P(a_n + d_n)$. For large $a_n$:
+
+$$P(a_n + d_n) = (a_n + d_n)^k + c_{k-1}(a_n + d_n)^{k-1} + \dots + c_0$$
+
+$$= a_n^k + k d_n a_n^{k-1} + \binom{k}{2} d_n^2 a_n^{k-2} + \dots + c_{k-1}(a_n^{k-1} + (k-1)d_n a_n^{k-2} + \dots) + \dots + c_0$$
+
+$$= P(a_n) + (k d_n + c_{k-1}) a_n^{k-1} + O(a_n^{k-2})$$
+
+Wait, let me be more careful.
+
+$P(a_n + d_n) - P(a_n) = P'(a_n) d_n + \frac{P''(a_n)}{2} d_n^2 + \dots$
+
+$P'(x) = kx^{k-1} + (k-1)c_{k-1}x^{k-2} + \dots + c_1$
+
+So $P'(a_n) = k a_n^{k-1} + (k-1)c_{k-1} a_n^{k-2} + \dots = k a_n^{k-1}(1 + \frac{(k-1)c_{k-1}}{k a_n} + \dots)$
+
+So $\frac{P(a_{n+1})}{P(a_n)} = 1 + \frac{P'(a_n) d_n}{P(a_n)} + O(d_n^2 / a_n^k)$
+
+$\approx 1 + \frac{k d_n}{a_n} + \frac{(k-1)c_{k-1} d_n}{a_n^2} + \dots$
+
+And $\frac{a_{n+k+1}}{a_{n+1}} = 1 + \frac{a_{n+k+1} - a_{n+1}}{a_{n+1}}$.
+
+Now, $a_{n+k+1} - a_{n+1} = \sum_{i=1}^k d_{n+i} = d_{n+1} + d_{n+2} + \dots + d_{n+k}$.
+
+So $\frac{a_{n+k+1}}{a_{n+1}} = 1 + \frac{\sum_{i=1}^k d_{n+i}}{a_{n+1}} = 1 + \frac{\sum_{i=1}^k d_{n+i}}{a_n + d_n}$.
+
+$\approx 1 + \frac{\sum_{i=1}^k d_{n+i}}{a_n} - \frac{d_n \sum_{i=1}^k d_{n+i}}{a_n^2} + \dots$
+
+Equating:
+$$\frac{k d_n}{a_n} + \frac{(k-1)c_{k-1} d_n}{a_n^2} + \dots = \frac{\sum_{i=1}^k d_{n+i}}{a_n} - \frac{d_n \sum_{i=1}^k d_{n+i}}{a_n^2} + \dots$$
+
+From the $1/a_n$ terms:
+$$k d_n = \sum_{i=1}^k d_{n+i}$$
+
+This is a linear recurrence for $d_n$! The characteristic equation is $k = r + r^2 + \dots + r^k$, i.e., $r + r^2 + \dots + r^k - k = 0$, or $\frac{r(r^k - 1)}{r - 1} = k$ (for $r \neq 1$).
+
+At $r = 1$: $1 + 1 + \dots + 1 = k$. ✓ So $r = 1$ is a root.
+
+The equation is $r + r^2 + \dots + r^k = k$. Let $f(r) = r + r^2 + \dots + r^k - k$. $f(1) = 0$. $f'(r) = 1 + 2r + \dots + kr^{k-1}$, $f'(1) = k(k+1)/2 > 0$. So $r = 1$ is a simple root.
+
+For $r > 1$: $f(r) > 0$ (since $r^i > 1$ for $i \geq 1$ and $r > 1$, so $f(r) > k - k = 0$... wait, $f(r) = \sum r^i - k > k \cdot r - k = k(r-1) > 0$ for $r > 1$). Actually for $r > 1$, each $r^i > 1$ so $\sum r^i > k$, thus $f(r) > 0$.
+
+For $0 < r < 1$: $r^i < 1$ so $\sum r^i < k$, thus $f(r) < 0$.
+
+For $r < 0$: complex behavior. $f(0) = -k < 0$. $f(-1) = -1 + 1 - 1 + \dots = $ depends on $k$. For $k$ even: $f(-1) = 0 + 0 + \dots = 0$... let me compute: $f(-1) = (-1) + (-1)^2 + \dots + (-1)^k - k = (-1 + 1 - 1 + 1 - \dots) - k$. For $k$ even, the sum $(-1) + 1 + (-1) + \dots + 1 = 0$, so $f(-1) = -k < 0$. For $k$ odd, the sum $= -1$, so $f(-1) = -1 - k < 0$.
+
+So $r = 1$ is the only positive real root. For complex roots, we need $|r| \leq 1$ for the recurrence to give bounded $d_n$ (if $d_n$ is bounded). But actually, $d_n$ might not be bounded.
+
+Hmm wait, but this is just the leading-order asymptotic relation. The relation $k d_n = \sum_{i=1}^k d_{n+i}$ holds only asymptotically (to leading order in $1/a_n$). It's not an exact relation.
+
+But if $d_n$ converges to some limit $d$, then $k d = k d$, which is always true. So the leading-order relation doesn't determine $d$.
+
+Let me go to the next order. From the $1/a_n^2$ terms:
+
+$(k-1) c_{k-1} d_n = -d_n \sum_{i=1}^k d_{n+i} + \text{correction from the expansion}$
+
+Wait, I need to be more careful. Let me redo the expansion.
+
+$\frac{P(a_n + d_n)}{P(a_n)} = 1 + \frac{P'(a_n) d_n + \frac{1}{2} P''(a_n) d_n^2 + \dots}{P(a_n)}$
+
+$P(a_n) = a_n^k + c_{k-1} a_n^{k-1} + c_{k-2} a_n^{k-2} + \dots$
+
+$P'(a_n) = k a_n^{k-1} + (k-1) c_{k-1} a_n^{k-2} + (k-2) c_{k-2} a_n^{k-3} + \dots$
+
+$P''(a_n) = k(k-1) a_n^{k-2} + (k-1)(k-2) c_{k-1} a_n^{k-3} + \dots$
+
+$\frac{P'(a_n)}{P(a_n)} = \frac{k a_n^{k-1} + (k-1)c_{k-1} a_n^{k-2} + \dots}{a_n^k(1 + c_{k-1}/a_n + \dots)} = \frac{k}{a_n} \cdot \frac{1 + \frac{(k-1)c_{k-1}}{k a_n} + \dots}{1 + c_{k-1}/a_n + \dots}$
+
+$= \frac{k}{a_n} \left(1 + \frac{(k-1)c_{k-1}}{k a_n} - \frac{c_{k-1}}{a_n} + \dots\right) = \frac{k}{a_n}\left(1 - \frac{c_{k-1}}{k a_n} + \dots\right) = \frac{k}{a_n} - \frac{c_{k-1}}{a_n^2} + \dots$
+
+$\frac{P''(a_n)}{P(a_n)} = \frac{k(k-1)}{a_n^2} + \dots$
+
+So $\frac{P(a_{n+1})}{P(a_n)} = 1 + \left(\frac{k}{a_n} - \frac{c_{k-1}}{a_n^2}\right) d_n + \frac{k(k-1)}{2 a_n^2} d_n^2 + O(1/a_n^3)$
+
+$= 1 + \frac{k d_n}{a_n} + \frac{1}{a_n^2}\left(-c_{k-1} d_n + \frac{k(k-1)}{2} d_n^2\right) + O(1/a_n^3)$
+
+Now for the other side:
+
+$\frac{a_{n+k+1}}{a_{n+1}} = \frac{a_{n+1} + \sum_{i=1}^k d_{n+i}}{a_{n+1}} = 1 + \frac{\sum_{i=1}^k d_{n+i}}{a_n + d_n}$
+
+$= 1 + \frac{S_n}{a_n} \cdot \frac{1}{1 + d_n/a_n}$ where $S_n = \sum_{i=1}^k d_{n+i}$
+
+$= 1 + \frac{S_n}{a_n}\left(1 - \frac{d_n}{a_n} + \frac{d_n^2}{a_n^2} - \dots\right)$
+
+$= 1 + \frac{S_n}{a_n} - \frac{S_n d_n}{a_n^2} + O(1/a_n^3)$
+
+Equating the $1/a_n$ and $1/a_n^2$ terms:
+
+**Order $1/a_n$**: $k d_n = S_n = \sum_{i=1}^k d_{n+i}$ ... (*)
+
+**Order $1/a_n^2$**: $-c_{k-1} d_n + \frac{k(k-1)}{2} d_n^2 = -S_n d_n$
+
+From (*), $S_n = k d_n$, so $-S_n d_n = -k d_n^2$.
+
+Thus: $-c_{k-1} d_n + \frac{k(k-1)}{2} d_n^2 = -k d_n^2$
+
+$-c_{k-1} d_n + \frac{k(k-1)}{2} d_n^2 + k d_n^2 = 0$
+
+$-c_{k-1} d_n + \frac{k(k-1) + 2k}{2} d_n^2 = 0$
+
+$-c_{k-1} d_n + \frac{k(k+1)}{2} d_n^2 = 0$
+
+$d_n \left(-c_{k-1} + \frac{k(k+1)}{2} d_n\right) = 0$
+
+So either $d_n = 0$ or $d_n = \frac{2 c_{k-1}}{k(k+1)}$.
+
+This is a key result! If $d_n \neq 0$, then $d_n = \frac{2 c_{k-1}}{k(k+1)}$, which is a constant. And if $d_n = 0$, then from (*), $\sum d_{n+i} = 0$.
+
+But wait, this is only an asymptotic relation (valid to leading order as $a_n \to \infty$). It's not exact. However, it strongly suggests that for large $n$, either $d_n = 0$ or $d_n$ is a specific constant.
+
+If $d_n = 0$ for all large $n$, then $a_n$ is eventually constant, and by the periodic argument, it's constant everywhere. But we're in the unbounded case, so $d_n \neq 0$ for infinitely many $n$.
+
+If $d_n = \frac{2c_{k-1}}{k(k+1)}$ for all large $n$, then $d_n$ is eventually constant, say $d_n \to d = \frac{2c_{k-1}}{k(k+1)}$. For this to be a positive integer (since $a_n$ are positive integers and the sequence is increasing for large $n$... well, $d_n$ could be negative too, but if the sequence is unbounded and $a_n \to \infty$, eventually $d_n$ should be positive).
+
+Wait, but $d_n$ is an integer (difference of integers), and $\frac{2c_{k-1}}{k(k+1)}$ must be an integer. Let me call it $c$. So $c_{k-1} = \frac{ck(k+1)}{2}$, which matches the AP case where $P(x) = \prod(x + ic)$ and $c_{k-1} = \sum_{i=1}^k ic = c \cdot \frac{k(k+1)}{2}$.
+
+So the asymptotic analysis tells us that $d_n \to c$ where $c = \frac{2c_{k-1}}{k(k+1)}$ is a positive integer (in the unbounded, non-constant case).
+
+Now I need to make this rigorous and show that $d_n = c$ for ALL $n$, not just asymptotically.
+
+Let me think about how to do this. The asymptotic relation (*) says $k d_n \approx \sum_{i=1}^k d_{n+i}$, with the approximation becoming exact as $a_n \to \infty$. And the next-order relation says $d_n(d_n - c) \approx 0$.
+
+Let me try to make this precise. Define $e_n = d_n - c$ (the deviation from the constant). Then from (*), $k(c + e_n) \approx \sum_{i=1}^k (c + e_{n+i}) = kc + \sum e_{n+i}$, so $k e_n \approx \sum_{i=1}^k e_{n+i}$.
+
+And from the next order, $d_n(d_n - c) \approx 0$ becomes $(c + e_n) e_n \approx 0$, so either $e_n \approx 0$ or $c + e_n \approx 0$ (i.e., $d_n \approx 0$).
+
+Since $d_n$ are integers and $d_n \to c$, for large enough $n$, $d_n = c$ (because $e_n \to 0$ and $e_n$ is an integer, so $e_n = 0$ for large $n$).
+
+Wait, that's the key! $d_n$ is an integer, and $d_n \to c$ (an integer), so $d_n = c$ for all sufficiently large $n$. This means $a_n$ is eventually an arithmetic progression with common difference $c$.
+
+But we need to show it's an AP from the start, not just eventually. And we need to show the polynomial is exactly $\prod(x + ic)$.
+
+Let me think about this. If $a_n = cn + d$ for all $n \geq N$ (for some $N$), then for $n \geq N$:
+$P(a_n) = a_{n+1} \cdots a_{n+k} = \prod_{i=1}^k (c(n+i) + d) = \prod_{i=1}^k (a_n + ic)$
+
+So $P(x) = \prod_{i=1}^k (x + ic)$ for all $x$ in the range $\{a_n : n \geq N\} = \{cN + d, c(N+1) + d, \ldots\}$, which is an infinite set. Since $P(x)$ and $\prod(x + ic)$ are both polynomials and they agree on infinitely many points, they must be identical:
+
+$$P(x) = \prod_{i=1}^k (x + ic)$$
+
+Now, with this $P$, the relation $P(a_n) = a_{n+1} \cdots a_{n+k}$ becomes:
+$$\prod_{i=1}^k (a_n + ic) = \prod_{i=1}^k a_{n+i}$$
+
+for ALL $n \geq 1$ (not just $n \geq N$).
+
+Now I need to show that $a_n = cn + d$ for all $n \geq 1$.
+
+We know $a_n = cn + d$ for $n \geq N$. Let me work backwards. For $n = N - 1$:
+$$\prod_{i=1}^k (a_{N-1} + ic) = \prod_{i=1}^k a_{N-1+i} = a_N \cdot a_{N+1} \cdots a_{N+k-1}$$
+
+We know $a_N = cN + d, a_{N+1} = c(N+1) + d, \ldots, a_{N+k-1} = c(N+k-1) + d$.
+
+So $\prod_{i=1}^k (a_{N-1} + ic) = \prod_{i=1}^k (c(N-1+i) + d) = \prod_{i=1}^k (c(N+i) + d - c) = \prod_{i=1}^k (a_{N-1} + ic)$... 
+
+Wait, let me be more careful. $a_{N-1+i}$ for $i = 1, \ldots, k$ gives $a_N, a_{N+1}, \ldots, a_{N+k-1}$, which are $cN + d, c(N+1) + d, \ldots, c(N+k-1) + d$.
+
+So $\prod_{i=1}^k a_{N-1+i} = \prod_{i=1}^k (c(N-1+i) + d) = \prod_{i=1}^k ((c(N-1) + d) + ic) = \prod_{i=1}^k (a_{N-1} + ic)$... 
+
+Wait, $c(N-1+i) + d = c(N-1) + d + ic = a_{N-1} + ic$ IF $a_{N-1} = c(N-1) + d$. But we don't know that yet! We're trying to prove it.
+
+Let me reconsider. We have $\prod_{i=1}^k (a_{N-1} + ic) = \prod_{i=1}^k a_{N-1+i} = \prod_{i=1}^k (c(N-1+i) + d)$.
+
+The RHS is $\prod_{i=1}^k (c(N-1) + d + ic) = \prod_{i=1}^k (a_{N-1}^* + ic)$ where $a_{N-1}^* = c(N-1) + d$.
+
+So $\prod_{i=1}^k (a_{N-1} + ic) = \prod_{i=1}^k (a_{N-1}^* + ic)$.
+
+Both sides are monic polynomials of degree $k$ in... well, they're products of linear terms. The LHS is $\prod(a_{N-1} + ic)$ and the RHS is $\prod(a_{N-1}^* + ic)$. These are equal as numbers (not as polynomials). So we need:
+
+$\prod_{i=1}^k (a_{N-1} + ic) = \prod_{i=1}^k (a_{N-1}^* + ic)$
+
+where $a_{N-1}^* = c(N-1) + d$.
+
+Let $f(x) = \prod_{i=1}^k (x + ic)$. This is a strictly increasing function for $x > 0$ (since all $ic > 0$ and the derivative is positive for $x > 0$). So $f(a_{N-1}) = f(a_{N-1}^*)$ implies $a_{N-1} = a_{N-1}^* = c(N-1) + d$.
+
+So $a_{N-1} = c(N-1) + d$. By induction backwards, $a_n = cn + d$ for all $n \geq 1$.
+
+So the key steps are:
+1. Show $a_n \to \infty$ (in the unbounded case).
+2. Show $d_n \to c$ (asymptotically, using the expansion).
+3. Since $d_n$ are integers, $d_n = c$ for large $n$.
+4. $P(x) = \prod(x + ic)$ by polynomial identity.
+5. Backwards induction using injectivity of $f(x) = \prod(x + ic)$.
+
+Now I need to make step 2 rigorous. The asymptotic expansion gives $d_n(d_n - c) \approx 0$ and $k d_n \approx \sum d_{n+i}$, but I need to show these approximations are good enough to conclude $d_n \to c$.
+
+Let me think about this more carefully. The exact relation is:
+
+$$\frac{P(a_{n+1})}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}}$$
+
+Let me write $a_{n+1} = a_n + d_n$ and expand both sides exactly.
+
+LHS: $\frac{P(a_n + d_n)}{P(a_n)}$
+
+RHS: $\frac{a_{n+1} + \sum_{i=1}^k d_{n+i}}{a_{n+1}} = 1 + \frac{\sum_{i=1}^k d_{n+i}}{a_{n+1}}$
+
+Let me denote $S_n = \sum_{i=1}^k d_{n+i}$ and $D_n = d_n$.
+
+LHS: $\frac{P(a_n + D_n)}{P(a_n)} = 1 + \frac{P'(a_n) D_n + \frac{P''(a_n)}{2} D_n^2 + \dots + \frac{P^{(k)}(a_n)}{k!} D_n^k}{P(a_n)}$
+
+Since $P$ is degree $k$, the expansion is exact (finite):
+$\frac{P(a_n + D_n)}{P(a_n)} = 1 + \sum_{j=1}^k \frac{P^{(j)}(a_n)}{j! \cdot P(a_n)} D_n^j$
+
+RHS: $1 + \frac{S_n}{a_n + D_n}$
+
+So:
+$$\sum_{j=1}^k \frac{P^{(j)}(a_n)}{j! \cdot P(a_n)} D_n^j = \frac{S_n}{a_n + D_n}$$
+
+Now, $\frac{P^{(j)}(a_n)}{P(a_n)} = \frac{j! \cdot e_{k-j}(a_n)}{P(a_n)} \cdot \binom{k}{j}$... hmm, this isn't quite right. Let me think about this differently.
+
+Actually, $P(x) = \prod_{i=1}^k (x + ic)$ (once we know the polynomial). But we don't know this yet at this stage. Let me work with the general $P$.
+
+$P(a_n) = a_n^k + c_{k-1} a_n^{k-1} + \dots + c_0$
+
+$\frac{P^{(j)}(a_n)}{P(a_n)}$ for $j = 1$ is $\frac{k a_n^{k-1} + (k-1)c_{k-1} a_n^{k-2} + \dots + c_1}{a_n^k + c_{k-1} a_n^{k-1} + \dots + c_0} = \frac{k}{a_n} \cdot \frac{1 + \frac{(k-1)c_{k-1}}{k a_n} + \dots}{1 + \frac{c_{k-1}}{a_n} + \dots}$
+
+As $a_n \to \infty$, $\frac{P'(a_n)}{P(a_n)} = \frac{k}{a_n} + O(1/a_n^2)$.
+
+More generally, $\frac{P^{(j)}(a_n)}{P(a_n)} = \frac{k!/(k-j)!}{a_n^j} + O(1/a_n^{j+1}) = \frac{k(k-1)\cdots(k-j+1)}{a_n^j} + O(1/a_n^{j+1})$.
+
+So $\frac{P^{(j)}(a_n)}{j! \cdot P(a_n)} = \frac{\binom{k}{j}}{a_n^j} + O(1/a_n^{j+1})$.
+
+Thus:
+$$\sum_{j=1}^k \left(\frac{\binom{k}{j}}{a_n^j} + O(1/a_n^{j+1})\right) D_n^j = \frac{S_n}{a_n + D_n}$$
+
+$$\sum_{j=1}^k \frac{\binom{k}{j} D_n^j}{a_n^j} + O\left(\frac{D_n^k}{a_n^{k+1}}\right) = \frac{S_n}{a_n} \cdot \frac{1}{1 + D_n/a_n}$$
+
+$$\left(1 + \frac{D_n}{a_n}\right)^k - 1 + O\left(\frac{D_n^k}{a_n^{k+1}}\right) = \frac{S_n}{a_n}\left(1 - \frac{D_n}{a_n} + O(1/a_n^2)\right)$$
+
+Now, if $D_n$ is bounded (say $|D_n| \leq M$), then $D_n/a_n \to 0$ and:
+
+LHS $= \frac{k D_n}{a_n} + \frac{\binom{k}{2} D_n^2}{a_n^2} + O(1/a_n^3)$
+
+RHS $= \frac{S_n}{a_n} - \frac{S_n D_n}{a_n^2} + O(1/a_n^3)$
+
+From $1/a_n$: $k D_n = S_n + O(1/a_n)$, i.e., $|k D_n - S_n| = O(1/a_n)$.
+
+Since $k D_n - S_n$ is an integer (both $D_n$ and $S_n$ are integers) and $|k D_n - S_n| = O(1/a_n) \to 0$, for large enough $n$, $k D_n = S_n$ exactly.
+
+From $1/a_n^2$: $\binom{k}{2} D_n^2 = -S_n D_n + O(1/a_n)$, i.e., $\frac{k(k-1)}{2} D_n^2 + S_n D_n = O(1/a_n)$.
+
+Using $S_n = k D_n$: $\frac{k(k-1)}{2} D_n^2 + k D_n^2 = \frac{k(k+1)}{2} D_n^2 = O(1/a_n)$.
+
+Wait, that gives $\frac{k(k+1)}{2} D_n^2 = O(1/a_n)$, which means $D_n^2 = O(1/a_n) \to 0$, so $D_n \to 0$.
+
+But that can't be right for the AP case where $D_n = c \neq 0$! Let me recheck.
+
+Hmm, I think I made an error. Let me redo the $1/a_n^2$ terms more carefully.
+
+LHS: $\frac{k D_n}{a_n} + \frac{\binom{k}{2} D_n^2}{a_n^2} + O(1/a_n^3)$
+
+But wait, the $O(1/a_n^{j+1})$ terms in $\frac{P^{(j)}(a_n)}{j! P(a_n)}$ also contribute to the $1/a_n^2$ term. Let me be more precise.
+
+$\frac{P'(a_n)}{P(a_n)} = \frac{k a_n^{k-1} + (k-1)c_{k-1} a_n^{k-2} + \dots}{a_n^k + c_{k-1} a_n^{k-1} + \dots}$
+
+$= \frac{k}{a_n} \cdot \frac{1 + \frac{(k-1)c_{k-1}}{k a_n} + O(1/a_n^2)}{1 + \frac{c_{k-1}}{a_n} + O(1/a_n^2)}$
+
+$= \frac{k}{a_n} \left(1 + \frac{(k-1)c_{k-1}}{k a_n} - \frac{c_{k-1}}{a_n} + O(1/a_n^2)\right)$
+
+$= \frac{k}{a_n} - \frac{c_{k-1}}{a_n^2} + O(1/a_n^3)$
+
+So $\frac{P'(a_n)}{P(a_n)} D_n = \frac{k D_n}{a_n} - \frac{c_{k-1} D_n}{a_n^2} + O(1/a_n^3)$.
+
+And $\frac{P''(a_n)}{2 P(a_n)} = \frac{k(k-1)}{2 a_n^2} + O(1/a_n^3)$.
+
+So $\frac{P''(a_n)}{2 P(a_n)} D_n^2 = \frac{k(k-1) D_n^2}{2 a_n^2} + O(1/a_n^3)$.
+
+LHS $= \frac{k D_n}{a_n} + \frac{1}{a_n^2}\left(-c_{k-1} D_n + \frac{k(k-1)}{2} D_n^2\right) + O(1/a_n^3)$
+
+RHS $= \frac{S_n}{a_n} - \frac{S_n D_n}{a_n^2} + O(1/a_n^3)$
+
+From $1/a_n$: $k D_n = S_n$ (exactly, for large $n$, since both sides are integers).
+
+From $1/a_n^2$: $-c_{k-1} D_n + \frac{k(k-1)}{2} D_n^2 = -S_n D_n = -k D_n^2$ (using $S_n = k D_n$).
+
+So: $-c_{k-1} D_n + \frac{k(k-1)}{2} D_n^2 + k D_n^2 = 0$
+
+$-c_{k-1} D_n + \frac{k(k-1) + 2k}{2} D_n^2 = 0$
+
+$-c_{k-1} D_n + \frac{k(k+1)}{2} D_n^2 = 0$
+
+$D_n \left(-c_{k-1} + \frac{k(k+1)}{2} D_n\right) = 0$
+
+But this is only approximate (up to $O(1/a_n)$). So:
+
+$D_n \left(-c_{k-1} + \frac{k(k+1)}{2} D_n\right) = O(1/a_n)$
+
+Since the LHS is an integer (well, $D_n$ is an integer and $c_{k-1}$ is an integer, but $\frac{k(k+1)}{2} D_n$ might not be an integer if $k(k+1)$ is odd... actually $k(k+1)$ is always even, so $\frac{k(k+1)}{2}$ is an integer). So the LHS is an integer, and $|LHS| = O(1/a_n) \to 0$, so for large $n$, $D_n \left(-c_{k-1} + \frac{k(k+1)}{2} D_n\right) = 0$ exactly.
+
+So for large $n$, either $D_n = 0$ or $D_n = \frac{2 c_{k-1}}{k(k+1)}$.
+
+Let $c = \frac{2 c_{k-1}}{k(k+1)}$. If $c_{k-1} = 0$, then $c = 0$ and $D_n = 0$ for large $n$, meaning the sequence is eventually constant, hence constant (by the backwards argument). If $c_{k-1} > 0$, then $c > 0$ and for large $n$, $D_n \in \{0, c\}$.
+
+Now, from $k D_n = S_n = \sum_{i=1}^k D_{n+i}$, if $D_n = 0$, then $\sum D_{n+i} = 0$, and since each $D_{n+i} \in \{0, c\}$ with $c > 0$, this means all $D_{n+i} = 0$ for $i = 1, \ldots, k$. By induction, all subsequent $D_m = 0$, so the sequence is eventually constant.
+
+If $D_n = c$, then $\sum D_{n+i} = kc$, so all $D_{n+i} = c$ for $i = 1, \ldots, k$ (since each is 0 or $c$ and they sum to $kc$). By induction, all subsequent $D_m = c$.
+
+So for large $n$, either all $D_n = 0$ (eventually constant) or all $D_n = c$ (eventually AP with difference $c$).
+
+In the unbounded case, the sequence can't be eventually constant (since it's unbounded), so $D_n = c$ for all large $n$.
+
+Wait, I need to be more careful. The sequence is unbounded, so it's not eventually constant. But could it be that $D_n = 0$ for some large $n$ and $D_n = c$ for others? From the argument above, if $D_n = 0$ for some large $n$, then all subsequent $D_m = 0$, making the sequence eventually constant, contradicting unboundedness. So for all sufficiently large $n$, $D_n = c$.
+
+This means $a_n = cn + d$ for all $n \geq N$ (for some $N$ and some constant $d$).
+
+Then $P(x) = \prod_{i=1}^k (x + ic)$ (by polynomial identity, as argued).
+
+And by backwards induction (using the injectivity of $f(x) = \prod(x + ic)$), $a_n = cn + d$ for all $n \geq 1$.
+
+Now, I need to also handle the case where $D_n$ might not be bounded. Let me think about this.
+
+Is $D_n = a_{n+1} - a_n$ bounded?
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_n) \geq a_n^k$, we get $a_{n+1} \cdots a_{n+k} \geq a_n^k$. By AM-GM, $\frac{a_{n+1} + \dots + a_{n+k}}{k} \geq (a_{n+1} \cdots a_{n+k})^{1/k} \geq a_n$. So $\sum_{i=1}^k a_{n+i} \geq k a_n$.
+
+Also, $P(a_n) = a_{n+1} \cdots a_{n+k} \leq \left(\frac{\sum a_{n+i}}{k}\right)^k$ by AM-GM. And $P(a_n) \leq a_n^k + c_{k-1} a_n^{k-1} + \dots + c_0 \leq a_n^k + C a_n^{k-1}$ for some constant $C$ (for large $a_n$). So $\left(\frac{\sum a_{n+i}}{k}\right)^k \geq a_n^k$, giving $\sum a_{n+i} \geq k a_n$ (which we already knew).
+
+For an upper bound on $a_{n+i}$: $a_{n+i} \leq P(a_n) / (a_{n+1} \cdots a_{n+i-1} \cdot a_{n+i+1} \cdots a_{n+k}) \leq P(a_n) \leq a_n^k + C a_n^{k-1}$. So each $a_{n+i} \leq P(a_n) \leq 2 a_n^k$ (for large $a_n$). This gives $D_n = a_{n+1} - a_n \leq 2 a_n^k - a_n$, which is not bounded.
+
+Hmm, so $D_n$ might not be bounded a priori. But we need $D_n / a_n \to 0$ for the asymptotic expansion to work. Let me check if this holds.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$, if $a_{n+1}$ is much larger than $a_n$, say $a_{n+1} = a_n^2$, then $a_{n+1} \cdots a_{n+k} \geq a_{n+1} = a_n^2$, but $P(a_n) \sim a_n^k$. For $k \geq 2$, $a_n^2 \leq a_n^k$ is fine. But then $a_{n+2} \cdots a_{n+k} = P(a_n)/a_{n+1} \sim a_n^k / a_n^2 = a_n^{k-2}$, so $a_{n+2} \leq a_n^{k-2}$ (roughly). And $P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1} \sim a_{n+1}^k = a_n^{2k}$, so $a_{n+k+1} = P(a_{n+1}) / (a_{n+2} \cdots a_{n+k}) \sim a_n^{2k} / a_n^{k-2} = a_n^{k+2}$. This grows much faster than $a_n$, so the sequence would grow super-exponentially, which seems incompatible with the polynomial relation.
+
+Let me try to show that $a_{n+1} / a_n \to 1$, which would imply $D_n / a_n \to 0$.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_n) / a_n^k \to 1$ (as $a_n \to \infty$), we get $\prod_{i=1}^k (a_{n+i} / a_n) \to 1$.
+
+If $a_{n+1} / a_n \not\to 1$, then there's a subsequence where $a_{n+1} / a_n \geq 1 + \epsilon$ or $\leq 1 - \epsilon$ for some $\epsilon > 0$.
+
+Case 1: $a_{n+1} / a_n \geq 1 + \epsilon$ infinitely often. Then $a_{n+1} \geq (1+\epsilon) a_n$, so $a_{n+1} \cdots a_{n+k} \geq a_{n+1} \cdot a_n^{k-1} \geq (1+\epsilon) a_n^k$. But $P(a_n) / a_n^k \to 1$, so for large $n$, $P(a_n) < (1+\epsilon) a_n^k$, contradiction.
+
+Wait, that's not quite right because the other $a_{n+i}$ might be smaller than $a_n$. Let me be more careful.
+
+$\prod_{i=1}^k (a_{n+i}/a_n) = P(a_n)/a_n^k \to 1$.
+
+If $a_{n+1}/a_n \geq 1 + \epsilon$, then $\prod_{i=2}^k (a_{n+i}/a_n) \leq \frac{1}{1+\epsilon} \cdot (1 + o(1))$. So at least one of $a_{n+2}/a_n, \ldots, a_{n+k}/a_n$ is $< 1$, meaning some $a_{n+i} < a_n$.
+
+But then from $P(a_{n+i}) = a_{n+i+1} \cdots a_{n+i+k}$, if $a_{n+i} < a_n$, the product $a_{n+i+1} \cdots a_{n+i+k} = P(a_{n+i}) < P(a_n) \sim a_n^k$. So the terms after $a_{n+i}$ are controlled.
+
+This is getting complicated. Let me try a different approach to show $D_n / a_n \to 0$.
+
+Actually, let me use the relation $a_{n+k+1} = a_{n+1} \cdot P(a_{n+1})/P(a_n)$.
+
+If $a_{n+1} = a_n(1 + \delta_n)$ where $\delta_n = D_n / a_n$, then:
+
+$\frac{P(a_{n+1})}{P(a_n)} = \frac{P(a_n(1+\delta_n))}{P(a_n)} \approx (1+\delta_n)^k$ for large $a_n$ (since $P(x) \sim x^k$).
+
+So $a_{n+k+1} \approx a_{n+1} (1+\delta_n)^k = a_n (1+\delta_n)^{k+1}$.
+
+And $a_{n+k+1} / a_{n+1} \approx (1+\delta_n)^k$.
+
+Also, $a_{n+k+1} / a_n \approx (1+\delta_n)^{k+1}$.
+
+Now, from $P(a_n) = \prod a_{n+i}$, taking logs: $k \log a_n + o(1) = \sum \log a_{n+i}$.
+
+If $\delta_n$ is not small, say $\delta_n \geq \epsilon > 0$, then $a_{n+1} \geq (1+\epsilon) a_n$, and $a_{n+k+1} \geq (1+\epsilon)^{k+1} a_n$. The sequence grows by a factor of $(1+\epsilon)^{k+1}$ every $k+1$ steps, which is exponential growth. But then $P(a_n) \sim a_n^k$ while $\prod a_{n+i} \sim a_n^k \cdot (1+\epsilon)^{1+2+\dots+k} = a_n^k (1+\epsilon)^{k(k+1)/2}$, which is $\sim a_n^k (1+\epsilon)^{k(k+1)/2} \neq a_n^k$. Contradiction with $P(a_n)/a_n^k \to 1$.
+
+More precisely: $\prod_{i=1}^k (a_{n+i}/a_n) = P(a_n)/a_n^k \to 1$. If $a_{n+1}/a_n \geq 1 + \epsilon$, then $a_{n+1}/a_n \geq 1 + \epsilon$ and $a_{n+i}/a_n \geq a_{n+i}/a_{n+1} \cdot a_{n+1}/a_n$... this doesn't directly help.
+
+Let me try: $\prod_{i=1}^k (a_{n+i}/a_n) \to 1$. If $a_{n+1}/a_n \geq 1 + \epsilon$ for infinitely many $n$, then for those $n$, $\prod_{i=2}^k (a_{n+i}/a_n) \leq 1/(1+\epsilon) \cdot (1+o(1))$. So $\min_{i \geq 2} a_{n+i}/a_n \leq (1/(1+\epsilon))^{1/(k-1)} \cdot (1+o(1)) < 1$. So some $a_{n+i} < a_n$.
+
+Now, $a_{n+i} < a_n$ means $P(a_{n+i}) < P(a_n)$, so $a_{n+i+1} \cdots a_{n+i+k} < a_{n+1} \cdots a_{n+k}$. This gives $\frac{a_{n+k+1} \cdots a_{n+i+k}}{a_{n+1} \cdots a_{n+i}} < 1$... hmm, this is getting complicated.
+
+Let me try a cleaner approach. I'll use the fact that $\prod_{i=1}^k (a_{n+i}/a_n) \to 1$ and show that this implies $a_{n+1}/a_n \to 1$.
+
+Actually, let me use the log-convexity type argument. Let $b_n = \log a_n$. Then $\sum_{i=1}^k b_{n+i} = \log P(a_n) = k b_n + \log(1 + c_{k-1}/a_n + \dots) = k b_n + O(1/a_n)$.
+
+So $\sum_{i=1}^k b_{n+i} - k b_n = O(1/a_n) \to 0$.
+
+This means $\sum_{i=1}^k (b_{n+i} - b_n) \to 0$.
+
+Now, $b_{n+i} - b_n = \log(a_{n+i}/a_n)$. If $a_{n+1}/a_n \geq 1 + \epsilon$, then $b_{n+1} - b_n \geq \log(1+\epsilon) > 0$. For the sum to be close to 0, we need $\sum_{i=2}^k (b_{n+i} - b_n) \leq -\log(1+\epsilon) + o(1)$, so some $b_{n+i} - b_n < 0$, i.e., $a_{n+i} < a_n$.
+
+But can this happen consistently? Let me think about the second moment.
+
+$\sum_{i=1}^k (b_{n+i} - b_n) = O(1/a_n)$
+
+$\sum_{i=1}^k (b_{n+i} - b_n)^2 \leq \max_i |b_{n+i} - b_n| \cdot \sum |b_{n+i} - b_n|$
+
+Hmm, this doesn't directly help.
+
+Let me try a different approach. Consider the "discrete second derivative" of $b_n$.
+
+From $\sum_{i=1}^k b_{n+i} = k b_n + O(1/a_n)$ and $\sum_{i=1}^k b_{n+1+i} = k b_{n+1} + O(1/a_{n+1})$:
+
+Subtracting: $b_{n+k+1} - b_{n+1} = k(b_{n+1} - b_n) + O(1/a_n)$.
+
+So $b_{n+k+1} - b_{n+1} = k(b_{n+1} - b_n) + O(1/a_n)$.
+
+Let $\Delta_n = b_{n+1} - b_n = \log(a_{n+1}/a_n)$. Then:
+
+$\Delta_{n+1} + \Delta_{n+2} + \dots + \Delta_{n+k} = k \Delta_n + O(1/a_n)$
+
+This is the same as $S_n' = k \Delta_n + O(1/a_n)$ where $S_n' = \sum_{i=1}^k \Delta_{n+i}$.
+
+Now, if $\Delta_n$ is bounded (which it is if $a_{n+1}/a_n$ is bounded above and below), then $S_n' - k\Delta_n = O(1/a_n) \to 0$.
+
+The characteristic equation of $S_n' = k \Delta_n$ (i.e., $\sum_{i=1}^k \Delta_{n+i} = k \Delta_n$) is $r + r^2 + \dots + r^k = k$, which has $r = 1$ as the only root with $|r| \leq 1$ (as I analyzed earlier). All other roots have $|r| > 1$.
+
+Wait, let me recheck. The equation is $\sum_{i=1}^k r^i = k$, i.e., $r + r^2 + \dots + r^k = k$. At $r = 1$: $k = k$. ✓. For $|r| = 1, r \neq 1$: $|r + r^2 + \dots + r^k| \leq k$ with equality iff all $r^i$ have the same argument, i.e., $r = 1$. So $r = 1$ is the only root on the unit circle.
+
+For $|r| > 1$: $|r + r^2 + \dots + r^k| \geq |r|^k - |r|^{k-1} - \dots - |r| = |r|^k - \frac{|r|^k - |r|}{|r| - 1}$. For large $|r|$, this is $\sim |r|^k > k$. So there might be roots with $|r| > 1$.
+
+For $|r| < 1$: $|r + r^2 + \dots + r^k| < k$, so no roots with $|r| < 1$ (except possibly complex ones).
+
+Actually, let me reconsider. The recurrence $\sum_{i=1}^k \Delta_{n+i} = k \Delta_n$ can be rewritten as $\Delta_{n+k} = k \Delta_n - \sum_{i=1}^{k-1} \Delta_{n+i}$. The characteristic polynomial is $r^k - k r^{k-1} + (k-1) r^{k-2} + \dots + 1 = 0$... wait, let me redo.
+
+$\sum_{i=1}^k \Delta_{n+i} = k \Delta_n$
+
+$\Delta_{n+1} + \Delta_{n+2} + \dots + \Delta_{n+k} = k \Delta_n$
+
+Characteristic equation: $r + r^2 + \dots + r^k = k$, i.e., $r(1 + r + \dots + r^{k-1}) = k$, i.e., $r \cdot \frac{r^k - 1}{r - 1} = k$ (for $r \neq 1$).
+
+At $r = 1$: $\frac{r^k - 1}{r - 1} = k$, so $r \cdot k = k$, $r = 1$. ✓
+
+For the homogeneous recurrence $\Delta_{n+k} = k \Delta_n - \Delta_{n+1} - \dots - \Delta_{n+k-1}$, the characteristic polynomial is $r^k + r^{k-1} + \dots + r - k = 0$, i.e., $\frac{r(r^k-1)}{r-1} = k$ (for $r \neq 1$) and $r = 1$ is a root.
+
+Wait, the characteristic polynomial of $\Delta_{n+k} + \Delta_{n+k-1} + \dots + \Delta_{n+1} - k \Delta_n = 0$ is $r^k + r^{k-1} + \dots + r - k = 0$.
+
+$r = 1$: $1 + 1 + \dots + 1 - k = k - k = 0$. ✓
+
+So $r = 1$ is a root. Factor out $(r - 1)$:
+
+$r^k + r^{k-1} + \dots + r - k = (r-1)(r^{k-1} + 2r^{k-2} + 3r^{k-3} + \dots + k)$
+
+Let me verify: $(r-1)(r^{k-1} + 2r^{k-2} + \dots + k) = r^k + 2r^{k-1} + 3r^{k-2} + \dots + kr - r^{k-1} - 2r^{k-2} - \dots - k = r^k + r^{k-1} + r^{k-2} + \dots + r - k$. ✓
+
+So the other roots satisfy $r^{k-1} + 2r^{k-2} + \dots + k = 0$, i.e., $\sum_{j=0}^{k-1} (j+1) r^{k-1-j} = 0$, or $\sum_{j=1}^k j \cdot r^{k-j} = 0$.
+
+For $|r| \leq 1$ and $r \neq 1$: $|\sum j \cdot r^{k-j}| \leq \sum j = k(k+1)/2$. But we need it to be 0. By the triangle inequality, $|\sum j r^{k-j}| = |\sum j r^{k-j}|$. If $|r| < 1$, then $|r^{k-j}| < 1$ for $j < k$ and $|r^0| = 1$, so $|\sum j r^{k-j}| \geq k - \sum_{j=1}^{k-1} j |r|^{k-j} > k - k(k-1)/2$... this is negative for $k \geq 3$, so not useful.
+
+Let me try a different approach. For $|r| = 1, r \neq 1$: $\sum_{j=1}^k j r^{k-j} = 0$. Taking absolute values: $|\sum j r^{k-j}| \leq \sum j = k(k+1)/2$. Equality holds iff all $r^{k-j}$ have the same argument, i.e., $r = 1$. So for $r \neq 1$ on the unit circle, $|\sum j r^{k-j}| < k(k+1)/2$, but we need it to be 0, which is possible.
+
+Hmm, so there might be roots on the unit circle. Let me check for $k = 2$: $r + 2 = 0$, so $r = -2$. $|r| = 2 > 1$. Good.
+
+For $k = 3$: $r^2 + 2r + 3 = 0$, $r = (-2 \pm \sqrt{4-12})/2 = -1 \pm i\sqrt{2}$. $|r| = \sqrt{1+2} = \sqrt{3} > 1$. Good.
+
+For general $k$: I claim all roots of $\sum_{j=1}^k j r^{k-j} = 0$ have $|r| > 1$.
+
+Proof: Suppose $|r| \leq 1$. Then $|\sum_{j=1}^{k-1} j r^{k-j}| \leq \sum_{j=1}^{k-1} j = k(k-1)/2$. And $|k \cdot r^0| = k$. So $|\sum j r^{k-j}| \geq k - k(k-1)/2$... for $k \geq 3$ this is negative, so not useful.
+
+Let me try: $|\sum_{j=1}^k j r^{k-j}| \geq |k| - |\sum_{j=1}^{k-1} j r^{k-j}| \geq k - \sum_{j=1}^{k-1} j |r|^{k-j}$.
+
+For $|r| \leq 1$: $\sum_{j=1}^{k-1} j |r|^{k-j} \leq \sum_{j=1}^{k-1} j = k(k-1)/2$. So $|\sum| \geq k - k(k-1)/2 = k(3-k)/2$. For $k \geq 3$, this is $\leq 0$, not useful.
+
+Let me try a different approach. Consider $f(r) = \sum_{j=1}^k j r^{k-j} = r^{k-1} + 2r^{k-2} + \dots + k$. This is the derivative of $g(r) = r^k + r^{k-1} + \dots + r = r(r^k - 1)/(r-1)$ (for $r \neq 1$)... actually, $g(r) = \sum_{i=1}^k r^i$ and $g'(r) = \sum_{i=1}^k i r^{i-1}$. And $f(r) = r^{k-1} g'(1/r) \cdot r$... hmm, this is getting complicated.
+
+Let me just use the Eneström-Kakeya theorem or a direct argument.
+
+$f(r) = \sum_{j=1}^k j r^{k-j}$. The coefficients are $1, 2, 3, \ldots, k$ (from highest to lowest degree). By the Eneström-Kakeya theorem, all roots of $f$ lie in the annulus $\min(a_j/a_{j+1}) \leq |r| \leq \max(a_j/a_{j+1})$ where $a_j$ are the coefficients. Here, the coefficients (from $r^{k-1}$ to $r^0$) are $1, 2, 3, \ldots, k$. So $a_j/a_{j+1} = (j+1)/(j+2)$ for the ratio between consecutive coefficients. $\min = 1/2$ (from $a_{k-1}/a_k = 1/2$... wait, I need to be careful about the indexing.
+
+Actually, Eneström-Kakeya says: if $f(z) = a_0 + a_1 z + \dots + a_n z^n$ with $a_i > 0$, then all roots lie in $|z| \leq \max(a_{i-1}/a_i)$ and $|z| \geq \min(a_{i-1}/a_i)$.
+
+Our polynomial is $f(r) = k + (k-1)r + (k-2)r^2 + \dots + 1 \cdot r^{k-1}$ (rewriting in ascending order). So $a_0 = k, a_1 = k-1, \ldots, a_{k-1} = 1$.
+
+$a_{i-1}/a_i = (k-i+1)/(k-i)$ for $i = 1, \ldots, k-1$.
+
+$\max = k/(k-1)$ (at $i=1$), $\min = 2/1 = 2$... wait, that's not right. $a_{i-1}/a_i = (k-i+1)/(k-i)$. For $i = 1$: $k/(k-1)$. For $i = k-1$: $2/1 = 2$. So $\max = 2$ and $\min = k/(k-1)$.
+
+By Eneström-Kakeya, all roots satisfy $k/(k-1) \leq |r| \leq 2$. In particular, $|r| \geq k/(k-1) > 1$ for all $k \geq 2$.
+
+So all roots of $f(r) = 0$ have $|r| > 1$. This means the recurrence $\sum_{i=1}^k \Delta_{n+i} = k \Delta_n$ has $r = 1$ as the only root with $|r| \leq 1$, and all other roots have $|r| > 1$.
+
+Now, the actual recurrence is $\sum_{i=1}^k \Delta_{n+i} = k \Delta_n + O(1/a_n)$. Since $a_n \to \infty$, the forcing term $O(1/a_n) \to 0$.
+
+If $\Delta_n$ is bounded, then the general solution is $\Delta_n = C + o(1)$ where $C$ is a constant (corresponding to the root $r = 1$), plus terms that decay to 0 (from the roots with $|r| > 1$, but these would grow, not decay...).
+
+Wait, I need to be more careful. The recurrence $\sum_{i=1}^k \Delta_{n+i} = k \Delta_n + \epsilon_n$ where $\epsilon_n \to 0$. The homogeneous solutions are $r^n$ where $r$ is a root of $r^k + r^{k-1} + \dots + r - k = 0$. The root $r = 1$ gives a constant solution. Roots with $|r| > 1$ give growing solutions.
+
+If $\Delta_n$ is bounded, then the growing modes must be absent, so $\Delta_n = C + o(1)$ for some constant $C$.
+
+But is $\Delta_n$ bounded? $\Delta_n = \log(a_{n+1}/a_n)$. If $a_{n+1}/a_n$ is bounded above and below, then $\Delta_n$ is bounded.
+
+From $\prod_{i=1}^k (a_{n+i}/a_n) = P(a_n)/a_n^k \to 1$, we know the product of ratios tends to 1. But individual ratios could be unbounded.
+
+Hmm, let me think about whether $a_{n+1}/a_n$ is bounded.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_n) \leq 2 a_n^k$ (for large $a_n$), we get $a_{n+1} \leq 2 a_n^k / (a_{n+2} \cdots a_{n+k}) \leq 2 a_n^k$ (since all $a_{n+i} \geq 1$). So $a_{n+1}/a_n \leq 2 a_n^{k-1}$, which is not bounded.
+
+But also, $a_{n+1} \geq 1$, so $a_{n+2} \cdots a_{n+k} \leq P(a_n) \leq 2 a_n^k$, giving $a_{n+i} \leq 2 a_n^k$ for each $i$.
+
+Can $a_{n+1}$ be much larger than $a_n$? If $a_{n+1} = a_n^k$ (say), then $a_{n+2} \cdots a_{n+k} = P(a_n)/a_{n+1} \leq 2 a_n^k / a_n^k = 2$, so $a_{n+2}, \ldots, a_{n+k} \leq 2$. Then $P(a_{n+1}) = a_{n+2} \cdots a_{n+k+1} \leq 2^{k-1} a_{n+k+1}$, and $P(a_{n+1}) \geq a_{n+1}^k = a_n^{k^2}$, so $a_{n+k+1} \geq a_n^{k^2} / 2^{k-1}$. This grows very fast, and the sequence would have huge jumps.
+
+But then $\prod_{i=1}^k (a_{n+1+i}/a_{n+1}) = P(a_{n+1})/a_{n+1}^k \to 1$, so $a_{n+k+1} \cdots a_{n+2k} \sim a_{n+1}^k$. With $a_{n+k+1} \geq a_n^{k^2}/2^{k-1}$ and $a_{n+1} = a_n^k$, we get $a_{n+k+1}/a_{n+1} \geq a_n^{k^2-k}/2^{k-1} \to \infty$. So $a_{n+k+1} \gg a_{n+1}$, and then $a_{n+k+2} \cdots a_{n+2k} \sim a_{n+1}^k / a_{n+k+1} \ll a_{n+1}^k$, so some of these are small. This leads to oscillations, which seem incompatible with the recurrence.
+
+I think the key insight is that if $a_{n+1}/a_n$ is ever large, it creates instabilities that prevent the sequence from being well-defined (positive integers) for all $n$. Let me try to make this precise.
+
+Actually, let me try a different approach. Instead of working with $\Delta_n = \log(a_{n+1}/a_n)$, let me work directly with $D_n = a_{n+1} - a_n$ and show it's bounded.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$ and $P(a_n) = a_n^k(1 + c_{k-1}/a_n + O(1/a_n^2))$:
+
+$a_{n+1} \cdots a_{n+k} = a_n^k(1 + c_{k-1}/a_n + O(1/a_n^2))$
+
+$\prod_{i=1}^k (1 + D_{n+i-1}^*/a_n) = 1 + c_{k-1}/a_n + O(1/a_n^2)$
+
+where $D_{n+i-1}^* = a_{n+i} - a_n = \sum_{j=0}^{i-1} D_{n+j}$.
+
+Hmm, this is getting complicated. Let me try to use a cleaner argument.
+
+**Cleaner approach:**
+
+I'll show that $a_{n+1}/a_n \to 1$ using the following argument.
+
+From $\prod_{i=1}^k (a_{n+i}/a_n) = P(a_n)/a_n^k \to 1$, we get $\sum_{i=1}^k \log(a_{n+i}/a_n) \to 0$.
+
+Let $L_n = \log(a_{n+1}/a_n)$. Then $L_n + L_{n+1} + \dots + L_{n+k-1} = \log(a_{n+k}/a_n) \to 0$... wait, no. $\sum_{i=1}^k \log(a_{n+i}/a_n) = \sum_{i=1}^k (L_n + L_{n+1} + \dots + L_{n+i-1})$... no, $\log(a_{n+i}/a_n) = L_n + L_{n+1} + \dots + L_{n+i-1}$.
+
+So $\sum_{i=1}^k \log(a_{n+i}/a_n) = \sum_{i=1}^k \sum_{j=0}^{i-1} L_{n+j} = \sum_{j=0}^{k-1} (k-j) L_{n+j}$.
+
+So $\sum_{j=0}^{k-1} (k-j) L_{n+j} = \log(P(a_n)/a_n^k) = O(1/a_n) \to 0$.
+
+This is a weighted sum of $L_n, L_{n+1}, \ldots, L_{n+k-1}$ with weights $k, k-1, \ldots, 1$.
+
+Similarly, for $n+1$: $\sum_{j=0}^{k-1} (k-j) L_{n+1+j} = O(1/a_{n+1}) \to 0$.
+
+Subtracting: $k L_n - L_{n+1} - L_{n+2} - \dots - L_{n+k} = O(1/a_n)$... let me compute.
+
+$\sum_{j=0}^{k-1} (k-j) L_{n+j} - \sum_{j=0}^{k-1} (k-j) L_{n+1+j}$
+$= k L_n + (k-1) L_{n+1} + \dots + L_{n+k-1} - (k L_{n+1} + (k-1) L_{n+2} + \dots + L_{n+k})$
+$= k L_n - L_{n+1} - L_{n+2} - \dots - L_{n+k}$
+
+Wait: $k L_n + (k-1) L_{n+1} + (k-2) L_{n+2} + \dots + L_{n+k-1} - k L_{n+1} - (k-1) L_{n+2} - \dots - L_{n+k}$
+$= k L_n + ((k-1) - k) L_{n+1} + ((k-2) - (k-1)) L_{n+2} + \dots + (1 - 2) L_{n+k-1} - L_{n+k}$
+$= k L_n - L_{n+1} - L_{n+2} - \dots - L_{n+k-1} - L_{n+k}$
+$= k L_n - \sum_{i=1}^k L_{n+i}$
+
+So $k L_n - \sum_{i=1}^k L_{n+i} = O(1/a_n) - O(1/a_{n+1}) = O(1/a_n)$.
+
+This is the same recurrence as before: $\sum_{i=1}^k L_{n+i} = k L_n + O(1/a_n)$.
+
+Now, I need to show $L_n \to 0$ (which means $a_{n+1}/a_n \to 1$). The recurrence $\sum_{i=1}^k L_{n+i} = k L_n + \epsilon_n$ with $\epsilon_n \to 0$ has the property that if $L_n$ is bounded, then $L_n \to 0$ (since $r = 1$ gives a constant solution, but the forcing $\epsilon_n \to 0$ means the constant must be 0... wait, actually the constant solution $L_n = C$ gives $\sum C = kC = kC$, which is satisfied for any $C$. So the recurrence doesn't force $C = 0$.
+
+Hmm, so the recurrence $\sum L_{n+i} = k L_n + \epsilon_n$ with $\epsilon_n \to 0$ allows $L_n \to C$ for any constant $C$. But we also have the constraint $\sum_{j=0}^{k-1} (k-j) L_{n+j} = O(1/a_n) \to 0$. If $L_n \to C$, then $\sum_{j=0}^{k-1} (k-j) C = C \cdot k(k+1)/2 \to 0$, so $C = 0$.
+
+So $L_n \to 0$, meaning $a_{n+1}/a_n \to 1$, meaning $D_n / a_n \to 0$.
+
+But I still need $L_n$ to be bounded. Let me think about this.
+
+From $\sum_{j=0}^{k-1} (k-j) L_{n+j} = O(1/a_n)$, if some $L_{n+j}$ is very large (positive), then others must be very negative to compensate. But $L_{n+j} = \log(a_{n+j+1}/a_{n+j})$, and $a_{n+j+1} \geq 1$, so $L_{n+j} \geq -\log(a_{n+j})$. If $a_{n+j}$ is large, $L_{n+j}$ can be very negative.
+
+Hmm, this doesn't immediately give boundedness. Let me try a different approach.
+
+**Approach: Show $D_n$ is bounded using the recurrence structure.**
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k}$, we have $a_{n+1} \leq P(a_n) \leq 2 a_n^k$ (for large $a_n$). Also $a_{n+1} \geq 1$.
+
+From $P(a_{n-1}) = a_n \cdots a_{n+k-1}$, we have $a_n \leq P(a_{n-1}) \leq 2 a_{n-1}^k$. So $a_n \leq 2 a_{n-1}^k$, meaning $a_n / a_{n-1} \leq 2 a_{n-1}^{k-1}$.
+
+This gives $D_{n-1} = a_n - a_{n-1} \leq 2 a_{n-1}^k - a_{n-1} \leq 2 a_{n-1}^k$, which is not bounded.
+
+But we also have a lower bound: from $P(a_n) = a_{n+1} \cdots a_{n+k} \geq a_{n+1}$ (since all terms $\geq 1$), $a_{n+1} \leq P(a_n)$. And from $P(a_{n-1}) = a_n \cdots a_{n+k-1} \geq a_n$, $a_n \leq P(a_{n-1})$.
+
+Hmm, let me try to show that $D_n$ is bounded using a different argument.
+
+**Key claim**: $a_{n+1} \leq a_n + C$ for some constant $C$ and all large $n$.
+
+From $P(a_n) = a_{n+1} \cdots a_{n+k} \leq a_{n+1} \cdot M_n^{k-1}$ where $M_n = \max(a_{n+2}, \ldots, a_{n+k})$. And $P(a_n) \geq a_n^k$. So $a_{n+1} \geq a_n^k / M_n^{k-1}$.
+
+Also, $P(a_n) \leq (a_n + C_1)^k$ for some constant $C_1$ (since $P(x) \leq (x + C_1)^k$ for large $x$ and appropriate $C_1$). So $a_{n+1} \cdots a_{n+k} \leq (a_n + C_1)^k$. By AM-GM, $\frac{a_{n+1} + \dots + a_{n+k}}{k} \leq a_n + C_1$ (not exactly, since AM-GM gives $\leq$ for the geometric mean, not the arithmetic mean). Actually, $\prod a_{n+i} \leq (a_n + C_1)^k$ doesn't directly bound the sum.
+
+But $\prod a_{n+i} \leq (a_n + C_1)^k$ and each $a_{n+i} \geq 1$, so $a_{n+i} \leq (a_n + C_1)^k$ for each $i$. In particular, $a_{n+1} \leq (a_n + C_1)^k$. This is still not a linear bound.
+
+Let me try the approach from a different angle. Let me use the fact that $P(a_n)/a_n^k \to 1$ more carefully.
+
+$P(a_n) = a_n^k + c_{k-1} a_n^{k-1} + \dots + c_0 = a_n^k(1 + c_{k-1}/a_n + O(1/a_n^2))$.
+
+So $a_{n+1} \cdots a_{n+k} = a_n^k(1 + c_{k-1}/a_n + O(1/a_n^2))$.
+
+$\prod_{i=1}^k (a_{n+i}/a_n) = 1 + c_{k-1}/a_n + O(1/a_n^2)$.
+
+Now, $a_{n+i}/a_n = 1 + (a_{n+i} - a_n)/a_n$. Let $\delta_{n,i} = (a_{n+i} - a_n)/a_n$. Then:
+
+$\prod_{i=1}^k (1 + \delta_{n,i}) = 1 + c_{k-1}/a_n + O(1/a_n^2)$.
+
+$\sum_{i=1}^k \delta_{n,i} + O(\sum \delta_{n,i}^2) = c_{k-1}/a_n + O(1/a_n^2)$.
+
+If $\delta_{n,i} = O(1/a_n)$ for all $i$ (i.e., $a_{n+i} - a_n = O(1)$), then $\sum \delta_{n,i} = O(1/a_n)$ and $\sum \delta_{n,i}^2 = O(1/a_n^2)$, giving $\sum (a_{n+i} - a_n) = c_{k-1} + O(1/a_n)$, so $\sum_{i=1}^k (a_{n+i} - a_n) \to c_{k-1}$.
+
+But this assumes $\delta_{n,i} = O(1/a_n)$, which is what we want to prove.
+
+Let me try to prove this by contradiction. Suppose $a_{n+1} - a_n$ is unbounded. Then there's a subsequence with $|D_{n_j}| \to \infty$.
+
+Case 1: $D_{n_j} \to +\infty$. Then $a_{n_j+1} / a_{n_j} = 1 + D_{n_j}/a_{n_j}$. If $D_{n_j} / a_{n_j} \not\to 0$, then $a_{n_j+1}/a_{n_j} \not\to 1$, and from $\prod(a_{n+i}/a_n) \to 1$, some other ratio must compensate. But let me check if $D_{n_j} / a_{n_j} \to 0$ is possible with $D_{n_j} \to \infty$.
+
+If $a_{n_j} \to \infty$ and $D_{n_j} \to \infty$ but $D_{n_j}/a_{n_j} \to 0$, then $a_{n_j+1} = a_{n_j}(1 + o(1))$, so $\delta_{n_j, 1} \to 0$. But $D_{n_j} = a_{n_j} \cdot \delta_{n_j, 1} \to \infty$ since $a_{n_j} \to \infty$ and $\delta_{n_j, 1} = D_{n_j}/a_{n_j}$... if $D_{n_j} / a_{n_j} \to 0$ but $D_{n_j} \to \infty$, then $\delta_{n_j, 1} \to 0$ but $a_{n_j} \delta_{n_j, 1} \to \infty$.
+
+In this case, $\sum \delta_{n_j, i} = c_{k-1}/a_{n_j} + O(1/a_{n_j}^2) \to 0$, and $\delta_{n_j, 1} \to 0$, so $\sum_{i=2}^k \delta_{n_j, i} \to 0$ too. The $\delta$'s are all small, so $\sum \delta_{n_j, i}^2 = O(1/a_{n_j}^2)$... but $\delta_{n_j, 1} = D_{n_j}/a_{n_j}$, and $\delta_{n_j, 1}^2 = D_{n_j}^2/a_{n_j}^2$. If $D_{n_j} \to \infty$ but $D_{n_j}/a_{n_j} \to 0$, then $D_{n_j}^2/a_{n_j}^2 \to 0$, so $\sum \delta^2 \to 0$, and the expansion is valid.
+
+So $\sum_{i=1}^k (a_{n_j+i} - a_{n_j}) / a_{n_j} \to 0$, meaning $\sum (a_{n_j+i} - a_{n_j}) = o(a_{n_j})$. This is consistent with $D_{n_j} \to \infty$ as long as the sum grows slower than $a_{n_j}$.
+
+So the asymptotic expansion doesn't directly rule out $D_n \to \infty$. But the key relation $D_n(D_n - c) = O(1/a_n)$ (which we derived) does! Because if $D_n \to \infty$, then $D_n(D_n - c) \to \infty$, but $O(1/a_n) \to 0$, contradiction.
+
+Wait, but the relation $D_n(D_n - c) = O(1/a_n)$ was derived under the assumption that $D_n / a_n \to 0$ (so that the Taylor expansion is valid). If $D_n / a_n \not\to 0$, the expansion might not be valid.
+
+Let me re-examine. The exact relation is:
+
+$$\frac{P(a_n + D_n)}{P(a_n)} = \frac{a_{n+k+1}}{a_{n+1}} = 1 + \frac{\sum_{i=1}^k D_{n+i}}{a_{n+1}}$$
+
+And $P(a_n + D_n) / P(a_n) = \sum_{j=0}^k \frac{P^{(j)}(a_n)}{j! P(a_n)} D_n^j = 1 + \sum_{j=1}^k \frac{P^{(j)}(a_n)}{j! P(a_n)} D_n^j$.
+
+This is exact (finite sum since $P$ is degree $k$). So:
+
+$$\sum_{j=1}^k \frac{P^{(j)}(a_n)}{j! P(a_n)} D_n^j = \frac{\sum_{i=1}^k D_{n+i}}{a_n + D_n}$$
+
+Now, $\frac{P^{(j)}(a_n)}{j! P(a_n)} = \frac{\binom{k}{j}}{a_n^j} (1 + O(1/a_n))$ for each $j$ (as $a_n \to \infty$). More precisely:
+
+$\frac{P^{(j)}(a_n)}{j! P(a_n)} = \frac{\binom{k}{j}}{a_n^j} + O(1/a_n^{j+1})$
+
+So the LHS is:
+
+$\sum_{j=1}^k \left(\frac{\binom{k}{j}}{a_n^j} + O(1/a_n^{j+1})\right) D_n^j = \sum_{j=1}^k \frac{\binom{k}{j} D_n^j}{a_n^j} + O\left(\frac{|D_n|^k}{a_n^{k+1}}\right)$
+
+$= \left(1 + \frac{D_n}{a_n}\right)^k - 1 + O\left(\frac{|D_n|^k}{a_n^{k+1}}\right)$
+
+And the RHS is $\frac{S_n}{a_n + D_n}$ where $S_n = \sum_{i=1}^k D_{n+i}$.
+
+So: $\left(1 + \frac{D_n}{a_n}\right)^k - 1 = \frac{S_n}{a_n + D_n} + O\left(\frac{|D_n|^k}{a_n^{k+1}}\right)$
+
+$\frac{(a_n + D_n)^k - a_n^k}{a_n^k} = \frac{S_n}{a_n + D_n} + O\left(\frac{|D_n|^k}{a_n^{k+1}}\right)$
+
+$\frac{(a_n + D_n)^k - a_n^k}{a_n^k} \cdot (a_n + D_n) = S_n + O\left(\frac{|D_n|^k}{a_n^k}\right)$
+
+$\frac{((a_n + D_n)^k - a_n^k)(a_n + D_n)}{a_n^k} = S_n + O\left(\frac{|D_n|^k}{a_n^k}\right)$
+
+Now, $(a_n + D_n)^k - a_n^k = k a_n^{k-1} D_n + \binom{k}{2} a_n^{k-2} D_n^2 + \dots + D_n^k$.
+
+So $\frac{((a_n + D_n)^k - a_n^k)(a_n + D_n)}{a_n^k} = \frac{(k a_n^{k-1} D_n + \dots)(a_n + D_n)}{a_n^k}$
+
+$= \frac{k a_n^{k-1} D_n \cdot a_n + k a_n^{k-1} D_n^2 + \binom{k}{2} a_n^{k-2} D_n^2 \cdot a_n + \dots}{a_n^k}$
+
+$= k D_n + \frac{k D_n^2 + \binom{k}{2} D_n^2}{a_n} + \dots$
+
+$= k D_n + \frac{k(k+1)/2 \cdot D_n^2}{a_n} + O(D_n^3 / a_n^2)$
+
+Hmm wait, let me be more careful. Actually, this approach is getting very messy. Let me try a cleaner method.
+
+**Cleaner method: Use the exact polynomial identity.**
+
+We have $P(a_n) = a_{n+1} \cdots a_{n+k}$ for all $n$. For large $n$, $a_n$ is large, and we can write:
+
+$P(a_n) = a_n^k + c_{k-1} a_n^{k-1} + c_{k-2} a_n^{k-2} + \dots + c_0$
+
+$a_{n+1} \cdots a_{n+k} = \prod_{i=1}^k (a_n + D_n + D_{n+1} + \dots + D_{n+i-1})$
+
+Let $E_{n,i} = D_n + D_{n+1} + \dots + D_{n+i-1} = a_{n+i} - a_n$ for $i \geq 1$. So $a_{n+i} = a_n + E_{n,i}$.
+
+$\prod_{i=1}^k (a_n + E_{n,i}) = a_n^k + a_n^{k-1} \sum E_{n,i} + a_n^{k-2} \sum_{i < j} E_{n,i} E_{n,j} + \dots + \prod E_{n,i}$
+
+Comparing with $P(a_n) = a_n^k + c_{k-1} a_n^{k-1} + \dots$:
+
+**Coefficient of $a_n^{k-1}$**: $\sum_{i=1}^k E_{n,i} = c_{k-1}$
+
+This is an exact relation (not asymptotic)! Because $P(a_n) = \prod(a_n + E_{n,i})$ and both are monic degree-$k$ polynomials in $a_n$, the coefficients must match exactly.
+
+Wait, is this right? $P(a_n)$ is a specific value, and $\prod(a_n + E_{n,i})$ is also a specific value. They're equal as numbers, not as polynomials in $a_n$. The $E_{n,i}$ depend on $n$, so we can't directly compare coefficients.
+
+Hmm, but if we think of $a_n$ as a variable... no, $a_n$ is a specific number for each $n$.
+
+OK so this approach doesn't work directly. The issue is that $E_{n,i}$ changes with $n$, so we can't compare polynomial coefficients.
+
+Let me go back to the asymptotic approach but be more careful.
+
+We have the exact relation:
+$$\sum_{j=1}^k \frac{P^{(j)}(a_n)}{j! P(a_n)} D_n^j = \frac{S_n}{a_n + D_n}$$
+
+where $S_n = \sum_{i=1}^k D_{n+i}$.
+
+Let me write $\alpha_j = \frac{P^{(j)}(a_n)}{j! P(a_n)}$ (which depends on $n$). Then:
+
+$\alpha_1 D_n + \alpha_2 D_n^2 + \dots + \alpha_k D_n^k = \frac{S_n}{a_n + D_n}$
+
+Now, $\alpha_1 = \frac{P'(a_n)}{P(a_n)} = \frac{k}{a_n} + O(1/a_n^2)$, $\alpha_j = \frac{\binom{k}{j}}{a_n^j} + O(1/a_n^{j+1})$.
+
+The key question is: can $D_n$ be unbounded?
+
+If $D_n \gg a_n$, then $D_n / a_n \to \infty$, and the LHS is dominated by $\alpha_k D_n^k \sim D_n^k / a_n^k \to \infty$ (if $D_n / a_n \to \infty$). The RHS is $S_n / (a_n + D_n) \sim S_n / D_n$. For these to be equal, $S_n \sim D_n^{k+1} / a_n^k$. If $D_n \sim a_n^\beta$ with $\beta > 1$, then $S_n \sim a_n^{\beta(k+1) - k}$. But $S_n = \sum D_{n+i}$, and if all $D_{n+i}$ are of similar order, $S_n \sim D_n \sim a_n^\beta$. So $a_n^\beta \sim a_n^{\beta(k+1) - k}$, giving $\beta = \beta(k+1) - k$, i.e., $\beta k = k$, $\beta = 1$. Contradiction with $\beta > 1$.
+
+If $D_n \sim a_n$ (i.e., $\beta = 1$), then $D_n / a_n \to$ some constant $\delta > 0$. LHS $\sim (1 + \delta)^k - 1$ (a positive constant). RHS $\sim S_n / (a_n(1 + \delta))$. So $S_n \sim a_n (1 + \delta)((1+\delta)^k - 1)$. But $S_n = \sum D_{n+i} \sim k \delta a_n$ (if all $D_{n+i} \sim \delta a_n$). So $k \delta = (1+\delta)((1+\delta)^k - 1)$. For small $\delta$, LHS $\sim k\delta$ and RHS $\sim k\delta$, so this is consistent to leading order. But we also need $\prod(a_{n+i}/a_n) = P(a_n)/a_n^k \to 1$, which means $\prod(1 + E_{n,i}/a_n) \to 1$. If $D_n \sim \delta a_n$, then $E_{n,i} \sim i \delta a_n$, so $\prod(1 + i\delta) \to (1+\delta)(1+2\delta)\cdots(1+k\delta) \neq 1$ for $\delta > 0$. Contradiction!
+
+So $D_n / a_n \to 0$, i.e., $D_n = o(a_n)$.
+
+Great, so $D_n / a_n \to 0$. Now the asymptotic expansion is valid, and we get:
+
+From $1/a_n$ terms: $k D_n = S_n + O(D_n^2 / a_n)$, i.e., $|k D_n - S_n| = O(D_n^2 / a_n)$.
+
+Since $k D_n - S_n$ is an integer, $|k D_n - S_n| \geq 1$ if $k D_n \neq S_n$. So either $k D_n = S_n$ or $|k D_n - S_n| \leq C D_n^2 / a_n$ for some constant $C$.
+
+If $D_n$ is bounded, say $|D_n| \leq M$, then $D_n^2 / a_n \to 0$, so for large $n$, $k D_n = S_n$ exactly.
+
+If $D_n$ is unbounded, then $D_n^2 / a_n$ might not tend to 0 (since $D_n = o(a_n)$ but $D_n^2 / a_n = o(a_n)$ which could still be $\to \infty$). So we can't conclude $k D_n = S_n$ exactly in this case.
+
+But from the $1/a_n^2$ terms (assuming $D_n / a_n \to 0$):
+
+$D_n \left(-c_{k-1} + \frac{k(k+1)}{2} D_n\right) = O(D_n^2 / a_n + D_n^3 / a_n^2)$
+
+If $D_n$ is unbounded, the LHS grows like $D_n^2$ (if $D_n \neq c$), while the RHS is $O(D_n^2 / a_n + D_n^3 / a_n^2) = O(D_n^2 / a_n \cdot (1 + D_n / a_n)) = O(D_n^2 / a_n)$ (since $D_n / a_n \to 0$). So:
+
+$D_n \left(-c_{k-1} + \frac{k(k+1)}{2} D_n\right) = O(D_n^2 / a_n)$
+
+$\left|-c_{k-1} + \frac{k(k+1)}{2} D_n\right| = O(D_n / a_n) = o(1)$ (dividing by $D_n \neq 0$)
+
+Wait, dividing by $D_n$: $\left|-c_{k-1} + \frac{k(k+1)}{2} D_n\right| = O(D_n / a_n)$.
+
+If $D_n \to \infty$, then LHS $\to \infty$ (since $\frac{k(k+1)}{2} D_n \to \infty$), but RHS $= O(D_n / a_n) = o(1) \cdot D_n / D_n$... wait, $O(D_n / a_n)$ and $D_n \to \infty$, $a_n \to \infty$, $D_n / a_n \to 0$. So $O(D_n / a_n) \to 0$. But LHS $\to \infty$. Contradiction!
+
+So $D_n$ cannot be unbounded! Therefore $D_n$ is bounded.
+
+Since $D_n$ is bounded and $D_n / a_n \to 0$, the asymptotic expansion gives:
+
+$k D_n = S_n$ exactly (for large $n$), and
+
+$D_n(-c_{k-1} + \frac{k(k+1)}{2} D_n) = O(1/a_n) \to 0$.
+
+Since the LHS is an integer (as $D_n, c_{k-1}, k(k+1)/2$ are all integers), for large $n$:
+
+$D_n(-c_{k-1} + \frac{k(k+1)}{2} D_n) = 0$ exactly.
+
+So $D_n = 0$ or $D_n = \frac{2c_{k-1}}{k(k+1)} =: c$.
+
+If $c_{k-1} = 0$, then $c = 0$ and $D_n = 0$ for large $n$, so the sequence is eventually constant, hence constant.
+
+If $c_{k-1} > 0$, then $c > 0$ and $D_n \in \{0, c\}$ for large $n$. From $k D_n = S_n = \sum D_{n+i}$, if $D_n = 0$ then all $D_{n+i} = 0$ (since they're in $\{0, c\}$ and sum to 0), and if $D_n = c$ then all $D_{n+i} = c$ (since they sum to $kc$ and each is at most $c$). So the sequence is eventually constant (all $D_n = 0$) or eventually an AP (all $D_n = c$).
+
+In the unbounded case, it can't be eventually constant, so $D_n = c$ for all large $n$, and $a_n = cn + d$ for large $n$.
+
+Then $P(x) = \prod(x + ic)$ (polynomial identity), and backwards induction gives $a_n = cn + d$ for all $n$.
+
+Wait, I need $c = \frac{2c_{k-1}}{k(k+1)}$ to be a positive integer. Since $c_{k-1}$ is a non-negative integer and $k(k+1)$ is always even, $c = \frac{2c_{k-1}}{k(k+1)} = \frac{c_{k-1}}{k(k+1)/2}$. For $c$ to be a positive integer, we need $k(k+1)/2 | c_{k-1}$.
+
+But actually, $c$ doesn't have to be an integer a priori. The argument shows $D_n \in \{0, c\}$ where $c = \frac{2c_{k-1}}{k(k+1)}$. Since $D_n$ is an integer, $c$ must be an integer (if $D_n = c$ for some $n$). And if $D_n = 0$ for all large $n$, the sequence is constant.
+
+Hmm, but what if $c$ is not an integer? Then $D_n = 0$ for all large $n$ (since $D_n$ is an integer and $D_n \in \{0, c\}$ with $c \notin \mathbb{Z}$, so $D_n = 0$). Then the sequence is eventually constant, hence constant. And for a constant sequence, $P(x) = x^k$, so $c_{k-1} = 0$, which means $c = 0$. Consistent.
+
+So the conclusion is:
+
+- If the sequence is bounded, it's constant (with $P(x) = x^k$).
+- If the sequence is unbounded, $c_{k-1} > 0$, $c = \frac{2c_{k-1}}{k(k+1)}$ is a positive integer, and $a_n = cn + d$ for some $d \geq 1$ (with $P(x) = \prod_{i=1}^k (x + ic)$).
+
+But wait, I need to also verify that $d \geq 1$ (so that $a_n$ are positive integers). $a_n = cn + d$ with $c \geq 1$ and $a_n \geq 1$ for all $n \geq 1$. The minimum is $a_1 = c + d \geq 1$, so $d \geq 1 - c$. Since $c \geq 1$, $d \geq 0$ suffices. But actually, $d$ can be 0: $a_n = cn$ gives $a_1 = c \geq 1$. ✓. Or $d$ can be any non-negative integer.
+
+Wait, but I also need to check: for $a_n = cn + d$ with $c \geq 1, d \geq 0$, is $P(x) = \prod(x + ic)$ the right polynomial? Let me verify:
+
+$P(a_n) = \prod_{i=1}^k (a_n + ic) = \prod_{i=1}^k (cn + d + ic) = \prod_{i=1}^k (c(n+i) + d) = \prod_{i=1}^k a_{n+i}$. ✓
+
+And the coefficients of $P(x) = \prod(x + ic)$ are the elementary symmetric polynomials of $c, 2c, \ldots, kc$, which are all non-negative integers (positive, in fact, since $c \geq 1$). ✓
+
+For the constant case ($c = 0$): $a_n = d$ for all $n$, $P(x) = x^k$, $P(a_n) = d^k = d^k = a_{n+1} \cdots a_{n+k}$. ✓ (with $d \geq 1$).
+
+So the complete answer is: **$a_n = cn + d$ where $c \geq 0$ is a non-negative integer and $d \geq 1$ is a positive integer** (with $c = 0$ giving constant sequences). The polynomial is $P(x) = \prod_{i=1}^k (x + ic)$ (which equals $x^k$ when $c = 0$).
+
+Actually wait, I need to double-check the case $c = 0, d \geq 1$. $a_n = d$ for all $n$. $P(x) = x^k$. $P(d) = d^k = d \cdot d \cdots d = a_{n+1} \cdots a_{n+k}$. ✓.
+
+And $c \geq 1, d \geq 0$: $a_n = cn + d \geq c \cdot 1 + 0 = c \geq 1$. ✓. But wait, if $d = 0$, $a_1 = c \geq 1$. ✓. If $d \geq 1$, also fine.
+
+Hmm, but can $d = 0$? $a_n = cn$ with $c \geq 1$. $a_1 = c, a_2 = 2c, \ldots$. $P(x) = \prod(x + ic)$. $P(a_n) = \prod(cn + ic) = \prod c(n+i) = c^k \prod(n+i)$. And $a_{n+1} \cdots a_{n+k} = c(n+1) \cdot c(n+2) \cdots c(n+k) = c^k \prod(n+i)$. ✓.
+
+So $d \geq 0$ works for $c \geq 1$, and $d \geq 1$ for $c = 0$. We can unify: $a_n = cn + d$ where $c, d$ are non-negative integers with $c + d \geq 1$ (i.e., not both zero, which would give $a_n = 0$, not a positive integer). Actually, $c \geq 0, d \geq 0$, and $c + d \geq 1$.
+
+Wait, if $c = 0, d = 0$: $a_n = 0$, not positive. ✗.
+If $c = 0, d \geq 1$: $a_n = d \geq 1$. ✓.
+If $c \geq 1, d \geq 0$: $a_n = cn + d \geq c \geq 1$. ✓.
+
+So the condition is $c \geq 0, d \geq 0, c + d \geq 1$, or equivalently, $c \geq 0, d \geq 1$ when $c = 0$, and $c \geq 1, d \geq 0$ when $c \geq 1$.
+
+Actually, we can just say: $a_n = cn + d$ where $c$ is a non-negative integer and $d$ is a non-negative integer with $c + d \geq 1$. Or more simply: $c \geq 0$ and $d \geq 1$ if $c = 0$, $d \geq 0$ if $c \geq 1$.
+
+Hmm, but actually the cleanest way: $a_n = cn + d$ for non-negative integers $c, d$ with $d \geq
+
+=== 请继续思考并完成解答 ===
+
+你之前的思考在上方被截断了。请从截断处继续，完成这道题的解答。
+
+要求：
+1. **在之前的思考基础上继续**，不要重复已经做过的分析
+2. 给出完整的解答过程
+3. 最终答案用 \boxed{答案} 格式给出
+4. 数学公式用LaTeX
+5. 把证明写到proof.md文件中，不要在对话里输出完整证明

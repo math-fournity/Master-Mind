@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_004193",
+  "source_id": "omni_math_004193",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "In a 999 × 999 square table some cells are white and the remaining ones are red. Let T be the number of triples (C1, C2, C3) of cells, the first two in the same row and the last two in the same column, with C1, C3 white and C2 red. Find the maximum value T can attain.",
+  "solution_text": "For each red cell C2 at position (i,j), the number of valid triples with C2 as the middle cell is (number of white cells in row i) × (number of white cells in column j). Let w_i = white cells in row i, v_j = white cells in column j. Then T = Σ_{(i,j) red} w_i × v_j. By symmetry, the optimal coloring has k red cells per row and per column, giving w_i = v_j = 999-k and T = 999k(999-k)^2. Optimizing f(k) = k(999-k)^2: f'(k) = (999-k)(999-3k) = 0 gives k = 333. Thus T = 999 × 333 × 666^2 = (4/27) × 999^4.",
+  "solution_summary": "Decompose T as sum over red cells of (row white count × column white count), use symmetry to reduce to single parameter k, optimize k(999-k)^2 to get k=333, yielding T = (4/27)·999^4.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "numerical",
+  "answer": "\\frac{4}{27} \\cdot 999^4",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "combinatorial_optimization_symmetry",
+  "structure_features": "Grid coloring optimization with triple counting constraint; the triple structure (C1,C2 same row, C2,C3 same column) creates a product structure that decomposes into per-cell contributions; the optimization over 2^(999^2) colorings reduces to a single-parameter problem via symmetry",
+  "key_objects": ["999x999 grid", "white/red cell coloring", "triples (C1,C2,C3)", "row white counts w_i", "column white counts v_j", "balanced distribution parameter k"],
+  "thinking_patterns": ["structural_decomposition", "symmetry_exploitation", "continuous_optimization", "existence_verification"],
+  "primary_pattern": "structural_decomposition",
+  "knowledge_required": ["combinatorial counting on grids", "single-variable calculus optimization", "symmetry arguments in combinatorics", "rearrangement inequality concepts"],
+  "key_insight": "Decompose T as sum over red cells of (row white count × column white count), then use symmetry to reduce to optimizing k(999-k)^2 which gives k = n/3",
+  "translation_from": "direct triple enumeration",
+  "translation_to": "per-cell decomposition + symmetry-based single-parameter optimization",
+  "translation_type": "structural_decomposition",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["grid coloring", "triple counting", "per-cell decomposition", "symmetry reduction", "single-parameter optimization", "balanced distribution"],
+  "expected_ai_method": "Bare AI would attempt to enumerate colorings or use greedy heuristics, missing the decomposition and symmetry argument",
+  "correct_method": "Decompose T into per-red-cell contributions, use symmetry to reduce to single parameter, optimize with calculus",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a grid coloring problem but hasn't identified the triple-counting structure or the optimization nature",
+      "hint": "Describe the problem structure: what are the key objects, constraints, and what are we optimizing over?",
+      "hint_level": 0.15,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["grid coloring", "triple counting", "row-column constraint"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches but doesn't prioritize the decomposition approach; considers brute force as primary",
+      "hint": "List all possible approaches including decomposition of the triple count and symmetry arguments",
+      "hint_level": 0.25,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["brute force", "continuous relaxation", "decomposition", "symmetry"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI attempts direct counting and gets T = sum of w_i * v_j but doesn't see how to optimize this over colorings",
+      "hint": "Fix a coloring and count: for each red cell at (i,j), how many valid triples have it as C2?",
+      "hint_level": 0.35,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["per-cell decomposition", "row white count", "column white count"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has the decomposition formula but doesn't recognize that symmetry reduces the problem to a single parameter",
+      "hint": "Think about what structure an optimal coloring would have - should all rows be identical? All columns?",
+      "hint_level": 0.55,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["symmetry argument", "balanced distribution", "single parameter reduction"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has T = 999k(999-k)^2 but hasn't optimized it yet",
+      "hint": "You now have T as a function of single parameter k. Use calculus to find the optimal k.",
+      "hint_level": 0.60,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["calculus optimization", "derivative", "critical point"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has k=333 from optimization but hasn't verified the balanced coloring exists or computed the final value",
+      "hint": "Verify that a coloring with 333 red cells per row and column exists, and compute T = 999 * 333 * 666^2",
+      "hint_level": 0.70,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["existence verification", "modular coloring", "final computation"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all the pieces but hasn't synthesized them into a complete solution",
+      "hint": "Summarize the complete solution: decomposition, symmetry, optimization, verification",
+      "hint_level": 0.80,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["solution synthesis", "key steps summary"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire solution path from naive counting to symmetry-based optimization",
+      "observation_point": null,
+      "tell": "The problem appears to require exhaustive search over 2^(999^2) colorings, but the key insight is a three-step reduction: decompose T into per-cell products, use symmetry to reduce to one parameter, then optimize with calculus",
+      "hint": "Follow the path: decompose, symmetrize, optimize. Each step is a different type of mathematical operation that builds on the previous.",
+      "hint_level": 0.7,
+      "generalizability": "high - the decomposition + symmetry + optimization pattern applies to many combinatorial optimization problems on structured grids",
+      "why_not_visible_locally": "The full power of this three-step reduction is not visible from any single step. The decomposition alone doesn't solve the problem; the symmetry alone doesn't help without the decomposition; the optimization alone has nothing to optimize without the first two steps. Only the complete path reveals the solution strategy.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["decomposition", "symmetry reduction", "single-parameter optimization", "three-step reduction"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The optimal 1:2 red:white ratio that emerges from the optimization",
+      "observation_point": "R5",
+      "tell": "The optimal ratio of 1/3 red to 2/3 white cells is not stated in the problem and cannot be guessed without completing the full optimization. It emerges as a consequence of maximizing k(n-k)^2.",
+      "hint": "The optimal ratio comes from calculus: maximizing k(999-k)^2 gives k = 999/3 = 333, so the ratio is 1:2. This is an emergent property of the optimization, not an assumption.",
+      "hint_level": 0.8,
+      "generalizability": "medium - the specific 1:2 ratio is tied to the cubic structure of k(n-k)^2, but the method of deriving optimal ratios from calculus generalizes to similar problems",
+      "why_not_visible_locally": "The 1:2 ratio is a global property of the optimal solution that only emerges after setting up and solving the calculus optimization. No individual step before the optimization reveals this ratio - it is hidden in the interaction between the decomposition structure and the symmetry reduction.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["optimal ratio", "calculus optimization", "emergent proportion", "cubic structure"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to enumerate colorings or use greedy heuristics, missing the key decomposition T = sum of w_i * v_j and the symmetry argument that reduces the problem to a single-parameter optimization. Without the decomposition, the search space is astronomically large (2^(999^2) colorings). Even if it gets the decomposition, it may not recognize the symmetry argument or know to use calculus on the resulting single-variable function.",
+  "suitable_for_poc": ["tell_hint_injection", "decomposition_guidance", "symmetry_recognition"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.15,
+        "question": "Describe the structure of this problem. What are the key objects, constraints, and what are we optimizing over?",
+        "expected_answer": "We have a 999x999 grid where each cell is white or red. We need to count triples (C1,C2,C3) where C1,C2 are in the same row, C2,C3 are in the same column, C1 and C3 are white, C2 is red. We want to maximize T over all possible colorings of the grid."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.25,
+        "question": "List all approaches you can think of to tackle this optimization problem.",
+        "expected_answer": "1) Brute force over all 2^(999^2) colorings (infeasible). 2) Try specific patterns like checkerboard or striped. 3) Use continuous relaxation. 4) Decompose the triple count into per-cell contributions. 5) Use symmetry arguments to simplify. 6) Lagrange multipliers or variational methods."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.35,
+        "question": "Try a direct approach: fix a coloring and count the triples. For each red cell C2, how many valid triples have C2 as the middle cell?",
+        "expected_answer": "For a red cell C2 at position (i,j), C1 must be a white cell in row i and C3 must be a white cell in column j. So the number of triples with C2 as middle is w_i * v_j where w_i = white cells in row i, v_j = white cells in column j. Thus T = sum over red (i,j) of w_i * v_j. But optimizing this over all colorings still seems hard."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.55,
+        "question": "You've decomposed T as a sum over red cells. Now think about what distribution of red cells would maximize this sum. What structure would an optimal coloring have?",
+        "expected_answer": "By symmetry, the optimal coloring should have the same number of red cells in each row and each column. If each row has k red cells and each column has k red cells, then w_i = 999-k for all i, v_j = 999-k for all j, and T = 999k(999-k)^2. This reduces the problem to optimizing a single parameter k."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.60,
+        "question": "You now have T = 999k(999-k)^2 as a function of k. Optimize this to find the optimal k.",
+        "expected_answer": "Taking derivative: d/dk [k(999-k)^2] = (999-k)^2 - 2k(999-k) = (999-k)(999-3k). Setting to 0: k = 333 (discarding k = 999). Second derivative test confirms this is a maximum. So the optimal k = 333."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.70,
+        "question": "Verify that a balanced coloring with 333 red cells per row and per column actually exists, and compute the final value of T.",
+        "expected_answer": "Yes, such a coloring exists: make cell (i,j) red if (i+j) mod 3 = 0, giving exactly 333 red cells per row and column. Then T = 999 * 333 * 666^2 = 999 * 333 * 443556 = 147556443852 = (4/27) * 999^4."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.80,
+        "question": "Summarize the complete solution in a clear way.",
+        "expected_answer": "The maximum T = (4/27) * 999^4, achieved when 1/3 of cells are red with 333 red cells per row and column. Key steps: (1) Decompose T = sum over red (i,j) of w_i * v_j. (2) Use symmetry to reduce to T = 999k(999-k)^2. (3) Optimize with calculus to get k = 333. (4) Verify existence with modular coloring. The answer is (4/27)*999^4."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.40,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "N/A",
+    "notes": "Combinatorial optimization on grid with symmetry argument. Key challenge is recognizing the decomposition and symmetry reduction. The 1:2 red:white ratio emerges from calculus optimization of k(n-k)^2. Topology classification is adequate - no new dimensions needed."
+  }
+}

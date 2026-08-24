@@ -1,0 +1,288 @@
+{
+  "_key": "omni_math_000109",
+  "source_id": "omni_math_109",
+  "source_dataset": "aops_omni_math",
+  "schema_version": 3,
+  "problem_text": "Find all functions f: R^2 -> R such that: (1) f(0,x) is non-decreasing; (2) f(x,y) = f(y,x) for all x,y; (3) (f(x,y)-f(y,z))(f(y,z)-f(z,x))(f(z,x)-f(x,y)) = 0 for all x,y,z; (4) f(x+a,y+a) = f(x,y) + a for all x,y,a.",
+  "solution_text": "Define h(t) = f(0,t). By condition 4, f(x,y) = h(y-x) + x. By symmetry (condition 2), h(t) = h(-t) + t. Condition 3 means for all u,v with u+v+w=0, at least two of {h(u), u+h(v), h(u+v)} are equal. Setting v=u gives h(2a) = h(a)+a (linear) or h(2a) = h(a) (constant). Mixed sub-cases lead to contradictions. The non-decreasing condition (condition 1) forces global consistency: if one ray is linear and another constant, monotonicity creates a contradiction at overlapping domains. Two solutions: h(t) = c + max(0,t) giving f(x,y) = c + max(x,y), or h(t) = c + min(0,t) giving f(x,y) = c + min(x,y). Both satisfy all four conditions.",
+  "solution_summary": "降维到1D(h(t)=f(0,t))，用三元条件导出射线二择性(线性/常数)，用非递减条件强制全局一致，得f=c+max(x,y)或f=c+min(x,y)。",
+  "domain": "algebra",
+  "subfield": "functional_equations",
+  "answer_type": "characterization",
+  "answer": "f(x,y) = c + min(x,y) or f(x,y) = c + max(x,y) for some constant c in R",
+  "problem_type": "characterization",
+  "solution_method_type": "structural_transformation",
+  "structure_features": "多条件约束的函数方程，2D→1D降维结构，三元乘积=0的组合约束，平移不变性作为降维杠杆，非递减条件作为全局一致性强制器",
+  "key_objects": [
+    "f:R²→R的二元函数",
+    "h(t)=f(0,t)的一维约化",
+    "三元乘积条件(至少两个相等)",
+    "平移不变性f(x+a,y+a)=f(x,y)+a",
+    "射线上的二择性(线性/常数)"
+  ],
+  "thinking_patterns": [
+    "降维化归(2D→1D)",
+    "条件重构(三元乘积→至少两个相等→三选一)",
+    "特殊化代入(令v=u导出二择性)",
+    "反证法(混合子情形导致矛盾)",
+    "单调性强制全局一致性",
+    "枚举验证"
+  ],
+  "primary_pattern": "降维化归+条件重构→二择性→单调性强制全局一致",
+  "knowledge_required": [
+    "函数方程的基本技巧",
+    "平移不变性与降维",
+    "对称函数的性质",
+    "单调函数的性质",
+    "反证法"
+  ],
+  "key_insight": "条件1(非递减)看似只是正则性条件，实则是排除混合解的关键——它将'每条射线独立二择'提升为'全局统一二择'",
+  "translation_from": "2D多元函数方程的直接操作（代入、试值、case analysis）",
+  "translation_to": "1D单变量函数h的结构分析（降维+三元条件重构+射线二择性+单调性强制）",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "降维(2D→1D)",
+    "平移不变性",
+    "三元乘积=至少两个相等",
+    "射线二择性",
+    "单调性强制全局一致",
+    "条件角色反转(正则性→判别性)"
+  ],
+  "expected_ai_method": "bare AI会尝试直接代入和case-by-case验证条件，可能试线性/多项式ansatz但失败后卡住，不会想到用条件4降维到1D",
+  "correct_method": "用条件4降维到1D函数h，重构三元条件为三选一约束，导出射线二择性，用非递减条件强制全局一致",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到4个条件但未识别哪个条件具有结构杠杆作用，倾向于平等对待所有条件",
+      "hint": "描述题目结构，识别哪个条件具有特殊的结构杠杆作用",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["条件优先级识别", "结构杠杆"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但未识别条件4的降维角色，倾向于在2D直接操作",
+      "hint": "列出所有方向，特别注意条件4的结构角色",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["方向列举", "降维机会识别"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI试线性ansatz，发现三元乘积条件不满足，卡在光滑函数假设上",
+      "hint": "试假设f(x,y)=αx+βy+γ，检查哪些条件成立",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["线性ansatz", "三元乘积检验", "光滑性假设失败"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未想到用条件4降维到1D，仍在2D空间操作",
+      "hint": "定义h(t)=f(0,t)，用条件4把f(x,y)用h表示出来",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["1D降维", "平移不变性应用", "h(t)=f(0,t)"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI有1D约化但未将三元乘积条件重构为h语言中的三选一约束",
+      "hint": "用h重写条件3，'至少两个相等'在h语言中意味着什么？",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["三元条件重构", "三选一约束", "u+v+w=0参数化"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有三元条件重构但未通过特殊化代入(v=u)导出二择性",
+      "hint": "在三元条件中令v=u，推导h(2a)的两种可能，并推广到h(na)",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["特殊化代入", "射线二择性", "混合子情形矛盾"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有每条射线的二择性但未意识到需要用条件1(非递减)强制全局一致",
+      "hint": "不同射线能否选不同情形？用条件1（非递减）来排除混合",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["单调性约束", "全局一致性", "条件角色反转", "重叠区域矛盾"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI已缩小到两种情形但未完成验证",
+      "hint": "写出两个解并验证全部四条件",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["解的验证", "max/min函数族", "四条件检验"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整解题路径的三步结构变换",
+      "observation_point": null,
+      "tell": "解题路径包含三步结构变换：降维(2D→1D)→三元条件重构导出二择性→单调性强制全局一致，每步依赖前步结果",
+      "hint": "识别三步结构变换的依赖链：降维是前提，二择性是中间产物，单调性强制是收束器",
+      "hint_level": 0.6,
+      "generalizability": "high - 降维→约束重构→全局强制的模式在多条件函数方程characterization问题中反复出现",
+      "why_not_visible_locally": "每步结构变换依赖前一步的输出作为输入，从任一单步的局部视角无法看到完整的三步依赖链。降维的结果(1D函数h)是二择性推导的前提，二择性的结果(每条射线的选择)是单调性强制的前提——这种链式依赖使得整体路径特征在局部不可见。",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["三步结构变换", "降维→二择性→单调性强制", "链式依赖"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "条件1(非递减)的角色反转",
+      "observation_point": "R7",
+      "tell": "条件1(非递减)在题目中看似只是正则性/存在性条件，但在解题过程中它转变为判别性条件——排除混合解的关键工具",
+      "hint": "条件1不是mere正则性条件，而是排除混合解的判别器——当二择性导出后，它是强制全局一致的唯一工具",
+      "hint_level": 0.7,
+      "generalizability": "medium - 条件角色反转(正则性→判别性)在函数方程问题中偶有出现，但不是普遍模式",
+      "why_not_visible_locally": "在早期步骤(R1-R6)中，条件1看似不参与核心推导——降维用条件4，对称用条件2，三元用条件3。条件1的关键角色仅在二择性导出后才显现：需要它来排除'不同射线选不同情形'的混合解。这种'后期才显形'的蕴含信息在局部步骤中完全不可见。",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["条件角色反转", "正则性→判别性", "非递减条件的关键作用"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接代入和试线性/多项式形式，线性失败后可能尝试min/max但无法系统证明完整性。关键缺口：(1)不会想到用条件4降维到1D；(2)即使降维也不会系统导出射线二择性；(3)不会意识到条件1(非递减)是排除混合解的判别器而非mere正则性条件。",
+  "suitable_for_poc": [
+    "hint注入实验(降维提示)",
+    "tell识别实验(条件角色反转)",
+    "脉络继承实验(多步结构变换)"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：有哪些已知条件？哪个条件看起来具有特殊的结构杠杆作用？",
+        "expected_answer": "4个条件：(1)非递减(2)对称(3)三元乘积=0(4)平移不变。条件4看起来最强——直接关联f在不同点的值，可能用于降维。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能的解题方向，特别注意条件4的结构角色",
+        "expected_answer": "直接代入试值、假设线性形式、用条件4降维到1D、用条件3做case analysis、尝试min/max特殊函数"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "试假设f(x,y)=αx+βy+γ，检查哪些条件成立",
+        "expected_answer": "对称要求α=β；平移要求α+β=1故α=β=1/2；但三元乘积=(x-z)(y-x)(z-y)/8一般不为0。线性ansatz失败，解不是光滑函数。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "定义h(t)=f(0,t)，用条件4把f(x,y)用h表示出来",
+        "expected_answer": "f(x,y)=h(y-x)+x。2D问题化为1D函数h的约束。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "用h重写条件3，'至少两个相等'在h语言中意味着什么？",
+        "expected_answer": "令u=y-x,v=z-y,w=x-z。三个值h(u),u+h(v),h(u+v)中至少两个相等。即对任意u,v：h(u)=u+h(v)或h(u+v)=u+h(v)或h(u)=h(u+v)至少一个成立。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "在三元条件中令v=u，推导h(2a)的两种可能，并推广到h(na)",
+        "expected_answer": "h(2a)=h(a)+a（线性）或h(2a)=h(a)（常数）。线性推广h(na)=h(a)+(n-1)a；常数得h(na)=h(a)。混合子情形导致矛盾。"
+      },
+      {
+        "round": 7,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "不同射线（不同a>0）能否选择不同的情形（一些线性一些常数）？用条件1（非递减）来排除混合。",
+        "expected_answer": "不能混合：线性射线增长vs常数射线恒定，非递减性在重叠区域产生矛盾。故全局一致。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "你已缩小到两种情形，写出两个解并验证全部四条件",
+        "expected_answer": "线性→h(t)=c+max(0,t)→f=c+max(x,y)；常数→h(t)=c+min(0,t)→f=c+min(x,y)。均满足四条件。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 3,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R7",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-08-09T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "中国国家队选拔考试函数方程题。核心特征：三步结构变换(降维→二择性→单调性强制)和条件角色反转(条件1从正则性变为判别性)。problem.lean中Solution被截断，基于数学内容完整重构。"
+  }
+}

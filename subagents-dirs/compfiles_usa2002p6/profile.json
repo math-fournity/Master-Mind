@@ -1,0 +1,354 @@
+{
+  "_key": "compfiles_usa2002p6",
+  "source_id": "compfiles_usa2002p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "I have an n×n sheet of stamps, from which I've been asked to tear out blocks of three adjacent stamps in a single row or column. (I can only tear along the perforations separating adjacent stamps, and each block must come out of the sheet in one piece.) Let b(n) be the smallest number of blocks I can tear out and make it impossible to tear out any more blocks. Prove that there are real constants c and d such that (1/7)n² - cn ≤ b(n) ≤ (1/5)n² - dn for all n > 0.",
+  "solution_text": "Lower bound: There are 2n(n-2) possible block positions (n(n-2) horizontal + n(n-2) vertical). Since the tearing is maximal, every possible position must intersect some torn block. Each torn block intersects at most 14 positions (5 same-orientation + 9 cross-orientation). By double counting pairs (position, torn_block) where they intersect: 2n(n-2) ≤ 14·|T|, so b(n) ≥ n(n-2)/7. Upper bound: Construct a period-5 phase-shifted pattern. In row i, place horizontal blocks starting at columns i mod 5, i mod 5 + 5, i mod 5 + 10, ... (each covering 3 cells). The phase shift ensures any 3 consecutive rows have phases covering 3 different mod 5 values, and since each phase covers 3 residues, all 5 residues are covered — blocking any vertical block. This gives a maximal tearing with at most n(n/5 + 3) blocks, so b(n) ≤ n²/5 + 3n. Taking c = 2/7 and d = -3 yields the result.",
+  "solution_summary": "下界用双重计数：2n(n-2)个可能位置每个必须被相交，每个块最多相交14个位置（5同向+9交叉），得b(n)≥n(n-2)/7。上界用周期5相位偏移模式：行i从列i mod 5开始每隔5列放水平块，相位偏移保证竖直极大性，密度1/5，得b(n)≤n²/5+3n。取c=2/7,d=-3。",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization_tiling",
+  "answer_type": "Proof",
+  "answer": "存在实常数c,d使得(1/7)n²-cn ≤ b(n) ≤ (1/5)n²-dn对所有n>0成立（具体取c=2/7, d=-3）",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "double_counting_lower_bound_with_periodic_construction_upper_bound",
+  "structure_features": "双侧渐近界证明——下界用双重计数（每个位置必须被阻挡，每个块最多阻挡14个位置），上界用显式构造（周期5相位偏移模式）。核心结构是'极大撕裂的最小化'问题，需要分别证明下界和上界，两个方向使用完全不同的技巧。",
+  "key_objects": [
+    "n×n邮票网格",
+    "1×3/3×1块（水平/竖直三连格）",
+    "极大撕裂（maximal tearing）",
+    "b(n)（最小极大撕裂块数）",
+    "可能位置集合（2n(n-2)个）",
+    "双重计数对(位置,块)",
+    "周期5相位偏移模式",
+    "phase=i mod 5"
+  ],
+  "thinking_patterns": [
+    "double_counting",
+    "periodic_construction",
+    "orientation_decomposition",
+    "phase_shifted_pattern",
+    "asymptotic_analysis",
+    "two_technique_split"
+  ],
+  "primary_pattern": "double_counting_with_periodic_construction",
+  "knowledge_required": [
+    "双重计数（double counting）",
+    "极大匹配概念",
+    "网格组合学",
+    "周期模式构造",
+    "渐近密度分析",
+    "mod运算与相位偏移"
+  ],
+  "key_insight": "下界的关键是'14'界——每个块按方向分解最多相交5个同向+9个交叉位置；上界的关键是周期5的相位偏移——phase=i mod 5保证3连续行覆盖所有5个mod5值，同时阻挡水平和竖直块。",
+  "translation_from": "direct_structural_analysis",
+  "translation_to": "double_counting_plus_periodic_construction",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_problem_mismatch"
+  },
+  "tell_small_concepts": [
+    "double_counting",
+    "14_bound",
+    "orientation_decomposition",
+    "period_5_pattern",
+    "phase_shift",
+    "maximal_tearing",
+    "two_technique_split",
+    "asymptotic_density",
+    "position_block_intersection"
+  ],
+  "expected_ai_method": "bare AI会尝试直接分析极大撕裂的结构或用朴素构造（如全竖直块密度1/3），不会想到双重计数的'14'界和周期5相位偏移构造",
+  "correct_method": "下界用双重计数（2n(n-2)位置÷14=每块最多阻挡14个位置），上界用周期5相位偏移模式（phase=i mod 5，密度1/5）",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees an extremal combinatorics problem about tiling/covering on a grid and immediately thinks of greedy algorithms, exact computation for small cases, or direct structural analysis of minimal maximal tearings",
+      "hint": "Recognize the two-sided structure: lower bound (every maximal tearing must have many blocks) and upper bound (construct one efficient maximal tearing). The 'minimal maximal' structure means we need different techniques for each side.",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "extremal_combinatorics",
+        "maximal_tearing",
+        "minimal_maximal",
+        "two_sided_bound",
+        "grid_covering"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches but tends to think the lower and upper bounds can be proved with the same technique, or tries direct structural analysis for both",
+      "hint": "The lower bound and upper bound require fundamentally different techniques: lower bound needs a counting/double-counting argument (each position must be blocked), upper bound needs an explicit construction with the right density.",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "double_counting",
+        "explicit_construction",
+        "asymptotic_density",
+        "two_technique_split",
+        "counting_vs_construction"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries a naive construction (all vertical blocks, density 1/3) and finds it exceeds the target density 1/5 — the construction is too wasteful",
+      "hint": "The naive construction wastes space because vertical blocks only block same-column positions. Think about what makes a construction efficient: each block should block as many positions as possible (both orientations) while using few blocks total.",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "naive_construction",
+        "density_1_over_3",
+        "efficiency_gap",
+        "block_utilization",
+        "cross_orientation_blocking"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI struggles to find the lower bound argument — direct structural analysis of what a minimal maximal tearing looks like is intractable, and the AI doesn't see the double counting structure",
+      "hint": "Use double counting: count pairs (possible_position, torn_block) where they intersect. Every position must be intersected (maximality), and each torn block intersects at most 14 positions. The key is decomposing by orientation: 5 same-orientation + 9 cross-orientation = 14.",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "double_counting",
+        "position_block_intersection",
+        "maximality_constraint",
+        "14_bound",
+        "orientation_decomposition"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI is computing the intersection bound but needs to carefully enumerate which positions a single block can intersect, decomposing by orientation",
+      "hint": "A horizontal block at (i,j)-(i,j+2) intersects: 5 horizontal positions (same row, starting column j-2 to j+2) and 9 vertical positions (columns {j,j+1,j+2} × starting rows {i-2,i-1,i}). Total 5+9=14. Vertical block is symmetric.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "horizontal_intersection_5",
+        "vertical_intersection_9",
+        "cross_orientation_counting",
+        "14_bound_verification",
+        "symmetry_argument"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI needs to construct a density-1/5 pattern but doesn't know how to ensure vertical maximality with a horizontal-only pattern — the naive period-3 pattern leaves gaps for vertical blocks",
+      "hint": "Use period-5 blocks in each row with a phase shift: row i starts blocks at column i mod 5. The phase shift ensures any 3 consecutive rows have phases covering 3 different mod 5 values, and since each phase covers 3 residues, all 5 residues are covered — blocking vertical blocks. Period must be 5 (not 3) because 3-cell blocks + 2-cell gaps = 5.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "period_5_pattern",
+        "phase_shift",
+        "mod_5_residue_coverage",
+        "vertical_maximality",
+        "horizontal_block_density",
+        "3_cell_block_plus_2_gap"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the pattern and needs to verify maximality in both directions and count total blocks to complete the proof",
+      "hint": "Verify: horizontal maximality (period 5 means every 3 consecutive cells have a covered one) and vertical maximality (3 consecutive rows have 3 different phases, covering all 5 residues). Count: n/5 + O(1) per row, n rows, total n²/5 + O(n). Combine with lower bound n(n-2)/7.",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "maximality_verification",
+        "block_counting",
+        "asymptotic_bound",
+        "phase_coverage_proof",
+        "two_sided_combination"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path — two-sided bound with different techniques for each side",
+      "observation_point": null,
+      "tell": "The solution requires two fundamentally different techniques for the two bounds: double counting for the lower bound and periodic construction for the upper bound. AI's default is to try one technique for both sides or direct structural analysis.",
+      "hint": "Recognize early that lower and upper bounds need different method families. The lower bound is a counting argument (each of 2n(n-2) positions must be blocked, each block blocks ≤14), the upper bound is a construction (period-5 phase-shifted pattern achieving density 1/5). This two-technique split is the overarching structure.",
+      "hint_level": 0.6,
+      "generalizability": "high — the two-technique split (counting lower bound + constructive upper bound) is a universal pattern in extremal combinatorics and combinatorial optimization",
+      "why_not_visible_locally": "From any single step, the AI sees either a counting problem or a construction problem, but cannot see that the two bounds require fundamentally different method families. Only by recognizing the full two-sided structure does the split become visible. A local view of 'prove b(n) ≥ ...' or 'prove b(n) ≤ ...' doesn't reveal that the techniques are from different mathematical worlds.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "two_technique_split",
+        "counting_lower_bound",
+        "constructive_upper_bound",
+        "double_counting",
+        "periodic_construction",
+        "asymptotic_density"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the '14' bound in the double counting argument — the orientation decomposition 5+9=14",
+      "observation_point": "R4",
+      "tell": "The constant 14 = 5 + 9 is the crucial combinatorial bound that makes the 1/7 lower bound work. It comes from decomposing intersections by orientation: 5 same-orientation (5 possible starting positions in the same row/column) + 9 cross-orientation (3×3 grid of cross-orientation positions). This specific decomposition is non-obvious.",
+      "hint": "The 14 bound comes from decomposing intersections by orientation. Same-orientation: a horizontal block intersects 5 horizontal positions (same row, starting column within ±2). Cross-orientation: it intersects 9 vertical positions (3 columns × 3 starting rows). The decomposition 5+9=14 is what gives 2n(n-2)/14 = n(n-2)/7.",
+      "hint_level": 0.5,
+      "generalizability": "medium — the orientation decomposition technique generalizes to other 2D grid covering problems with two orientations, but the specific constant 14 is tuned to the 3-cell block size",
+      "why_not_visible_locally": "The constant 14 is not visible until you carefully enumerate all possible intersecting positions and decompose by orientation. A local view of 'each block blocks some positions' doesn't reveal the 5+9 decomposition. The AI would need to systematically list: which horizontal positions can intersect a given horizontal block? which vertical positions? — this enumeration is the hidden insight.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "14_bound",
+        "orientation_decomposition",
+        "5_same_orientation",
+        "9_cross_orientation",
+        "intersection_enumeration",
+        "double_counting_constant"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the period-5 phase-shifted pattern for the upper bound — why period must be 5 and why phase shift ensures vertical maximality",
+      "observation_point": "R6",
+      "tell": "The period-5 pattern with phase shift i mod 5 is the key construction. The choice of period 5 (not 3 or 4) is forced by the dual maximality requirement: period 5 with 3-cell blocks leaves 2-cell gaps, and the phase shift ensures 3 consecutive rows cover all 5 residues mod 5, blocking any vertical block.",
+      "hint": "The period must be 5 because: blocks cover 3 cells, so period p leaves p-3 gaps. Period 3 leaves no gaps but density 1/3 (too high). Period 5 leaves 2-cell gaps (density 1/5) and the phase shift i mod 5 ensures any 3 consecutive rows have phases covering 3 different residues, and since each phase covers 3 consecutive residues, all 5 are covered — no vertical block can fit.",
+      "hint_level": 0.7,
+      "generalizability": "medium — the phase-shifted periodic pattern technique generalizes to other 2D covering problems with directional constraints, but the specific period-5 choice is tuned to the 3-cell block size and the 3-consecutive-cell maximality requirement",
+      "why_not_visible_locally": "The period-5 choice is not obvious from looking at a single row (where period 3 would seem natural for 3-cell blocks). Only by considering the vertical maximality constraint simultaneously — that 3 consecutive rows must cover all columns — does the need for period 5 with phase shift become visible. The local view of 'place blocks in one row efficiently' doesn't reveal the cross-directional constraint.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "period_5",
+        "phase_shift",
+        "mod_5_residue_coverage",
+        "vertical_maximality_constraint",
+        "3_cell_block_size",
+        "dual_direction_maximality"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接分析极大撕裂的结构或用单一技巧处理双侧界。下界方面，AI不会想到双重计数的'14'界——按方向分解相交位置（5同向+9交叉）是非显然的组合洞察。上界方面，AI会尝试朴素构造（如全竖直块密度1/3或周期3模式），但不会想到周期5+相位偏移的构造——关键在于理解周期必须为5（3格块+2格间隔）且相位偏移保证竖直极大性。",
+  "suitable_for_poc": [
+    "POC-VMS-tell-detection",
+    "POC-VMS-hint-injection",
+    "POC-VMS-method-translation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "这个题目在问什么？b(n)的定义中，'最小'和'不可能再撕'这两个条件分别意味着什么？我们要证明什么类型的结论？",
+        "expected_answer": "b(n)是极大撕裂中的最小块数——极大性要求不能再撕出任何块，最小性要求在所有极大方案中块数最少。我们要证明b(n)被n²/7和n²/5渐近夹住，即存在常数c,d使得(1/7)n²-cn≤b(n)≤(1/5)n²-dn。这是一个双侧渐近界的证明。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "要同时证明上界和下界，你能想到哪些方法？分别列出适用于下界和上界的方法。",
+        "expected_answer": "下界：每个撕出的块'阻挡'了一些可能位置，可以用计数论证；或者分析极大撕裂的结构性质。上界：构造一个具体的极大方案并计算其块数；或者用概率方法证明存在性。两个方向可能需要完全不同的技巧。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "对于上界，试试最简单的构造——全部用竖直块填满，密度是多少？这个密度够不够？",
+        "expected_answer": "全竖直块：每列n/3个块，n列共n²/3个块。密度1/3，但1/3>1/5，不够好。需要更高效的方案。问题在于竖直块只阻挡同列的位置，没有利用交叉阻挡。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "对于下界，考虑所有可能的位置（水平的和竖直的），每个位置必须被某个已撕出的块'阻挡'（相交）。用双重计数：计算(位置,块)对，其中位置和块相交。每个块最多阻挡多少个位置？",
+        "expected_answer": "水平位置有n(n-2)个，竖直位置有n(n-2)个，共2n(n-2)个。每个撕出的块（比如水平块在(i,j)到(i,j+2)）与同行的5个水平位置相交（起始列j-2到j+2），与3列×3行的9个竖直位置相交（列j,j+1,j+2，起始行i-2到i），共14个。所以2n(n-2)≤14|T|，即|T|≥n(n-2)/7。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "验证'14'这个界——一个水平块在(i,j)到(i,j+2)，它最多与多少个水平位置相交？多少个竖直位置相交？竖直块的情况对称吗？",
+        "expected_answer": "水平位置：同行，起始列在j-2到j+2之间，共5个。竖直位置：列在{j,j+1,j+2}中，起始行在i-2到i之间，共3×3=9个。总计5+9=14个。竖直块由对称性也是14个（5个竖直+9个水平）。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "对于上界，需要密度1/5的构造。考虑每行只用水平块，块覆盖3格间隔2格（周期5）。但如何保证竖直方向也被阻挡？试试让每行的起始位置偏移1个单位（phase=i mod 5）。为什么周期必须是5而不是3？",
+        "expected_answer": "行i的块从列i%5开始，每隔5列一个。每行约n/5个块。关键：phase每行偏移1，所以任意3连续行的phase覆盖3个不同mod5值。每个phase覆盖3个mod5值（phase,phase+1,phase+2），3个连续phase覆盖所有5个mod5值——任意列在3行中至少1行被覆盖，竖直块被阻挡。周期必须是5因为3格块+2格间隔=5，周期3会留下3格空隙让竖直块通过。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "验证这个周期5的构造是极大的，并计算总块数，完成证明。",
+        "expected_answer": "极大性：水平方向每3连续格至少1个被覆盖（周期5中3被覆盖2空）；竖直方向任意3连续行×任意列，3个phase覆盖所有5个mod5值，至少1个被覆盖。总块数≤n(n/5+3)≈n²/5。结合下界n(n-2)/7≈n²/7，取c=2/7,d=-3得(1/7)n²-(2/7)n≤b(n)≤(1/5)n²+3n。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "approx 15 minutes",
+    "notes": "USAMO 2002 P6 — extremal combinatorics on grid with 1×3 blocks. Key difficulty is the two-technique split (double counting for lower bound, periodic construction for upper bound) and the non-obvious constants (14 for lower bound, period 5 for upper bound). The phase-shifted pattern is the most creative element."
+  }
+}

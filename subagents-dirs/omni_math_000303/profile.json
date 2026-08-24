@@ -1,0 +1,218 @@
+{
+  "_key": "omni_math_000303",
+  "source_id": "omni_math_303",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Fix positive integer n. Prove: For any positive integers a,b,c not exceeding 3n^2+4n, there exist integers x,y,z with absolute value not exceeding 2n and not all 0, such that ax+by+cz=0.",
+  "solution_text": "Fix a positive integer n. We aim to prove that for any positive integers a, b, c not exceeding 3n^2 + 4n, there exist integers x, y, z with absolute value not exceeding 2n and not all zero, such that ax + by + cz = 0. Without loss of generality, assume c = max(a, b, c). Consider the set of integers x and y such that 0 <= x, -y <= 2n and x^2 + y^2 > 0. If any value of ax + by in this set is 0 mod c, the norm is at most 2cn, and we are done. Otherwise, these 4n^2 + 4n values are all nonzero modulo c. Since c <= 3n^2 + 4n, there must be duplicates modulo c. If ax_1 + by_1 = ax_2 + by_2 mod c, then a(x_2 - x_1) + b(y_2 - y_1) = 0 mod c. If x_2 - x_1 and y_2 - y_1 are not both positive or both negative, we are done. Otherwise, assume x_2 > x_1 and y_2 > y_1. We must have (x_2 + y_2) - (x_1 + y_1) > 2n because otherwise a(x_2 - x_1) + b(y_2 - y_1) is positive but at most c(x_2 - x_1) + c(y_2 - y_1), which is at most 2nc. The size x + y of ax + by is between -2n and 2n inclusive, so there are at most two choices of (x, y) for any fixed residue modulo c. If there are three, the largest and smallest have a size difference over 4n, which is a contradiction. Since c <= 3n^2 + 4n and we have 4n^2 + 4n values, there must be at least n^2 + 1 pairs ((x_1, y_1), (x_2, y_2)) such that ax_1 + by_1 = ax_2 + by_2 mod c with x_2 > x_1 and y_2 > y_1. This gives a(x_2 - x_1) + b(y_2 - y_1) = 0 mod c with (y_2 - y_1) + (x_2 - x_1) > 2n. If we also have a(x_3 - x_4) + b(y_3 - y_4) = 0 mod c with x_3 > x_4 and y_3 > y_4, then a(x_2 - x_1 - x_3 + x_4) + b(y_2 - y_1 - y_3 + y_4) = 0 mod c. This implies that the difference has a size of norm at most 2n and is divisible by c, allowing us to add the appropriate cz and finish. If all pairs ax_1 + by_1 = ax_2 + by_2 have (x_2 - x_1, y_2 - y_1) fixed, then x_2 - x_1 = A and y_2 - y_1 = B with A + B > 2n. The range constraints give at most (2n + 1 - A)(2n + 1 - B) <= n^2 choices of (x_1, y_1), which is a contradiction unless A + B = 2n + 1. Thus, Aa + Bb = 0 mod c with A + B = 2n + 1. Since 0 <= Aa + Bb <= (2n + 1)c, it must be a multiple of c, and we are done by adding cz unless it is exactly (2n + 1)c. This implies A(c - a) + B(c - b) = 0, and since A and B are nonzero, either c = a or c = b, which are trivial cases. Therefore, the proof is complete.",
+  "solution_summary": "WLOG设c=max(a,b,c)，在0≤x≤2n,-2n≤y≤0的网格上生成4n²+4n个ax+by值，用鸽巢原理（c≤3n²+4n<4n²+4n）找到同余重复，对差值做符号分类讨论：异号直接得解，同正则用两组差值之差或分析固定差值(A,B)情形（推出A+B=2n+1，要么直接得解要么平凡）。",
+  "domain": "number_theory",
+  "subfield": "combinatorial_number_theory",
+  "answer_type": "proof",
+  "answer": "对任意不超过3n²+4n的正整数a,b,c，存在绝对值不超过2n且不全为0的整数x,y,z使得ax+by+cz=0",
+  "problem_type": "structural_existence",
+  "solution_method_type": "pigeonhole_residue_case_analysis",
+  "structure_features": "有界整数解存在性证明；线性Diophantine方程ax+by+cz=0；鸽巢原理取余数mod c；差值符号分类讨论；固定差值(A,B)子情形分析",
+  "key_objects": ["正整数a,b,c（≤3n²+4n）", "整数x,y,z（|·|≤2n）", "mod c剩余类", "网格点对(x,y)及其差值", "固定差值(A,B)"],
+  "thinking_patterns": ["pigeonhole_principle", "case_analysis", "counting_argument", "modular_arithmetic", "wlog_symmetry", "contradiction_argument"],
+  "primary_pattern": "pigeonhole_principle",
+  "knowledge_required": ["鸽巢原理", "模运算/同余", "有界整数解", "线性Diophantine方程", "Minkowski定理（作为对比排除）"],
+  "key_insight": "在0≤x≤2n, -2n≤y≤0的网格上生成4n²+4n个ax+by值，因c≤3n²+4n<4n²+4n用鸽巢原理找到同余重复，再对差值做符号分类讨论提取有界解",
+  "translation_from": "几何/格点直觉（Minkowski定理式的连续格点方法）",
+  "translation_to": "组合/鸽巢计数取余数（离散的mod c剩余类计数）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": ["鸽巢原理取余数mod c", "4n²+4n网格值计数", "差值符号分类", "固定差值(A,B)情形", "同余重复对", "有界解提取"],
+  "expected_ai_method": "direct_calculation（bare AI可能尝试直接构造x,y,z或用Minkowski定理）",
+  "correct_method": "鸽巢原理取余数mod c + 差值符号分类讨论",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到存在性命题关于有界整数解，可能尝试直接构造x,y,z",
+      "hint": "描述题目结构：我们要证明什么？关键约束是什么？",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["存在性命题", "有界整数解", "线性方程ax+by+cz=0"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方法但可能不优先考虑鸽巢取余数，搜索方向发散",
+      "hint": "有哪些方法可以证明ax+by+cz=0的有界解存在？",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["鸽巢原理", "Minkowski定理", "直接构造", "方法列举"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试Minkowski定理，但该连续格点方法不适用于此整数问题",
+      "hint": "试试Minkowski定理：能否设置格和凸体来保证非平凡解？",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "continuous_analytic", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["Minkowski定理", "格点", "凸体", "体积论证"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未考虑鸽巢取余数mod c——这是关键方法论缺口",
+      "hint": "不用Minkowski，考虑鸽巢原理。WLOG设c=max(a,b,c)。你能生成多少个ax+by的值？mod c有多少个剩余类？",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "enumeration_brute_force", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["鸽巢取余数mod c", "4n²+4n个值", "3n²+4n对c的界", "同余重复"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI找到同余重复但需要分析差值何时直接给出有界解",
+      "hint": "给定ax₁+by₁≡ax₂+by₂(mod c)，关于(x₂-x₁, y₂-y₁)能得出什么？何时直接给出解？",
+      "hint_level": 0.2,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["差值分析", "差值符号", "有界性2n", "同余mod c"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI卡在差值同正的情形，需要利用多组同余对",
+      "hint": "在差值同正的麻烦情形中，如何利用多组同余对来找到解？",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "case_by_case", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["多组同余对", "差值之差", "符号分析", "有界差值"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI需要处理所有对差值固定为(A,B)的子情形——最难的思维步骤",
+      "hint": "若所有同余对的差值都固定为(A,B)，分析这个情形。",
+      "hint_level": 0.3,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "case_by_case", "gap_type": "method_translation"},
+      "tell_small_concepts": ["固定差值(A,B)", "位置计数", "A+B=2n+1", "平凡情形c=a或c=b"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI需要验证所有情形覆盖并组装完整证明",
+      "hint": "总结完整证明结构，验证所有情形都已覆盖。",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "logical_deduction", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["证明组装", "情形覆盖", "QED", "完整论证"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整证明路径：鸽巢取余数→差值符号分析→多组对/固定差值情形",
+      "observation_point": null,
+      "tell": "证明需要特定序列：鸽巢取余数→差值符号分类→多组对差值之差或固定差值(A,B)情形分析。没有任何单一步骤能揭示完整路径。",
+      "hint": "证明路径是：生成值→鸽巢→分析差值→处理同正情形→处理固定差值情形",
+      "hint_level": 0.7,
+      "generalizability": "medium — 鸽巢到case分析的模式适用于组合数论中许多有界存在性问题",
+      "why_not_visible_locally": "完整证明路径需要看到鸽巢计数、符号分析和固定差值子情形如何串联。在任何单一步骤中，下一步的需求并不明显——特别是固定差值子情形的必要性只有在多组对分析之后才显现。",
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "case_by_case", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["鸽巢到case分析管道", "多步证明路径", "符号分析到固定差值的连接"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "界3n²+4n与计数4n²+4n之间的数值关系",
+      "observation_point": "R4",
+      "tell": "界3n²+4n的选取使得4n²+4n>3n²+4n，恰好让鸽巢论证成立。这一数值关系在题目陈述中隐含不显式。",
+      "hint": "注意(2n+1)²-1=4n²+4n>3n²+4n≥c，所以鸽巢适用",
+      "hint_level": 0.5,
+      "generalizability": "high — 选取界使鸽巢成立的模式在组合数论中无处不在",
+      "why_not_visible_locally": "界3n²+4n与生成值计数4n²+4n之间的数值关系在题目陈述中不显式。只有当你在特定网格中计算(2n+1)²-1并与3n²+4n比较时才变得可见——这需要先有在网格上计数的洞察。",
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["数值界关系", "4n²+4n vs 3n²+4n", "鸽巢阈值", "网格值计数"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI大概率尝试Minkowski定理或直接构造，无法发现鸽巢取余数mod c的方法。即使偶然想到鸽巢，差值符号分类讨论（特别是固定差值(A,B)子情形）的非平凡case分析很可能不完整。难度9.0的竞赛题对bare AI极具挑战性。",
+  "suitable_for_poc": ["tell_hint_injection", "path_guidance", "knowledge_bottleneck_identification"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "描述题目结构：我们要证明什么？关键约束是什么？",
+        "expected_answer": "这是一个存在性命题：对任意a,b,c≤3n²+4n，存在|x|,|y|,|z|≤2n且不全为0的整数x,y,z使ax+by+cz=0。核心是证明有界整数解的存在性。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "有哪些方法可以证明ax+by+cz=0的有界解存在？",
+        "expected_answer": "可能的方法：(1)鸽巢原理取余数，(2)Minkowski定理（格点），(3)直接构造，(4)生成函数，(5)连分数/Diophantine逼近"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试试Minkowski定理：能否设置格和凸体来保证非平凡解？",
+        "expected_answer": "Minkowski需要对称凸体体积足够大。|x|,|y|,|z|≤2n给出体积(4n+1)³的立方体，格{ax+by+cz=0}的行列式与gcd(a,b,c)相关。但3n²+4n和2n的界与Minkowski要求不干净匹配，且问题是整数而非实格点。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "不用Minkowski，考虑鸽巢原理。WLOG设c=max(a,b,c)。你能生成多少个ax+by的值？mod c有多少个剩余类？",
+        "expected_answer": "取0≤x≤2n, -2n≤y≤0（不同时为0），共(2n+1)²-1=4n²+4n个ax+by值。因c≤3n²+4n<4n²+4n，鸽巢原理保证有两个值同余mod c。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.2,
+        "question": "给定ax₁+by₁≡ax₂+by₂(mod c)，关于(x₂-x₁, y₂-y₁)能得出什么？何时直接给出解？",
+        "expected_answer": "a(x₂-x₁)+b(y₂-y₁)≡0(mod c)。若差值不同号（一正一负或含零），则|a·差+b·差|≤2nc，等于cz且|z|≤2n，直接得解。麻烦情形是差值同正且和>2n。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "在差值同正的麻烦情形中，如何利用多组同余对来找到解？",
+        "expected_answer": "若有两组同余对，差值分别为(X₁,Y₁)和(X₂,Y₂)且均同正，则(X₁-X₂, Y₁-Y₂)也满足同余mod c，且各分量绝对值≤2n。若符号合适则直接得解。"
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.3,
+        "question": "若所有同余对的差值都固定为(A,B)，分析这个情形。",
+        "expected_answer": "若所有对差值固定(A,B)且A+B>2n，则有效(x₁,y₁)位置至多(2n+1-A)(2n+1-B)≤n²个。但鸽巢给出至少n²+1对，矛盾，除非A+B=2n+1。此时Aa+Bb≡0(mod c)，0≤Aa+Bb≤(2n+1)c。若k≤2n直接得解；若k=2n+1则A(c-a)+B(c-b)=0推出c=a或c=b（平凡）。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "总结完整证明结构，验证所有情形都已覆盖。",
+        "expected_answer": "证明完整：(1)WLOG c=max，(2)生成4n²+4n个值，(3)鸽巢得重复剩余，(4)差值异号直接得解，(5)差值同正用两组之差或分析固定差值情形，(6)固定差值推出A+B=2n+1，要么直接得解要么平凡。QED。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 3.0,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R7"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "approx 20min",
+    "notes": "中国国家队选拔考试数论题，难度9.0。解答在Lean文件中被截断，从HuggingFace omni_math数据集获取完整解答。核心方法为鸽巢原理取余数mod c配合差值符号分类讨论。"
+  }
+}

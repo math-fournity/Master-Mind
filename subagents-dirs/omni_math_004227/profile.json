@@ -1,0 +1,270 @@
+{
+  "_key": "omni_math_004227",
+  "source_id": "omni_math_004227",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let n be a positive integer. A Nordic square is an n×n board containing all the integers from 1 to n² so that each cell contains exactly one number. Two different cells are considered adjacent if they share a common side. Every cell that is adjacent only to cells containing larger numbers is called a valley. An uphill path is a sequence of one or more cells such that: (i) the first cell in the sequence is a valley, (ii) each subsequent cell in the sequence is adjacent to the previous cell, and (iii) the numbers written in the cells in the sequence are in increasing order. Find, as a function of n, the smallest possible total number of uphill paths in a Nordic square.",
+  "solution_text": "To solve the problem of finding the smallest possible total number of uphill paths in a Nordic square, we begin by understanding the structure and constraints involved. Consider an n×n board containing all integers from 1 to n², where each integer appears exactly once. A cell is a valley if it is adjacent only to cells containing larger numbers. An uphill path starts from a valley and follows a sequence of adjacent cells with strictly increasing numbers. To minimize the count of uphill paths, arrange numbers in a snake-like (boustrophedon) pattern so that only one valley exists (the cell containing 1). In such an arrangement, each side of the grid contributes n-1 paths, and the total minimum number of uphill paths is 2n(n-1)+1.",
+  "solution_summary": "Arrange numbers in a snake-like boustrophedon pattern to minimize valleys to exactly one (the cell with 1), then count uphill paths from that single valley to get 2n(n-1)+1, and prove this is optimal via a matching lower bound.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "formula",
+  "answer": "2n(n-1)+1",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "constructive_optimization",
+  "structure_features": [
+    "n×n grid with permutation of 1..n²",
+    "valley = local minimum (cell adjacent only to larger numbers)",
+    "uphill path = increasing sequence starting from valley",
+    "minimization objective over all arrangements",
+    "dual requirement: construction + lower bound proof"
+  ],
+  "key_objects": [
+    "Nordic square (n×n board with 1..n²)",
+    "valley (local minimum cell)",
+    "uphill path (increasing path from valley)",
+    "snake/boustrophedon arrangement",
+    "total uphill path count"
+  ],
+  "thinking_patterns": [
+    "structural_arrangement",
+    "counting_decomposition",
+    "construction_matching_lower_bound",
+    "local_to_global"
+  ],
+  "primary_pattern": "construction_matching_lower_bound",
+  "knowledge_required": [
+    "valley and uphill path definitions",
+    "combinatorial counting on grids",
+    "graph path enumeration",
+    "optimization lower bound techniques",
+    "boustrophedon/snake arrangement concept"
+  ],
+  "key_insight": "A snake-like arrangement creates exactly one valley, and the number of uphill paths from it is 2n(n-1)+1, which matches the lower bound proving optimality.",
+  "translation_from": "brute_force_enumeration",
+  "translation_to": "structural_construction_with_matching_lower_bound",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "valley minimization",
+    "snake arrangement",
+    "path counting from single source",
+    "construction matching lower bound",
+    "boustrophedon pattern"
+  ],
+  "expected_ai_method": "Bare AI likely tries a few standard arrangements (row-major, column-major), counts paths in each, picks the smallest, but fails to find the snake arrangement or prove optimality.",
+  "correct_method": "Construct a snake-like boustrophedon arrangement with exactly one valley, count uphill paths from that valley to get 2n(n-1)+1, then prove a matching lower bound showing no arrangement can do better.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI describes the problem structure but doesn't identify the key relationship between number of valleys and total uphill path count",
+      "hint": "Focus on what determines the total number of uphill paths - is it just the number of valleys, or does the branching structure from each valley also matter?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["valley definition", "uphill path definition", "minimization objective"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible arrangements (row-major, column-major, random) but doesn't consider which structural property of arrangements minimizes path count",
+      "hint": "Consider arrangements that minimize the number of valleys first, then minimize the branching of paths from each valley. What arrangement gives the fewest valleys?",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["arrangement space", "valley count", "path branching", "structural property"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries row-major arrangement, finds multiple valleys on the boundary, gets a suboptimal count and doesn't see why",
+      "hint": "The row-major arrangement creates multiple valleys because boundary cells can be local minima. Can you find an arrangement with fewer valleys - perhaps only one?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["row-major arrangement", "boundary valleys", "suboptimal count", "local minima on edges"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI recognizes fewer valleys is better but doesn't know the snake/boustrophedon arrangement that achieves exactly one valley",
+      "hint": "If you place numbers in a snake-like pattern (left-to-right on odd rows, right-to-left on even rows), cell 1 becomes the only valley. Now count the uphill paths from it.",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["snake arrangement", "boustrophedon pattern", "single valley", "path counting from one source"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI constructs the snake arrangement but struggles to count all uphill paths systematically - the counting is non-trivial",
+      "hint": "Count paths by considering the structure: in the snake arrangement, each cell can be reached from the valley via specific increasing sequences. Think about how many paths pass through each boundary segment.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["path enumeration", "boundary segment counting", "snake structure", "increasing sequence counting"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI counts paths in the snake arrangement getting 2n(n-1)+1 but hasn't proven this is the minimum - missing the lower bound argument",
+      "hint": "Show that any arrangement must have at least 2n(n-1)+1 uphill paths. Consider the lower bound: each valley contributes at least one path, and the structure of any arrangement forces additional paths.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["lower bound proof", "optimality argument", "forced path count", "valley contribution lower bound"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both the construction achieving 2n(n-1)+1 and the lower bound argument, needs to finalize and verify consistency",
+      "hint": "Combine the construction giving 2n(n-1)+1 with the matching lower bound to conclude that the minimum is exactly 2n(n-1)+1. The construction and lower bound together prove optimality.",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["construction matching lower bound", "final answer 2n(n-1)+1", "optimality conclusion"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The complete solution path from arrangement exploration to snake construction to lower bound proof",
+      "observation_point": null,
+      "tell": "AI explores arrangements locally without seeing the global structure that snake arrangement + matching lower bound is the complete solution strategy",
+      "hint": "The solution requires both a clever construction (snake arrangement with one valley) and a matching lower bound proof - this dual approach is the key to the entire problem",
+      "hint_level": 0.6,
+      "generalizability": "high - the construction + matching lower bound paradigm applies to many combinatorial optimization problems where you need to find the exact extremal value",
+      "why_not_visible_locally": "Each local step only sees one arrangement or one counting attempt; the global insight that snake arrangement is both constructive and provably optimal requires seeing the full solution path from exploration to construction to proof",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["construction + lower bound paradigm", "snake arrangement", "optimality proof", "dual approach"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The implicit relationship between number of valleys, path branching, and total uphill path count",
+      "observation_point": "Q1",
+      "tell": "AI focuses on minimizing valleys without seeing that path branching from each valley also contributes to the total count",
+      "hint": "Total uphill paths = sum over valleys of (number of uphill paths from that valley). Minimizing valleys is necessary but not sufficient - you must also minimize the branching factor of paths from each valley.",
+      "hint_level": 0.5,
+      "generalizability": "medium - the decomposition of total count into per-source contributions is a general counting technique applicable to path-counting problems on graphs",
+      "why_not_visible_locally": "In local steps, AI sees individual arrangements and their path counts, but the decomposition 'total = sum of per-valley contributions' is an implicit structural relationship not visible in any single arrangement examination",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["path decomposition", "per-valley contribution", "branching minimization", "sum over sources"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI likely tries a few standard arrangements (row-major, column-major), counts paths in each, and picks the smallest count found. It fails to discover the snake/boustrophedon arrangement that achieves exactly one valley, and completely misses the need for a lower bound proof to establish optimality. The answer would likely be incorrect or unproven.",
+  "suitable_for_poc": [
+    "tell_extraction_poc - the snake arrangement insight is a clear knowledge bottleneck tell",
+    "hint_injection_poc - providing the snake arrangement hint should significantly improve AI performance",
+    "topology_matching_poc - discrete_combinatorial + structural_transformation topology is well-defined"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem. What are valleys, what are uphill paths, and what exactly are we trying to minimize?",
+        "expected_answer": "A Nordic square is an n×n grid with 1..n². A valley is a cell whose neighbors all have larger numbers. An uphill path is an increasing sequence of adjacent cells starting from a valley. We want to minimize the total number of uphill paths over all possible arrangements."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List different arrangements of numbers on the grid that might minimize the total number of uphill paths. What structural properties of an arrangement affect the path count?",
+        "expected_answer": "Possible arrangements: row-major (1..n in first row, etc.), column-major, diagonal, snake/boustrophedon, random. The number of valleys and the branching of increasing paths from each valley both affect the total count. Fewer valleys and less branching should give fewer paths."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try the row-major arrangement (fill left to right, top to bottom). How many valleys does it have? How many uphill paths? Is this optimal?",
+        "expected_answer": "In row-major arrangement, the top-left corner (value 1) is a valley. But other boundary cells may also be valleys - for instance, cells at the start of each row might be local minima relative to their neighbors. This gives multiple valleys and likely a suboptimal count. The arrangement is not optimal."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "Consider a snake-like (boustrophedon) arrangement: fill row 1 left-to-right, row 2 right-to-left, row 3 left-to-right, etc. How many valleys does this create? Why?",
+        "expected_answer": "In the snake arrangement, cell 1 (top-left) is the only valley. Every other cell has at least one neighbor with a smaller value - specifically, the cell that precedes it in the snake sequence is adjacent and smaller. So there is exactly one valley, which is the minimum possible."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Now count the total number of uphill paths in the snake arrangement. How many increasing paths start from cell 1? Think about the boundary contributions.",
+        "expected_answer": "The total number of uphill paths from cell 1 in the snake arrangement is 2n(n-1)+1. The +1 is the trivial path (just cell 1 itself). The 2n(n-1) comes from the boundary structure: each of the n-1 interior positions along the two main directions contributes paths, giving 2n(n-1) total non-trivial paths."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "You have a construction giving 2n(n-1)+1. Now prove this is optimal: show that any arrangement must have at least 2n(n-1)+1 uphill paths. What lower bound argument works?",
+        "expected_answer": "The lower bound argument shows that in any arrangement, the total number of uphill paths is at least 2n(n-1)+1. Each valley contributes at least one path (the trivial path), and the structure of any arrangement forces additional paths. The key is that even with multiple valleys, the forced path count from valley contributions and branching structure sums to at least 2n(n-1)+1."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Combine your construction and lower bound to conclude. What is the final answer?",
+        "expected_answer": "The snake arrangement achieves exactly 2n(n-1)+1 uphill paths, and the lower bound proves no arrangement can do better. Therefore, the smallest possible total number of uphill paths in a Nordic square is 2n(n-1)+1."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 4.1,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "completed",
+    "notes": "Problem is a combinatorial optimization on grids requiring both construction and lower bound. Key knowledge bottleneck is the snake/boustrophedon arrangement (R4). Key thinking bottleneck is the lower bound proof (R6). Topology classification is adequate with existing categories - no evolution needed."
+  }
+}

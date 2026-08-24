@@ -1,0 +1,253 @@
+{
+  "_key": "omni_math_004246",
+  "source_id": "omni_math_004246",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "For an integer m>=1, we consider partitions of a 2^m x 2^m chessboard into rectangles consisting of cells of chessboard, in which each of the 2^m cells along one diagonal forms a separate rectangle of side length 1. Determine the smallest possible sum of rectangle perimeters in such a partition.",
+  "solution_text": "The key insight is recursive quadtree decomposition. Divide the 2^m x 2^m board into four 2^{m-1} x 2^{m-1} quadrants. The top-right and bottom-left quadrants contain no diagonal cells, so each can be a single rectangle with perimeter 2(2^{m-1} + 2^{m-1}) = 2^{m+1}. The top-left and bottom-right quadrants each contain half the diagonal cells, so the problem recurses on each. This gives the recurrence S(m) = 2*S(m-1) + 2*2^{m+1} = 2*S(m-1) + 2^{m+2}, with base case S(1) = 16 (the 2x2 board has all four cells as 1x1 rectangles, total perimeter 4*4=16). Solving: S(m) = 2^{m+2}(m+1).",
+  "solution_summary": "Recursive quadtree decomposition: split the board into 4 quadrants, off-diagonal quadrants become single rectangles, on-diagonal quadrants recurse. Recurrence S(m)=2S(m-1)+2^{m+2} with S(1)=16 gives S(m)=2^{m+2}(m+1).",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "numerical",
+  "answer": "2^{m+2}(m+1)",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "recursive_decomposition",
+  "structure_features": [
+    "2^m x 2^m grid with power-of-2 side length",
+    "diagonal constraint: each of 2^m diagonal cells is a separate 1x1 rectangle",
+    "recursive quadtree structure: board splits into 4 quadrants of half size",
+    "off-diagonal quadrants are unconstrained full rectangles",
+    "on-diagonal quadrants recurse with same structure"
+  ],
+  "key_objects": [
+    "2^m x 2^m chessboard",
+    "diagonal cells (1x1 rectangles)",
+    "non-diagonal rectangles",
+    "rectangle perimeters",
+    "four quadrants of size 2^{m-1} x 2^{m-1}",
+    "recurrence relation S(m) = 2*S(m-1) + 2^{m+2}"
+  ],
+  "thinking_patterns": [
+    "recursive_decomposition",
+    "divide_and_conquer",
+    "lower_bound_construction",
+    "recurrence_solving",
+    "structural_recognition"
+  ],
+  "primary_pattern": "recursive_decomposition",
+  "knowledge_required": [
+    "combinatorial optimization",
+    "rectangle perimeter calculation",
+    "recurrence relations",
+    "divide and conquer on power-of-2 structures",
+    "mathematical induction"
+  ],
+  "key_insight": "Divide the 2^m x 2^m board into four 2^{m-1} x 2^{m-1} quadrants — the two off-diagonal quadrants become single rectangles, and the two on-diagonal quadrants recurse, giving S(m) = 2S(m-1) + 2^{m+2}.",
+  "translation_from": "row_strip_heuristic",
+  "translation_to": "recursive_quadtree_decomposition",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "recursive decomposition",
+    "quadtree",
+    "diagonal constraint",
+    "perimeter sum",
+    "recurrence relation",
+    "power of 2",
+    "off-diagonal quadrant"
+  ],
+  "expected_ai_method": "direct_calculation",
+  "correct_method": "recursive_decomposition",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a grid partition optimization problem but does not identify the power-of-2 structure or the recursive decomposition possibility",
+      "hint": "Describe the problem structure: what is special about the board size being 2^m? How does the diagonal split the board?",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["power of 2", "diagonal constraint", "board structure"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists flat strategies (row strips, column strips, greedy covering) but misses the recursive quadtree decomposition",
+      "hint": "List all possible partition strategies. Consider: what does the power-of-2 board size suggest about recursive structure?",
+      "hint_level": 0.6,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["row strip", "column strip", "recursive decomposition", "greedy covering"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries row-strip partitioning and gets a suboptimal answer (e.g., 52 for m=2 instead of 48), confirming flat strategies are insufficient",
+      "hint": "Try partitioning each row into strips. Calculate the total perimeter for m=2. Is this optimal?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["row strip", "suboptimal", "perimeter calculation", "m=2 counterexample"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has not considered dividing the board into quadrants and recognizing the recursive self-similar structure",
+      "hint": "Divide the 2^m x 2^m board into four 2^{m-1} x 2^{m-1} quadrants. Which quadrants contain diagonal cells? Which do not?",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["quadrant", "off-diagonal", "on-diagonal", "recursive structure", "self-similarity"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the recursive structure but has not set up the recurrence relation connecting S(m) to S(m-1)",
+      "hint": "Write the recurrence: S(m) = 2*S(m-1) + perimeter of the two off-diagonal quadrants. What is the perimeter of each off-diagonal quadrant?",
+      "hint_level": 0.3,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["recurrence relation", "off-diagonal perimeter", "base case", "S(m-1)"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the recurrence S(m) = 2S(m-1) + 2^{m+2} with S(1)=16 but needs to solve it and verify the closed form",
+      "hint": "Solve the recurrence S(m) = 2S(m-1) + 2^{m+2} with S(1)=16. Verify the closed form 2^{m+2}(m+1) matches for m=1,2,3.",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "equation_solving",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["recurrence solving", "closed form", "verification", "mathematical induction"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire solution path from flat row-strip attempt to recursive quadtree decomposition",
+      "observation_point": null,
+      "tell": "The recursive quadtree decomposition is only discoverable after recognizing that flat strategies (row/column strips) are suboptimal and that the power-of-2 board size enables self-similar subdivision",
+      "hint": "When a power-of-2 structured grid problem with a diagonal constraint yields suboptimal results from flat partitioning, consider recursive quadtree decomposition: split into 4 quadrants, identify which inherit the constraint and which are free",
+      "hint_level": 0.5,
+      "generalizability": "high — applicable to any power-of-2 grid optimization problem with a self-similar constraint pattern",
+      "why_not_visible_locally": "The recursive quadtree structure is a global path feature: at any single step (e.g., trying row strips in one row), the AI sees only local cells and perimeters. The insight that the entire board recursively decomposes into self-similar subproblems requires seeing the full solution path — from failed flat attempt to successful recursive decomposition — which no single local step reveals.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["recursive decomposition", "quadtree", "power of 2", "self-similarity", "path feature"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The off-diagonal quadrants being completely free of diagonal constraints, making them single rectangles",
+      "observation_point": "Q4",
+      "tell": "When the board is divided into four quadrants, the top-right and bottom-left quadrants contain zero diagonal cells — this is not obvious when looking at individual rows or cells, but becomes clear only at the quadrant level",
+      "hint": "After dividing into quadrants, check which quadrants contain diagonal cells. The off-diagonal quadrants have no constraint and can each be a single rectangle with minimal perimeter 2^{m+1}.",
+      "hint_level": 0.4,
+      "generalizability": "medium — applicable to grid partition problems where constraints are localized to a subset that splits cleanly under recursive subdivision",
+      "why_not_visible_locally": "When examining individual rows or cells, the AI sees diagonal cells scattered across all rows. The fact that the top-right and bottom-left quadrants are completely free of diagonal cells is an implicit geometric property that only emerges at the quadrant level of abstraction — it is invisible when the AI's attention is at the row or cell level.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["off-diagonal quadrant", "diagonal-free region", "single rectangle", "quadrant level abstraction"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "A bare AI will likely attempt flat partitioning strategies (row strips or column strips), computing perimeters row by row. This gives a suboptimal answer (e.g., 52 for m=2 vs correct 48). The AI will miss the recursive quadtree decomposition because it does not recognize the power-of-2 structure as enabling self-similar subdivision, and does not think to divide the board into quadrants to exploit the diagonal's geometric properties.",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "recursive_decomposition_detection",
+    "structural_transformation_recognition"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "Describe the structure of this problem. What is special about the board size being 2^m? How does the diagonal constraint split the board?",
+        "expected_answer": "The board is 2^m x 2^m with 2^m diagonal cells each forced to be a 1x1 rectangle. The board size is a power of 2. The diagonal splits the board into two triangular regions of non-diagonal cells. The total non-diagonal cells are 2^m(2^m - 1)."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.6,
+        "question": "List all possible partition strategies for the non-diagonal cells. Consider: what does the power-of-2 board size suggest about recursive structure?",
+        "expected_answer": "Possible strategies: (1) row strips — each row's non-diagonal cells form one or two rectangles; (2) column strips — similar by columns; (3) greedy covering — use largest possible rectangles; (4) recursive decomposition — exploit the power-of-2 structure by dividing into quadrants."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try partitioning each row into strips. Calculate the total perimeter for m=2 (4x4 board). Is this optimal?",
+        "expected_answer": "For m=2, row strips give: row 1: 1x3 rect (perimeter 8), row 2: 1x1 (4) + 1x2 (6), row 3: 1x2 (6) + 1x1 (4), row 4: 1x3 (8). Non-diagonal total = 36, plus diagonal 16 = 52. But the answer should be 48, so row strips are suboptimal."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "Divide the 2^m x 2^m board into four 2^{m-1} x 2^{m-1} quadrants. Which quadrants contain diagonal cells? Which do not?",
+        "expected_answer": "Top-left quadrant: contains the first half of the diagonal. Bottom-right quadrant: contains the second half. Top-right and bottom-left quadrants: contain NO diagonal cells — they are completely free and can each be a single rectangle."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.3,
+        "question": "Write the recurrence: S(m) = 2*S(m-1) + perimeter of the two off-diagonal quadrants. What is the perimeter of each off-diagonal quadrant?",
+        "expected_answer": "Each off-diagonal quadrant is a 2^{m-1} x 2^{m-1} rectangle with perimeter 2(2^{m-1} + 2^{m-1}) = 2^m + 2^m = 2^{m+1}. Two of them give 2^{m+2}. So S(m) = 2*S(m-1) + 2^{m+2}, with S(1) = 16."
+      },
+      {
+        "round": 6,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "Solve the recurrence S(m) = 2S(m-1) + 2^{m+2} with S(1)=16. Verify the closed form 2^{m+2}(m+1) matches for m=1,2,3.",
+        "expected_answer": "S(1)=16=2^3*2 ✓. S(2)=2*16+16=48=2^4*3 ✓. S(3)=2*48+32=128=2^5*4 ✓. By induction: assume S(m-1)=2^{m+1}*m, then S(m)=2*2^{m+1}*m+2^{m+2}=2^{m+2}*m+2^{m+2}=2^{m+2}(m+1) ✓. The answer is 2^{m+2}(m+1)."
+      }
+    ],
+    "stats": {
+      "total_rounds": 6,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 1,
+      "level_sum": 2.3,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "The key challenge is recognizing the recursive quadtree decomposition. A bare AI will likely try flat row/column strip strategies and get a suboptimal answer. The power-of-2 board size is the critical structural signal that enables recursive subdivision. The diagonal constraint splits cleanly under quadtree decomposition: off-diagonal quadrants are free, on-diagonal quadrants recurse."
+  }
+}

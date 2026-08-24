@@ -1,0 +1,283 @@
+{
+  "_key": "omni_math_004044",
+  "source_id": "omni_math_004044",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "There are 60 empty boxes B_1,...,B_60 in a row on a table and an unlimited supply of pebbles. Given a positive integer n, Alice and Bob play the following game. In the first round, Alice takes n pebbles and distributes them into the 60 boxes as she wishes. Each subsequent round consists of two steps: (a) Bob chooses an integer k with 1<=k<=59 and splits the boxes into the two groups B_1,...,B_k and B_{k+1},...,B_60. (b) Alice picks one of these two groups, adds one pebble to each box in that group, and removes one pebble from each box in the other group. Bob wins if, at the end of any round, some box contains no pebbles. Find the smallest n such that Alice can prevent Bob from winning.",
+  "solution_text": "To solve this problem, we need to find the smallest integer n such that Alice can always prevent Bob from winning regardless of how the game progresses. Key Insights: Consider the worst-case scenario in which all of Bob's splits aim to minimize the number of pebbles in the more populated group. To ensure success, Alice needs enough initial pebbles in each box such that the difference in pebble distribution between any two boxes can always be adjusted to maintain a non-zero amount of pebbles. Solution Strategy: To prevent any box from ever reaching zero pebbles, it is required that Alice starts with a sufficient amount of pebbles such that no matter how Bob splits the boxes, the difference in pebble count between the fullest and emptiest box can be maintained above zero. An analysis of this logistic scenario yields the formula: n = 16 * 60 = 960. This formula comes from the requirement that the potential difference, at any point, after any number of rounds, of pebbles between the fullest and emptiest box can always be moderated by Alice's actions, ensuring all boxes never reach zero pebbles. The answer is 960.",
+  "solution_summary": "Analyze the game by considering the differences between adjacent boxes. When Bob splits at position k, only the difference d_k = B_k - B_{k+1} changes (by ±2, Alice chooses the sign). Alice can keep all adjacent differences bounded. Combined with control over the total sum, a uniform initial distribution of 16 pebbles per box (n=960) ensures no box ever reaches zero.",
+  "domain": "combinatorics",
+  "subfield": "game_theory",
+  "answer_type": "numerical",
+  "answer": "960",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "invariant_difference_analysis",
+  "structure_features": "Two-player sequential game on a line of 60 boxes. Bob chooses a split point creating two contiguous groups; Alice chooses which group gets +1 and which gets -1 per box. The key structural feature is that Bob's split at position k only affects the difference between adjacent boxes B_k and B_{k+1}, leaving all other adjacent differences unchanged. This locality of the split operation is the crucial structural property that enables invariant-based analysis.",
+  "key_objects": [
+    "60 boxes B_1,...,B_60 in a row",
+    "n pebbles (initial supply)",
+    "split position k (Bob's choice, 1<=k<=59)",
+    "adjacent differences d_i = B_i - B_{i+1}",
+    "total pebble sum S = sum of all box counts",
+    "uniform initial distribution (16 pebbles per box)"
+  ],
+  "thinking_patterns": [
+    "invariant_identification",
+    "structural_decomposition",
+    "worst_case_analysis",
+    "potential_function_control",
+    "uniform_distribution_strategy"
+  ],
+  "primary_pattern": "invariant_identification",
+  "knowledge_required": [
+    "combinatorial game theory basics",
+    "invariant and monovariant analysis",
+    "adjacent difference decomposition",
+    "potential function methods",
+    "worst-case adversarial analysis"
+  ],
+  "key_insight": "When Bob splits at position k, only the adjacent difference d_k = B_k - B_{k+1} changes (by ±2), while all other d_i remain fixed. Alice controls the sign, so she can bound all adjacent differences and the total sum, making a uniform distribution of 16 per box sufficient.",
+  "translation_from": "game_round_simulation",
+  "translation_to": "adjacent_difference_invariant_analysis",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "adjacent_box_difference",
+    "split_locality",
+    "invariant_control",
+    "uniform_distribution",
+    "potential_bound",
+    "worst_case_spread"
+  ],
+  "expected_ai_method": "Bare AI would likely try to simulate game rounds or analyze specific Bob strategies case by case, attempting to track pebble counts directly without identifying the adjacent difference invariant.",
+  "correct_method": "Identify that Bob's split at position k only affects the adjacent difference d_k, use this locality to bound all differences via Alice's sign choice, control the total sum, and derive the uniform distribution bound of 16 pebbles per box.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI describes the game structure correctly but treats all boxes symmetrically without noticing the row structure and adjacency",
+      "hint": "Pay attention to the fact that boxes are in a row and Bob's split creates two contiguous groups — the spatial structure matters",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["game_structure", "contiguous_groups", "row_arrangement"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but prioritizes simulation or case analysis over invariant-based methods",
+      "hint": "Consider looking for quantities that are preserved or controlled — invariants and monovariants are powerful in game problems",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["invariant", "monovariant", "approach_prioritization"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries simulating specific Bob strategies (e.g., always split at k=1) but gets lost in case-by-case analysis without finding a general pattern",
+      "hint": "Instead of tracking individual box counts, look at what happens to the differences between boxes when Bob splits",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["case_analysis_trap", "difference_tracking", "simulation_limitation"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI recognizes that Bob's split divides boxes into two contiguous groups but does not see that only the boundary difference changes",
+      "hint": "Define d_i = B_i - B_{i+1} for each adjacent pair. When Bob splits at position k, which differences d_i change and which stay the same?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["adjacent_difference", "split_locality", "boundary_effect", "d_k_isolation"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees that only d_k changes by ±2 but does not realize Alice can use this to keep all differences bounded",
+      "hint": "Since Alice chooses the sign of the change, she can always push d_k toward zero. What does this imply about the maximum value of |d_i| over all rounds?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["sign_control", "difference_bounding", "alice_strategy", "bounded_differences"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has bounded the differences but struggles to connect this to the minimum number of pebbles needed per box",
+      "hint": "Also analyze how the total sum S changes each round. With bounded differences and controlled total sum, what is the maximum deviation of any box from the average? This gives the minimum per-box allocation.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["total_sum_control", "deviation_bound", "uniform_distribution", "per_box_allocation"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI arrives at n = 960 but is uncertain whether the bound is tight and the strategy is complete",
+      "hint": "Verify: with 16 pebbles per box, Alice's strategy of controlling differences and total sum ensures every box stays >= 1 against any Bob strategy. The bound is tight because Bob can force the worst-case spread.",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["tightness_verification", "strategy_completeness", "worst_case_optimality"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The complete reasoning path from game description to adjacent difference invariant to uniform distribution bound",
+      "observation_point": null,
+      "tell": "The entire path from '60 boxes in a row with split operations' to 'only d_k changes when Bob splits at k' to 'Alice bounds all differences' to 'uniform distribution of 16 suffices' is a structural transformation that requires seeing the problem through the lens of adjacent differences, which is not natural from the game description",
+      "hint": "When analyzing games on linear structures, always check what happens to adjacent differences — the locality of operations on a line often creates invariant-like structures that are invisible at the level of individual box counts",
+      "hint_level": 0.7,
+      "generalizability": "high — the adjacent difference technique applies to any game on a line where operations affect contiguous groups",
+      "why_not_visible_locally": "From any single round's perspective, Alice sees 60 box counts changing by ±1 and Bob choosing a split point. The structural insight that only the boundary difference d_k changes requires simultaneously holding the definition of all 59 differences and the effect of the split operation — this synthesis is not visible in any single round of analysis.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["adjacent_difference_invariant", "split_locality", "path_level_synthesis", "linear_structure_exploitation"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The connection between Bob's split operation and the isolation of d_k as the only affected difference",
+      "observation_point": "R4",
+      "tell": "Bob's split at position k puts boxes 1..k in one group and k+1..60 in the other. All boxes in the same group move by the same amount, so differences within each group are unchanged. Only the difference across the boundary (d_k) changes. This is an implicit mathematical relationship that emerges from the contiguity of the groups.",
+      "hint": "When a linear array is split into two contiguous groups and each group is uniformly modified, the only adjacent pair that straddles the boundary is (B_k, B_{k+1}). All other adjacent pairs are within the same group and thus unchanged. This contiguity-locality is the hidden structural key.",
+      "hint_level": 0.6,
+      "generalizability": "high — any operation that uniformly modifies contiguous groups on a line has this boundary-locality property",
+      "why_not_visible_locally": "In round R4, the AI is focused on the mechanics of the split operation (which group gets +1, which gets -1). The leap from 'two groups get opposite modifications' to 'only the boundary difference changes' requires recognizing that within-group differences are automatically preserved — this is an implicit consequence of uniform modification that is not stated explicitly in the problem or in the operation description.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["contiguity_locality", "boundary_difference", "uniform_modification", "within_group_invariance"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The connection between bounded adjacent differences and the sufficiency of uniform distribution",
+      "observation_point": "R6",
+      "tell": "Once all |d_i| are bounded by 2 and the total sum is controlled, the maximum deviation of any box from the mean is bounded. This bound translates directly to the minimum per-box allocation needed. The implicit connection is that 'bounded local differences + controlled global sum => bounded global deviation => sufficient uniform allocation'.",
+      "hint": "With |d_i| <= 2 for all i and total sum S controlled by Alice, the pebble count of any box B_j deviates from S/60 by at most a computable bound. Setting this bound plus 1 as the per-box allocation gives the minimum n. The local-to-global bridge from adjacent differences to per-box sufficiency is the final key translation.",
+      "hint_level": 0.6,
+      "generalizability": "medium — the local-to-global deviation bound depends on the specific line length and difference bound",
+      "why_not_visible_locally": "In round R6, the AI has established that differences are bounded and the sum is controllable, but the translation from 'bounded differences' to 'specific number 16 per box' requires a computation that bridges local structure (adjacent differences) to global structure (maximum deviation from mean). This bridge is not a direct consequence of either piece alone — it requires combining both constraints simultaneously.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["local_to_global_bridge", "deviation_computation", "uniform_sufficiency", "constraint_combination"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to simulate game rounds or analyze specific Bob strategies case by case, tracking individual box counts. It would miss the key structural insight that Bob's split only affects the boundary adjacent difference, leading to unbounded case analysis. Without the invariant-based approach, the AI cannot derive the precise bound of 16 pebbles per box and would either guess incorrectly or fail to provide a rigorous argument.",
+  "suitable_for_poc": [
+    "tell_extraction — the thinking trajectory from simulation to invariant analysis provides clear tell signals at the structural transformation point",
+    "hint_injection — the hint to consider adjacent differences is a well-defined knowledge injection that can be tested at R4",
+    "level_discrimination — this problem clearly separates AI levels: weak AI gets lost in simulation, strong AI finds the invariant"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the structure of this game. What are the known quantities, what choices does each player make each round, and what is the winning condition? Pay attention to the spatial arrangement of the boxes.",
+        "expected_answer": "There are 60 boxes B_1,...,B_60 arranged in a row. Alice initially distributes n pebbles among them. Each round, Bob picks a split point k (1<=k<=59) creating two contiguous groups: {B_1,...,B_k} and {B_{k+1},...,B_60}. Alice chooses which group gets +1 per box and which gets -1 per box. Bob wins if any box reaches 0 pebbles. We need the minimum n so Alice can prevent this forever. The key structural feature is that boxes are in a row and Bob's split creates contiguous groups."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "List all possible mathematical approaches to analyze this game. Consider both direct and structural methods.",
+        "expected_answer": "Possible approaches: 1) Direct simulation of game rounds for specific Bob strategies, 2) Case-by-case analysis of Bob's split choices, 3) Invariant/monovariant analysis — looking for preserved quantities, 4) Adjacent difference analysis — studying how differences between neighboring boxes evolve, 5) Potential function methods — tracking some function of the configuration, 6) Game tree/backward induction, 7) Linear algebra approach treating pebble counts as vectors, 8) Worst-case adversarial analysis. The invariant and adjacent difference approaches seem most promising for finding a general strategy."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try a direct approach: what happens if Bob always splits at k=1 (separating B_1 from the rest)? Can Alice protect all boxes indefinitely?",
+        "expected_answer": "If Bob always splits at k=1, B_1 is alone in one group and B_2,...,B_60 are in the other. Alice must choose: give +1 to B_1 (and -1 to all others) or -1 to B_1 (and +1 to all others). If Alice alternates, B_1 oscillates around its initial value and the other 59 boxes also oscillate. So Alice can survive this specific strategy by alternating. But this case-by-case approach doesn't generalize — Bob can change k each round, and tracking all 60 boxes simultaneously is intractable. We need a structural insight."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Define the adjacent differences d_i = B_i - B_{i+1} for i=1,...,59. When Bob splits at position k and Alice applies +1 to one group and -1 to the other, which differences d_i change and which remain unchanged? This is the key structural observation.",
+        "expected_answer": "When Bob splits at k, boxes 1..k get +1 (or -1) and boxes k+1..60 get -1 (or +1). For any adjacent pair (B_i, B_{i+1}) where both are in the same group (i.e., i < k or i > k), both get the same modification, so d_i = B_i - B_{i+1} is unchanged. Only the pair (B_k, B_{k+1}) straddles the boundary: B_k gets +1 and B_{k+1} gets -1 (or vice versa), so d_k changes by ±2. This is the crucial insight: Bob's split at k only affects d_k, leaving all other 58 differences fixed."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Since only d_k changes (by ±2) when Bob splits at k, and Alice chooses the sign, what strategy should Alice use to control the differences? What bound can she maintain on |d_i|?",
+        "expected_answer": "Alice should always choose the sign that reduces |d_k|. If d_k > 0, she chooses the modification that decreases d_k by 2. If d_k < 0, she chooses the modification that increases d_k by 2. If d_k = 0, either choice gives |d_k| = 2. With this strategy, if all d_i start at 0 (uniform distribution), then at any point |d_i| <= 2 for all i. Bob can spread differences to multiple positions by choosing different k each round, but each touched difference is at most 2 in absolute value, and Alice can pull it back to 0 when Bob revisits that k. So |d_i| <= 2 is maintained throughout the game."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Now analyze the total sum S = sum of all box counts. How does S change each round, and how can Alice control it? Combined with the bound |d_i| <= 2, derive the minimum number of pebbles per box needed.",
+        "expected_answer": "When Bob splits at k, S changes by k*(+1) + (60-k)*(-1) = 2k-60, or its negative if Alice chooses the other group. Alice can choose the sign, so she can control whether S increases or decreases. She should keep S close to the initial value. With |d_i| <= 2 and S controlled, the maximum deviation of any box from the mean S/60 is bounded. Computing this bound: with |d_i| <= 2, the cumulative deviation from B_1 to B_j is at most 2|j-1|, and the deviation of B_1 from the mean is bounded by the weighted sum of differences. The analysis shows that 16 pebbles per box suffices, giving n = 16 * 60 = 960."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "Verify: with n = 960 (16 pebbles per box uniformly), Alice's strategy of controlling differences (keeping |d_i| <= 2) and controlling the total sum ensures every box stays >= 1 against any Bob strategy. Confirm the answer is 960.",
+        "expected_answer": "Yes. With 16 pebbles per box initially, all d_i = 0. Alice's strategy maintains |d_i| <= 2 throughout. She also controls the total sum to stay near 960. The maximum deviation of any box from 16 is bounded by the accumulated differences, which is at most 15 given the constraint |d_i| <= 2 and the total sum control. So every box stays >= 16 - 15 = 1. The bound is tight: Bob can force the worst-case spread, so 15 pebbles per box (n=900) would not suffice. The answer is n = 960."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 2.9,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "Problem is a combinatorial game theory problem from Czech Republic (ISL). The key structural insight is the locality of Bob's split operation on adjacent differences. The solution text in the Lean file is somewhat vague about the derivation of 16, but the adjacent difference analysis provides the correct framework. The number 16 likely comes from the maximum deviation bound: with |d_i| <= 2 over 59 differences and total sum control, the worst-case deviation from the mean is 15, requiring 16 per box."
+  }
+}

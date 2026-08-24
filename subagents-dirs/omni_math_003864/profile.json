@@ -1,0 +1,253 @@
+{
+  "_key": "omni_math_003864",
+  "source_id": "3864",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "There is an integer n > 1. There are n^2 stations on a slope of a mountain, all at different altitudes. Each of two cable car companies, A and B, operates k cable cars; each cable car provides a transfer from one of the stations to a higher one (with no intermediate stops). The k cable cars of A have k different starting points and k different finishing points, and a cable car which starts higher also finishes higher. The same conditions hold for B. We say that two stations are linked by a company if one can start from the lower station and reach the higher one by using one or more cars of that company (no other movements between stations are allowed). Determine the smallest positive integer k for which one can guarantee that there are two stations that are linked by both companies.",
+  "solution_text": "Lower bound (k = n^2 - n does not suffice): Arrange the n^2 stations in an n x n grid, ordered by altitude row by row. Company A connects consecutive stations within each row (n-1 cars per row, n rows, total n(n-1) = n^2 - n cars). Company B connects consecutive stations within each column (n-1 cars per column, n columns, total n(n-1) = n^2 - n cars). Both satisfy the order-preserving condition. Two stations are linked by A iff they are in the same row; linked by B iff they are in the same column. Two different stations in the same row and same column is impossible, so no two stations are linked by both. Thus k = n^2 - n does not suffice.\n\nUpper bound (k = n^2 - n + 1 suffices): Each company's cable car graph has the property that each station has in-degree at most 1 (distinct finishing points) and out-degree at most 1 (distinct starting points). Since all edges go from lower to higher, there are no cycles. Therefore the graph is a collection of vertex-disjoint directed paths. Two stations are linked by a company iff they lie on the same path. With k cable cars, the number of paths is n^2 - k (each edge reduces the number of components by 1). With k = n^2 - n + 1, each company partitions the n^2 stations into n - 1 paths.\n\nNow suppose for contradiction that no two stations are linked by both companies. Then each intersection of an A-path and a B-path contains at most 1 station. There are (n-1)^2 such intersections, covering at most (n-1)^2 = n^2 - 2n + 1 < n^2 stations (for n > 1). This contradicts the fact that all n^2 stations must be covered. Therefore, two stations must be linked by both companies.\n\nAnswer: n^2 - n + 1.",
+  "solution_summary": "Each company's cable car graph is a collection of vertex-disjoint directed paths (in-degree ≤ 1, out-degree ≤ 1, no cycles). With k cars, there are n²-k paths. For k=n²-n+1, each company creates n-1 paths. Two partitions of n² elements into n-1 parts must share a cell with ≥2 elements (pigeonhole: (n-1)² < n²). Lower bound via n×n grid construction with k=n²-n.",
+  "domain": "combinatorics",
+  "subfield": "extremal_combinatorics",
+  "answer_type": "numerical",
+  "answer": "n^2 - n + 1",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "graph_decomposition_pigeonhole",
+  "structure_features": "n^2 stations at distinct altitudes form a totally ordered set. Two companies each define an order-preserving matching (k edges, distinct sources/sinks, monotone). The 'linked' relation is the transitive closure. The graph structure constraint (in-degree ≤ 1, out-degree ≤ 1, acyclic) forces a path decomposition. The problem asks for a threshold k where two path partitions must intersect non-trivially.",
+  "key_objects": ["totally ordered set of n^2 stations", "order-preserving matching (cable cars)", "directed acyclic graph with degree constraints", "path decomposition / partition", "transitive closure (linked relation)", "partition intersection counting"],
+  "thinking_patterns": ["small_case_analysis", "graph_structure_analysis", "path_decomposition", "pigeonhole_counting", "construction_and_proof"],
+  "primary_pattern": "graph_structure_analysis",
+  "knowledge_required": ["graph theory: in-degree, out-degree, directed paths", "pigeonhole principle", "transitive closure of directed graphs", "partition intersection counting"],
+  "key_insight": "Each company's cable car graph is a collection of vertex-disjoint directed paths (n^2 - k paths), reducing the problem to showing two partitions of n^2 elements into n-1 parts must share a cell with at least 2 elements.",
+  "translation_from": "direct reasoning about linked pairs and cable car connections",
+  "translation_to": "graph path decomposition + partition intersection counting via pigeonhole",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["path decomposition", "in-degree out-degree constraint", "pigeonhole on partition intersections", "order-preserving matching", "transitive closure", "directed acyclic graph"],
+  "expected_ai_method": "Bare AI would likely try to directly reason about which pairs of stations are linked by both companies, attempting case analysis or enumeration of cable car configurations without recognizing the path decomposition structure.",
+  "correct_method": "Recognize the cable car graph as a collection of directed paths (degree constraints + acyclicity), count paths as n^2 - k, then apply pigeonhole on partition intersections to get the upper bound, with a grid construction for the lower bound.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees the problem statement with many conditions but doesn't identify which structural properties matter for the solution",
+      "hint": "Describe the problem structure: what are the key objects, constraints, and what exactly are we optimizing?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["order-preserving matching", "linked relation definition", "threshold optimization"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but cannot distinguish which will lead to the key structural insight",
+      "hint": "List all possible approaches: small cases, graph structure, counting arguments, constructions. Which seem most promising?",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["small case analysis", "graph structure", "counting argument", "construction"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries small case n=2 and finds k=2 doesn't suffice, but doesn't see how to generalize the construction",
+      "hint": "Try n=2 with k=2. Can you construct a configuration where no two stations are linked by both companies? What pattern do you see?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["grid construction", "row-column separation", "small case verification"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is reasoning about linked pairs directly without seeing that the graph has a special path structure due to degree constraints",
+      "hint": "Look at the graph structure of each company's cable cars. What can you say about the in-degree and out-degree of each station? What structure does this create?",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["in-degree out-degree constraint", "directed path decomposition", "acyclic graph", "vertex-disjoint paths"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI recognizes the path structure but doesn't know how to count the number of paths from k",
+      "hint": "With k cable cars (edges) and n^2 stations (vertices), how many paths does each company's graph have?",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["path counting formula", "vertices minus edges", "component counting"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI knows each company creates n-1 paths but doesn't see how to combine the two partitions to force a shared linked pair",
+      "hint": "With k = n^2 - n + 1, each company partitions n^2 stations into n-1 paths. Use a counting argument on the intersections of the two partitions to show two stations must be in the same path of both.",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["pigeonhole on partition intersections", "double counting", "intersection cells"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both the lower bound construction and upper bound argument but hasn't connected them into a complete solution",
+      "hint": "You've shown both bounds. Summarize the complete solution with the grid construction for the lower bound and the path-pigeonhole for the upper bound.",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["lower bound construction", "upper bound proof", "tight bound", "grid construction"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Complete solution path from problem to answer",
+      "observation_point": null,
+      "tell": "The solution requires two complementary techniques: a grid construction for the lower bound (k=n^2-n fails) and a path decomposition + pigeonhole argument for the upper bound (k=n^2-n+1 works). These use completely different ideas that only make sense together.",
+      "hint": "Approach this as a two-part problem: first find a construction showing k=n^2-n is insufficient, then prove k=n^2-n+1 suffices using the graph structure of cable cars.",
+      "hint_level": 0.5,
+      "generalizability": "high - the construction-plus-proof pattern for extremal problems is widely applicable in combinatorics",
+      "why_not_visible_locally": "The lower bound construction (n×n grid with row/column connections) and the upper bound (path counting + pigeonhole on partition intersections) use completely different mathematical techniques. From any single step of the solution, you cannot see that both parts are needed and how they complement each other to pin down the exact threshold.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["construction and proof", "tight bound", "grid construction", "path decomposition"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Graph structure insight hidden in the problem conditions",
+      "observation_point": "Q4",
+      "tell": "The cable car graph is a collection of vertex-disjoint directed paths because three separate conditions (distinct starting points, distinct finishing points, monotonicity) together imply in-degree ≤ 1, out-degree ≤ 1, and acyclicity.",
+      "hint": "Consider what graph-theoretic structure emerges from combining all the degree constraints on the cable car graph.",
+      "hint_level": 0.3,
+      "generalizability": "high - recognizing path/forest structure from degree constraints is a fundamental graph theory technique",
+      "why_not_visible_locally": "This structural fact emerges from synthesizing three independently stated conditions in the problem. No single condition reveals the path structure — it requires simultaneously recognizing that distinct starting points means out-degree ≤ 1, distinct finishing points means in-degree ≤ 1, and altitude ordering means acyclicity. A local reading of any one condition misses the combined structural implication.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["in-degree out-degree constraint", "directed path decomposition", "acyclic graph", "degree constraints synthesis"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Pigeonhole argument on partition intersections",
+      "observation_point": "Q6",
+      "tell": "Two partitions of n^2 elements into n-1 parts each must share an intersection cell with at least 2 elements, because (n-1)^2 < n^2.",
+      "hint": "Count the maximum number of elements coverable if every intersection of an A-part and a B-part has at most 1 element.",
+      "hint_level": 0.4,
+      "generalizability": "high - double counting on partition intersections is a versatile combinatorial technique",
+      "why_not_visible_locally": "This counting argument requires simultaneously holding both partitions in mind and reasoning about their pairwise intersections. From the perspective of either partition alone, the argument is completely invisible — it only emerges when you consider the interaction between the two partitions and count the total capacity of all intersection cells.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["pigeonhole on partition intersections", "double counting", "intersection cells", "capacity argument"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to directly reason about which pairs of stations are linked by both companies, trying case analysis or enumeration of configurations. It would miss the key structural insight that the cable car graph decomposes into directed paths due to degree constraints, and would not connect this to a pigeonhole argument on partition intersections. Without this structural transformation, the AI cannot find the threshold k.",
+  "suitable_for_poc": ["tell_identification", "hint_injection_effectiveness", "structural_transformation_gap"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "Describe the structure of this problem. What are the key objects, constraints, and what are we trying to optimize?",
+        "expected_answer": "We have n^2 stations at different altitudes (totally ordered). Two companies each operate k cable cars from lower to higher stations, with distinct starting/finishing points and order-preserving matching. 'Linked' means reachable via one or more cars. We need the smallest k guaranteeing two stations linked by both companies."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible approaches to determine the smallest k. Which seem most promising?",
+        "expected_answer": "Possible approaches: (1) Try small cases like n=2, (2) Analyze the graph structure of cable cars, (3) Use counting/pigeonhole arguments, (4) Construct counterexamples for lower bound, (5) Think about what 'linked' means structurally as transitive closure. Graph structure and construction seem most promising."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Try n=2 with k=2 (=n^2-n). Can you construct a configuration where no two stations are linked by both companies? What pattern emerges?",
+        "expected_answer": "For n=2, 4 stations. Company A: connect 1→2 and 3→4 (within rows of a 2×2 grid). Company B: connect 1→3 and 2→4 (within columns). A links {1,2} and {3,4}; B links {1,3} and {2,4}. No pair is linked by both. The grid pattern separates row-links from column-links."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "Look at the graph structure of each company's cable cars. What can you say about the in-degree and out-degree of each station? What structure does this create?",
+        "expected_answer": "Each station has in-degree ≤ 1 (distinct finishing points) and out-degree ≤ 1 (distinct starting points). All edges go from lower to higher, so no cycles. The graph is a collection of vertex-disjoint directed paths. Two stations are linked iff they're on the same path."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "With k cable cars (edges) and n^2 stations (vertices), how many paths does each company's graph have?",
+        "expected_answer": "In a forest of directed paths, the number of paths = number of vertices - number of edges = n^2 - k. Each edge reduces the number of connected components by 1."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "With k = n^2 - n + 1, each company partitions n^2 stations into n-1 paths. Use a counting argument on the intersections of the two partitions to show two stations must be in the same path of both.",
+        "expected_answer": "If no two stations share a path in both partitions, each intersection of an A-path and B-path has ≤ 1 element. There are (n-1)^2 intersections, covering at most (n-1)^2 = n^2 - 2n + 1 < n^2 stations. Contradiction since all n^2 stations must be covered. So some intersection has ≥ 2 elements."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "You've shown both bounds. Summarize the complete solution.",
+        "expected_answer": "Lower bound: n×n grid, A connects within rows, B within columns, k=n^2-n, no shared linked pair. Upper bound: k=n^2-n+1 gives n-1 paths per company; pigeonhole on (n-1)^2 partition intersections (< n^2) forces a shared pair. Answer: n^2 - n + 1."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "15min",
+    "notes": "IMO combinatorics problem. Solution reconstructed from problem statement and answer since the Solution text in problem.lean was truncated. Key insight is the path decomposition of the cable car graph from degree constraints, reducing to a partition intersection pigeonhole argument."
+  }
+}

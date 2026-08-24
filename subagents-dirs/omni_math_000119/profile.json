@@ -1,0 +1,201 @@
+{
+  "_key": "omni_math_000119",
+  "source_id": "omni_math_119",
+  "source_dataset": "aops_omni_math",
+  "schema_version": 3,
+  "problem_text": "Find the smallest positive number λ, such that for any complex numbers z₁, z₂, z₃ ∈ {z ∈ ℂ | |z| < 1}, if z₁ + z₂ + z₃ = 0, then |z₁z₂ + z₂z₃ + z₃z₁|² + |z₁z₂z₃|² < λ.",
+  "solution_text": "Lower bound: Take z₁ = 1-ε, z₂ = 0, z₃ = ε-1 (so z₁+z₂+z₃=0). Then e₂ = z₁z₃ = -(1-ε)², e₃ = 0. Expression = (1-ε)⁴ → 1 as ε→0. So λ ≥ 1.\n\nUpper bound: Assume z₃ ≠ 0 (degenerate case z₃=0 reduces to two-variable). Set a = -z₁/z₃, b = -z₂/z₃. From z₁+z₂+z₃=0 we get a+b=1, so b=1-a. Then e₂ = z₃²(ab-a-b) = -z₃²(a²-a+1), e₃ = abz₃³ = a(1-a)z₃³. Expression = |z₃|⁴|a²-a+1|² + |z₃|⁶|a(1-a)|². Let t=|z₃|²<1; for fixed a this is increasing in t, so supremum at t→1. Need max of |a²-a+1|²+|a(1-a)|² subject to |a|≤1, |1-a|≤1.\n\nLet u=a-1/2, v=u². Then a²-a+1 = u²+3/4, a(1-a) = 1/4-u². Expression = |v+3/4|²+|1/4-v|² = 2|v|²+Re(v)+5/8.\n\nFor real a∈[0,1]: x=a(1-a)∈[0,1/4], expression = (1-x)²+x² = 1-2x+2x², decreasing on [0,1/4], max=1 at x=0 (a=0 or a=1).\n\nFor a=1/2+iy: v=-y² (real). Expression = (3/4-y²)²+(1/4+y²)² = 5/8-y²+2y⁴. At y²=3/4 (boundary |a|=1): expression = 5/8-3/4+2·9/16 = 1. Interior critical point y²=1/4 gives 1/2 < 1.\n\nSo max = 1, achieved only on boundary |a|=1 or |1-a|=1. Since |zᵢ|<1 is strict, supremum 1 is never attained, so λ=1 satisfies the strict inequality.",
+  "solution_summary": "Lower bound λ≥1 from degenerate case z₂=0, z₃=-z₁. Upper bound λ≤1 via ratio elimination a=-z₁/z₃, b=-z₂/z₃ with a+b=1, reducing to maximizing |a²-a+1|²+|a(1-a)|² under |a|≤1,|1-a|≤1, which equals 1 on boundary only.",
+  "domain": "mathematics",
+  "subfield": "complex_numbers_inequality",
+  "answer_type": "numerical",
+  "answer": "1",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "structural_reduction_optimization",
+  "structure_features": "Optimal constant problem: find smallest λ such that a symmetric polynomial expression in three unit-disk complex numbers with zero-sum constraint is bounded by λ. Two-phase proof: lower bound via degenerate specialization, upper bound via ratio elimination reducing to single-variable constrained optimization.",
+  "key_objects": ["complex numbers in unit disk", "elementary symmetric polynomials e₂, e₃", "zero-sum constraint z₁+z₂+z₃=0", "ratio parameters a, b with a+b=1", "constrained optimization on |a|≤1, |1-a|≤1"],
+  "thinking_patterns": ["degenerate_case_lower_bound", "ratio_elimination_dimension_reduction", "constrained_optimization", "boundary_analysis", "strict_vs_nonstrict_inequality"],
+  "primary_pattern": "ratio_elimination_dimension_reduction",
+  "knowledge_required": ["elementary symmetric polynomials", "complex modulus arithmetic", "Vieta formulas for cubic", "constrained optimization on complex domain", "supremum vs maximum distinction"],
+  "key_insight": "Use z₁+z₂+z₃=0 to perform ratio elimination a=-z₁/z₃, b=-z₂/z₃ yielding a+b=1, reducing the three-variable complex inequality to a single-variable constrained optimization of |a²-a+1|²+|a(1-a)|²",
+  "translation_from": "direct_three_variable_complex_inequality",
+  "translation_to": "single_variable_constrained_optimization",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["symmetric_polynomial", "ratio_elimination", "constrained_optimization", "supremum", "unit_disk_complex"],
+  "expected_ai_method": "Directly expand |z₁z₂+z₂z₃+z₃z₁|²+|z₁z₂z₃|² using triangle inequality or Cauchy-Schwarz, attempt to bound each term separately without exploiting z₁+z₂+z₃=0 for structural dimension reduction",
+  "correct_method": "Ratio elimination a=-z₁/z₃, b=-z₂/z₃ with a+b=1 to reduce dimension, then constrained optimization with boundary analysis",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI faces a complex extremal problem and may jump to direct calculation without recognizing the symmetric polynomial structure and zero-sum constraint as key structural features",
+      "hint": "Observe the problem structure: identify e₂=z₁z₂+z₂z₃+z₃z₁ and e₃=z₁z₂z₃ as elementary symmetric polynomials, and z₁+z₂+z₃=0 as a structural constraint that can be exploited",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["symmetric_polynomial", "structural_observation"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI may only list brute-force calculation directions and miss the key direction of ratio elimination for dimension reduction",
+      "hint": "List all possible approaches including: symmetric polynomial representation, zero-sum constraint exploitation, degenerate case for lower bound, ratio parameterization for dimension reduction, maximum modulus principle",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["dimension_reduction", "ratio_parameterization", "degenerate_case"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI may not think of using the degenerate case z₂=0 to probe the lower bound",
+      "hint": "Try the specialization z₂=0, z₃=-z₁ with |z₁|<1. The expression simplifies to |z₁|⁴, approaching 1 as |z₁|→1, giving λ≥1",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "case_by_case", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["degenerate_case", "lower_bound_estimation"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI does not know to use ratio elimination a=-z₁/z₃, b=-z₂/z₃ to reduce dimension; this is the key knowledge bottleneck",
+      "hint": "Set a=-z₁/z₃, b=-z₂/z₃ (assuming z₃≠0). From z₁+z₂+z₃=0, derive a+b=1. Express e₂=-z₃²(a²-a+1) and e₃=a(1-a)z₃³",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "direct_calculation", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["ratio_elimination", "Vieta_formulas", "parameterization", "a+b=1"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI may make calculation errors or not know how to handle the constraint when expanding |a²-a+1|²+|a(1-a)|²",
+      "hint": "Let u=a-1/2, v=u². Then a²-a+1=u²+3/4 and a(1-a)=1/4-u². Expand |v+3/4|²+|1/4-v|²=2|v|²+Re(v)+5/8 under constraints |a|≤1, |1-a|≤1",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["completing_square", "constraint_expansion", "substitution"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI may not split into real and complex cases to verify the maximum, missing boundary analysis",
+      "hint": "Check two cases: (1) real a∈[0,1], set x=a(1-a)∈[0,1/4], expression=(1-x)²+x² decreasing, max=1 at x=0; (2) a=1/2+iy, expression=5/8-y²+2y⁴, at y²=3/4 (boundary) equals 1. Maximum is 1, only on boundary",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "case_by_case", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["boundary_analysis", "case_splitting", "supremum_verification"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI may be uncertain whether the strict inequality holds since supremum equals 1",
+      "hint": "Confirm: the maximum 1 is achieved only on boundary |a|=1 or |1-a|=1, which requires |zᵢ|=1, but the constraint is |zᵢ|<1 (strict). So supremum 1 is never attained, λ=1 satisfies strict inequality",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "logical_deduction", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["strict_inequality", "supremum_not_attained", "boundary_vs_interior"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Complete solution path: degenerate case for lower bound → ratio elimination for dimension reduction → constrained optimization for upper bound",
+      "observation_point": null,
+      "tell": "The complete solution requires a three-phase path: first probe lower bound via degenerate specialization, then perform ratio elimination to reduce dimension, finally solve constrained optimization with boundary analysis for upper bound. No single phase suffices alone.",
+      "hint": "Follow the three-phase path: (1) z₂=0 specialization gives λ≥1; (2) ratio elimination a=-z₁/z₃, b=-z₂/z₃ with a+b=1 reduces to one variable; (3) constrained optimization shows max=1 on boundary only, so λ=1",
+      "hint_level": 0.5,
+      "generalizability": "high - The path pattern of degenerate_case_lower_bound + ratio_elimination_reduction + constrained_optimization_upper_bound generalizes to many complex extremal problems with sum constraints",
+      "why_not_visible_locally": "Each local step only shows the current computation; the overall path planning of 'lower bound first, then structural reduction, then optimization' is a global strategy invisible from any single step",
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["degenerate_case_lower_bound", "ratio_elimination", "constrained_optimization", "path_planning"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The zero-sum constraint z₁+z₂+z₃=0 implicitly enables ratio elimination yielding a+b=1",
+      "observation_point": "R4",
+      "tell": "The constraint z₁+z₂+z₃=0 is not just for simplifying e₂; its deeper function is enabling ratio elimination a=-z₁/z₃, b=-z₂/z₃ which gives a+b=1 and reduces the problem from three complex variables to one complex parameter",
+      "hint": "Exploit z₁+z₂+z₃=0 for ratio elimination: set a=-z₁/z₃, b=-z₂/z₃, then a+b=1 automatically, reducing three variables to one parameter a with constraint |a|≤1, |1-a|≤1",
+      "hint_level": 0.3,
+      "generalizability": "high - The technique of using zero-sum constraint for ratio elimination to achieve dimension reduction generalizes to all complex optimization problems with linear sum constraints",
+      "why_not_visible_locally": "In local steps, z₁+z₂+z₃=0 is only seen as a condition to simplify e₂=z₁z₂+z₂z₃+z₃z₁; its dimension-reduction function via ratio a+b=1 is not visible without the global insight of parameterization",
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "direct_calculation", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["ratio_elimination", "zero_sum_dimension_reduction", "a+b=1", "parameterization"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will directly expand |z₁z₂+z₂z₃+z₃z₁|²+|z₁z₂z₃|² using triangle inequality or Cauchy-Schwarz, attempting to bound each term separately. It will not exploit z₁+z₂+z₃=0 for ratio elimination dimension reduction, getting stuck with loose bounds that cannot determine the exact supremum. May also fail to find the correct lower bound example.",
+  "suitable_for_poc": ["POC-VMS-hint-injection", "POC-VMS-tell-detection", "POC-VMS-knowledge-bottleneck"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "观察这道题的结构：求最小正数λ使得对所有满足z₁+z₂+z₃=0且|zᵢ|<1的复数，|z₁z₂+z₂z₃+z₃z₁|²+|z₁z₂z₃|²<λ。请描述题目的已知条件、未知量和结构特征。",
+        "expected_answer": "题目要求找一个最优常数λ。条件：三个单位圆内复数和为零。要控制两个初等对称多项式e₂=z₁z₂+z₂z₃+z₃z₁和e₃=z₁z₂z₃的模方和的上确界。结构上是最优常数问题+复数不等式。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "要同时证明λ的下界和上界。请列出所有可能的攻击方向。",
+        "expected_answer": "方向包括：(1)用对称多项式e₂,e₃表示；(2)利用z₁+z₂+z₃=0消元；(3)退化特例z₂=0探下界；(4)比值参数化a=-z₁/z₃降维；(5)最大模原理；(6)Schwarz引理；(7)直接展开用三角不等式。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "先试一个具体特例来探下界。取z₂=0，z₁=-z₃，|z₁|<1。表达式变成什么？能推出什么？",
+        "expected_answer": "z₂=0时z₃=-z₁。e₂=z₁z₃=-z₁²，e₃=0。表达式=|z₁|⁴。当|z₁|→1时→1。所以λ≥1。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "现在需要证明上界λ=1。关键操作：用比值消元。设a=-z₁/z₃, b=-z₂/z₃（z₃≠0时），利用z₁+z₂+z₃=0得到a+b=1。请用a和|z₃|表示e₂和e₃。",
+        "expected_answer": "e₂=z₃²(ab-a-b)=-z₃²(a²-a+1)，e₃=abz₃³=a(1-a)z₃³。表达式=|z₃|⁴|a²-a+1|²+|z₃|⁶|a(1-a)|²。令t=|z₃|²<1，对固定a这是t的增函数，上确界在t→1时取到。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "现在需要在|a|≤1, |1-a|≤1约束下最大化|a²-a+1|²+|a(1-a)|²。令u=a-1/2，v=u²。请展开计算。",
+        "expected_answer": "a²-a+1=u²+3/4，a(1-a)=1/4-u²。表达式=|v+3/4|²+|1/4-v|²=2|v|²+Re(v)+5/8。需要在|u+1/2|≤1, |u-1/2|≤1约束下最大化。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "关键步骤：验证最大值。分别检查a为实数（a∈[0,1]）和a=1/2+iy的情况。在实数情况下令x=a(1-a)∈[0,1/4]，表达式=(1-x)²+x²=1-2x+2x²在[0,1/4]上递减，最大值在x=0为1。对a=1/2+iy，表达式=5/8-y²+2y⁴，在y²=3/4（边界|a|=1）时等于1。请确认所有情况。",
+        "expected_answer": "实数情况max=1（a=0或a=1）；复数情况在a=1/2±i√3/2（|a|=1边界）也取到1。内部临界点y²=1/4给出1/2<1。最大值1只在边界取到。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "总结：下界λ≥1由z₂=0的特例给出，上界λ≤1由比值消元+约束优化给出。由于最大值1只在边界|a|=1取到，而|zᵢ|<1是严格的，所以上确界1不被取到，λ=1满足严格不等式。请用一句话概括核心思路。",
+        "expected_answer": "通过比值消元将三元复数问题降为一元参数a的约束优化问题，利用a+b=1和边界分析证明上确界恰为1且不被取到。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.8,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "China Team Selection Test problem. Key insight is ratio elimination using zero-sum constraint. Solution file was truncated; solution reconstructed from mathematical analysis. Answer=1."
+  }
+}

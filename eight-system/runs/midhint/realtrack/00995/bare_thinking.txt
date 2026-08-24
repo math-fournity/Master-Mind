@@ -1,0 +1,1096 @@
+Let me analyze this problem carefully.
+
+We have an $n \times n$ table filled with numbers $1, 2, \ldots, n^2$, each appearing once. We need the arithmetic mean of every row and every column to be an integer.
+
+The arithmetic mean of a row is the sum of that row divided by $n$. So we need the sum of each row to be divisible by $n$, and the sum of each column to be divisible by $n$.
+
+The total sum of all numbers is $\frac{n^2(n^2+1)}{2}$. If each of $n$ rows has sum divisible by $n$, then the total sum is divisible by $n$. So we need $n \mid \frac{n^2(n^2+1)}{2}$, i.e., $\frac{n^2(n^2+1)}{2} \equiv 0 \pmod{n}$, which gives $\frac{n(n^2+1)}{2} \equiv 0 \pmod{1}$... wait, let me redo.
+
+Total sum = $\frac{n^2(n^2+1)}{2}$. Each row sum divisible by $n$ means total sum divisible by $n$. So $n \mid \frac{n^2(n^2+1)}{2}$. Since $n^2 = n \cdot n$, we have $\frac{n^2(n^2+1)}{2} = \frac{n \cdot n(n^2+1)}{2}$. For $n \mid \frac{n^2(n^2+1)}{2}$, we need $\frac{n(n^2+1)}{2}$ to be an integer (which it always is since either $n$ or $n^2+1$ is even) and... actually $n \mid \frac{n^2(n^2+1)}{2}$ is equivalent to $\frac{n(n^2+1)}{2}$ being an integer, which is always true. So the divisibility condition on the total is automatically satisfied.
+
+Wait, let me reconsider. $n \mid \frac{n^2(n^2+1)}{2}$. We can write $\frac{n^2(n^2+1)}{2} = n \cdot \frac{n(n^2+1)}{2}$. So we need $\frac{n(n^2+1)}{2}$ to be an integer. $n(n^2+1)$: if $n$ is even, this is even. If $n$ is odd, $n^2+1$ is even. So always even. So the total sum is always divisible by $n$. Good, so the necessary condition on total is always satisfied.
+
+Now the question is: for which $n$ can we actually arrange the numbers so that each row sum and each column sum is divisible by $n$?
+
+Let me think about this mod $n$. We need to place numbers $1, \ldots, n^2$ in an $n \times n$ grid such that each row sum $\equiv 0 \pmod{n}$ and each column sum $\equiv 0 \pmod{n}$.
+
+Consider the numbers mod $n$. The numbers $1, \ldots, n^2$ mod $n$: each residue class mod $n$ appears exactly $n$ times (since $n^2$ numbers, $n$ residue classes). Specifically, residue $r$ (for $r = 0, 1, \ldots, n-1$) appears $n$ times. Wait, numbers $1$ to $n^2$. Residue $0 \pmod n$: $n, 2n, \ldots, n^2$ — that's $n$ numbers. Residue $r$ for $1 \le r \le n-1$: $r, n+r, 2n+r, \ldots, (n-1)n+r$ — that's $n$ numbers. So yes, each residue class mod $n$ appears exactly $n$ times.
+
+We need each row to have sum $\equiv 0 \pmod n$ and each column to have sum $\equiv 0 \pmod n$.
+
+This is a constraint on the residues. We need to arrange $n$ copies of each residue $0, 1, \ldots, n-1$ in an $n \times n$ grid such that each row and column has sum $\equiv 0 \pmod n$.
+
+The sum of all residues is $n \cdot (0 + 1 + \cdots + (n-1)) = n \cdot \frac{n(n-1)}{2} = \frac{n^2(n-1)}{2}$.
+
+If each row sum $\equiv 0 \pmod n$, total $\equiv 0 \pmod n$. $\frac{n^2(n-1)}{2} \pmod n$: $n^2 \equiv 0$, so this is $0 \pmod n$ when... $\frac{n^2(n-1)}{2}$. If $n$ is odd, $n-1$ is even, so $\frac{n^2(n-1)}{2} = n^2 \cdot \frac{n-1}{2}$, divisible by $n$. If $n$ is even, $\frac{n^2(n-1)}{2} = \frac{n}{2} \cdot n(n-1) = \frac{n}{2} \cdot n(n-1)$. This is $\frac{n^2(n-1)}{2}$. Mod $n$: $\frac{n^2(n-1)}{2} = n \cdot \frac{n(n-1)}{2}$. For $n$ even, $\frac{n(n-1)}{2}$: $n$ even so $n/2$ integer, $\frac{n(n-1)}{2} = \frac{n}{2}(n-1)$, integer. So total is $n \cdot \text{integer}$, divisible by $n$. OK so total is always $\equiv 0 \pmod n$. Good.
+
+So the question reduces to: can we arrange $n$ copies of each residue $0, 1, \ldots, n-1$ in an $n \times n$ grid so that each row and column sums to $0 \pmod n$?
+
+This is a combinatorial design question. Let me think about which $n$ work.
+
+**Case $n = 1$**: trivially works. $S$ includes 1.
+
+**Case $n = 2$**: residues are $0, 0, 1, 1$. We need a $2 \times 2$ grid with each row and column summing to $0 \pmod 2$. Each row has 2 cells. Row sum $\equiv 0 \pmod 2$ means each row has either two $0$s or two $1$s. But we have two $0$s and two $1$s. If one row is $(0,0)$ and the other is $(1,1)$, then column 1 is $(0,1)$ sum $1$, not $0$. If rows are $(0,1)$ and $(0,1)$, row sums are $1$, not $0$. So no arrangement works. $n = 2$ doesn't work.
+
+Wait, but we also need to check: maybe the actual numbers (not just residues) matter? No — the condition is that row sum is divisible by $n$, which is exactly row sum $\equiv 0 \pmod n$. And the residues determine this. So $n = 2$ fails.
+
+Hmm wait, but actually we need to be more careful. The residues mod $n$ determine the row sum mod $n$. Two numbers with the same residue mod $n$ contribute the same to the row sum mod $n$. So yes, the problem reduces to arranging residues.
+
+**Case $n = 3$**: residues $0, 1, 2$ each appearing 3 times. Need $3 \times 3$ grid, each row and column sum $\equiv 0 \pmod 3$.
+
+A Latin-square-like construction: place in cell $(i, j)$ the residue $(i + j) \pmod 3$ for $i, j \in \{0, 1, 2\}$. Then each row has residues $i, i+1, i+2 \pmod 3$, sum $= 3i + 3 \equiv 0 \pmod 3$. Each column similarly. And each residue appears exactly 3 times (once in each row). So this works! $n = 3$ works.
+
+Actually, this construction generalizes. For any $n$, place residue $(i + j) \pmod n$ in cell $(i, j)$. Then each row has all residues $0, \ldots, n-1$ (sum $= \frac{n(n-1)}{2}$), and each column has all residues. Row sum $= \frac{n(n-1)}{2} \pmod n$.
+
+For this to be $\equiv 0 \pmod n$, we need $n \mid \frac{n(n-1)}{2}$, i.e., $\frac{n-1}{2}$ is an integer, i.e., $n$ is odd.
+
+So for odd $n$, this construction works! Each row and column is a permutation of $0, 1, \ldots, n-1$, sum $= \frac{n(n-1)}{2}$, which is divisible by $n$ iff $n$ is odd.
+
+Wait, $\frac{n(n-1)}{2} \pmod n$: $= n \cdot \frac{n-1}{2}$ if $n$ odd (since $n-1$ even), so $= 0 \pmod n$. If $n$ even, $= \frac{n}{2} \cdot (n-1)$, and $\frac{n}{2}(n-1) \pmod n$. $\frac{n}{2}(n-1) = \frac{n(n-1)}{2}$. For $n$ even, this is $\frac{n}{2} \cdot (n-1)$. Mod $n$: if $n = 2m$, this is $m(2m-1) = 2m^2 - m$. Mod $2m$: $2m^2 \equiv 0$, so $\equiv -m \equiv m \pmod{2m}$. So $\equiv n/2 \pmod n \neq 0$ for $n > 0$ even. So this particular construction fails for even $n$.
+
+But maybe a different construction works for even $n$?
+
+Let me think about even $n$ more carefully.
+
+**$n = 2$**: We showed it fails.
+
+**$n = 4$**: residues $0, 1, 2, 3$ each 4 times. Need $4 \times 4$ grid, each row and column sum $\equiv 0 \pmod 4$.
+
+Can we do this? Let me think. We need to arrange 4 copies of each of $0, 1, 2, 3$ in a $4 \times 4$ grid with row and column sums $\equiv 0 \pmod 4$.
+
+One approach: try to make each row sum $\equiv 0 \pmod 4$. A row has 4 cells. Possible multisets of 4 residues summing to $0 \pmod 4$:
+- $\{0, 0, 0, 0\}$: sum 0
+- $\{0, 0, 1, 3\}$: sum 4
+- $\{0, 0, 2, 2\}$: sum 4
+- $\{0, 1, 1, 2\}$: sum 4
+- $\{0, 2, 3, 3\}$: sum 8
+- $\{0, 3, 3, 2\}$: same as above
+- $\{1, 1, 1, 1\}$: sum 4
+- $\{1, 1, 3, 3\}$: sum 8... wait $1+1+3+3 = 8 \equiv 0$
+- $\{1, 2, 2, 3\}$: sum 8
+- $\{2, 2, 2, 2\}$: sum 8
+- $\{3, 3, 3, 3\}$: sum 12
+- $\{0, 1, 2, 1\}$: already listed
+- $\{1, 3, 0, 0\}$: listed
+- $\{2, 2, 0, 0\}$: listed
+- $\{3, 1, 0, 0\}$: listed
+- $\{0, 1, 3, 0\}$: listed as $\{0,0,1,3\}$
+- $\{1, 1, 2, 0\}$: listed
+- $\{2, 3, 3, 0\}$: listed as $\{0,2,3,3\}$
+- $\{1, 2, 3, 2\}$: sum 8, listed as $\{1,2,2,3\}$
+- $\{0, 1, 1, 2\}$: sum 4, listed
+- $\{0, 3, 3, 2\}$: sum 8, listed
+- $\{1, 3, 2, 2\}$: sum 8, listed as $\{1,2,2,3\}$
+- $\{3, 3, 1, 1\}$: listed
+- $\{0, 0, 3, 1\}$: listed
+- $\{0, 2, 1, 1\}$: listed as $\{0,1,1,2\}$
+- $\{3, 3, 3, 3\}$: listed
+- $\{0, 1, 3, 0\}$: listed
+
+Let me be more systematic. We need 4 residues from $\{0,1,2,3\}$ (with repetition) summing to $0 \pmod 4$.
+
+Actually, let me try a specific construction. Consider the grid:
+```
+0 1 2 3
+0 1 2 3
+0 1 2 3
+0 1 2 3
+```
+Each row sum = 6 ≡ 2 (mod 4). Not 0. Each column: col 0 = 0, col 1 = 4 ≡ 0, col 2 = 8 ≡ 0, col 3 = 12 ≡ 0. Columns work but rows don't.
+
+What about:
+```
+0 1 2 3
+1 2 3 0
+2 3 0 1
+3 0 1 2
+```
+This is the circulant. Row sums all = 6 ≡ 2 (mod 4). Column sums all = 6 ≡ 2 (mod 4). Doesn't work.
+
+Hmm. Let me try:
+```
+0 0 2 2
+1 1 3 3
+2 2 0 0
+3 3 1 1
+```
+Row sums: 4, 8, 4, 8 — all ≡ 0 (mod 4). ✓
+Column sums: col 0 = 0+1+2+3 = 6 ≡ 2. ✗
+
+Try:
+```
+0 0 2 2
+3 3 1 1
+2 2 0 0
+1 1 3 3
+```
+Row sums: 4, 8, 4, 8 ✓
+Col 0 = 0+3+2+1 = 6 ≡ 2 ✗
+
+Hmm. Let me think differently. We need each column to also sum to 0 mod 4.
+
+Let me try:
+```
+0 1 1 2
+0 3 3 2
+2 1 1 0
+2 3 3 0
+```
+Row sums: 4, 8, 4, 8 ✓
+Col 0 = 0+0+2+2 = 4 ✓
+Col 1 = 1+3+1+3 = 8 ✓
+Col 2 = 1+3+1+3 = 8 ✓
+Col 3 = 2+2+0+0 = 4 ✓
+
+Now check: how many of each residue?
+0: positions (0,0), (1,0), (2,3), (3,3) → 4 ✓
+1: (0,1), (0,2), (2,1), (2,2) → 4 ✓
+2: (0,3), (1,3), (2,0), (3,0) → 4 ✓
+3: (1,1), (1,2), (3,1), (3,2) → 4 ✓
+
+This works for $n = 4$! So $n = 4$ is mean-integer.
+
+Interesting. So even $n$ can work. Let me reconsider.
+
+So the question is really: for which $n$ can we arrange $n$ copies of each residue $0, \ldots, n-1$ in an $n \times n$ grid with all row and column sums $\equiv 0 \pmod n$?
+
+Let me think about this more generally. 
+
+For odd $n$: the circulant construction (residue $(i+j) \bmod n$) works, as each row/column is a permutation of all residues, sum $= \frac{n(n-1)}{2} \equiv 0 \pmod n$.
+
+For even $n$: the circulant gives sum $\frac{n(n-1)}{2} \equiv \frac{n}{2} \pmod n \neq 0$. So we need a different approach.
+
+For $n = 2$: fails (shown above).
+For $n = 4$: works (shown above).
+
+Let me check $n = 6$.
+
+Actually, let me think about this more carefully. The key insight: we need to fill an $n \times n$ grid with residues (each appearing $n$ times) such that all row and column sums are $0 \pmod n$.
+
+Let me think about it as: we have $n$ copies of each element of $\mathbb{Z}_n$, and we want to arrange them in an $n \times n$ matrix over $\mathbb{Z}_n$ with all row and column sums equal to 0.
+
+This is related to the theory of "zero-sum" arrays or "magic" arrangements.
+
+Let me think about small even cases.
+
+**$n = 2$**: We need 2 copies each of 0, 1 in a 2×2 grid, row and column sums ≡ 0 (mod 2).
+Possible grids (up to symmetry):
+- [[0,0],[1,1]]: col sums 1,1 ✗
+- [[0,1],[0,1]]: row sums 1,1 ✗
+- [[0,1],[1,0]]: row sums 1,1 ✗
+All fail. So $n=2$ doesn't work.
+
+**$n = 4$**: Works (shown above).
+
+**$n = 6$**: Let me think... This is getting complex. Let me think about a general construction for even $n \geq 4$.
+
+Actually, let me think about this differently. Consider $n$ even, $n = 2m$.
+
+One idea: pair up residues. Note that $r$ and $n - r$ sum to $n \equiv 0 \pmod n$. And $0$ pairs with itself, $m = n/2$ pairs with itself.
+
+We have $n$ copies of each residue. For residues $r$ and $n-r$ (where $r \neq 0, r \neq n/2$), we have $n$ copies of each. We could pair them: put $r$ and $n-r$ in the same row, contributing $0 \pmod n$.
+
+For residue $0$: $n$ copies, each contributes $0$.
+For residue $n/2$: $n$ copies, each contributes $n/2$. We need the total contribution of $n/2$'s in each row to be $0 \pmod n$. Since each $n/2$ contributes $n/2$, we need an even number of $n/2$'s in each row (and column).
+
+So the strategy: in each row, pair up $r$ with $n-r$ for $r = 1, \ldots, n/2 - 1$, and distribute $0$'s and $n/2$'s with even counts per row and column.
+
+Each row has $n = 2m$ cells. We use pairs $(r, n-r)$ for $r = 1, \ldots, m-1$ (that's $m-1$ pairs = $2(m-1)$ cells), plus some $0$'s and $m$'s. Remaining cells per row: $2m - 2(m-1) = 2$. So each row gets 2 cells that are either $0$ or $m$.
+
+We have $n = 2m$ copies of $0$ and $2m$ copies of $m$. Each row uses 2 of these, so $2m$ rows use $4m$ total, but we only have $4m$ (2m of 0 and 2m of m). Wait, $2m$ copies of $0$ + $2m$ copies of $m$ = $4m$ total, and $2m$ rows × 2 = $4m$. ✓
+
+For each row, the 2 cells from $\{0, m\}$ must sum to $0 \pmod{2m}$. Options: $(0, 0)$ sum 0 ✓, $(m, m)$ sum $2m \equiv 0$ ✓, $(0, m)$ sum $m$ ✗.
+
+So each row is either $(0, 0)$ or $(m, m)$ for these two cells. Say $a$ rows get $(0,0)$ and $b$ rows get $(m,m)$, $a + b = 2m$. Total $0$'s used: $2a$. Total $m$'s used: $2b$. We need $2a = 2m$ and $2b = 2m$, so $a = m$ and $b = m$. So $m$ rows get $(0,0)$ and $m$ rows get $(m,m)$.
+
+Now for columns: we need each column to also have sum $0 \pmod{2m}$. The pairs $(r, n-r)$ contribute $0$ to their row, but they're in specific columns. We need to arrange things so column sums also work.
+
+This is getting complicated. Let me think about it as a matrix construction.
+
+Actually, let me try a different approach. Let me think about which $n$ work by trying to find constructions or proving impossibility.
+
+Let me reconsider. For odd $n$, the circulant works. For $n = 2$, it fails. For $n = 4$, it works. What about $n = 6, 8, \ldots$?
+
+Let me try to find a construction for all even $n \geq 4$.
+
+**Construction idea for even $n \geq 4$:**
+
+Consider the $n \times n$ grid. Define the entry at position $(i, j)$ (0-indexed, $i, j \in \{0, \ldots, n-1\}$) as follows:
+
+For the circulant, entry = $(i + j) \bmod n$. Row sum = $\frac{n(n-1)}{2} \equiv \frac{n}{2} \pmod n$ for even $n$.
+
+To fix this, we need to adjust. The issue is that each row sums to $n/2$ instead of $0$. If we could subtract $n/2$ from each row... but we can't freely change entries.
+
+Alternative: use a different base pattern. 
+
+Let me think about $n = 4$ again. My working example was:
+```
+0 1 1 2
+0 3 3 2
+2 1 1 0
+2 3 3 0
+```
+
+Let me see the pattern. Rows 0,1 have the same structure shifted, and rows 2,3 mirror.
+
+Actually, let me think about a block construction. For even $n = 2m$, split the grid into $2 \times 2$ blocks... no, that might not be general enough.
+
+Let me try another approach. Consider the following construction for even $n$:
+
+Entry at $(i, j)$: if $i$ is even, use $(i/2 + j) \bmod n$; if $i$ is odd, use... hmm, this is ad hoc.
+
+Let me try to think about it more carefully using the structure of $\mathbb{Z}_n$.
+
+Actually, let me try a cleaner approach. For even $n$, consider:
+
+$a_{ij} = (i + j) \bmod n$ for most cells, but modify to fix the sums.
+
+The circulant gives each row sum $= n/2 \pmod n$ and each column sum $= n/2 \pmod n$. We need to shift each row sum by $-n/2$ and each column sum by $-n/2$, while keeping the multiset of entries the same (each residue $n$ times).
+
+One way: swap some entries between rows. If we swap entries $a_{i,j}$ and $a_{i',j}$ (same column, different rows), the column sums don't change but the row sums change by $(a_{i',j} - a_{i,j})$ for row $i$ and $(a_{i,j} - a_{i',j})$ for row $i'$.
+
+In the circulant, $a_{ij} = (i+j) \bmod n$. If we swap $a_{i,j}$ and $a_{i',j}$, row $i$ changes by $(i' - i) \bmod n$ and row $i'$ changes by $(i - i') \bmod n$.
+
+We want to reduce each row sum by $n/2$. So for row $i$, we need total change $= -n/2 \equiv n/2 \pmod n$.
+
+If we swap row $i$ with row $i + n/2$ in some column $j$, row $i$ gets change $n/2$ and row $i + n/2$ gets change $-n/2 \equiv n/2$. Wait, that gives both rows a change of $n/2$ (mod $n$). But we want each row to change by $n/2$ (to go from $n/2$ to $n \equiv 0$). So if every row gets a change of $n/2$, that's what we want!
+
+So: for each pair of rows $(i, i + n/2)$ where $i = 0, 1, \ldots, n/2 - 1$, swap one entry in some column. This gives each of those two rows a change of $n/2$, fixing both.
+
+But we need to do this for all $n/2$ pairs, and we need to choose columns such that the column sums remain correct. Swapping within a column doesn't change column sums. So column sums are unaffected!
+
+But wait, we need to make sure the multiset of entries is still correct (each residue $n$ times). Swapping two entries in the same column between two rows: the multiset of all entries is unchanged (we're just permuting). So the multiset is preserved. ✓
+
+But we need each swap to be in a distinct column? No, we can swap in any columns. But we need to be careful: if we swap $a_{i,j}$ and $a_{i+n/2, j}$, the entry at $(i,j)$ becomes $(i + n/2 + j) \bmod n$ and the entry at $(i + n/2, j)$ becomes $(i + j) \bmod n$. The multiset is preserved since we're just swapping.
+
+But we need to do $n/2$ swaps (one per pair of rows). We can use $n/2$ distinct columns, or even the same column for multiple pairs (as long as the pairs are different). Actually, each swap is between a specific pair of rows in a specific column. We need $n/2$ swaps, one for each pair $(i, i+n/2)$.
+
+We can use any columns. Let's use column $j = i$ for the pair $(i, i + n/2)$, for $i = 0, 1, \ldots, n/2 - 1$. Each swap is in a different column, and each involves a different pair of rows. No conflicts.
+
+After these swaps:
+- Each row sum changes by $\pm n/2 \equiv n/2 \pmod n$ (both rows in a pair get $+n/2$ mod $n$... wait let me recheck.
+
+Swap $a_{i,j}$ and $a_{i+n/2, j}$: 
+- Row $i$ loses $(i+j) \bmod n$ and gains $(i + n/2 + j) \bmod n$. Change $= n/2 \pmod n$.
+- Row $i + n/2$ loses $(i + n/2 + j) \bmod n$ and gains $(i + j) \bmod n$. Change $= -n/2 \equiv n/2 \pmod n$.
+
+So both rows get $+n/2 \pmod n$. Original row sum was $n/2 \pmod n$. New row sum $= n/2 + n/2 = n \equiv 0 \pmod n$. ✓✓
+
+And column sums are unchanged (still $n/2 \pmod n$). But we need column sums to be $0$ too!
+
+Hmm, so this fixes rows but not columns. We need to also fix columns.
+
+By symmetry, we could do the same for columns: swap entries in the same row between columns $j$ and $j + n/2$. This would fix column sums without changing row sums.
+
+But we need to do both without conflict. Let me think...
+
+After fixing rows (swapping in columns $0, 1, \ldots, n/2 - 1$, one swap per column), the row sums are all $0 \pmod n$ and column sums are all $n/2 \pmod n$.
+
+Now fix columns: for each pair of columns $(j, j + n/2)$, swap one entry in some row. This changes column $j$ by $n/2$ and column $j + n/2$ by $n/2$ (mod $n$), fixing both. And it changes two row sums.
+
+But we need the row sums to remain $0$. Swapping $a_{i,j}$ and $a_{i, j+n/2}$ in row $i$: row $i$ loses $a_{i,j}$ and gains $a_{i, j+n/2}$, change $= a_{i,j+n/2} - a_{i,j}$. We need this to be $0 \pmod n$ for the row sum to stay $0$.
+
+After the row-fixing swaps, what is $a_{i,j}$? It's complicated because some entries have been swapped.
+
+This is getting tangled. Let me think of a cleaner approach.
+
+**Cleaner approach: direct construction.**
+
+For even $n = 2m$ with $m \geq 2$ (i.e., $n \geq 4$):
+
+Define $a_{ij}$ as follows. Consider the $n \times n$ grid. We'll use a modified circulant.
+
+Actually, let me try a completely different construction. 
+
+For $n$ even, $n \geq 4$: Consider the grid where $a_{ij} = (i + j) \bmod n$ except we modify the first $n/2$ columns.
+
+Hmm, let me try yet another approach. Let me think about what conditions are needed.
+
+We need a matrix $A$ over $\mathbb{Z}_n$ where:
+1. Each element of $\mathbb{Z}_n$ appears exactly $n$ times.
+2. Each row sum $\equiv 0 \pmod n$.
+3. Each column sum $\equiv 0 \pmod n$.
+
+This is equivalent to finding a "doubly stochastic" type structure over $\mathbb{Z}_n$.
+
+Let me think about it as a flow/matching problem or use algebraic methods.
+
+**Key observation:** The set of all $n \times n$ matrices over $\mathbb{Z}_n$ with all row and column sums $= 0$ forms a $\mathbb{Z}_n$-module. We need to find one where each element appears exactly $n$ times.
+
+Let me try a tensor/block construction. If $n = ab$ and both $a$ and $b$ are "mean-integer", is $n$ mean-integer?
+
+Actually, let me think about which $n$ fail. We know $n = 2$ fails. Let me check if there's a pattern.
+
+Let me try $n = 6$ computationally in my head... that's hard. Let me think about necessary conditions.
+
+**Necessary condition for even $n$:**
+
+Consider the residues mod $n$. We need each row sum $\equiv 0 \pmod n$. 
+
+Think about it mod 2 first (for even $n$). Each number $1, \ldots, n^2$ has a parity. There are $n^2/2$ odd and $n^2/2$ even numbers (since $n$ is even, $n^2$ is even). Each row has $n$ entries (even number), and row sum $\equiv 0 \pmod n$ implies row sum $\equiv 0 \pmod 2$ (since $2 \mid n$). So each row has an even number of odd entries. Similarly each column.
+
+This is a necessary condition but likely not sufficient to rule things out.
+
+Let me think about $n = 2$ more carefully to understand why it fails, then see if that generalizes.
+
+For $n = 2$: we need 2 copies each of residues 0, 1 in a 2×2 grid, row and column sums $\equiv 0 \pmod 2$. Row sum $\equiv 0 \pmod 2$ means even number of 1's in each row. With 2 cells per row, that means 0 or 2 ones per row. Total ones = 2, so one row has 2 and one has 0. But then the row with 2 ones has both cells = 1, and the other has both = 0. Column sums: each column has one 0 and one 1, sum = 1 ≢ 0. Fails.
+
+The issue: with $n = 2$, the constraint is too tight. Each row must be all-same, forcing columns to be mixed.
+
+For $n = 4$, we have more freedom and found a solution.
+
+Let me try to construct for general even $n \geq 4$.
+
+**Construction for even $n \geq 4$:**
+
+Let $n = 2m$, $m \geq 2$.
+
+Consider the following $n \times n$ matrix $A$ over $\mathbb{Z}_n$:
+
+For $i, j \in \{0, \ldots, n-1\}$:
+- If $i < m$ (first half of rows): $a_{ij} = j \bmod n$ (i.e., row $i$ is $0, 1, 2, \ldots, n-1$).
+- If $i \geq m$ (second half): $a_{ij} = (j + m) \bmod n$ (i.e., row $i$ is $m, m+1, \ldots, n-1, 0, \ldots, m-1$).
+
+Wait, but then each residue appears $m$ times in the first half and $m$ times in the second half, total $n$ times. ✓
+
+Row sums: first half rows sum $= 0 + 1 + \cdots + (n-1) = \frac{n(n-1)}{2} = \frac{2m(2m-1)}{2} = m(2m-1)$. Mod $n = 2m$: $m(2m-1) = 2m^2 - m \equiv -m \equiv m \pmod{2m}$. So row sum $\equiv m \pmod n \neq 0$. ✗
+
+Hmm. Same problem as circulant.
+
+Let me try: first half rows are $0, 1, \ldots, n-1$ and second half rows are $n-1, n-2, \ldots, 0$ (reversed).
+
+First half row sum $= \frac{n(n-1)}{2} \equiv m \pmod n$.
+Second half row sum $= \frac{n(n-1)}{2} \equiv m \pmod n$.
+Same issue.
+
+OK so the problem with any construction where each row is a permutation of $0, \ldots, n-1$ is that the row sum is always $\frac{n(n-1)}{2} \equiv m \pmod n$ for even $n$.
+
+So for even $n$, we can't have each row be a permutation of all residues. We need rows that are NOT permutations of all residues.
+
+In my $n = 4$ example:
+```
+0 1 1 2
+0 3 3 2
+2 1 1 0
+2 3 3 0
+```
+Row 0: $\{0, 1, 1, 2\}$ — not a permutation. Sum = 4 ≡ 0. ✓
+
+So the construction needs rows with repeated residues.
+
+Let me think about a general construction for even $n = 2m$, $m \geq 2$.
+
+**General construction attempt:**
+
+Consider the $n \times n$ grid. We'll construct it block by block.
+
+Divide the grid into $m \times m$ blocks of size $2 \times 2$... no, let me think differently.
+
+Let me use the following approach. We want to use pairs $(r, n-r)$ that sum to $0 \pmod n$, plus handle $0$ and $m = n/2$ specially.
+
+For each row, we want the sum to be $0 \pmod n$. 
+
+Consider this construction for $n = 2m$, $m \geq 2$:
+
+Row $i$ (for $i = 0, \ldots, n-1$): 
+- Place pairs $(r, n-r)$ for $r = 1, \ldots, m-1$ in columns, using 2 columns per pair. That's $2(m-1)$ columns.
+- In the remaining 2 columns, place either $(0, 0)$ or $(m, m)$.
+
+We need $m$ rows with $(0, 0)$ and $m$ rows with $(m, m)$ (to use the right counts).
+
+For the pairs: we need to arrange them so that:
+1. Each residue $r$ (for $1 \leq r \leq m-1$) appears exactly $n = 2m$ times total. Each pair uses one $r$ and one $n-r$, so across all rows, $r$ appears once per row (in some pair), total $n = 2m$ times. ✓ Similarly $n-r$ appears $2m$ times. ✓
+2. Each column sum $\equiv 0 \pmod n$.
+
+For the column sums: the pairs $(r, n-r)$ contribute $r + (n-r) = n \equiv 0$ to their two columns... no wait, each element is in its own column. The pair $(r, n-r)$ occupies two columns, one gets $r$ and the other gets $n-r$. So the column containing $r$ gets contribution $r$ from this row, and the column containing $n-r$ gets contribution $n-r$.
+
+For column sums to be $0 \pmod n$, we need the sum of all entries in each column to be $0 \pmod n$.
+
+Let me think about this more carefully with a specific arrangement.
+
+Consider arranging the pairs in a structured way. For row $i$, place the pair for $r$ in columns $2(r-1)$ and $2(r-1)+1$, with $r$ in column $2(r-1)$ and $n-r$ in column $2(r-1)+1$. The last two columns ($2m-2$ and $2m-1$) get $(0,0)$ or $(m,m)$.
+
+Then column $2(r-1)$ gets $r$ from every row, sum $= n \cdot r \equiv 0 \pmod n$. ✓
+Column $2(r-1)+1$ gets $n-r$ from every row, sum $= n \cdot (n-r) \equiv 0 \pmod n$. ✓
+
+Column $2m-2$: gets $0$ from $m$ rows and $m$ from $m$ rows, sum $= m \cdot 0 + m \cdot m = m^2$. Need $m^2 \equiv 0 \pmod{2m}$, i.e., $2m \mid m^2$, i.e., $2 \mid m$. So $m$ must be even, i.e., $n \equiv 0 \pmod 4$.
+
+Column $2m-1$: same as column $2m-2$, sum $= m^2$. Same condition.
+
+So this construction works when $m$ is even, i.e., $n \equiv 0 \pmod 4$.
+
+For $n \equiv 2 \pmod 4$ (i.e., $m$ odd), we need a different handling of the last two columns.
+
+When $m$ is odd, $m^2 \equiv m \pmod{2m}$ (since $m^2 = m \cdot m$, and $m \cdot m \bmod 2m$: if $m$ odd, $m^2$ is odd, $m^2 / 2$ is not integer, $m^2 \bmod 2m = m$). So column sum $= m \not\equiv 0$.
+
+To fix this for $m$ odd: instead of putting $(0,0)$ or $(m,m)$ in the last two columns of each row, we could use a different distribution.
+
+Alternative: in the last two columns, instead of always $(0,0)$ or $(m,m)$, sometimes use $(0, m)$ and $(m, 0)$. But $(0, m)$ sums to $m \not\equiv 0$ in the row. So that breaks row sums.
+
+Hmm. Let me think differently.
+
+For $m$ odd (i.e., $n \equiv 2 \pmod 4$, $n \geq 6$):
+
+We need to handle the $0$'s and $m$'s differently. We have $2m$ copies of $0$ and $2m$ copies of $m$.
+
+What if instead of dedicating 2 columns to $0/m$, we spread them differently?
+
+Alternative approach: use a different pairing. Instead of pairing $r$ with $n-r$, pair some residues differently.
+
+Actually, let me think about this problem from a higher level. Let me consider the problem as a matrix over $\mathbb{Z}_n$ and think about what's achievable.
+
+Let me consider the problem differently. We want to know for which $n$ the following is possible: arrange $n$ copies of each element of $\mathbb{Z}_n$ in an $n \times n$ array with all row and column sums $= 0$ in $\mathbb{Z}_n$.
+
+**Theorem (conjecture):** This is possible for all $n$ except $n = 2$.
+
+Let me try to verify for $n = 6$ (the smallest even $n \equiv 2 \pmod 4$).
+
+$n = 6$, $m = 3$. Residues $0, 1, 2, 3, 4, 5$ each 6 times.
+
+Using the pair approach: pairs $(1,5), (2,4)$ use 4 columns. Remaining 2 columns for $0$'s and $3$'s.
+
+We need 3 rows with $(0,0)$ and 3 rows with $(3,3)$ in the last 2 columns. Column sum for each of the last 2 columns $= 3 \cdot 0 + 3 \cdot 3 = 9 \equiv 3 \pmod 6 \neq 0$. Fails.
+
+So we need a different approach for $n = 6$.
+
+Let me try to construct a $6 \times 6$ solution directly.
+
+We need 6 copies each of $0, 1, 2, 3, 4, 5$, row and column sums $\equiv 0 \pmod 6$.
+
+Let me try to use a mix of row types. 
+
+Row types (multisets of 6 residues summing to $0 \pmod 6$):
+- $\{0,1,2,3,4,5\}$: sum 15 ≡ 3 ✗
+- $\{0,0,1,2,3,5\}$: sum 11 ≡ 5 ✗
+- $\{0,0,0,1,2,3\}$: sum 6 ≡ 0 ✓
+- $\{0,0,1,1,2,2\}$: sum 6 ≡ 0 ✓
+- $\{0,0,2,2,2,0\}$: = $\{0,0,0,2,2,2\}$ sum 6 ✓
+- $\{1,1,1,1,1,1\}$: sum 6 ✓ but uses 6 ones
+- $\{3,3,3,3,3,3\}$: sum 18 ✓
+- $\{5,5,5,5,5,5\}$: sum 30 ✓
+- $\{0,0,3,3,0,0\}$: = $\{0,0,0,0,3,3\}$ sum 6 ✓
+- $\{1,1,4,4,5,5\}$: sum 20 ≡ 2 ✗
+- $\{1,5,2,4,3,3\}$: sum 18 ≡ 0 ✓ — this is $\{1,2,3,3,4,5\}$
+- $\{0,1,2,3,4,5\}$: sum 15 ≡ 3 ✗ (already noted)
+- $\{0,0,1,5,2,4\}$: sum 12 ≡ 0 ✓ — $\{0,0,1,2,4,5\}$
+- $\{0,3,1,5,2,4\}$: sum 15 ≡ 3 ✗
+- $\{0,0,1,5,3,3\}$: sum 12 ✓ — $\{0,0,1,3,3,5\}$
+- $\{0,0,2,4,3,3\}$: sum 12 ✓ — $\{0,0,2,3,3,4\}$
+- $\{1,1,2,2,5,5\}$: sum 16 ≡ 4 ✗
+- $\{1,1,3,3,5,5\}$: sum 18 ≡ 0 ✓
+- $\{2,2,3,3,5,5\}$: sum 20 ≡ 2 ✗
+- $\{2,2,4,4,0,0\}$: sum 12 ✓ — $\{0,0,2,2,4,4\}$
+- $\{1,1,4,4,0,0\}$: sum 10 ≡ 4 ✗
+- $\{0,0,5,5,4,4\}$: sum 18 ✓ — $\{0,0,4,4,5,5\}$
+- $\{1,1,2,2,3,3\}$: sum 12 ✓
+- $\{4,4,5,5,3,3\}$: sum 24 ✓ — $\{3,3,4,4,5,5\}$
+- $\{0,0,1,1,4,4\}$: sum 10 ✗
+- $\{0,0,5,5,2,2\}$: sum 14 ✗
+- $\{1,5,1,5,1,5\}$: = $\{1,1,1,5,5,5\}$ sum 18 ✓
+- $\{2,4,2,4,2,4\}$: = $\{2,2,2,4,4,4\}$ sum 18 ✓
+- $\{0,0,0,0,0,0\}$: sum 0 ✓
+- $\{3,3,3,3,0,0\}$: sum 12 ✓
+
+OK there are many row types. Let me try to build a $6 \times 6$ grid.
+
+Let me try using the row type $\{0,0,1,2,4,5\}$ (sum 12 ≡ 0) and $\{3,3,1,2,4,5\}$... wait, $\{1,2,3,3,4,5\}$ sum 18 ≡ 0.
+
+Hmm, let me try a systematic approach. 
+
+Let me try:
+- 3 rows of type $\{0,0,1,2,4,5\}$ (uses 6 zeros, 3 ones, 3 twos, 3 fours, 3 fives)
+- 3 rows of type $\{3,3,1,2,4,5\}$ (uses 6 threes, 3 ones, 3 twos, 3 fours, 3 fives)
+
+Total: 0: 6 ✓, 1: 6 ✓, 2: 6 ✓, 3: 6 ✓, 4: 6 ✓, 5: 6 ✓. 
+
+Now I need to arrange each row's elements in specific columns so that column sums are $0 \pmod 6$.
+
+Row type A = $\{0,0,1,2,4,5\}$, Row type B = $\{3,3,1,2,4,5\}$.
+
+If I use 3 A rows and 3 B rows, each column gets 3 elements from A rows and 3 from B rows. Column sum $= 3 \cdot (\text{A contribution}) + 3 \cdot (\text{B contribution})$.
+
+For column sum $\equiv 0 \pmod 6$: $3(a + b) \equiv 0 \pmod 6$ where $a$ is the A-element and $b$ is the B-element in that column. This requires $a + b \equiv 0 \pmod 2$, i.e., $a$ and $b$ have the same parity.
+
+In type A: elements $\{0,0,1,2,4,5\}$. Parities: $0,0,1,0,0,1$ — four even, two odd.
+In type B: elements $\{3,3,1,2,4,5\}$. Parities: $1,1,1,0,0,1$ — two even, four odd.
+
+For each column, we need the A-element and B-element to have the same parity. We have 4 even + 2 odd in A, and 2 even + 4 odd in B. We need to match: columns where both are even, and columns where both are odd.
+
+Even-even columns: need A-even and B-even. We have 4 A-even (per A row, but across 3 A rows...). Wait, I need to think about this per column. Each column has one element from each row. With 3 A rows and 3 B rows, each column has 3 A-elements and 3 B-elements.
+
+Hmm, this is getting complicated. Let me think about it differently.
+
+Actually, let me just try to directly construct a $6 \times 6$ solution.
+
+Let me try a different approach. Consider the following construction for $n = 6$:
+
+Arrange the grid so that column $j$ contains a specific set of residues.
+
+Actually, let me try to use the following idea: for even $n$, use a construction based on $n/2 \times n/2$ blocks.
+
+For $n = 2m$, consider the grid as $m \times m$ blocks of size $2 \times 2$. In each $2 \times 2$ block at position $(p, q)$ (for $p, q \in \{0, \ldots, m-1\}$), place:
+```
+a  b
+b' a'
+```
+where $a + b + b' + a' \equiv 0 \pmod{2m}$ (block sum), and the row sums and column sums work out.
+
+This is still complex. Let me try a very different approach.
+
+**Using the Chinese Remainder Theorem / product construction:**
+
+If $n = ab$ with $\gcd(a, b) = 1$, and both $a$ and $b$ are "mean-integer", then $n$ is mean-integer.
+
+Proof idea: We can combine an $a \times a$ solution and a $b \times b$ solution. The numbers $1, \ldots, (ab)^2$ can be mapped to pairs via CRT. Specifically, number $x$ maps to $(x \bmod a, x \bmod b)$, and we need row sums $\equiv 0 \pmod{ab}$, which by CRT is equivalent to row sums $\equiv 0 \pmod a$ and $\equiv 0 \pmod b$.
+
+Hmm, but the arrangement of numbers in the grid is more subtle. Let me think...
+
+Actually, the condition is that the row sum (of actual numbers, not residues) is divisible by $n = ab$. By CRT, this is equivalent to the row sum being divisible by both $a$ and $b$. The row sum mod $a$ depends only on the residues of the entries mod $a$, and similarly for $b$.
+
+The numbers $1, \ldots, n^2$ have residues mod $a$ and mod $b$. By CRT, each pair $(r_a, r_b) \in \mathbb{Z}_a \times \mathbb{Z}_b$ appears exactly $n^2 / (ab) = ab$ times (since $n = ab$ and $\gcd(a,b) = 1$). Wait, $n^2 = a^2 b^2$ and there are $ab$ residue classes mod $ab$, so each class mod $ab$ appears $a^2 b^2 / (ab) = ab$ times. And each class mod $a$ appears $a^2 b^2 / a = ab^2$ times, each class mod $b$ appears $a^2 b$ times.
+
+This is getting complicated. Let me think about whether the product construction works.
+
+If $a$ is mean-integer and $b$ is mean-integer and $\gcd(a, b) = 1$, is $ab$ mean-integer?
+
+Consider the $ab \times ab$ grid. Index rows by $(i, p)$ where $i \in \{0, \ldots, a-1\}$ and $p \in \{0, \ldots, b-1\}$, and columns by $(j, q)$ similarly. Place number $x$ at position $((i, p), (j, q))$.
+
+We need: for each fixed $(i, p)$ (row), the sum over all $(j, q)$ is $\equiv 0 \pmod{ab}$.
+
+By CRT, $\equiv 0 \pmod{ab}$ iff $\equiv 0 \pmod a$ and $\equiv 0 \pmod b$.
+
+For the sum mod $a$: we need, for each row $(i, p)$, $\sum_{j, q} x_{(i,p),(j,q)} \equiv 0 \pmod a$.
+
+If we arrange the numbers so that for each fixed $i$, the sub-grid formed by rows with first index $i$ and columns with first index $j$ has the property that... this is getting complicated.
+
+Let me try a cleaner product construction. 
+
+Given an $a \times a$ mean-integer arrangement $A$ (using numbers $1, \ldots, a^2$) and a $b \times b$ mean-integer arrangement $B$ (using numbers $1, \ldots, b^2$), construct an $ab \times ab$ arrangement.
+
+The numbers $1, \ldots, a^2 b^2$ can be written as $a^2 (k-1) + l$ for $k \in \{1, \ldots, b^2\}$ and $l \in \{1, \ldots, a^2\}$. Place number $a^2 (B_{p,q} - 1) + A_{i,j}$ at position $((i, p), (j, q))$.
+
+Row $((i, p), \cdot)$ sum $= \sum_{j, q} [a^2(B_{p,q} - 1) + A_{i,j}]$
+$= \sum_q a^2(B_{p,q} - 1) \cdot a + \sum_j A_{i,j} \cdot b^2$
+$= a^3 \sum_q (B_{p,q} - 1) + b^2 \sum_j A_{i,j}$
+$= a^3 (\sum_q B_{p,q} - a) + b^2 \sum_j A_{i,j}$
+
+Wait, $\sum_q$ has $b$ terms, and for each $q$, $\sum_j$ has $a$ terms. Let me redo.
+
+Row $((i, p), \cdot)$: sum over all $(j, q)$ with $j \in \{0,...,a-1\}$, $q \in \{0,...,b-1\}$:
+$$\sum_{j=0}^{a-1} \sum_{q=0}^{b-1} [a^2(B_{p,q} - 1) + A_{i,j}]$$
+$$= \sum_q \sum_j a^2(B_{p,q} - 1) + \sum_q \sum_j A_{i,j}$$
+$$= a \cdot a^2 \sum_q (B_{p,q} - 1) + b \sum_j A_{i,j}$$
+$$= a^3 \sum_q (B_{p,q} - 1) + b \sum_j A_{i,j}$$
+$$= a^3 (\text{row}_p(B) - b) + b \cdot \text{row}_i(A)$$
+
+where $\text{row}_p(B) = \sum_q B_{p,q}$ and $\text{row}_i(A) = \sum_j A_{i,j}$.
+
+We need this $\equiv 0 \pmod{ab}$.
+
+$\text{row}_p(B) \equiv 0 \pmod b$ (since $B$ is mean-integer), so $\text{row}_p(B) = b \cdot s_p$ for some integer $s_p$.
+$\text{row}_i(A) \equiv 0 \pmod a$ (since $A$ is mean-integer), so $\text{row}_i(A) = a \cdot t_i$ for some integer $t_i$.
+
+So the sum $= a^3(b \cdot s_p - b) + b \cdot a \cdot t_i = a^3 b(s_p - 1) + ab \cdot t_i = ab[a^2(s_p - 1) + t_i]$.
+
+This is $\equiv 0 \pmod{ab}$. ✓
+
+Similarly for columns. So the product construction works when $\gcd(a, b) = 1$.
+
+Wait, I need to double-check. The sum of row $p$ of $B$ is $\sum_q B_{p,q}$. Since $B$ is a $b \times b$ mean-integer arrangement, this sum is divisible by $b$. So $\text{row}_p(B) = b \cdot s_p$. ✓
+
+And $\text{row}_i(A) = a \cdot t_i$. ✓
+
+So the row sum $= ab[a^2(s_p - 1) + t_i] \equiv 0 \pmod{ab}$. ✓
+
+Column sums work by the same argument (by symmetry of the construction). ✓
+
+And each number $1, \ldots, a^2 b^2$ appears exactly once (since $A$ uses each $1, \ldots, a^2$ once and $B$ uses each $1, \ldots, b^2$ once, and the mapping $(l, k) \mapsto a^2(k-1) + l$ is a bijection). ✓
+
+So: **if $\gcd(a, b) = 1$ and both $a, b$ are mean-integer, then $ab$ is mean-integer.**
+
+This is a powerful result. Combined with:
+- $n = 1$ is mean-integer (trivial).
+- All odd $n \geq 1$ are mean-integer (circulant construction).
+- $n = 2$ is NOT mean-integer.
+- $n = 4$ IS mean-integer (constructed above).
+
+From the product construction:
+- If $n$ is odd, it's mean-integer (direct construction).
+- $n = 4$ is mean-integer.
+- $n = 4k$ for any $k$: if $k$ is odd, $n = 4 \cdot k$ with $\gcd(4, k) = 1$, and both 4 and $k$ are mean-integer (4 by construction, $k$ by odd case). So $n = 4k$ is mean-integer. If $k$ is even, $n = 4k$... we can factor further.
+
+Actually, let me think about which $n \leq 100$ are NOT mean-integer.
+
+The odd numbers are all mean-integer. So we only need to worry about even $n$.
+
+$n = 2$: not mean-integer.
+$n = 4$: mean-integer.
+
+For even $n$, write $n = 2^a \cdot m$ where $m$ is odd.
+
+If $a = 0$: $n$ is odd, mean-integer. ✓
+If $a = 1$: $n = 2m$ with $m$ odd. If $m = 1$, $n = 2$, not mean-integer. If $m > 1$ (so $m \geq 3$), can we use the product construction? We need $\gcd(2, m) = 1$ (yes, since $m$ is odd) and both 2 and $m$ mean-integer. But 2 is NOT mean-integer! So the product construction doesn't directly apply.
+
+Hmm. So for $n = 2m$ with $m$ odd and $m > 1$, we can't use the product $2 \times m$ since 2 isn't mean-integer. We need to either find a direct construction or prove impossibility.
+
+If $a \geq 2$: $n = 4 \cdot (2^{a-2} m)$. If $\gcd(4, 2^{a-2} m) = 1$, i.e., $a = 2$ (so $n = 4m$ with $m$ odd), then product construction gives $n$ is mean-integer (since 4 is and $m$ is). If $a \geq 3$, $n = 4 \cdot 2^{a-2} m$, and $\gcd(4, 2^{a-2} m) = 4 \neq 1$ (if $a \geq 3$), so can't directly use $4 \times (2^{a-2} m)$. But we can use $n = 2^a \cdot m$ and try other factorizations.
+
+For $a \geq 2$: $n = 2^a \cdot m$. We can write $n = 4 \cdot 2^{a-2} \cdot m$. If $a = 2$: $n = 4m$, $\gcd(4, m) = 1$ (since $m$ odd), product works. If $a = 3$: $n = 8m$. Can we write $8 = 4 \cdot 2$? No, $\gcd(4, 2) \neq 1$. Can we use $n = 8m$ directly? We need to know if 8 is mean-integer.
+
+Let me check: is $n = 8$ mean-integer? $8 = 4 \cdot 2$, but $\gcd(4, 2) \neq 1$, so product construction doesn't apply. Need to check directly or find another construction.
+
+Actually, for $n = 2^a$ with $a \geq 2$, we showed $n = 4$ works. What about $n = 8, 16, \ldots$?
+
+Let me try to extend the $n = 4$ construction or find a general construction for $n = 2^a$.
+
+Actually, wait. Let me reconsider the product construction. It requires $\gcd(a, b) = 1$. For powers of 2, we can't split into coprime factors both $> 1$. So we need a direct construction for $n = 2^a$.
+
+Let me check $n = 8$. Using the pair construction from before: $n = 8$, $m = 4$. Pairs $(1,7), (2,6), (3,5)$ use 6 columns. Remaining 2 columns for $0$'s and $4$'s. We need 4 rows with $(0,0)$ and 4 rows with $(4,4)$. Column sum $= 4 \cdot 0 + 4 \cdot 4 = 16 \equiv 0 \pmod 8$. ✓ (since $m = 4$ is even).
+
+So the pair construction works for $n = 8$! Because $m = n/2 = 4$ is even.
+
+In fact, the pair construction works whenever $m = n/2$ is even, i.e., $n \equiv 0 \pmod 4$.
+
+So for $n \equiv 0 \pmod 4$: the pair construction works. ✓
+
+For $n \equiv 2 \pmod 4$ (i.e., $n = 2m$ with $m$ odd): the pair construction gives column sum $m^2 \equiv m \pmod{2m} \neq 0$. Fails.
+
+So we need to handle $n \equiv 2 \pmod 4$ separately. These are $n = 2, 6, 10, 14, 18, \ldots$ i.e., $n = 2(2k+1)$ for $k \geq 0$, or $n = 4k + 2$.
+
+$n = 2$: fails.
+$n = 6$: ?
+$n = 10$: ?
+etc.
+
+For $n = 4k + 2$ with $k \geq 1$ (so $n \geq 6$): $n = 2(2k+1)$ where $2k+1$ is odd and $\geq 3$. We can't use the product $2 \times (2k+1)$ since 2 isn't mean-integer.
+
+But maybe we can find a direct construction for $n = 4k + 2$, $k \geq 1$?
+
+Or maybe these are all not mean-integer? Let me check $n = 6$ more carefully.
+
+**Checking $n = 6$:**
+
+We need 6 copies each of $0, 1, 2, 3, 4, 5$ in a $6 \times 6$ grid, all row and column sums $\equiv 0 \pmod 6$.
+
+Let me think about necessary conditions. Consider the sum of all entries mod 2. Each entry has a parity. We need each row sum $\equiv 0 \pmod 6$, hence $\equiv 0 \pmod 2$, so each row has an even number of odd entries. Similarly each column.
+
+There are 18 odd numbers (residues 1, 3, 5, each appearing 6 times: $3 \times 6 = 18$) and 18 even numbers. Each row has an even number of odd entries, and there are 6 rows, so the total number of odd entries is even (which 18 is). Each row has 0, 2, 4, or 6 odd entries.
+
+This doesn't seem to give a contradiction. Let me think about mod 3.
+
+Row sum $\equiv 0 \pmod 6$ implies $\equiv 0 \pmod 3$. Residues mod 3: $0 \to 0, 3; 1 \to 1, 4; 2 \to 2, 5$. Each residue mod 3 appears $2 \times 6 = 12$ times. Row sum mod 3 = sum of residues mod 3. We need each row sum $\equiv 0 \pmod 3$.
+
+This is like a mean-integer condition for $n' = 3$ (which works) combined with $n' = 2$. By CRT, $n = 6 = 2 \times 3$ with $\gcd(2, 3) = 1$. If both 2 and 3 were mean-integer, the product construction would work. But 2 is not mean-integer.
+
+However, the product construction is sufficient but not necessary. Maybe $n = 6$ is still mean-integer through a different construction.
+
+Let me try to directly construct a $6 \times 6$ solution.
+
+I'll try to use the following approach. Consider the $6 \times 6$ grid. I'll try to make each row have sum $\equiv 0 \pmod 6$ and each column have sum $\equiv 0 \pmod 6$.
+
+Let me try rows of type $\{0, 0, 1, 2, 4, 5\}$ (sum 12) and $\{3, 3, 1, 2, 4, 5\}$ (sum 18), with 3 rows of each type.
+
+For the A rows ($\{0, 0, 1, 2, 4, 5\}$) and B rows ($\{3, 3, 1, 2, 4, 5\}$):
+
+I need to arrange the elements in columns so that each column sums to $0 \pmod 6$.
+
+Each column has 3 A-elements and 3 B-elements. Let me denote the A-element in column $j$ for A-row $r$ as $a_{r,j}$ and B-element in column $j$ for B-row $s$ as $b_{s,j}$.
+
+Column $j$ sum $= \sum_{r=0}^{2} a_{r,j} + \sum_{s=0}^{2} b_{s,j}$.
+
+I need this $\equiv 0 \pmod 6$ for each $j$.
+
+Let me try to make all 3 A-rows identical in their column assignment, and all 3 B-rows identical. Then column $j$ sum $= 3 \cdot a_j + 3 \cdot b_j = 3(a_j + b_j)$. Need $3(a_j + b_j) \equiv 0 \pmod 6$, i.e., $a_j + b_j \equiv 0 \pmod 2$.
+
+A-row: $\{0, 0, 1, 2, 4, 5\}$ arranged in some order in columns 0-5.
+B-row: $\{3, 3, 1, 2, 4, 5\}$ arranged in some order.
+
+Need $a_j + b_j$ even for each $j$.
+
+A elements: $0, 0, 1, 2, 4, 5$ (parities: E, E, O, E, E, O)
+B elements: $3, 3, 1, 2, 4, 5$ (parities: O, O, O, E, E, O)
+
+Need same parity in each column. Even columns: A has 4 even, B has 2 even. So 2 columns with even-even, and we need 4 even A's but only 2 even B's. The remaining 2 even A's must go in columns with... but B has 4 odd, so 4 odd-odd columns. Total: 2 even-even + 4 odd-odd = 6 columns. A: 4 even + 2 odd = 6 ✓. B: 2 even + 4 odd = 6 ✓. 
+
+So: 2 columns get (A-even, B-even) and 4 columns get (A-odd, B-odd).
+
+A-even: $\{0, 0, 2, 4\}$, A-odd: $\{1, 5\}$.
+B-even: $\{2, 4\}$, B-odd: $\{3, 3, 1, 5\}$.
+
+For the 2 even-even columns: assign A-even $\{0, 0\}$ and B-even $\{2, 4\}$ (or some pairing). Actually, we need to assign specific values. Let me say:
+- Column 0: A=0, B=2 → sum contribution $3(0+2) = 6 \equiv 0$ ✓
+- Column 1: A=0, B=4 → $3(0+4) = 12 \equiv 0$ ✓
+
+For the 4 odd-odd columns: A-odd $\{1, 5\}$ but we need 4 columns and only have 2 odd A's. Wait, each A-row has 2 odd elements, and we have 3 identical A-rows, so each odd A-element appears 3 times in its column. But we need 4 odd-odd columns and only have 2 distinct odd A-values. So 2 columns get A=1 and 2 columns get A=5.
+
+A-odd: 1 (once per row, 3 rows → 3 copies in that column) and 5 (once per row, 3 copies). But we need 4 odd-odd columns. With 2 odd A-values, we can have at most 2 odd-odd columns (each using one odd A-value, appearing 3 times). But we need 4 odd-odd columns!
+
+Wait, I think I miscounted. Each A-row has elements $\{0, 0, 1, 2, 4, 5\}$. The odd elements are 1 and 5, one each. So in 3 identical A-rows, column with A=1 has three 1's, column with A=5 has three 5's. That's 2 odd-odd columns. But we need 4 odd-odd columns (since B has 4 odd elements).
+
+This doesn't work with identical rows. Let me try non-identical A-rows.
+
+OK this is getting complicated. Let me try a completely different approach for $n = 6$.
+
+Let me try to use a computer-free search. Actually, let me think about whether $n = 6$ might NOT be mean-integer, and see if there's a pattern where $n \equiv 2 \pmod 4$ fails.
+
+**Conjecture:** $n$ is mean-integer iff $n \neq 2$ and $n \not\equiv 2 \pmod 4$.
+
+Wait, but that would mean $n = 6, 10, 14, \ldots$ all fail. Let me check if there's a reason.
+
+Actually, let me reconsider. Maybe $n \equiv 2 \pmod 4$ can work for $n \geq 6$. Let me try harder for $n = 6$.
+
+Let me try a different row structure. Instead of 3+3 rows of two types, let me use 6 different row types.
+
+Actually, let me try to think about this mod 2 and mod 3 separately (since $6 = 2 \times 3$).
+
+The condition "row sum $\equiv 0 \pmod 6$" is equivalent to "row sum $\equiv 0 \pmod 2$ AND row sum $\equiv 0 \pmod 3$".
+
+Consider the residues mod 2: we have 18 even and 18 odd numbers. Each row needs an even number of odd entries (for row sum $\equiv 0 \pmod 2$). Each column needs an even number of odd entries.
+
+Consider the residues mod 3: residues 0, 1, 2 each appear 12 times. Each row needs sum $\equiv 0 \pmod 3$. Each column needs sum $\equiv 0 \pmod 3$.
+
+The mod 3 condition is like a mean-integer condition for $n = 3$ (which works). The mod 2 condition is like a mean-integer condition for $n = 2$ (which doesn't work in isolation).
+
+But the two conditions are coupled through the actual numbers. The question is whether we can satisfy both simultaneously.
+
+Hmm, let me think about this differently. Let me consider the problem mod 2.
+
+We have a $6 \times 6$ grid. 18 cells get odd numbers, 18 get even numbers. Each row and column has an even number of odd cells. This is like a bipartite graph condition: we need a 6-regular bipartite graph (rows vs columns) where each vertex has even degree, and the total number of edges is 18.
+
+Actually, each row has an even number of odd entries (0, 2, 4, or 6), and each column has an even number. The total is 18. By a theorem, such a bipartite graph exists (e.g., each row and column has exactly 3 odd entries — but 3 is odd, not allowed). 
+
+Wait, we need each row to have an EVEN number of odd entries. Total odd entries = 18. If each of 6 rows has an even number, the sum of 6 even numbers is even, but 18 is even. ✓. But can we have each row with, say, 2 odd entries (total 12) and... no, 6 rows × 2 = 12 ≠ 18. Or 6 rows × 4 = 24 ≠ 18. Or mix: some rows with 2, some with 4: $2a + 4b = 18$ with $a + b = 6$, so $2a + 4(6-a) = 18 \Rightarrow 2a + 24 - 4a = 18 \Rightarrow -2a = -6 \Rightarrow a = 3, b = 3$. So 3 rows with 2 odd entries and 3 rows with 4 odd entries. Or 6 rows with 6: $6 \times 6 = 36 \neq 18$. Or 6 rows with 0: 0 ≠ 18. Or mix of 0 and 6: $6a = 18 \Rightarrow a = 3$, so 3 rows with 6 and 3 with 0. Etc.
+
+So the mod 2 condition is satisfiable. The question is whether we can simultaneously satisfy mod 2 and mod 3 conditions with the right multiset of numbers.
+
+This is really a question about whether a certain combinatorial design exists. Let me try to just construct a solution for $n = 6$.
+
+Let me try a more systematic approach. I'll think of the $6 \times 6$ grid and try to fill it.
+
+Let me use the following strategy: first decide the residue mod 2 (parity) of each cell, then decide the residue mod 3, then combine via CRT to get the residue mod 6, and finally assign actual numbers.
+
+**Step 1: Parity assignment.** We need a $6 \times 6$ 0-1 matrix (1 = odd) with:
+- Each row has an even number of 1's.
+- Each column has an even number of 1's.
+- Total number of 1's = 18.
+
+Let me use: 3 rows with 2 ones and 3 rows with 4 ones (as computed above). And columns also need even counts.
+
+Let me try:
+```
+Row 0: 1 1 0 0 0 0  (2 ones)
+Row 1: 1 1 0 0 0 0  (2 ones)
+Row 2: 0 0 1 1 0 0  (2 ones)
+Row 3: 0 0 1 1 0 0  (2 ones)  -- wait, this gives 4 rows with 2 ones = 8, need 18.
+```
+
+Let me recalculate. $2a + 4b = 18, a + b = 6 \Rightarrow a = 3, b = 3$. So 3 rows with 2 ones, 3 rows with 4 ones.
+
+```
+Row 0: 1 1 0 0 0 0  (2)
+Row 1: 1 0 1 0 0 0  (2)
+Row 2: 1 0 0 1 0 0  (2)
+Row 3: 0 1 1 1 1 0  (4)
+Row 4: 0 1 0 1 0 1  (3) -- no, need even
+```
+
+Let me be more careful. Let me try:
+```
+Row 0: 1 1 0 0 0 0  (2)
+Row 1: 0 0 1 1 0 0  (2)
+Row 2: 0 0 0 0 1 1  (2)
+Row 3: 1 0 1 0 1 0  (3) -- odd, bad
+```
+
+Hmm, let me try:
+```
+Row 0: 1 1 0 0 0 0  (2)
+Row 1: 0 0 1 1 0 0  (2)
+Row 2: 0 0 0 0 1 1  (2)
+Row 3: 1 1 1 1 0 0  (4)
+Row 4: 1 0 0 0 1 1  (3) -- bad
+```
+
+OK let me think about column sums too. I need each column to have an even number of 1's, and total 18.
+
+Let me try a symmetric design:
+```
+Row 0: 1 1 0 0 1 1  (4)
+Row 1: 1 1 0 0 1 1  (4)
+Row 2: 0 0 1 1 0 0  (2)
+Row 3: 0 0 1 1 0 0  (2)
+Row 4: 1 1 1 1 1 1  (6)
+Row 5: 0 0 0 0 0 0  (0)
+```
+Total ones: 4+4+2+2+6+0 = 18 ✓
+Column sums: col 0: 1+1+0+0+1+0=3 ✗ (odd)
+
+Let me try:
+```
+Row 0: 1 1 0 0 1 1  (4)
+Row 1: 1 1 0 0 1 1  (4)
+Row 2: 0 0 1 1 0 0  (2)
+Row 3: 0 0 1 1 0 0  (2)
+Row 4: 1 1 1 1 1 1  (6)
+Row 5: 0 0 0 0 0 0  (0)
+```
+Col 0: 1+1+0+0+1+0 = 3 ✗
+
+Need to adjust. Let me try:
+```
+Row 0: 1 1 0 0 1 1  (4)
+Row 1: 0 0 1 1 1 1  (4)
+Row 2: 1 1 1 1 0 0  (4)
+Row 3: 0 0 0 0 1 1  (2)
+Row 4: 1 1 0 0 0 0  (2)
+Row 5: 0 0 1 1 0 0  (2)
+```
+Total: 4+4+4+2+2+2 = 18 ✓
+Col 0: 1+0+1+0+1+0 = 3 ✗
+
+Hmm. Let me try to make each column have exactly 3 ones... but 3 is odd. Each column needs an even number. With 18 total and 6 columns, average is 3, but we need even. So some columns have 2 and some have 4: $2a + 4b = 18, a + b = 6 \Rightarrow a = 3, b = 3$. So 3 columns with 2 ones and 3 columns with 4 ones.
+
+Let me try:
+```
+       c0 c1 c2 c3 c4 c5
+Row 0:  1  1  1  1  0  0  (4)
+Row 1:  1  1  1  1  0  0  (4)
+Row 2:  0  0  0  0  1  1  (2)
+Row 3:  0  0  0  0  1  1  (2)
+Row 4:  0  0  0  0  1  1  (2)
+Row 5:  0  0  0  0  1  1  (2)
+```
+Total: 4+4+2+2+2+2 = 16 ✗ (need 18)
+
+Let me try:
+```
+       c0 c1 c2 c3 c4 c5
+Row 0:  1  1  1  1  0  0  (4)
+Row 1:  1  1  0  0  1  1  (4)
+Row 2:  0  0  1  1  1  1  (4)
+Row 3:  0  0  1  1  0  0  (2)
+Row 4:  1  1  0  0  0  0  (2)
+Row 5:  0  0  0  0  1  1  (2)
+```
+Total: 4+4+4+2+2+2 = 18 ✓
+Col 0: 1+1+0+0+1+0 = 3 ✗
+
+Argh. Let me be more systematic. I need a 6×6 0-1 matrix with row sums being 3 rows of 2 and 3 rows of 4, and column sums being 3 columns of 2 and 3 columns of 4.
+
+This is a bipartite degree sequence problem. By the Gale-Ryser theorem, this should be feasible. Let me just construct one.
+
+Rows with 4 ones: rows 0, 1, 2. Rows with 2 ones: rows 3, 4, 5.
+Columns with 4 ones: cols 0, 1, 2. Columns with 2 ones: cols 3, 4, 5.
+
+The 3 rows with 4 ones contribute 12 ones. The 3 rows with 2 ones contribute 6 ones. Total 18.
+The 3 cols with 4 ones get 12 ones. The 3 cols with 2 ones get 6 ones.
+
+Let me try:
+```
+       c0 c1 c2 c3 c4 c5
+Row 0:  1  1  1  1  0  0  (4)
+Row 1:  1  1  1  0  1  0  (4)
+Row 2:  1  1  1  0  0  1  (4)
+Row 3:  1  0  0  1  0  0  (2)
+Row 4:  0  1  0  0  1  0  (2)
+Row 5:  0  0  1  0  0  1  (2)
+```
+Col sums: c0: 1+1+1+1+0+0=4 ✓, c1: 1+1+1+0+1+0=4 ✓, c2: 1+1+1+0+0+1=4 ✓, c3: 1+0+0+1+0+0=2 ✓, c4: 0+1+0+0+1+0=2 ✓, c5: 0+0+1+0+0+1=2 ✓.
+Row sums: 4, 4, 4, 2, 2, 2 ✓.
+Total: 18 ✓.
+
+So this parity assignment works.
+
+**Step 2: Residue mod 3 assignment.** We need to assign residues mod 3 to each cell such that:
+- Each row sum $\equiv 0 \pmod 3$.
+- Each column sum $\equiv 0 \pmod 3$.
+- Residue 0 appears 12 times, residue 1 appears 12 times, residue 2 appears 12 times.
+- The combination with the parity assignment gives each residue mod 6 appearing exactly 6 times.
+
+The residue mod 6 of a cell is determined by its parity and residue mod 3 via CRT:
+- (even, 0) → 0 mod 6
+- (even, 1) → 4 mod 6
+- (even, 2) → 2 mod 6
+- (odd, 0) → 3 mod 6
+- (odd, 1) → 1 mod 6
+- (odd, 2) → 5 mod 6
+
+We need each residue mod 6 to appear 6 times. So:
+- (even, 0): 6 cells → residue 0 mod 6, 6 copies
+- (even, 1): 6 cells → residue 4 mod 6, 6 copies
+- (even, 2): 6 cells → residue 2 mod 6, 6 copies
+- (odd, 0): 6 cells → residue 3 mod 6, 6 copies
+- (odd, 1): 6 cells → residue 1 mod 6, 6 copies
+- (odd, 2): 6 cells → residue 5 mod 6, 6 copies
+
+Total even cells: 6+6+6 = 18 ✓ (we have 18 even cells).
+Total odd cells: 6+6+6 = 18 ✓.
+
+So among the 18 even cells, we need 6 with residue 0, 6 with residue 1, 6 with residue 2 (mod 3). Among the 18 odd cells, same.
+
+Now, the mod 3 condition: each row sum $\equiv 0 \pmod 3$ and each column sum $\equiv 0 \pmod 3$, with each residue mod 3 appearing 12 times total.
+
+But we also have the constraint that among even cells, each mod 3 residue appears 6 times, and among odd cells, each mod 3 residue appears 6 times.
+
+This is getting complex but let me try to see if it's feasible.
+
+Looking at the parity matrix:
+```
+       c0 c1 c2 c3 c4 c5
+Row 0:  1  1  1  1  0  0  (4 odd)
+Row 1:  1  1  1  0  1  0  (4 odd)
+Row 2:  1  1  1  0  0  1  (4 odd)
+Row 3:  1  0  0  1  0  0  (2 odd)
+Row 4:  0  1  0  0  1  0  (2 odd)
+Row 5:  0  0  1  0  0  1  (2 odd)
+```
+
+Odd cells: (0,0), (0,1), (0,2), (0,3), (1,0), (1,1), (1,2), (1,4), (2,0), (2,1), (2,2), (2,5), (3,0), (3,3), (4,1), (4,4), (5,2), (5,5). That's 18. ✓
+
+Even cells: the other 18.
+
+Now I need to assign mod 3 residues to all 36 cells such that:
+1. Each row sum ≡ 0 (mod 3).
+2. Each column sum ≡ 0 (mod 3).
+3. Among odd cells: 6 each of residues 0, 1, 2.
+4. Among even cells: 6 each of residues 0, 1, 2.
+
+This is a complex constraint satisfaction. Let me see if I can find an assignment.
+
+Actually, this is getting very tedious. Let me step back and think about whether there's a theoretical reason why $n \equiv 2 \pmod 4$ might or might not work.
+
+**Key insight attempt:** For $n \equiv 2 \pmod 4$, consider the sum of all entries in the grid modulo $2n$ (or some other modulus).
+
+Actually, let me think about a different necessary condition.
+
+Consider the numbers $1, \ldots, n^2$ and their residues mod $n$. We've established that each residue appears $n$ times. Now consider the sum of squares or some other moment.
+
+Hmm, let me think about this differently. 
+
+**Another approach:** Think about the problem in terms of the sum of entries in each row being divisible by $n$. The sum of all entries is $\frac{n^2(n^2+1)}{2}$. The average row sum is $\frac{n(n^2+1)}{2}$. For this to be an integer (necessary for all row sums to be integers), we need $n(n^2+1)$ to be even, which it always is.
+
+But we need each row sum to be a multiple of $n$, not just an integer. The average row sum is $\frac{n(n^2+1)}{2}$. If all row sums are multiples of $n$, the average is too: $\frac{n(n^2+1)}{2} / n = \frac{n^2+1}{2}$, which is an integer iff $n$ is odd. Wait, that's the average divided by $n$. If all row sums are multiples of $n$, say row sum $= n \cdot k_i$, then average $= \frac{n \sum k_i}{n} = \frac{\sum k_i}{1}$... no.
+
+Average row sum $= \frac{n(n^2+1)}{2}$. If each row sum $= n \cdot k_i$, then $\sum k_i = \frac{n^2+1}{2}$. This needs to be an integer, so $n^2 + 1$ must be even, i.e., $n$ must be odd. Wait, $n^2 + 1$: if $n$ is even, $n^2$ is even, $n^2 + 1$ is odd, so $\frac{n^2+1}{2}$ is not an integer. If $n$ is odd, $n^2$ is odd, $n^2 + 1$ is even, so $\frac{n^2+1}{2}$ is an integer.
+
+Wait, this seems like a necessary condition! If $n$ is even, $\frac{n^2+1}{2}$ is not an integer, so we can't have all row sums be multiples of $n$?
+
+But we showed $n = 4$ works! Let me recheck.
+
+For $n = 4$: total sum $= \frac{16 \cdot 17}{2} = 136$. Average row sum $= 136/4 = 34$. Is 34 divisible by 4? $34 / 4 = 8.5$. No! 34 is NOT divisible by 4.
+
+But in my construction, the row sums were 4, 8, 4, 8 (in terms of residues mod 4). The actual numbers are not just residues — the actual row sums need to be divisible by 4.
+
+Oh wait, I think I confused myself. The residue arrangement gives row sums $\equiv 0 \pmod 4$, but the actual row sums are sums of actual numbers, which are $\equiv 0 \pmod 4$ but not necessarily equal to the residue sums.
+
+Let me recheck. In the $n = 4$ case, the actual numbers are $1, 2, \ldots, 16$. The residue arrangement I found was:
+```
+0 1 1 2
+0 3 3 2
+2 1 1 0
+2 3 3 0
+```
+(residues mod 4)
+
+I need to assign actual numbers to cells such that:
+- Each number $1, \ldots, 16$ is used once.
+- Number $k$ goes to a cell with residue $k \bmod 4$.
+- Each row sum is divisible by 4.
+- Each column sum is divisible by 4.
+
+The residue arrangement ensures that the row sum $\equiv 0 \pmod 4$ and column sum $\equiv 0 \pmod 4$, regardless of which specific numbers (with the right residues) are placed. Because the row sum mod 4 depends only on the residues.
+
+So the actual row sum is $\equiv 0 \pmod 4$. But is it actually divisible by 4? Yes, because $\equiv 0 \pmod 4$ means divisible by 4.
+
+But the average row sum is 34, which is not divisible by 4. How can all row sums be divisible by 4 if the average is 34?
+
+$34 \times 4 = 136$. If all 4 row sums are divisible by 4, their sum is divisible by 4. $136 / 4 = 34$. $136 = 4 \times 34$. So 136 is divisible by 4. ✓. But the individual row sums being divisible by 4 doesn't require the average to be divisible by 4. For example, row sums could be 32, 36, 32, 36 (average 34, all divisible by 4). ✓
+
+I made an error earlier. The average row sum being 34 doesn't need to be divisible by 4; it just needs to be the average of four multiples of 4. $34 = (32 + 36)/2$, and $32, 36$ are both divisible by 4. ✓
+
+So my earlier "necessary condition" was wrong. There's no such obstruction for even $n$.
+
+OK so let me go back to trying to determine which $n \equiv 2 \pmod 4$ work.
+
+Let me try to think about this more carefully for $n = 6$.
+
+Actually, let me try a completely different construction for $n \equiv 2 \pmod 4$, $n \geq 6$.
+
+**Construction for $n = 2m$ with $m$ odd, $m \geq 3$:**
+
+Since $m$ is odd and $m \geq 3$, $m$ is mean-integer (odd case). Also, $n = 2m$. 
+
+Idea: Use the $m \times m$ mean-integer arrangement for $m$ (which exists since $m$ is odd) and "double" it to get a $2m \times 2m$ arrangement.
+
+Specifically, consider the $m \times m$ arrangement $A$ for $m$ (using numbers $1, \ldots, m^2$, each row/column sum divisible by $m$). Create a $2m \times 2m$ arrangement by replacing each entry $a$ with a $2 \times 2$ block.
+
+In the $2 \times 2$ block for entry $a$ (where $a \in \{1, \ldots, m^2\}$), we place four numbers from $\{2m(a-1)+1, \ldots, 2m \cdot a\}$... wait, that doesn't work directly because we need numbers $1, \ldots, (2m)^2 = 4m^2$.
+
+Let me think about this differently. We have $4m^2$ numbers. Group them into $m^2$ groups of 4: group $g$ (for $g = 0, \ldots, m^2 - 1$) contains $\{4g+1, 4g+2, 4g+3, 4g+4\}$. Place group $g$ in the $2 \times 2$ block corresponding to position $g$ in the $m \times m$ arrangement.
+
+The $m \times m$ arrangement uses numbers $1, \ldots, m^2$ with row/column sums divisible by $m$. Map number $a$ to group $a - 1$ (0-indexed). So the $m \times m$ arrangement tells us which group goes in which $2 \times 2$ block.
+
+Now, within each $2 \times 2$ block, we need to arrange the 4 numbers so that:
+1. The row sums of the $2m \times 2m$ grid are divisible by $2m$.
+2. The column sums are divisible by $2m$.
+
+The row sum of a row in the $2m \times 2m$ grid: a row belongs to a "super-row" (one of the $m$ rows of the $m \times m$ arrangement) and is either the first or second row within its super-row. The row sum is the sum of the first (or second) elements of each $2 \times 2$ block in that super-row.
+
+Let me denote the $2 \times 2$ block at super-position $(i, j)$ as containing numbers $\{4g_{ij}+1, 4g_{ij}+2, 4g_{ij}+3, 4g_{ij}+4\}$ where $g_{ij}$ is determined by the $m \times m$ arrangement.
+
+The sum of block $(i,j)$ is $4g_{ij} + 1 + 4g_{ij} + 2 + 4g_{ij} + 3 + 4g_{ij} + 4 = 16g_{ij} + 10$.
+
+The sum of super-row $i$ (all $m$ blocks in row $i$) is $\sum_j (16g_{ij} + 10) = 16 \sum_j g_{ij} + 10m$.
+
+Now, $\sum_j g_{ij}$: the $m \times m$ arrangement has entry $a_{ij} \in \{1, \ldots, m^2\}$ at position $(i,j)$, and $g_{ij} = a_{ij} - 1$. So $\sum_j g_{ij} = \sum_j a_{ij} - m$. Since the $m \times m$ arrangement has row sums divisible by $m$, $\sum_j a_{ij} \equiv 0 \pmod m$, so $\sum_j g_{ij} \equiv -m \equiv 0 \pmod m$.
+
+Super-row sum $= 16 \sum_j g_{ij} + 10m$. For the two rows within a super-row, their sums add up to the super-row sum. We need each individual row sum $\equiv 0 \pmod{2m}$.
+
+If the two rows within a super-row have sums $S_1$ and $S_2$ with $S_1 + S_2 = 16 \sum_j g_{ij} + 10m$, we need $S_1 \equiv 0 \pmod{2m}$ and $S_2 \equiv 0 \pmod{2m}$, so $S_1 + S_2 \equiv 0 \pmod{2m}$.
+
+$S_1 + S_2 = 16 \sum_j g_{ij} + 10m$. Need $\equiv 0 \pmod{2m}$: $16 \sum_j g_{ij} + 10m \equiv 0 \pmod{2m}$. Since $10m \equiv 0 \pmod{2m}$ (as $10m = 5 \cdot 2m$), we need $16 \sum_j g_{ij} \equiv 0 \pmod{2m}$, i.e., $2m \mid 16 \sum_j g_{ij}$, i.e., $m \mid 8 \sum_j g_{ij}$. Since $\sum_j g_{ij} \equiv 0 \pmod m$, we have $m \mid \sum_j g_{ij}$, so $m \mid 8 \sum_j g_{ij}$. ✓
+
+So the super-row sum is $\equiv 0 \pmod{2m}$. But we need each individual row sum (within the super-row) to be $\equiv 0 \pmod{2m}$. We need to split the block contributions between the two rows such that each row's sum is $\equiv 0 \pmod{2m}$.
+
+In each $2 \times 2$ block, we place two numbers in the first row and two in the second. The contribution to the first row from block $(i,j)$ is the sum of the two numbers placed in the first row of that block.
+
+For block with numbers $\{4g+1, 4g+2, 4g+3, 4g+4\}$, the possible splits (first row gets two, second row gets two):
+- $\{4g+1, 4g+2\}$ and $\{4g+3, 4g+4\}$: first row sum $= 8g+3$, second $= 8g+7$.
+- $\{4g+1, 4g+3\}$ and $\{4g+2, 4g+4\}$: first $= 8g+4$, second $= 8g+6$.
+- $\{4g+1, 4g+4\}$ and $\{4g+2, 4g+3\}$: first $= 8g+5$, second $= 8g+5$.
+- And the complements (swapping first/second row).
+
+The first-row sum from block $g$ is one of $\{8g+3, 8g+4, 8g+5, 8g+6, 8g+7\}$ (depending on split). Mod $2m$, this is $8g + c$ where $c \in \{3, 4, 5, 6, 7\}$.
+
+The total first-row sum for super-row $i$ is $\sum_j (8g_{ij} + c_{ij})$ where $c_{ij} \in \{3, 4, 5, 6, 7\}$ is the split choice for block $(i,j)$.
+
+$= 8 \sum_j g_{ij} + \sum_j c_{ij}$.
+
+We need this $\equiv 0 \pmod{2m}$. We know $8 \sum_j g_{ij} \equiv 0 \pmod{m}$ (since $m \mid \sum_j g_{ij}$). But we need $\pmod{2m}$.
+
+$8 \sum_j g_{ij} = 8m \cdot q$ for some integer $q$ (since $m \mid \sum_j g_{ij}$, say $\sum_j g_{ij} = mq$). So $8 \sum_j g_{ij} = 8mq$. Mod $2m$: $8mq \bmod 2m = 2m(4q) \bmod 2m = 0$. So $8 \sum_j g_{ij} \equiv 0 \pmod{2m}$. ✓
+
+So we need $\sum_j c_{ij} \equiv 0 \pmod{2m}$, where each $c_{ij} \in \{3, 4, 5, 6, 7\}$ and there are $m$ terms.
+
+The sum $\sum_j c_{ij}$ ranges from $3m$ to $7m$. We need it $\equiv 0 \pmod{2m}$, i.e., $\sum_j c_{ij} \in \{2m, 4m, 6m, 8m\}$. Given the range $[3m, 7m]$, the possible values are $4m$ and $6m$.
+
+So we need $\sum_j c_{ij} = 4m$ or $6m$.
+
+If all $c_{ij} = 4$: sum $= 4m$ ✓. This corresponds to the split $\{4g+1, 4g+3\}$ and $\{4g+2, 4g+4\}$ (first row gets $4g+1$ and $4g+3$).
+
+So if we always use the split where the first row gets $\{4g+1, 4g+3\}$ and the second row gets $\{4g+2, 4g+4\}$, then $c = 4$ for all blocks, and $\sum_j c_{ij} = 4m \equiv 0 \pmod{2m}$. ✓
+
+Now check the second row: second row sum from block $g$ is $8g + 6$, so $\sum_j (8g_{ij} + 6) = 8 \sum_j g_{ij} + 6m \equiv 0 + 6m \pmod{2m}$. $6m \bmod 2m = 0$. ✓
+
+So both rows within each super-row have sum $\equiv 0 \pmod{2m}$. ✓
+
+Now check columns. By the same logic, we need to check the column sums. The $2 \times 2$ block at position $(i, j)$ has:
+- Top-left: $4g_{ij} + 1$
+- Top-right: $4g_{ij} + 3$
+- Bottom-left: $4g_{ij} + 2$
+- Bottom-right: $4g_{ij} + 4$
+
+A column in the $2m \times 2m$ grid belongs to a super-column (one of $m$ columns of the $m \times m$ arrangement) and is either the left or right column within its super-column.
+
+Left column of super-column $j$: gets $4g_{ij} + 1$ from the top row and $4g_{ij} + 2$ from the bottom row of each block. Sum over all super-rows $i$:
+$\sum_i (4g_{

@@ -1,0 +1,253 @@
+{
+  "_key": "matharena_MathArena_cmimc_2025_0039",
+  "source_id": "MathArena_cmimc_2025_39",
+  "source_dataset": "MathArena_cmimc_2025",
+  "schema_version": 3,
+  "problem_text": "In a 2024 x 2024 grid of squares, each square is colored either black or white. An ant starts at some black square in the grid and starts walking parallel to the sides of the grid. During this walk, it can choose (not required) to turn 90 degrees clockwise or counterclockwise if it is currently on a black square, otherwise it must continue walking in the same direction. A coloring of the grid is called simple if it is not possible for the ant to arrive back at its starting location after some time. How many simple colorings of the grid are maximal, in the sense that adding any black square results in a coloring that is not simple?",
+  "solution_text": "Model the grid as a bipartite graph G where the 2024 rows and 2024 columns are vertices (4048 total), and each black square at position (r,c) creates an edge between row-vertex r and column-vertex c. The ant's path alternates between horizontal movement (along a row) and vertical movement (along a column), turning only at black squares. A closed path for the ant corresponds exactly to a cycle in this bipartite graph. Therefore, a coloring is 'simple' (no closed ant path) if and only if the bipartite graph is acyclic (a forest). A 'maximal simple' coloring corresponds to a maximal forest in the complete bipartite graph K_{2024,2024}. Since K_{2024,2024} is connected, a maximal forest is a spanning tree. By the Matrix-Tree theorem (Kirchhoff's theorem), the number of spanning trees of K_{n,n} is n^{2n-2}. For n=2024: 2024^{2*2024-2} = 2024^{4046}.",
+  "solution_summary": "Translate grid coloring to bipartite graph (rows vs columns, black squares = edges), ant's closed loop = graph cycle, maximal simple coloring = spanning tree of K_{n,n}, count via Matrix-Tree theorem = n^{2n-2} = 2024^{4046}.",
+  "domain": "combinatorics",
+  "subfield": "graph_theory",
+  "answer_type": "numerical",
+  "answer": "2024^{4046}",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "graph_theoretic_reduction",
+  "structure_features": "Grid coloring problem with ant movement constraints; the key structure is the correspondence between grid rows/columns and bipartite graph vertices, with black squares as edges. Maximality condition translates to spanning tree property.",
+  "key_objects": ["2024x2024 grid", "black/white coloring", "ant path with turns at black squares", "bipartite graph K_{n,n}", "spanning tree", "Matrix-Tree theorem"],
+  "thinking_patterns": ["graph-theoretic translation", "bipartite modeling", "cycle-to-loop correspondence", "maximality-to-spanning-tree", "Matrix-Tree theorem application"],
+  "primary_pattern": "graph-theoretic translation",
+  "knowledge_required": ["bipartite graphs", "spanning trees", "Matrix-Tree theorem", "Kirchhoff's theorem", "complete bipartite graph K_{n,n}", "maximal forest = spanning tree for connected graphs"],
+  "key_insight": "The ant's closed loop corresponds to a cycle in the bipartite graph (rows vs columns, edges = black squares), so maximal simple coloring = spanning tree of K_{n,n}, counted by n^{2n-2}.",
+  "translation_from": "grid coloring and ant path language",
+  "translation_to": "bipartite graph theory (cycles, forests, spanning trees)",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["bipartite graph", "spanning tree", "cycle detection", "Matrix-Tree theorem", "Kirchhoff's theorem", "grid coloring", "ant path", "closed loop", "maximal acyclic", "complete bipartite graph"],
+  "expected_ai_method": "Direct combinatorial reasoning about grid patterns, trying to characterize simple colorings by row/column arrangements or rectangle avoidance, without seeing the graph-theoretic structure.",
+  "correct_method": "Graph-theoretic translation: model grid as bipartite graph (rows vs columns, black squares = edges), ant's closed loop = graph cycle, maximal simple = spanning tree of K_{n,n}, count via Matrix-Tree theorem.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a grid coloring problem with ant movement constraints but does not identify the graph-theoretic structure underlying the problem",
+      "hint": "Describe the problem structure: what are the key elements (grid, coloring, ant movement rules, simplicity condition, maximality condition)?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["grid coloring", "ant movement", "maximal simple coloring", "simplicity condition"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but does not identify bipartite graph modeling as the key direction; tends toward direct enumeration or pattern analysis",
+      "hint": "List all possible approaches for modeling the ant's movement and the simplicity condition. Consider graph theory, direct counting, inclusion-exclusion, etc.",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["approach enumeration", "graph theory", "direct counting", "pattern analysis"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries direct combinatorial approach, thinks about row/column patterns or rectangle avoidance but misses the bipartite graph structure",
+      "hint": "Try a direct approach: what does a simple coloring look like in terms of black square arrangements? Can you characterize when the ant can make a closed loop?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["row patterns", "column patterns", "rectangle avoidance", "closed loop condition"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI recognizes the ant alternates between horizontal and vertical movement with turns at black squares, but has not modeled this as a graph structure",
+      "hint": "Think about what a closed ant path looks like: it alternates between rows and columns, turning at black squares. Can you model rows and columns as graph vertices and black squares as edges?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["alternating path", "bipartite graph", "row-column correspondence", "cycle in bipartite graph"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has established the bipartite graph model (rows vs columns, black squares = edges) and that simple = acyclic, but has not connected maximal simple to spanning tree",
+      "hint": "If simple means the bipartite graph is acyclic (a forest), what does maximal simple mean in graph theory terms? What is a maximal forest in a connected graph?",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["maximal forest", "spanning tree", "connected graph", "K_{n,n}", "maximal acyclic"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI knows it needs to count spanning trees of K_{n,n} but does not know the formula or how to derive it",
+      "hint": "How do you count spanning trees of a complete bipartite graph K_{n,n}? Consider the Matrix-Tree theorem (Kirchhoff's theorem) and the Laplacian eigenvalues.",
+      "hint_level": 0.8,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["Matrix-Tree theorem", "Kirchhoff's theorem", "Laplacian eigenvalues", "n^{2n-2}"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the spanning tree formula n^{2n-2} and just needs to substitute n=2024 and compute the final answer",
+      "hint": "Apply the spanning tree formula n^{2n-2} with n=2024 to get the final answer. You have all the pieces - finish it!",
+      "hint_level": 0.9,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["2024^{4046}", "final computation", "2n-2 exponent", "substitution"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from grid coloring problem to spanning tree count via bipartite graph translation",
+      "observation_point": null,
+      "tell": "The grid coloring + ant movement problem is equivalent to counting spanning trees of the complete bipartite graph K_{n,n}, where n is the grid dimension",
+      "hint": "Translate the grid/ant problem to bipartite graph theory: rows and columns as vertices, black squares as edges, closed ant path = graph cycle, maximal simple coloring = spanning tree, count via Matrix-Tree theorem",
+      "hint_level": 0.7,
+      "generalizability": "high - the bipartite graph translation pattern applies to many grid-based combinatorics problems involving rows, columns, and cell-based constraints",
+      "why_not_visible_locally": "The bipartite graph structure is invisible when looking at individual grid squares or rows in isolation; it only emerges when considering the full row-column interaction pattern and the ant's alternating movement between horizontal and vertical directions. No single step of the solution reveals the complete path from grid to spanning tree count - it requires seeing the entire translation chain.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["bipartite graph", "spanning tree", "cycle-to-loop correspondence", "Matrix-Tree theorem", "complete bipartite graph"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the connection between ant's turning behavior and graph cycles",
+      "observation_point": "Q4",
+      "tell": "The ant's closed path (alternating horizontal/vertical with turns at black squares) is exactly a cycle in the bipartite graph where rows and columns are vertices and black squares are edges",
+      "hint": "Model the ant's path as traversing edges in a bipartite graph: horizontal movement along a row corresponds to being at a row-vertex, vertical movement along a column corresponds to being at a column-vertex, and turns at black squares correspond to traversing edges between row and column vertices",
+      "hint_level": 0.6,
+      "generalizability": "medium - the path-to-cycle correspondence is specific to bipartite grid structures but generalizes to any grid-based movement problem with turning constraints",
+      "why_not_visible_locally": "When analyzing the ant's step-by-step movement on the grid, the graph-theoretic structure is not apparent; it requires abstracting away the grid geometry and seeing rows and columns as graph vertices. The alternating row-column pattern of the ant's path only becomes visible as a graph cycle when you step back from the grid representation.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["alternating path", "bipartite cycle", "row-column graph", "turn at black square", "edge traversal"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "the connection between maximality of simple coloring and spanning tree property",
+      "observation_point": "Q5",
+      "tell": "A maximal simple coloring (adding any black square breaks simplicity) corresponds exactly to a spanning tree of K_{n,n} (a maximal acyclic subgraph of a connected graph)",
+      "hint": "Recognize that maximal acyclic = maximal forest = spanning tree when the underlying graph is connected. K_{n,n} is connected, so maximal simple colorings are spanning trees.",
+      "hint_level": 0.75,
+      "generalizability": "medium - the maximality-to-spanning-tree connection applies to any problem where a maximal acyclic structure is sought in a connected graph",
+      "why_not_visible_locally": "The connection between 'maximal simple coloring' and 'spanning tree' requires two abstractions: first translating simple to acyclic, then recognizing that maximal acyclic in a connected graph is a spanning tree. Neither abstraction is visible when looking at the grid directly - both require the graph-theoretic framework already established.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["maximal forest", "spanning tree", "connected graph", "maximal acyclic", "K_{n,n} connectivity"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would attempt to directly characterize simple colorings by analyzing row/column patterns or rectangle avoidance in the grid, without recognizing the bipartite graph structure. It would likely get stuck trying to enumerate maximal configurations combinatorially, missing the elegant graph-theoretic translation to spanning trees and the Matrix-Tree theorem.",
+  "suitable_for_poc": ["tell_detection", "hint_injection", "topology_matching"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the problem structure: what are the key elements (grid, coloring, ant movement rules, simplicity condition, maximality condition)?",
+        "expected_answer": "The problem involves a 2024x2024 grid with black/white coloring. An ant starts at a black square, walks parallel to grid sides, can turn 90° at black squares but must go straight at white squares. A coloring is 'simple' if the ant can never return to its starting location. We need to count maximal simple colorings (adding any black square makes it non-simple)."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible approaches for modeling the ant's movement and the simplicity condition. Consider graph theory, direct counting, inclusion-exclusion, etc.",
+        "expected_answer": "Possible approaches: (1) Direct combinatorial analysis of grid patterns, (2) Graph theory - model the grid as a graph, (3) Rectangle avoidance characterization, (4) Dynamic programming on grid structure, (5) Matrix-Tree theorem if graph structure is found, (6) Inclusion-exclusion on forbidden configurations."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try a direct approach: what does a simple coloring look like in terms of black square arrangements? Can you characterize when the ant can make a closed loop?",
+        "expected_answer": "The ant can make a closed loop if there exist four black squares at the corners of a rectangle (rows r1,r2 and columns c1,c2 with all four squares black). The ant goes right along r1, turns down at (r1,c2), goes left along r2, turns up at (r2,c1). So simple colorings avoid rectangular patterns. But this may not be the complete characterization - more complex loops might exist."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Think about what a closed ant path looks like: it alternates between rows and columns, turning at black squares. Can you model rows and columns as graph vertices and black squares as edges?",
+        "expected_answer": "Yes! Create a bipartite graph with 2024 row-vertices and 2024 column-vertices. Each black square (r,c) is an edge between row r and column c. The ant's path alternates between horizontal (row) and vertical (column) movement, turning at black squares (edges). A closed ant path is exactly a cycle in this bipartite graph. So simple = acyclic = forest."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "If simple means the bipartite graph is acyclic (a forest), what does maximal simple mean in graph theory terms? What is a maximal forest in a connected graph?",
+        "expected_answer": "A maximal forest in a connected graph is a spanning tree. Since the complete bipartite graph K_{2024,2024} is connected, a maximal simple coloring corresponds to a spanning tree of K_{2024,2024}. So we need to count the number of spanning trees of K_{n,n} where n=2024."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.8,
+        "question": "How do you count spanning trees of a complete bipartite graph K_{n,n}? Consider the Matrix-Tree theorem (Kirchhoff's theorem) and the Laplacian eigenvalues.",
+        "expected_answer": "By the Matrix-Tree theorem, the number of spanning trees equals the product of non-zero eigenvalues of the Laplacian divided by the number of vertices. For K_{n,n}, the Laplacian has eigenvalues: 0 (once), n (with multiplicity 2n-2). So the number of spanning trees = n^{2n-2} / (2n) * 2n = n^{2n-2}. Actually more precisely, by Kirchhoff's theorem, τ(K_{n,n}) = n^{2n-2}."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.9,
+        "question": "Apply the spanning tree formula n^{2n-2} with n=2024 to get the final answer. You have all the pieces - finish it!",
+        "expected_answer": "n^{2n-2} = 2024^{2*2024-2} = 2024^{4046}. The answer is 2024^{4046}."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 3,
+      "knowledge_rounds": 3,
+      "level_sum": 4.2,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "approximately 15 minutes",
+    "notes": "CMIMC 2025 Team Round Problem 10. Beautiful graph-theoretic translation problem: grid coloring + ant movement → bipartite graph → spanning tree count. The key insight is the bipartite graph modeling where rows and columns are vertices and black squares are edges. Two knowledge bottlenecks: (1) the bipartite graph translation (R4, thinking bottleneck), (2) the Matrix-Tree theorem formula for K_{n,n} (R5-R6, knowledge bottleneck). No new topology dimensions needed - existing categories (discrete_combinatorial, enumeration_brute_force, structural_transformation, knowledge_gap) are sufficient."
+  }
+}

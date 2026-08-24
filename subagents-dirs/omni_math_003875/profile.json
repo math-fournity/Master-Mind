@@ -1,0 +1,309 @@
+{
+  "_key": "omni_math_003875",
+  "source_id": "imo_2016_p2",
+  "source_dataset": "aops_omni_math",
+  "schema_version": 3,
+  "problem_text": "Find all integers n for which each cell of an n×n table can be filled with one of the letters I, M and O in such a way that: (1) in each row and each column, one third of the entries are I, one third are M and one third are O; and (2) in any diagonal, if the number of entries on the diagonal is a multiple of three, then one third of the entries are I, one third are M and one third are O. Note: The rows and columns of an n×n table are each labelled 1 to n in a natural order. Thus each cell corresponds to a pair of positive integers (i,j) with 1 ≤ i,j ≤ n. For n>1, the table has 4n-2 diagonals of two types. A diagonal of first type consists all cells (i,j) for which i+j is a constant, and the diagonal of second type consists all cells (i,j) for which i-j is constant.",
+  "solution_text": "Necessity: Obviously 3|n. Let n=3k. Consider three types of cells: (1) all cells in rows 2,5,8,...,3k-1; (2) all cells in columns 2,5,8,...,3k-1; (3) all cells on diagonals whose length is a multiple of 3. Each type has balanced I,M,O (type 1 from row condition, type 2 from column condition, type 3 from diagonal condition). A cell at the intersection of selected rows and selected columns is counted 4 times (once in each type, and twice from two diagonal types since i≡j mod 3 and i+j≡1 mod 3 both hold), while other cells are counted exactly once. Therefore the k² intersection cells must also be balanced, forcing 3|k², hence 3|k, so 9|n. Sufficiency: For n=9, construct a 9×9 pattern using 3×3 blocks with cyclic shifts (III MMM OOO / MMM OOO III / OOO III MMM, repeated 3 times). For n=9l, tile l² copies of the 9×9 pattern. Rows/columns work by repetition. Diagonals: cell (i,j) lies on a diagonal with 3|length iff i≡j mod 3 or i+j≡1 mod 3, so diagonal segments within each 9×9 block are themselves 3|length diagonals of the 9×9 pattern, hence balanced.",
+  "solution_summary": "必要性：3|n，令n=3k，二重计数三类格子（选中行、选中列、平衡对角线），交叉处k²个格子被计4次而其余计1次，迫使交叉格子平衡故3|k即9|n。充分性：9×9显式构造+平铺到9l。",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_design",
+  "answer_type": "characterization",
+  "answer": "n = 9k for any positive integer k",
+  "problem_type": "characterization",
+  "solution_method_type": "double_counting",
+  "structure_features": "网格填充平衡问题，行/列/对角线三类约束，二重计数利用选中行与选中列的交叉处过计因子",
+  "key_objects": [
+    "n×n grid",
+    "three symbols I/M/O",
+    "two types of diagonals",
+    "intersection cells (rows ≡2 mod 3 ∩ columns ≡2 mod 3)",
+    "9×9 pattern",
+    "tiling"
+  ],
+  "thinking_patterns": [
+    "small_case_analysis",
+    "double_counting",
+    "necessary_condition_first",
+    "explicit_construction",
+    "tiling_extension"
+  ],
+  "primary_pattern": "double_counting",
+  "knowledge_required": [
+    "divisibility from balanced conditions",
+    "double counting / inclusion-exclusion",
+    "diagonal structure in grids",
+    "modular arithmetic",
+    "Latin squares"
+  ],
+  "key_insight": "二重计数三类格子（选中行、选中列、平衡对角线），交叉处格子被计4次而其余计1次，迫使k²个交叉格子平衡，故3|k即9|n",
+  "translation_from": "组合网格填充约束（行/列/对角线平衡条件）",
+  "translation_to": "二重计数/容斥论证（过计因子推导整除性）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "double counting",
+    "row-column intersection",
+    "diagonal length divisibility",
+    "overcounting factor",
+    "9×9 pattern tiling"
+  ],
+  "expected_ai_method": "尝试小case和直接构造，可能找到3|n但错过二重计数论证导致9|n",
+  "correct_method": "二重计数三类格子（选中行、选中列、平衡对角线）用过计因子推出9|n；9×9显式构造+平铺证明充分性",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到网格填充问题但未识别二重计数结构",
+      "hint": "描述题目结构，识别对角线条件相比行/列条件的特殊之处",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "grid filling",
+        "diagonal conditions",
+        "balance constraints"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出方法但可能未识别二重计数作为关键技术",
+      "hint": "列出所有可能方法包括二重计数、小case、构造法",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "double counting",
+        "small cases",
+        "construction",
+        "tiling"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI试n=3发现拉丁方对角线约束失败",
+      "hint": "从行条件推导3|n，然后试n=3看是否可行",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "3|n necessary",
+        "3×3 Latin square",
+        "diagonal constraint failure"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI知道3|n但不知如何利用对角线条件得到9|n——二重计数的设置是关键缺口",
+      "hint": "写n=3k。考虑行≡2 mod 3的格子、列≡2 mod 3的格子、长度为3倍数的对角线上的格子。每个格子在这三类中总共被计算几次？",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "double counting",
+        "row-column intersection",
+        "overcounting factor",
+        "diagonal length divisibility"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI有二重计数设置但需提取整除性结论",
+      "hint": "从二重计数，k²个交叉格子必须平衡。这意味什么关于k？",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "3|k²",
+        "3|k",
+        "9|n",
+        "balanced intersection"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI已证9|n必要但需n=9的显式构造",
+      "hint": "用3×3块循环移位构造9×9填充模式",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "9×9 pattern",
+        "3×3 blocks",
+        "cyclic shift",
+        "explicit construction"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有n=9构造需推广到n=9l",
+      "hint": "平铺l²个9×9模式。验证对角线条件在块边界处保持。",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "tiling",
+        "block boundary",
+        "diagonal preservation",
+        "9l extension"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整解题路径：从3|n到9|n的二重计数论证，再到n=9构造和n=9l平铺",
+      "observation_point": null,
+      "tell": "二重计数论证连接行/列平衡与对角线平衡，通过过计因子迫使9|n",
+      "hint": "设置三类格子的二重计数（选中行、选中列、平衡对角线），交叉处格子过计因子为4而其余为1，迫使交叉格子平衡",
+      "hint_level": 0.7,
+      "generalizability": "high — 二重计数过计因子技术适用于多种具有多类约束的组合平衡问题",
+      "why_not_visible_locally": "二重计数的设置需要同时看到三个类别并理解过计因子（4 vs 1）如何产生约束——没有任何单步能揭示这一点",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "double counting",
+        "overcounting factor",
+        "three category intersection",
+        "balanced forcing"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "对角线长度可整除性与cell坐标的mod 3刻画",
+      "observation_point": "R7",
+      "tell": "cell(i,j)在3|长度的对角线上当且仅当i≡j mod 3或i+j≡1 mod 3——这个mod 3刻画使9×9平铺可行",
+      "hint": "用mod 3算术刻画哪些cell在3|长度的对角线上",
+      "hint_level": 0.6,
+      "generalizability": "medium — 对角线成员资格的mod刻画特定于网格问题，但用mod算术处理对角线条件的技术广泛适用",
+      "why_not_visible_locally": "对角线成员资格的mod刻画从任何单步都不可见——需要分析两类对角线的长度公式并mod 3归约",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "diagonal length formula",
+        "mod 3 characterization",
+        "i≡j mod 3",
+        "i+j≡1 mod 3"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI会从行条件找到3|n并尝试小case，但很可能错过二重计数论证导致9|n。可能尝试代数方法（单位根）或在发现n=3失败后无法推广到一般n=3m。",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "topology_matching",
+    "knowledge_bottleneck_detection"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构。有哪些约束条件？我们在寻找什么类型的答案？",
+        "expected_answer": "n×n表格用I,M,O填满，满足：(1)每行每列各1/3；(2)长度为3倍数的对角线各1/3。寻找所有满足条件的正整数n。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能的方法来处理这个问题",
+        "expected_answer": "检查小case(n=3,6,9)；从行/列条件推导必要条件；利用对角线约束；尝试二重计数；构造显式填充；用平铺证明充分性"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "从行条件能立即推出什么？然后试n=3",
+        "expected_answer": "行条件给出3|n。n=3时每行是{I,M,O}的排列（拉丁方）。两条主对角线长度均为3，都需1/3各字母。但任何3×3拉丁方中至少一条对角线是常数，故n=3不行"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "写n=3k。考虑第2,5,8,...,3k-1行的所有格子、第2,5,8,...,3k-1列的所有格子、以及长度为3倍数的所有对角线上的格子。每个格子在这三类中总共被计算了几次？",
+        "expected_answer": "交叉处格子（既在选中行又在选中列）被计4次（行类1次+列类1次+两类对角线各1次），其余格子被计1次。三类各自平衡，故交叉处k²个格子也必须平衡"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "从二重计数的结论，k²个交叉格子必须平衡意味着什么？",
+        "expected_answer": "k²个格子各有1/3的I,M,O，故3|k²，进而3|k，因此9|n"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "现在构造n=9的有效填充。什么模式可行？",
+        "expected_answer": "用9×9模式：3×3块循环移位，如III MMM OOO / MMM OOO III / OOO III MMM 重复3次。验证行、列、对角线均满足条件"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "将n=9的构造推广到n=9l。为什么平铺可行？",
+        "expected_answer": "平铺l²个9×9模式。行/列由重复性满足。对角线：cell(i,j)在3|长度的对角线上当且仅当i≡j mod 3或i+j≡1 mod 3，故对角线在每个9×9块内的部分恰是该块的3|长度对角线，因此平衡"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-07-18T12:00:00Z",
+    "analysis_duration": "15min",
+    "notes": "IMO 2016 Problem 2. Solution uses double counting (counting in two ways) with overcounting factor. Key bottleneck is R4 where the three-category double counting setup is the critical knowledge gap. The problem file solution was truncated; full solution reconstructed from AoPS/Evan Chen/zyymat sources."
+  }
+}

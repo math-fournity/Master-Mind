@@ -1,0 +1,276 @@
+{
+  "_key": "omni_math_000358",
+  "source_id": "alibaba_global_contest",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Suppose you are chosen as a technology assistant by the director of the opening ceremony for the 2022 Winter Olympics, and your job is to evaluate the program proposals. One of the backup programs is a skating show of a ensemble of drones dressed as mascots, which are moving along a circle. Since the number of the drones is sufficiently large, we can use a probability density function rho(t, v)(>=0) to represent the distribution of the drones. Here v in R is the line speed, and for a given time t, and two speeds v1<v2, integral from v1 to v2 of rho(t,v)dv is the probability of finding a drone with its speed between v1 and v2. Suppose that the dynamics of the density function is governed by rho_t + ((u(t)-v)rho)_v = rho_vv, v in R, t>0, where u(t) is the command speed. (1) To investigate proper choices of the command speed, D.B. propose that we shall choose u(t) = u0 + u1*N(t) where u0>0, u1>0 and N(t) is the average of the positive part of the speed v+ = max{0,v}, i.e., N(t) = integral from 0 to infinity of v*rho(t,v)dv. But you claim that if u1>1, N(t) may become unbounded in evolution, such that the drones may be out of order. Can you prove it? (For simplicity, the contributions of rho and its derivatives at |v|->+infinity are neglected.) (2) After taking those advices, the director is wondering whether the drones will be evenly distributed along the circle. Thus, we shall consider the joint density function p(t,x,v)(>=0) of position and speed, where x in [0,2pi] is the position coordinate on the circle. Clearly, integral from 0 to 2pi of p(t,x,v)dx = rho(t,v). Suppose that the governing equation for p(t,x,v) is p_t + v*p_x + ((u(t)-v)p)_v = p_vv, x in [0,2pi], v in R, t>0. Because the drones are circulating around, the following boundary condition is satisfied: p(t,0,v) = p(t,2pi,v). You have a feeling that, no matter how the drones are distributed initially, they will become almost evenly distributed very quickly. Can you prove or disprove this statement?",
+  "solution_text": "Part (1): Define M(t) = integral from -inf to +inf of v*rho(t,v)dv (the average speed). By direct calculation using the PDE and integration by parts (boundary terms vanish at infinity), dM/dt = u(t) - M(t) = u0 + u1*N(t) - M(t). Since M(t) = N(t) + integral from -inf to 0 of v*rho dv, and the second integral is <= 0 (v<0, rho>=0), we have M(t) <= N(t). Therefore dM/dt >= u0 + u1*M(t) - M(t) = u0 + (u1-1)*M(t). When u1 > 1, this differential inequality (Gronwall-type) implies M(t) grows at least exponentially, so M(t) -> +infinity. Since N(t) >= M(t), N(t) also diverges to +infinity. Part (2): Fourier decompose p(t,x,v) = sum_k p_k(t,v)*e^{ikx}. The k=0 mode satisfies the same equation as rho. For k!=0, the equation has an extra term ikv*p_k from advection. Define energy E_k(t) = integral of |p_k|^2 dv. Energy estimates show dE_k/dt involves -2*integral of |p_k_v|^2 dv (dissipation) which dominates, causing E_k(t) -> 0 for k!=0. Thus p(t,x,v) approaches (1/pi)*p_0(t,v), which is an even distribution in space.",
+  "solution_summary": "Part 1: Define auxiliary quantity M(t)=∫vρ dv, derive ODE dM/dt=u₀+u₁N-M via integration by parts, use M≤N to get Gronwall inequality dM/dt≥u₀+(u₁-1)M, conclude exponential divergence when u₁>1. Part 2: Fourier decompose p in x, show k≠0 modes decay via energy estimates (dissipation dominates), leaving uniform spatial distribution.",
+  "domain": "mathematical_physics",
+  "subfield": "transport_diffusion_pde",
+  "answer_type": "proof",
+  "answer": "Part 1: When t→+∞, M(t)→+∞, therefore N(t) also diverges to +∞ (when u₁>1). Part 2: For k≠0, p_k(t,v) decays, and p(t,x,v) approaches (1/π)p_0(t,v), which is an even distribution in space.",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "continuous_analytic",
+  "structure_features": [
+    "two-part problem: divergence proof (Part 1) and convergence proof (Part 2)",
+    "transport-diffusion PDE with feedback control u(t)=u₀+u₁N(t)",
+    "Part 1 requires moment method + Gronwall inequality",
+    "Part 2 requires Fourier decomposition on periodic domain + energy estimates",
+    "key technique: auxiliary quantity substitution (N→M) to bypass boundary term difficulty"
+  ],
+  "key_objects": [
+    "rho(t,v): probability density of speed",
+    "p(t,x,v): joint density of position and speed",
+    "N(t): average of positive part of speed = ∫₀^∞ vρ dv",
+    "M(t): average speed = ∫_{-∞}^{∞} vρ dv",
+    "u(t) = u₀ + u₁N(t): command speed with feedback",
+    "transport-diffusion PDE: ρ_t + ((u-v)ρ)_v = ρ_vv",
+    "Fourier modes p_k(t,v) on circle [0,2π]",
+    "energy E_k(t) = ∫|p_k|²dv"
+  ],
+  "thinking_patterns": [
+    "moment_method: define integrated quantity M(t) to reduce PDE to ODE",
+    "auxiliary_quantity_substitution: switch from N(t) to M(t) to avoid boundary terms",
+    "differential_inequality: use M≤N to close Gronwall argument",
+    "fourier_decomposition: decompose periodic PDE into modes",
+    "energy_estimate: show mode decay via dissipation domination",
+    "translation_between_representations: physical space to Fourier space"
+  ],
+  "primary_pattern": "auxiliary_quantity_substitution",
+  "knowledge_required": [
+    "integration by parts with PDEs and vanishing boundary conditions",
+    "Gronwall inequality / differential inequalities",
+    "Fourier analysis on periodic domains",
+    "energy estimates for parabolic PDEs",
+    "relationship between M(t) and N(t) via sign of v"
+  ],
+  "key_insight": "Direct computation of dN/dt is blocked by boundary terms at v=0, but switching to M(t)=∫vρ dv (full average) yields a clean ODE dM/dt=u₀+u₁N-M, and the inequality M≤N closes the Gronwall argument.",
+  "translation_from": "direct_computation_of_N",
+  "translation_to": "moment_method_via_M_with_Gronwall",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "moment substitution N to M",
+    "differential inequality Gronwall",
+    "Fourier decomposition on circle",
+    "energy estimate dissipation",
+    "boundary terms at v=0",
+    "M(t) <= N(t) closure"
+  ],
+  "expected_ai_method": "direct_calculation: AI would attempt to compute dN/dt directly by differentiating under the integral and using the PDE, getting stuck on boundary terms at v=0 from the half-line integral.",
+  "correct_method": "continuous_analytic: Define auxiliary M(t)=∫vρ dv, derive clean ODE via integration by parts, use M≤N inequality for Gronwall, then Fourier decompose for Part 2 with energy estimates.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a two-part PDE problem with feedback control but hasn't identified which quantities to track",
+      "hint": "Identify the key integrated quantities: N(t) for positive-part average, and consider what other averaged quantities might satisfy clean equations",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["transport-diffusion PDE", "probability density", "feedback control", "two-part structure"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible methods but may not prioritize the moment method (defining auxiliary integrated quantities)",
+      "hint": "Consider the moment method: define M(t) = ∫vρ dv as an auxiliary quantity related to N(t)",
+      "hint_level": 0.6,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["moment method", "Gronwall inequality", "energy estimate", "auxiliary quantity"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI attempts direct computation of dN/dt and gets stuck on boundary terms at v=0 from the half-line integral",
+      "hint": "The half-line integral creates boundary terms. Try the full-line integral M(t)=∫_{-∞}^{∞}vρ dv instead, where boundary terms vanish cleanly",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["boundary terms at v=0", "half-line vs full-line integral", "moment substitution"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has defined M(t) but needs to compute dM/dt using the PDE via integration by parts",
+      "hint": "Compute dM/dt = ∫vρ_t dv, substitute ρ_t from PDE, integrate by parts twice, use ∫ρ dv=1 and vanishing boundary conditions",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "continuous_analytic",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["integration by parts", "probability normalization ∫ρ=1", "vanishing boundary conditions", "ODE derivation"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has ODE dM/dt = u₀+u₁N-M but hasn't closed the system because N appears on the right",
+      "hint": "Use M(t) ≤ N(t) (since negative-v contributions make M smaller) to get dM/dt ≥ u₀+(u₁-1)M, then apply Gronwall",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "continuous_analytic",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["M(t) ≤ N(t)", "differential inequality closure", "Gronwall inequality", "exponential growth"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI completed Part 1 but for Part 2 hasn't recognized that Fourier decomposition on the circle is the natural approach",
+      "hint": "Decompose p(t,x,v) = Σ_k p_k(t,v)e^{ikx} using periodicity. Derive equations for each mode and use energy estimates E_k=∫|p_k|²dv",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["Fourier decomposition on circle", "periodic boundary condition", "energy estimate per mode", "mode-wise analysis"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has Fourier setup and mode equations but needs to conclude that k≠0 modes decay",
+      "hint": "Compute dE_k/dt: the dissipation term -2∫|p_k_v|²dv dominates for k≠0, showing E_k→0. Conclude p→(1/π)p_0 (uniform distribution)",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "continuous_analytic",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["dissipation domination", "mode decay", "uniform distribution", "energy estimate completion"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Full solution path: moment substitution (N→M) → ODE derivation → inequality closure (M≤N) → Gronwall → Fourier decomposition → energy estimate → mode decay conclusion",
+      "observation_point": null,
+      "tell": "The solution requires two key method translations: (1) from direct N(t) analysis to auxiliary M(t) to bypass boundary terms, (2) from physical space to Fourier space to prove uniform distribution. Both translations are invisible from any single step.",
+      "hint": "When direct computation of a target quantity is blocked by boundary terms, find an auxiliary quantity that absorbs the boundary difficulty, derive its equation, then relate back via inequality. For periodic spatial domains, Fourier decomposition converts advection into mode-wise oscillation that diffusion damps.",
+      "hint_level": 0.6,
+      "generalizability": "high - moment substitution for boundary-term bypass and Fourier decomposition for periodic PDE analysis are broadly applicable PDE techniques",
+      "why_not_visible_locally": "The N→M substitution is only motivated by the failure of direct computation (R3), and its payoff (clean ODE + Gronwall closure) is only visible after R4-R5. The Fourier approach for Part 2 is a separate translation only motivated after Part 1 is complete. Neither translation is visible from any single local step.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["moment substitution N to M", "Fourier decomposition", "differential inequality closure", "energy decay via dissipation"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Part 1 closure: the inequality M(t)≤N(t) bridges the ODE for M to a self-contained differential inequality",
+      "observation_point": "R5",
+      "tell": "The inequality M(t) ≤ N(t) is the hidden bridge that converts the open ODE dM/dt = u₀+u₁N-M into a closed differential inequality dM/dt ≥ u₀+(u₁-1)M",
+      "hint": "When an ODE involves two coupled quantities, look for a simple inequality relating them to close the system into a self-contained differential inequality",
+      "hint_level": 0.5,
+      "generalizability": "medium - closing ODE systems via inequalities between coupled quantities is a common technique in PDE moment methods",
+      "why_not_visible_locally": "The inequality M≤N is a trivial observation (M includes negative-v contributions), but its role as the closure mechanism for the Gronwall argument is only visible after the ODE dM/dt=u₀+u₁N-M is derived in R4. In the local step of deriving the ODE, this closure role is not apparent.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "continuous_analytic",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["inequality closure M≤N", "Gronwall argument", "self-contained differential inequality", "ODE system closing"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "AI would attempt direct computation of dN/dt, differentiating the half-line integral ∫₀^∞ vρ dv and substituting the PDE, getting stuck on boundary terms at v=0 that cannot be controlled. AI would not think to define the auxiliary M(t)=∫vρ dv over the full line. For Part 2, AI might not recognize Fourier decomposition as the tool for periodic boundary conditions, or might fail to set up energy estimates correctly.",
+  "suitable_for_poc": [
+    "method_translation POC: test whether hint about N→M substitution can guide AI past boundary-term blockage",
+    "knowledge_gap POC: test whether hint about Gronwall inequality closure via M≤N enables AI to complete divergence proof",
+    "multi-step POC: test whether AI can carry momentum from Part 1 insight to Part 2 Fourier approach"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "Describe the structure of this problem. What are the key objects, what PDEs govern them, and what are you asked to prove in each part?",
+        "expected_answer": "Two-part problem. Part 1: prove N(t)=∫₀^∞vρ dv diverges when u₁>1, where ρ satisfies transport-diffusion PDE ρ_t+((u-v)ρ)_v=ρ_vv and u(t)=u₀+u₁N(t). Part 2: prove p(t,x,v) becomes uniform in x on circle [0,2π], where p satisfies p_t+vp_x+((u-v)p)_v=p_vv with periodic BC."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.6,
+        "question": "What methods could you use to analyze the behavior of N(t)? List all approaches you can think of.",
+        "expected_answer": "Direct computation of dN/dt, moment methods (define M(t)=∫vρ dv as auxiliary), energy estimates, comparison principles, Gronwall inequalities, Fourier analysis for Part 2."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try computing dN/dt directly by differentiating N(t)=∫₀^∞vρ(t,v)dv and substituting the PDE. What happens?",
+        "expected_answer": "dN/dt = ∫₀^∞vρ_t dv = ∫₀^∞v[-((u-v)ρ)_v+ρ_vv]dv. Integration by parts produces boundary terms at v=0 (from the half-line limit) that are hard to control. The direct approach gets stuck."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "Instead of N(t), define M(t)=∫_{-∞}^{∞}vρ(t,v)dv (full average speed). Compute dM/dt using the PDE, integrating by parts. Use that boundary terms vanish at |v|→∞ and ∫ρdv=1.",
+        "expected_answer": "dM/dt=∫vρ_t dv=∫v[-((u-v)ρ)_v+ρ_vv]dv=∫[(u-v)ρ-ρ_v]dv=u(t)∫ρdv-∫vρdv=u(t)-M(t)=u₀+u₁N(t)-M(t). Clean ODE with no boundary term issues."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "You have dM/dt=u₀+u₁N(t)-M(t) but N(t) appears on the right. Find an inequality relating M(t) and N(t) to close this into a self-contained differential inequality, then apply Gronwall.",
+        "expected_answer": "M(t)=N(t)+∫_{-∞}⁰vρdv≤N(t) since the second integral is ≤0. So dM/dt≥u₀+u₁M(t)-M(t)=u₀+(u₁-1)M(t). When u₁>1, Gronwall gives M(t)≥M(0)e^{(u₁-1)t}+u₀/(u₁-1)(e^{(u₁-1)t}-1)→+∞. Since N≥M, N(t)→+∞."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "For Part 2, the domain is periodic in x∈[0,2π]. What decomposition is natural? Write the mode equations and identify what needs to be shown.",
+        "expected_answer": "Fourier decompose p(t,x,v)=Σ_k p_k(t,v)e^{ikx}. k=0 mode satisfies same equation as ρ. For k≠0: p_k_t+ikv·p_k+((u-v)p_k)_v=p_k_vv. Need to show E_k(t)=∫|p_k|²dv→0 for k≠0, implying p→(1/2π)p_0 (uniform in x)."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "Complete the energy estimate for k≠0 modes. Compute dE_k/dt and show the dissipation term causes decay, concluding the drones become evenly distributed.",
+        "expected_answer": "dE_k/dt=2Re∫p_k*p_k_t dv. After integration by parts: dE_k/dt=-2∫|p_k_v|²dv + (terms from advection/convection). The dissipation term -2∫|p_k_v|²dv≤0 dominates, showing E_k(t) is decreasing (or decays). Thus p_k→0 for k≠0, and p(t,x,v)→(1/π)p_0(t,v), uniform in x."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 3,
+      "knowledge_rounds": 3,
+      "level_sum": 3.3,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R3"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "Difficulty 9.0 Alibaba Global Contest problem. Two-part PDE analysis: (1) divergence via moment method + Gronwall, (2) convergence via Fourier + energy estimates. Key insight is auxiliary quantity substitution N→M to bypass boundary terms. Solution text in problem.lean was truncated at 'Because M(t) <= N(t) a' but full solution reconstructed from standard PDE techniques and answer statement."
+  }
+}

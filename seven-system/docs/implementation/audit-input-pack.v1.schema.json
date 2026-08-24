@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seven/audit-input-pack/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_id", "schema_version", "pack_id", "purpose", "canonical_dag_ref_and_hash", "target_work_package_ids", "completion_objects", "audit_assignment_status", "audit_record_status", "state_effect", "claims", "nonclaims", "created_at", "creator", "input_pack_hash_algorithm", "input_pack_hash"],
+  "properties": {
+    "schema_id": {"const": "seven/audit-input-pack"},
+    "schema_version": {"const": 1},
+    "pack_id": {"type": "string", "minLength": 1},
+    "purpose": {"const": "GA1_MECHANICAL_INPUT_CANDIDATE"},
+    "canonical_dag_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+    "target_work_package_ids": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$", "not": {"const": "WP-GA1"}}
+    },
+    "completion_objects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["wp_id", "completion_contract", "object_ref_and_hash", "implementation_subject", "expected_state_after_consume"],
+        "properties": {
+          "wp_id": {"type": "string", "pattern": "^WP-[A-Z0-9-]+$", "not": {"const": "WP-GA1"}},
+          "completion_contract": {"enum": ["DOC_BOOTSTRAP_RECORD", "IMPLEMENTATION_BUNDLE"]},
+          "object_ref_and_hash": {"$ref": "#/$defs/ref_hash"},
+          "implementation_subject": {"$ref": "#/$defs/commit_tree"},
+          "expected_state_after_consume": {"const": "READY_FOR_AUDIT"}
+        }
+      }
+    },
+    "audit_assignment_status": {"const": "NOT_REQUESTED"},
+    "audit_record_status": {"const": "NOT_CREATED"},
+    "state_effect": {"const": "NONE"},
+    "claims": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "nonclaims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "created_at": {"type": "string", "format": "date-time"},
+    "creator": {"type": "string", "minLength": 1},
+    "input_pack_hash_algorithm": {"const": "sha256(canonical-json-with-input_pack_hash-null)"},
+    "input_pack_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref_hash": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ref", "sha256"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "sha256": {"$ref": "#/$defs/hash"}
+      }
+    },
+    "commit_tree": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["commit", "tree"],
+      "properties": {
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tree": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    }
+  }
+}

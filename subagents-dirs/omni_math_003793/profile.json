@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_003793",
+  "source_id": "omni_math_3793",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "A configuration of 4027 points in the plane is called Colombian if it consists of 2013 red points and 2014 blue points, and no three of the points of the configuration are collinear. By drawing some lines, the plane is divided into several regions. An arrangement of lines is good for a Colombian configuration if the following two conditions are satisfied: i) No line passes through any point of the configuration. ii) No region contains points of both colors. Find the least value of k such that for any Colombian configuration of 4027 points, there is a good arrangement of k lines.",
+  "solution_text": "Lower bound: Place 2013 red and 2014 blue points on a circle, alternating colors (B, R, B, R, ..., B, R, B, B). Going around the circle there are 2*2013 = 4026 color transitions. Each line intersects the circle in at most 2 points, cutting at most 2 transitions. So at least ceil(4026/2) = 2013 lines are needed.\n\nUpper bound: Prove by induction on r (number of red points, the minority) that r lines suffice for any Colombian configuration with r red and b blue points (r <= b). Base case r=0: no lines needed.\n\nInductive step: If there is a red point on the convex hull, isolate it with one line (separating it from all other points). The remaining configuration has r-1 red and b blue points, still Colombian. By induction, r-1 more lines suffice. Total: r.\n\nIf all convex hull vertices are blue, sweep a line across the configuration. Track the difference d = (red_left - blue_left) as the line sweeps. Initially d=0, finally d = r - b <= 0. At each step d changes by +1 (passing a red point) or -1 (passing a blue point). At some position, d = 0 or d = -1, which means both sub-configurations satisfy red <= blue (Colombian). Perturb the line slightly to avoid passing through any point. Each sub-configuration has fewer total points, so by induction they need r1 and r2 lines with r1 + r2 = r. Total: r.\n\nTherefore k = 2013.",
+  "solution_summary": "Lower bound 2013 via alternating colors on a circle (4026 color transitions, each line cuts at most 2). Upper bound 2013 via induction on minority color count: isolate red hull vertex with one line and recurse, or if all hull vertices are blue, sweep a line to find a balanced partition into two Colombian sub-configurations and recurse on both.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_geometry",
+  "answer_type": "numerical",
+  "answer": "2013",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "induction_with_sweep_line",
+  "structure_features": "Extremal problem: find minimum k lines to separate bichromatic point set in general position. Requires matching lower bound (worst-case construction) with upper bound (inductive proof). The asymmetry 2013 red vs 2014 blue (minority vs majority) is structurally important.",
+  "key_objects": ["Colombian configuration", "good line arrangement", "convex hull", "sweep line", "color transition on circle", "induction on minority color count"],
+  "thinking_patterns": ["induction", "extremal_argument", "sweep_line", "worst_case_construction", "continuity_argument", "balanced_partition"],
+  "primary_pattern": "induction",
+  "knowledge_required": ["convex hull properties", "mathematical induction", "sweep line technique", "combinatorial geometry", "intermediate value / discrete continuity argument"],
+  "key_insight": "Sweep a line across the configuration and track the red-blue count difference; since it goes from 0 to r-b (which is -1), at some position both sub-configurations remain Colombian, enabling induction on the minority color count.",
+  "translation_from": "case_by_case configuration analysis",
+  "translation_to": "induction with sweep line balanced partition",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "case_by_case",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["separation_by_lines", "convex_hull", "sweep_line", "induction_on_minority", "color_alternation_on_circle", "balanced_partition"],
+  "expected_ai_method": "Bare AI likely attempts direct construction of line arrangements for specific configurations or brute-force counting, without recognizing the inductive structure or the sweep line partition lemma.",
+  "correct_method": "Induction on minority color count with two cases: (1) red point on convex hull -> isolate and recurse; (2) all hull vertices blue -> sweep line to find balanced Colombian partition and recurse on both halves. Lower bound via circular alternating construction.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a combinatorial geometry optimization problem but hasn't identified the two-part structure (lower bound + upper bound) or the role of the color asymmetry (2013 vs 2014).",
+      "hint": "Describe the problem structure: what are we minimizing, what are the constraints, and why is the asymmetry between 2013 red and 2014 blue potentially important?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["optimization_structure", "color_asymmetry", "lower_and_upper_bound"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI hasn't enumerated the possible approaches: worst-case construction for lower bound, induction for upper bound, convex hull arguments, sweep line techniques.",
+      "hint": "List all possible approaches for both proving k is achievable (upper bound) and proving k cannot be smaller (lower bound). Consider: extremal configurations, induction, convex hull, sweeping.",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["extremal_construction", "induction_approach", "convex_hull_argument", "sweep_line_technique"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI might try to directly construct line arrangements for specific configurations, or try pairing red-blue points and drawing separating lines, without recognizing the inductive structure.",
+      "hint": "Try a direct approach: given a specific configuration, can you construct a good arrangement? What if points are in convex position? What if they're in general position?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["direct_construction", "convex_position", "pairing_argument"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI hasn't identified the worst-case configuration for the lower bound. The circular alternating arrangement is the key extremal example.",
+      "hint": "For the lower bound, think about what configuration is hardest to separate. What arrangement of red and blue points maximizes the number of color boundaries that lines must cut?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["worst_case_configuration", "circular_alternation", "color_transition_counting"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI recognizes the need for induction but doesn't know the key lemma: how to split a Colombian configuration into two smaller Colombian sub-configurations using a single line.",
+      "hint": "For the upper bound, try induction on the number of red points r. Key question: can you always find a line that either isolates one red point, or splits the configuration into two Colombian sub-configurations? Consider the convex hull.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["induction_on_minority", "convex_hull_isolation", "balanced_split_lemma"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI knows induction is needed and has identified the convex hull case, but hasn't found the sweep line argument for the case when all hull vertices are blue.",
+      "hint": "When all convex hull vertices are blue, sweep a line across the configuration. Track d = red_left - blue_left. It starts at 0 and ends at r - b. Since d changes by ±1 at each step, at some position d = 0 or -1, giving a balanced split. Why does this work?",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["sweep_line_partition", "discrete_continuity", "balanced_colombian_split"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has both the lower bound (2013 from circular alternation) and the upper bound (2013 from induction + sweep line). Needs to confirm they match and conclude.",
+      "hint": "Combine both bounds: lower bound gives k >= 2013, upper bound gives k <= 2013. Therefore k = 2013. Verify the induction base case and the perturbation argument for avoiding lines through points.",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["lower_upper_bound_matching", "base_case_verification", "perturbation_argument"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Complete solution path from naive case analysis to induction + sweep line partition",
+      "observation_point": null,
+      "tell": "The solution requires both a lower bound (circular alternating construction giving 2013) and an upper bound (induction on minority color count with sweep line balanced partition giving 2013). The key challenge is the upper bound's sweep line partition lemma, which is only reachable after recognizing that direct case analysis fails and induction requires a balanced splitting argument.",
+      "hint": "Structure the problem as lower bound + upper bound. For the lower bound, construct the hardest configuration (alternating on circle). For the upper bound, use induction on the minority color count r, with two cases: red point on convex hull (isolate and recurse) or all hull vertices blue (sweep line to find balanced Colombian partition and recurse on both).",
+      "hint_level": 0.7,
+      "generalizability": "high - the induction + sweep line balanced partition pattern applies to many combinatorial geometry separation and coloring problems",
+      "why_not_visible_locally": "The sweep line partition argument only becomes visible after recognizing that (1) direct construction fails for arbitrary configurations, (2) induction is the right framework, and (3) the convex hull case analysis leaves a gap when all hull vertices are blue. From any single step of the solution, the full path from problem statement to this insight is not apparent—it requires seeing the entire solution structure.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["induction_on_minority", "sweep_line_partition", "balanced_split", "circular_lower_bound", "convex_hull_case_analysis"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The lower bound construction is implicit in the problem's extremal nature",
+      "observation_point": "R4",
+      "tell": "The worst-case configuration (alternating colors on a circle) is implicit in the problem's request for the least k that works for ALL configurations. The circular arrangement maximizes color transitions, and each line can cut at most 2 transitions, giving the tight lower bound.",
+      "hint": "To find the minimum k, construct the hardest possible configuration. Place 2013 red and 2014 blue points alternating on a circle. Count color transitions (4026) and note each line cuts at most 2, giving k >= 2013.",
+      "hint_level": 0.6,
+      "generalizability": "high - extremal construction for lower bounds is a universal technique in combinatorial optimization problems",
+      "why_not_visible_locally": "From the problem statement alone, the specific construction of alternating points on a circle is not apparent. It requires recognizing that circular arrangements maximize color transitions and that each line intersects the circle in at most 2 points, cutting at most 2 transitions. This insight connects geometry (line-circle intersection) with combinatorics (color transition counting) in a way that is not visible from any single step.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["extremal_construction", "circular_alternation", "color_transition_counting", "line_circle_intersection"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely find the lower bound (circular alternating construction is a standard technique) but fail on the upper bound. The key failure point is the sweep line balanced partition argument: without recognizing the need for induction on the minority color count and the discrete continuity argument for finding a balanced split when all convex hull vertices are blue, the AI cannot complete the upper bound. It may also fail to see the two-case structure (red on hull vs. all blue hull).",
+  "suitable_for_poc": ["hint_injection_effectiveness", "tell_extraction_from_trajectory", "knowledge_bottleneck_identification"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the problem structure: what are we minimizing, what are the constraints on the line arrangement, and why might the asymmetry between 2013 red and 2014 blue points be important?",
+        "expected_answer": "We seek the minimum k such that k lines can separate any Colombian configuration (no region has both colors, no line through any point). The problem has a lower bound part (show k lines are necessary) and an upper bound part (show k lines suffice). The asymmetry 2013 red vs 2014 blue means red is the minority, which likely determines k."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible approaches for proving the upper bound (k lines suffice) and the lower bound (k lines are necessary). Consider: extremal configurations, induction, convex hull arguments, sweep line techniques, counting arguments.",
+        "expected_answer": "Lower bound approaches: construct worst-case configuration (e.g., alternating on circle), counting color transitions. Upper bound approaches: induction on number of points or minority color, convex hull isolation, sweep line partition, ham sandwich theorem, direct construction."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try a direct approach: if all 4027 points are in convex position, can you construct a good arrangement? How many lines do you need? What if points are in general position?",
+        "expected_answer": "For convex position with alternating colors, each line separates at most 2 adjacent pairs, so we need roughly 2013 lines. For general position, direct construction is hard because the arrangement depends on the specific configuration. This suggests we need a more general argument like induction."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "For the lower bound, think about what configuration is hardest to separate. What arrangement of red and blue points maximizes the number of color boundaries that lines must cut? How many lines does this configuration require?",
+        "expected_answer": "Place 2013 red and 2014 blue points alternating on a circle (B, R, B, R, ..., B, R, B, B). Going around the circle there are 2*2013 = 4026 color transitions. Each line intersects the circle in at most 2 points, cutting at most 2 transitions. So we need at least ceil(4026/2) = 2013 lines."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "For the upper bound, try induction on r (the number of red points, the minority). Key question: can you always find a line that either isolates one red point from the rest, or splits the configuration into two Colombian sub-configurations? Consider what happens when a red point is on the convex hull vs. when all convex hull vertices are blue.",
+        "expected_answer": "If a red point is on the convex hull, isolate it with one line. Remaining: r-1 red, b blue, still Colombian. By induction, r-1 more lines. Total: r. If all hull vertices are blue, we need a different argument to split the configuration into two Colombian sub-configurations."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "When all convex hull vertices are blue, sweep a line across the configuration. Track d = red_left - blue_left. It starts at 0 and ends at r - b = -1. Since d changes by +1 or -1 at each step, at some position d = 0 or d = -1. Why does this give a balanced Colombian partition, and how do we complete the induction?",
+        "expected_answer": "When d = 0: left has equal red and blue, right has r red and b-blue_left blue with r <= b-blue_left. When d = -1: left has one more blue than red, right has red_left red and b-blue_left blue with red_left <= b-blue_left. Both sub-configurations are Colombian. Perturb the line to avoid passing through points. Each sub-config has fewer points, so by induction they need r1 and r2 lines with r1+r2 = r. Total: r."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "Combine both bounds: lower bound gives k >= 2013, upper bound gives k <= 2013. Verify the induction base case (r=0) and the perturbation argument. What is the final answer?",
+        "expected_answer": "Lower bound: 2013 (circular alternating configuration). Upper bound: 2013 (induction on minority color count with convex hull isolation and sweep line balanced partition). Base case r=0: no lines needed. Perturbation: since no three points are collinear, we can always slightly adjust the sweep line to avoid passing through any point. Therefore k = 2013."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO 2013 Problem 5. Difficulty 9.0. The key knowledge bottleneck is R5 (induction + balanced split lemma). The key thinking bottleneck is R4 (worst-case circular construction for lower bound). The sweep line argument in R6 is the critical insight that connects the convex hull case analysis to a complete induction."
+  }
+}

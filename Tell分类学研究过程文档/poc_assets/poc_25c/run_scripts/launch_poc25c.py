@@ -110,10 +110,10 @@ def export_exists(pid, arm):
 
 def build_queue():
     """顺序交错（§4.3）：奇数题T先C后，偶数题C先T后。"""
+    pids = sorted({p.parent.name.rsplit("__", 1)[0]
+                   for p in HERE.glob("*__*/prompt.txt")})
     q = []
-    for i, pid in enumerate(PROBLEMS := sorted(
-            {p.name.rsplit("__", 1)[0] for p in HERE.glob("*__*/prompt.txt")}),
-            start=1):
+    for i, pid in enumerate(pids, start=1):
         pair = ("T", "C") if i % 2 == 1 else ("C", "T")
         q.append((i, pid, pair[0]))
         q.append((i, pid, pair[1]))

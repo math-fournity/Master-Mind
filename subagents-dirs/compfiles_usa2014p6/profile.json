@@ -1,0 +1,237 @@
+{
+  "_key": "compfiles_usa2014p6",
+  "source_id": "compfiles_usa2014p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Prove that there is a constant c > 0 with the following property: If a, b, n are positive integers such that gcd(a + i, b + j) > 1 for all i, j in {0, 1, ..., n}, then min{a, b} > (cn)^n.",
+  "solution_text": "Take c = 1/65536. Split into small n (n < 2^15, trivial: min{a,b} >= 2 > (n/65536)^n) and large n (n >= 2^15). For large n: set M = n^2/1000, N = n+1. Consider the N x N grid of pairs (a+i, b+j), each with gcd > 1. Define 'small cells' S = cells where some prime p <= M divides both a+i and b+j. Sieve counting gives |S| <= sum_{p<=M} (N/p+1)^2 = N^2 * sum(1/p^2) + 2N * sum(1/p) + |P|. Using sum(1/p^2) <= 47/100, sum(1/p) <= clog_2(M+1) <= n/100, |P| <= M < N^2/100, we get |S| < N^2/2. So > N^2/2 cells are 'big' (only large prime divisors > M). By pigeonhole, some row i_0 has > N/2 big cells. For each big cell j in row i_0, a large prime q_j > M divides both a+i_0 and b+j. Injection: if q_{j1} = q_{j2} then q | (j2-j1) but |j2-j1| < n < q, contradiction. So these primes are distinct, giving a+i_0 >= (M+1)^{#big cells} >= (n^2/1000)^{(n+3)/2}. The numerical inequality (n^2/1000)^{(n+3)/2} > (n/65536)^n + n holds for n >= 2^15. Symmetric argument for b. Hence min{a,b} > (n/65536)^n = (cn)^n.",
+  "solution_summary": "取c=1/65536。将(n+1)x(n+1)网格中每格的共同素因子按阈值M=n^2/1000分为大小两类，筛法证明小素数覆盖<N^2/2格，鸽巢提取一行>N/2个大素数格，注入论证证明大素数互异，乘积迫使a+i_0>=(n^2/1000)^((n+3)/2)>(n/65536)^n。",
+  "domain": "Number Theory",
+  "subfield": "Combinatorial Number Theory",
+  "answer_type": "proof",
+  "answer": "There exists c > 0 (specifically c = 1/65536) such that if gcd(a+i, b+j) > 1 for all i,j in {0,...,n}, then min{a,b} > (cn)^n.",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "sieve_counting_pigeonhole",
+  "structure_features": "(n+1)x(n+1) grid of gcd conditions, sieve counting with prime size threshold, pigeonhole row extraction, injection for distinctness, product bound, numerical inequality comparison",
+  "key_objects": ["positive integers a,b,n", "gcd(a+i,b+j)", "prime factorization", "(n+1)x(n+1) grid", "sieve counting", "pigeonhole principle", "injection argument", "product bound"],
+  "thinking_patterns": ["sieve_counting", "pigeonhole_principle", "case_splitting", "injection_argument", "product_bound", "numerical_estimation"],
+  "primary_pattern": "sieve_counting",
+  "knowledge_required": ["gcd and prime factorization", "sieve methods / inclusion-exclusion", "harmonic sum logarithmic bound", "convergence of sum of 1/p^2", "pigeonhole principle", "injection and distinctness argument", "exponential growth comparison"],
+  "key_insight": "Split common prime factors in the grid by size threshold n^2/1000; sieve counting shows small primes cover less than half the cells; pigeonhole extracts a row with many large-prime cells; injection proves these large primes are distinct; their product forces a+i_0 to be huge.",
+  "translation_from": "number-theoretic constraint language (gcd grid condition)",
+  "translation_to": "combinatorial counting language (sieve counting of prime coverage on grid)",
+  "translation_type": "constraint_to_counting",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "method_problem_mismatch"
+  },
+  "tell_small_concepts": ["grid_gcd_condition", "sieve_counting", "pigeonhole", "large_prime_divisor", "injection_distinctness", "product_bound", "numerical_comparison"],
+  "expected_ai_method": "direct_manipulation",
+  "correct_method": "sieve_counting with pigeonhole and injection",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到存在性常数c的证明题，gcd网格条件，但未识别核心结构",
+      "hint": "描述这道题的结构：已知条件是什么？要证明什么？常数c的角色是什么？",
+      "hint_level": 0.9,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["existence_constant", "gcd_grid_condition", "min_lower_bound"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方法但可能遗漏筛法计数这一关键方向",
+      "hint": "列出所有可能的方法来证明min{a,b}的下界：归纳法、直接gcd操作、计数论证、筛法、概率论证等",
+      "hint_level": 0.8,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["approach_enumeration", "sieve_method", "induction", "counting"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试归纳或直接操作gcd条件，卡住因为条件太复杂",
+      "hint": "试试直接方法：能否对n归纳？或直接从gcd(a,b)>1推出min{a,b}的下界？",
+      "hint_level": 0.6,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["induction_attempt", "direct_gcd_manipulation", "stuck"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI卡在直接方法，需要重新框定为网格计数问题",
+      "hint": "重新框定问题：考虑(n+1)x(n+1)网格，每格(a+i,b+j)都有一个共同素因子。思考哪些素数能覆盖很多格？",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["grid_reframing", "prime_coverage", "common_prime_divisor"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已框定为网格，需要筛法计数知识来分大小素数并证明小素数格<N^2/2",
+      "hint": "将素数分为小(<=M=n^2/1000)和大(>M)。用筛法界证明小素数覆盖的格|S|<N^2/2。需要哪些求和界？",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["small_large_prime_split", "sieve_bound", "harmonic_sum", "cell_counting"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有小素数格<半，需鸽巢+注入提取乘积结构",
+      "hint": "小素数格<半，故>半是大格。用鸽巢找到某行i_0有>N/2个大格。证明这些大格的大素数互异，并推出乘积界。",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["pigeonhole", "injection_distinctness", "large_prime_product", "row_extraction"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有乘积界a+i_0>=(n^2/1000)^((n+3)/2)，需数值不等式收尾",
+      "hint": "数值不等式(n^2/1000)^((n+3)/2)>(n/65536)^n+n对n>=2^15成立。对称论证得b也满足。小n情况平凡。收尾！",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["numerical_inequality", "exponential_comparison", "case_split_small_large", "symmetric_bound"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "complete solution path",
+      "observation_point": null,
+      "tell": "从gcd网格条件到min{a,b}>(cn)^n的完整路径需要非显然的翻译：网格->筛法计数->鸽巢->注入->乘积界->数值比较",
+      "hint": "关键翻译是从数论gcd条件到组合网格计数，再用鸽巢和注入提取乘积结构",
+      "hint_level": 0.7,
+      "generalizability": "high - 筛法->鸽巢->乘积的模式可泛化到许多基于网格的数论问题",
+      "why_not_visible_locally": "每个局部步骤（计数小素数、鸽巢、注入）看似独立技术，但完整路径——尤其是初始的gcd到网格计数的翻译——从任何单一步骤都看不到。按大小阈值n^2/1000分素数的决定以及具体的调和和界，只有在看到最终数值不等式需要什么时才有动机。",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["grid_reframing", "sieve_counting", "pigeonhole", "injection_distinctness", "product_bound", "numerical_comparison"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "choice of prime threshold M = n^2/1000",
+      "observation_point": "R5",
+      "tell": "阈值M=n^2/1000不是任意的——它被校准使得(1)筛法界给出|S|<N^2/2（需sum(1/p^2)<1/2对p<=M）且(2)乘积(M+1)^((n+3)/2)压倒(n/65536)^n",
+      "hint": "选择素数分界阈值时，必须同时满足计数界和最终增长比较。n^2/1000是平衡点。",
+      "hint_level": 0.6,
+      "generalizability": "medium - 校准原理可泛化但具体阈值取决于问题",
+      "why_not_visible_locally": "在R5中，AI看到大小素数分割但阈值M=n^2/1000看似任意选择。这个具体值的原因——它必须同时使sum(1/p^2)<1/2（让筛法界给出<半）和使(M+1)^((n+3)/2)>(n/65536)^n（让最终不等式成立）——只有同时看R5和R7才能看到。",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["threshold_calibration", "sieve_bound_balance", "exponential_comparison", "n_squared_over_1000"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI会尝试直接操作gcd条件或对n归纳，看不到从gcd网格到筛法计数的翻译。即使考虑到网格，也会在阈值校准（M=n^2/1000的选择需要同时满足筛法界和最终指数比较）和注入论证（利用q>n>|j2-j1|证明大素数互异）上卡住。",
+  "suitable_for_poc": ["POC-VMS-hint-injection", "POC-VMS-tell-detection", "POC-VMS-path-feature"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.9,
+        "question": "描述这道题的结构：已知条件是什么？要证明什么？常数c的角色是什么？",
+        "expected_answer": "题目要求证明存在c>0使得：若对所有i,j∈{0,...,n}有gcd(a+i,b+j)>1，则min{a,b}>(cn)^n。c是一个不依赖于a,b,n的绝对常数。核心是从gcd网格条件推出a,b的下界。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.8,
+        "question": "列出所有可能的方法来证明min{a,b}的下界：归纳法、直接gcd操作、计数论证、筛法、概率论证等",
+        "expected_answer": "可能方法：1)对n归纳 2)直接从gcd条件提取信息 3)考虑(n+1)x(n+1)网格中每格的共同素因子 4)筛法计数 5)用中国剩余定理构造 6)概率/密度论证"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.6,
+        "question": "试试直接方法：能否对n归纳？或直接从gcd(a,b)>1推出min{a,b}的下界？",
+        "expected_answer": "直接归纳困难：从n到n+1需要控制新增的gcd条件。直接从gcd(a,b)>1只能得min>=2，远不够。条件是(n+1)^2个gcd同时>1，信息量很大但直接提取困难。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "重新框定问题：考虑(n+1)x(n+1)网格，每格(a+i,b+j)都有一个共同素因子。思考哪些素数能覆盖很多格？",
+        "expected_answer": "每格有一个共同素因子p。小素数p能覆盖约(N/p)^2个格（因为p|a+i约N/p个i，p|b+j约N/p个j）。大素数覆盖的格少。关键是：如果小素数覆盖不了所有格，剩余格必须用大素数，而大素数迫使a+i很大。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "将素数分为小(<=M=n^2/1000)和大(>M)。用筛法界证明小素数覆盖的格|S|<N^2/2。需要哪些求和界？",
+        "expected_answer": "|S|<=sum_{p<=M}(N/p+1)^2=N^2*sum(1/p^2)+2N*sum(1/p)+|P|。需要：sum(1/p^2)<=47/100（素数平方倒数和收敛），sum(1/p)<=clog_2(M+1)<=n/100（调和和的对数界），|P|<=M<N^2/100。三项相加<47/100*N^2+2/100*N^2+1/100*N^2=N^2/2。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "小素数格<半，故>半是大格。用鸽巢找到某行i_0有>N/2个大格。证明这些大格的大素数互异，并推出乘积界。",
+        "expected_answer": "鸽巢：N行中某行有>N/2个大格。对行i_0的每个大格j，取大素数q_j>M整除a+i_0和b+j。注入：若q_{j1}=q_{j2}=q，则q|(b+j1)且q|(b+j2)，故q|(j2-j1)，但|j2-j1|<n<q（因q>M>=n），矛盾。故互异。a+i_0>=prod(q_j)>=(M+1)^{#大格}>=(n^2/1000)^{(n+3)/2}。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "你已有a+i_0>=(n^2/1000)^((n+3)/2)。数值不等式(n^2/1000)^((n+3)/2)>(n/65536)^n+n对n>=2^15成立。对称论证得b也满足。小n情况平凡。收尾！",
+        "expected_answer": "大n：a>(n/65536)^n且b>(n/65536)^n，故min{a,b}>(n/65536)^n=(cn)^n，c=1/65536。小n(n<2^15)：min>=2>(n/65536)^n因n/65536<1。证毕！"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 2014 P6 - 筛法计数+鸽巢+注入论证的经典数论竞赛题。核心难点是将gcd网格条件翻译为素数覆盖计数问题。阈值M=n^2/1000的校准是implicit型tell。"
+  }
+}

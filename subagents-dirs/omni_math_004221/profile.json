@@ -1,0 +1,268 @@
+{
+  "_key": "omni_math_004221",
+  "source_id": "omni_math_004221",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Find all functions f: Z+ -> Z+ such that (f(a))^2 + f(b) divides (a^2 + b)^2 for all positive integers a, b.",
+  "solution_text": "Step 1: Set a=b=1. Then f(1)^2 + f(1) | 4 and f(1)^2 + f(1) > 1, so f(1)^2 + f(1) in {2, 4}. Testing f(1)=1 gives 1+1=2 which works. No other positive integer satisfies this, so f(1)=1.\n\nStep 2: For each prime p, set a=1, b=p-1. Then f(1)^2 + f(p-1) = 1 + f(p-1) divides (1 + p-1)^2 = p^2, and 1 + f(p-1) > 1. So 1 + f(p-1) = p or p^2.\n\nStep 3: Suppose 1 + f(p-1) = p^2 for some prime p. Then f(p-1) = p^2 - 1. Set a=p-1, b=1: f(p-1)^2 + f(1) = (p^2-1)^2 + 1 = p^4 - 2p^2 + 2 divides ((p-1)^2 + 1)^2 = p^4 - 4p^3 + 8p^2 - 8p + 4. For p >= 2, p^4 - 4p^3 + 8p^2 - 8p + 4 < 2(p^4 - 2p^2 + 2), so the quotient must be 1, giving 2p^3 - 5p^2 + 4p - 1 = 0, which implies p | 1, contradiction. So f(p-1) = p-1 for all primes p.\n\nStep 4: For all positive integers n and primes p, f(n) + (p-1)^2 divides ((p-1)^2 + n)^2. Decompose: ((p-1)^2 + n)^2 = ((p-1)^2 + f(n))((p-1)^2 + 2n - f(n)) + (f(n) - n)^2. So (f(n)-n)^2 / (f(n) + (p-1)^2) is a non-negative integer. For sufficiently large p, this fraction < 1, so it equals 0, giving f(n) = n.\n\nStep 5: f(n) = n clearly satisfies the condition since (f(a))^2 + f(b) = a^2 + b divides (a^2 + b)^2.",
+  "solution_summary": "Three-phase approach: (1) Specialize at a=b=1 to pin f(1)=1; (2) Use primes as parameters to constrain f(p-1), eliminate the p^2 case by inequality contradiction, yielding f(p-1)=p-1; (3) Use large primes as a limiting parameter: algebraic decomposition extracts (f(n)-n)^2 as remainder, and for large p the fraction (f(n)-n)^2/(f(n)+(p-1)^2) < 1 hence equals 0, forcing f(n)=n.",
+  "domain": "number_theory",
+  "subfield": "functional_equations",
+  "answer_type": "function_identification",
+  "answer": "f(n) = n",
+  "problem_type": "characterization",
+  "solution_method_type": "case_elimination_with_limiting_argument",
+  "structure_features": "Functional equation with divisibility constraint (f(a))^2 + f(b) | (a^2 + b)^2 for all positive integers a, b. Requires characterizing all functions satisfying the condition. The structure involves dual application of f (squared and linear) combined with divisibility, creating constraints that progressively narrow the function values.",
+  "key_objects": [
+    "function f: Z+ -> Z+",
+    "divisibility relation (f(a))^2 + f(b) | (a^2 + b)^2",
+    "prime numbers as parameters",
+    "quadratic expressions in p",
+    "algebraic identity decomposition"
+  ],
+  "thinking_patterns": [
+    "specialization",
+    "case_elimination",
+    "divisibility_analysis",
+    "limiting_argument",
+    "algebraic_identity_decomposition",
+    "contradiction"
+  ],
+  "primary_pattern": "divisibility_analysis",
+  "knowledge_required": [
+    "divisibility properties of integers",
+    "prime number properties",
+    "quadratic equation solving",
+    "polynomial division and remainders",
+    "limiting/density arguments in number theory",
+    "algebraic identity construction"
+  ],
+  "key_insight": "Using sufficiently large primes as a limiting parameter to force (f(n)-n)^2/(f(n)+(p-1)^2) < 1, and since it must be a non-negative integer, it equals 0, giving f(n) = n.",
+  "translation_from": "divisibility_constraint_language",
+  "translation_to": "case_elimination_and_limiting_argument",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "divisibility constraint",
+    "prime parameterization",
+    "case elimination",
+    "limiting argument",
+    "algebraic decomposition",
+    "inequality bound"
+  ],
+  "expected_ai_method": "Bare AI would try direct calculation: substitute small values, determine f at a few points, then guess f(n)=n without rigorous proof. It would likely miss the algebraic identity decomposition and the limiting argument with large primes.",
+  "correct_method": "Systematic three-phase approach: (1) specialize to determine f(1), (2) use primes to constrain f(p-1) and eliminate cases via inequality contradiction, (3) construct algebraic identity to extract remainder and use large primes as limiting parameter to force f(n)=n.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI does not identify the dual structure of the condition: (f(a))^2 appears squared while f(b) appears linearly, and the divisibility target (a^2+b)^2 is also a perfect square",
+      "hint": "Describe the problem structure: what is the condition on f, what are the knowns and unknowns, and what special structure does the divisibility relation have?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["functional equation", "divisibility constraint", "dual application of f"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists standard approaches (induction, direct substitution, guessing) but misses the key strategy of using primes as parameters and the limiting argument",
+      "hint": "List all possible approaches including: specialization at small values, using prime numbers as special parameters, case analysis with contradiction, and limiting/density arguments",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["specialization", "prime parameterization", "case analysis", "limiting argument"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries a=b=1 but may not correctly enumerate divisors of 4 and narrow f(1)",
+      "hint": "Set a=b=1 in the divisibility condition. What does (f(1))^2 + f(1) divide? What are the possible values? Which gives a valid f(1)?",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["specialization at 1", "divisor enumeration", "quadratic solving"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has determined f(1)=1 but does not see how to use primes as parameters to constrain f at other points",
+      "hint": "Set a=1, b=p-1 for prime p. Use f(1)=1 to get 1+f(p-1) | p^2. What are the possible values of 1+f(p-1)?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["prime substitution", "dual constraint", "divisor of p^2", "parameterization"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI gets 1+f(p-1) in {p, p^2} but does not attempt to eliminate the p^2 case",
+      "hint": "Assume 1+f(p-1)=p^2 for some prime p. Use the other divisibility condition with a=p-1, b=1 to derive a contradiction via inequality bounds.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["case elimination", "inequality bound", "polynomial divisibility", "contradiction"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI knows f(p-1)=p-1 for all primes p but does not see the algebraic identity decomposition that extracts (f(n)-n)^2 as a remainder, nor the limiting argument with large primes",
+      "hint": "Use the general condition f(n)+(p-1)^2 | ((p-1)^2+n)^2. Try to decompose ((p-1)^2+n)^2 in terms of f(n)+(p-1)^2 to find the remainder. Then consider what happens when p is very large.",
+      "hint_level": 0.7,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["algebraic identity decomposition", "limiting argument", "large prime parameter", "remainder extraction"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has derived f(n)=n but needs to verify and conclude with confidence",
+      "hint": "Verify that f(n)=n satisfies the original divisibility condition for all a, b. Confirm this is the unique solution.",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["verification", "conclusion", "uniqueness confirmation"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from specialization to limiting argument",
+      "observation_point": null,
+      "tell": "The solution requires a three-phase strategy: (1) pin down f at special points via divisor enumeration, (2) use primes to constrain f(p-1) and eliminate cases via inequality contradiction, (3) use large primes as a limiting parameter to force f(n)=n. The connection between these phases is not visible from any single step.",
+      "hint": "Think of the solution as a three-phase strategy: specialize to determine f(1), use primes to constrain and eliminate, then use large primes as a limiting parameter. Each phase builds on the previous one's results.",
+      "hint_level": 0.8,
+      "generalizability": "high - this three-phase strategy (specialize, constrain with special parameters, limit) applies broadly to functional equation problems with divisibility or ordering constraints",
+      "why_not_visible_locally": "Each phase uses fundamentally different mathematical tools (divisor enumeration, inequality-based contradiction, limiting argument) and the strategic connection between phases requires seeing the overall solution architecture, which no single step reveals",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["three-phase strategy", "specialization", "case elimination", "limiting argument", "progressive narrowing"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "step 6 algebraic identity construction",
+      "observation_point": "Q6",
+      "tell": "The key algebraic identity ((p-1)^2+n)^2 = ((p-1)^2+f(n))((p-1)^2+2n-f(n)) + (f(n)-n)^2 is a backward construction: it requires anticipating that f(n)=n is the target to decompose the expression in a way that extracts (f(n)-n)^2 as the remainder",
+      "hint": "When facing f(n)+(p-1)^2 | ((p-1)^2+n)^2, try to write ((p-1)^2+n)^2 as a multiple of f(n)+(p-1)^2 plus a remainder. The remainder should involve (f(n)-n)^2, which is the quantity you want to show is zero.",
+      "hint_level": 0.7,
+      "generalizability": "medium - this backward identity construction technique is specific to divisibility problems where you need to extract a target expression as a remainder, but the principle of working backwards from the desired conclusion is broadly applicable",
+      "why_not_visible_locally": "The identity requires knowing the target f(n)=n in advance to construct the right decomposition. From the divisibility condition alone, there is no local signal that this particular algebraic manipulation will be productive. The decomposition is a creative backward step that only makes sense when you know where you're going.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["algebraic identity", "remainder extraction", "backward construction", "target-oriented decomposition"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely determine f(1)=1 from the a=b=1 specialization, and might determine f(p-1)=p-1 for primes if it thinks to use prime substitution. However, it would almost certainly fail at the final step: constructing the algebraic identity ((p-1)^2+n)^2 = ((p-1)^2+f(n))((p-1)^2+2n-f(n)) + (f(n)-n)^2 and recognizing that large primes force the remainder to be 0. This requires both creative backward algebraic manipulation and the insight to use primes as a limiting parameter, which is a method translation from divisibility to analysis that bare AI typically does not make.",
+  "suitable_for_poc": [
+    "POC-VMS-hint-injection",
+    "POC-VMS-tell-detection",
+    "POC-VMS-multi-step-guidance"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "What is the structure of this problem? What condition must f satisfy, and what are we trying to find?",
+        "expected_answer": "We need to find all functions f: Z+ -> Z+ such that (f(a))^2 + f(b) divides (a^2 + b)^2 for all positive integers a, b. The condition involves f applied in two ways: squared in the first term and linear in the second, combined with a divisibility relation against a perfect square."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "What approaches could work for this functional equation with divisibility? List all possible strategies.",
+        "expected_answer": "Possible approaches: (1) Specialize at small values like a=b=1 to determine f at specific points; (2) Use prime numbers as special parameters since p^2 has few divisors; (3) Case analysis with contradiction to eliminate possibilities; (4) Induction on n; (5) Limiting/density arguments using large parameters; (6) Direct guessing that f(n)=n and verifying."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try setting a=b=1. What does the divisibility condition give you? Can you determine f(1)?",
+        "expected_answer": "With a=b=1: (f(1))^2 + f(1) divides (1+1)^2 = 4. Since f maps to positive integers, (f(1))^2 + f(1) >= 2, so it's in {2, 4}. If f(1)=1: 1+1=2, divides 4. If f(1)=2: 4+2=6, does not divide 4. So f(1)=1."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Now use the condition with a=1 and b=p-1 for a prime p. Since f(1)=1, what constraint do you get on f(p-1)?",
+        "expected_answer": "With a=1, b=p-1: (f(1))^2 + f(p-1) = 1 + f(p-1) divides (1 + p-1)^2 = p^2. Since 1 + f(p-1) > 1, we have 1 + f(p-1) = p or p^2, i.e., f(p-1) = p-1 or p^2-1."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Suppose 1 + f(p-1) = p^2 for some prime p, so f(p-1) = p^2 - 1. Use the condition with a=p-1, b=1 to show this leads to a contradiction.",
+        "expected_answer": "With a=p-1, b=1: (f(p-1))^2 + f(1) = (p^2-1)^2 + 1 = p^4 - 2p^2 + 2 divides ((p-1)^2 + 1)^2 = p^4 - 4p^3 + 8p^2 - 8p + 4. For p >= 2, the latter is less than 2(p^4 - 2p^2 + 2), so the quotient must be 1. This gives 2p^3 - 5p^2 + 4p - 1 = 0, implying p | 1, which is absurd. So f(p-1) = p-1 for all primes p."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.7,
+        "question": "You now know f(p-1) = p-1 for all primes p. Use the general condition with arbitrary n and prime p to show f(n) = n. Hint: try to decompose ((p-1)^2 + n)^2 in terms of f(n) + (p-1)^2.",
+        "expected_answer": "f(n) + (p-1)^2 divides ((p-1)^2 + n)^2. Decompose: ((p-1)^2 + n)^2 = ((p-1)^2 + f(n))((p-1)^2 + 2n - f(n)) + (f(n) - n)^2. So (f(n)-n)^2 / (f(n) + (p-1)^2) is a non-negative integer. For sufficiently large p, (p-1)^2 dominates, making this fraction < 1. Since it's a non-negative integer less than 1, it must be 0, giving f(n) = n."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "Verify that f(n) = n satisfies the original condition and conclude.",
+        "expected_answer": "With f(n) = n: (f(a))^2 + f(b) = a^2 + b, and (a^2 + b)^2 / (a^2 + b) = a^2 + b, which is an integer. So f(n) = n satisfies the condition. Combined with the proof that it's the only solution, we conclude f(n) = n."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.5,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "completed",
+    "notes": "Problem is a functional equation with divisibility constraint. Key difficulty is the algebraic identity decomposition + limiting argument in the final phase. The three-phase strategy (specialize, constrain with primes, limit with large primes) is the core path feature. Topology classification is adequate - no new dimensions needed. Existing values (characterization, direct_calculation, method_translation, knowledge_gap, structural_transformation) cover this problem well."
+  }
+}

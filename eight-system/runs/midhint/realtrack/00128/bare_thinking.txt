@@ -1,0 +1,1163 @@
+Let me solve this problem. It's about an elevator in a 10-story building (floors 0-10, so 11 floors total? Let me re-read).
+
+"ten-story building" - floors 0 through 10? Or 0 through 9? Let me think. "We consider the ground floor as the 0th floor." A ten-story building typically has floors 1-10, plus ground floor 0. So floors 0,1,2,...,10 = 11 floors.
+
+Wait, "F. 2280" - this is a reference to a problem. Let me think about the problem.
+
+The elevator starts at ground floor (0). During its journey it stops exactly once on every floor. So it visits floors 1,2,...,10 each exactly once (it starts at 0, doesn't need to "stop" there as a stop). Actually, "stops exactly once on every floor" - does it stop on floor 0? It starts there. Let me assume it visits floors 1 through 10, each exactly once, in some order (a permutation). The total distance is the sum of |consecutive differences|.
+
+Wait, but "ten-story building" with ground floor as 0th. So there are floors 0,1,...,10? That's 11 floors. Or 0,1,...,9? That's 10 floors.
+
+Hmm, "ten-story building" - 10 stories. Ground floor is the 0th. Then stories 1-10. So floors 0,1,...,10. The elevator starts at 0 and must stop once on every floor. Does it stop on floor 0? It starts there. I think "stops exactly once on every floor" means floors 1-10 (the ones it travels to). Actually, let me reconsider - it might need to stop on all floors 0-10 but starts at 0.
+
+Actually, let me reconsider the problem. This is "restarting the elevator of problem F. 2280". The original problem (F. 2280) is likely a known competition problem. The elevator starts at ground floor 0, and during its journey stops exactly once on every floor. The question is about maximum travel distance.
+
+The new constraint: after stopping at an even floor, it stops at an odd floor, and after an odd floor, it stops at an even floor. So consecutive stops alternate in parity.
+
+Let me figure out the number of floors. If it's a 10-story building with ground floor 0, the floors are 0,1,...,10. The elevator starts at 0. It needs to stop once on every floor. I think "every floor" means floors 1 through 10 (it doesn't count the starting floor as a "stop"). So we need a permutation of {1,2,...,10} such that consecutive elements alternate parity, and we want to maximize the total distance = sum of |a_{i+1} - a_i| where a_0 = 0.
+
+Wait, but does the parity constraint apply to the first stop too? "after stopping at an even-numbered floor, it stops at an odd-numbered floor, and after an odd-numbered floor, it stops at an even-numbered floor." The ground floor 0 is even. So the first stop should be at an odd floor (since after even comes odd). Then alternating.
+
+So the sequence of stops alternates: odd, even, odd, even, ...
+
+Floors 1-10: odd floors = {1,3,5,7,9} (5 floors), even floors = {2,4,6,8,10} (5 floors).
+
+Starting from 0 (even), first stop is odd. Then even, odd, even, ... We have 10 stops. Positions 1,3,5,7,9 (odd positions in sequence) are odd floors, positions 2,4,6,8,10 are even floors. That works: 5 odd floors in 5 odd positions, 5 even floors in 5 even positions.
+
+We want to maximize sum of |consecutive differences|.
+
+Let me think about this as an optimization problem. We have a sequence: 0, a_1, a_2, ..., a_10 where a_1 is odd, a_2 is even, ..., a_9 is odd, a_10 is even. Each of {1,...,10} appears exactly once.
+
+Maximize D = |a_1 - 0| + |a_2 - a_1| + ... + |a_10 - a_9|.
+
+Since we want to maximize, we want large jumps. The total distance is at most 2 * (sum of top values) - something.
+
+Let me think about it differently. In a path visiting all vertices, the total distance is maximized when we alternate between high and low values.
+
+Let me think of the general approach. We have values 0,1,...,10. We start at 0. We visit 1,...,10 in some order with alternating parity.
+
+To maximize total distance, we want to go back and forth between extremes.
+
+Let me think about an upper bound. The total distance of a path through all points 0,1,...,10 (starting at 0) is at most 2*(10+9) - 10 - 0 = ... let me think more carefully.
+
+For a path visiting all points on a line, the maximum total distance is achieved by alternating between the extremes. The maximum is 2 * (sum of the largest floor minus sum of smallest floor)... 
+
+Actually, the known result: for points 0, 1, ..., n on a line, the maximum Hamiltonian path length (starting from a given point) is obtained by alternating extremes. The maximum total distance for visiting all of 0,...,n is:
+
+If we alternate: 0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5
+Distance = 10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 = 55.
+
+Or: 0, 10, 1, 9, ... gives 10+9+8+7+6+5+4+3+2+1 = 55.
+
+But we have the parity constraint. Let me check: 0 (even), 10 (even) - that violates the constraint! After even (0) must come odd. So 0, 10 doesn't work.
+
+So with the parity constraint, we need: 0 (even) → odd → even → odd → even → ...
+
+The odd floors available: 1,3,5,7,9. Even floors: 2,4,6,8,10.
+
+To maximize, we want large jumps. Let me think about pairing.
+
+The sequence is: 0, o_1, e_1, o_2, e_2, o_3, e_3, o_4, e_4, o_5, e_5
+where {o_1,...,o_5} = {1,3,5,7,9} and {e_1,...,e_5} = {2,4,6,8,10}.
+
+Distance = |o_1 - 0| + |e_1 - o_1| + |o_2 - e_1| + |e_2 - o_2| + ... + |e_5 - o_5|
+
+= o_1 + |e_1 - o_1| + |o_2 - e_1| + |e_2 - o_2| + ... + |e_5 - o_5|
+
+(since o_1 > 0, |o_1 - 0| = o_1)
+
+To maximize, we want each term to be large. Let me think about this as: we're arranging 5 odd and 5 even numbers in an alternating sequence starting with odd (after 0).
+
+Let me try to think about what arrangement maximizes the sum. The key insight for maximizing path length on a line: alternate between high and low values.
+
+Let me try: 0, 9, 2, 7, 4, 5, 6, 3, 8, 1, 10
+Check parity: 0(e), 9(o), 2(e), 7(o), 4(e), 5(o), 6(e), 3(o), 8(e), 1(o), 10(e). ✓
+Distance: 9 + 7 + 5 + 3 + 1 + 1 + 3 + 5 + 7 + 9 = 50.
+
+Hmm, let me try to do better. Let me try alternating high odd with low even and high even with low odd.
+
+Try: 0, 9, 2, 7, 4, 5, 6, 3, 8, 1, 10 → 50 as above.
+
+Try: 0, 1, 10, 3, 8, 5, 6, 7, 2, 9, 4
+Parity: 0(e), 1(o), 10(e), 3(o), 8(e), 5(o), 6(e), 7(o), 2(e), 9(o), 4(e) ✓
+Distance: 1 + 9 + 7 + 5 + 3 + 1 + 1 + 5 + 7 + 5 = 44. Worse.
+
+Let me try to think more systematically. 
+
+The idea: to maximize, pair high values with low values. 
+
+Let me think of it as: we have odd numbers O = {1,3,5,7,9} and even numbers E = {2,4,6,8,10}. The path is 0 → O → E → O → E → O → E → O → E → O → E.
+
+Each consecutive pair contributes |difference|. To maximize, we want each odd-even pair to be as far apart as possible, and each even-odd pair too.
+
+Let me think about the upper bound. Consider the contribution of each "interior" point. In a path, each interior point x contributes at most 2*max(x - min_neighbor, max_neighbor - x). Actually, the standard approach:
+
+For a path v_0, v_1, ..., v_n on a line, the total distance = sum |v_{i+1} - v_i|. Each vertex v_i (for 1 ≤ i ≤ n-1) is an interior vertex and contributes to two edges. The endpoints v_0 and v_n contribute to one edge each.
+
+The total distance = sum over edges. We can rewrite: for each vertex, it's "entered" and "exited" (except endpoints). 
+
+A known upper bound: total distance ≤ 2 * (sum of largest floor values) - 2 * (sum of smallest floor values) + adjustments for endpoints.
+
+More precisely, if we sort all values, the maximum path length is:
+2 * (v_n + v_{n-1} + ... + v_{ceil(n/2)+1}) - 2 * (v_0 + v_1 + ... + v_{floor(n/2)-1}) - (endpoint adjustments)
+
+Hmm, this is getting complicated. Let me think about it differently.
+
+For a path on a line through points 0, 1, ..., 10, the total distance equals:
+sum_{i=0}^{9} |v_{i+1} - v_i|
+
+Each edge |v_{i+1} - v_i| can be written as the number of unit intervals [j, j+1] that the edge crosses. The total distance = sum over unit intervals of (number of times the path crosses that interval).
+
+For the interval [j, j+1] (j = 0, ..., 9), the path crosses it each time it goes from ≤ j to ≥ j+1 or vice versa. The number of crossings of interval [j, j+1] is at most 2 * min(number of points ≤ j, number of points ≥ j+1).
+
+Points ≤ j: j+1 points (0, 1, ..., j). Points ≥ j+1: 10-j points (j+1, ..., 10).
+
+So crossings of [j, j+1] ≤ 2 * min(j+1, 10-j).
+
+For j=0: 2*min(1,10) = 2
+j=1: 2*min(2,9) = 4
+j=2: 2*min(3,8) = 6
+j=3: 2*min(4,7) = 8
+j=4: 2*min(5,6) = 10
+j=5: 2*min(6,5) = 10
+j=6: 2*min(7,4) = 8
+j=7: 2*min(8,3) = 6
+j=8: 2*min(9,2) = 4
+j=9: 2*min(10,1) = 2
+
+But this is for a path that starts and ends at specific points. Actually, the number of crossings of interval [j,j+1] in a path is: if the path starts on one side and ends on the other, the number of crossings is odd; if start and end are on the same side, it's even. And the max is 2*min(left, right) if start and end on same side, or 2*min(left,right)-1 if on different sides... 
+
+Actually wait. Let me reconsider. In a path (not a cycle), the number of crossings of a cut is determined by: if both endpoints are on the same side, crossings is even; if on different sides, crossings is odd. The maximum number of crossings is 2*min(L, R) if endpoints on same side (and min(L,R) ≥ 1), or 2*min(L,R) - 1 if on different sides... no.
+
+Hmm, let me think again. If we have L points on the left and R points on the right, and the path visits all of them. The path alternates between left and right each time it crosses. If it starts on the left and ends on the left, it crosses an even number of times, at most 2*min(L-1, R) + ... no.
+
+Actually: if the path starts on the left (with L points on left) and ends on the left, the number of crossings is at most 2*min(L-1, R) if... I'm overcomplicating.
+
+Let me think simply. The path visits L points on the left and R points on the right. Each crossing switches sides. If start and end are both on the left: the path is L, R, L, R, ..., L. The number of R-blocks is at most min(L-1, R) (since we need L points on left in L blocks, requiring L-1 transitions from left, and R points in R blocks). Wait, if start and end on left, we have some number of left-blocks and right-blocks. Left-blocks = right-blocks + 1 (if start and end on left) or left-blocks = right-blocks (if start and end on different sides) or left-blocks = right-blocks - 1 (if start and end on right).
+
+If start and end on left: left-blocks = right-blocks + 1. Each right-block has ≥ 1 point, so right-blocks ≤ R. Each left-block has ≥ 1 point, so left-blocks ≤ L. So right-blocks ≤ min(R, L-1). Crossings = 2 * right-blocks ≤ 2*min(R, L-1).
+
+If start on left, end on right: left-blocks = right-blocks. Crossings = 2*right-blocks - 1 ≤ 2*min(R, L) - 1.
+
+If start on left, end on right: crossings ≤ 2*min(L, R) - 1.
+
+In our problem, the path starts at 0 (which is on the left of every interval [j, j+1] for j ≥ 0). The endpoint is e_5, which is an even number from {2,4,6,8,10}.
+
+For the path to maximize total distance, we want to maximize crossings of each interval.
+
+For interval [j, j+1]:
+- L = j+1 (points 0, ..., j on left), R = 10-j (points j+1, ..., 10 on right).
+- Start is at 0, which is on the left.
+- End is e_5 ∈ {2,4,6,8,10}.
+
+If e_5 ≤ j (end on left): crossings ≤ 2*min(R, L-1) = 2*min(10-j, j).
+If e_5 ≥ j+1 (end on right): crossings ≤ 2*min(L, R) - 1 = 2*min(j+1, 10-j) - 1.
+
+To maximize total, for each interval we want the maximum possible crossings. But the endpoint e_5 is fixed (it's one value), so for intervals where e_5 is on the left, we get one bound, and where it's on the right, another.
+
+But we also have the parity constraint, which might further restrict things.
+
+This is getting complex. Let me try a computational approach in my head, or just try to find the optimal arrangement.
+
+Let me think about it more carefully. We want to maximize the sum of |differences|. The parity constraint forces alternation between odd and even.
+
+Let me try specific arrangements and compute.
+
+Arrangement 1: 0, 9, 2, 7, 4, 5, 6, 3, 8, 1, 10
+D = 9 + 7 + 5 + 3 + 1 + 1 + 3 + 5 + 7 + 9 = 50
+
+Arrangement 2: Let me try to be smarter. Pair the largest odd with the smallest even, etc.
+
+0, 9, 2, 7, 4, 5, 6, 3, 8, 1, 10 → this is what I had. 50.
+
+Let me try: 0, 1, 10, 3, 8, 5, 6, 7, 2, 9, 4
+D = 1 + 9 + 7 + 5 + 3 + 1 + 1 + 5 + 7 + 5 = 44
+
+Let me try: 0, 9, 2, 7, 4, 5, 6, 3, 10, 1, 8
+Parity: 0(e), 9(o), 2(e), 7(o), 4(e), 5(o), 6(e), 3(o), 10(e), 1(o), 8(e) ✓
+D = 9 + 7 + 5 + 3 + 1 + 1 + 3 + 7 + 9 + 7 = 52
+
+Better! Let me try to improve further.
+
+0, 9, 2, 7, 4, 5, 6, 3, 10, 1, 8 → 52
+
+Can I do better? Let me try:
+0, 9, 2, 7, 4, 5, 10, 1, 6, 3, 8
+Parity: 0(e), 9(o), 2(e), 7(o), 4(e), 5(o), 10(e), 1(o), 6(e), 3(o), 8(e) ✓
+D = 9 + 7 + 5 + 3 + 1 + 5 + 9 + 5 + 3 + 5 = 52
+
+Same. Let me try:
+0, 9, 2, 7, 10, 1, 4, 5, 6, 3, 8
+Parity: 0(e), 9(o), 2(e), 7(o), 10(e), 1(o), 4(e), 5(o), 6(e), 3(o), 8(e) ✓
+D = 9 + 7 + 5 + 3 + 9 + 3 + 1 + 1 + 3 + 5 = 46
+
+Worse. Let me try:
+0, 1, 10, 9, 2, 3, 8, 7, 4, 5, 6
+Parity: 0(e), 1(o), 10(e), 9(o), 2(e), 3(o), 8(e), 7(o), 4(e), 5(o), 6(e) ✓
+D = 1 + 9 + 1 + 7 + 1 + 5 + 1 + 3 + 1 + 1 = 30
+
+Much worse. The key is to maximize each jump.
+
+Let me think about the upper bound more carefully.
+
+Using the crossing argument: total distance = sum over j=0..9 of c_j, where c_j = number of crossings of interval [j, j+1].
+
+We need to figure out, given the parity constraint, what's the maximum c_j for each j.
+
+The parity constraint means: consecutive stops alternate between odd and even. So the path goes: 0 (even) → odd → even → odd → even → odd → even → odd → even → odd → even.
+
+Now, for interval [j, j+1], the "left" side has points {0, 1, ..., j} and "right" side has {j+1, ..., 10}.
+
+The path alternates between odd and even. Let me think about how many times it can cross each interval.
+
+Actually, the parity constraint adds a restriction: not only must we alternate sides, but we must also alternate parity. Let me think about which points are on which side and their parities.
+
+This is getting complicated. Let me try to think about it computationally - try many arrangements.
+
+Let me think about the structure. We have:
+Odd positions (1st, 3rd, 5th, 7th, 9th stops): odd numbers {1,3,5,7,9}
+Even positions (2nd, 4th, 6th, 8th, 10th stops): even numbers {2,4,6,8,10}
+
+The path: 0, o_1, e_1, o_2, e_2, o_3, e_3, o_4, e_4, o_5, e_5
+
+D = o_1 + |e_1 - o_1| + |o_2 - e_1| + |e_2 - o_2| + |o_3 - e_2| + |e_3 - o_3| + |o_4 - e_3| + |e_4 - o_4| + |o_5 - e_4| + |e_5 - o_5|
+
+To maximize, ideally each transition is between a high and low value. 
+
+Let me think about it as: we want to arrange the odd and even numbers to maximize the sum. 
+
+Consider the pairs (o_i, e_i) and (e_i, o_{i+1}). For each such pair, we want |e_i - o_i| and |o_{i+1} - e_i| to be large.
+
+If e_i is large and o_i, o_{i+1} are small, both |e_i - o_i| and |o_{i+1} - e_i| are large.
+If e_i is small and o_i, o_{i+1} are large, both are large.
+
+So we want to pair each even number with two odd numbers on the "opposite end".
+
+Similarly, each odd number o_i (for i=2,3,4,5) is between e_{i-1} and e_i. If o_i is large, we want e_{i-1} and e_i to be small, and vice versa.
+
+This is like a bipartite matching/arrangement problem.
+
+Let me try to think of it as: assign the 5 odd numbers to positions 1-5 (odd positions) and 5 even numbers to positions 1-5 (even positions) to maximize the sum.
+
+Let me try the "zigzag" approach: put the largest odd numbers next to the smallest even numbers and vice versa.
+
+Try: 
+o = [9, 1, 7, 3, 5], e = [2, 8, 4, 6, 10]
+Path: 0, 9, 2, 1, 8, 7, 4, 3, 6, 5, 10
+D = 9 + 7 + 1 + 7 + 1 + 3 + 1 + 3 + 1 + 5 = 38. Bad.
+
+Hmm, that's bad because consecutive same-end values give small differences.
+
+Let me reconsider. The issue is that we need each consecutive pair to be far apart. So we need:
+- o_1 far from 0 → o_1 = 9 (best)
+- e_1 far from o_1=9 → e_1 = 2 (best)
+- o_2 far from e_1=2 → o_2 = 7 or 9 (9 used) → o_2 = 7
+- e_2 far from o_2=7 → e_2 = 10 or 2 (2 used) → e_2 = 10
+- o_3 far from e_2=10 → o_3 = 1 or 3 → o_3 = 1
+- e_3 far from o_3=1 → e_3 = 8 or 10 (10 used) → e_3 = 8
+- o_4 far from e_3=8 → o_4 = 3 or 5 → o_4 = 3
+- e_4 far from o_4=3 → e_4 = 6 or 8 (8 used) → e_4 = 6
+- o_5 far from e_4=6 → o_5 = 5 (only one left) → o_5 = 5
+- e_5 far from o_5=5 → e_5 = 4 (only one left) → e_5 = 4
+
+Path: 0, 9, 2, 7, 10, 1, 8, 3, 6, 5, 4
+Parity: 0(e), 9(o), 2(e), 7(o), 10(e), 1(o), 8(e), 3(o), 6(e), 5(o), 4(e) ✓
+D = 9 + 7 + 5 + 3 + 9 + 7 + 5 + 3 + 1 + 1 = 50
+
+Hmm, 50. The last two jumps are small (1, 1) because we're left with 5 and 4.
+
+Let me try a different greedy:
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 10, o_3 = 1, e_3 = 8, o_4 = 5, e_4 = 6, o_5 = 3, e_5 = 4
+Path: 0, 9, 2, 7, 10, 1, 8, 5, 6, 3, 4
+D = 9 + 7 + 5 + 3 + 9 + 7 + 3 + 1 + 3 + 1 = 48
+
+Worse. Let me try:
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 10, o_3 = 3, e_3 = 8, o_4 = 1, e_4 = 6, o_5 = 5, e_5 = 4
+Path: 0, 9, 2, 7, 10, 3, 8, 1, 6, 5, 4
+D = 9 + 7 + 5 + 3 + 7 + 5 + 7 + 5 + 1 + 1 = 50
+
+Still 50 at the end. The problem is the last pair.
+
+Let me try ending with a big jump. What if e_5 = 10?
+
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 4, o_3 = 1, e_3 = 8, o_4 = 3, e_4 = 6, o_5 = 5, e_5 = 10
+Path: 0, 9, 2, 7, 4, 1, 8, 3, 6, 5, 10
+D = 9 + 7 + 5 + 3 + 3 + 7 + 5 + 3 + 1 + 5 = 48
+
+Hmm. Let me try:
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 4, o_3 = 5, e_3 = 8, o_4 = 1, e_4 = 6, o_5 = 3, e_5 = 10
+Path: 0, 9, 2, 7, 4, 5, 8, 1, 6, 3, 10
+D = 9 + 7 + 5 + 3 + 1 + 3 + 7 + 5 + 3 + 7 = 50
+
+Let me try:
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 4, o_3 = 5, e_3 = 10, o_4 = 1, e_4 = 6, o_5 = 3, e_5 = 8
+Path: 0, 9, 2, 7, 4, 5, 10, 1, 6, 3, 8
+D = 9 + 7 + 5 + 3 + 1 + 5 + 9 + 5 + 3 + 5 = 52
+
+That's 52, same as before. Let me try more.
+
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 4, o_3 = 5, e_3 = 10, o_4 = 3, e_4 = 6, o_5 = 1, e_5 = 8
+Path: 0, 9, 2, 7, 4, 5, 10, 3, 6, 1, 8
+D = 9 + 7 + 5 + 3 + 1 + 5 + 7 + 3 + 5 + 7 = 52
+
+Same. Let me try different starting:
+o_1 = 9, e_1 = 2, o_2 = 5, e_2 = 10, o_3 = 1, e_3 = 8, o_4 = 7, e_4 = 4, o_5 = 3, e_5 = 6
+Path: 0, 9, 2, 5, 10, 1, 8, 7, 4, 3, 6
+D = 9 + 7 + 3 + 5 + 9 + 7 + 1 + 3 + 1 + 3 = 48
+
+o_1 = 9, e_1 = 2, o_2 = 5, e_2 = 10, o_3 = 7, e_3 = 4, o_4 = 1, e_4 = 8, o_5 = 3, e_5 = 6
+Path: 0, 9, 2, 5, 10, 7, 4, 1, 8, 3, 6
+D = 9 + 7 + 3 + 5 + 3 + 3 + 3 + 7 + 5 + 3 = 48
+
+Let me try:
+o_1 = 9, e_1 = 2, o_2 = 7, e_2 = 10, o_3 = 5, e_3 = 4, o_4 = 1, e_4 = 8, o_5 = 3, e_5 = 6
+Path: 0, 9, 2, 7, 10, 5, 4, 1, 8, 3, 6
+D = 9 + 7 + 5 + 3 + 5 + 1 + 3 + 7 + 5 + 3 = 48
+
+Let me try to think about the upper bound using the crossing method, accounting for parity.
+
+For interval [j, j+1], the left side L_j = {0, 1, ..., j} and right side R_j = {j+1, ..., 10}.
+
+The path alternates parity: even, odd, even, odd, ..., even (starting at 0 which is even, ending at e_5 which is even).
+
+So the path visits: even, odd, even, odd, even, odd, even, odd, even, odd, even.
+That's 6 even positions (including 0) and 5 odd positions.
+
+Even values: {0, 2, 4, 6, 8, 10} (6 values)
+Odd values: {1, 3, 5, 7, 9} (5 values)
+
+For interval [j, j+1], let's count how many even and odd values are on each side.
+
+Let me denote:
+- L_even(j) = number of even values in {0, ..., j}
+- L_odd(j) = number of odd values in {0, ..., j}
+- R_even(j) = number of even values in {j+1, ..., 10}
+- R_odd(j) = number of odd values in {j+1, ..., 10}
+
+The path pattern is: E, O, E, O, E, O, E, O, E, O, E (6 E's and 5 O's).
+
+When the path crosses interval [j, j+1], it goes from one side to the other. The constraint is that the parity must alternate. So when we're on the left side, we visit some E's and O's in alternating fashion, then cross to the right, visit some E's and O's, cross back, etc.
+
+The number of crossings is limited by how many times we can alternate between sides while maintaining the parity alternation.
+
+This is complex. Let me think about it differently.
+
+Actually, let me think about the maximum possible total distance without the parity constraint first, then see how much the parity constraint reduces it.
+
+Without parity constraint, starting at 0, visiting all of 1-10:
+The maximum is achieved by: 0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5
+D = 10 + 9 + 8 + 7 + 6 + 5 + 4 + 3 + 2 + 1 = 55
+
+Or: 0, 10, 1, 9, 2, 8, 3, 7, 6, 4, 5 → let me not go down this path.
+
+With parity constraint, I'm getting 52 so far. Let me try to see if I can do better.
+
+Let me try:
+0, 9, 2, 7, 10, 1, 8, 3, 6, 5, 4 → D = 9+7+5+3+9+7+5+3+1+1 = 50
+
+0, 9, 2, 7, 10, 1, 6, 5, 8, 3, 4
+Parity: 0(e), 9(o), 2(e), 7(o), 10(e), 1(o), 6(e), 5(o), 8(e), 3(o), 4(e) ✓
+D = 9+7+5+3+9+5+1+3+5+1 = 48
+
+0, 9, 2, 7, 10, 3, 4, 1, 8, 5, 6
+Parity: 0(e), 9(o), 2(e), 7(o), 10(e), 3(o), 4(e), 1(o), 8(e), 5(o), 6(e) ✓
+D = 9+7+5+3+7+1+3+7+3+1 = 46
+
+Let me try to be more systematic. I'll think about what the theoretical maximum is.
+
+Using the crossing bound with parity:
+
+For each interval [j, j+1], the maximum number of crossings depends on the arrangement of even/odd on each side and the alternation constraint.
+
+The path is: E O E O E O E O E O E (positions 0-10, where position 0 is value 0).
+
+When crossing interval [j,j+1], the path switches sides. On each side, the path visits a contiguous subsequence of the E-O-E-O-... pattern.
+
+Let me think about it as: the path is a sequence of 11 values with alternating parity. The "sides" are determined by whether the value is ≤ j or ≥ j+1.
+
+For the path to cross interval [j, j+1] many times, it needs to alternate between sides frequently. Each time it's on one side, it visits at least one value (of the appropriate parity).
+
+The constraint is: the path must alternate E, O, E, O, .... So on each side, the values visited form a subsequence of the alternating pattern.
+
+Let me think about the maximum crossings for a specific interval, say [4, 5] (between 4 and 5).
+
+Left side: {0, 2, 4} (even) and {1, 3} (odd) → 3 even, 2 odd
+Right side: {6, 8, 10} (even) and {5, 7, 9} (odd) → 3 even, 3 odd
+
+The path is E O E O E O E O E O E. It starts at 0 (left, even) and ends at some even value.
+
+To maximize crossings of [4,5], we want to alternate sides as much as possible. Each "visit" to a side uses at least one value of the correct parity.
+
+The path pattern: E(left) O(?) E(?) O(?) E(?) O(?) E(?) O(?) E(?) O(?) E(?)
+
+We start on the left (E). To cross, the next O must be on the right. Then E on the left, O on the right, etc. Or we could stay on the left for multiple steps.
+
+To maximize crossings, we want: E(L), O(R), E(L), O(R), E(L), O(R), E(L), O(R), E(L), O(R), E(R or L).
+
+But left side has only 2 odd values and right side has 3 odd values. And left has 3 even, right has 3 even.
+
+If we alternate L, R, L, R, ...: 
+E(L), O(R), E(L), O(R), E(L), O(R), E(L), O(R), E(L), O(R), E(?)
+
+This uses: 5 E's on left (but only 3 available on left!) - doesn't work.
+
+So we can't just alternate every step. We need to sometimes stay on one side for multiple steps.
+
+Let me think about it as: the path consists of "blocks" on each side. A block on the left uses some consecutive E's and O's from the left, a block on the right uses some from the right.
+
+The maximum number of crossings = 2 * (number of right-blocks) if start and end on left, or 2 * (number of right-blocks) - 1 if start on left and end on right, etc.
+
+Wait, I already did this analysis. The number of crossings = 2 * (number of side switches / 2). Let me re-approach.
+
+If the path has k "runs" (maximal consecutive subsequences on the same side), then the number of crossings is k-1.
+
+If start on left: runs alternate L, R, L, R, .... If k is odd, end on left; if k is even, end on right.
+
+Each run on the left uses some E's and O's from the left, each run on the right uses some from the right. The E/O pattern must be consistent across runs.
+
+The path is E O E O E O E O E O E. The runs partition this sequence. Each run is a contiguous subsequence. The parities within each run must alternate (E, O, E, ... or O, E, O, ... depending on where the run starts).
+
+If the first run starts at position 0 (E), it's E, O, E, O, ... (alternating starting with E).
+The second run starts at the next position, which has the opposite parity of the last element of the first run. Wait, no - the runs are contiguous in the path, so the alternation continues across runs. The path is always E O E O E O E O E O E regardless of how we partition into runs.
+
+So each run is a contiguous subsequence of E O E O E O E O E O E. A run on the left uses values from the left side, a run on the right uses values from the right side.
+
+For a run on the left: it uses some E's and O's from the left. If the run starts with E, it uses ceil(len/2) E's and floor(len/2) O's. If it starts with O, it uses floor(len/2) E's and ceil(len/2) O's.
+
+The total E's used on the left = L_even, total O's used on the left = L_odd. Similarly for right.
+
+The number of runs on the left and right, and their starting parities, determine how many E's and O's are used on each side.
+
+This is a complex combinatorial optimization. Let me just try to find the answer computationally by trying more arrangements.
+
+Actually, let me think about the upper bound differently. 
+
+The total distance = sum of |consecutive differences|. Each difference is |a - b| where a and b have different parities (one odd, one even). So each difference is odd (since |odd - even| is always odd).
+
+We have 10 differences, each odd. The maximum possible odd difference is 9 (between 0 and 9, or 1 and 10). Wait, |0-9|=9, |1-10|=9, |0-10|=10 but 0 and 10 are both even so that's not allowed. |1-8|=7, etc.
+
+Actually, the differences are between consecutive stops, which alternate parity. So each difference is |odd - even| or |even - odd|, which is always odd. Wait no: |even - odd| is always odd. Yes.
+
+So each of the 10 differences is an odd number. The possible values are 1, 3, 5, 7, 9.
+
+Maximum possible: all 10 differences = 9, giving 90. But that's impossible since we only have limited values.
+
+Let me think about the sum of all differences differently. 
+
+D = |o_1 - 0| + |e_1 - o_1| + |o_2 - e_1| + ... + |e_5 - o_5|
+
+= o_1 + sum_{i=1}^{5} |e_i - o_i| + sum_{i=1}^{4} |o_{i+1} - e_i|
+
+Each |e_i - o_i| is odd (even - odd), each |o_{i+1} - e_i| is odd (odd - even), and o_1 is odd.
+
+So D = (odd) + 5*(odd) + 4*(odd) = odd + 9*odd. The sum of 10 odd numbers is even. Plus o_1 which is odd. So D is odd. Wait, let me recount: o_1 is one term, then 5 terms of |e_i - o_i|, then 4 terms of |o_{i+1} - e_i|. Total 1 + 5 + 4 = 10 terms. o_1 is odd, the other 9 are odd. Sum of 10 odd numbers = even. So D is even.
+
+Hmm wait, o_1 is an odd number (1,3,5,7,9), and the other 9 terms are each |even - odd| which is odd. So D = sum of 10 odd numbers = even. OK.
+
+So D is even. My best so far is 52. Let me see if 54 is possible.
+
+For D = 54, we need the 10 differences to sum to 54. Each is odd, at most 9. If we have k differences equal to 9, the rest sum to 54 - 9k. 
+
+If k=6: 54 - 54 = 0, remaining 4 differences sum to 0, impossible (each ≥ 1).
+If k=5: 54 - 45 = 9, remaining 5 differences sum to 9, each odd ≥ 1. Min sum = 5. 9 = 5 + 4, but 4 is even. 9 = 1+1+1+1+5 or 1+1+1+3+3. So possible: five 9's, and {5,1,1,1,1} or {3,3,1,1,1}.
+
+Hmm, but can we actually achieve five differences of 9? A difference of 9 means |a-b| = 9 where one is odd and one is even. The pairs with difference 9: (0,9), (1,10). That's it (among 0-10). 
+
+(0,9): 0 even, 9 odd ✓
+(1,10): 1 odd, 10 even ✓
+
+So the only way to get a difference of 9 is to use the pair (0,9) or (1,10). Since 0 is the starting point, (0,9) can only be the first difference. (1,10) can be used once.
+
+So at most 2 differences can be 9. That means at most 2*9 = 18 from those, and the remaining 8 differences sum to 54-18 = 36, each at most 7.
+
+8 differences, each odd, at most 7, summing to 36. Max sum = 8*7 = 56 ≥ 36. Min sum = 8*1 = 8 ≤ 36. Is 36 achievable? 36 = 7*4 + 4*2 = 28 + 8 = 36. But 4 is even. 36 = 7*4 + 5*0 + 3*0 + 1*8... no, 7*4=28, 36-28=8, 8 = 1*8. So four 7's and eight 1's... wait, 4+8=12 but we need 8 differences. 4 sevens and 4 ones: 28+4=32. 5 sevens and 3 ones: 35+3=38. 4 sevens, 1 five, 3 ones: 28+5+3=36. Yes! So {7,7,7,7,5,1,1,1} sums to 36.
+
+But can we actually achieve this? We need 2 differences of 9 (using (0,9) and (1,10)), 4 differences of 7, 1 of 5, and 3 of 1.
+
+Differences of 7 (odd-even pairs with |diff|=7): (0,7), (1,8), (2,9), (3,10). 
+(0,7): 0 is start, already used in (0,9).
+(1,8): 1 is used in (1,10).
+(2,9): 9 is used in (0,9).
+(3,10): 10 is used in (1,10).
+
+So if we use (0,9) and (1,10), the remaining values are {2,3,4,5,6,7,8}. The pairs with difference 7 among these: (1,8) - 1 used. (0,7) - 0 used. (2,9) - 9 used. (3,10) - 10 used. None available!
+
+So we can't have 4 differences of 7 if we use 2 differences of 9. The values 0, 1, 9, 10 are "consumed" and no pair with difference 7 remains.
+
+What about difference 7 pairs not involving 0,1,9,10? We need |a-b|=7 with a,b ∈ {2,3,4,5,6,7,8}. Max difference is 8-2=6 < 7. So no difference of 7 is possible among the remaining values!
+
+So with 2 differences of 9, the remaining 8 differences are at most 5 (since max |a-b| with a,b ∈ {2,...,8} and different parity is |2-7|=5 or |3-8|=5).
+
+8 differences, each odd, at most 5: max sum = 8*5 = 40. So D ≤ 18 + 40 = 58. But can we achieve 40 from the remaining?
+
+Differences of 5 among {2,3,4,5,6,7,8}: (2,7), (3,8). (4,9) - 9 used. (5,10) - 10 used. So (2,7) and (3,8). Each can be used at most... well, 2 and 7 can be paired once, 3 and 8 once. So at most 2 differences of 5.
+
+Remaining 6 differences from {4,5,6} (after using 2,3,7,8): values are {4,5,6}. Differences: |4-5|=1, |5-6|=1, |4-6|=2 (but 4,6 both even, not allowed). So only differences of 1.
+
+So with 2 differences of 9, 2 of 5, and 6 of 1: D = 18 + 10 + 6 = 34. That's terrible.
+
+OK so using both (0,9) and (1,10) is bad because it consumes the extreme values. Let me reconsider.
+
+What if we use only 1 difference of 9? Say (0,9) as the first step. Then remaining values are {1,2,3,4,5,6,7,8,10} and we need 9 more differences.
+
+Differences of 7 among these: (1,8), (3,10). (2,9) - 9 used. (0,7) - 0 used.
+So (1,8) and (3,10): 2 differences of 7.
+
+If we use both: remaining values {2,4,5,6,7} (after using 1,3,8,10). Wait: used so far: 0, 9 (from first), 1, 8 (from diff 7), 3, 10 (from diff 7). Remaining: {2, 4, 5, 6, 7}. Need 6 more differences.
+
+Differences of 5 among {2,4,5,6,7}: (2,7). That's it. (0,5)-0 used, (1,6)-1 used, (5,10)-10 used. So (2,7): 1 difference of 5.
+
+Remaining: {4, 5, 6}. 5 more differences. Wait, we have 3 values left and need 5 differences? No - we have 9 remaining differences to fill (after the first), and we've used 2 (diff 7) + 1 (diff 5) = 3, so 6 more differences from {4,5,6}.
+
+But {4,5,6} has only 3 values, and we need to visit each once. 3 values means 2 differences (if they're consecutive in the path). But we need 6 more differences. That doesn't work because we'd need to visit more values.
+
+Wait, I'm confusing myself. Let me recount. The path has 11 values (0 plus 10 stops) and 10 differences. If the first difference is (0,9), we've placed 0 and 9. We have 9 values left to place: {1,2,3,4,5,6,7,8,10} and 9 differences left.
+
+If we use (1,8) as a difference: this means 1 and 8 are consecutive in the path. Similarly (3,10). And (2,7).
+
+So far differences: 9, 7, 7, 5. Used values: 0, 9, 1, 8, 3, 10, 2, 7. Remaining values: {4, 5, 6}. Remaining differences: 6.
+
+But we only have 3 values left, which contribute at most 2 differences (if they're all consecutive). But we need 6 more differences. The issue is that the "big difference" pairs don't have to be consecutive in the path - they just need to be one of the 10 consecutive pairs.
+
+Let me re-approach. The path is a sequence of 11 values. The 10 differences are between consecutive values. I was trying to identify which differences could be large, but the constraint is that the values form a path (permutation).
+
+Let me think about it more carefully. The path is: 0, v_1, v_2, ..., v_10 where {v_1, ..., v_10} = {1, ..., 10} and parities alternate.
+
+The differences are d_i = |v_i - v_{i-1}| for i=1..10 (with v_0 = 0).
+
+Each d_i is odd. I want to maximize sum d_i.
+
+Let me think about the upper bound using the crossing method, but now I need to account for the parity constraint.
+
+Actually, let me just try to find better arrangements by hand, or think about what the theoretical max is.
+
+Let me reconsider. Without the parity constraint, the max is 55 (for 11 points 0-10, starting at 0). With the parity constraint, the max must be ≤ 55.
+
+My best so far is 52. Let me try to see if 54 is possible.
+
+For D = 54, I need sum of 10 odd numbers = 54.
+
+Let me think about the crossing bound. For each interval [j, j+1], the number of crossings c_j. D = sum c_j.
+
+Without parity constraint, the max crossings for each interval (starting at 0, ending at some point):
+
+For interval [j, j+1], L = j+1 points on left, R = 10-j on right. Start at 0 (left).
+
+If end on left: c_j ≤ 2*min(R, L-1) = 2*min(10-j, j)
+If end on right: c_j ≤ 2*min(L, R) - 1 = 2*min(j+1, 10-j) - 1
+
+To maximize total, we'd want to end on the side that gives more crossings for each interval. But the endpoint is fixed.
+
+For the unconstrained case with endpoint = 5 (middle):
+j=0: end on right (5>0), c ≤ 2*min(1,10)-1 = 1
+j=1: end on right, c ≤ 2*min(2,9)-1 = 3
+j=2: end on right, c ≤ 2*min(3,8)-1 = 5
+j=3: end on right, c ≤ 2*min(4,7)-1 = 7
+j=4: end on right, c ≤ 2*min(5,6)-1 = 9
+j=5: end on left (5≤5), c ≤ 2*min(5,5) = 10
+j=6: end on left, c ≤ 2*min(4,6) = 8
+j=7: end on left, c ≤ 2*min(3,7) = 6
+j=8: end on left, c ≤ 2*min(2,8) = 4
+j=9: end on left, c ≤ 2*min(1,9) = 2
+
+Total = 1+3+5+7+9+10+8+6+4+2 = 55. ✓ (matches the known max)
+
+Now with parity constraint, the crossings are further limited. The parity constraint means that on each side, the values visited must alternate in parity, and the overall alternation must be consistent.
+
+Let me think about this more carefully for a specific interval.
+
+For interval [j, j+1], let's say left side has L_e even values and L_o odd values, right side has R_e even values and R_o odd values.
+
+The path is E O E O E O E O E O E (6 E's, 5 O's). The E's are {0,2,4,6,8,10} and O's are {1,3,5,7,9}.
+
+When the path visits the left side, it uses some E's and O's from the left. When it visits the right, it uses some from the right. The alternation E O E O ... must be maintained.
+
+Let's say the path has runs: L_1, R_1, L_2, R_2, ..., where L_i are runs on the left and R_i on the right. (Starting on left since 0 is on the left for all intervals.)
+
+The number of crossings = 2 * (number of R runs) if the path ends on left, or 2*(number of R runs) - 1 if ends on right. Wait, if it starts on left and has k R-runs:
+- If ends on left: L-runs = k+1, R-runs = k, crossings = 2k
+- If ends on right: L-runs = k, R-runs = k, crossings = 2k-1
+
+Now, each run uses some E's and O's. The key constraint is the alternation.
+
+The path is E O E O E O E O E O E. The runs partition this into contiguous segments. Each segment alternates E O E O ... The first segment starts with E, the second starts with O (if the first has even length) or E (if odd length), etc.
+
+Actually, the starting parity of each run depends on where in the E O E O ... sequence it starts. Run 1 starts at position 0 (E). If run 1 has length l_1, run 2 starts at position l_1, which has parity E if l_1 is even, O if l_1 is odd.
+
+So the starting parity of each run alternates based on the cumulative length.
+
+This is getting very complex. Let me just try to computationally verify by trying many arrangements.
+
+Let me try to think about it differently. Let me consider the problem as choosing a permutation of odds and a permutation of evens, interleaved.
+
+Path: 0, o_1, e_1, o_2, e_2, o_3, e_3, o_4, e_4, o_5, e_5
+
+D = o_1 + |e_1 - o_1| + |o_2 - e_1| + |e_2 - o_2| + ... + |e_5 - o_5|
+
+Let me think of this as a "zigzag" where we want to maximize. The ideal is to have each o_i and e_i as far apart as possible.
+
+Let me try a different approach: think of the odd and even values as two sets, and we're creating a path that alternates between them.
+
+To maximize, we want to pair high values with low values. The "zigzag" pattern would be: go to a high odd, then low even, then high odd, then low even, etc. Or: low odd, high even, low odd, high even.
+
+Since we start at 0 (low even), going to high odd first makes sense.
+
+Let me try: 0, 9, 2, 7, 4, 5, 10, 1, 8, 3, 6
+D = 9+7+5+3+1+5+9+7+5+3 = 54!
+
+Wait let me recompute: 
+|9-0| = 9
+|2-9| = 7
+|7-2| = 5
+|4-7| = 3
+|5-4| = 1
+|10-5| = 5
+|1-10| = 9
+|8-1| = 7
+|3-8| = 5
+|6-3| = 3
+Sum = 9+7+5+3+1+5+9+7+5+3 = 54!
+
+Let me verify parity: 0(e), 9(o), 2(e), 7(o), 4(e), 5(o), 10(e), 1(o), 8(e), 3(o), 6(e) ✓
+All values 1-10 appear exactly once: 9,2,7,4,5,10,1,8,3,6 ✓
+
+D = 54! That's better than 52.
+
+Can we do 56? Let me check if 56 is possible.
+
+For D = 56, sum of 10 odd numbers = 56. 
+
+Let me think about the upper bound. Using the crossing method with parity constraint:
+
+For each interval, I need to figure out the max crossings given the parity constraint.
+
+Let me think about interval [4, 5]:
+Left: {0,1,2,3,4} → even: {0,2,4} (3), odd: {1,3} (2)
+Right: {5,6,7,8,9,10} → even: {6,8,10} (3), odd: {5,7,9} (3)
+
+Path: E O E O E O E O E O E (6E, 5O). Start at 0 (left, E).
+
+The E's are {0,2,4,6,8,10}: 3 on left, 3 on right.
+The O's are {1,3,5,7,9}: 2 on left, 3 on right.
+
+To maximize crossings, we want to alternate sides as much as possible. Each run on a side uses at least one value. The alternation E O E O ... must be maintained.
+
+Let's think about the maximum number of runs. We have 6 E's and 5 O's, with 3E+2O on left and 3E+3O on right.
+
+If we want to maximize runs (and thus crossings), we want short runs. The shortest run has length 1.
+
+If all runs have length 1: the path alternates side every step. Run 1: E (left), Run 2: O (right), Run 3: E (left), Run 4: O (right), ...
+
+This uses: E from left, O from right, E from left, O from right, ...
+After 5 such pairs: 5 E's from left, 5 O's from right. But left only has 3 E's! So we can have at most 3 E-runs on the left, using 3 E's.
+
+Let me think about it as: we have 11 positions (E O E O E O E O E O E). We assign each position to left or right side. Position 0 (E, value 0) is left. The assignment must be consistent: E positions get E values, O positions get O values, and the number of E's on left = 3, E's on right = 3, O's on left = 2, O's on right = 3.
+
+We want to maximize the number of side changes (crossings).
+
+Positions: 0(E), 1(O), 2(E), 3(O), 4(E), 5(O), 6(E), 7(O), 8(E), 9(O), 10(E)
+
+E positions: 0, 2, 4, 6, 8, 10 (6 positions, 3 left, 3 right)
+O positions: 1, 3, 5, 7, 9 (5 positions, 2 left, 3 right)
+
+Position 0 is left (value 0).
+
+We want to assign sides to maximize the number of changes between consecutive positions.
+
+This is like: we have a binary string of length 11 (L/R for each position), with position 0 = L, and constraints on how many L's and R's are at E-positions and O-positions.
+
+E-positions (0,2,4,6,8,10): 3 L, 3 R (position 0 is L, so positions 2,4,6,8,10 have 2 L and 3 R)
+O-positions (1,3,5,7,9): 2 L, 3 R
+
+We want to maximize the number of changes in the binary string.
+
+The binary string has 11 bits. Position 0 = L. We want to maximize transitions.
+
+If we alternate: L R L R L R L R L R L → 10 transitions. 
+E-positions (0,2,4,6,8,10): L,L,L,L,L,L → 6 L. But we need 3 L and 3 R. ✗
+
+So perfect alternation doesn't work. We need to assign 3 R's to E-positions and 3 R's to O-positions.
+
+Let me think of it as: we want to maximize transitions. The maximum transitions for a binary string of length 11 starting with L is 10 (perfect alternation). But we have constraints.
+
+E-positions that are R: 3 out of {2,4,6,8,10} (5 positions, choose 3)
+O-positions that are R: 3 out of {1,3,5,7,9} (5 positions, choose 3)
+
+And E-positions that are L: 3 (including position 0, so 2 out of {2,4,6,8,10})
+O-positions that are L: 2 out of {1,3,5,7,9}
+
+So we choose 2 E-positions from {2,4,6,8,10} to be L, and 3 O-positions from {1,3,5,7,9} to be L. The rest are R.
+
+We want to maximize transitions in the resulting binary string.
+
+Let me denote the string as b_0 b_1 ... b_10 where b_0 = L.
+
+Transitions = number of i where b_i ≠ b_{i+1}.
+
+To maximize, we want b_i to alternate as much as possible. The ideal is L R L R L R L R L R L, but we need exactly 3 L's at E-positions (0,2,4,6,8,10) and 2 L's at O-positions (1,3,5,7,9).
+
+In the ideal alternation L R L R L R L R L R L:
+E-positions (0,2,4,6,8,10): L,L,L,L,L,L → 6 L (need 3)
+O-positions (1,3,5,7,9): R,R,R,R,R → 0 L (need 2)
+
+So we need to flip 3 E-positions from L to R, and 2 O-positions from R to L. Each flip may reduce transitions.
+
+When we flip position i, the change in transitions depends on its neighbors. If b_{i-1} = b_{i+1} = original b_i, flipping changes 2 transitions to 0 (net -2). If b_{i-1} ≠ b_{i+1}, flipping changes 1 transition to 0 and 0 to 1 (net 0). If b_{i-1} = b_{i+1} = new b_i, flipping changes 0 transitions to 2 (net +2) - but this can't happen in the alternating string since b_{i-1} = b_{i+1} ≠ b_i.
+
+In the alternating string, b_{i-1} = b_{i+1} ≠ b_i for all interior i. So flipping any interior position changes transitions by -2 (if it was a transition on both sides) or... wait.
+
+In L R L R L R L R L R L, every interior position has b_{i-1} = b_{i+1} ≠ b_i. So both (i-1, i) and (i, i+1) are transitions. Flipping b_i makes both non-transitions, and since b_{i-1} = b_{i+1}, no new transition is created. Net change: -2.
+
+But if we flip two adjacent positions, the effect is different. Flipping positions i and i+1: 
+- (i-1, i): was transition, now b_i = b_{i-1}, not a transition. -1
+- (i, i+1): was transition, now b_i = b_{i+1} (both flipped), not a transition. -1
+- (i+1, i+2): was transition, now b_{i+1} = b_{i+2}, not a transition. -1
+Net: -3. Worse.
+
+What if we flip non-adjacent positions? Each flip costs -2, and if they're not adjacent, the costs are independent. So 5 flips (3 E + 2 O) cost at least... but some flips might be adjacent and cost less.
+
+If we flip an E-position and an adjacent O-position, the cost is -3 for the pair instead of -4 for two separate flips. So it's better to flip adjacent pairs.
+
+We need to flip 3 E-positions and 2 O-positions. We can pair 2 E-flips with 2 O-flips (as adjacent pairs), and 1 E-flip alone.
+
+Each adjacent E-O pair flip costs -3 (instead of -4). The lone E-flip costs -2.
+
+Total cost: 2*(-3) + 1*(-2) = -8. So transitions = 10 - 8 = 2. That seems too low.
+
+Wait, that can't be right. Let me reconsider.
+
+Actually, I need to be more careful. Let me reconsider which positions to flip.
+
+In the alternating string L R L R L R L R L R L (positions 0-10):
+- E-positions (0,2,4,6,8,10) are all L
+- O-positions (1,3,5,7,9) are all R
+
+We need 3 E-positions to be R (flip 3 of positions 2,4,6,8,10 from L to R) and 2 O-positions to be L (flip 2 of positions 1,3,5,7,9 from R to L).
+
+Let me try to choose flips to minimize the total cost.
+
+If I flip E-position 2 and O-position 1 (adjacent):
+Before: ... L(0) R(1) L(2) R(3) ...
+After: ... L(0) L(1) R(2) R(3) ...
+Transitions: (0,1): was 1, now 0. (1,2): was 1, now 0. (2,3): was 1, now 0. 
+Cost: -3.
+
+If I flip E-position 2 and O-position 3 (adjacent):
+Before: ... R(1) L(2) R(3) L(4) ...
+After: ... R(1) R(2) L(3) L(4) ...
+Transitions: (1,2): was 1, now 0. (2,3): was 1, now 0. (3,4): was 1, now 0.
+Cost: -3.
+
+If I flip E-position 2 alone:
+Before: ... R(1) L(2) R(3) ...
+After: ... R(1) R(2) R(3) ...
+Transitions: (1,2): was 1, now 0. (2,3): was 1, now 0.
+Cost: -2.
+
+So flipping an adjacent E-O pair costs -3, while flipping them separately costs -4. So pairing saves 1.
+
+We have 3 E-flips and 2 O-flips. We can form 2 adjacent pairs (using 2 E-flips and 2 O-flips) and 1 lone E-flip.
+
+Cost: 2*(-3) + 1*(-2) = -8. Transitions = 10 - 8 = 2.
+
+But wait, can we do better by choosing the lone E-flip to be at position 10 (the end)? 
+
+If we flip position 10 (E, end of string):
+Before: ... R(9) L(10)
+After: ... R(9) R(10)
+Transitions: (9,10): was 1, now 0.
+Cost: -1.
+
+So flipping an endpoint costs only -1. So if the lone E-flip is at position 10, cost = 2*(-3) + 1*(-1) = -7. Transitions = 10 - 7 = 3.
+
+Can we also make one of the pairs involve position 10? Position 10 is E, and position 9 is O. If we flip both 9 and 10:
+Before: ... L(8) R(9) L(10)
+After: ... L(8) L(9) R(10)
+Transitions: (8,9): was 1, now 0. (9,10): was 1, now 0.
+Cost: -2 (only 2 transitions affected, since position 10 is the end).
+
+So flipping (9,10) as a pair costs -2 instead of -3! Even better.
+
+So we can have:
+- Pair (9,10): flip O-position 9 and E-position 10. Cost: -2.
+- Pair: flip one E-position and one adjacent O-position. Cost: -3.
+- Lone E-flip. Cost: -2 (if interior) or we've already used position 10.
+
+Wait, we need 3 E-flips and 2 O-flips. If we use the pair (9,10), that's 1 E-flip (pos 10) and 1 O-flip (pos 9). Remaining: 2 E-flips and 1 O-flip.
+
+We can pair 1 E-flip with 1 O-flip (cost -3), and 1 lone E-flip (cost -2 if interior).
+
+Total: -2 + (-3) + (-2) = -7. Transitions = 10 - 7 = 3.
+
+Or, can the lone E-flip be at position 2 (adjacent to position 0 which is L, not flipped)? Position 2 is interior, so cost -2.
+
+Hmm, or can we make the lone E-flip adjacent to an already-flipped position? Let me think...
+
+If we flip positions 2(E) and 1(O) as a pair (cost -3), and positions 4(E) and 5(O) as a pair (cost -3), and position 10(E) alone (cost -1):
+Total: -3 + (-3) + (-1) = -7. Transitions = 3.
+
+But wait, we need 2 O-flips, and I'm using positions 1 and 5. And 3 E-flips: positions 2, 4, 10. Let me check: E-positions flipped to R: {2, 4, 10} (3 ✓). O-positions flipped to L: {1, 5} (2 ✓).
+
+Resulting string:
+Pos: 0  1  2  3  4  5  6  7  8  9  10
+Orig: L  R  L  R  L  R  L  R  L  R  L
+Flip:    ✓  ✓     ✓  ✓              ✓
+New:  L  L  R  R  R  L  L  R  L  R  R
+
+Transitions: (0,1): L-L = 0. (1,2): L-R = 1. (2,3): R-R = 0. (3,4): R-R = 0. (4,5): R-L = 1. (5,6): L-L = 0. (6,7): L-R = 1. (7,8): R-L = 1. (8,9): L-R = 1. (9,10): R-R = 0.
+Transitions = 5. Crossings = 5.
+
+Hmm, that's 5, not 3. Let me recheck my cost calculation.
+
+Original transitions: 10 (all consecutive pairs are transitions in L R L R L R L R L R L).
+After flipping: transitions = 10 + cost. Cost = 5 - 10 = -5. 
+
+But I calculated cost = -3 + (-3) + (-1) = -7, which would give 3. But actual is 5. Let me recheck.
+
+Flipping (1,2): 
+Before: L(0) R(1) L(2) R(3) → transitions at (0,1), (1,2), (2,3) all = 1
+After: L(0) L(1) R(2) R(3) → transitions at (0,1)=0, (1,2)=1, (2,3)=0
+Change: -2 (not -3!)
+
+Hmm, I made an error earlier. Let me recompute. When we flip positions 1 and 2:
+- (0,1): L-R → L-L, transition lost. -1
+- (1,2): R-L → L-R, transition preserved. 0
+- (2,3): L-R → R-R, transition lost. -1
+Total: -2.
+
+I made an error before! Flipping an adjacent pair costs -2, not -3. Let me redo.
+
+When we flip adjacent positions i and i+1 (both interior):
+- (i-1, i): transition → non-transition (since b_{i-1} ≠ b_i originally, and b_{i-1} = b_i after flip). -1
+- (i, i+1): transition → non-transition (since b_i ≠ b_{i+1} originally, and b_i = b_{i+1} after flip). -1
+- (i+1, i+2): transition → non-transition (since b_{i+1} ≠ b_{i+2} originally, and b_{i+1} = b_{i+2} after flip). -1
+Total: -3.
+
+Wait, but in my example, flipping (1,2) gave -2, not -3. Let me recheck.
+
+Position 0 = L (not flipped), position 1 = R → L (flipped), position 2 = L → R (flipped), position 3 = R (not flipped).
+
+(0,1): L-R → L-L. Was transition, now not. -1.
+(1,2): R-L → L-R. Was transition, still transition. 0.
+(2,3): L-R → R-R. Was transition, now not. -1.
+Total: -2.
+
+The difference from my formula is that (1,2) remains a transition because both are flipped. In my formula, I said (i, i+1) goes from transition to non-transition, but that's wrong! If both are flipped, b_i and b_{i+1} both change, so b_i ≠ b_{i+1} remains true (since they were different and both flipped). So (i, i+1) stays a transition.
+
+So flipping an adjacent pair (both interior) costs -2, not -3. And flipping a single interior position costs -2 as well (both neighbors become same as the flipped position).
+
+Wait, flipping a single interior position i:
+- (i-1, i): b_{i-1} ≠ b_i → b_{i-1} = b_i (flipped). -1
+- (i, i+1): b_i ≠ b_{i+1} → b_i = b_{i+1} (flipped). -1
+Total: -2.
+
+And flipping an adjacent pair (i, i+1), both interior:
+- (i-1, i): -1
+- (i, i+1): 0 (both flipped, still different)
+- (i+1, i+2): -1
+Total: -2.
+
+So flipping a pair costs the same as flipping one! That means flipping 5 positions costs:
+- If all separate (non-adjacent): 5 * (-2) = -10. Transitions = 0.
+- If we pair them up: each pair costs -2, plus any lone flips cost -2. So 2 pairs + 1 lone = 2*(-2) + (-2) = -6. Transitions = 4.
+- But we need the pairs to be E-O adjacent pairs.
+
+Wait, but the pairs must be E-O pairs (one E-position and one O-position). E-positions are even-indexed, O-positions are odd-indexed. Adjacent positions are always E-O pairs (since consecutive integers have different parity). So any adjacent pair is an E-O pair. ✓
+
+We have 5 flips: 3 E-flips and 2 O-flips. We can form at most 2 E-O adjacent pairs (using 2 E and 2 O), leaving 1 E-flip alone.
+
+2 pairs + 1 lone: cost = 2*(-2) + (-2) = -6. But wait, can the lone E-flip be at an endpoint?
+
+If the lone E-flip is at position 10 (endpoint): cost = -1 (only one neighbor). Total = 2*(-2) + (-1) = -5. Transitions = 5.
+
+If one pair involves position 10 (E) and position 9 (O): 
+- (8,9): -1
+- (9,10): 0 (both flipped, still different)
+Total for this pair: -1.
+Then 1 more pair (interior): -2. And 1 lone E-flip (interior): -2.
+Total: -1 + (-2) + (-2) = -5. Transitions = 5.
+
+Or: pair at (9,10) costs -1, another pair costs -2, lone E-flip at... we've used E-positions 10 and one other, O-positions 9 and one other. Remaining: 1 E-flip. If at endpoint... position 0 is E but it's fixed as L (value 0 is on left). So position 0 can't be flipped. The only E-endpoint is position 10, already used.
+
+So the lone E-flip is interior, costing -2. Total = -1 + (-2) + (-2) = -5. Transitions = 5.
+
+Can we do better? What if we flip 3 adjacent positions? E.g., positions 1, 2, 3 (O, E, O). But we need 3 E-flips and 2 O-flips, so flipping 1 E and 2 O in a triple.
+
+Flipping positions 1, 2, 3 (all interior):
+- (0,1): -1
+- (1,2): 0 (both flipped)
+- (2,3): 0 (both flipped)
+- (3,4): -1
+Total: -2. That's 1 E-flip and 2 O-flips for cost -2.
+
+Then remaining: 2 E-flips. If separate: 2*(-2) = -4. Total: -2 + (-4) = -6. Transitions = 4.
+If paired as a pair: but they'd need to be adjacent E-positions, which are positions 2k and 2(k+1) = 2k+2, not adjacent. So can't pair two E-flips.
+
+If one of the remaining E-flips is at position 10 (endpoint): -1. Other is interior: -2. Total: -2 + (-1) + (-2) = -5. Transitions = 5.
+
+Hmm, same. What about flipping 5 consecutive positions? E.g., 1,2,3,4,5 (O,E,O,E,O). That's 2 E-flips and 3 O-flips. But we need 3 E and 2 O. Doesn't match.
+
+What about 2,3,4,5,6 (E,O,E,O,E)? That's 3 E-flips and 2 O-flips. ✓
+
+Flipping positions 2,3,4,5,6 (all interior):
+- (1,2): -1
+- (2,3): 0
+- (3,4): 0
+- (4,5): 0
+- (5,6): 0
+- (6,7): -1
+Total: -2. Transitions = 10 - 2 = 8!
+
+That's much better! Let me verify.
+
+Original: L(0) R(1) L(2) R(3) L(4) R(5) L(6) R(7) L(8) R(9) L(10)
+Flip 2,3,4,5,6: L(0) R(1) R(2) L(3) R(4) L(5) R(6) R(7) L(8) R(9) L(10)
+
+Transitions:
+(0,1): L-R = 1
+(1,2): R-R = 0
+(2,3): R-L = 1
+(3,4): L-R = 1
+(4,5): R-L = 1
+(5,6): L-R = 1
+(6,7): R-R = 0
+(7,8): R-L = 1
+(8,9): L-R = 1
+(9,10): R-L = 1
+Total: 8. ✓
+
+So for interval [4,5], the maximum crossings = 8 (with the parity constraint).
+
+But wait, I need to check that this assignment is actually feasible. The assignment says:
+- E-positions on left (L): 0, 8, 10 → values from {0, 2, 4} (left even values). 0→0, 8→2 or 4, 10→4 or 2. ✓ (3 left E values for 3 left E positions)
+- E-positions on right (R): 2, 4, 6 → values from {6, 8, 10} (right even values). ✓ (3 right E values for 3 right E positions)
+- O-positions on left (L): 3, 5 → values from {1, 3} (left odd values). ✓ (2 left O values for 2 left O positions)
+- O-positions on right (R): 1, 7, 9 → values from {5, 7, 9} (right odd values). ✓ (3 right O values for 3 right O positions)
+
+So it's feasible! The max crossings for [4,5] is 8.
+
+Without parity constraint, the max was 9 (if end on right) or 10 (if end on left). With parity, we get 8.
+
+OK this is getting very involved. Let me compute the max crossings for each interval with the parity constraint, then sum them up.
+
+For each interval [j, j+1], I need to:
+1. Determine L_e, L_o, R_e, R_o (even/odd counts on each side)
+2. Find the maximum number of transitions in the binary string (side assignments) subject to the constraints.
+
+The path is E O E O E O E O E O E (11 positions, 0-10).
+E-positions: 0, 2, 4, 6, 8, 10 (6 positions)
+O-positions: 1, 3, 5, 7, 9 (5 positions)
+
+Position 0 is always L (value 0 is on the left of every interval).
+
+For interval [j, j+1]:
+L_e = |{even values in 0..j}|, L_o = |{odd values in 0..j}|
+R_e = 6 - L_e, R_o = 5 - L_o
+
+E-positions assigned L: L_e (including position 0)
+E-positions assigned R: R_e = 6 - L_e
+O-positions assigned L: L_o
+O-positions assigned R: R_o = 5 - L_o
+
+We want to maximize transitions in the binary string of length 11, with position 0 = L, and exactly L_e E-positions as L, R_e E-positions as R, L_o O-positions as L, R_o O-positions as R.
+
+The maximum transitions = 10 - (minimum cost of flips from the ideal alternating string).
+
+The ideal alternating string (L R L R L R L R L R L) has all E-positions as L and all O-positions as R. We need to flip R_e E-positions from L to R, and L_o O-positions from R to L.
+
+The minimum cost is achieved by flipping consecutive blocks. Flipping a block of k consecutive positions (all interior) costs 2 (regardless of k), since only the two boundaries lose transitions. Flipping a block that includes an endpoint costs 1.
+
+We need to flip R_e E-positions and L_o O-positions. The total number of flips is R_e + L_o. We want to arrange these flips into as few blocks as possible, with each block costing 2 (or 1 if at endpoint).
+
+The minimum number of blocks: we need to cover R_e E-positions and L_o O-positions. Since E and O positions alternate, a block can contain both E and O positions. 
+
+The minimum number of blocks is max(R_e, L_o) if we can interleave them perfectly... actually, let me think about it differently.
+
+We have positions 0-10. Position 0 is fixed (L, E-position). We need to flip some subset of positions 1-10. The flipped positions are: R_e E-positions from {2,4,6,8,10} and L_o O-positions from {1,3,5,7,9}.
+
+We want to arrange the flipped positions into minimum number of contiguous blocks. Each block of interior positions costs 2. A block touching position 10 (endpoint) costs 1. (Position 0 can't be flipped.)
+
+Wait, position 10 is an endpoint. A block ending at position 10 costs 1 (only one boundary). A block starting at position 1 (but position 0 is not flipped, so position 1 is a boundary) - if the block is [1, k], the cost is 2 (boundary at (0,1) and (k, k+1)), unless k = 10.
+
+So the cost of a block [a, b] (where a ≤ b, and positions a through b are all flipped):
+- If a > 0 and b < 10: cost = 2 (boundaries at a-1,a and b,b+1)
+- If a > 0 and b = 10: cost = 1 (boundary only at a-1,a)
+- If a = 1 (and 0 is not flipped): same as a > 0, cost = 2 (or 1 if b=10)
+- If a = 0: not possible (position 0 is not flipped)
+
+So each block costs 2, except a block ending at position 10 costs 1.
+
+To minimize total cost, we want:
+1. Minimum number of blocks
+2. One block should end at position 10 (to save 1)
+
+The minimum number of blocks to cover the required flips: we need to select R_e positions from {2,4,6,8,10} and L_o positions from {1,3,5,7,9} such that they form the minimum number of contiguous runs.
+
+A contiguous run in positions 1-10 can include both E and O positions. The question is: what's the minimum number of runs to cover R_e specific E-positions and L_o specific O-positions?
+
+We can choose WHICH E-positions and O-positions to flip (as long as the counts are right). So we want to choose them to form minimum runs.
+
+The best case: all flipped positions form a single contiguous block. This requires that the flipped positions are {a, a+1, ..., b} for some a ≤ b, and this block contains exactly R_e E-positions and L_o O-positions.
+
+A block of length m (from position a to a+b-1) contains ceil(m/2) or floor(m/2) E-positions depending on the starting parity.
+
+This is getting complex. Let me just compute for each interval.
+
+Let me tabulate L_e, L_o, R_e, R_o for each interval [j, j+1], j = 0, ..., 9.
+
+Even values: 0, 2, 4, 6, 8, 10
+Odd values: 1, 3, 5, 7, 9
+
+j=0: Left = {0}. L_e=1, L_o=0. R_e=5, R_o=5. Flips: R_e=5 E-flips, L_o=0 O-flips. Total flips = 5.
+j=1: Left = {0,1}. L_e=1, L_o=1. R_e=5, R_o=4. Flips: 5 E, 1 O. Total = 6.
+j=2: Left = {0,1,2}. L_e=2, L_o=1. R_e=4, R_o=4. Flips: 4 E, 1 O. Total = 5.
+j=3: Left = {0,1,2,3}. L_e=2, L_o=2. R_e=4, R_o=3. Flips: 4 E, 2 O. Total = 6.
+j=4: Left = {0,1,2,3,4}. L_e=3, L_o=2. R_e=3, R_o=3. Flips: 3 E, 2 O. Total = 5.
+j=5: Left = {0,1,2,3,4,5}. L_e=3, L_o=3. R_e=3, R_o=2. Flips: 3 E, 3 O. Total = 6.
+j=6: Left = {0,1,2,3,4,5,6}. L_e=4, L_o=3. R_e=2, R_o=2. Flips: 2 E, 3 O. Total = 5.
+j=7: Left = {0,1,2,3,4,5,6,7}. L_e=4, L_o=4. R_e=2, R_o=1. Flips: 2 E, 4 O. Total = 6.
+j=8: Left = {0,1,2,3,4,5,6,7,8}. L_e=5, L_o=4. R_e=1, R_o=1. Flips: 1 E, 4 O. Total = 5.
+j=9: Left = {0,1,2,3,4,5,6,7,8,9}. L_e=5, L_o=5. R_e=1, R_o=0. Flips: 1 E, 5 O. Total = 6.
+
+Now for each, I need to find the minimum cost (minimum number of blocks * 2, minus 1 if a block ends at position 10).
+
+Let me compute for each j:
+
+**j=0**: Flip 5 E-positions from {2,4,6,8,10} and 0 O-positions. We need to flip 5 out of 5 E-positions (all of them). The flipped positions are {2,4,6,8,10}. These are not contiguous (gaps at 3,5,7,9). 
+
+To make them contiguous, we'd need to also flip the O-positions between them, but we can't flip any O-positions (L_o=0). So the flipped positions are {2,4,6,8,10}, forming 5 separate blocks (each of length 1). But wait, we can choose which E-positions to flip. We must flip all 5 (R_e=5, and there are exactly 5 E-positions other than 0). So we must flip {2,4,6,8,10}.
+
+These form 5 separate blocks: [2,2], [4,4], [6,6], [8,8], [10,10]. 
+Cost: 4 blocks * 2 + 1 block at endpoint * 1 = 8 + 1 = 9.
+Transitions = 10 - 9 = 1.
+
+Hmm, but can we do better? What if we flip a contiguous block that includes some O-positions? But we can't flip O-positions (L_o = 0 means no O-flips needed). We must flip exactly the E-positions {2,4,6,8,10}.
+
+So yes, 5 separate blocks, cost = 9, transitions = 1.
+
+Actually wait. Let me reconsider. We're flipping from the ideal alternating string. The ideal has E-positions as L and O-positions as R. We need R_e = 5 E-positions to be R (flipped from L to R) and L_o = 0 O-positions to be L (no flip needed).
+
+So we flip {2,4,6,8,10} from L to R. The resulting string:
+L(0) R(1) R(2) R(3) R(4) R(5) R(6) R(7) R(8) R(9) R(10)
+
+Transitions: (0,1): L-R = 1. All others: R-R = 0. Total = 1. ✓
+
+So c_0 = 1. (Same as without parity constraint, since the unconstrained max was also 1 for j=0 with endpoint on right... actually the unconstrained max was 1 if end on right, 2 if end on left. With parity, we get 1.)
+
+Hmm wait, actually without the parity constraint, for j=0, L=1 (just {0}), R=10. Start at 0 (left). If end on left: c ≤ 2*min(10, 0) = 0. If end on right: c ≤ 2*min(1, 10) - 1 = 1. So max is 1 (end on right). With parity, also 1. Same.
+
+**j=1**: Flip 5 E from {2,4,6,8,10} and 1 O from {1,3,5,7,9}. Total 6 flips.
+
+We want to minimize blocks. Can we form a contiguous block? 
+
+If we flip positions 1-10 (all 10 positions except 0), that's 5 E and 5 O. But we need 5 E and 1 O. So we'd be flipping 4 extra O-positions. Can't do that.
+
+We need to choose 5 E-positions (all of {2,4,6,8,10}) and 1 O-position. The best is to choose the O-position to merge two E-blocks.
+
+E-positions: 2, 4, 6, 8, 10. With no O-flips: 5 blocks.
+If we flip O-position 1: blocks become [1,2] (merged 1 and 2), [4,4], [6,6], [8,8], [10,10]. 5 blocks. (Position 1 is adjacent to 2 but not to 0 which is unflipped, so [1,2] is one block.) Wait, but position 1 is O and we're flipping it. So [1,2] is a block. But position 0 is not flipped, so the block [1,2] has a boundary at (0,1). Cost for [1,2]: 2 (boundaries at (0,1) and (2,3)). 
+
+Hmm, that doesn't help much. Let me think about which O-position to flip to minimize blocks.
+
+If we flip O-position 3: blocks become [2,2], [3,4] (merged 3 and 4), [6,6], [8,8], [10,10]. Still 5 blocks. Wait, [3,4] is one block, and [2,2] is separate (position 2 is E, flipped; position 3 is O, flipped; they're adjacent). So [2,3,4] is one block! 
+
+Wait, positions 2, 3, 4 are all flipped (2 is E, 3 is O, 4 is E). So they form one block [2,4]. Then remaining: [6,6], [8,8], [10,10]. Total 4 blocks.
+
+Cost: [2,4] costs 2, [6,6] costs 2, [8,8] costs 2, [10,10] costs 1. Total = 7. Transitions = 10 - 7 = 3.
+
+Can we do better? If we flip O-position 5: blocks [2,2], [4,4], [5,6], [8,8], [10,10]. Wait, 5 and 6 are adjacent, so [5,6]. But 4 and 5 are adjacent too, so [4,5,6]. That's one block. Then [2,2], [8,8], [10,10]. Total 4 blocks. Same cost: 2+2+2+1 = 7. Transitions = 3.
+
+If we flip O-position 9: blocks [2,2], [4,4], [6,6], [8,8], [9,10]. That's [9,10] as one block (cost 1, since 10 is endpoint). Total 5 blocks. Cost: 2+2+2+2+1 = 9. Transitions = 1. Worse.
+
+If we flip O-position 7: blocks [2,2], [4,4], [6,6], [7,8], [10,10]. [7,8] is one block. Total 5 blocks. Cost: 2+2+2+2+1 = 9. Transitions = 1. Worse.
+
+So the best for j=1 is to flip an O-position that merges two interior E-blocks, giving 4 blocks with cost 7, transitions = 3.
+
+Wait, can we merge more? If we flip O-position 3, we get [2,4] as one block. Can we also get [6,8] or [8,10]? We only have 1 O-flip. So no.
+
+What about flipping O-position 3 and getting [2,4], [6,6], [8,8], [10,10]: 4 blocks, cost 2+2+2+1 = 7, transitions = 3.
+
+Or flip O-position 5: [2,2], [4,6], [8,8], [10,10]: 4 blocks, cost 2+2+2+1 = 7, transitions = 3.
+
+Or flip O-position 7: [2,2], [4,4], [6,8], [10,10]: 4 blocks, cost 2+2+2+1 = 7, transitions = 3.
+
+All give 3. So c_1 = 3.
+
+Without parity constraint, j=1: L=2, R=9. Start left. End on right: c ≤ 2*min(2,9)-1 = 3. End on left: c ≤ 2*min(9,1) = 2. Max = 3. Same as with parity.
+
+**j=2**: Flip 4 E from {2,4,6,8,10} and 1 O from {1,3,5,7,9}. Total 5 flips.
+
+We choose 4 of 5 E-positions and 1 O-position. To minimize blocks, we want to leave out one E-position and use the O-flip to merge.
+
+If we leave out E-position 2 (don't flip it): flip {4,6,8,10} and 1 O. With O-position 5: [4,6], [8,8], [10,10]. 3 blocks. Cost: 2+2+1 = 5. Transitions = 5.
+
+Or leave out E-position 10: flip {2,4,6,8} and 1 O. With O-position 3: [2,4], [6,6], [8,8]. 3 blocks. Cost: 2+2+2 = 6. Transitions = 4.
+
+Or leave out E-position 10, flip O-position 5: [2,2], [4,6], [8,8]. 3 blocks. Cost: 2+2+2 = 6. Transitions = 4.
+
+Or leave out E-position 10, flip O-position 7: [2,2], [4,4], [6,8]. 3 blocks. Cost: 2+2+2 = 6. Transitions = 4.
+
+Or leave out E-position 2, flip O-position 5: [4,6], [8,8], [10,10]. 3 blocks. Cost: 2+2+1 = 5. Transitions = 5.
+
+Or leave out E-position 2, flip O-position 7: [4,4], [6,8], [10,10]. 3 blocks. Cost: 2+2+1 = 5. Transitions = 5.
+
+Or leave out E-position 2, flip O-position 9: [4,4], [6,6], [8,8], [10,10] → wait, flipping O-position 9: [4,4], [6,6], [8,8], [9,10]. 4 blocks. Cost: 2+2+2+1 = 7. Worse.
+
+Best: leave out E-position 2, flip O-position 5 (or 7), giving 3 blocks with cost 5, transitions = 5.
+
+Can we do 2 blocks? We'd need the 5 flipped positions to form 2 contiguous blocks. With 4 E and 1 O, the maximum contiguous block using 1 O to merge 2 E's has 3 positions (E-O-E). The remaining 2 E's form at most 2 blocks (or 1 if adjacent, but E's aren't adjacent). So minimum 3 blocks. Can't do 2.
+
+Actually wait, what if we leave out E-position 6 and flip O-position 3: [2,4], [8,8], [10,10]. 3 blocks. Cost: 2+2+1 = 5. Transitions = 5. Same.
+
+Or leave out E-position 4, flip O-position 3: [2,2], [6,6], [8,8], [10,10] - wait, flipping O-position 3 and E-positions {2,6,8,10}: [2,3] is a block? No, 3 is flipped but 4 is not flipped (E-position 4 not flipped). So [2,3] is a block (cost 2), [6,6] (cost 2), [8,8] (cost 2), [10,10] (cost 1). 4 blocks, cost 7. Worse.
+
+Hmm, flipping O-position 3 only helps if both E-positions 2 and 4 are flipped. If we leave out 4, then flipping 3 only merges with 2, giving [2,3] which is still a separate block from [6,6], etc.
+
+So best for j=2: c_2 = 5.
+
+Without parity: j=2, L=3, R=8. End on right: 2*min(3,8)-1 = 5. End on left: 2*min(8,2) = 4. Max = 5. Same.
+
+**j=3**: Flip 4 E from {2,4,6,8,10} and 2 O from {1,3,5,7,9}. Total 6 flips.
+
+Choose 4 of 5 E-positions and 2 of 5 O-positions to minimize blocks.
+
+Best: leave out one E, use 2 O-flips to merge.
+
+Leave out E-position 2: flip {4,6,8,10} and 2 O. Use O-positions 5 and 7: [4,6], [8,10] → wait, [4,5,6] and [8,9,10]? No, we flip O-positions 5 and 7. [4,6] (using O-position 5 to merge 4 and 6), [7,8] (using O-position 7 to merge with 8), [10,10]. Wait, 7 and 8 are adjacent, so [7,8]. But 6 and 7 are both flipped? 6 is E (flipped), 7 is O (flipped). So [4,5,6,7,8] is one block! And [10,10] is another. 2 blocks!
+
+Cost: [4,8] costs 2, [10,10] costs 1. Total = 3. Transitions = 7!
+
+Let me verify: flip E-positions {4,6,8,10} and O-positions {5,7}. Leave E-position 2 unflipped.
+Flipped positions: 4, 5, 6, 7, 8, 10.
+Blocks: [4,8] and [10,10]. 2 blocks.
+Cost: 2 + 1 = 3. Transitions = 10 - 3 = 7.
+
+Resulting string:
+L(0) R(1) L(2) R(3) R(4) L(5) R(6) L(7) R(8) R(9) R(10)
+
+Wait, I need to be more careful. The ideal string is L R L R L R L R L R L. We flip positions 4,5,6,7,8,10.
+
+Position 4: L→R
+Position 5: R→L
+Position 6: L→R
+Position 7: R→L
+Position 8: L→R
+Position 10: L→R
+
+Result: L(0) R(1) L(2) R(3) R(4) L(5) R(6) L(7) R(8) R(9) R(10)
+
+Transitions:
+(0,1): L-R = 1
+(1,2): R-L = 1
+(2,3): L-R = 1
+(3,4): R-R = 0
+(4,5): R-L = 1
+(5,6): L-R = 1
+(6,7): R-L = 1
+(7,8): L-R = 1
+(8,9): R-R = 0
+(9,10): R-R = 0
+Total: 7. ✓
+
+But wait, I need to check feasibility. E-positions on L: {0, 2} (positions 0 and 2 are L). L_e = 2. For j=3, L_e should be 2 (even values in {0,1,2,3} are {0,2}). ✓
+E-positions on R: {4, 6, 8, 10} (4

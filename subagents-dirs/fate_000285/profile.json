@@ -1,0 +1,347 @@
+{
+  "_key": "fate_000285",
+  "source_id": "FATE-36",
+  "source_dataset": "FATE-X",
+  "schema_version": 3,
+  "problem_text": "If R is Noetherian and M and N are finitely generated R-modules, show that Ass Hom_R(M,N) = Supp M ∩ Ass N, where Supp M is the set of all primes containing the annihilator of M. Formal Lean target: associatedPrimes R (M →ₗ[R] N) = {p | p ∈ associatedPrimes R N ∧ Module.annihilator R M ≤ p}.",
+  "solution_text": "The Lean file contains a `sorry` proof placeholder. Reconstructed mathematical proof: prove membership equivalence for each prime p. Use localization of associated primes and the finite-source Hom-localization isomorphism to identify (Hom_R(M,N))_p with Hom_{R_p}(M_p,N_p). Thus the global statement reduces to the local-ring lemma: for a Noetherian local ring (A,m) and finite A-modules P,Q, m ∈ Ass_A Hom_A(P,Q) iff P ≠ 0 and m ∈ Ass_A Q. For the forward direction, if a nonzero f : P → Q is killed by m, choose x with f(x) ≠ 0; then every a ∈ m kills f(x), so m ∈ Ass Q and P ≠ 0. For the reverse direction, m ∈ Ass Q gives an injection k=A/m ↪ Q. Since P is finite and nonzero over the local ring, Nakayama gives P/mP ≠ 0; choose a nonzero k-linear functional P/mP → k, lift it to a nonzero A-linear map P → k, and compose with k ↪ Q. This gives a nonzero element of Hom(P,Q) killed by m. Returning from localization, p ∈ Ass Hom_R(M,N) iff p ∈ Ass N and M_p ≠ 0; finite generation gives M_p ≠ 0 iff ann_R(M) ≤ p, yielding the formal target.",
+  "solution_summary": "Reduce the associated-prime equality to a local ring lemma via localization and Hom-localization; prove the local lemma using m-torsion in Hom and a residue-field map P → P/mP → k ↪ Q; translate M_p ≠ 0 back to ann(M) ≤ p.",
+  "domain": "Pure Mathematics",
+  "subfield": "Commutative Algebra",
+  "answer_type": "proof",
+  "answer": "associatedPrimes R (M →ₗ[R] N) = {p | p ∈ associatedPrimes R N ∧ Module.annihilator R M ≤ p}",
+  "problem_type": "characterization",
+  "solution_method_type": "localization_to_local_lemma",
+  "structure_features": "Set equality characterizing associated primes of Hom_R(M,N). The right side is an intersection of Ass N with Supp M, expressed formally as annihilator containment. The finite generation and Noetherian hypotheses signal a global-to-local proof using associated-prime localization, Hom-localization, and support equals V(annihilator).",
+  "key_objects": [
+    "Noetherian commutative ring R",
+    "finite R-modules M and N",
+    "linear Hom module M →ₗ[R] N",
+    "associatedPrimes R",
+    "Module.annihilator R M",
+    "support of M",
+    "prime ideal p",
+    "localization R_p",
+    "local maximal ideal pR_p",
+    "residue field R_p/pR_p"
+  ],
+  "thinking_patterns": [
+    "global_to_local_reduction",
+    "localization_of_invariants",
+    "replace_set_equality_by_membership_equivalence",
+    "local_ring_residue_field_construction",
+    "finite_module_support_translation"
+  ],
+  "primary_pattern": "localization_to_local_lemma",
+  "knowledge_required": [
+    "associated primes via annihilators or submodules isomorphic to R/p",
+    "localization criterion for associated primes over Noetherian rings",
+    "Hom-localization isomorphism for finite source module",
+    "support of a finite module equals V(annihilator)",
+    "Nakayama lemma",
+    "residue field of a local ring",
+    "nonzero finite vector spaces have nonzero linear functionals"
+  ],
+  "key_insight": "Do not try to globally construct a homomorphism whose annihilator is exactly p; localize at p, where the task becomes constructing a nonzero map killed by the maximal ideal, obtained from P → P/mP → k ↪ Q.",
+  "translation_from": "Global associated-prime set equality and direct annihilator tracking in Hom_R(M,N)",
+  "translation_to": "Pointwise localized local-ring lemma plus residue-field homomorphism construction",
+  "translation_type": "global_invariant_to_local_model",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "associatedPrimes",
+    "Hom_R(M,N)",
+    "support",
+    "annihilator containment",
+    "localization at p",
+    "Hom-localization",
+    "local ring",
+    "residue field",
+    "Nakayama"
+  ],
+  "expected_ai_method": "A bare AI may try to chase annihilators of individual nonzero homomorphisms M → N directly, or attempt a naive elementwise inclusion between Ass Hom and Ass N without changing to a local problem.",
+  "correct_method": "Use set extensionality and localize at each prime p. Convert the problem to the local lemma m ∈ Ass Hom_A(P,Q) iff P ≠ 0 and m ∈ Ass Q, prove it with m-torsion and residue-field maps, then translate P≠0 back to ann(M)≤p via finite support.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a formal equality of associated-prime sets but has not decomposed it into a pointwise condition for an arbitrary prime p.",
+      "hint": "First rewrite the target as: for every prime p, p ∈ Ass Hom_R(M,N) iff p ∈ Ass N and ann_R(M) ≤ p.",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "set extensionality",
+        "prime membership",
+        "associatedPrimes",
+        "annihilator containment"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI has not recalled the standard commutative-algebra toolkit that connects associated primes, Hom, finite modules, and support.",
+      "hint": "List the relevant tools before proving anything: localization of associated primes, Hom-localization for finite M, support of finite modules as V(ann), and Nakayama over a local ring.",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "localization criterion",
+        "Hom-localization",
+        "finite module support",
+        "Nakayama"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI is trying to follow ann(f) for a global nonzero homomorphism f : M → N, which makes the reverse implication hard to construct.",
+      "hint": "Use this direct attempt only to expose the obstacle: constructing a global f with annihilator p is unnatural; this is the signal to switch to localization.",
+      "hint_level": 0.45,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "ann(f)",
+        "nonzero homomorphism",
+        "reverse construction",
+        "global element chase"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has not made the central translation from a global prime p to the local ring R_p with maximal ideal pR_p.",
+      "hint": "Localize at p and state the needed local lemma: in a local ring (A,m), m ∈ Ass Hom_A(P,Q) iff P ≠ 0 and m ∈ Ass Q.",
+      "hint_level": 0.25,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "R_p",
+        "pR_p",
+        "Hom-localization",
+        "local lemma"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has the local lemma but has not seen how a homomorphism killed by m produces an associated element of Q.",
+      "hint": "If 0≠f:P→Q is killed by m, pick x with f(x)≠0; then every a∈m kills f(x), so Q has nonzero m-torsion.",
+      "hint_level": 0.35,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "m-torsion",
+        "image of f",
+        "evaluation at x",
+        "Ass Q"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI cannot construct a nonzero P→Q killed by m from P≠0 and m∈Ass Q; the missing ingredient is the residue-field map from P.",
+      "hint": "Use m∈Ass Q to embed k=A/m in Q. Since P is finite nonzero, Nakayama gives P/mP≠0; choose a nonzero k-linear functional P/mP→k and compose P→k↪Q.",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "Nakayama",
+        "P/mP",
+        "residue field k",
+        "linear functional",
+        "embedding k into Q"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has proved the localized equivalence but has not translated M_p≠0 into the formal right-hand condition ann_R(M)≤p.",
+      "hint": "Use finite generation: M_p≠0 iff p is in Supp M iff ann_R(M)≤p, then assemble the set equality.",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "support",
+        "annihilator",
+        "finite generation",
+        "set equality"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Whole route from the original global equality to the proof of both inclusions",
+      "observation_point": null,
+      "tell": "The path repeatedly makes direct annihilator tracking harder, especially in the reverse direction; the whole trajectory indicates that the problem wants a global-to-local translation rather than a global element chase.",
+      "hint": "Switch from direct annihilator tracking to a pointwise localization strategy: localize at p, prove a local ring lemma for Hom, then translate support back to annihilator containment.",
+      "hint_level": 0.65,
+      "generalizability": "high - many associated-prime identities for finite modules are best proved after localizing at an arbitrary prime and proving a local lemma",
+      "why_not_visible_locally": "Any single element-chasing step may look reasonable: a nonzero map has an image, and annihilators can be compared. The failure only becomes visible across the path, when the reverse implication asks for a global homomorphism with exactly the right annihilator. That cumulative obstruction is not apparent in one isolated local move.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "global-to-local",
+        "annihilator tracking",
+        "reverse implication",
+        "associated primes",
+        "local lemma"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Use of finite generation assumptions on M and N in the theorem statement",
+      "observation_point": 4,
+      "tell": "The finite generation hypotheses are not decorative; they implicitly license Hom-localization and the support-to-annihilator translation needed in the first and last reductions.",
+      "hint": "Ask where finite generation is used: use finite M for (Hom_R(M,N))_p ≃ Hom_{R_p}(M_p,N_p), and use finite M again for M_p≠0 iff ann(M)≤p.",
+      "hint_level": 0.55,
+      "generalizability": "medium - applies broadly to module-theoretic identities where finiteness hypotheses are present mainly to commute constructions with localization",
+      "why_not_visible_locally": "The statement only lists finite generation as typeclass assumptions, and no single local manipulation announces that these assumptions are essential. Their role is implicit in enabling two background theorems, so it is easy to miss unless the proof plan asks explicitly which hypotheses justify each translation.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "finite generation",
+        "Hom-localization",
+        "support equals V(ann)",
+        "module localization"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Reverse direction of the local lemma over a local ring",
+      "observation_point": 6,
+      "tell": "The condition P≠0 over a local ring implicitly provides a nonzero map from P to the residue field k, but only after using Nakayama and the vector-space dual of P/mP.",
+      "hint": "Convert P≠0 into P/mP≠0 by Nakayama, then choose a nonzero k-linear functional P/mP→k and compose with the inclusion k↪Q coming from m∈Ass Q.",
+      "hint_level": 0.25,
+      "generalizability": "medium - common in local algebra arguments where nonzero finite modules are tested by their fiber over the residue field",
+      "why_not_visible_locally": "The local lemma states P≠0, but the existence of a useful homomorphism P→k is not syntactically visible in that condition. It is an implicit consequence of finite generation over a local ring plus Nakayama, so a solver focused on Hom(P,Q) may not see the residue-field dual construction without a targeted hint.",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "P nonzero",
+        "Nakayama",
+        "P/mP",
+        "residue field",
+        "linear dual"
+      ]
+    }
+  ],
+  "bare_ai_expected": "marginal",
+  "bare_ai_error_prediction": "A bare AI may succeed if it already knows the standard theorem. Otherwise it will likely attempt global annihilator chasing, fail to build the reverse-direction homomorphism, omit the Hom-localization finiteness condition, or finish with M_p≠0 without translating it to Module.annihilator R M ≤ p.",
+  "suitable_for_poc": [
+    "tell_detection_global_to_local",
+    "knowledge_bottleneck_localization",
+    "implicit_assumption_finite_generation",
+    "residue_field_construction_hint",
+    "formal_math_commutative_algebra"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "First observe the problem structure only: what are the objects on the two sides of the equality, and what pointwise prime-ideal equivalence should be proved?",
+        "expected_answer": "This is a set equality. The left side is the associated primes of Hom_R(M,N), and the right side is the associated primes of N that also contain ann(M), i.e. Supp M ∩ Ass N. For an arbitrary prime p, prove p ∈ Ass Hom iff p ∈ Ass N and M is nonzero at p."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List the standard tools for proving an associated-prime identity involving Hom of finite modules, without choosing a route yet.",
+        "expected_answer": "Use associated primes via annihilators or R/p submodules, localization of associated primes, Hom-localization for finite source modules, support of finite modules as V(ann), local rings, residue fields, and Nakayama."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.45,
+        "question": "Try the direct route: start with a nonzero homomorphism f : M → N and track ann(f). How far does that get?",
+        "expected_answer": "It helps relate the image of f to N in one direction, but the reverse direction requires constructing a global homomorphism with annihilator exactly p from p∈Ass N and ann(M)≤p. That is unnatural, so direct element tracking is not the right main route."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.25,
+        "question": "Localize at a fixed prime p: state the two localization facts needed and the resulting local-ring lemma.",
+        "expected_answer": "Use p∈Ass_R X iff pR_p∈Ass_{R_p} X_p, and (Hom_R(M,N))_p ≃ Hom_{R_p}(M_p,N_p). The local lemma is: in a local ring (A,m), m∈Ass Hom_A(P,Q) iff P≠0 and m∈Ass Q."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.35,
+        "question": "Prove the forward direction of the local lemma: if m is associated to Hom_A(P,Q), what follows?",
+        "expected_answer": "There is a nonzero f:P→Q killed by m. Pick x with f(x)≠0. For a∈m, a f(x)=(a f)(x)=0, so Q has a nonzero element killed by m; hence m∈Ass Q, and f≠0 also implies P≠0."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "For the reverse direction, use the residue field: from P≠0 and m∈Ass Q, construct a nonzero P→Q killed by m.",
+        "expected_answer": "m∈Ass Q gives an injection k=A/m↪Q. Since P is finite and nonzero over a local ring, Nakayama gives P/mP≠0. Choose a nonzero k-linear functional P/mP→k and compose P→P/mP→k↪Q. The resulting map is nonzero and killed by m."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "Now return from the local lemma to the original formal set equality.",
+        "expected_answer": "For every p, the local lemma gives p∈Ass Hom_R(M,N) iff M_p≠0 and p∈Ass_R N. Since M is finite, M_p≠0 iff p∈Supp M iff ann_R(M)≤p. Therefore Ass Hom_R(M,N) = {p | p∈Ass N ∧ ann M≤p}."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.05,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-08-09T10:10:34Z",
+    "analysis_duration": "not_measured",
+    "notes": "FATE-X problem with Lean proof body `sorry`; mathematical proof reconstructed from standard commutative algebra. All local and global tell/hint pairs include tell_topology and tell_small_concepts; all global pairs include nonempty why_not_visible_locally. No topology evolution required beyond existing categories."
+  }
+}

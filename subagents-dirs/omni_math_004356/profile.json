@@ -1,0 +1,268 @@
+{
+  "_key": "omni_math_004356",
+  "source_id": "omni_math_004356",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Four integers are marked on a circle. On each step we simultaneously replace each number by the difference between this number and the next number on the circle, moving in a clockwise direction; that is, the numbers a,b,c,d are replaced by a-b, b-c, c-d, d-a. Is it possible after 1996 such steps to have numbers a,b,c,d such that the numbers |bc-ad|, |ac-bd|, |ab-cd| are primes?",
+  "solution_text": "After any step >= 1, the sum S = (a-b)+(b-c)+(c-d)+(d-a) = 0, so a+b+c+d = 0, giving d = -(a+b+c). Substituting: bc-ad = bc+a(a+b+c) = a^2+ab+ac+bc = (a+b)(a+c). Similarly ac-bd = (a+b)(b+c) and ab-cd = (a+c)(b+c). Let x=a+b, y=a+c, z=b+c. If |xy|, |xz|, |yz| are all prime, each product requires one factor to have absolute value 1. If |x|=1, then |xy| prime requires |y| prime, |xz| prime requires |z|=1 (since |x|=1), but then |yz|=1 not prime. If |x|>1, then |xy| requires |y|=1, |xz| requires |z|=1, but |yz|=1 not prime. All cases lead to contradiction. Therefore it is not possible.",
+  "solution_summary": "利用变换不变量(a+b+c+d=0)代入化简，将三个目标表达式因式分解为(a+b)(a+c)、(a+b)(b+c)、(a+c)(b+c)，再通过分析素数乘积的必要条件导出矛盾。",
+  "domain": "mathematics",
+  "subfield": "number_theory",
+  "answer_type": "proof",
+  "answer": "No — after 1996 steps it is not possible for |bc-ad|, |ac-bd|, |ab-cd| to all be prime.",
+  "problem_type": "constraint_satisfaction",
+  "solution_method_type": "invariant_factoring_contradiction",
+  "structure_features": [
+    "circular transformation with simultaneous update of four integers",
+    "invariant: sum a+b+c+d becomes 0 after any step >= 1",
+    "target: three absolute value expressions all prime simultaneously",
+    "large iteration count (1996) is irrelevant beyond being >= 1"
+  ],
+  "key_objects": [
+    "four integers a,b,c,d on a circle",
+    "transformation T: (a,b,c,d) -> (a-b, b-c, c-d, d-a)",
+    "invariant S = a+b+c+d = 0 after any step >= 1",
+    "three expressions |bc-ad|, |ac-bd|, |ab-cd|",
+    "factored forms (a+b)(a+c), (a+b)(b+c), (a+c)(b+c)"
+  ],
+  "thinking_patterns": [
+    "invariant_identification",
+    "algebraic_factoring",
+    "proof_by_contradiction",
+    "case_analysis"
+  ],
+  "primary_pattern": "invariant_factoring_contradiction",
+  "knowledge_required": [
+    "algebraic identities: a^2+ab+ac+bc = (a+b)(a+c)",
+    "invariants under iterative transformations",
+    "prime number properties: primes have exactly two positive divisors, so a product of two integers is prime only if one factor is ±1",
+    "proof by contradiction"
+  ],
+  "key_insight": "After any step >= 1, a+b+c+d=0 so d=-(a+b+c), and the three expressions factor as (a+b)(a+c), (a+b)(b+c), (a+c)(b+c) — among three values x=a+b, y=a+c, z=b+c, if all pairwise products |xy|,|xz|,|yz| are prime then at least two absolute values must be 1, making the third product equal to 1 which is not prime.",
+  "translation_from": "iterative_simulation",
+  "translation_to": "invariant_based_algebraic_factoring",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "constraint_satisfaction",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "invariant",
+    "sum equals zero",
+    "algebraic factoring",
+    "primality constraint",
+    "contradiction"
+  ],
+  "expected_ai_method": "bare AI would likely try to simulate the 1996-step transformation iteratively or analyze the transformation's periodicity, missing the invariant + algebraic factoring approach",
+  "correct_method": "find invariant (sum=0) -> substitute d=-(a+b+c) -> factor three expressions -> case analysis on primality conditions -> derive contradiction",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI没有注意到变换的不变量——变换后四个数的和变为0",
+      "hint": "观察变换 (a,b,c,d)→(a-b,b-c,c-d,d-a) 前后四个数之和的变化",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["invariant", "sum", "transformation property"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI知道和为0但不知道如何利用这个条件化简目标表达式",
+      "hint": "在 a+b+c+d=0 的条件下，用 d=-(a+b+c) 代入展开 |bc-ad|, |ac-bd|, |ab-cd|",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["substitution", "d=-(a+b+c)", "polynomial expansion"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI试图暴力模拟1996步变换来求解",
+      "hint": "直接模拟1996步不可行，回到代数化简的路线",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["simulation", "brute force", "1996 steps", "infeasibility"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI展开了表达式 a²+ab+ac+bc 但没看到因式分解模式",
+      "hint": "对 a²+ab+ac+bc 尝试分组提取公因式：a(a+b)+c(a+b)",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["factoring", "grouping", "(a+b)(a+c)", "algebraic identity"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI得到因式分解结果但不知道如何分析三个乘积同时为素数的条件",
+      "hint": "令 x=a+b, y=a+c, z=b+c，分析 |xy|, |xz|, |yz| 同时为素数需要什么条件",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["primality", "factor pairs", "necessary conditions", "x,y,z substitution"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI列出了每个乘积需要一个因子绝对值为1的条件，但没发现矛盾",
+      "hint": "分析：如果 |x|=1 则 |y| 和 |z| 中至少一个为1，使 |yz|=1 非素数；如果 |x|>1 则 |y|=|z|=1，同样 |yz|=1 非素数",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["contradiction", "case analysis", "product equals 1", "not prime"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI发现了矛盾但还没把完整论证串联起来",
+      "hint": "把不变量→代入→因式分解→矛盾分析的完整链条组织成证明",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["complete proof", "contradiction chain", "final conclusion"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从不变量发现到因式分解到矛盾论证的完整推理路径",
+      "observation_point": null,
+      "tell": "AI在局部步骤中看到展开后的多项式但看不到从不变量到因式分解到矛盾的完整推理链",
+      "hint": "不变量(a+b+c+d=0) → 代入(d=-(a+b+c)) → 因式分解((a+b)(a+c)等) → 矛盾论证(至少两个因子绝对值为1使第三个乘积为1非素数)",
+      "hint_level": 0.6,
+      "generalizability": "high — 不变量+代数化简+矛盾论证的推理模式适用于大量竞赛变换问题",
+      "why_not_visible_locally": "完整路径需要同时看到不变量层、因式分解层和素数约束层三个层面的交互，局部步骤只能看到其中一个层面，无法预见后续步骤的因式分解和矛盾结构",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["invariant-to-contradiction pipeline", "multi-level reasoning", "structural transformation"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "步数1996的具体值不影响结论，只需1996>=1",
+      "observation_point": "R1",
+      "tell": "AI可能关注1996这个具体数字，试图分析步数的奇偶性或周期性，但实际上1996>=1就足够触发不变量",
+      "hint": "关键不是1996的具体值，而是1996>=1意味着不变量a+b+c+d=0一定成立",
+      "hint_level": 0.4,
+      "generalizability": "medium — '具体参数值不重要只需满足某个不等式'的洞察在竞赛中常见但不总是适用",
+      "why_not_visible_locally": "在R1中AI看到的是'1996步变换'这个具体条件，容易陷入分析步数本身的局部视角，看不到步数>=1就足以触发不变量这个蕴含信息",
+      "tell_topology": {
+        "problem_type": "constraint_satisfaction",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["step count irrelevance", "1996 >= 1", "invariant always holds", "parameter abstraction"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试模拟或分析变换的周期性/奇偶性，忽略不变量+因式分解路线。即使发现和为0，也可能停留在'和为0所以数趋向0'的模糊论证，而非精确的因式分解+矛盾论证。关键障碍在于看到a²+ab+ac+bc后识别出(a+b)(a+c)的因式分解模式。",
+  "suitable_for_poc": [
+    "tell_extraction — 不变量发现是清晰的tell信号",
+    "hint_injection — 因式分解提示是关键的hint注入点",
+    "level_discrimination — 区分能做代数因式分解和不能的AI"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "观察变换 (a,b,c,d)→(a-b,b-c,c-d,d-a)。这个变换有什么性质？特别地，变换前后四个数的和有什么变化？",
+        "expected_answer": "变换后新的和为 (a-b)+(b-c)+(c-d)+(d-a)=0。所以经过任意≥1步后，四个数之和恒为0。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "在 a+b+c+d=0 的条件下（即 d=-(a+b+c)），列出 |bc-ad|, |ac-bd|, |ab-cd| 各自可以怎样展开和化简？",
+        "expected_answer": "代入 d=-(a+b+c)：bc-ad = bc+a(a+b+c) = a²+ab+ac+bc；类似地 ac-bd = ab+b²+ac+bc；ab-cd = ac+bc+c²+ab。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试着直接计算或模拟1996步变换，看看能否得到结果？",
+        "expected_answer": "直接模拟1996步不可行，计算量太大。而且即使知道和为0，也不知道这对目标表达式意味着什么。需要换一个方向。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "回到 a²+ab+ac+bc，尝试因式分解。提示：观察能否分组提取公因式，比如 a(a+b)+c(a+b)？",
+        "expected_answer": "a²+ab+ac+bc = a(a+b)+c(a+b) = (a+b)(a+c)。类似地，ab+b²+ac+bc = (a+b)(b+c)，ac+bc+c²+ab = (a+c)(b+c)。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "现在三个表达式分别是 |(a+b)(a+c)|, |(a+b)(b+c)|, |(a+c)(b+c)|。令 x=a+b, y=a+c, z=b+c，分析三个乘积 |xy|, |xz|, |yz| 同时为素数需要什么条件？",
+        "expected_answer": "每个乘积为素数意味着两个因子中至少有一个绝对值为1（因为素数只能分解为1×p）。所以对 |xy| 素数需要 |x|=1 或 |y|=1，对 |xz| 素数需要 |x|=1 或 |z|=1，对 |yz| 素数需要 |y|=1 或 |z|=1。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "分析：如果 |x|=1，则 |xy| 素数要求 |y| 为素数，|xz| 素数要求 |z|=1，但此时 |yz|=1 不是素数——矛盾。如果 |x|>1，则 |y|=1 且 |z|=1，|yz|=1 也不是素数——矛盾。能否所有三个乘积同时为素数？",
+        "expected_answer": "不能。无论 |x|=1 还是 |x|>1，都会导致至少两个变量的绝对值为1，使它们的乘积等于1而非素数。所有情况都矛盾，因此三个乘积不可能同时为素数。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "完美！现在把完整论证串联起来，给出最终结论。",
+        "expected_answer": "经过1996步（≥1步）后，a+b+c+d=0，故 d=-(a+b+c)。三个表达式分解为 (a+b)(a+c), (a+b)(b+c), (a+c)(b+c) 的绝对值。令 x=a+b, y=a+c, z=b+c，三个乘积 |xy|, |xz|, |yz| 不可能同时为素数——因为必然至少有两个绝对值为1，使第三个乘积等于1而非素数。因此答案为 No。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.3,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "题目核心是从变换不变量到代数因式分解到素数矛盾论证的完整推理链。Lean文件中的informal solution较为模糊（'numbers tend toward zero'），实际正确解法是精确的因式分解+矛盾论证。1996这个数字是干扰项，只需>=1即可。"
+  }
+}

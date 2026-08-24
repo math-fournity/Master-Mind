@@ -1,0 +1,237 @@
+{
+  "_key": "omni_math_003880",
+  "source_id": "imo_shortlist_2019_c9",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "For any two different real numbers x and y, we define D(x,y) to be the unique integer d satisfying 2^d <= |x-y| < 2^{d+1}. Given a set of reals F, and an element x in F, we say that the scales of x in F are the values of D(x,y) for y in F with x != y. Let k be a given positive integer. Suppose that each member x of F has at most k different scales in F (note that these scales may depend on x). What is the maximum possible size of F?",
+  "solution_text": "Answer: 2^k. Construction: F = {0, 1, ..., 2^k - 1}, each element has exactly k scales {0,...,k-1}. Upper bound via weighted lemma: w(S) = sum_{x in S} 2^{-r_S(x)} <= 1, where r_S(x) is the number of scales of x in S. Proof by induction on |S|. Key observation: minimum scale d only appears between adjacent elements (non-adjacent distance >= 2*2^d = 2^{d+1}). Find maximal run of d-scale consecutive gaps, split into even-indexed E and odd-indexed O, with R the rest. S_O = R union O, S_E = R union E. For x in O: scale d lost in S_O (r decreases by 1). For x in E: scale d lost in S_E. For x in R: r unchanged. Then w(S) <= (1/2)(w(S_O) + w(S_E)) <= 1 by induction. Since r_F(x) <= k, w(F) >= |F| * 2^{-k}, so |F| <= 2^k.",
+  "solution_summary": "Construction F={0,...,2^k-1} achieves 2^k. Upper bound via weighted potential w(S)=Σ2^{-r_S(x)}≤1 proved by induction using parity split of maximal minimum-scale run, exploiting that minimum scale only appears between adjacent elements.",
+  "domain": "combinatorics",
+  "subfield": "extremal_combinatorics",
+  "answer_type": "numerical",
+  "answer": "2^k",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "weighted_potential_induction",
+  "structure_features": "dyadic scale function on ordered reals, per-element scale count constraint, extremal set size problem, minimum scale adjacency property",
+  "key_objects": ["D(x,y) dyadic scale", "scales of x", "set F", "positive integer k", "weight function w(S)"],
+  "thinking_patterns": ["small_case_analysis", "weighted_potential_function", "induction_on_set_size", "parity_split", "extremal_construction"],
+  "primary_pattern": "weighted_potential_function",
+  "knowledge_required": ["dyadic intervals and scales", "mathematical induction", "extremal combinatorics", "potential function method"],
+  "key_insight": "The minimum scale d only appears between adjacent elements (non-adjacent distance >= 2^{d+1}), so parity splitting the maximal d-scale run eliminates scale d in subproblems, making the weighted induction w(S) = sum 2^{-r_S(x)} <= 1 close with factor 1/2.",
+  "translation_from": "direct_size_bound",
+  "translation_to": "weighted_potential_induction",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": ["dyadic_scale", "minimum_scale_adjacency", "weighted_potential", "parity_split", "induction_on_set_size"],
+  "expected_ai_method": "direct_calculation",
+  "correct_method": "weighted_potential_induction",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees the problem but doesn't know where to start — the dyadic scale function and per-element scale constraint are unfamiliar structures",
+      "hint": "Describe the structure: D(x,y) maps distance to dyadic interval index, each element has at most k scales, goal is to maximize |F|",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["problem_structure", "dyadic_scale", "scale_constraint"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists approaches but focuses on direct counting and case analysis, missing weighted/potential methods",
+      "hint": "List all possible approaches including weighted methods, potential functions, and induction on set size",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["approach_enumeration", "direct_vs_weighted", "induction_candidate"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries small cases and guesses 2^k but doesn't see why the minimum scale is special",
+      "hint": "Try k=1 and k=2, observe |F|=2^k, construct F={0,...,2^k-1}, and note which scales appear for each element",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["small_cases", "minimum_scale_adjacency", "binary_pattern"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI doesn't realize the minimum scale d only appears between adjacent elements — this is the key structural observation",
+      "hint": "For sorted F with minimum scale d, show that non-adjacent elements always have scale > d because their distance is at least 2*2^d = 2^{d+1}",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["minimum_scale_adjacency", "dyadic_triangle_inequality", "non_adjacent_scale_bound"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the adjacency property but doesn't know how to convert it into a bound — the weight function is a non-obvious construction",
+      "hint": "Define w(S) = sum 2^{-r_S(x)} where r_S(x) is the scale count of x in S. Show w(S) <= 1 implies |F| <= 2^k since w(F) >= |F| * 2^{-k}",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["weighted_potential", "exponential_weight", "scale_count_weight"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the weight function but doesn't see how to partition S for induction — the parity split is the key strategic move",
+      "hint": "Find the maximal run of d-scale consecutive gaps, split into even-indexed E and odd-indexed O. Removing E eliminates scale d for O elements (r decreases by 1), giving the 1/2 factor",
+      "hint_level": 0.3,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["parity_split", "maximal_run", "scale_elimination", "induction_split"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all pieces but needs to assemble the induction inequality",
+      "hint": "Combine: w(S) = sum_R + sum_O + sum_E <= (1/2)(sum_R in S_O + sum_R in S_E) + (1/2)sum_O in S_O + (1/2)sum_E in S_E = (1/2)(w(S_O) + w(S_E)) <= 1",
+      "hint_level": 0.2,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["induction_assembly", "weight_bound_completion", "final_bound"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from problem to proof",
+      "observation_point": null,
+      "tell": "Minimum scale adjacency: the minimum scale d in the sorted set only appears between adjacent elements, never between non-adjacent pairs. This is because any two non-adjacent elements have distance >= 2*2^d = 2^{d+1}, giving scale >= d+1.",
+      "hint": "Use this adjacency property to partition by parity within the maximal d-scale run, eliminating scale d in each subproblem and enabling the weighted induction to close with factor 1/2.",
+      "hint_level": 0.4,
+      "generalizability": "high — this property holds for any dyadic scale function on ordered sets and is the structural foundation for the parity split technique",
+      "why_not_visible_locally": "This property requires understanding that the minimum scale is globally minimal across ALL pairs, not just consecutive ones. In a local view of a single pair or a single gap, you cannot see that the minimum scale is restricted to adjacent pairs — you need to compare the minimum scale against all non-adjacent distances simultaneously, which is a global property of the sorted set.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["minimum_scale_adjacency", "dyadic_triangle_inequality", "non_adjacent_scale_bound"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "entire proof architecture",
+      "observation_point": "R5",
+      "tell": "The exponential weight 2^{-r_S(x)} perfectly compensates for the binary split: each subproblem reduces scale count by 1 (factor 2 from weight) and there are 2 subproblems (factor 1/2), so the induction closes exactly at w(S) <= 1.",
+      "hint": "The base 2 in the weight function is chosen to match the binary nature of the parity split — this is why the induction closes tightly rather than with slack.",
+      "hint_level": 0.3,
+      "generalizability": "medium — the weight function approach works for similar extremal problems with dyadic or binary structure, but the specific weight 2^{-r} is tailored to this problem's split structure",
+      "why_not_visible_locally": "The connection between the weight base (2) and the split structure (binary parity) is only visible when you see the entire proof architecture: the weight function is introduced in R5, the split is designed in R6, and the closure is verified in R7. No single step reveals why base 2 is the right choice — it emerges from the interaction between the weight definition and the induction split.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["weighted_potential", "exponential_weight", "base_2_compensation", "induction_closure"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will attempt direct induction on |F| using spatial splits (median split or minimum-scale grouping), but cross-scales overlap with within-group scales, preventing k from decreasing in subproblems. It will not discover the weight function w(S) = sum 2^{-r_S(x)} as a potential function, nor the parity split technique. It may correctly guess the answer 2^k from small cases but fail to prove the upper bound.",
+  "suitable_for_poc": ["tell_hint_injection", "weighted_potential_discovery", "structural_insight_verification"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：D(x,y)是什么？每个元素的scales是什么？约束条件和目标分别是什么？",
+        "expected_answer": "D(x,y)是dyadic scale函数，将距离映射到整数d使2^d≤|x-y|<2^{d+1}。x的scales是{x到F中所有其他元素的D值集合}。约束：每个x至多k个不同scales。目标：最大化|F|。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能用于解决这道题的方法方向，包括直接计数、归纳法、构造法、加权方法等",
+        "expected_answer": "可能方向：1)小case分析(k=1,2)猜答案；2)对k归纳，空间拆分F；3)构造达到下界的例子；4)用势函数/权函数方法；5)图论方法(将scales看作边着色)；6)信息论方法"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试k=1和k=2的小case，猜测答案形式，并尝试构造达到该答案的集合F",
+        "expected_answer": "k=1:|F|≤2(3个元素中中间元素有2个scale)。k=2:猜测|F|≤4，构造F={0,1,2,3}每个元素scales={0,1}。猜测答案2^k，构造F={0,...,2^k-1}"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "对排序后的F={x_1<...<x_n}，设d是最小scale。证明：d只出现在相邻元素之间，即对任意j-i>1，D(x_i,x_j)>d",
+        "expected_answer": "因为d是最小scale，所有距离≥2^d。对j-i>1，|x_i-x_j|=|x_i-x_{i+1}|+...+|x_{j-1}-x_j|≥2·2^d=2^{d+1}，所以D(x_i,x_j)≥d+1>d。关键：最小scale的相邻性"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "定义权重w(S)=Σ_{x∈S} 2^{-r_S(x)}，其中r_S(x)是x在S中的scale数。解释为什么证明w(S)≤1就能得到|F|≤2^k",
+        "expected_answer": "因为r_F(x)≤k对所有x，所以2^{-r_F(x)}≥2^{-k}，因此w(F)≥|F|·2^{-k}。若w(F)≤1则|F|≤2^k。权重设计使得scale多的元素贡献小，恰好匹配二分拆分的1/2因子"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.3,
+        "question": "利用最小scale d的相邻性，设计一个将S拆分为两个更小子集S_O和S_E的方案，使得归纳假设可以应用",
+        "expected_answer": "找最大d-scale连续段x_i,...,x_j，按奇偶分E(偶下标)O(奇下标)，R为剩余。S_O=R∪O, S_E=R∪E。O中元素在S_O中失去scale d(r减1)，E中元素在S_E中失去scale d，R中元素r不变"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.2,
+        "question": "将以上所有观察组合，完成w(S)≤1的归纳证明",
+        "expected_answer": "w(S)=Σ_R 2^{-r}+Σ_O 2^{-r}+Σ_E 2^{-r}≤(1/2)Σ_R(2^{-r_SO}+2^{-r_SE})+(1/2)Σ_O 2^{-r_SO}+(1/2)Σ_E 2^{-r_SE}=(1/2)(w(S_O)+w(S_E))≤1。QED"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-28T00:00:00Z",
+    "analysis_duration": "moderate",
+    "notes": "IMO 2019 Shortlist C9 (Italy). Difficulty 9.0. Key insight is the weighted potential function w(S)=Σ2^{-r_S(x)} with parity split induction. The minimum scale adjacency property (d only between adjacent elements) is the structural foundation. Solution verified from official IMO 2019 Shortlist PDF."
+  }
+}

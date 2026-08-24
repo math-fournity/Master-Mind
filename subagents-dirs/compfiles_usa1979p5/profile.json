@@ -1,0 +1,361 @@
+{
+  "_key": "compfiles_usa1979p5",
+  "source_id": "usa1979_p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "X has n members. Given n+1 subsets of X, each with 3 members, show that we can always find two which have just one member in common.",
+  "solution_text": "Proof by contradiction. Assume no two of the n+1 three-element subsets share exactly one element (a 'good' family). We prove that any good family of 3-element subsets of an n-element set has at most n members, by strong induction on n.\n\nCase 1: Some element A belongs to at least 4 sets. Pick s0 = {A, B, C}. Any other set containing A intersects s0 in exactly 2 elements (not 1 by assumption, not 3 since sets are distinct), so it contains B or C. By pigeonhole, one of B, C (say P) is in at least 2 other sets containing A: call them t1 = {A, P, D} and t2 = {A, P, E}.\n\nKey claim 1: Every set containing A also contains P. If some set u contains A but not P, then by the intersection constraint u must contain Q (from s0), D (from t1), and E (from t2), giving at least 4 elements in a 3-element set — contradiction.\n\nKey claim 2: Every set containing P also contains A (similar argument with roles swapped).\n\nThe third elements K of sets {A, P, K} are pairwise distinct and don't appear in sets not containing A. Remove A, P, and all K's from X to get T with |T| = n - |M| - 2 < n. The remaining sets (not containing A) are 3-subsets of T and still form a good family, so by induction there are at most |T| of them. Total: |S| = |M| + |S'| <= |M| + |T| = |M| + (n - |M| - 2) = n - 2 <= n.\n\nCase 2: Every element is in at most 3 sets. Double counting: 3|S| = sum of degrees <= 3n, so |S| <= n.\n\nIn both cases |S| <= n, contradicting |S| = n+1.",
+  "solution_summary": "Proof by contradiction with strong induction: a 'good' family (no two 3-sets share exactly one element) of 3-subsets of an n-set has at most n members. Case 1 (popular element in >=4 sets): structural reduction via co-occurrence locking and induction. Case 2 (bounded degree <=3): double counting gives |S| <= n. Both cases contradict |S| = n+1.",
+  "domain": "Combinatorics",
+  "subfield": "Extremal set theory",
+  "answer_type": "proof",
+  "answer": "Given n+1 three-element subsets of an n-element set X, there always exist two subsets that share exactly one element.",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "strong_induction",
+  "structure_features": "n+1 three-element subsets of an n-element set; need to prove existence of two subsets with intersection cardinality exactly 1. Core structure is a uniform set family with intersection constraints.",
+  "key_objects": [
+    "n-element set X",
+    "3-element subsets (uniform family)",
+    "pairwise intersection cardinality",
+    "good family (no singleton intersection)",
+    "incidence counting"
+  ],
+  "thinking_patterns": [
+    "contradiction",
+    "strong_induction",
+    "structural_reduction",
+    "double_counting",
+    "pigeonhole_principle",
+    "case_analysis"
+  ],
+  "primary_pattern": "structural_reduction",
+  "knowledge_required": [
+    "double counting (incidence counting)",
+    "pigeonhole principle",
+    "strong induction",
+    "set intersection cardinality properties",
+    "uniform set family constraints"
+  ],
+  "key_insight": "If an element A appears in >=4 sets, the 'good family' constraint forces A and another element P to always co-occur (co-occurrence locking), allowing removal of A, P, and all third elements K to reduce to a smaller instance for induction.",
+  "translation_from": "direct counting / incidence enumeration",
+  "translation_to": "structural induction with case-based reduction",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "3-element subsets",
+    "pairwise intersection",
+    "good family",
+    "popular element",
+    "co-occurrence locking",
+    "third element removal",
+    "double counting",
+    "strong induction"
+  ],
+  "expected_ai_method": "Direct double counting or pigeonhole without setting up the contradiction framework. Fails to recognize the need for structural induction and the case split on popular elements.",
+  "correct_method": "Proof by contradiction with strong induction: case split on whether some element appears in >=4 sets. Popular element case uses co-occurrence locking and structural reduction via induction. Bounded degree case uses double counting. Both yield |S| <= n, contradicting |S| = n+1.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a combinatorics problem about 3-element subsets but hasn't identified the proof strategy or the contradiction structure",
+      "hint": "Describe the problem structure: what are the given objects, what is the target, and what kind of statement is this (existence, counting, etc.)?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "3-element subsets",
+        "n-element set",
+        "pairwise intersection cardinality"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI has identified the problem structure but doesn't know which approach to take — no strategy selected yet",
+      "hint": "List all possible proof strategies for this type of combinatorial existence problem: double counting, pigeonhole, induction, contradiction, probabilistic method, etc.",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "double counting",
+        "pigeonhole",
+        "induction",
+        "contradiction",
+        "extremal argument"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries direct double counting but gets stuck because counting alone doesn't exploit the intersection constraint — the degree of each element is unbounded",
+      "hint": "Try counting incidences (element, set) pairs. Each set has 3 elements, so total incidences = 3(n+1). Can you bound how many sets each element belongs to?",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "incidence counting",
+        "degree bound",
+        "3(n+1) total"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI's direct counting didn't yield a contradiction; needs to restructure the approach by setting up a contradiction framework",
+      "hint": "Set up a proof by contradiction: assume no two sets share exactly one element. What does this imply about the intersection of any two 3-element sets that do intersect?",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "contradiction assumption",
+        "good family",
+        "intersection cardinality 2",
+        "pairwise non-singleton intersection"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has established that intersecting sets share exactly 2 elements; needs to exploit this structure by considering a popular element",
+      "hint": "Consider an element A that appears in many sets (>=4). Pick one such set s0 = {A, B, C}. What can you say about other sets containing A?",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "popular element",
+        "s0 = {A, B, C}",
+        "intersection exactly 2",
+        "contains B or C"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI sees that other sets containing A must contain B or C, but hasn't realized the co-occurrence locking structure — this is the key knowledge bottleneck",
+      "hint": "By pigeonhole, one of B, C (say P) is in at least 2 other sets containing A: call them {A, P, D} and {A, P, E}. Now show that ANY set containing A must also contain P — otherwise it would need to contain Q, D, and E, giving 4 elements in a 3-set.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "pigeonhole on B and C",
+        "co-occurrence locking",
+        "third element lemma",
+        "4-element contradiction"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has shown A and P co-occur; needs to reduce to a smaller instance for induction by removing A, P, and all third elements",
+      "hint": "Show the third elements K of sets {A, P, K} are all distinct and don't appear in sets outside those containing A. Remove A, P, and all K's from X to get a smaller set T. Apply the induction hypothesis to the remaining sets.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "distinct third elements",
+        "disjoint removal",
+        "induction hypothesis",
+        "smaller instance T"
+      ]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI has handled the popular element case; needs to handle the remaining case (bounded degree) and conclude the proof",
+      "hint": "If every element is in at most 3 sets, use double counting: 3|S| = sum of degrees <= 3n, so |S| <= n. Combined with the induction case, this contradicts |S| = n+1. You've got it!",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "bounded degree",
+        "double counting 3|S| <= 3n",
+        "contradiction with n+1"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire proof structure — the case split on popular vs bounded-degree elements",
+      "observation_point": null,
+      "tell": "The proof requires a case split on whether some element appears in >=4 sets, with fundamentally different strategies for each case: structural reduction for the popular element case, and direct double counting for the bounded degree case",
+      "hint": "The proof bifurcates: if some element is popular (>=4 sets), use structural reduction via co-occurrence locking and induction; if all elements have bounded degree (<=3), use direct double counting. Both cases yield |S| <= n, contradicting |S| = n+1.",
+      "hint_level": 0.7,
+      "generalizability": "high — the case split on popular vs bounded-degree elements is a general technique in extremal set theory, applicable to many uniform set family problems with intersection constraints",
+      "why_not_visible_locally": "The necessity of the case split only becomes apparent after attempting direct double counting and realizing it fails when some element has high degree. From any single step, the bifurcation into two qualitatively different strategies is not visible — it requires seeing that the structural reduction handles the high-degree case while double counting handles the low-degree case, and that together they cover all possibilities.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "case split on degree",
+        "popular element vs bounded degree",
+        "structural reduction",
+        "double counting fallback"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "co-occurrence locking argument — A and P must always appear together in all sets of the family",
+      "observation_point": "R6",
+      "tell": "The 'good family' constraint combined with having three sets sharing {A, P} (namely s0, t1, t2) forces A and P to co-occur in ALL sets of the family — this is not visible from any single pairwise interaction",
+      "hint": "When A appears in s0={A,P,Q}, t1={A,P,D}, t2={A,P,E}, any set containing A but not P would need Q, D, and E simultaneously (by the third-element lemma applied to each pair), exceeding the 3-element limit. This 'locking' is the key structural insight that enables the induction reduction.",
+      "hint_level": 0.8,
+      "generalizability": "medium — the co-occurrence locking technique applies to similar extremal problems with intersection constraints on uniform set families, but the specific 3-set trigger configuration is somewhat problem-specific",
+      "why_not_visible_locally": "The locking conclusion requires simultaneously applying the third-element lemma to three different pairs of sets (u with s0, u with t1, u with t2) and combining the results. From any single pairwise interaction, the global co-occurrence constraint is not visible — it emerges only when all three constraints are combined and the 4-element contradiction is reached.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "co-occurrence locking",
+        "third element lemma",
+        "triple constraint combination",
+        "4-element contradiction"
+      ]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "induction reduction structure — the clean partition that enables strong induction",
+      "observation_point": null,
+      "tell": "The problem reduces to a smaller instance by removing A, P, and all third elements K, creating a clean partition that enables strong induction — this requires four properties to hold simultaneously",
+      "hint": "After establishing A-P co-occurrence, the sets split into those containing both A and P (with distinct third elements K) and those containing neither. The K's are distinct and absent from the second group. Removing {A, P} union {all K's} gives a smaller ground set T, and the second group forms a valid smaller instance for induction.",
+      "hint_level": 0.7,
+      "generalizability": "medium — the clean-partition reduction for induction is specific to uniform set families with intersection constraints, but the pattern of identifying a 'locked pair' and removing it with all associated elements is a recurring technique",
+      "why_not_visible_locally": "The reduction requires simultaneously verifying four properties: (1) A and P co-occur, (2) third elements are pairwise distinct, (3) third elements don't appear in sets outside M, (4) remaining sets are 3-subsets of T. Each property is established in a different local step, and the complete reduction structure is only visible when all four are combined — no single step reveals that the partition is clean enough for induction.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "clean partition",
+        "distinct third elements",
+        "disjoint removal",
+        "induction reduction",
+        "smaller ground set T"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI likely attempts direct double counting or pigeonhole without setting up the contradiction framework. It may count incidences but fail to recognize the need for structural induction and the case split on popular elements. The co-occurrence locking argument (A and P must always appear together) is a non-obvious structural insight that requires combining constraints from three different sets simultaneously — a bare AI is unlikely to discover this without guided hints.",
+  "suitable_for_poc": [
+    "tell_hint_injection",
+    "structural_induction_guidance",
+    "contradiction_setup",
+    "co_occurrence_locking_discovery"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "描述这道题的结构：已知什么对象？要证明什么结论？这是什么类型的问题？",
+        "expected_answer": "已知n元集合X和n+1个3元子集，要证明存在两个子集恰好交于1个元素。这是一个组合存在性问题。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "列出所有可能用于此类组合存在性问题的证明策略",
+        "expected_answer": "双计数、鸽巢原理、归纳法、反证法、概率方法、极值论证"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "试着直接双计数：计算(元素,集合)关联对的总数。每个集合3个元素，总关联数=3(n+1)。能否限制每个元素属于多少个集合？",
+        "expected_answer": "直接双计数得3(n+1)个关联对，但无法直接限制每个元素的度数——如果某元素出现在很多集合中，度数可以很高，无法得到矛盾。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "设反证法：假设没有两个集合恰好交于1个元素（'好族'）。那么任意两个相交的3元子集的交集大小是多少？",
+        "expected_answer": "若两个3元子集相交且不等，交集大小≠1（假设），≠3（否则相等），所以恰好为2。即好族中相交的集合恰好共享2个元素。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "考虑一个出现在很多集合中的元素A（≥4个）。取s₀={A,B,C}。其他含A的集合与s₀的交集有什么性质？",
+        "expected_answer": "其他含A的集合与s₀都含A，故交集≥1。由好族性质交集≠1，且≠3（集合不同），所以恰好为2。因此这些集合必含B或C。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "由鸽巢原理，B或C中之一（记P）在≥2个其他含A的集合中，记为t₁={A,P,D}, t₂={A,P,E}。证明：任何含A的集合必含P。",
+        "expected_answer": "若某集合u含A不含P，则u与s₀交需含Q（s₀的第三元素），u与t₁交需含D，u与t₂交需含E。于是u至少含{A,Q,D,E}四个元素，但u只有3个元素，矛盾。故含A必含P。"
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "已知A和P总是同时出现。证明第三元素K互不相同且不出现在不含A的集合中，然后移除A,P,所有K得到更小的集合T，对剩余集合用归纳假设。",
+        "expected_answer": "第三元素K互不相同（否则两个集合{A,P,K}相同）；K不出现在不含A的集合中（否则与含A,P,K的集合交于{K}，违反好族）。移除后|T|=n-|M|-2<n，剩余集合是T上的好族，由归纳假设≤|T|个。总|S|≤|M|+|T|=n-2≤n。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "如果每个元素至多出现在3个集合中呢？用双计数完成，然后总结。",
+        "expected_answer": "3|S|=Σ度数≤3n→|S|≤n。两种情况都得|S|≤n，与|S|=n+1矛盾。证明完成！"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 2,
+      "level_sum": 3.6,
+      "knowledge_bottleneck": "R6",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-29T00:00:00Z",
+    "analysis_duration": "approximately 15 minutes",
+    "notes": "USA 1979 P5 is a classic extremal set theory problem. The key difficulty is the structural reduction in the popular element case, which requires the non-obvious co-occurrence locking argument. The proof structure (contradiction + strong induction + case split) is not something a bare AI would naturally discover. The co-occurrence locking (R6) is the primary knowledge bottleneck, while the contradiction setup (R4) is the primary thinking bottleneck."
+  }
+}

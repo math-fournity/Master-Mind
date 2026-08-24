@@ -1,0 +1,271 @@
+{
+  "phase": "synthesis_step3",
+  "base_grading": "V10",
+  "nonlocal_traces": [
+    {
+      "id": "trace_NL1",
+      "type": "nonlocal",
+      "description": "bad index存在性论证链——定义bad index(段6)→构造注入映射(段7)→鸽巢论证得good index r(段8)，三段构成完整的存在性论证",
+      "segments": ["段6", "段7", "段8"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "这是一个完整的存在性论证链：定义反面量(bad index)→证明反面量有界(注入映射+鸽巢)→得正面量存在(good index r)。这个模式的泛化价值在于：'通过定义反面量并证明其有界来获得正面量的存在性'是一种通用的存在性论证策略。"
+    },
+    {
+      "id": "trace_NL2",
+      "type": "nonlocal",
+      "description": "good index r的完整使用链——r从鸽巢论证获得(段8)→用于定义t=x-aᵣ(段9)→从子问题中排除(段11)→放入排列(段12)→验证中和=s-aₙ避M(段13)",
+      "segments": ["段8", "段9", "段11", "段12", "段13"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "r的使用链展示了存在性论证的产物如何在后续构造中被使用：r不仅是'存在'的结论，而是构造的起点——r的选择决定了M'的截断点t、子问题的元素集、排列的结构、验证的依据。这个模式的泛化价值在于：'存在性论证的产物是构造的输入'。"
+    },
+    {
+      "id": "trace_NL3",
+      "type": "nonlocal",
+      "description": "WLOG开口-收口呼应——段1(WLOG排序归约)和段25(排序复合收口)形成证明的外层结构括号",
+      "segments": ["段1", "段25"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "段1把一般情形归约到排序情形，段25把排序情形的结果推广回一般情形。这种'开口-收口'结构是WLOG归约的标准模式。泛化价值在于：'WLOG归约必须有开口和收口的配对'。"
+    },
+    {
+      "id": "trace_NL4",
+      "type": "nonlocal",
+      "description": "Case1的预防性避障 vs Case3的修复性避障——Case1通过good index r预防命中M(段6-13)，Case3通过swap修复命中z(段23)，两种避障策略形成对比",
+      "segments": ["段6", "段7", "段8", "段9", "段11", "段12", "段13", "段23"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "Case1的避障是预防性的——在选择r时就确保x-aᵣ和s-aᵣ都不在M中，从源头避免命中。Case3的避障是修复性的——先让归纳跑完，如果命中了z再用swap修复。两种策略的对比展示了'预防vs修复'的证明设计选择。泛化价值在于：'避障可以在构造前预防（选择参数时避开）或在构造后修复（调整排列时跳过）'。"
+    },
+    {
+      "id": "trace_NL5",
+      "type": "nonlocal",
+      "description": "Case1的子问题双重缩减——段9(M'缩减:M∩(-∞,t])和段11(元素集缩减:去掉aᵣ和aₙ)联合构成Case1独特的双重缩减",
+      "segments": ["段9", "段11"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "Case1同时缩减了M(构造M')和元素集(去掉aᵣ和aₙ两个元素)，是三个Case中唯一做双重缩减的。Case2只缩减M(元素集只去掉aₙ)，Case3只缩减M(元素集只去掉aₙ)。Case1的双重缩减是因为它的条件最复杂(x∈M且∃y>x)，需要更激进的缩减才能满足归纳条件。泛化价值在于：'当Case条件更复杂时，需要更激进的子问题缩减'。"
+    },
+    {
+      "id": "trace_NL6",
+      "type": "nonlocal",
+      "description": "s=a₁+...+aₙ的跨段使用链——s在bad index定义(段6:s-aᵢ∈M)、注入映射(段7:s-aᵢ>x)、鸽巢论证(段8)、Case1验证(段13:s-aₙ避M和s∉M)、Case2验证(段19:s∉M)中使用",
+      "segments": ["段6", "段7", "段8", "段13", "段19"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "s作为总和贯穿Case1的bad index论证和两个Case的验证。s的双重角色——既是bad index定义中的判定量(s-aᵢ)，又是验证中的终点量(s∉M)——展示了总量在证明中的多功能性。V10未把s作为实体跟踪（comparison.json已指出此遗漏），这个nonlocal trace补充了s的使用链。"
+    },
+    {
+      "id": "trace_NL7",
+      "type": "nonlocal",
+      "description": "x的角色演化链——x从定义(段2)→分类标准(段4)→Case条件依据(段5,14,20)→bad index基准(段6)→M'缩减边界(段9,15)→验证依据(段13,19)",
+      "segments": ["段2", "段4", "段5", "段6", "段9", "段13", "段14", "段15", "段19", "段20"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "x在证明中扮演了至少6种角色，且角色按证明推进有序演化：先定义，再作为分类标准划分Case，再在Case1中作为bad index的基准，再作为M'的缩减边界，最后在验证中作为前缀和的上界。这种'一个量从定义到分类到构造到验证的角色演化'是复杂数学证明的典型特征。"
+    },
+    {
+      "id": "trace_NL8",
+      "type": "nonlocal",
+      "description": "Case3的分支决策——段23(swap分支:前缀和命中z时用aₙ跳过)和段24(无hit分支:前缀和未命中z时p'已避开M)，Case3内部的条件分支",
+      "segments": ["段23", "段24"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "Case3根据'p'的前缀和是否命中z'分两个分支处理：命中则swap修复，未命中则无需调整。这种'构造后检测+条件分支'是修复性避障的标准模式。泛化价值在于：'当预防性避障不可行时，可以构造后检测并分支处理'。"
+    },
+    {
+      "id": "trace_NL9",
+      "type": "nonlocal",
+      "description": "Case2的简洁性对比——Case2(段14-19)不需要bad index论证(段6-8)、不需要swap(段12,23)、不需要分支处理(段23,24)，是三个Case中最简洁的",
+      "segments": ["段14", "段15", "段16", "段17", "段18", "段19"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "Case2的简洁性来自其条件x∉M——x不在M中意味着M'的截断点x不会命中M，归纳可以直接跑，aₙ放最后扩展即可。与Case1(需要bad index论证)和Case3(需要swap修复)形成复杂度对比。泛化价值在于：'Case条件的复杂度决定了Case证明的复杂度——条件越宽松，证明越简洁'。"
+    },
+    {
+      "id": "trace_NL10",
+      "type": "nonlocal",
+      "description": "aₙ的贯穿链——aₙ从定义最大性(段2)→Case1排除(段11)→Case1放最后/跳过(段12)→Case2放最后(段18)→Case2验证(段19)→Case3跳过z(段23)",
+      "segments": ["段2", "段11", "段12", "段18", "段19", "段23"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "aₙ贯穿定义和三个Case的构造验证，其最大性是所有这些角色的前提。aₙ在Case1和Case2中放最后扩展排列，在Case1和Case3中跳过障碍——两种角色都依赖aₙ的最大性。泛化价值在于：'最大元的极端性质可以同时服务于排列扩展和障碍跳过'。"
+    },
+    {
+      "id": "trace_NL11",
+      "type": "nonlocal",
+      "description": "Case1的基数估计→归纳条件验证链——段10估计|M'|≤n-3，确保子问题(段11)满足归纳条件(n-2个元素，|M'|≤n-3≤n-3=n-2-1)",
+      "segments": ["段10", "段11"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "基数估计不是孤立的计算，而是归纳应用的前提——必须先验证|M'|≤n-2才能应用归纳假设。这种'估计→验证条件→应用归纳'的链式结构是强归纳证明的标准模式。"
+    }
+  ],
+  "cross_case_merge_traces": [
+    {
+      "id": "trace_CCM1",
+      "type": "cross_case_merge",
+      "description": "三Case条件识别合并——Case1(段5:x∈M且∃y>x)、Case2(段14:x∉M且∃y>x)、Case3(段20:所有m≤x)都以x相对M的位置为条件",
+      "segments": ["段5", "段14", "段20"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "三个Case的条件识别本质相同——都是判断x相对M的位置关系。合并视角下，这三个段是'同一决策点(x相对M的位置)的三个分支'。"
+    },
+    {
+      "id": "trace_CCM2",
+      "type": "cross_case_merge",
+      "description": "三Case M'缩减构造合并——Case1(段9:M∩(-∞,t])、Case2(段15:M∩(-∞,x])、Case3(段21:M\\{z})都以不同方式缩减M",
+      "segments": ["段9", "段15", "段21"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "三个Case的M'构造方式不同（截断到t、截断到x、剥离z），但本质相同——都是缩减M使|M'|≤n-2满足归纳条件。合并视角下，这三个段展示了'同一目标(缩减M)的多种实现方式'。"
+    },
+    {
+      "id": "trace_CCM3",
+      "type": "cross_case_merge",
+      "description": "三Case归纳应用合并——Case1(段11:对n-2个元素及M')、Case2(段16:对a₁,...,a_{n-1}及M')、Case3(段22:对a₁,...,a_{n-1}及M')都应用归纳假设",
+      "segments": ["段11", "段16", "段22"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "三个Case的归纳应用本质相同——都是对缩减后的子问题(缩减的元素集+缩减的M)应用强归纳。合并视角下，这三个段是'强归纳框架的三个实例化'。"
+    },
+    {
+      "id": "trace_CCM4",
+      "type": "cross_case_merge",
+      "description": "三Case排列构造合并——Case1(段12:p'+aᵣ+aₙ with swap)、Case2(段18:p'+aₙ)、Case3(段23:swap aₙ到命中z的位置)都构造完整排列",
+      "segments": ["段12", "段18", "段23"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "三个Case的排列构造方式不同（Case1和Case3用swap，Case2直接放最后），但本质相同——都是把归纳得到的p'扩展为完整排列。合并视角下，这三个段展示了'排列扩展的多种方式'。"
+    },
+    {
+      "id": "trace_CCM5",
+      "type": "cross_case_merge",
+      "description": "三Case验证合并——Case1(段13:前缀和≤t避M'+s-aₙ避M+s∉M)、Case2(段19:前缀和≤x避M'+s∉M)、Case3(段24:p'已避M'∪{z})都验证构造正确性",
+      "segments": ["段13", "段19", "段24"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "三个Case的验证本质相同——都验证前缀和避开M'且终点s∉M。Case1的验证最复杂(三层)，Case2次之(两层)，Case3最简洁(自动成立)。合并视角下，这三个段是'前缀和验证模式的三种复杂度实例'。"
+    },
+    {
+      "id": "trace_CCM6",
+      "type": "cross_case_merge",
+      "description": "Case1&2基数估计合并——Case1(段10:|M'|≤n-3)和Case2(段14:|M∩(-∞,x]|≤n-2)都做基数估计确保子问题满足归纳条件",
+      "segments": ["段10", "段14"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "Case1和Case2都需要基数估计来验证子问题满足归纳条件，Case3不需要(因为|M'|=n-2直接由构造保证)。合并视角下，这两个段是'归纳条件验证'的实例。"
+    },
+    {
+      "id": "trace_CCM7",
+      "type": "cross_case_merge",
+      "description": "Case2&3退化情况合并——Case2(段17:M'为空用恒等排列)和Case3(段24:无前缀和命中z则p'已避M)都是退化处理",
+      "segments": ["段17", "段24"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "两个Case的退化处理本质相同——当不需要构造性调整时，证明已自动完成。合并视角下，这两个段是'退化情况自动成立'的实例。"
+    },
+    {
+      "id": "trace_CCM8",
+      "type": "cross_case_merge",
+      "description": "Case1&2 aₙ放最后扩展合并——Case1(段12:aₙ放倒数第二)和Case2(段18:aₙ放最后)都把aₙ放在排列末尾扩展",
+      "segments": ["段12", "段18"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "Case1和Case2都用aₙ放最后来扩展排列，区别在于Case1还用了swap调整aₙ到倒数第二位。合并视角下，这两个段是'aₙ放最后扩展排列'的实例。"
+    },
+    {
+      "id": "trace_CCM9",
+      "type": "cross_case_merge",
+      "description": "Case1&3 swap技巧合并——Case1(段12:swap把aₙ放到倒数第二)和Case3(段23:swap把aₙ放到命中z的位置)都用swap重新定位aₙ",
+      "segments": ["段12", "段23"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "Case1和Case3都用swap重新定位aₙ，但目的不同——Case1是为了让aᵣ在aₙ前(使中间和=s-aₙ)，Case3是为了让aₙ跳过z。合并视角下，这两个段展示了'swap重新定位aₙ'的两种目的。"
+    },
+    {
+      "id": "trace_CCM10",
+      "type": "cross_case_merge",
+      "description": "三Case前缀和验证合并——Case1(段13)、Case2(段19)、Case3(段23,24)都以前缀和分析验证构造正确性",
+      "segments": ["段13", "段19", "段23", "段24"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "前缀和验证是三个Case统一的验证方法——都验证蚱蜢的跳跃路径(前缀和)避开M中的点。合并视角下，这四个段是'前缀和验证范式'的实例。"
+    }
+  ],
+  "global_traces": [
+    {
+      "id": "trace_G1",
+      "type": "global",
+      "description": "强归纳统一框架——段3声明强归纳，段11/16/22在三个Case中分别应用，强归纳是连接整个证明的推理引擎",
+      "segments": ["段3", "段11", "段16", "段22"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "强归纳是证明的结构骨架——所有Case的证明都归结为'对缩减后的子问题应用强归纳'。没有强归纳，三个Case的证明都无法成立。强归纳的'对n归纳'意味着子问题的规模必须小于n，这驱动了每个Case的元素集缩减和M缩减。"
+    },
+    {
+      "id": "trace_G2",
+      "type": "global",
+      "description": "x作为核心枢纽量贯穿全证明——x在段2定义，在段4作为分类标准，在段5/14/20作为Case条件依据，在段6/9/14/15作为缩减边界，在段16作为子问题和，在段13/19作为验证依据",
+      "segments": ["段2", "段4", "段5", "段6", "段9", "段13", "段14", "段15", "段16", "段19", "段20"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "x贯穿了25个段中的11个段(44%)，是证明中覆盖面最广的量。x的多重角色(分类标准/缩减边界/子问题和/验证依据)使它成为证明的结构枢纽——x的定义决定了Case划分，x的值决定了M'的截断，x作为子问题和保证了Case2的归纳条件。这个global trace捕捉了'选择一个关键量使其同时服务于分类、构造和验证'的证明设计策略。"
+    },
+    {
+      "id": "trace_G3",
+      "type": "global",
+      "description": "WLOG归约框架——段1(WLOG排序开口)和段25(排序复合收口)构成证明的外层结构",
+      "segments": ["段1", "段25"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "WLOG归约是证明的最外层结构——先把一般情形归约到排序情形(段1)，在排序情形中完成证明(段2-24)，再把结果推广回一般情形(段25)。这种'开口-证明-收口'的三段结构是WLOG归约的标准模式。虽然只涉及2个段，但它是证明的框架性决策。"
+    },
+    {
+      "id": "trace_G4",
+      "type": "global",
+      "description": "三Case统一归纳模式(M'缩减+强归纳应用)——每个Case都遵循'缩减M构造M'→对缩减子问题应用强归纳'的统一模式",
+      "segments": ["段9", "段11", "段15", "段16", "段21", "段22"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "三个Case的证明核心都是'缩减M→应用归纳'，这个统一模式是证明的推理骨架。每个Case的M'构造方式不同(截断到t/截断到x/剥离z)，但目标统一：让|M'|≤n-2使归纳适用。这个global trace和cross_case_merge的CCM2/CCM3有重叠，但global视角强调的是'这个模式是证明的结构骨架'而非'这些段是相同操作'。"
+    },
+    {
+      "id": "trace_G5",
+      "type": "global",
+      "description": "三Case统一验证模式(前缀和避开M)——每个Case都以前缀和验证收尾，验证蚱蜢的跳跃路径避开M",
+      "segments": ["段13", "段19", "段23", "段24"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "前缀和验证是三个Case统一的验证范式——都验证构造的排列的前缀和(蚱蜢的落点)避开M中的点。这个global trace和cross_case_merge的CCM10有重叠，但global视角强调的是'前缀和验证是证明的统一收尾范式'而非'这些段是相同操作'。"
+    },
+    {
+      "id": "trace_G6",
+      "type": "global",
+      "description": "M'作为跨Case的归纳子问题M贯穿全证明——M'在段9/10/11/13/15/16/17/19/21/22中使用，贯穿10个段(40%)",
+      "segments": ["段9", "段10", "段11", "段13", "段15", "段16", "段17", "段19", "段21", "段22"],
+      "level": "L3",
+      "generalizable": true,
+      "reason": "M'是证明中覆盖面第二广的实体(10个段,40%)，是连接三个Case的核心变量。M'的统一角色是'缩减的M使归纳适用'——每个Case用不同方式构造M'，但M'在后续步骤(归纳应用、验证)中的使用方式统一。这个global trace捕捉了'M'是强归纳证明中连接Case分析和归纳应用的桥梁'。"
+    },
+    {
+      "id": "trace_G7",
+      "type": "global",
+      "description": "情况划分以x为标准——段4(情况划分框架)以x相对M的位置为标准，段5/14/20(三Case条件)是这个标准的三分支",
+      "segments": ["段4", "段5", "段14", "段20"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "x相对M的位置(x∈M或x∉M或所有m≤x)决定了Case的划分，这是证明的全局结构决策。情况划分的完备性(三个Case覆盖所有可能性)是证明正确性的基础。这个global trace和trace_G2有重叠，但G2强调x的多重角色，G7强调x作为分类标准的框架性决策。"
+    },
+    {
+      "id": "trace_G8",
+      "type": "global",
+      "description": "构造-验证的统一节奏——每个Case都遵循'构造排列→验证排列'的统一节奏，证明在构造和验证的交替中推进",
+      "segments": ["段12", "段13", "段18", "段19", "段22", "段23", "段24"],
+      "level": "L2",
+      "generalizable": true,
+      "reason": "三个Case都遵循'先构造排列，再验证排列'的统一节奏。这种'构造-验证'的配对是构造性证明的标准模式——构造给出排列，验证证明排列的正确性。这个global trace捕捉了证明的节奏性结构。"
+    }
+  ]
+}

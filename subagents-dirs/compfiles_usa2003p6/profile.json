@@ -1,0 +1,305 @@
+{
+  "_key": "compfiles_usa2003p6",
+  "source_id": "compfiles_usa2003p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "At the vertices of a regular hexagon are written six nonnegative integers whose sum is 2003^2003. Bert is allowed to make moves of the following form: he may pick a vertex and replace the number written there by the absolute value of the difference between the numbers written at the two neighboring vertices. Prove that Bert can make a sequence of moves, after which the number 0 appears at all six vertices.",
+  "solution_text": "Key steps: (1) 2003 is odd, so 2003^2003 is odd, hence the sum of the six numbers is odd. (2) In ZMod 2, |a-b| ≡ a+b, so a move replaces v(j) with v(j-1)+v(j+1) — a linear operation on parity vectors. (3) Phase 1: From any parity vector with odd sum (32 possibilities), one of 8 candidate move sequences leads to a parity vector with exactly one odd entry (verified by exhaustive finite case analysis). (4) Rotation symmetry allows placing the unique odd entry at vertex 0. (5) Phase 2: From a configuration with exactly one odd entry at vertex 0, case analysis on the maximum's location: if max is at vertex 0 (odd), sub-cases on whether vertices 2 and 4 are zero lead to either direct zeroing (6 moves) or max reduction; if max is at an even vertex ≠ 0, the sequence [1,2,3,4,5] reduces the maximum while preserving odd sum. (6) Strong induction on cmax: Phase 1 reduces to single odd entry (cmax non-increasing), Phase 2 either reaches all zeros or strictly decreases cmax while maintaining odd sum. Since cmax is a nonneg integer that strictly decreases, the process terminates at all zeros. (7) Bridge from ℕ to ℤ via Nat.dist ↔ |·-·| completes the proof.",
+  "solution_summary": "奇偶性归约+强归纳：利用mod 2下|a-b|≡a+b使操作线性化，将奇和配置归约为单奇数项，再对最大值做强归纳——每轮要么归零要么cmax严格递减。",
+  "domain": "Combinatorics",
+  "subfield": "Combinatorial_game_theory",
+  "answer_type": "proof",
+  "answer": "Bert can make a sequence of moves after which 0 appears at all six vertices.",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "parity_invariant_induction",
+  "structure_features": "六边形顶点上的非负整数配置，操作为局部替换（用邻居之差的绝对值替换当前值），目标是到达全零配置。关键结构：奇偶性使操作在ZMod 2上线性化，最大值作为归纳变量单调递减。",
+  "key_objects": [
+    "正六边形配置(ZMod 6 → ℤ)",
+    "绝对差操作|f(j-1)-f(j+1)|",
+    "奇偶向量(ZMod 6 → ZMod 2)",
+    "最大值cmax",
+    "奇和不变量"
+  ],
+  "thinking_patterns": [
+    "parity_reduction（奇偶归约：将整数问题降到ZMod 2）",
+    "invariant_analysis（奇和作为不变量）",
+    "exhaustive_verification（穷举验证Phase 1的32种奇偶模式）",
+    "case_analysis（Phase 2按最大值位置分情况）",
+    "strong_induction（对cmax做强归纳）"
+  ],
+  "primary_pattern": "parity_reduction_with_induction",
+  "knowledge_required": [
+    "模运算（ZMod 2上的线性操作）",
+    "绝对值的奇偶性质（|a-b|≡a+b mod 2）",
+    "强归纳法",
+    "奇数的幂仍为奇",
+    "有限域上的向量操作"
+  ],
+  "key_insight": "在ZMod 2中|a-b|≡a+b，使移动在奇偶向量上变为线性操作（替换v(j)为v(j-1)+v(j+1)），结合奇和条件可将配置归约为单奇数项，再对最大值做强归纳。",
+  "translation_from": "整数上的绝对差操作（直接在ℤ上分析|f(j-1)-f(j+1)|的移动）",
+  "translation_to": "ZMod 2上的线性操作（奇偶向量上的v(j)→v(j-1)+v(j+1)）",
+  "translation_type": "structural_simplification",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "parity_reduction",
+    "ZMod2_linearization",
+    "absolute_difference_mod2",
+    "odd_sum_invariant",
+    "single_odd_entry",
+    "maximum_induction",
+    "exhaustive_parity_verification",
+    "two_phase_strategy"
+  ],
+  "expected_ai_method": "直接在整数上尝试构造操作序列或寻找数值不变量，不利用奇偶性约简",
+  "correct_method": "奇偶性归约（ZMod 2线性化）→穷举验证Phase 1→单奇数项→Phase 2案例分析→强归纳",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到六边形配置和绝对差操作，但未注意到2003^2003的奇偶性",
+      "hint": "注意2003是奇数，故2003^2003是奇数，六数之和为奇——这是整个证明的起点",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["hexagon_configuration", "absolute_difference_move", "odd_sum_start"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出方向但未将奇偶性分析作为核心工具",
+      "hint": "将奇偶性分析和归纳法列为重点方向，特别关注模运算",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["invariant", "parity_analysis", "induction", "modular_arithmetic"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试找总和不变量但发现总和会变化，可能放弃",
+      "hint": "总和不是不变量，但模2下|a-b|≡a+b是关键线索——从总和转向奇偶性",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["sum_change", "parity_mod2", "absolute_value_mod2"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未意识到在ZMod 2中绝对差变为和，使操作线性化",
+      "hint": "在ZMod 2中|a-b|≡a+b，移动变为线性操作v(j)→v(j-1)+v(j+1)，从奇和出发可归约为单奇数项",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["ZMod2_linearization", "linear_operation", "parity_vector", "odd_sum_reduction"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI知道要归约奇偶向量但不知道如何验证所有32种情况",
+      "hint": "用穷举验证（finite case analysis/decide），构造8组候选操作序列覆盖全部32种奇和奇偶模式",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["exhaustive_verification", "32_parity_patterns", "8_candidate_sequences", "single_odd_entry"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有单奇数项配置但不知道如何利用最大值位置做案例分析",
+      "hint": "按最大值位置分情况：最大值在顶点0（奇）→看顶点2,4是否为0；最大值在偶数顶点→用[1,2,3,4,5]降低最大值",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["maximum_position", "case_analysis", "vertex_zero_subcase", "cmax_reduction"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有Phase 1和Phase 2但未将它们组合为归纳框架",
+      "hint": "对cmax做强归纳：Phase 1归约（cmax不增）→Phase 2归零或cmax严格递减→归纳终止",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["strong_induction", "cmax_monovariant", "termination", "two_phase_composition"]
+    },
+    {
+      "qa_round": 8,
+      "tell": "AI有所有部件但未整合为完整证明",
+      "hint": "整合：奇和→Phase 1→单奇数项→旋转→Phase 2→归零或归纳→全零。关键转折是奇偶性线性化",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["complete_proof_framework", "parity_linearization_insight", "two_phase_synthesis"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "整个证明路径：奇偶归约→单奇数项→最大值归纳",
+      "observation_point": null,
+      "tell": "AI试图直接构造到达全零的操作序列，看不到两阶段策略",
+      "hint": "先用奇偶性归约到单奇数项配置，再对最大值做强归纳——两阶段策略",
+      "hint_level": 0.5,
+      "generalizability": "high——先归约到特殊结构再做归纳的模式可泛化到许多组合博弈问题",
+      "why_not_visible_locally": "两阶段策略（Phase 1奇偶归约+Phase 2最大值递减）的整体结构只有在看完整个证明路径后才显现；每个阶段单独看时，无法预知下一阶段的存在和作用",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["two_phase_strategy", "parity_reduction", "maximum_induction", "structural_simplification"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "2003^2003的奇偶性与整个策略的关联",
+      "observation_point": "Q1",
+      "tell": "AI看到2003^2003只觉得是一个大数，不意识到其奇偶性是证明的根基",
+      "hint": "2003是奇数→2003^2003是奇→六数之和为奇→奇偶性策略可用",
+      "hint_level": 0.7,
+      "generalizability": "high——特定数值的奇偶性决定策略可行性的模式可泛化",
+      "why_not_visible_locally": "2003^2003的奇偶性与整个奇偶归约策略的因果关系是隐含的：需要同时认识到(a)2003是奇数(b)奇数的幂仍奇(c)奇和是奇偶归约的前提——这三步推理在局部步骤中不可见",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["odd_base", "odd_power", "odd_sum_invariant", "parity_strategy_foundation"]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "Phase 1的穷举验证：8组候选序列覆盖32种奇偶模式",
+      "observation_point": null,
+      "tell": "AI可能试图理论证明Phase 1而非穷举验证，或不知道需要多少组序列",
+      "hint": "用有限案例分析（decide）穷举验证32种奇和奇偶模式，8组候选序列即可覆盖",
+      "hint_level": 0.4,
+      "generalizability": "medium——有限状态空间用穷举验证可泛化，但具体序列数依赖问题结构",
+      "why_not_visible_locally": "8组候选序列的完整集合及其对32种奇偶模式的覆盖关系是全局路径特征：需要同时知道所有候选序列和所有需覆盖的模式才能验证完备性，局部看任何单组序列都无法确认覆盖性",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["exhaustive_case_check", "finite_verification", "8_sequences_cover_32_patterns", "parity_completeness"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会在整数层面直接尝试构造操作序列或寻找不变量，不会想到将问题降到ZMod 2做奇偶分析。即使注意到2003^2003是奇数，也不会意识到|a-b|≡a+b(mod 2)使操作线性化。缺乏穷举验证Phase 1和两阶段归纳策略，大概率无法完成证明。",
+  "suitable_for_poc": [
+    "tell端验证：parity_reduction的tell能否被形式化过滤命中",
+    "hint端验证：奇偶性线性化的hint注入后bare AI能否走通",
+    "两阶段策略的path_feature型tell能否被识别"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：已知什么、操作是什么、目标是什么？特别地，2003^2003这个数有什么特殊性质？",
+        "expected_answer": "六个非负整数放在正六边形顶点上，和为2003^2003。操作：选一个顶点，用其两个邻居之差的绝对值替换。目标：到达全零。2003是奇数，故2003^2003是奇数，因此六数之和为奇。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能用来分析这个问题的数学工具和方向。",
+        "expected_answer": "不变量/单调量分析、奇偶性分析、归纳法（对最大值/总和）、直接构造操作序列、穷举案例分析、图上的博弈论、模运算"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试着找一个不变量：每次操作后，六个数的总和如何变化？这个方向有前途吗？",
+        "expected_answer": "总和会变化：新和=旧和-f(j)+|f(j-1)-f(j+1)|。总和不是不变量。但可以看模2：|a-b|≡a+b(mod 2)，所以模2下新和≡旧和-f(j)+f(j-1)+f(j+1)。这看起来有奇偶性的线索。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "聚焦奇偶性：在ZMod 2中，|a-b|变成什么？移动在奇偶向量上是什么操作？从奇和出发，能否利用这一点？",
+        "expected_answer": "在ZMod 2中|a-b|≡a+b，所以移动变为：将v(j)替换为v(j-1)+v(j+1)，这是线性操作。奇和意味着奇偶向量中有奇数个1。关键问题：能否通过一系列线性操作将奇偶向量归约为恰好一个1？"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "验证：从任意有奇数个1的6位奇偶向量出发，是否总能通过操作到达恰好一个1的向量？有多少种奇和奇偶向量？能否穷举验证？",
+        "expected_answer": "有2^5=32种奇和奇偶向量（6位中奇数个1）。可以构造若干候选操作序列，用穷举验证（finite case analysis）确认每组序列覆盖哪些奇偶模式。解答中用了8组候选序列覆盖全部32种情况。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "现在有恰好一个奇数项（设在顶点0）。如何利用这个结构？考虑最大值的位置——最大值在顶点0还是在其他位置？分别能做什么？",
+        "expected_answer": "若最大值在顶点0（奇数最大值）：其他项都是偶数且小于最大值。看顶点2和4是否为0——若都是0，可用6步直接归零；否则可用操作降低最大值。若最大值在偶数顶点（非0）：顶点0的值严格小于最大值，可用序列[1,2,3,4,5]依次操作，每步结果都≤cmax-1，降低最大值。"
+      },
+      {
+        "round": 7,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "将Phase 1和Phase 2组合：如何用归纳法完成证明？归纳变量是什么？终止条件是什么？",
+        "expected_answer": "对cmax做强归纳。Phase 1将任意奇和配置归约为单奇数项配置（cmax不增），Phase 2要么直接归零（终止），要么cmax严格递减且保持奇和（归纳假设适用）。由于cmax是非负整数且严格递减，过程必然终止于全零。"
+      },
+      {
+        "round": 8,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "整合所有部分，写出完整的证明框架。关键转折点是什么？",
+        "expected_answer": "完整框架：2003^2003奇→奇和→Phase 1奇偶归约（穷举验证8组序列）→单奇数项→旋转到顶点0→Phase 2案例分析（最大值位置）→归零或cmax递减→强归纳→全零。关键转折点是奇偶性洞察：mod 2下绝对差变为和，使移动线性化。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 8,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 4.4,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "USA 2003 P6: 奇偶性归约+强归纳的经典组合博弈证明。关键洞察是ZMod 2线性化。Phase 1的穷举验证（8组序列覆盖32种奇偶模式）是知识瓶颈。两阶段策略是path_feature型tell。"
+  }
+}

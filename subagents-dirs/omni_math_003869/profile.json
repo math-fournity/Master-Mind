@@ -1,0 +1,256 @@
+{
+  "_key": "omni_math_003869",
+  "source_id": "omni_math_3869",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let Z_{>0} be the set of positive integers. Find all functions f: Z_{>0} -> Z_{>0} such that m^2 + f(n) | mf(m) + n for all positive integers m and n.",
+  "solution_text": "Trivial lemma (*): If a | b for positive integers a, b, then a <= b.\n\nStep 1: Substitute m = n. Then n^2 + f(n) | nf(n) + n. By (*), n^2 + f(n) <= nf(n) + n, which gives n(n-1) <= f(n)(n-1), so for n >= 2: n <= f(n). For n = 1, f(1) >= 1 trivially since f maps to positive integers. So f(n) >= n for all n.\n\nStep 2: Substitute m = n = 2. Then 4 + f(2) | 2f(2) + 2. Let k = (2f(2)+2)/(4+f(2)). Then (2-k)(f(2)+1) = 3k. Since f(2) >= 2, we get k = 1, f(2) = 2.\n\nStep 3: Set m = 2, n = general. Then 4 + f(n) | 2f(2) + n = 4 + n. By (*), 4 + f(n) <= 4 + n, so f(n) <= n for all n.\n\nStep 4: Combining f(n) >= n and f(n) <= n, we get f(n) = n for all positive integers n. Verification: m^2 + n | m^2 + n, which is trivially true.",
+  "solution_summary": "通过m=n代入+整除性质a|b⟹a≤b得到f(n)≥n下界，再通过m=n=2确定f(2)=2，然后用m=2+一般n得到f(n)≤n上界，夹逼得f(n)=n。",
+  "domain": "number_theory",
+  "subfield": "functional_equation",
+  "answer_type": "characterization",
+  "answer": "f(n) = n for all positive integers n",
+  "problem_type": "characterization",
+  "solution_method_type": "specialization_and_squeeze",
+  "structure_features": "正整数上的整除函数方程；f同时出现在除数和被除数中；m和n地位不对称；条件对所有m,n成立；需要确定唯一函数",
+  "key_objects": [
+    "f: Z_{>0} -> Z_{>0}",
+    "整除关系 m^2+f(n) | mf(m)+n",
+    "正整数 m, n"
+  ],
+  "thinking_patterns": [
+    "specialization（特殊值代入）",
+    "bounding via divisibility（整除转不等式a|b⟹a≤b）",
+    "squeeze technique（下界+上界夹逼）",
+    "pin-then-propagate（先确定f(2)再推广）"
+  ],
+  "primary_pattern": "specialization_and_squeeze",
+  "knowledge_required": [
+    "正整数整除性质",
+    "a|b⟹a≤b（正整数）",
+    "函数方程技巧"
+  ],
+  "key_insight": "代入m=n+整除不等式得f(n)≥n下界，再pin住f(2)=2后用m=2+一般n得f(n)≤n上界，夹逼得f(n)=n",
+  "translation_from": "整除关系（algebraic divisibility language）",
+  "translation_to": "不等式估计（order relation / inequality language）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "specialization m=n",
+    "a|b implies a≤b",
+    "pinning f(2)",
+    "squeeze bound",
+    "asymmetric substitution m=2"
+  ],
+  "expected_ai_method": "direct_manipulation",
+  "correct_method": "specialization_and_squeeze",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到整除函数方程但未识别关键结构特征——m和n的不对称角色及整除的界估计潜力",
+      "hint": "描述这道题的结构：f在整除式两边分别扮演什么角色？m和n的地位是否对称？",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["divisibility structure", "asymmetric roles of m and n"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列出可能方向但未优先考虑specialization+bounding策略",
+      "hint": "列出所有可能的方向：特殊值代入、不等式估计、猜测验证、固定变量法等",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["substitution strategies", "bounding via divisibility", "guess and verify"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试m=1代入但信息不足——这是一个可能走错的方向",
+      "hint": "试试代入m=1，能推出什么？",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["m=1 substitution", "insufficient information from single substitution"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未识别m=n代入配合a|b⟹a≤b能得到干净的下界",
+      "hint": "换一个方向：代入m=n，并利用正整数a|b⟹a≤b的性质，能得到什么界？",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["m=n specialization", "a|b implies a≤b", "lower bound on f(n)"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已有下界f(n)≥n但不知如何获得上界——关键转折是先pin住f(2)再用m=2",
+      "hint": "你已有下界f(n)≥n，现在需要上界。先代入m=n=2确定f(2)，再用m=2+一般n推出上界",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "equation_solving",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["pinning f(2)=2", "m=2 general n substitution", "upper bound via divisibility"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI已有两个界但未结合得出结论",
+      "hint": "结合下界f(n)≥n和上界f(n)≤n，结论是什么？",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["squeeze technique", "combining bounds"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已得答案但需验证和总结",
+      "hint": "验证f(n)=n满足原条件，并总结完整证明",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["verification by substitution", "proof summary"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从问题到解答的完整证明路径",
+      "observation_point": null,
+      "tell": "证明需要特定的代入序列：m=n得下界→m=n=2 pin住f(2)→m=2一般n得上界→夹逼。这个序列从任何单一步骤都不可见",
+      "hint": "关键路径是：(1)m=n→下界；(2)m=n=2→确定f(2)=2；(3)m=2+一般n→上界；(4)夹逼",
+      "hint_level": 0.4,
+      "generalizability": "high — specialization+squeeze模式适用于许多整除函数方程",
+      "why_not_visible_locally": "每个单独的代入在孤立看时似乎自然，但特定序列（尤其是先pin住f(2)再用m=2）及其组合成夹逼论证，只有从完整证明路径才能看到",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["substitution sequence", "pin-then-propagate", "squeeze from two bounds"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "从整除到不等式的翻译",
+      "observation_point": "R4",
+      "tell": "整除条件a|b隐含不等式a≤b，这是解锁整个证明的关键翻译",
+      "hint": "认识到正整数的整除隐含不等式：a|b ⟹ a≤b",
+      "hint_level": 0.3,
+      "generalizability": "high — 这个翻译在涉及整除的数论问题中是基础性的",
+      "why_not_visible_locally": "整除到不等式的翻译是元层面的洞察，连接两种不同的数学语言；它在任何单个代数变形步骤中都不可见",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["divisibility to inequality translation", "a|b implies a≤b", "meta-level language switch"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI可能直接对整除式做代数变形而不识别整除→不等式的翻译策略。可能在m=1代入后卡住（信息不足），不会想到先pin住f(2)再用m=2推出上界的关键路径。缺少先确定一个具体值再推广的思维操作。",
+  "suitable_for_poc": ["tell_hint_injection", "path_guidance", "method_translation_detection"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：f在整除式两边分别扮演什么角色？m和n的地位是否对称？",
+        "expected_answer": "f同时出现在除数m²+f(n)和被除数mf(m)+n中。m在两边都出现且在除数中平方，n只出现在f(n)和被除数的线性项中。m和n地位不对称——m与f(m)耦合，n与f(n)耦合但方式不同。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有可能的方向来处理这个正整数上的整除函数方程",
+        "expected_answer": "(1)特殊值代入m=n, m=1, n=1; (2)利用a|b⟹a≤b做不等式估计; (3)猜测f(n)=n验证; (4)固定一个变量变动另一个; (5)模运算分析; (6)归纳法"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试试代入m=1，能推出什么？",
+        "expected_answer": "m=1: 1+f(n) | f(1)+n。这把f(n)和n通过f(1)联系起来，但f(1)本身未知，单独这一步信息不足，容易卡住。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "换一个方向：代入m=n，并利用正整数a|b⟹a≤b的性质，能得到什么界？",
+        "expected_answer": "m=n: n²+f(n) | nf(n)+n ⟹ n²+f(n) ≤ nf(n)+n ⟹ n(n-1) ≤ f(n)(n-1) ⟹ n≤f(n) (n≥2)。f(1)≥1由定义。所以f(n)≥n对所有n成立。"
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "你已有下界f(n)≥n，现在需要上界。先代入m=n=2确定f(2)，再用m=2+一般n推出上界",
+        "expected_answer": "m=n=2: 4+f(2) | 2f(2)+2，设k=(2f(2)+2)/(4+f(2))，得(2-k)(f(2)+1)=3k，因f(2)≥2解得k=1, f(2)=2。再设m=2, n=一般: 4+f(n) | 4+n ⟹ f(n)≤n。"
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "结合下界和上界，结论是什么？",
+        "expected_answer": "f(n)≥n（Step 4）且f(n)≤n（Step 5），故f(n)=n对所有正整数n成立。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "验证f(n)=n满足原条件，并总结完整证明",
+        "expected_answer": "验证：m²+n | m²+n ✓。证明路径：(1)m=n+整除不等式→下界；(2)m=n=2→确定f(2)=2；(3)m=2+一般n→上界；(4)夹逼得f(n)=n。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.9,
+      "knowledge_bottleneck": null,
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-07-18T12:00:00Z",
+    "analysis_duration": "15min",
+    "notes": "IMO Shortlist 2013 N1. 整除函数方程，通过specialization+squeeze求解。problem.lean文件解答被截断，从Školjka.org补全完整解答。无拓扑进化需求。"
+  }
+}

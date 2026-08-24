@@ -1,0 +1,304 @@
+{
+  "_key": "omni_math_004270",
+  "source_id": "omni_math_004270",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Let n > 1 be an integer. Find all sequences a_1, a_2, ..., a_{n^2+n} satisfying: (a) a_i ∈ {0,1} for all 1 ≤ i ≤ n^2+n; (b) a_{i+1} + a_{i+2} + ... + a_{i+n} < a_{i+n+1} + a_{i+n+2} + ... + a_{i+2n} for all 0 ≤ i ≤ n^2-n.",
+  "solution_text": "Organize the sequence into n+1 blocks of length n. The n+1 block sums must be strictly increasing integers in [0,n], so they are forced to be 0,1,...,n. The construction is a_{u+vn} = 0 if u+v ≤ n, 1 if u+v ≥ n+1, for 1 ≤ u ≤ n and 0 ≤ v ≤ n. This gives blocks (0...0)(0...01)(0...011)...(01...1)(1...1). The sliding window condition holds because shifting by n increases v by 1 for each element, pushing more elements past the u+v=n threshold.",
+  "solution_summary": "Decompose the n^2+n-length 0-1 sequence into n+1 blocks of length n. The sliding window inequality forces block sums to be strictly increasing; since n+1 integers in [0,n] must be exactly 0,1,...,n. The unique construction uses a triangular threshold: a_{u+vn}=0 if u+v≤n, 1 if u+v≥n+1.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_construction",
+  "answer_type": "existence_construction",
+  "answer": "a_{u+vn} = 0 if u+v ≤ n, 1 if u+v ≥ n+1, for all 1 ≤ u ≤ n and 0 ≤ v ≤ n. Equivalently, the sequence arranged in n+1 blocks of length n is: (0...0)(0...01)(0...011)...(01...1)(1...1), where block v (0-indexed) contains exactly v ones.",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "block_decomposition_with_extremal_forcing",
+  "structure_features": "0-1 sequence of length n^2+n with sliding window sum inequality; n^2+n = n(n+1) naturally decomposes into n+1 blocks of length n; block sums must be strictly increasing; n+1 strictly increasing integers in [0,n] are forced to be 0,1,...,n; construction uses triangular threshold on (u,v) coordinates",
+  "key_objects": [
+    "0-1 sequence of length n^2+n",
+    "sliding window sums of length n",
+    "block structure (n+1 blocks of length n)",
+    "u+vn grid indexing",
+    "triangular threshold u+v=n"
+  ],
+  "thinking_patterns": [
+    "block decomposition",
+    "extremal forcing (n+1 values in range [0,n])",
+    "coordinate transformation (linear to 2D u,v grid)",
+    "constructive verification",
+    "uniqueness via forced values"
+  ],
+  "primary_pattern": "block_decomposition_with_extremal_forcing",
+  "knowledge_required": [
+    "0-1 sequences",
+    "sliding window sums",
+    "combinatorial construction",
+    "pigeonhole/extremal principle",
+    "coordinate reindexing"
+  ],
+  "key_insight": "n^2+n = n(n+1) decomposes into n+1 blocks of length n, and the n+1 strictly increasing block sums (each in [0,n]) are forced to be exactly 0,1,...,n, which determines the entire construction and proves uniqueness.",
+  "translation_from": "linear sequence with sliding window inequality",
+  "translation_to": "2D grid (u,v) coordinate system with triangular threshold",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "block decomposition",
+    "sliding window",
+    "strictly increasing sums",
+    "u+vn indexing",
+    "triangular threshold",
+    "n(n+1) factorization",
+    "extremal forcing"
+  ],
+  "expected_ai_method": "enumeration_brute_force",
+  "correct_method": "block_decomposition_with_extremal_forcing",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a sequence problem with an inequality constraint but does not identify the block structure or the significance of the sequence length n^2+n",
+      "hint": "Describe the problem structure: what is the relationship between the sequence length n^2+n and the window size n? Note that n^2+n = n(n+1).",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "sequence length",
+        "window size",
+        "n^2+n = n(n+1)"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists possible approaches but does not prioritize block decomposition or recognize the factorization n(n+1) as structurally significant",
+      "hint": "Consider that n^2+n = n(n+1) suggests n+1 groups of n. List approaches that exploit this factorization.",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "n(n+1) factoring",
+        "block grouping",
+        "approach enumeration"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries small cases (e.g. n=2) but may not see the block sum pattern emerging from the examples",
+      "hint": "For n=2, write the working sequence 000111 as (00)(01)(11) and observe that block sums are 0, 1, 2 — strictly increasing.",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "small case n=2",
+        "block sums",
+        "pattern recognition"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI sees the block structure but does not apply the extremal argument to force the block sums to be exactly 0,1,...,n",
+      "hint": "There are n+1 blocks with sums that must be strictly increasing integers, each in the range [0,n]. What are the only possible values?",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "extremal argument",
+        "n+1 values in [0,n]",
+        "forced sums 0 to n"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI knows the block sums are 0,1,...,n but has not verified the sliding window inequality at non-block-boundary positions or constructed the explicit formula",
+      "hint": "Use the u+vn indexing. Set a_{u+vn} = 0 if u+v ≤ n, 1 if u+v ≥ n+1. Verify this satisfies condition (b) for all i, not just block boundaries.",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "u+vn indexing",
+        "non-boundary verification",
+        "coordinate transformation"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the construction but has not formally verified why shifting the window by 1 preserves the inequality",
+      "hint": "Verify: shifting the window by n positions increases v by 1 for each element, so u+v increases, pushing more elements past the threshold u+v=n. The sum strictly increases.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "window shift",
+        "v increment",
+        "threshold crossing"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has verified the construction but has not argued that the solution is unique",
+      "hint": "The block sums are forced to be 0,1,...,n by the extremal argument. Within each block, the arrangement is forced by the sliding window condition. Summarize the complete unique solution.",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "uniqueness",
+        "forced arrangement",
+        "complete solution"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire solution path from problem statement to construction",
+      "observation_point": null,
+      "tell": "The key structural insight is that n^2+n = n(n+1) naturally decomposes into n+1 blocks of length n, and the sliding window inequality forces block sums to be 0,1,...,n via an extremal argument",
+      "hint": "Always check if the sequence length has a natural factorization that matches the window size — this reveals the block structure and converts a sliding window inequality into a simple extremal forcing problem",
+      "hint_level": 0.5,
+      "generalizability": "high — the technique of factoring sequence length to find block structure applies to many sliding window and combinatorial sequence problems",
+      "why_not_visible_locally": "At any single step, the AI is focused on one window or one block boundary; the global factorization n(n+1) and its implication for the entire block structure is only visible when considering the problem structure as a whole, not from examining any individual inequality instance",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "length factorization",
+        "block decomposition",
+        "n(n+1) structure",
+        "extremal forcing"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "uniqueness argument derived from the same extremal principle as construction",
+      "observation_point": "R7",
+      "tell": "The extremal argument (n+1 strictly increasing integers in [0,n] must be exactly 0,1,...,n) not only gives the construction but also proves uniqueness — the same forcing that determines the block sums determines the entire sequence",
+      "hint": "When n+1 values must be strictly increasing within a range of exactly n+1 possible values, the values are forced — use this single extremal argument for both construction and uniqueness, no separate uniqueness proof is needed",
+      "hint_level": 0.6,
+      "generalizability": "high — extremal forcing arguments that simultaneously construct and prove uniqueness apply broadly in combinatorial optimization and extremal combinatorics",
+      "why_not_visible_locally": "The uniqueness follows from the same extremal argument used for construction, but this connection is implicit — locally at R4 the AI uses the extremal argument only for construction, and at R7 it may think uniqueness requires a separate argument, not realizing the forcing already guarantees uniqueness",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "extremal forcing",
+        "uniqueness from construction",
+        "tight range",
+        "forced values"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try to work with the inequality directly, attempting algebraic manipulation or case enumeration for small n, without recognizing that n^2+n = n(n+1) suggests a block structure. It would miss the extremal argument that forces block sums to be exactly 0,1,...,n, and would struggle to verify the inequality at non-block-boundary positions without the u+vn coordinate transformation.",
+  "suitable_for_poc": [
+    "POC-VMS-8 (hint injection — block decomposition hint is a strong directional hint)",
+    "POC-VMS-9/10 (tell identification — the gap between brute-force and block decomposition is a clear structural transformation tell)"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the structure of this problem. What are the knowns, unknowns, and constraints? In particular, what is the relationship between the sequence length n^2+n and the window size n?",
+        "expected_answer": "We need to find all 0-1 sequences of length n^2+n such that every consecutive pair of n-length windows has strictly increasing sum. The sequence length is n^2+n = n(n+1), and the inequality applies for i from 0 to n^2-n. The factorization n(n+1) suggests a natural grouping into n+1 blocks of length n."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "List all possible approaches to tackle this problem. Consider approaches that exploit the factorization n^2+n = n(n+1).",
+        "expected_answer": "Possible approaches: (1) direct construction by trial and error for small n; (2) organize into n+1 blocks of length n and analyze block sums; (3) use the inequality to derive constraints on the number of 1s in each block; (4) think of it as a grid/matrix problem with u,v coordinates where a_{u+vn} is the (u,v) entry; (5) use generating functions or algebraic methods."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try small cases. For n=2, what sequences work? Write the sequence as blocks of length 2 and observe the block sums.",
+        "expected_answer": "For n=2, length=6, i ranges 0 to 2. Try 000111 = (00)(01)(11). Block sums: 0, 1, 2 — strictly increasing. Check: a1+a2=0 < a3+a4=1, a2+a3=0 < a4+a5=1, a3+a4=1 < a5+a6=2. Works! The pattern is clear: each block has one more 1 than the previous."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "There are n+1 blocks with sums that must be strictly increasing integers, each in the range [0,n]. What are the only possible values for these block sums?",
+        "expected_answer": "n+1 strictly increasing integers in the range [0,n] (which has exactly n+1 values: 0,1,...,n) must be exactly 0, 1, 2, ..., n. This is an extremal/pigeonhole argument: the only way to fit n+1 distinct values from a set of size n+1 is to take all of them. So block v has sum exactly v, meaning block v contains exactly v ones."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Use the u+vn indexing. Set a_{u+vn} = 0 if u+v ≤ n, 1 if u+v ≥ n+1. Verify this satisfies condition (b) for all i, not just block boundaries.",
+        "expected_answer": "With a_{u+vn} = 0 if u+v ≤ n, 1 if u+v ≥ n+1, the sequence forms a triangular pattern. Block v has elements with u from 1 to n, and u+v ≤ n gives (n-v) zeros and v ones, so block sum = v. For the sliding window at position i = jn + k (shifting by k within a block), the first window spans parts of blocks j and j+1, while the second spans parts of blocks j+1 and j+2. Since block sums increase, and the shift only moves elements to higher-v positions, the sum strictly increases."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "Verify formally: shifting the window by n positions increases v by 1 for each element. Why does this guarantee the sum strictly increases?",
+        "expected_answer": "When we shift the window by n, each element a_{u+vn} in the first window corresponds to a_{u+(v+1)n} in the second window. Since u+(v+1) = u+v+1 > u+v, if u+v was at the threshold n, then u+v+1 ≥ n+1, so the element flips from 0 to 1. More generally, the number of elements with u+v ≥ n+1 strictly increases when v increases by 1 for all elements. Therefore the sum of the second window is strictly greater than the first."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "Summarize the complete solution and argue uniqueness. The block sums are forced to be 0,1,...,n — does this also force the arrangement within each block?",
+        "expected_answer": "The unique solution is a_{u+vn} = 0 if u+v ≤ n, 1 if u+v ≥ n+1. The block sums are forced to be 0,1,...,n by the extremal argument. Within each block, the 1s must be placed at the end (highest u values) to ensure the sliding window inequality holds at non-boundary positions — any other arrangement would create a position where the inequality fails. Thus both the block sums and the internal arrangement are forced, proving uniqueness. The sequence is: (0...0)(0...01)(0...011)...(01...1)(1...1)."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "Problem is a combinatorial construction with a clear structural transformation gap: bare AI would attempt brute-force or direct manipulation, missing the block decomposition and extremal forcing. The key tell is the n(n+1) factorization that reveals block structure. Two knowledge bottlenecks identified: R4 (extremal argument) and R5 (coordinate transformation for verification). Topology categories sufficient — no evolution needed."
+  }
+}

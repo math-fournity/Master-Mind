@@ -1,0 +1,213 @@
+{
+  "_key": "compfiles_imo1992p6",
+  "source_id": "compfiles_imo1992p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "For each positive integer n, S(n) is defined to be the greatest integer such that, for every positive integer k <= S(n), n^2 can be written as the sum of k positive squares. (a) Prove that S(n) <= n^2 - 14 for each n >= 4. (b) Find an integer n such that S(n) = n^2 - 14. (c) Prove that there are infinitely many integers n such that S(n) = n^2 - 14.",
+  "solution_text": "(a) By contradiction: if S(n) > n^2 - 14, then n^2 is a sum of n^2 - 13 positive squares. Each s_i >= 1, so excess = n^2 - (n^2 - 13) = 13 = sum of (s_i^2 - 1). Since any s_i >= 4 would give s_i^2 >= 16, and the sum would be at least (n^2 - 14)*1 + 16 > n^2, contradiction. So s_i in {1,2,3}, contributing {0,3,8} to excess. Thus 13 = 3a + 8b where a = count of 2s, b = count of 3s. But 13 is not representable as 3a+8b (b=0: 13/3 not integer; b=1: 5/3 not integer), contradiction. (b) n = 13. The shift operation replaces 4 copies of i with 1 copy of 2i (since 4i^2 = (2i)^2), preserving the sum of squares while reducing the count by 3. Starting from explicit decompositions of 169 for small k (one per residue class mod 3), the shift extends to all k <= 155 = 13^2 - 14. (c) If S(n1) = n1^2 - 14 and S(n2) = n2^2 - 14 with n1,n2 >= 13, then S(n1*n2) = (n1*n2)^2 - 14. This follows from multiplicativity of sum-of-squares: if n1^2 is a sum of k1 squares and n2^2 is a sum of k2 squares, then (n1*n2)^2 is a sum of k1*k2 squares. Since 13 is complete, 13^e is complete for all e >= 1, giving infinitely many n.",
+  "solution_summary": "Part (a): Excess framework - if n^2 = sum of n^2-13 positive squares, excess 13 must equal 3a+8b (from s_i in {1,2,3}), but 13 is not 3a+8b-representable. Part (b): n=13, using shift operation (4i^2 -> (2i)^2, count-3) to cover all k<=155. Part (c): Multiplicative closure of completeness gives 13^e infinite family.",
+  "domain": "number_theory",
+  "subfield": "additive_number_theory",
+  "answer_type": "proof",
+  "answer": "S(n) <= n^2-14 for n>=4; n=13 satisfies S(13)=13^2-14=155; infinitely many n exist (n=13^e for all e>=1)",
+  "problem_type": "characterization",
+  "solution_method_type": "excess_modular_analysis",
+  "structure_features": "Three-part problem: (a) upper bound via modular obstruction, (b) explicit construction achieving equality, (c) infinite family via multiplicative closure. The unifying parameter is the 'excess' n^2-k, which must be distributable among the summands.",
+  "key_objects": ["S(n) function", "positive square sum representations", "excess = n^2 - k", "shift operation 4i^2 -> (2i)^2", "completeness property S(n)=n^2-14"],
+  "thinking_patterns": ["contradiction", "excess_decomposition", "modular_obstruction", "algebraic_identity_shift", "multiplicative_closure", "mathematical_induction"],
+  "primary_pattern": "excess_modular_analysis",
+  "knowledge_required": ["sum of squares representations", "modular arithmetic", "Frobenius-type representation (coin problem)", "multiset operations", "mathematical induction", "multiplicativity of sum-of-squares"],
+  "key_insight": "The excess n^2-k must be distributed as 3a+8b (from summands 1,2,3), and 13 is the smallest non-representable excess -- while 13 itself is the base case achieving equality S(13)=13^2-14",
+  "translation_from": "direct_construction",
+  "translation_to": "excess_modular_analysis",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": ["excess framework", "3a+8b modular obstruction", "shift operation 4i^2 -> (2i)^2", "multiplicative closure", "completeness property"],
+  "expected_ai_method": "Bare AI would try to directly construct representations of n^2 as sums of k positive squares by enumeration or greedy methods, without recognizing the excess framework or the modular obstruction",
+  "correct_method": "Excess modular analysis: frame the problem as distributing excess n^2-k among summands, classify possible summand values, derive modular obstruction 13 != 3a+8b for upper bound; use shift operation for construction; use multiplicative closure for infinite family",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a complex three-part problem about S(n) but doesn't know where to start or how the parts connect",
+      "hint": "Describe the problem structure: S(n) is about representability of n^2 as sum of k positive squares for ALL k <= S(n). Three parts: upper bound, example, infinite family",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "characterization", "ai_method_type": "direct_calculation", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["S(n) definition", "three-part structure", "positive squares sum"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI understands the structure but doesn't know how to approach proving the upper bound S(n) <= n^2-14",
+      "hint": "List possible approaches: contradiction (assume S(n) > n^2-14), direct construction analysis, modular arithmetic on the summands",
+      "hint_level": 0.6,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "characterization", "ai_method_type": "enumeration_brute_force", "gap_type": "search_space_estimation"},
+      "tell_small_concepts": ["contradiction approach", "upper bound", "n^2-13 threshold"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries to directly construct n^2 as sum of n^2-13 positive squares but doesn't see the obstruction",
+      "hint": "Each positive square is at least 1, so with n^2-13 terms summing to n^2, the excess is 13. Try to distribute this excess among the terms",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["excess = n^2-k", "minimum square = 1", "n^2-13 terms"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI has excess = 13 but doesn't know what values each summand s_i can take or how to classify them",
+      "hint": "Show each s_i < 4 (otherwise s_i^2 >= 16 and the sum would exceed n^2). So s_i in {1,2,3}, contributing {0,3,8} to the excess",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "case_by_case", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["s_i < 4 bound", "values 1,2,3", "contributions 0,3,8"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has 13 = 3a + 8b but hasn't checked whether this Diophantine equation has a solution",
+      "hint": "Check if 13 can be written as 3a+8b: b=0 gives 13/3 not integer, b=1 gives 5/3 not integer. No solution -- contradiction establishes S(n) <= n^2-14",
+      "hint_level": 0.3,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "inequality_proof", "ai_method_type": "logical_deduction", "gap_type": "method_problem_mismatch"},
+      "tell_small_concepts": ["13 = 3a+8b", "no solution", "Frobenius-type obstruction"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI needs to find n with S(n) = n^2-14 and doesn't know the construction technique for covering all k",
+      "hint": "The shift operation: 4i^2 = (2i)^2 replaces 4 copies of i with 1 copy of 2i, preserving sum of squares while reducing count by 3. Use n=13 as base case with explicit decompositions for each residue class mod 3",
+      "hint_level": 0.4,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "algebraic_identity", "gap_type": "knowledge_gap"},
+      "tell_small_concepts": ["shift operation", "4i^2 = (2i)^2", "count reduction by 3", "n=13 base case"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the base case n=13 but needs to prove infinitely many such n exist",
+      "hint": "Show multiplicative closure: if complete(n1) and complete(n2), then complete(n1*n2) via multiplicativity of sum-of-squares. Since 13 is complete, 13^e is complete for all e >= 1",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "logical_deduction", "gap_type": "method_translation"},
+      "tell_small_concepts": ["multiplicative closure", "complete(n1*n2)", "13^e infinite family"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "entire proof (all three parts)",
+      "observation_point": null,
+      "tell": "The proof uses a unified 'excess' framework -- the difference n^2-k determines what representations are possible, and this framework connects all three parts",
+      "hint": "Frame the entire problem in terms of excess = n^2-k and its modular representability properties. The upper bound comes from non-representability of excess 13; the construction comes from the shift operation that changes k by 3; the infinite family comes from multiplicative closure of the excess framework",
+      "hint_level": 0.7,
+      "generalizability": "high -- the excess framework applies to any sum-of-squares representability problem where summands have a minimum value",
+      "why_not_visible_locally": "In each individual step, the excess calculation appears as a local computation (computing n^2-k for a specific k), but the global strategy of using excess as the unifying parameter across all three parts -- upper bound, construction, and infinite family -- is only visible from the complete proof path",
+      "tell_topology": {"problem_type": "characterization", "ai_method_type": "direct_calculation", "gap_type": "structural_transformation"},
+      "tell_small_concepts": ["excess framework", "n^2-k unifying parameter", "modular obstruction", "shift operation bridge"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "connection between parts (a) and (b)",
+      "observation_point": "Q5",
+      "tell": "The same number 13 that creates the obstruction in part (a) (13 is not 3a+8b-representable) is the value of n that achieves equality in part (b)",
+      "hint": "The obstruction number in part (a) -- the excess 13 that cannot be distributed -- is exactly the n value that achieves S(n)=n^2-14 in part (b). This duality between obstruction and achievement is the key to the problem",
+      "hint_level": 0.6,
+      "generalizability": "medium -- the duality between obstruction and achievement is specific to this problem structure but the pattern of 'the obstruction number is the extremal case' recurs in number theory",
+      "why_not_visible_locally": "In part (a), 13 appears as the excess that cannot be distributed as 3a+8b; in part (b), 13 appears as the value of n. The connection between these two appearances of 13 -- that the non-representable excess IS the achieving n -- is not visible in either part alone, only when seeing both parts together",
+      "tell_topology": {"problem_type": "characterization", "ai_method_type": "logical_deduction", "gap_type": "method_translation"},
+      "tell_small_concepts": ["13 as obstruction", "13 as base case", "duality of obstruction and achievement"]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "parts (b) and (c) connection",
+      "observation_point": null,
+      "tell": "The shift operation (4i^2 -> (2i)^2) is the key technique that enables both the construction in (b) and, via multiplicativity, the infinite family in (c)",
+      "hint": "Identify algebraic identities that preserve the sum while changing the count -- the shift operation is the bridge between explicit construction and infinite family generation. The multiplicativity of sum-of-squares combined with the shift gives closure under multiplication",
+      "hint_level": 0.5,
+      "generalizability": "high -- the 'preserve sum, change count' pattern via algebraic identity is a general technique in additive number theory",
+      "why_not_visible_locally": "The shift operation appears as a technical lemma within part (b)'s construction, but its role as the structural bridge enabling part (c)'s multiplicative closure is only visible when seeing the complete path from (b) to (c)",
+      "tell_topology": {"problem_type": "structural_existence", "ai_method_type": "algebraic_identity", "gap_type": "method_translation"},
+      "tell_small_concepts": ["shift operation", "preserve sum change count", "multiplicative closure bridge"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try to directly construct representations of n^2 as sums of k positive squares by enumeration or greedy methods, without recognizing the excess framework. It would miss the modular obstruction (13 = 3a+8b has no solution) that gives the upper bound, the shift operation technique for the construction, and the multiplicative closure for the infinite family.",
+  "suitable_for_poc": ["tell_hint_injection", "excess_framework_recognition", "shift_operation_discovery"],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "Describe the structure of this problem. What is S(n)? What are the three parts asking?",
+        "expected_answer": "S(n) is the largest integer such that n^2 can be written as the sum of k positive squares for every k <= S(n). Part (a) asks for an upper bound, (b) asks for an example achieving it, (c) asks for infinitely many examples."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.6,
+        "question": "List possible approaches for proving S(n) <= n^2-14 in part (a).",
+        "expected_answer": "Contradiction (assume S(n) > n^2-14, so n^2 is sum of n^2-13 positive squares); direct analysis of what values the summands can take; modular arithmetic on the excess."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "Try to write n^2 as the sum of n^2-13 positive squares. What constraint does each summand being at least 1 give you?",
+        "expected_answer": "Each s_i >= 1 and s_i^2 >= 1, so the minimum sum is n^2-13. The excess is n^2-(n^2-13) = 13, which must be distributed as sum of (s_i^2 - 1)."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "Classify the possible values of each s_i. Show s_i < 4 and determine what each value contributes to the excess.",
+        "expected_answer": "If any s_i >= 4, then s_i^2 >= 16, and the sum would be at least (n^2-14)*1 + 16 > n^2, contradiction. So s_i in {1,2,3}, contributing {0,3,8} to excess. Need 13 = 3a+8b."
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.3,
+        "question": "Check whether 13 = 3a + 8b has a non-negative integer solution. What does this imply?",
+        "expected_answer": "b=0: 13/3 not integer. b=1: 5/3 not integer. No solution. This contradicts the assumption that n^2 is a sum of n^2-13 positive squares, proving S(n) <= n^2-14."
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.4,
+        "question": "For part (b), find an operation that preserves the sum of squares while changing the number of terms. How can you use this with n=13?",
+        "expected_answer": "The shift operation: 4i^2 = (2i)^2, replacing 4 copies of i with 1 copy of 2i preserves the sum and reduces count by 3. With n=13, start from explicit decompositions of 169 for small k (one per residue mod 3), then use shifts to cover all k <= 155."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "For part (c), how can you get infinitely many n with S(n) = n^2-14 from the base case n=13?",
+        "expected_answer": "Show multiplicative closure: if complete(n1) and complete(n2) >= 13, then complete(n1*n2) via multiplicativity of sum-of-squares (k1*k2 representations). Since 13 is complete, 13^e is complete for all e >= 1, giving infinitely many n."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.0,
+      "knowledge_bottleneck": 4,
+      "thinking_bottleneck": 3
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-08-09T03:32:17Z",
+    "analysis_duration": "subagent_session",
+    "notes": "IMO 1992 P6 -- three-part problem with excess framework as unifying theme. Key insight: 13 is both the obstruction (not 3a+8b-representable) and the base case (n=13 achieves equality). Shift operation bridges construction and infinite family."
+  }
+}

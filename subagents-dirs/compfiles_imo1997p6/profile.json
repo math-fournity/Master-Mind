@@ -1,0 +1,273 @@
+{
+  "_key": "compfiles_imo1997p6",
+  "source_id": "compfiles_imo1997p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "For each positive integer n, let f(n) denote the number of ways of representing n as a sum of powers of 2 with non-negative integer exponents. Representations which differ only in the ordering of their summands are considered to be the same. For example, f(4) = 4, because 4 can be represented as 4, 2 + 2, 2 + 1 + 1 or 1 + 1 + 1 + 1. Prove that for any integer n >= 3, 2^(n^2/4) < f(2^n) < 2^(n^2/2).",
+  "solution_text": "Define f recursively: f(0)=1, f(n+1)=f(n)+[n+1 even]f((n+1)/2). Key lemmas: (1) f(2m+1)=f(2m) (odd must contain 1). (2) f(2m+2)=f(2m+1)+f(m+1) (even either contains 1, or all summands even so halve). (3) f(2N)=sum_{i=0}^{N} f(i) by iterating recurrence. (4) f is monotone. Upper bound: f(2m)<(m+1)f(m) for m>=2 (since f(0)=1<f(m)), then (f(2^n))^2 <= 2^(n^2) by induction using (2^n+1)^2 <= 2^(2n+1). Lower bound: pairing f(k)+f(2r+1-k) is nonincreasing in k and each pair >= 2f(r), so sum_{i=1}^{2r} f(i) >= 2r*f(r), giving f(2^(n+1)) > 2^n * f(2^(n-1)). Then (f(2^n))^4 > 2^(n^2) by strong induction using 4(n+2)+(n+1)^2=(n+3)^2. Taking 4th root and square root gives 2^(n^2/4) < f(2^n) < 2^(n^2/2).",
+  "solution_summary": "通过奇偶性建立递推f(2m+1)=f(2m), f(2m+2)=f(2m+1)+f(m+1)，迭代得f(2N)=Σf(i)；上界用f(2m)<(m+1)f(m)配平方归纳，下界用配对不等式f(k)+f(2r+1-k)≥2f(r)配四次方两步归纳，取根得最终夹逼。",
+  "domain": "combinatorics",
+  "subfield": "partition_theory",
+  "answer_type": "proof",
+  "answer": "对所有整数n≥3，2^(n²/4) < f(2^n) < 2^(n²/2)，其中f(n)是二进制分拆函数",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "recurrence_induction",
+  "structure_features": "二进制分拆函数f(n)在2的幂次处取值的双向指数夹逼。核心结构是：无显式公式的计数函数→通过递推转化为求和→通过配对/单调性建立递推不等式→通过策略性归纳（不同次方）完成夹逼。上下界使用不同的归纳策略（平方vs四次方）。",
+  "key_objects": [
+    "二进制分拆函数f(n)",
+    "递推关系f(2m+1)=f(2m), f(2m+2)=f(2m+1)+f(m+1)",
+    "求和公式f(2N)=Σf(i)",
+    "配对不等式f(k)+f(2r+1-k)≥2f(r)",
+    "平方归纳(上界)",
+    "四次方两步归纳(下界)"
+  ],
+  "thinking_patterns": [
+    "parity_decomposition",
+    "recursive_structure_finding",
+    "sum_formula_derivation",
+    "pairing_symmetry",
+    "strategic_induction_exponent",
+    "two_track_strategy"
+  ],
+  "primary_pattern": "recursive_structure_finding",
+  "knowledge_required": [
+    "二进制分拆函数的定义与性质",
+    "奇偶性导致的递推关系",
+    "从递推迭代求和公式",
+    "分拆函数单调性",
+    "配对对称不等式",
+    "强归纳与策略性归纳次方选择",
+    "代数恒等式4(n+2)+(n+1)²=(n+3)²"
+  ],
+  "key_insight": "二进制分拆函数满足奇偶递推f(2m+1)=f(2m)和f(2m+2)=f(2m+1)+f(m+1)，由此得f(2N)=Σf(i)；上界用f(2m)<(m+1)f(m)配平方归纳，下界用配对不等式f(k)+f(2r+1-k)≥2f(r)配四次方两步归纳——关键是上下界需要不同的归纳次方才能使归纳步闭合。",
+  "translation_from": "组合计数（直接枚举分拆方式，试图找闭式公式或规律）",
+  "translation_to": "递推代数操作（递推关系→求和公式→单调性/配对不等式→策略性归纳）",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "二进制分拆",
+    "奇偶递推",
+    "求和公式",
+    "配对不等式",
+    "平方归纳",
+    "四次方两步归纳",
+    "单调性",
+    "策略性归纳次方"
+  ],
+  "expected_ai_method": "bare AI会直接计算f(2^n)的小值试图找规律或闭式公式，然后尝试对不等式直接做归纳，但缺少递推关系这个关键中间结构",
+  "correct_method": "通过奇偶性建立递推→迭代出求和公式→上界用单调性+平方归纳，下界用配对对称+四次方两步归纳",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到计数函数的指数夹逼问题但未识别递推结构",
+      "hint": "描述这道题的结构：f(n)是什么函数？我们要证明什么？已知条件和目标之间有什么gap？",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["二进制分拆", "指数夹逼", "无显式公式"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但未优先考虑递推方法",
+      "hint": "列出所有你能想到的估计f(2^n)的方法方向。",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["递推关系", "生成函数", "直接归纳", "渐近公式"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI计算小值f(1)=1,f(2)=2,f(4)=4,f(8)=10但找不到闭式",
+      "hint": "试着计算f(2^n)的小值（n=1,2,3,4），看看能否猜出公式或规律。",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["小值计算", "闭式公式", "增长速度"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI未考虑用奇偶性分解建立递推",
+      "hint": "考虑f的奇偶性：表示一个奇数时必须含1，表示一个偶数时可以分两种情况（含1或不含1）。由此推导f的递推关系。",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["奇偶递推", "含1不含1分类", "halving操作"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI有递推但未迭代出求和公式和上界",
+      "hint": "从递推关系f(2m+2)=f(2m+1)+f(m+1)和f(2m+1)=f(2m)出发，推导f(2N)的求和公式，然后利用单调性建立上界。",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["求和公式", "单调性", "平方归纳", "(2^n+1)²≤2^(2n+1)"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有求和公式但未尝试对称配对",
+      "hint": "对于下界，考虑将求和Σ_{i=1}^{2r}f(i)中的项配对：f(k)与f(2r+1-k)。利用单调性和递推关系，证明每对之和≥2f(r)。",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["配对对称", "非增序列", "2f(r)下界", "两步递推"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有两条递推但未选择正确归纳次方",
+      "hint": "现在你有了两步递推f(2^(n+1))>2^n·f(2^(n-1))。用四次方做强归纳（注意4(n+2)+(n+1)²=(n+3)²），结合上界的平方归纳，完成证明。",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["四次方归纳", "平方归纳", "代数恒等式", "强归纳"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "整个证明路径（从题目到最终夹逼）",
+      "observation_point": null,
+      "tell": "上下界需要完全不同的归纳策略：上界用平方归纳（一步递推f(2^(n+1))~f(2^n)），下界用四次方两步归纳（两步递推f(2^(n+1))~f(2^(n-1))）",
+      "hint": "在建立递推后，分别对上下界选择使归纳步闭合的归纳次方——上界平方因一步递推，下界四次方因两步递推",
+      "hint_level": 0.7,
+      "generalizability": "high——任何需要双向夹逼且上下界结构不同的问题都需要此策略",
+      "why_not_visible_locally": "在单步视角中只能看到一条递推不等式，无法判断该用几次方归纳；需要同时看到递推的步长（一步vs两步）和归纳闭合条件才能选择正确次方",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["平方归纳", "四次方归纳", "一步递推", "两步递推", "归纳闭合"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "R7的归纳次方选择",
+      "observation_point": "R7",
+      "tell": "四次方的选择不是任意的，而是由两步递推f(2^(n+1))>2^n·f(2^(n-1))的结构决定的：四次方使归纳步中4(n+2)+(n+1)²=(n+3)²恰好闭合",
+      "hint": "选择归纳次方时，分析递推的步长（跨几步）和指数增长率，使归纳步的代数恒等式闭合",
+      "hint_level": 0.6,
+      "generalizability": "medium——适用于递推+归纳结合的问题，但具体次方取决于递推结构",
+      "why_not_visible_locally": "在R7局部只看到用四次方归纳，但看不到为什么是四次方而非其他次方——这个why来自R6的两步递推结构和归纳闭合的代数要求，是跨步骤的蕴含信息",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["归纳次方选择", "两步递推", "代数恒等式闭合", "步长分析"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会直接计算f(2^n)的小值(f(1)=1,f(2)=2,f(4)=4,f(8)=10,f(16)=36)，找不到闭式公式后尝试对不等式直接做归纳。即使偶然发现递推关系，也极可能错过配对技巧（下界的关键步骤）和策略性归纳次方选择（四次方vs平方的区分）。这道题是IMO历史上最难的题目之一，bare AI几乎不可能在无引导下完成。",
+  "suitable_for_poc": [
+    "tell端形式化过滤POC——递推结构识别vs直接计算的拓扑区分",
+    "hint端脉络注入POC——递推关系+配对技巧的逐步注入",
+    "知识瓶颈POC——R4奇偶递推和R6配对技巧的知识注入效果",
+    "跨步骤蕴含信息POC——归纳次方选择的implicit tell验证"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "描述这道题的结构：f(n)是什么函数？我们要证明什么？已知条件和目标之间有什么gap？",
+        "expected_answer": "f(n)是二进制分拆函数（将n表示为2的幂之和的方式数，不计顺序）。要证2^(n²/4)<f(2^n)<2^(n²/2)，即f(2^n)被夹在两个关于n²的指数之间。gap在于f没有显式公式，需要找到间接估计方法。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "列出所有你能想到的估计f(2^n)的方法方向。",
+        "expected_answer": "直接计算小值找规律；找递推关系；生成函数方法；直接对不等式做归纳；利用分拆函数的已知渐近公式；利用f的单调性。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "试着计算f(2^n)的小值（n=1,2,3,4），看看能否猜出公式或规律。",
+        "expected_answer": "f(1)=1, f(2)=2, f(4)=4, f(8)=10, f(16)=36。没有明显的闭式公式。增长速度远快于多项式但被指数n²/2控制。直接计算无法给出一般界。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "考虑f的奇偶性：表示一个奇数时必须含1，表示一个偶数时可以分两种情况（含1或不含1）。由此推导f的递推关系。",
+        "expected_answer": "奇数2m+1必须含1，去掉一个1得2m的表示，故f(2m+1)=f(2m)。偶数2m+2：含1则去掉1得2m+1的表示；不含1则所有summand都是偶数，全部除以2得m+1的表示。故f(2m+2)=f(2m+1)+f(m+1)。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "从递推关系f(2m+2)=f(2m+1)+f(m+1)和f(2m+1)=f(2m)出发，推导f(2N)的求和公式，然后利用单调性建立上界。",
+        "expected_answer": "迭代得f(2N)=Σ_{i=0}^{N}f(i)。因f单调非降，f(2N)<(N+1)f(N)（因f(0)=1<f(N)使严格）。对上界做平方归纳：(f(2^n))²≤2^(n²)，关键步骤(2^n+1)²≤2^(2n+1)。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "对于下界，考虑将求和Σ_{i=1}^{2r}f(i)中的项配对：f(k)与f(2r+1-k)。利用单调性和递推关系，证明每对之和≥2f(r)。",
+        "expected_answer": "配对f(k)+f(2r+1-k)：当k从1到r时，这对值非增（由递推和单调性可证），且最大对f(r)+f(r+1)≥2f(r)（因f(r+1)≥f(r)）。故每对≥2f(r)，Σ≥2r·f(r)。由此得两步递推f(2^(n+1))>2^n·f(2^(n-1))。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "现在你有了两步递推f(2^(n+1))>2^n·f(2^(n-1))。用四次方做强归纳（注意4(n+2)+(n+1)²=(n+3)²），结合上界的平方归纳，完成证明。",
+        "expected_answer": "下界：(f(2^n))^4>2^(n²)由强归纳，基础n=1,2,3验证，归纳步用两步递推四次方+恒等式4(n+2)+(n+1)²=(n+3)²。上界：(f(2^n))²<2^(n²)对n≥3。取四次方根和平方根得2^(n²/4)<f(2^n)<2^(n²/2)。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 4.2,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "IMO 1997 P6, one of the hardest IMO problems. Binary partition function double-sided exponential bound. Key difficulty: finding recurrence (knowledge bottleneck R4) and pairing trick (thinking bottleneck R6). Upper/lower bounds require different induction exponents (square vs 4th power) due to one-step vs two-step recurrence structure."
+  }
+}

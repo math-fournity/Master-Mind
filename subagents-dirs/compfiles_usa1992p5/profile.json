@@ -1,0 +1,307 @@
+{
+  "_key": "compfiles_usa1992p5",
+  "source_id": "compfiles_usa1992p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "A complex polynomial has degree 1992 and distinct zeros. Show that we can find complex numbers z_n, such that if p_1(z) = z - z_1 and p_n(z) = p_{n-1}(z)^2 - z_n, then the polynomial divides p_{1992}(z).",
+  "solution_text": "By induction on n: for any nonempty set S of at most n complex numbers, we can find a list zs of length n such that pseq zs vanishes on all of S. Base case: |S|=1, take z_1 = the single element. Inductive step: if |S|=n+1, pick two distinct elements a,b in S, let m=(a+b)/2 be their midpoint. Then (a-m)^2 = (b-m)^2 since a-m = -(b-m). The set T = {(s-m)^2 : s in S} has |T| <= n. By induction, there exist z_2,...,z_n such that p_{n-1} vanishes on T. Set z_1 = m. Then p_n(s) = p_{n-1}((s-m)^2) = 0 for all s in S. If |S| < n, pad with trailing zeros. Finally, since q has degree 1992 with distinct roots, q = c * prod(X - a_i), and p_{1992} vanishes on all a_i. Since distinct linear factors are pairwise coprime, their product divides p_{1992}, hence q divides p_{1992}.",
+  "solution_summary": "By induction on set size: pick two roots, use their midpoint as z_1 to collapse them via (s-m)^2, reducing the target set by one; recurse until singleton; pad with zeros; conclude divisibility via coprime linear factors.",
+  "domain": "algebra",
+  "subfield": "polynomial_theory",
+  "answer_type": "proof",
+  "answer": "There exist complex numbers z_1, ..., z_{1992} such that q divides p_{1992}(z), where p_1(z) = z - z_1 and p_n(z) = p_{n-1}(z)^2 - z_n",
+  "problem_type": "structural_existence",
+  "solution_method_type": "backward_induction_with_set_reduction",
+  "structure_features": [
+    "Iterated polynomial construction p_n(z) = p_{n-1}(z)^2 - z_n with degree doubling",
+    "Evaluation composition: p_n(x) = p_{n-1}((x - z_1)^2) allows backward reduction",
+    "Midpoint collision: (a-m)^2 = (b-m)^2 when m = (a+b)/2 collapses two elements to one",
+    "Induction on set cardinality reduces |S| by 1 at each step",
+    "Coprime linear factor argument converts vanishing to divisibility"
+  ],
+  "key_objects": [
+    "complex polynomial q of degree 1992 with distinct zeros",
+    "iterated polynomial sequence p_n defined by p_1(z) = z - z_1, p_n(z) = p_{n-1}(z)^2 - z_n",
+    "set S of roots of q",
+    "midpoint m = (a+b)/2 of two distinct roots",
+    "reduced set T = {(s-m)^2 : s in S}"
+  ],
+  "thinking_patterns": [
+    "backward_reasoning",
+    "structural_reduction",
+    "induction_on_cardinality",
+    "composition_decomposition"
+  ],
+  "primary_pattern": "backward_reasoning",
+  "knowledge_required": [
+    "polynomial composition and evaluation",
+    "coprime linear factors and divisibility",
+    "mathematical induction",
+    "midpoint of complex numbers and quadratic folding"
+  ],
+  "key_insight": "Choosing z_1 as the midpoint of two roots a, b makes (a-z_1)^2 = (b-z_1)^2, reducing the target set by one element via the evaluation composition p_n(x) = p_{n-1}((x-z_1)^2)",
+  "translation_from": "forward construction of z values",
+  "translation_to": "backward reduction of root set via quadratic folding",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "structural_existence",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "evaluation composition",
+    "midpoint collision",
+    "set reduction via quadratic folding",
+    "backward induction on cardinality",
+    "coprime linear factor divisibility"
+  ],
+  "expected_ai_method": "Bare AI will try forward construction: set z_1 to a root of q, then try to choose z_2, z_3, etc. to make p_n vanish on remaining roots, getting lost in the exponential branching of the square root structure without recognizing the backward reduction strategy.",
+  "correct_method": "Backward induction: start with the full set of 1992 roots, repeatedly pick two elements and use their midpoint as z_k to collapse them via (s-m)^2, reducing the set size by 1 each step. After 1991 reductions reach a singleton, pad with zeros. Conclude with coprime factor divisibility.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees the problem statement but doesn't immediately recognize that q | p_{1992} means all 1992 roots of q must be roots of p_{1992}, and doesn't compute that deg(p_{1992}) = 2^{1991} which is far larger than 1992",
+      "hint": "Describe what q | p_{1992} means in terms of roots of q. What is the degree of p_{1992} and how many roots does it have?",
+      "hint_level": 0.8,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "polynomial divisibility equals root containment",
+        "degree of iterated polynomial",
+        "root vanishing condition"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists forward construction approaches (choosing z_1, z_2, ... in order) but doesn't consider working backward from the set of roots to reduce it",
+      "hint": "List all possible approaches including working backward from the set of roots of q. Could we reduce the set of roots step by step?",
+      "hint_level": 0.7,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "forward construction",
+        "backward reduction",
+        "root set strategy"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries forward construction: sets z_1 = a root of q, then tries to choose z_2, but gets stuck because p_n(s) = 0 requires p_{n-1}(s)^2 = z_n, creating exponential branching that is hard to control",
+      "hint": "Understand the root structure of p_n. How many roots does p_n have? When you set z_1 to a root, what happens to the remaining roots? The branching structure makes forward control difficult—consider a different perspective.",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "root branching",
+        "binary tree structure of iterated squaring",
+        "forward control difficulty"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI doesn't recognize the evaluation composition structure p_n(x) = p_{n-1}((x - z_1)^2), which is the key algebraic identity that enables backward reduction",
+      "hint": "Examine the evaluation structure carefully. Write out p_n(x) in terms of p_{n-1}. Note that p_n(x) = p_{n-1}(x)^2 - z_n, but also p_n(x) = p_{n-1}((x - z_1)^2) when z_1 is the first element. How does this composition structure help?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "evaluation composition identity",
+        "polynomial composition structure",
+        "iterated squaring decomposition"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the composition p_n(x) = p_{n-1}((x - z_1)^2) but doesn't realize that choosing z_1 as the midpoint of two roots collapses them to the same value under (x - z_1)^2",
+      "hint": "If p_n(x) = p_{n-1}((x - z_1)^2), and we want p_n to vanish on S, we need p_{n-1} to vanish on T = {(s - z_1)^2 : s in S}. How can we choose z_1 to make |T| < |S|? Think about when (a - z_1)^2 = (b - z_1)^2 for distinct a, b.",
+      "hint_level": 0.5,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "midpoint collision",
+        "quadratic folding reduces set size",
+        "a-m = -(b-m) implies equal squares"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI sees the reduction idea but hasn't formalized the induction that chains 1991 reductions to reach a singleton",
+      "hint": "Formalize the induction: prove that for any nonempty set S of at most n complex numbers, there exist z_1,...,z_n such that p_n vanishes on S. Base case: |S|=1. Inductive step: pick two elements, use midpoint to reduce, apply induction. What about when |S| < n?",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "induction on set cardinality",
+        "padding with zeros for smaller sets",
+        "base case singleton"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has established that p_{1992} vanishes on all roots of q but hasn't connected this to q | p_{1992} via the coprime linear factor argument",
+      "hint": "Since q has distinct roots, q = c * prod(X - a_i) with distinct a_i. Since p_{1992} vanishes on each a_i, each (X - a_i) divides p_{1992}. The linear factors are pairwise coprime (distinct roots), so their product divides p_{1992}, hence q divides p_{1992}.",
+      "hint_level": 0.7,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "coprime linear factors",
+        "product divisibility from pairwise divisibility",
+        "distinct root factorization"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire backward reduction chain from 1992 roots to a singleton, requiring 1991 midpoint-merging steps",
+      "observation_point": null,
+      "tell": "The solution requires a backward reduction strategy: start with the full root set of size 1992, repeatedly merge pairs via midpoints to reduce set size by 1, and recurse. This chain of 1991 reductions is a path feature invisible from any single step.",
+      "hint": "Work backward from the root set: at each step, pick two elements, use their midpoint as z_k to collapse them via (s-m)^2, reducing the set size by 1. After 1991 steps reach a singleton, then pad with zeros to reach length 1992.",
+      "hint_level": 0.7,
+      "generalizability": "high - the backward reduction via quadratic folding applies to any polynomial with distinct roots of any degree, not just degree 1992",
+      "why_not_visible_locally": "Each individual reduction step only shows one midpoint merge, which looks like an ad hoc trick for collapsing two specific roots. The full strategy of chaining 1991 such reductions to systematically reduce the set from 1992 elements to a singleton is a path feature that requires seeing the entire induction structure, not any single step.",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "backward reduction chain",
+        "iterative set reduction via midpoint merging",
+        "cardinality decrement strategy",
+        "full induction path vs single step"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The connection between vanishing on all roots and polynomial divisibility via coprime linear factors",
+      "observation_point": "R7",
+      "tell": "The final step requires the algebraic fact that if a polynomial vanishes on all roots of q and q has distinct roots, then q divides that polynomial, because distinct linear factors are pairwise coprime and their product divides any polynomial divisible by each factor individually.",
+      "hint": "Use the fact that q = c * prod(X - a_i) with distinct a_i. Since p_{1992} vanishes on each a_i, each (X - a_i) divides p_{1992}. The linear factors X - a_i are pairwise coprime (since roots are distinct), so by the coprime product divisibility lemma, their product divides p_{1992}, hence q divides p_{1992}.",
+      "hint_level": 0.6,
+      "generalizability": "high - the coprime factor divisibility argument is a standard tool in polynomial algebra and applies whenever a polynomial vanishes on all roots of another polynomial with distinct roots",
+      "why_not_visible_locally": "The vanishing-on-roots condition is established by the induction in earlier steps, but the leap from 'p vanishes on all roots of q' to 'q divides p' requires the additional algebraic knowledge about coprime linear factors and their product divisibility. This knowledge is not visible from the induction steps themselves—it is an implicit algebraic fact that bridges the combinatorial construction to the final divisibility conclusion.",
+      "tell_topology": {
+        "problem_type": "structural_existence",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "coprime linear factors",
+        "product divisibility from pairwise coprimality",
+        "distinct root factorization bridge",
+        "vanishing to divisibility conversion"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI will likely try forward construction: setting z_1 to a root of q and trying to choose subsequent z_n to hit remaining roots. It will get lost in the exponential branching of the square root structure (each step doubles the number of roots) without recognizing the backward reduction strategy of using midpoints to collapse pairs. It may also fail to connect vanishing on roots to polynomial divisibility via the coprime factor argument.",
+  "suitable_for_poc": [
+    "POC-VMS-hint-injection",
+    "POC-VMS-tell-detection",
+    "POC-VMS-method-translation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.8,
+        "question": "What does q | p_{1992} mean in terms of roots? What is the degree of p_{1992} and how many roots does it have?",
+        "expected_answer": "q | p_{1992} means every root of q is a root of p_{1992}. Since p_1 has degree 1 and p_n has degree 2*deg(p_{n-1}), p_{1992} has degree 2^{1991}, which is astronomically larger than 1992. So p_{1992} has plenty of roots; the question is whether we can choose z_1,...,z_{1992} so that the 1992 roots of q are among the roots of p_{1992}."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.7,
+        "question": "List all possible approaches to make p_{1992} vanish on all 1992 roots of q. Include both forward and backward strategies.",
+        "expected_answer": "Forward: choose z_1, z_2, ... in order, trying to control which roots p_n vanishes on. Backward: start with the set S of all 1992 roots, and try to reduce |S| step by step by choosing z_k appropriately, so that p_k vanishing on a smaller set implies p_{k+1} vanishing on S. Also: direct algebraic manipulation of the recurrence, or using properties of the polynomial q."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "Try forward construction: set z_1 to a root of q. What happens when you try to choose z_2 to make p_2 vanish on another root? Where does the difficulty arise?",
+        "expected_answer": "If z_1 = a (a root of q), then p_1(a) = 0. For another root b, p_1(b) = b - a ≠ 0. Then p_2(b) = (b-a)^2 - z_2, so we need z_2 = (b-a)^2. But p_2(a) = 0 - z_2 = -z_2, so p_2 no longer vanishes at a unless z_2 = 0. The branching structure (p_n(s) = 0 requires p_{n-1}(s) = ±√z_n) makes it very hard to control multiple roots simultaneously in the forward direction."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Examine the evaluation composition structure. Write p_n(x) in terms of p_{n-1} when z_1 is the first element. Specifically, show that p_n(x) = p_{n-1}((x - z_1)^2) where p_{n-1} = pseq[z_2,...,z_n]. How does this composition help?",
+        "expected_answer": "By the composition structure: p_n(z) = p_{n-1}(z)^2 - z_n, but more usefully, pseq[z_1, z_2, ..., z_n].eval(x) = pseq[z_2, ..., z_n].eval((x - z_1)^2). So p_n(x) = 0 iff p_{n-1}((x - z_1)^2) = 0, i.e., (x - z_1)^2 is a root of p_{n-1}. This means if p_{n-1} vanishes on a set T, then p_n vanishes on {x : (x - z_1)^2 ∈ T}. The key is to choose z_1 so that the map x ↦ (x - z_1)^2 sends S into a smaller set T."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.5,
+        "question": "Given p_n(x) = p_{n-1}((x - z_1)^2), we need p_{n-1} to vanish on T = {(s - z_1)^2 : s ∈ S}. How can we choose z_1 to make |T| < |S|? When does (a - z_1)^2 = (b - z_1)^2 for distinct a, b?",
+        "expected_answer": "(a - z_1)^2 = (b - z_1)^2 iff a - z_1 = ±(b - z_1). The non-trivial case is a - z_1 = -(b - z_1), i.e., z_1 = (a + b)/2, the midpoint of a and b. So choosing z_1 as the midpoint of two distinct elements a, b ∈ S makes (a - z_1)^2 = (b - z_1)^2, collapsing two elements into one. Thus |T| ≤ |S| - 1. This is the key reduction step."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "Formalize the induction: prove that for any nonempty set S of at most n complex numbers, there exist z_1,...,z_n (list of length n) such that p_n vanishes on S. Handle the base case and the case |S| < n.",
+        "expected_answer": "Induction on n. Base: n=1, |S|=1, take z_1 = the single element. Inductive step: if |S| = n+1, pick two distinct a,b ∈ S, set z_1 = (a+b)/2. Then T = {(s-z_1)^2 : s ∈ S} has |T| ≤ n. By induction, find z_2,...,z_n (length n) with p_{n-1} vanishing on T. Then p_n(s) = p_{n-1}((s-z_1)^2) = 0 for all s ∈ S. If |S| ≤ n, use induction to get a list of length |S|-1 < n, then pad with trailing zeros: pseq(zs ++ [0]) = pseq(zs)^2, which preserves vanishing since 0^2 = 0."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.7,
+        "question": "Now apply this to q: q has degree 1992 with distinct roots, so |S| = 1992. By the induction, p_{1992} vanishes on all roots of q. Conclude that q divides p_{1992}.",
+        "expected_answer": "Since q has distinct roots, q = c · ∏(X - a_i) where a_1,...,a_{1992} are the distinct roots and c = leading coefficient. We've shown p_{1992}(a_i) = 0 for all i, so each (X - a_i) divides p_{1992}. Since the a_i are distinct, the linear factors X - a_i are pairwise coprime. By the coprime product divisibility lemma, ∏(X - a_i) divides p_{1992}. Since c is a nonzero constant (unit), q = c · ∏(X - a_i) also divides p_{1992}. QED."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 4.4,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 1992 P5 is a structural existence proof requiring backward induction with set reduction via quadratic folding. The key insight is the midpoint collision (a-m)^2 = (b-m)^2 combined with the evaluation composition p_n(x) = p_{n-1}((x-z_1)^2). Two knowledge bottlenecks: R4 (composition structure) and R7 (coprime factor divisibility). One thinking bottleneck: R5 (midpoint reduction strategy)."
+  }
+}

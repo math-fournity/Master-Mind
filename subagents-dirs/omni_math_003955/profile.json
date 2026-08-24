@@ -1,0 +1,340 @@
+{
+  "_key": "omni_math_003955",
+  "source_id": "omni_math_003955",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "In each square of a garden shaped like a 2022×2022 board, there is initially a tree of height 0. A gardener and a lumberjack alternate turns playing the following game, with the gardener taking the first turn: The gardener chooses a square in the garden. Each tree on that square and all the surrounding squares (of which there are at most eight) then becomes one unit taller. The lumberjack then chooses four different squares on the board. Each tree of positive height on those squares then becomes one unit shorter. We say that a tree is majestic if its height is at least 10^6. Determine the largest K such that the gardener can ensure there are eventually K majestic trees on the board, no matter how the lumberjack plays.",
+  "solution_text": "The gardener adds +1 to a 3×3 block (up to 9 trees) per turn, while the lumberjack subtracts -1 from 4 squares per turn. The net growth rate is 5 per round. If the gardener cycles uniformly through all N = 2022² = 4,088,484 squares, each interior tree gets growth rate 9/N per round. The lumberjack can distribute 4 decrements per round. If the lumberjack focuses on k trees, each gets decrement rate 4/k per round. A tree grows iff 9/N > 4/k, i.e., k > 4N/9. So the lumberjack can suppress at most floor(4N/9) trees, and the gardener guarantees ceil(5N/9) = 5 × 4,088,484 / 9 = 2,271,380 majestic trees. The bound is tight: the lumberjack can achieve 4N/9 suppression by targeting the same set of 4N/9 trees every round, giving each a suppression rate of 9/N, exactly canceling the gardener's growth.",
+  "solution_summary": "Rate argument: gardener adds 9/round, lumberjack removes 4/round, net 5/round. Uniform cycling gives each tree 9/N growth rate. Lumberjack can suppress at most 4N/9 trees. Gardener guarantees 5N/9 = 2271380 majestic trees. Bound is tight via adversarial lumberjack strategy.",
+  "domain": "discrete_mathematics",
+  "subfield": "combinatorial_game_theory",
+  "answer_type": "numerical",
+  "answer": "2271380",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "rate_analysis",
+  "structure_features": "Two-player alternating game on 2022×2022 grid; asymmetric moves (gardener: 3×3 block +1 affecting up to 9 squares, lumberjack: 4 squares -1); threshold condition (height ≥ 10^6); worst-case guarantee over lumberjack's play; key structural ratio 9:4",
+  "key_objects": [
+    "2022×2022 grid (N = 4,088,484 squares)",
+    "tree heights (initial 0)",
+    "gardener move (3×3 block +1, up to 9 squares)",
+    "lumberjack move (4 different squares -1, only positive-height trees)",
+    "majestic threshold (height ≥ 10^6)",
+    "9:4 addition-to-removal ratio"
+  ],
+  "thinking_patterns": [
+    "rate_analysis",
+    "potential_function",
+    "worst_case_bound",
+    "uniform_strategy",
+    "adversarial_argument"
+  ],
+  "primary_pattern": "rate_analysis",
+  "knowledge_required": [
+    "combinatorial game theory",
+    "potential function method",
+    "rate arguments in combinatorics",
+    "minimax reasoning"
+  ],
+  "key_insight": "The 9:4 ratio between gardener's additions and lumberjack's removals per round means the lumberjack can suppress at most 4/9 of trees, so the gardener guarantees 5/9 of all trees become majestic",
+  "translation_from": "enumeration_brute_force",
+  "translation_to": "rate_analysis_potential",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "rate_ratio",
+    "uniform_cycling",
+    "net_growth",
+    "suppression_capacity",
+    "5/9_fraction",
+    "9:4_ratio",
+    "adversarial_tightness"
+  ],
+  "expected_ai_method": "enumeration_brute_force — AI would try to simulate the game or enumerate specific move sequences on the large board, getting lost in complexity and missing the rate abstraction",
+  "correct_method": "rate_analysis — compute the 9:4 addition/removal ratio per round, derive the per-tree growth rate under uniform cycling, and obtain the 5/9 guarantee fraction via worst-case lumberjack analysis",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a complex two-player game but doesn't identify the key structural parameters — specifically the 9 additions vs 4 removals per round asymmetry",
+      "hint": "Describe the game structure: what are the two players' moves, what is the objective, and what are the key numerical parameters of each move?",
+      "hint_level": 0.2,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "game_structure",
+        "move_parameters",
+        "asymmetric_moves",
+        "9_vs_4"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists concrete strategies (cycling, focusing) but doesn't identify the rate/potential function approach as a candidate method",
+      "hint": "List all possible strategic approaches for the gardener — including abstract ones like rate analysis, potential functions, or minimax reasoning, not just concrete move sequences",
+      "hint_level": 0.3,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "strategy_space",
+        "rate_analysis",
+        "potential_function",
+        "minimax_reasoning"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries to simulate a small board and gets bogged down in case analysis, unable to extract the key abstraction from specific cases",
+      "hint": "Try simulating a small board (e.g., 3×3 or 5×5) to see if you can spot a pattern — specifically look at the ratio of additions to removals per round",
+      "hint_level": 0.4,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "small_case_simulation",
+        "pattern_recognition",
+        "case_analysis",
+        "addition_removal_ratio"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI hasn't recognized that the problem is fundamentally about rates — the per-round addition rate vs removal rate determines everything",
+      "hint": "Instead of simulating, think about rates: how many units does the gardener add per round? How many does the lumberjack remove? What's the net rate? Can you connect this to the fraction of trees that can be guaranteed?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "addition_rate",
+        "removal_rate",
+        "net_growth_rate",
+        "9_vs_4",
+        "rate_abstraction"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the 9:4 ratio but hasn't connected it to the fraction of trees that can be guaranteed — missing the per-tree growth rate analysis",
+      "hint": "If the gardener cycles uniformly through all N squares, what's the growth rate per tree? If the lumberjack focuses on k trees, what's the suppression rate per tree? When does growth exceed suppression?",
+      "hint_level": 0.7,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "uniform_cycling",
+        "per_tree_growth_rate",
+        "suppression_rate",
+        "critical_threshold",
+        "inequality_9/N_vs_4/k"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the inequality 9/N > 4/k but hasn't solved for the critical k or computed the final number 5N/9",
+      "hint": "Solve the inequality 9/N > 4/k for k. How many trees can the lumberjack suppress? How many remain? Compute 5N/9 for N = 2022² = 4,088,484.",
+      "hint_level": 0.7,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "inequality_solving",
+        "critical_k",
+        "5N/9",
+        "2271380",
+        "suppression_bound"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the number 2271380 but needs to confirm it's the largest K — the optimality/tightness argument is missing",
+      "hint": "Confirm: the lumberjack can indeed suppress 4N/9 trees by targeting them consistently, so 5N/9 = 2271380 is both achievable and optimal. You've got the answer!",
+      "hint_level": 0.5,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "optimality_argument",
+        "lumberjack_strategy",
+        "tight_bound",
+        "adversarial_tightness",
+        "2271380"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire solution path from simulation to rate analysis — the key structural insight that the 9:4 ratio determines the answer as 5/9 of the board",
+      "observation_point": null,
+      "tell": "The problem appears to require complex game simulation with a huge board and high threshold, but the entire solution reduces to a simple rate ratio argument yielding 5N/9",
+      "hint": "The 9:4 ratio between additions and removals per round is the single most important structural feature. Everything else (board size, threshold) is secondary — the answer is simply 5/9 of the board. The path from simulation to this abstraction is the critical journey.",
+      "hint_level": 0.8,
+      "generalizability": "high — this rate-ratio argument applies to any similar asymmetric addition/removal game on a grid or any structure where per-round rates determine long-term outcomes",
+      "why_not_visible_locally": "In any single round of the game, the 9:4 ratio is visible but its global consequence (5/9 fraction of all trees) is not. The connection between per-round rates and the fraction of guaranteed trees requires synthesizing the entire strategy (uniform cycling + worst-case lumberjack analysis + tightness argument), which is only visible from the complete solution path, not from any individual step.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "rate_ratio",
+        "9:4_ratio",
+        "5/9_fraction",
+        "global_synthesis",
+        "path_abstraction"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The uniform cycling strategy is implicitly assumed in the rate argument — it's the optimal gardener strategy but its optimality is never explicitly justified",
+      "observation_point": "Q4",
+      "tell": "The rate argument implicitly assumes the gardener distributes additions uniformly across all squares, but this strategic choice and its optimality are never explicitly stated or justified",
+      "hint": "The uniform cycling strategy is optimal because it maximizes the minimum growth rate across all trees. Any non-uniform strategy would leave some trees with lower growth rates, which the lumberjack could exploit to suppress more trees.",
+      "hint_level": 0.7,
+      "generalizability": "medium — uniform distribution is optimal in many symmetric game settings but needs case-by-case verification for non-symmetric configurations",
+      "why_not_visible_locally": "At the point where the rate argument is introduced (Q4), the uniform cycling strategy is presented as a given, but the justification for why uniform is optimal (vs. concentrating on fewer trees) is not visible — it requires understanding the worst-case lumberjack response, which is only analyzed in later steps. The optimality of uniform distribution is an implicit assumption that becomes justified only retroactively.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "uniform_cycling",
+        "optimal_strategy",
+        "worst_case_response",
+        "minimax",
+        "distribution_optimality"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The optimality argument — the lumberjack can indeed achieve the 4N/9 suppression bound — is implicit in the final answer and requires a separate adversarial strategy",
+      "observation_point": "Q7",
+      "tell": "The answer 5N/9 assumes the lumberjack's suppression capacity is exactly 4N/9, but the tightness of this bound (that the lumberjack can actually achieve this suppression) is not explicitly verified in the computation",
+      "hint": "The lumberjack can achieve the 4N/9 bound by always targeting the same set of 4N/9 trees every round, giving each a suppression rate of 4/(4N/9) = 9/N, exactly canceling the gardener's growth rate. This proves the bound is tight and 5N/9 is optimal.",
+      "hint_level": 0.6,
+      "generalizability": "medium — tightness arguments for rate bounds are common in combinatorial game theory but require constructing explicit adversarial strategies",
+      "why_not_visible_locally": "At the final step (Q7), the focus is on confirming the numerical answer, but the tightness of the bound (that the lumberjack can actually achieve 4N/9 suppression) requires a separate adversarial strategy argument that is not visible in the local computation of 5N/9. The distinction between 'gardener can guarantee at least 5N/9' and 'gardener cannot guarantee more than 5N/9' is implicit in the final number but requires the adversarial construction to be fully justified.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "tightness_argument",
+        "adversarial_strategy",
+        "bound_verification",
+        "lumberjack_optimal",
+        "exact_cancellation"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely attempt to simulate the game on the 2022×2022 board or enumerate specific move sequences, getting lost in the complexity of the huge board and high threshold. It would miss the key abstraction of per-round rates (9 additions vs 4 removals) and fail to connect this ratio to the fraction of trees that can be guaranteed. The large board size (4 million squares) and threshold (10^6) would further mislead it toward computational rather than analytical approaches. It might also fail to prove optimality (that the lumberjack can indeed suppress 4N/9 trees), giving only a lower bound without the matching upper bound.",
+  "suitable_for_poc": [
+    "hint_injection",
+    "tell_identification",
+    "method_translation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.2,
+        "question": "Describe the structure of this game: What are the two players' moves? What is the objective? What are the key numerical parameters of each move?",
+        "expected_answer": "The game is on a 2022×2022 board (N = 4,088,484 squares). Gardener picks a square, grows a 3×3 block (up to 9 squares) by 1. Lumberjack picks 4 different squares, shrinks positive-height trees by 1. Goal: maximize trees with height ≥ 10^6 (majestic). Key numbers: board size N = 4,088,484, gardener affects up to 9 squares per turn, lumberjack affects 4 squares per turn, threshold 10^6."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.3,
+        "question": "List all possible strategic approaches for the gardener — including both concrete strategies (like cycling through squares) and abstract approaches (like rate analysis, potential functions, or minimax reasoning).",
+        "expected_answer": "Possible approaches: (1) Cycle through all squares uniformly, (2) Focus on a subset of squares, (3) Rate analysis — compare additions vs removals per round, (4) Potential function — track total height on board, (5) Adaptive strategy — respond to lumberjack's moves, (6) Simulation of small cases to find patterns, (7) Minimax reasoning — worst-case lumberjack analysis."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.4,
+        "question": "Try simulating a small board (e.g., 3×3 or 5×5) to see if you can spot a pattern. What happens when the gardener cycles uniformly? Can you identify the key ratio?",
+        "expected_answer": "On a 3×3 board, the gardener affects all 9 squares each turn (the entire board is one 3×3 block). The lumberjack can only remove 4 per turn, so net growth is +5 per turn. All trees grow. On a 5×5 board, the gardener cycling through interior squares affects 9 each time. The key observation is the 9:4 ratio of additions to removals per round — the gardener adds 9, the lumberjack removes 4, net +5."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Instead of simulating, think about rates: how many units does the gardener add per round? How many does the lumberjack remove? What's the net rate? Can you connect this to the fraction of trees that can be guaranteed?",
+        "expected_answer": "Gardener adds 9 units per round (to a 3×3 block). Lumberjack removes 4 units per round (from 4 squares). Net rate is +5 per round. If the gardener cycles uniformly through all N squares, each interior tree gets growth rate 9/N per round (it's in the 3×3 neighborhood of 9 gardener moves per cycle). The lumberjack can distribute 4 decrements per round among targeted trees. The critical question is: for how many trees k can the lumberjack make the suppression rate exceed the growth rate?"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.7,
+        "question": "If the gardener cycles uniformly through all N squares, what's the growth rate per tree? If the lumberjack focuses on k trees, what's the suppression rate per tree? When does growth exceed suppression?",
+        "expected_answer": "Per tree growth rate from gardener: 9/N per round (each interior tree is in the 3×3 neighborhood of 9 gardener moves per full cycle of N rounds). If lumberjack focuses on k trees, suppression rate per tree: 4/k per round (4 decrements distributed among k trees). Growth exceeds suppression when 9/N > 4/k, i.e., k > 4N/9. So the lumberjack can suppress at most floor(4N/9) trees."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.7,
+        "question": "Solve the inequality 9/N > 4/k for k. How many trees can the lumberjack suppress? How many remain guaranteed to grow? Compute 5N/9 for N = 2022² = 4,088,484.",
+        "expected_answer": "From 9/N > 4/k, we get k > 4N/9. So the lumberjack can suppress at most floor(4N/9) trees. The remaining trees guaranteed to grow: N - floor(4N/9) = ceil(5N/9). Computing: N = 4,088,484, N/9 = 454,276, 5N/9 = 5 × 454,276 = 2,271,380. So K = 2,271,380."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.5,
+        "question": "Confirm: the lumberjack can indeed suppress 4N/9 trees by targeting them consistently, so 5N/9 = 2271380 is both achievable and optimal. You've found the answer!",
+        "expected_answer": "Yes — the lumberjack can target the same set of 4N/9 = 1,817,104 trees every round, giving each a suppression rate of 4/(4N/9) = 9/N, exactly canceling the gardener's growth rate of 9/N. This proves the bound is tight. The gardener cannot guarantee more than 5N/9 = 2,271,380 majestic trees, and can guarantee exactly this many by uniform cycling. Therefore K = 2271380."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 5,
+      "knowledge_rounds": 1,
+      "level_sum": 3.4,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R3"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "Problem is a combinatorial game theory problem with a clean rate-ratio solution. The 9:4 addition/removal ratio directly gives the 5/9 guarantee fraction. N = 2022² = 4,088,484 is divisible by 9 (N/9 = 454,276), so 5N/9 = 2,271,380 is an exact integer. Edge effects (corner/edge trees getting fewer additions from 3×3 blocks) are negligible for the rate argument since the gardener can focus on interior squares, but a fully rigorous proof would need to handle this. The solution in the original problem file is hand-wavy but the answer is exact."
+  }
+}

@@ -1,0 +1,266 @@
+{
+  "_key": "omni_math_000120",
+  "source_id": "omni_math_120",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Define the sequences (a_n),(b_n) by a_n, b_n > 0 for all n in N+, a_{n+1} = a_n - 1/(1 + sum_{i=1}^n 1/a_i), b_{n+1} = b_n + 1/(1 + sum_{i=1}^n 1/b_i). 1) If a_{100}b_{100} = a_{101}b_{101}, find the value of a_1 - b_1; 2) If a_{100} = b_{99}, determine which is larger between a_{100}+b_{100} and a_{101}+b_{101}. Answer: 199.",
+  "solution_text": "Define A_n = 1 + sum_{i=1}^n 1/a_i. From the recurrence, 1/A_n = a_n - a_{n+1}, so A_n = 1/(a_n - a_{n+1}). Then A_{n+1} = A_n + 1/a_{n+1} = 1/(a_n - a_{n+1}) + 1/a_{n+1} = a_n / [a_{n+1}(a_n - a_{n+1})]. Also A_{n+1} = 1/(a_{n+1} - a_{n+2}). Equating: a_{n+1}(a_n - a_{n+1}) = a_n(a_{n+1} - a_{n+2}), which simplifies to a_{n+1}^2 = a_n * a_{n+2}. So a_n is geometric with ratio r = a_1/(1+a_1). For b_n, define B_n = 1 + sum_{i=1}^n 1/b_i. Similarly B_n = 1/(b_{n+1} - b_n). The key invariant is b_n * B_n = 2n + b_1 - 1 (proved by induction), giving b_{n+1}/b_n = (2n + b_1)/(2n + b_1 - 1). The condition a_{100}b_{100} = a_{101}b_{101} means (a_{101}/a_{100})*(b_{101}/b_{100}) = 1, i.e., [a_1/(1+a_1)] * [(200+b_1)/(199+b_1)] = 1. Expanding: (1+a_1)(199+b_1) = a_1(200+b_1), which gives 199 + b_1 = a_1, so a_1 - b_1 = 199.",
+  "solution_summary": "通过定义辅助量A_n=1+Σ1/a_i消去部分和，联立A_{n+1}的两个表达式交叉相乘得a_{n+1}²=a_n·a_{n+2}（等比），公比r=a₁/(1+a₁)。对b_n发现不变量b_n·B_n=2n+b₁-1得比值闭式。条件a₁₀₀b₁₀₀=a₁₀₁b₁₀₁分解为比值乘积等于1，解得a₁-b₁=199。",
+  "domain": "algebra",
+  "subfield": "recursive_sequences",
+  "answer_type": "numerical",
+  "answer": "199",
+  "problem_type": "characterization",
+  "solution_method_type": "algebraic_manipulation",
+  "structure_features": "两个递推数列（一减一增），递推式中含倒数部分和，通过乘积条件在特定指标处连接，需推导闭式后求解参数关系",
+  "key_objects": [
+    "a_n（递减等比数列）",
+    "b_n（递增数列，比值有闭式）",
+    "A_n=1+Σ1/a_i（辅助量）",
+    "B_n=1+Σ1/b_i（辅助量）",
+    "部分和Σ1/a_i, Σ1/b_i",
+    "乘积条件a_{100}b_{100}=a_{101}b_{101}"
+  ],
+  "thinking_patterns": [
+    "代数变形消去部分和",
+    "等比数列识别（三项递推a_{n+1}²=a_n·a_{n+2}）",
+    "不变量发现（b_n·B_n=2n+b₁-1）",
+    "归纳法证明",
+    "比值乘积分解条件"
+  ],
+  "primary_pattern": "代数变形消去部分和",
+  "knowledge_required": [
+    "等比数列判定",
+    "递推数列与辅助量",
+    "数学归纳法",
+    "部分和与递推的关系",
+    "代数恒等变形"
+  ],
+  "key_insight": "通过定义辅助量A_n=1+Σ1/a_i将递推式改写为A_n=1/(a_n-a_{n+1})，联立A_{n+1}的两个表达式交叉相乘得a_{n+1}²=a_n·a_{n+2}，从而识别出a_n等比；对b_n发现不变量b_n·B_n=2n+b₁-1给出比值闭式。",
+  "translation_from": "含部分和的递推数列语言",
+  "translation_to": "等比数列+比值乘积的代数方程语言",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "characterization",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "辅助量A_n定义",
+    "等比数列三项判定",
+    "不变量b_n·B_n",
+    "比值乘积分解",
+    "交叉相乘消部分和"
+  ],
+  "expected_ai_method": "direct_calculation——bare AI会尝试直接计算数列项或建立方程，不会想到通过辅助量代数变形消去部分和来发现隐藏的等比结构",
+  "correct_method": "定义辅助量A_n/B_n消去部分和，推导三项递推关系识别等比结构，发现b_n的不变量得到比值闭式，最后用比值乘积分解条件求解",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI面对含部分和的递推数列，尚未识别出部分和是核心障碍，也未注意到条件在n=100处暗示需要闭式",
+      "hint": "描述题目结构：识别已知量（递推定义+乘积条件）、未知量（a₁-b₁）、关键障碍（部分和使递推非线性）",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["递推数列结构识别", "部分和障碍", "条件指标位置"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI可能只想到直接计算或简单变形，未列举出辅助量法和不变量法等关键方向",
+      "hint": "列举所有可能方向：直接计算、辅助量定义、不变量寻找、等比/等差结构判定、代数变形消部分和、比值乘积分解条件、归纳法",
+      "hint_level": 0.6,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["辅助量法", "不变量法", "等比结构判定", "比值乘积分解"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试数值计算，可能发现a_n等比的猜想但无法推广到n=100，b_n的规律不明显",
+      "hint": "取a₁=2,b₁=3计算前几项，观察a_n是否等比、b_n比值是否有规律",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["数值计算前几项", "等比猜想", "比值规律观察"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI卡在如何严格证明a_n等比——不知道通过辅助量A_n联立两个表达式来消去部分和",
+      "hint": "定义A_n=1+Σ1/a_i，由递推得A_n=1/(a_n-a_{n+1})，利用A_{n+1}=A_n+1/a_{n+1}和A_{n+1}=1/(a_{n+1}-a_{n+2})联立交叉相乘",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["辅助量A_n定义", "联立两个表达式", "交叉相乘消部分和", "三项递推a_{n+1}²=a_n·a_{n+2}"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已证明a_n等比但尚未对b_n找到类似的闭式结构，b_n的递推更复杂（不是等比）",
+      "hint": "求出a_n公比r=a₁/(1+a₁)，然后对b_n定义B_n=1+Σ1/b_i做类似分析，寻找b_n的比值规律",
+      "hint_level": 0.4,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["公比求解", "B_n辅助量", "b_n非等比", "比值规律探索"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI对b_n的递推变形后得到复杂表达式，不知道寻找不变量b_n·B_n=2n+b₁-1",
+      "hint": "计算b_n·B_n前几项发现规律，猜想b_n·B_n=2n+b₁-1，归纳证明后推出b_{n+1}/b_n=(2n+b₁)/(2n+b₁-1)",
+      "hint_level": 0.2,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["不变量b_n·B_n", "归纳法证明", "比值闭式(2n+b₁)/(2n+b₁-1)"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI已有两个比值闭式但尚未将乘积条件分解为比值乘积等于1的形式",
+      "hint": "条件a₁₀₀b₁₀₀=a₁₀₁b₁₀₁分解为(a₁₀₁/a₁₀₀)·(b₁₀₁/b₁₀₀)=1，代入两个比值公式解方程",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["比值乘积分解", "代入闭式", "解方程a₁-b₁=199"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "从递推定义到闭式推导到条件求解的完整路径",
+      "observation_point": null,
+      "tell": "AI在局部步骤中可能做出正确的代数变形，但缺乏从递推→辅助量→等比识别→不变量→比值闭式→条件分解的完整路径视野，无法在单步中预见整个翻译链",
+      "hint": "完整的解题路径是：定义辅助量消去部分和→推导三项递推识别等比/找不变量→得到比值闭式→将乘积条件分解为比值乘积→解方程。每一步都依赖前一步的产出，路径特征不可在局部预见",
+      "hint_level": 0.5,
+      "generalizability": "high——此路径特征适用于所有含部分和的递推数列问题：辅助量消去部分和是通用策略",
+      "why_not_visible_locally": "在任意单步中，代数变形看起来只是重排方程，但从递推到等比识别到不变量发现到条件分解的完整翻译链只有在走完整个路径后才能看到。局部视角下AI无法预见'消去部分和'这一步会导向'等比识别'，更无法预见最终需要'比值乘积分解条件'",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["辅助量消部分和", "等比识别路径", "不变量发现路径", "比值乘积分解", "完整翻译链"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "乘积条件a₁₀₀b₁₀₀=a₁₀₁b₁₀₁蕴含的比值乘积结构",
+      "observation_point": "Q7",
+      "tell": "条件a₁₀₀b₁₀₀=a₁₀₁b₁₀₁表面上是一个含四个数列项的方程，但隐含信息是它可以分解为两个数列各自的相邻比值乘积等于1——这个分解只有在两个比值闭式都已知后才有意义",
+      "hint": "将乘积条件改写为(a₁₀₁/a₁₀₀)·(b₁₀₁/b₁₀₀)=1，这是两个独立比值的关系，分别用a_n和b_n的闭式代入",
+      "hint_level": 0.4,
+      "generalizability": "medium——乘积条件分解为比值乘积的技巧适用于类似的多数列乘积条件问题，但需要先有比值闭式",
+      "why_not_visible_locally": "在推导闭式的步骤中，乘积条件的比值分解结构完全不可见——因为此时还不知道比值是什么。只有在两个数列的比值闭式都推导完成后，回看条件才能发现它可以分解为比值乘积。这个蕴含信息在局部步骤中被'未知比值'遮蔽",
+      "tell_topology": {
+        "problem_type": "characterization",
+        "ai_method_type": "equation_solving",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["乘积条件比值分解", "相邻比值乘积", "闭式代入后条件简化"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接计算数列前几项或对递推式做表面变形，但不会想到定义辅助量A_n=1+Σ1/a_i并通过联立A_{n+1}的两个表达式来消去部分和。即使数值尝试发现a_n可能等比，也无法严格证明，更无法发现b_n的不变量b_n·B_n=2n+b₁-1。最终卡在无法将条件a_{100}b_{100}=a_{101}b_{101}转化为可解的方程。",
+  "suitable_for_poc": [
+    "hint注入有效性验证（验证辅助量定义提示能否引导AI发现等比结构）",
+    "tell识别验证（识别AI在递推变形处未分叉到辅助量路线的tell）",
+    "多轮引导验证（验证7轮QA序列能否引导bare AI到达正确解答）"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "观察这道题的结构：两个递推数列a_n和b_n，一个递减一个递增，递推式中都含有倒数的部分和。条件a_{100}b_{100}=a_{101}b_{101}连接了两个数列。请描述题目的已知量、未知量和结构特征。",
+        "expected_answer": "已知：两个递推数列的定义（含部分和），一个乘积条件。未知：a_1-b_1的值。结构特征：a_n递减、b_n递增，递推式中的部分和Σ1/a_i和Σ1/b_i是关键障碍——它们使得递推不是简单的线性递推。条件在n=100/101处给出，暗示需要闭式或比值关系。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.6,
+        "question": "面对这种含部分和的递推数列问题，列出你能想到的所有可能攻克方向。",
+        "expected_answer": "方向包括：①直接数值计算前几项找规律；②定义辅助量A_n=1+Σ1/a_i简化递推式；③寻找不变量或守恒量；④证明数列有特殊结构（等比/等差）；⑤对递推式做代数变形消去部分和；⑥利用条件a_{100}b_{100}=a_{101}b_{101}分解为比值乘积；⑦数学归纳法证明通项公式。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "试着直接计算a_n和b_n的前几项（取a_1=2, b_1=3），看看能否发现规律。",
+        "expected_answer": "计算得a: 2, 4/3, 8/9,...发现a_2²=a_1·a_3=16/9，可能是等比数列，公比2/3。b: 3, 15/4, 35/8,...比值5/4, 7/6,...不是等比但比值有规律。数值尝试能发现a等比的猜想，但b的规律不够明显，且无法直接推广到n=100。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "定义A_n=1+Σ_{i=1}^n 1/a_i。由递推式得1/A_n=a_n-a_{n+1}，即A_n=1/(a_n-a_{n+1})。现在利用A_{n+1}=A_n+1/a_{n+1}和A_{n+1}=1/(a_{n+1}-a_{n+2})，将两个表达式联立，交叉相乘，推导三项递推关系。",
+        "expected_answer": "A_{n+1}=1/(a_n-a_{n+1})+1/a_{n+1}=a_n/[a_{n+1}(a_n-a_{n+1})]，又A_{n+1}=1/(a_{n+1}-a_{n+2})。联立得a_{n+1}(a_n-a_{n+1})=a_n(a_{n+1}-a_{n+2})，化简得a_{n+1}²=a_n·a_{n+2}。故a_n是等比数列！"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.4,
+        "question": "很好，a_n是等比数列。求出公比r用a_1表示，然后对b_n用类似的辅助量方法分析——定义B_n=1+Σ1/b_i，看看能否找到b_n的比值规律。",
+        "expected_answer": "a_n公比r=a_1/(1+a_1)。对b_n：B_n=1/(b_{n+1}-b_n)，B_{n+1}=(2b_{n+1}-b_n)/[b_{n+1}(b_{n+1}-b_n)]。b_n不是等比，但可以计算b_{n+1}/b_n=b_n+1/b_n·B_n。需要进一步找不变量。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.2,
+        "question": "对b_n，计算b_n·B_n的前几项值（用b_1=2验证）：b_1·B_1=b_1+1, b_2·B_2=2·2+b_1-1=5。猜想b_n·B_n=2n+b_1-1，用归纳法证明，然后由此推出b_{n+1}/b_n的闭式。",
+        "expected_answer": "猜想b_n·B_n=2n+b_1-1。归纳：基例b_1·B_1=b_1(1+1/b_1)=b_1+1=2·1+b_1-1✓。归纳步：若b_n·B_n=2n+b_1-1，则b_{n+1}=b_n+b_n/(2n+b_1-1)=b_n·(2n+b_1)/(2n+b_1-1)，可推出b_{n+1}·B_{n+1}=2(n+1)+b_1-1。故b_{n+1}/b_n=(2n+b_1)/(2n+b_1-1)。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "现在两个数列的比值都有了闭式。条件a_{100}b_{100}=a_{101}b_{101}可以分解为(a_{101}/a_{100})·(b_{101}/b_{100})=1。代入两个比值公式，解方程求a_1-b_1。你已经在正确的路上，完成最后一步！",
+        "expected_answer": "a_{101}/a_{100}=r=a_1/(1+a_1)，b_{101}/b_{100}=(200+b_1)/(199+b_1)。条件：[a_1/(1+a_1)]·[(200+b_1)/(199+b_1)]=1。展开：(1+a_1)(199+b_1)=a_1(200+b_1)，化简得199+b_1=a_1，即a_1-b_1=199。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 2.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-24T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "中国国家队奥林匹克递推数列题。核心难点在于：(1)通过辅助量A_n消去部分和并推导等比结构——这是知识瓶颈(R4)；(2)对b_n发现不变量b_n·B_n=2n+b₁-1——这是思维瓶颈(R6)。bare AI预期失败，因为不会想到辅助量法和不变量法。拓扑分类无需进化。"
+  }
+}

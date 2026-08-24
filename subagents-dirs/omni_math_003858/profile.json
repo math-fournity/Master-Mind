@@ -1,0 +1,270 @@
+{
+  "_key": "omni_math_003858",
+  "source_id": "omni_math_003858",
+  "source_dataset": "omni_math",
+  "schema_version": 3,
+  "problem_text": "Sir Alex plays the following game on a row of 9 cells. Initially, all cells are empty. In each move, Sir Alex is allowed to perform exactly one of the following two operations: (1) Choose any number of the form 2^j, where j is a non-negative integer, and put it into an empty cell. (2) Choose two (not necessarily adjacent) cells with the same number in them; denote that number by 2^j. Replace the number in one of the cells with 2^{j+1} and erase the number in the other cell. At the end of the game, one cell contains 2^n, where n is a given positive integer, while the other cells are empty. Determine the maximum number of moves that Sir Alex could have made, in terms of n.",
+  "solution_text": "To determine the maximum number of moves, we analyze the operations and how each affects the game state. The key insight is that the 9-cell constraint limits the computation tree's width to 9, connecting the maximum move count to the number of lattice points of rank at most 8, which is the sum of binomial coefficients. Each place operation adds a number, each combine operation merges two equal numbers. Since we start empty and end with one number, #places = #combines + 1, so total moves = 2*(#combines) + 1. The number of combine operations equals the number of internal nodes in the computation tree, which with 9 registers (cells) is sum_{i=0}^{8} C(n,i) - 1. Thus the maximum number of moves is 2 * sum_{i=0}^{8} C(n,i) - 1.",
+  "solution_summary": "The 9-cell constraint limits the computation tree width to 9, making the number of combine operations equal to sum_{i=0}^{8} C(n,i) - 1. Since #places = #combines + 1, total moves = 2 * sum_{i=0}^{8} C(n,i) - 1.",
+  "domain": "combinatorics",
+  "subfield": "combinatorial_optimization",
+  "answer_type": "formula",
+  "answer": "2 * sum_{i=0}^{8} C(n,i) - 1",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_transformation",
+  "structure_features": "Two-operation game on 9 cells (place 2^j, combine two equal 2^j into 2^{j+1}). Goal: single cell with 2^n. Maximization objective. The 9-cell constraint creates a bounded-width computation tree structure that connects to binomial coefficient counting.",
+  "key_objects": [
+    "9 cells (registers)",
+    "powers of 2: 2^j",
+    "place operation",
+    "combine operation",
+    "computation tree",
+    "binomial coefficients C(n,i)"
+  ],
+  "thinking_patterns": [
+    "small_case_pattern_finding",
+    "constraint_analysis",
+    "tree_structure_recognition",
+    "combinatorial_identity_connection",
+    "register_machine_modeling"
+  ],
+  "primary_pattern": "structural_transformation",
+  "knowledge_required": [
+    "binomial coefficients and subset counting",
+    "computation trees / binary trees",
+    "bounded-memory computation (register machines)",
+    "combinatorial optimization",
+    "addition chains with bounded registers"
+  ],
+  "key_insight": "The 9-cell constraint limits the computation tree's width to 9, connecting the maximum move count to the number of lattice points of rank at most 8, which is sum_{i=0}^{8} C(n,i). Since places = combines + 1, total moves = 2 * combines + 1 = 2 * sum C(n,i) - 1.",
+  "translation_from": "greedy_counting_direct_enumeration",
+  "translation_to": "computation_tree_structure_binomial_coefficient_counting",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "9-cell constraint",
+    "computation tree",
+    "binomial coefficient",
+    "combine operation",
+    "place operation",
+    "register machine",
+    "tree width",
+    "lattice point counting"
+  ],
+  "expected_ai_method": "Bare AI would try greedy placement and combining, find pattern 2^(n+1)-1 for small n, but fail to account for the 9-cell constraint when n is large. It would not connect the problem to computation tree structure or binomial coefficients.",
+  "correct_method": "Model the game as a bounded-width computation tree with 9 registers. Recognize that the number of combine operations equals the number of internal nodes, which connects to sum of binomial coefficients C(n,i) for i=0..8. Use the invariant places = combines + 1 to get total moves = 2 * sum C(n,i) - 1.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI describes the game rules correctly but treats the 9-cell constraint as a passive background detail, not as the key structural parameter that shapes the computation tree",
+      "hint": "Pay attention to how the 9-cell constraint interacts with the two operations. The number of cells is not just a passive limit — it actively shapes what computations are possible.",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["9-cell constraint", "operation interaction", "passive vs active constraint"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists strategies (greedy, delay combining, build intermediates) but does not identify the computation tree as the key abstraction. It thinks in terms of sequences of moves, not tree structure",
+      "hint": "Consider modeling the entire computation as a tree. Each combine operation is an internal node merging two children. What does the 9-cell constraint imply about this tree's structure?",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["computation tree", "tree abstraction", "internal node", "merge operation"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI computes small cases (n=1: 3, n=2: 7, n=3: 15) and conjectures 2^(n+1)-1, but does not realize this pattern breaks when n > 8 because the 9-cell constraint becomes binding",
+      "hint": "What happens when n is large, say n=20? You cannot hold 2^20 copies of 2^0 in 9 cells. How does the 9-cell constraint change the problem when n exceeds 8?",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["small case pattern", "constraint binding", "pattern breakdown", "2^(n+1)-1 conjecture"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI recognizes that the 9-cell constraint becomes binding for large n but frames it as 'fewer moves' rather than identifying the precise structural change — it does not see the connection to bounded-width trees and lattice counting",
+      "hint": "Think of the computation as a bounded-width tree with width 9. The number of nodes at each level of the tree is constrained. Can you connect this to counting subsets of {1,...,n} of bounded size?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["bounded-width tree", "lattice counting", "subset counting", "tree level"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI sees the tree structure and the subset counting connection in vague terms but cannot formalize why C(n,i) appears and why the sum goes up to i=8. The specific knowledge link between register count and binomial coefficient upper limit is missing",
+      "hint": "The 9 cells correspond to 9 registers. The computation tree has at most 9 nodes at any level. The number of intermediate values at level i is C(n,i), and the maximum level is 8 (since 9 registers means width 9, levels 0 through 8). Each C(n,i) counts the number of distinct partial computations of degree i.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["register count", "binomial coefficient C(n,i)", "partial computation", "level index", "sum upper limit 8"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI understands the formula components but has not yet assembled them into the final answer or verified the invariant that places = combines + 1",
+      "hint": "Use the invariant: starting from empty and ending with one number means #places = #combines + 1. Total moves = #places + #combines = 2 * #combines + 1. The number of combines (internal tree nodes) is sum_{i=0}^{8} C(n,i) - 1. Assemble the final formula.",
+      "hint_level": 0.6,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["place-combine invariant", "internal node count", "formula assembly", "verification"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the formula 2 * sum_{i=0}^{8} C(n,i) - 1 but needs to verify and state it with confidence",
+      "hint": "Verify: n=1 gives 2*(1+1)-1=3, n=2 gives 2*(1+2+1)-1=7, n=3 gives 2*(1+3+3+1)-1=15. All match. State the answer: 2 * sum_{i=0}^{8} C(n,i) - 1.",
+      "hint_level": 0.8,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["formula verification", "small case check", "final answer statement"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire path from greedy move counting to computation tree structure to binomial coefficient formula. The path feature is that the problem requires three successive abstractions: (1) move counting → tree modeling, (2) tree structure → bounded width, (3) bounded width → binomial coefficient counting. No single round reveals all three steps.",
+      "observation_point": null,
+      "tell": "AI approaches the problem as a sequential move-counting problem and never spontaneously makes the triple abstraction leap from moves to tree to bounded-width to binomial counting",
+      "hint": "The problem requires three successive structural transformations: model moves as a computation tree, recognize the 9-cell constraint as a width bound, and connect bounded-width tree node counting to binomial coefficients. Each transformation is a separate cognitive step.",
+      "hint_level": 0.7,
+      "generalizability": "high — this triple-abstraction pattern (sequential → tree → bounded structure → combinatorial identity) applies to many bounded-resource optimization problems",
+      "why_not_visible_locally": "Each individual round only reveals one step of the abstraction chain. The full path — from greedy counting through tree modeling to binomial coefficient formula — is a global feature of the solution trajectory that cannot be seen from any single round's local perspective. The local rounds show fragments (tree hint, constraint hint, binomial hint) but the integrated three-step abstraction only becomes visible when the entire path is traced.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["triple abstraction", "computation tree", "bounded width", "binomial coefficient", "path feature"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The implicit connection between the number 9 (cells) and the number 8 (upper limit of the binomial sum). This relationship — that 9 cells means levels 0 through 8, hence sum up to i=8 — is never explicitly stated in the problem and must be inferred from the register-width-to-tree-level mapping.",
+      "observation_point": "Q5",
+      "tell": "AI does not spontaneously see that the 9 in '9 cells' directly determines the 8 in 'sum from i=0 to 8'. The off-by-one relationship (9 cells = 9 registers = width 9 = levels 0..8 = upper limit 8) is an implicit structural fact",
+      "hint": "The 9 cells serve as 9 registers, giving the computation tree a maximum width of 9. Tree levels are indexed 0 through 8 (9 levels total), so the binomial sum runs from i=0 to i=8. The cell count and the sum's upper limit differ by exactly 1.",
+      "hint_level": 0.75,
+      "generalizability": "high — the register-count-to-sum-limit off-by-one relationship is a general pattern in bounded-memory computation problems",
+      "why_not_visible_locally": "This off-by-one mapping (9 cells → upper limit 8) is an implicit structural fact that emerges from the interaction between the register model and the tree level indexing. In any single round, the AI sees either '9 cells' or 'sum up to 8' but not the precise causal link between them. The connection only becomes visible when the register-to-tree-level mapping is explicitly constructed, which requires integrating knowledge from multiple rounds.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["off-by-one mapping", "register count", "tree level index", "sum upper limit", "cell-to-index offset"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would likely try a greedy approach of placing and combining numbers, find the pattern 2^(n+1)-1 for small n (n <= 8), and incorrectly generalize this to all n. It would not recognize that the 9-cell constraint fundamentally changes the problem structure for large n, nor would it connect the problem to computation tree structure or binomial coefficients. The key failure is missing the structural transformation from sequential move counting to bounded-width tree node counting.",
+  "suitable_for_poc": [
+    "tell_extraction",
+    "hint_injection",
+    "topology_classification",
+    "knowledge_bottleneck_detection"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the game structure. What are the two operations? What is the goal? What constraints exist? In particular, how does the 9-cell constraint interact with the operations?",
+        "expected_answer": "The game has two operations: (1) place 2^j in an empty cell, (2) combine two cells with equal 2^j into one 2^{j+1} and erase the other. The goal is to end with 2^n in one cell, all others empty. The constraint is 9 cells total. The 9-cell limit means at most 9 numbers can exist simultaneously, which constrains how many intermediate values can be held at once."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "What are all possible strategies to maximize the number of moves? List as many directions as you can think of, including both greedy and non-greedy approaches.",
+        "expected_answer": "Possible strategies: (1) Greedy: place and combine as fast as possible. (2) Delay combining: hold many small values before combining. (3) Build intermediate powers: create 2^1, 2^2, etc. and combine those. (4) Think of it as a tree: each combine is a merge node. (5) Think of it as a register machine with 9 registers. (6) Think about the invariant: places - combines = 1 at the end."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try computing the maximum moves for small cases like n=1, n=2, n=3. See if you can find a pattern. Then ask yourself: does this pattern hold for large n?",
+        "expected_answer": "n=1: place 2^0, place 2^0, combine → 2^1. 3 moves. n=2: 7 moves. n=3: 15 moves. Pattern: 2^(n+1)-1. But for large n (n > 8), we cannot hold 2^n copies of 2^0 in 9 cells, so this pattern must break. The 9-cell constraint becomes binding."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "Think about what happens when n is large. With only 9 cells, you cannot hold 2^n copies of 2^0 at once. How does the cell constraint change the problem? Consider modeling the computation as a tree with bounded width. Can you connect the width bound to counting subsets of {1,...,n} of bounded size?",
+        "expected_answer": "For large n, the 9-cell constraint means the computation tree has width at most 9. The tree cannot be a perfect binary tree of depth n because that would require 2^n leaves. Instead, the tree must be built incrementally using the 9 cells as registers. The number of nodes at each level is bounded. This connects to counting subsets of {1,...,n} of size at most 8, which is sum_{i=0}^{8} C(n,i)."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Consider the computation as a bounded-width tree with 9 registers. The number of intermediate values at level i is C(n,i). Why does the sum go up to i=8? What is the precise relationship between 9 cells and the upper limit 8? Formalize the connection.",
+        "expected_answer": "The 9 cells serve as 9 registers, giving the computation tree a maximum width of 9. Tree levels are indexed 0 through 8 (9 levels total), so the binomial sum runs from i=0 to i=8. Each C(n,i) counts the number of distinct partial computations of degree i. The number of combine operations (internal tree nodes) is sum_{i=0}^{8} C(n,i) - 1 (subtracting 1 for the root). The cell count 9 and the sum upper limit 8 differ by exactly 1."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.6,
+        "question": "You have connected the tree structure to binomial coefficients. Now use the invariant that places = combines + 1 (since we start empty and end with one number). Assemble the final formula for total moves.",
+        "expected_answer": "Starting from empty and ending with one number: #places - #combines = 1, so #places = #combines + 1. Total moves = #places + #combines = 2 * #combines + 1. Since #combines = sum_{i=0}^{8} C(n,i) - 1, total moves = 2 * (sum_{i=0}^{8} C(n,i) - 1) + 1 = 2 * sum_{i=0}^{8} C(n,i) - 1."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.8,
+        "question": "You have the formula 2 * sum_{i=0}^{8} C(n,i) - 1. Verify it for n=1, 2, 3 and confirm it matches your earlier computations. Then state the final answer with confidence.",
+        "expected_answer": "n=1: 2*(C(1,0)+C(1,1))-1 = 2*(1+1)-1 = 3. Correct. n=2: 2*(1+2+1)-1 = 7. Correct. n=3: 2*(1+3+3+1)-1 = 15. Correct. The maximum number of moves is 2 * sum_{i=0}^{8} C(n,i) - 1."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.7,
+      "knowledge_bottleneck": "R5",
+      "thinking_bottleneck": "R4"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2025-01-27T00:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "Problem involves a deep structural transformation from sequential move counting to bounded-width computation tree to binomial coefficient counting. The key knowledge bottleneck is in R5 where the specific connection between 9 cells (registers) and the upper limit 8 of the binomial sum must be formalized. The thinking bottleneck is in R4 where the AI must recognize that the 9-cell constraint fundamentally changes the problem from unbounded to bounded-width tree. The off-by-one relationship (9 cells → sum up to i=8) is an implicit structural fact that is particularly hard to discover. Topology classification is adequate — discrete_combinatorial / enumeration_brute_force / structural_transformation covers this problem well. No new topology dimensions needed."
+  }
+}

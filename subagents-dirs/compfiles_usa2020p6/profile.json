@@ -1,0 +1,302 @@
+{
+  "_key": "compfiles_usa2020p6",
+  "source_id": "usa2020p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Let n >= 2 be an integer. Let x_1 >= x_2 >= ... >= x_n and y_1 >= y_2 >= ... >= y_n be 2n real numbers such that 0 = x_1 + x_2 + ... + x_n = y_1 + y_2 + ... + y_n, and 1 = x_1^2 + x_2^2 + ... + x_n^2 = y_1^2 + y_2^2 + ... + y_n^2. Prove that sum_{i=1}^{n} (x_i*y_i - x_i*y_{n+1-i}) >= 2/sqrt(n-1).",
+  "solution_text": "Introduce a uniform random permutation sigma on {1,...,n} and define S(sigma) = sum_i x_i * y_{sigma(i)}. Compute E[S] = 0 (since each y_j is equally likely to be paired with any x_i, and sum y_j = 0). Compute E[S^2] = 1/(n-1) by expanding the square: diagonal terms contribute (n-1)! * sum y_i^2 = (n-1)!, off-diagonal terms contribute (n-2)! * sum_{a!=b} y_a*y_b = -(n-2)!, total = (n-1)! + (n-2)! = n*(n-2)!, divided by n! gives 1/(n-1). Apply the variance bound: Var(S) <= (M-m)^2/4 where M = max S, m = min S. Since E[S] = 0, Var(S) = E[S^2] = 1/(n-1), so M - m >= 2/sqrt(n-1). By the rearrangement inequality, for decreasing sequences x and y, max S = sum x_i*y_i (identity pairing) and min S = sum x_i*y_{n+1-i} (reversed pairing). Therefore sum(x_i*y_i - x_i*y_{n+1-i}) = M - m >= 2/sqrt(n-1).",
+  "solution_summary": "引入随机置换σ定义S(σ)=∑xᵢy_{σ(i)}，计算E[S]=0和E[S²]=1/(n-1)，用方差界(Var≤(M-m)²/4)得max S−min S≥2/√(n−1)，再用排序不等式识别max和min完成证明。",
+  "domain": "mathematics",
+  "subfield": "olympiad_inequality",
+  "answer_type": "proof",
+  "answer": "sum_{i=1}^{n} (x_i*y_i - x_i*y_{n+1-i}) >= 2/sqrt(n-1)",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "probabilistic_method",
+  "structure_features": "两个递减实数序列，零和、单位L2范数约束；目标是同序配对与反序配对之差的下界，常数2/√(n−1)与n相关",
+  "key_objects": [
+    "sorted_sequences",
+    "permutations",
+    "random_variable_S_sigma",
+    "variance",
+    "rearrangement_inequality"
+  ],
+  "thinking_patterns": [
+    "probabilistic_translation",
+    "moment_computation",
+    "variance_bound_application",
+    "rearrangement_inequality"
+  ],
+  "primary_pattern": "probabilistic_translation",
+  "knowledge_required": [
+    "rearrangement_inequality",
+    "variance_bound_Popoviciu",
+    "permutation_counting",
+    "expected_value_computation"
+  ],
+  "key_insight": "引入随机置换σ定义S(σ)=∑xᵢy_{σ(i)}，目标表达式恰等于max S−min S，而方差界给出max S−min S≥2√(Var(S))=2/√(n−1)",
+  "translation_from": "deterministic_inequality",
+  "translation_to": "probabilistic_variance_argument",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_manipulation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "random_permutation_introduction",
+    "moment_computation",
+    "variance_to_range",
+    "rearrangement_inequality"
+  ],
+  "expected_ai_method": "bare AI会尝试直接展开∑(xᵢyᵢ−xᵢyₙ₊₁₋ᵢ)用Cauchy-Schwarz或排序不等式直接bound，但无法得到精确常数2/√(n−1)",
+  "correct_method": "引入随机置换σ定义S(σ)，计算E[S]=0和E[S²]=1/(n−1)，用方差界得max−min≥2/√(n−1)，再用排序不等式识别max和min",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI看到两个递减序列零和单位范数，目标表达式含同序配对和反序配对之差",
+      "hint": "描述题目结构：识别已知条件和目标表达式的配对含义",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "sorted_sequences",
+        "zero_sum_unit_norm",
+        "identity_vs_reversed_pairing"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI列举方向但可能不想到概率方法",
+      "hint": "列出所有可能方向包括概率/期望方法",
+      "hint_level": 0.4,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": [
+        "cauchy_schwarz",
+        "rearrangement_inequality",
+        "probabilistic_method",
+        "variance_bound"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI尝试直接展开求和但无法得到精确常数",
+      "hint": "试直接展开并用已知条件bound每一项",
+      "hint_level": 0.3,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "direct_expansion",
+        "term_by_term_bound",
+        "stuck_on_constant"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI卡在直接方法上，需要全新框架",
+      "hint": "引入随机置换σ定义S(σ)，计算E[S]",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "random_permutation",
+        "expected_value",
+        "S_sigma_definition"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI已有E[S]=0，需计算E[S²]",
+      "hint": "展开平方分i=j和i≠j用置换纤维计数",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "second_moment",
+        "fiber_counting",
+        "n_minus_2_factorial",
+        "cross_terms"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI有E[S]=0和E[S²]=1/(n−1)，需连接到值域",
+      "hint": "用方差界Var≤(M−m)²/4推导max−min下界",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "popoviciu_bound",
+        "variance_range_relation",
+        "max_minus_min"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI有max−min≥2/√(n−1)，需识别max和min",
+      "hint": "用排序不等式识别max=同序min=反序，完成证明",
+      "hint_level": 0.4,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "rearrangement_inequality",
+        "identity_maximizes",
+        "reversal_minimizes"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "完整解题路径：确定性不等式→概率方法→方差界→排序不等式",
+      "observation_point": null,
+      "tell": "整个解法需要将确定性不等式翻译为概率论证",
+      "hint": "路径是：定义随机置换→计算矩→方差界→排序不等式识别",
+      "hint_level": 0.7,
+      "generalizability": "high——引入随机性证明确定性不等式的模式广泛泛化",
+      "why_not_visible_locally": "在任何单步中，确定性目标与概率框架之间的联系不可见。只有看到完整路径才能理解翻译操作。",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": [
+        "probabilistic_translation",
+        "moment_computation",
+        "variance_to_range",
+        "rearrangement_identification"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "E[S²]=1/(n−1)与最终常数2/√(n−1)之间的连接",
+      "observation_point": "R6",
+      "tell": "二阶矩1/(n−1)通过方差界直接决定最终常数2/√(n−1)",
+      "hint": "关键蕴含连接：E[S²]=Var(S)（因E[S]=0），Var(S)≤(M−m)²/4给出M−m≥2√(Var(S))=2/√(n−1)",
+      "hint_level": 0.6,
+      "generalizability": "medium——方差到值域的转换是标准技巧但具体常数取决于问题",
+      "why_not_visible_locally": "在计算E[S²]时，与最终常数的联系不可见。阶乘算术(n−1)!+(n−2)!=n·(n−2)!和n!=n(n−1)(n−2)!掩盖了化简到1/(n−1)的过程。只有结合方差界后2/√(n−1)才浮现。",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "variance_equals_second_moment",
+        "popoviciu_inequality",
+        "factorial_simplification",
+        "bound_emergence"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "bare AI会尝试直接展开∑(xᵢyᵢ−xᵢyₙ₊₁₋ᵢ)用Cauchy-Schwarz或排序不等式直接bound，但无法得到精确常数2/√(n−1)。关键缺失是想不到引入随机置换将确定性不等式翻译为概率论证。",
+  "suitable_for_poc": [
+    "tell_extraction_poc",
+    "hint_injection_poc",
+    "method_translation_poc"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "观察这道题的结构：已知什么条件？目标表达式∑(xᵢyᵢ−xᵢyₙ₊₁₋ᵢ)中，xᵢyᵢ和xᵢyₙ₊₁₋ᵢ分别代表什么配对方式？",
+        "expected_answer": "两个递减序列，零和、单位L2范数。xᵢyᵢ是同序配对（identity pairing），xᵢyₙ₊₁₋ᵢ是反序配对（reversed pairing）。目标是证明同序配对与反序配对之差≥2/√(n−1)。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.4,
+        "question": "列出你能想到的所有可能证明方向，包括代数的、组合的、概率的方法。",
+        "expected_answer": "直接展开求和、Cauchy-Schwarz、排序不等式直接用、归纳法、引入随机置换用期望值、凸性论证、Lagrange乘数法……"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.3,
+        "question": "试着直接展开∑(xᵢyᵢ−xᵢyₙ₊₁₋ᵢ)并用已知条件bound每一项，看看能否得到2/√(n−1)。",
+        "expected_answer": "直接展开后每一项xᵢ(yᵢ−yₙ₊₁₋ᵢ)难以单独bound，因为xᵢ可正可负、yᵢ−yₙ₊₁₋ᵢ的符号也不固定。Cauchy-Schwarz给出上界不是下界。直接方法无法得到精确常数2/√(n−1)。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "关键操作：引入一个均匀随机置换σ∈S_n，定义S(σ)=∑ᵢxᵢ·y_{σ(i)}。请计算E[S]。（提示：对固定的i，σ(i)均匀分布在{1,...,n}上）",
+        "expected_answer": "E[S]=∑ᵢxᵢ·E[y_{σ(i)}]=∑ᵢxᵢ·(1/n)∑ⱼyⱼ=∑ᵢxᵢ·0=0。因为∑yⱼ=0。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "现在计算E[S²]。展开S²=∑ᵢ∑ⱼxᵢxⱼy_{σ(i)}y_{σ(j)}，分i=j和i≠j两种情况，利用置换纤维计数。",
+        "expected_answer": "i=j项贡献(n-1)!·∑yᵢ²=(n-1)!，i≠j项贡献(n-2)!·∑_{a≠b}yₐy_b=-(n-2)!，合计(n-1)!+(n-2)!=n·(n-2)!，除以n!得1/(n−1)。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "现在你有E[S]=0和E[S²]=1/(n−1)。关键操作：回忆方差与值域的关系——任何取值在[m,M]中的随机变量，Var(S)≤(M−m)²/4。请用这个关系推导max S−min S的下界。",
+        "expected_answer": "Var(S)=E[S²]−(E[S])²=1/(n−1)。设M=max S, m=min S，则Var(S)≤(M−m)²/4，即1/(n−1)≤(M−m)²/4，故M−m≥2/√(n−1)。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.4,
+        "question": "最后一步：用排序不等式识别M和m分别对应哪个置换，然后完成证明。",
+        "expected_answer": "由排序不等式，对递减序列x,y：同序配对∑xᵢyᵢ=max S，反序配对∑xᵢyₙ₊₁₋ᵢ=min S。因此∑(xᵢyᵢ−xᵢyₙ₊₁₋ᵢ)=M−m≥2/√(n−1)。证毕。"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.2,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-20T12:00:00Z",
+    "analysis_duration": "single_session",
+    "notes": "USA 2020 P6: 经典的概率方法证明不等式。核心tell是确定性不等式到概率论证的翻译（method_translation）。bare AI预期fail因为想不到引入随机置换。两个knowledge bottleneck：R4（引入随机置换框架）和R6（方差界连接矩与值域）。"
+  }
+}

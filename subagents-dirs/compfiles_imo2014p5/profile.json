@@ -1,0 +1,341 @@
+{
+  "_key": "compfiles_imo2014p5",
+  "source_id": "compfiles_imo2014p5",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "For every positive integer n, the Bank of Cape Town issues coins of denomination 1/n. Given a finite collection of such coins (of not necessarily different denominations) with total value at most 99 + 1/2, prove that it is possible to split this collection into 100 or fewer groups, such that each group has total value at most 1.",
+  "solution_text": "The proof proceeds by strong induction on the number of coins N, with a general claim parameterized by k (number of groups) and a capacity function cap(k) = k - k/(2k+1).\n\nBase case: N=0, trivial.\n\nInductive step: Given a collection c of N coins with value <= cap(k):\n\nCase 1 (even merge): If some even denomination 2m (m>=1) appears at least twice, merge two coins of denomination 1/(2m) into one coin of denomination 1/m. This preserves total value (1/(2m)+1/(2m)=1/m) and reduces the number of coins. Apply the induction hypothesis to get a partition into <=k groups, then split the merged coin back into two coins of denomination 1/(2m) within its group.\n\nCase 2 (odd extraction): If some odd denomination 2m+1 appears at least 2m+1 times, extract exactly 2m+1 such coins as a single group of value exactly 1. The remaining collection has value <= cap(k)-1 <= cap(k-1). Apply the induction hypothesis with k-1 groups to the remaining collection.\n\nCase 3 (normalized): No even denomination appears more than once, and no odd denomination 2m+1 appears more than 2m times. Partition the coins with denominations 1/(2m+1) and 1/(2m+2) for m=0,...,k-1 into k boxes B_m. Each box B_m has value <= 2m/(2m+1) + 1/(2m+2) < 1. The remaining light coins (denomination <= 1/(2k+1)) are distributed greedily into the k boxes: each light coin has value <= 1/(2k+1), so if no box can accept it, all boxes are within 1/(2k+1) of capacity, giving total value > k(1 - 1/(2k+1)) = k - k/(2k+1) = cap(k), contradiction.\n\nFinally, cap(100) = 100 - 100/201 = 20000/201 ~ 99.5025 > 99.5, so the result follows with k=100.",
+  "solution_summary": "Strong induction on coin count with capacity function cap(k)=k-k/(2k+1). Normalize by merging even denomination pairs (1/(2m)+1/(2m)=1/m) and extracting full odd groups ((2m+1)*1/(2m+1)=1), then greedily pack remaining light coins into boxes paired by consecutive denominations.",
+  "domain": "Combinatorics",
+  "subfield": "Combinatorial optimization / bin packing",
+  "answer_type": "proof",
+  "answer": "Any finite collection of coins of denominations 1/n with total value at most 99 + 1/2 can be split into 100 or fewer groups, each of total value at most 1.",
+  "problem_type": "discrete_combinatorial",
+  "solution_method_type": "structural_induction_with_normalization",
+  "structure_features": [
+    "Coins have denominations 1/n for positive integers n",
+    "Total value bounded by 99.5 = cap(100) - epsilon",
+    "Need to partition into bounded number of groups with per-group value bound",
+    "Key algebraic identities: 1/(2m)+1/(2m)=1/m and (2m+1)*1/(2m+1)=1",
+    "Capacity function cap(k)=k-k/(2k+1) is tight for the greedy argument"
+  ],
+  "key_objects": [
+    "coins of denomination 1/n",
+    "capacity function cap(k) = k - k/(2k+1)",
+    "groups/partitions with value <= 1",
+    "normalized coin collection (even count <= 1, odd count <= 2m)",
+    "boxes B_m pairing denominations (2m+1, 2m+2)"
+  ],
+  "thinking_patterns": [
+    "structural_normalization",
+    "strong_induction",
+    "greedy_packing",
+    "capacity_function_design",
+    "case_analysis_with_reduction"
+  ],
+  "primary_pattern": "structural_normalization",
+  "knowledge_required": [
+    "harmonic series and reciprocal arithmetic",
+    "bin packing and greedy algorithms",
+    "strong induction on combinatorial objects",
+    "rational number arithmetic",
+    "partition and covering arguments"
+  ],
+  "key_insight": "Normalize the coin collection by merging pairs of even denominations (1/(2m)+1/(2m)=1/m) and extracting full groups of odd denominations ((2m+1)*1/(2m+1)=1), then use a capacity function cap(k)=k-k/(2k+1) to enable greedy packing of remaining light coins into boxes paired by consecutive denominations.",
+  "translation_from": "direct bin packing",
+  "translation_to": "normalized structural induction with capacity function",
+  "translation_type": "structural_transformation",
+  "tell_topology": {
+    "problem_type": "discrete_combinatorial",
+    "ai_method_type": "enumeration_brute_force",
+    "gap_type": "structural_transformation"
+  },
+  "tell_small_concepts": [
+    "coin_denomination",
+    "normalization",
+    "capacity_function",
+    "even_merge_identity",
+    "odd_group_identity",
+    "greedy_packing",
+    "consecutive_pairing",
+    "strong_induction"
+  ],
+  "expected_ai_method": "Naive greedy bin packing: sort coins by value and fill groups sequentially, or try to balance groups by distributing coins round-robin. Fails because no structural normalization is applied and no capacity function is designed.",
+  "correct_method": "Strong induction with normalization (merge even pairs, extract odd groups) and capacity function cap(k)=k-k/(2k+1), followed by greedy packing of light coins into pre-filled boxes.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a partition problem: coins of denomination 1/n, total value at most 99.5, need to split into at most 100 groups each with value at most 1. AI has not yet identified what makes this non-trivial.",
+      "hint": "Describe the problem structure: what are the knowns (coin denominations, total value bound), the unknowns (how to partition), and what makes this hard (the denominations 1/n create a specific arithmetic structure that a generic partition argument won't exploit)?",
+      "hint_level": 0.3,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "coin_denomination",
+        "total_value_bound",
+        "group_partition",
+        "value_at_most_1"
+      ]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI has described the structure but has not enumerated which approaches might work. The space of possible methods is unexplored.",
+      "hint": "List all possible approaches: greedy bin packing, induction on number of coins, probabilistic method, case analysis on denomination structure, linear programming relaxation, etc. Which seem most promising given the arithmetic structure of 1/n?",
+      "hint_level": 0.5,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "greedy_packing",
+        "induction",
+        "bin_packing",
+        "approach_enumeration"
+      ]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries naive greedy: sort coins by denomination (largest first), fill groups one by one until each reaches value 1. This approach does not exploit the structure of 1/n denominations.",
+      "hint": "Try the simplest greedy approach - sort coins by value and fill groups sequentially. What goes wrong? Can you construct a counterexample where greedy fails?",
+      "hint_level": 0.2,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "naive_greedy",
+        "sort_by_value",
+        "fill_groups",
+        "greedy_failure"
+      ]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI realizes naive greedy fails because small coins accumulate and the total value bound is tight (99.5 is close to 100). AI has not yet identified the key algebraic identities that make the denominations 1/n special.",
+      "hint": "What special structure do the denominations 1/n have? Look at pairs: 1/(2m) + 1/(2m) = 1/m, and (2m+1) * 1/(2m+1) = 1. These identities allow merging and grouping. Can you use them to normalize the collection?",
+      "hint_level": 0.6,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "denomination_pairing",
+        "even_merge_identity",
+        "odd_group_identity",
+        "harmonic_structure"
+      ]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has found the key identities but does not know how to organize them into a proof. The connection between normalization and a formal induction is missing.",
+      "hint": "Design a capacity function cap(k) and use strong induction on the number of coins. In each step: if an even denomination 2m appears twice, merge them into 1/m (fewer coins, same value); if an odd denomination 2m+1 appears 2m+1 times, extract them as a group of value 1. Otherwise, the collection is normalized.",
+      "hint_level": 0.7,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "capacity_function",
+        "strong_induction",
+        "normalization",
+        "merge_even_pairs",
+        "extract_odd_groups"
+      ]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI has the induction framework with normalization cases but needs to handle the normalized case where no further merging or extraction is possible.",
+      "hint": "In the normalized case (even count <= 1, odd count <= 2m), pair denominations (2m+1, 2m+2) into k boxes B_m. Show each box has value < 1 using the count bounds. Then greedily distribute remaining light coins (denomination >= 1/(2k+1)) using the capacity bound: if no box accepts a coin, total value would exceed cap(k).",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "normalized_case",
+        "denomination_pairing_boxes",
+        "box_capacity_bound",
+        "greedy_light_coins"
+      ]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has the full proof structure but needs to verify the base case and that cap(100) > 99.5 to complete the argument.",
+      "hint": "Verify: cap(100) = 100 - 100/201 = 20000/201 ~ 99.5025 > 99.5. The capacity function satisfies cap(k)-1 <= cap(k-1) for the extraction step. The proof is complete!",
+      "hint_level": 0.3,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": [
+        "capacity_verification",
+        "base_case_check",
+        "numerical_check",
+        "proof_complete"
+      ]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "The entire normalization-then-greedy proof structure across all induction cases",
+      "observation_point": null,
+      "tell": "The proof requires normalizing the coin collection (merging even pairs, extracting odd groups) before applying greedy packing. This two-phase structure - normalize first, then greedily pack - is not visible from any single step of the proof.",
+      "hint": "First normalize the collection through value-preserving transformations (merge even pairs into halves, extract full odd groups), then apply greedy on the normalized instance. The normalization reduces the problem to a tractable form.",
+      "hint_level": 0.8,
+      "generalizability": "high - the normalize-then-solve pattern applies to many partition and packing problems where direct greedy fails but a structurally simplified instance is tractable",
+      "why_not_visible_locally": "From any single step of the proof, you only see either the normalization (Cases 1-2) or the greedy packing (Case 3), not how they connect through the induction. The two-phase structure emerges only when viewing the complete proof path: normalization cases reduce the coin count for the induction, and the normalized case is where greedy finally works. Without seeing the full induction, one might try greedy directly (which fails) or normalization without knowing what comes after.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "normalization_phase",
+        "greedy_phase",
+        "two_phase_structure",
+        "value_preserving_transform"
+      ]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "The choice of capacity function cap(k) = k - k/(2k+1)",
+      "observation_point": "Q5",
+      "tell": "The specific capacity function cap(k) = k - k/(2k+1) is implicitly determined by two simultaneous constraints: the induction step requires cap(k)-1 <= cap(k-1), and the greedy argument requires that k boxes each within 1/(2k+1) of capacity have total value exceeding cap(k).",
+      "hint": "The capacity function must satisfy dual constraints: (1) cap(k)-1 <= cap(k-1) for the odd-extraction induction step, and (2) cap(k) = k*(1 - 1/(2k+1)) so that the greedy contradiction works. The form k - k/(2k+1) is the unique function satisfying both.",
+      "hint_level": 0.9,
+      "generalizability": "medium - capacity function design is a general technique in combinatorial optimization, but the specific dual-constraint derivation is problem-dependent",
+      "why_not_visible_locally": "The capacity function's form is not motivated by any single step. From the induction step alone, any function with cap(k)-1 <= cap(k-1) would work. From the greedy step alone, any function equal to k*(1-1/(2k+1)) would work. Only by seeing both constraints simultaneously does the specific form k - k/(2k+1) become necessary. A local view of either step alone would not reveal why this particular function is chosen.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": [
+        "capacity_function_design",
+        "dual_constraint",
+        "induction_compatibility",
+        "greedy_compatibility"
+      ]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "The pairing of denominations (2m+1, 2m+2) into boxes in the normalized case",
+      "observation_point": null,
+      "tell": "The specific pairing of consecutive odd-even denominations into boxes depends on the normalization having been completed first. The count bounds (even <= 1, odd <= 2m) that make the pairing work are only guaranteed after normalization.",
+      "hint": "After normalization ensures count bounds (even denominations appear at most once, odd denomination 2m+1 appears at most 2m times), pair each odd denomination 2m+1 with the next even denomination 2m+2 into box B_m. The count bounds guarantee each box has value < 1.",
+      "hint_level": 0.7,
+      "generalizability": "medium - consecutive pairing of structured objects is a useful technique in harmonic-type problems, but the specific pairing depends on the normalization structure",
+      "why_not_visible_locally": "The pairing (2m+1, 2m+2) only makes sense after normalization ensures the count bounds. Without seeing the normalization step (Cases 1-2), the pairing seems arbitrary and its correctness cannot be verified - an unnormalized collection might have too many coins of one denomination for the box value bound to hold. The path from normalization to pairing to box-value-bound is a complete chain that no single step reveals.",
+      "tell_topology": {
+        "problem_type": "discrete_combinatorial",
+        "ai_method_type": "case_by_case",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": [
+        "consecutive_pairing",
+        "count_bounds",
+        "box_value_bound",
+        "normalized_structure"
+      ]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would attempt naive greedy bin packing (sort by value, fill groups sequentially) without recognizing the need for normalization. It would fail because: (1) the total value bound 99.5 is very close to 100, leaving almost no slack; (2) without the structural identities 1/(2m)+1/(2m)=1/m and (2m+1)*1/(2m+1)=1, there is no way to reduce the problem; (3) without the capacity function cap(k)=k-k/(2k+1), the greedy argument has no formal bound to work with. The AI might also try a simple averaging argument (100 groups, total 99.5, so average 0.995 < 1) but this fails because individual groups can exceed 1 even if the average is below 1.",
+  "suitable_for_poc": [
+    "POC-VMS-hint-injection",
+    "POC-VMS-tell-detection",
+    "POC-VMS-structural-transformation"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.3,
+        "question": "Describe the problem structure: what are the knowns (coin denominations, total value bound), the unknowns (how to partition), and what makes this hard (the denominations 1/n create a specific arithmetic structure that a generic partition argument won't exploit)?",
+        "expected_answer": "Knowns: coins of denomination 1/n for positive integers n, total value at most 99.5, need at most 100 groups each with value at most 1. Unknown: how to partition. The difficulty is that 99.5 is very close to 100, so there is almost no slack - a naive averaging argument (average 0.995 per group) fails because individual groups can exceed 1. The denominations 1/n have special arithmetic structure that should be exploited."
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.5,
+        "question": "List all possible approaches: greedy bin packing, induction on number of coins, probabilistic method, case analysis on denomination structure, linear programming relaxation, etc. Which seem most promising given the arithmetic structure of 1/n?",
+        "expected_answer": "Possible approaches: (1) Greedy bin packing - sort by value, fill groups; (2) Induction on number of coins; (3) Probabilistic method - random partition; (4) Case analysis on denomination structure; (5) LP relaxation. Induction and case analysis on denomination structure seem most promising because the denominations 1/n have special algebraic properties (e.g., 1/(2m)+1/(2m)=1/m)."
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.2,
+        "question": "Try the simplest greedy approach - sort coins by value and fill groups sequentially. What goes wrong? Can you construct a counterexample where greedy fails?",
+        "expected_answer": "Naive greedy fails: consider many coins of denomination 1/201 (value ~0.005 each). With 99.5 total value, we could have ~19900 such coins. Sorting by value and filling groups sequentially would put ~200 coins per group, each group having value ~1, but the tightness of the bound means any miscalculation causes overflow. More fundamentally, greedy doesn't exploit the structure of 1/n denominations - it treats all coins generically."
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.6,
+        "question": "What special structure do the denominations 1/n have? Look at pairs: 1/(2m) + 1/(2m) = 1/m, and (2m+1) * 1/(2m+1) = 1. These identities allow merging and grouping. Can you use them to normalize the collection?",
+        "expected_answer": "Key identities: (1) Two coins of denomination 1/(2m) can be merged into one coin of denomination 1/m - same total value, fewer coins. (2) 2m+1 coins of denomination 1/(2m+1) form a group of value exactly 1. These suggest a normalization process: repeatedly merge even-denomination pairs and extract full odd-denomination groups until no more reductions are possible. The remaining 'normalized' collection has bounded counts: each even denomination appears at most once, each odd denomination 2m+1 appears at most 2m times."
+      },
+      {
+        "round": 5,
+        "situation_type": "思维操作引导",
+        "level": 0.7,
+        "question": "Design a capacity function cap(k) and use strong induction on the number of coins. In each step: if an even denomination 2m appears twice, merge them into 1/m (fewer coins, same value); if an odd denomination 2m+1 appears 2m+1 times, extract them as a group of value 1. Otherwise, the collection is normalized.",
+        "expected_answer": "Define cap(k) = k - k/(2k+1). Prove by strong induction on N (number of coins) that any collection of N coins with value <= cap(k) can be partitioned into at most k groups each with value <= 1. Case 1 (even merge): merge two 1/(2m) coins into one 1/m coin, reducing N, apply IH, then split back. Case 2 (odd extraction): extract 2m+1 coins of denomination 1/(2m+1) as a group of value 1, remaining value <= cap(k)-1 <= cap(k-1), apply IH with k-1. Case 3 (normalized): handle separately."
+      },
+      {
+        "round": 6,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "In the normalized case (even count <= 1, odd count <= 2m), pair denominations (2m+1, 2m+2) into k boxes B_m. Show each box has value < 1 using the count bounds. Then greedily distribute remaining light coins (denomination >= 1/(2k+1)) using the capacity bound: if no box accepts a coin, total value would exceed cap(k).",
+        "expected_answer": "In the normalized case, box B_m contains at most 2m coins of denomination 1/(2m+1) and at most 1 coin of denomination 1/(2m+2). Value of B_m <= 2m/(2m+1) + 1/(2m+2) = 1 - 1/(2m+1) + 1/(2m+2) < 1. Remaining light coins have denomination <= 1/(2k+1). Greedily place each light coin into a box that has room (value + 1/(2k+1) <= 1). If no box has room, all k boxes are within 1/(2k+1) of capacity, so total value > k*(1 - 1/(2k+1)) = k - k/(2k+1) = cap(k), contradiction."
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.3,
+        "question": "Verify: cap(100) = 100 - 100/201 = 20000/201 ~ 99.5025 > 99.5. The capacity function satisfies cap(k)-1 <= cap(k-1) for the extraction step. The proof is complete!",
+        "expected_answer": "cap(100) = 100 - 100/201 = (20100 - 100)/201 = 20000/201 ≈ 99.5025 > 99.5 = 99 + 1/2. So any collection with value <= 99.5 also has value <= cap(100), and the theorem applies with k=100. The proof is complete: we can always split into at most 100 groups each with value at most 1."
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.1,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R5"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-31T12:00:00Z",
+    "analysis_duration": "30min",
+    "notes": "IMO 2014 P5 is a combinatorial partition problem with a beautiful normalization + greedy structure. The key insight is the two-phase approach: normalize via value-preserving transformations (merge even pairs, extract odd groups), then greedily pack the normalized remainder. The capacity function cap(k)=k-k/(2k+1) is the crucial hidden object - it is implicitly determined by dual constraints from the induction and greedy steps. This problem strongly discriminates levels: bare AI fails at naive greedy, while the correct approach requires deep structural insight."
+  }
+}

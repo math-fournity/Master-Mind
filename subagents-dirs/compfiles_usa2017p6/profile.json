@@ -1,0 +1,281 @@
+{
+  "_key": "compfiles_usa2017p6",
+  "source_id": "compfiles_usa2017p6",
+  "source_dataset": "compfiles",
+  "schema_version": 3,
+  "problem_text": "Find the minimum possible value of a/(b^3+4) + b/(c^3+4) + c/(d^3+4) + d/(a^3+4), given that a, b, c, d are nonnegative real numbers such that a + b + c + d = 4.",
+  "solution_text": "The minimum is 2/3, achieved at (a,b,c,d) = (2,2,0,0).\n\nProof that f >= 2/3:\n1. Key lemma: For k >= 0, 1/(k^3+4) >= 1/4 - k/12. This holds because 12 - (3-k)(k^3+4) = k(k+1)(k-2)^2 >= 0 for k >= 0.\n2. Apply lemma to each term: x_i/(x_{i+1}^3+4) >= x_i*(1/4 - x_{i+1}/12) = x_i/4 - x_i*x_{i+1}/12.\n3. Sum over all i: f >= sum(x_i/4) - sum(x_i*x_{i+1})/12 = (sum x_i)/4 - (sum x_i*x_{i+1})/12 = 1 - (sum x_i*x_{i+1})/12.\n4. Bound cyclic product sum: sum x_i*x_{i+1} = x0*x1 + x1*x2 + x2*x3 + x3*x0 = (x0+x2)*(x1+x3).\n5. By AM-GM (4ab <= (a+b)^2): (x0+x2)*(x1+x3) <= ((x0+x2+x1+x3)/2)^2 = (4/2)^2 = 4.\n6. Therefore f >= 1 - 4/12 = 1 - 1/3 = 2/3.\n7. Equality at (2,2,0,0): tangent line tight at k=2 and k=0, and (x0+x2)=(x1+x3)=2.",
+  "solution_summary": "The minimum is 2/3, achieved at (2,2,0,0). The proof uses a tangent line trick: 1/(k^3+4) >= 1/4 - k/12 for k >= 0, which reduces the problem to bounding the cyclic sum sum(x_i*x_{i+1}) <= 4 via regrouping as (x0+x2)(x1+x3) <= ((sum)/2)^2 = 4.",
+  "domain": "algebra",
+  "subfield": "inequality",
+  "answer_type": "numerical",
+  "answer": "2/3",
+  "problem_type": "inequality_proof",
+  "solution_method_type": "tangent_line_trick",
+  "structure_features": "Cyclic sum minimization with 4 variables, each term is x_i/(x_{i+1}^3+4), linear equality constraint sum x_i = 4, nonnegativity constraints. Cyclic (not fully symmetric) structure, equality at boundary point (2,2,0,0).",
+  "key_objects": [
+    "cyclic_sum_of_fractions",
+    "cubic_denominator",
+    "linear_constraint",
+    "tangent_line_lower_bound",
+    "cyclic_product_sum"
+  ],
+  "thinking_patterns": [
+    "tangent_line_trick",
+    "decomposition",
+    "cyclic_regrouping",
+    "equality_case_analysis"
+  ],
+  "primary_pattern": "tangent_line_trick",
+  "knowledge_required": [
+    "AM-GM inequality",
+    "tangent line trick for function lower bounds",
+    "cyclic sum manipulation",
+    "polynomial factorization",
+    "4ab <= (a+b)^2"
+  ],
+  "key_insight": "Find a linear lower bound 1/(k^3+4) >= 1/4 - k/12 tight at k=2, reducing the fraction minimization to bounding the cyclic product sum, then factor (x0+x2)(x1+x3) <= 4 via opposite-index pairing.",
+  "translation_from": "direct fraction minimization (applying AM-GM or Cauchy-Schwarz directly to x_i/(x_{i+1}^3+4))",
+  "translation_to": "linear lower bound + cyclic product sum bound (tangent line trick linearizes the cubic denominator, reducing to a tractable cyclic product sum constraint)",
+  "translation_type": "method_translation",
+  "tell_topology": {
+    "problem_type": "inequality_proof",
+    "ai_method_type": "direct_calculation",
+    "gap_type": "method_translation"
+  },
+  "tell_small_concepts": [
+    "tangent_line_trick",
+    "linear_lower_bound",
+    "cyclic_product_sum",
+    "opposite_index_pairing",
+    "equality_case_at_boundary"
+  ],
+  "expected_ai_method": "Bare AI would directly apply AM-GM or Cauchy-Schwarz (Titu's lemma) to the cyclic sum of fractions, but the cubic denominators prevent a uniform good lower bound. The AI would not think of the tangent line trick or the cyclic sum regrouping.",
+  "correct_method": "Tangent line trick to find linear lower bound 1/(k^3+4) >= 1/4 - k/12, then cyclic product sum bound via opposite-index factoring (x0+x2)(x1+x3) <= 4.",
+  "tell_hint_pairs": [
+    {
+      "qa_round": 1,
+      "tell": "AI sees a cyclic sum of fractions with cubic denominators and a linear constraint, but hasn't identified the key structural features or the cyclic (non-symmetric) nature",
+      "hint": "Describe the problem structure: what is the form of the expression, what is the constraint, what symmetry does the expression have?",
+      "hint_level": 0.7,
+      "situation_type": "纯元认知观察",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["cyclic_sum", "fraction_with_cubic_denominator", "linear_constraint", "cyclic_non_symmetric"]
+    },
+    {
+      "qa_round": 2,
+      "tell": "AI lists standard inequality techniques but hasn't identified which one fits the cyclic cubic structure",
+      "hint": "List all possible approaches: AM-GM, Cauchy-Schwarz, tangent line trick, Lagrange multipliers, substitution, convexity analysis",
+      "hint_level": 0.8,
+      "situation_type": "自由列举",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "enumeration_brute_force",
+        "gap_type": "search_space_estimation"
+      },
+      "tell_small_concepts": ["AM-GM", "Cauchy-Schwarz", "tangent_line_trick", "Lagrange_multipliers", "convexity_analysis"]
+    },
+    {
+      "qa_round": 3,
+      "tell": "AI tries AM-GM or Cauchy-Schwarz directly on the cyclic sum, but the cubic denominators make these intractable — the variable range is too large for a uniform bound",
+      "hint": "Try applying AM-GM or Cauchy-Schwarz directly to the sum. What goes wrong with the cubic denominators?",
+      "hint_level": 0.5,
+      "situation_type": "小尝试",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "method_problem_mismatch"
+      },
+      "tell_small_concepts": ["AM-GM_direct_application", "cubic_denominator_obstruction", "Titu_lemma_failure", "variable_range_too_large"]
+    },
+    {
+      "qa_round": 4,
+      "tell": "AI is stuck after direct methods fail; doesn't know the tangent line trick technique or where to make the bound tight",
+      "hint": "Try the tangent line trick: find a linear lower bound for 1/(k^3+4) of the form alpha - beta*k that is tight at k=2. Why k=2? Think about the equality case first.",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["tangent_line_trick", "linear_lower_bound", "tight_at_equality_point", "k_equals_2", "equality_case_guessing"]
+    },
+    {
+      "qa_round": 5,
+      "tell": "AI has found 1/(k^3+4) >= 1/4 - k/12 but hasn't summed up and recognized the reduction to cyclic product sum bound",
+      "hint": "Multiply the linear bound by x_i and sum over all i. What does the expression simplify to? You should get 1 - sum(x_i*x_{i+1})/12.",
+      "hint_level": 0.5,
+      "situation_type": "推进",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_manipulation",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["sum_reduction", "cyclic_product_sum", "linear_bound_summation", "constraint_substitution"]
+    },
+    {
+      "qa_round": 6,
+      "tell": "AI needs to bound sum(x_i*x_{i+1}) <= 4 but doesn't see the opposite-index regrouping trick",
+      "hint": "Write out sum(x_i*x_{i+1}) = x0*x1 + x1*x2 + x2*x3 + x3*x0. Can you factor this? Try grouping opposite indices: (x0+x2)*(x1+x3).",
+      "hint_level": 0.3,
+      "situation_type": "思维操作引导",
+      "is_knowledge_bottleneck": true,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["cyclic_regrouping", "opposite_index_pairing", "AM-GM_on_grouped_sum", "four_ab_le_sq_sum"]
+    },
+    {
+      "qa_round": 7,
+      "tell": "AI has all the pieces — linear lower bound and cyclic sum bound — but needs to combine them and verify equality",
+      "hint": "Combine: f >= 1 - 4/12 = 2/3. Verify equality at (a,b,c,d) = (2,2,0,0). You're done!",
+      "hint_level": 0.6,
+      "situation_type": "能量传递引导",
+      "is_knowledge_bottleneck": false,
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "logical_deduction",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["final_combination", "equality_verification", "two_two_zero_zero", "tightness_conditions_met"]
+    }
+  ],
+  "global_tell_hint_pairs": [
+    {
+      "scope_type": "path_feature",
+      "scope": "Full solution path from problem statement to proof",
+      "observation_point": null,
+      "tell": "The minimization of a cyclic sum of fractions with cubic denominators decomposes into two independent sub-problems: (1) finding a linear lower bound for 1/(k^3+4) via tangent line trick, and (2) bounding the cyclic product sum via opposite-index regrouping",
+      "hint": "Decompose the fraction minimization into: linear lower bound construction + cyclic product sum bound. Each sub-problem is independently tractable.",
+      "hint_level": 0.7,
+      "generalizability": "high — the decomposition pattern (tangent line trick + product sum bound) applies to many cyclic/symmetric fraction minimization problems with polynomial denominators and linear constraints",
+      "why_not_visible_locally": "At each local step, the technique used (tangent line trick, cyclic regrouping) appears as an isolated algebraic trick. The global decomposition strategy — splitting the problem into a linear bound sub-problem and a product sum sub-problem — is only visible when seeing the full solution structure and recognizing that the two sub-problems are independent and each tractable on its own.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "direct_calculation",
+        "gap_type": "method_translation"
+      },
+      "tell_small_concepts": ["decomposition_strategy", "tangent_line_subproblem", "cyclic_sum_subproblem", "independent_subproblems"]
+    },
+    {
+      "scope_type": "implicit",
+      "scope": "Equality case determines tangent line tightness point",
+      "observation_point": "R4",
+      "tell": "The equality case (2,2,0,0) is not found by local computation but by global optimization intuition (testing simple configurations), and it determines that the linear lower bound for 1/(k^3+4) must be tight at k=2",
+      "hint": "First guess the equality case by testing simple configurations (all-equal, some-zero), then construct the tangent line to be tight at the equality value",
+      "hint_level": 0.5,
+      "generalizability": "high — the principle that the equality case determines the tangent line's tightness point is universal in tangent line trick applications across inequality problems",
+      "why_not_visible_locally": "The equality case is a global property of the optimization problem. At the local step of constructing the tangent line, the AI sees only the function 1/(k^3+4) and needs to choose a tightness point — but the correct choice (k=2) comes from the global equality case (2,2,0,0), which is not derivable from the local function analysis alone. The connection between the equality configuration and the tangent point is an implicit global relationship.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "knowledge_gap"
+      },
+      "tell_small_concepts": ["equality_case_determination", "tangent_tightness_point", "global_optimization_intuition", "two_two_zero_zero", "configuration_testing"]
+    },
+    {
+      "scope_type": "path_feature",
+      "scope": "Cyclic sum regrouping step — factoring x0x1+x1x2+x2x3+x3x0 as (x0+x2)(x1+x3)",
+      "observation_point": null,
+      "tell": "The cyclic sum x0*x1+x1*x2+x2*x3+x3*x0 factors as (x0+x2)*(x1+x3), which is only visible when looking at all four terms together with opposite-index pairing, not when examining individual products",
+      "hint": "When bounding a cyclic sum of products in 4 variables, try regrouping by pairing opposite indices to factor the sum into a product of two linear combinations",
+      "hint_level": 0.4,
+      "generalizability": "medium — the opposite-index regrouping trick works for 4-variable cyclic sums, but the specific factoring depends on the number of variables and the cyclic structure",
+      "why_not_visible_locally": "Each product x_i*x_{i+1} in the cyclic sum appears independent when examined locally. The factoring into (x0+x2)*(x1+x3) requires seeing all four terms simultaneously and recognizing the opposite-index pairing structure — this is a global structural insight not visible at the individual term level. The regrouping crosses the boundary between adjacent and non-adjacent index pairs, which is only apparent from the global cyclic structure.",
+      "tell_topology": {
+        "problem_type": "inequality_proof",
+        "ai_method_type": "algebraic_identity",
+        "gap_type": "structural_transformation"
+      },
+      "tell_small_concepts": ["cyclic_factoring", "opposite_index_pairing", "four_term_regrouping", "adjacent_to_nonadjacent_cross"]
+    }
+  ],
+  "bare_ai_expected": "fail",
+  "bare_ai_error_prediction": "Bare AI would directly apply AM-GM or Cauchy-Schwarz (Titu's lemma) to the cyclic sum of fractions, but the cubic denominators b^3+4 have too large a range (b from 0 to 4) for a uniform good lower bound. Cauchy-Schwarz gives 16/sum(x_i*(x_{i+1}^3+4)) but the denominator is intractable. The AI would not think of the tangent line trick (finding linear lower bound 1/(k^3+4) >= 1/4 - k/12) or the cyclic sum regrouping (x0+x2)(x1+x3) <= 4.",
+  "suitable_for_poc": [
+    "tangent_line_trick_injection",
+    "decomposition_guidance",
+    "equality_case_guided_proof",
+    "cyclic_regrouping_hint"
+  ],
+  "discriminates_levels": true,
+  "qa_sequence": {
+    "rounds": [
+      {
+        "round": 1,
+        "situation_type": "纯元认知观察",
+        "level": 0.7,
+        "question": "描述这道题的结构：表达式是什么形式？约束是什么？有什么对称性？",
+        "expected_answer": "表达式是4个变量的循环和，每项形如 x_i/(x_{i+1}^3+4)，约束为 x_i>=0 且 sum x_i=4。表达式具有循环对称性（不是完全对称），分母是三次多项式。"
+      },
+      {
+        "round": 2,
+        "situation_type": "自由列举",
+        "level": 0.8,
+        "question": "列出所有可能的求解方向：哪些不等式技术可能适用于这个循环分数和的最小值问题？",
+        "expected_answer": "AM-GM、Cauchy-Schwarz（Titu引理）、切线trick（线性下界）、Lagrange乘数法、凸性分析、变量替换、Jensen不等式。"
+      },
+      {
+        "round": 3,
+        "situation_type": "小尝试",
+        "level": 0.5,
+        "question": "试着直接对每项用AM-GM或Cauchy-Schwarz，看看能否得到有用的下界。",
+        "expected_answer": "直接用AM-GM：b^3+4 >= 某常数，但b^3的变化范围太大（0到4），无法给出统一的好的下界。Cauchy-Schwarz（Titu）：sum x_i/(x_{i+1}^3+4) >= (sum x_i)^2/sum x_i(x_{i+1}^3+4) = 16/sum x_i(x_{i+1}^3+4)，但分母难以控制。直接方法不work。"
+      },
+      {
+        "round": 4,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "试试切线trick：对函数 g(k)=1/(k^3+4) 找一个形如 alpha-beta*k 的线性下界，在某个k值处紧。先猜等号成立的点——什么样的(a,b,c,d)配置可能取最小值？",
+        "expected_answer": "猜等号点：尝试简单配置。若所有变量相等，a=b=c=d=1，f=4/(1+4)=4/5=0.8。若(2,2,0,0)，f=2/12+2/4=1/6+1/2=2/3，更小。所以猜等号在k=2处紧。构造 1/(k^3+4) >= 1/4 - k/12：验证k=2时两边=1/12。证明：12-(3-k)(k^3+4)=k(k+1)(k-2)^2>=0 对k>=0成立。"
+      },
+      {
+        "round": 5,
+        "situation_type": "推进",
+        "level": 0.5,
+        "question": "用这个线性下界对每项做估计，然后求和。表达式简化为什么？",
+        "expected_answer": "x_i/(x_{i+1}^3+4) >= x_i*(1/4 - x_{i+1}/12) = x_i/4 - x_i*x_{i+1}/12。求和：f >= sum(x_i/4) - sum(x_i*x_{i+1})/12 = (sum x_i)/4 - (sum x_i*x_{i+1})/12 = 1 - (sum x_i*x_{i+1})/12。现在需要证明 sum x_i*x_{i+1} <= 4。"
+      },
+      {
+        "round": 6,
+        "situation_type": "思维操作引导",
+        "level": 0.3,
+        "question": "现在需要证明循环积和 sum x_i*x_{i+1} = x0*x1+x1*x2+x2*x3+x3*x0 <= 4。试试把四项重新配对——能否因式分解？",
+        "expected_answer": "展开 (x0+x2)*(x1+x3) = x0*x1+x0*x3+x2*x1+x2*x3 = x0*x1+x1*x2+x2*x3+x3*x0 = sum x_i*x_{i+1}。所以 sum x_i*x_{i+1} = (x0+x2)*(x1+x3)。由4ab<=(a+b)^2，(x0+x2)*(x1+x3) <= ((x0+x2+x1+x3)/2)^2 = (4/2)^2 = 4。"
+      },
+      {
+        "round": 7,
+        "situation_type": "能量传递引导",
+        "level": 0.6,
+        "question": "合并所有结果，完成证明。验证等号在(2,2,0,0)处成立。",
+        "expected_answer": "f >= 1 - 4/12 = 1 - 1/3 = 2/3。等号条件：切线trick在k=2和k=0处紧（x_{i+1}=2或0时），且4ab=(a+b)^2即x0+x2=x1+x3=2。(2,2,0,0)满足所有条件。证毕！"
+      }
+    ],
+    "stats": {
+      "total_rounds": 7,
+      "metacognitive_rounds": 4,
+      "knowledge_rounds": 2,
+      "level_sum": 3.7,
+      "knowledge_bottleneck": "R4",
+      "thinking_bottleneck": "R6"
+    }
+  },
+  "analysis_metadata": {
+    "analyzed_by": "subagent",
+    "analyzed_at": "2026-01-22T00:00:00Z",
+    "analysis_duration": "approximate",
+    "notes": "USA 2017 P6. Key techniques: tangent line trick (linear lower bound for 1/(k^3+4)) and cyclic sum regrouping ((x0+x2)(x1+x3)). Two knowledge bottlenecks at R4 (tangent line trick) and R6 (cyclic regrouping). No new topology dimensions needed."
+  }
+}
