@@ -13,6 +13,8 @@ history.
 4. Read `rulings.md` for user decisions.
 5. Use the system registry below to select the relevant island.
 6. Use `docs/history/` and Git evidence when a claim depends on evolution, replacement, or deletion.
+7. For the active sixth-generation reconstruction, read `dev-docs/sixth-gen-current-repo/` and its report before
+   interpreting old-generation documents or moving any path.
 
 ## Current Governance Entry Points
 
@@ -24,6 +26,7 @@ history.
 | `rulings.md` | User rulings, including branch/tag authorization, 416 preservation, and D disk offload |
 | `docs/README.md` | Stable knowledge topic index |
 | `dev-docs/README.md` | Investigations, baselines, manifests, and transition notes |
+| `dev-docs/sixth-gen-current-repo/` | Active reconstruction constitution, reverse-history report, source inventory, concept ledger, and migration map |
 | `认知闭包/` | Auditable cognitive-closure records |
 | `.codex/governance/` | Project-local governance extensions not yet promoted to the global framework |
 
@@ -36,6 +39,7 @@ history.
 | First five Math Master generations | `第五代系统技术说明书/`, `原语化AI数学工程系统设计/`, `primitives/`, `concepts/`, `criteria/`, `facets/` | Historical design and primitive-system lineage. Not the single current implementation. |
 | Grove / VMS / first-principles loop | `GroveCoreCognition.md`, `任务追踪/`, VMS-related dev-docs | Core historical concept family: guide tree, solver tree, tell/hint, VMS, Grove loop. |
 | Sixth-generation implementation | `system/`, `SixthGenRnD.md`, `第六代系统技术说明书/`, `第六代系统研发过程文档/` | Main in-repo implementation island for sixth-generation code and run assets. Read `system/README.md` before code claims. |
+| Sixth-generation current repo reconstruction | `dev-docs/sixth-gen-current-repo/`, branch `codex/sixth-gen-current-repo-2026-08-24` | Active transition lane. It determines which sixth-generation facts become canonical and which old paths become extracted or history-only. |
 | Tell taxonomy and non-specialization research | `Tell分类学研究过程文档/`, `POC-2.7/`, `dev-docs/385*`, `dev-docs/394*` to `399*` | Research and POC lineage for Tell/Hint, non-specialization, and overdesign investigations. |
 | Analysis / Devin failure system remnants | `analysis-devin-failure-system/`, `AnalysisSystemDesign.md`, `AnalysisSystemOps.md`, `AnalysisSystem开发/` | Historical/residual in this repo. Active solve-side systems are external unless current files prove otherwise. |
 | Seven evidence factory | `seven-system/`, `seven-system非特化证据工厂研发过程文档/` | In-repo Seven island with its own `AGENTS.md`, docs, contracts, and tests. Respect its isolation rules. |

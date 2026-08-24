@@ -26,6 +26,9 @@ and correctly.
 
 - Active repo path: `~/master-mind-glm5.2-worktree`
 - Governance branch for this alignment: `codex/governance-alignment-2026-08-24`
+- Active reconstruction branch: `codex/sixth-gen-current-repo-2026-08-24`
+- Reconstruction safety tag: `pre-sixth-gen-current-repo-2026-08-24`
+- The governance-alignment branch remains the pre-reconstruction safety baseline.
 - Pre-alignment tag: `pre-governance-alignment-2026-08-24`
 - No push is authorized by default.
 - Do not rewrite Git history.
@@ -53,6 +56,10 @@ That guide is binding for the reconstruction until it is superseded by an explic
 - do not allow `unknown` at completion;
 - do not rewrite Git history, push, write DBs, start solver batches, or run external systems without explicit
   current authorization.
+
+The reconstruction is now active. The first reverse investigation commit is `d84ee11`; its report and ledgers
+are under `dev-docs/sixth-gen-current-repo/`. Treat their `unknown` and pending classifications as open work,
+not as current truth.
 
 ## System Islands
 

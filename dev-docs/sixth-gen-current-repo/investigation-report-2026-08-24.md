@@ -11,7 +11,7 @@
 - 已创建并切换到 `codex/sixth-gen-current-repo-2026-08-24`。
 - 已创建 `pre-sixth-gen-current-repo-2026-08-24`，tag message 明确说明这是收窄前的安全基线。
 - 分支切换前工作区干净，HEAD 为 `3b2668404ce42a3bd6eacd76f0ed1a5cfe880769`。
-- 当前现场初始清单覆盖 19,286 条路径：6,184 条 tracked、13,100 条 ignored、2 条普通未跟踪路径。清单包含状态、大小、mtime，并为 Git 路径记录最近提交；调查中新建的清单本身不属于这次基线输入。
+- 当前现场初始清单覆盖 19,286 条路径：6,184 条 tracked、13,100 条 ignored，另有 2 条在清单生成过程中产生的调查清单路径（`source-inventory.tsv` 和 `path-migration-map.tsv`）。清单包含状态、大小、mtime，并为 Git 路径记录最近提交；后续调查报告、概念账本和逆时间索引不属于这次基线输入。
 - 初始路径分类为：`candidate-source` 818、`governance-current` 338、`supporting-candidate` 439、`legacy-generation` 207、`sibling-or-evidence` 4,331、`exclude-local` 13,084、`unknown` 69。`unknown` 是待调查项，不是最终许可状态。
 
 机器底账：`source-inventory.tsv`。迁移审计底账：`path-migration-map.tsv`。概念账本：`concept-extraction.tsv`。
