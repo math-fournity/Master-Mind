@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURES = HERE / "live_fixtures" / "poc_vms_32"
 ASSETS = REPO_ROOT / "system" / "assets" / "solve_vein_analysis"
 POC32_PROTOCOL_REF = (
-    "第六代系统研发过程文档/"
+    "docs/history/sixth-generation/rnd/"
     "348-v0-2026-08-14-POC-VMS-32-解题侧运行资产-Devin-GLM-5.2-High实测协议.md"
 )
 

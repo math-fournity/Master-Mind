@@ -115,8 +115,8 @@ When sources conflict, decide current sixth-generation truth in this order:
 1. Current user rulings and this guide.
 2. `system/` code, `.ref`, `.ai-check`, tests, and direct run/evidence artifacts.
 3. `system/docs/` that still matches the implementation.
-4. `第六代系统研发过程文档/` conclusions that were confirmed by later evidence.
-5. `第六代系统技术说明书/` statements that were not superseded or falsified.
+4. `docs/history/sixth-generation/rnd/` conclusions that were confirmed by later evidence.
+5. `docs/history/sixth-generation/legacy-spec/` statements that were not superseded or falsified.
 6. Fifth-generation, primitive, Tell, Grove, VMS, or other legacy material only after proving it is inherited by
    the sixth-generation current system.
 7. Purely historical ideas, failed routes, and superseded plans never become current truth by location alone.

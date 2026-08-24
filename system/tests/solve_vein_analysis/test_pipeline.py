@@ -42,9 +42,9 @@ from system.solve_vein_analysis.pipeline import (
 HERE = Path(__file__).resolve().parent
 FIXTURES = HERE / "fixtures"
 PACKAGE_ROOT = HERE.parents[1] / "solve_vein_analysis"
-PROTECTED_BASELINE = HERE / "protected_absorb_baseline_v2.sha256"
+PROTECTED_BASELINE = HERE / "protected_absorb_baseline_v3.sha256"
 PROTECTED_BASELINE_SHA256 = (
-    "2085e1c91bac1909b01ab3dd74f0845b9d2484b77e34d0a7cb9f2357f0b5f3a7"
+    "3789a3137aa5bcd31514f63d8f34c7bd17996f728c5ee9b2e2517a57394787c1"
 )
 
 

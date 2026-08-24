@@ -32,7 +32,7 @@ from system.solve_vein_analysis import state_normalized_dag as snd
 TRACE_AUDIT_SCHEMA_VERSION = "solve-vein/trace-audit/v1"
 TRACE_AUDITOR_PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "387-v0-2026-08-14-POC-VMS-43-Trace-Auditor结构审计-零模型.md"
 )
 

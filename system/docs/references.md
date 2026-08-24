@@ -7,7 +7,7 @@
 
 ## 1. 研发过程文档清单
 
-文档目录：`第六代系统研发过程文档/`
+文档目录：`docs/history/sixth-generation/rnd/`
 
 ### 从grove repo复制的探索文档（303-309号）
 
@@ -319,7 +319,7 @@
 
 ## 7. 文件拆分流程控制技术（335/336号）
 
-**规则文件**：`.devin/rules/six-file-staged-flow.md`
+**规则文件**：`docs/development/sixth-generation-development-contracts.md`
 **核心秘诀**：让AI一上来就先创建文件，把工作阶段的要求文件拆分，每次完整读取一个要求文件，填充一个输出文件
 **设计原则**：不改变认知内容，只改变执行顺序
 

@@ -19,9 +19,9 @@
 
 absorb 侧当前代码使用 `V5/V7/V8/V10` 和 synthesis Prompt：
 
-- 完整演进文本：`第六代系统提示词积累目录/`；
+- 完整演进文本：`prompts/absorb/`；
 - 运行模板：`system/assets/vein_analysis/`；
-- 历史 POC 与设计理由：`第六代系统研发过程文档/`。
+- 历史 POC 与设计理由：`docs/history/sixth-generation/rnd/`。
 
 三处必须保持 source/version/evidence 对齐。V9 文本和 `AGENTS_V9.md` 是历史资产；当前代码常量和
 active template 指向 V10。Prompt 内容不能代替实际 Devin 调用、输出、export 或质量审计。

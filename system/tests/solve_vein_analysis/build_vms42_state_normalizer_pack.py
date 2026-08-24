@@ -42,12 +42,12 @@ SOURCE_FIXTURE = (
 )
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "381-v0-2026-08-14-POC-VMS-42-State-Normalizer资格包冻结-零模型.md"
 )
 PARENT_PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "380-v0-2026-08-14-POC-VMS-42-State-Normalizer预注册协议-多轴状态绑定.md"
 )
 FORBIDDEN_PUBLIC_KEYS = {

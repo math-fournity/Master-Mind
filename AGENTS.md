@@ -70,7 +70,7 @@ This is a super repo, not one clean application. Treat each island as a bounded 
 - first five Math Master generations;
 - Grove / VMS / first-principles system design;
 - sixth-generation implementation under `system/`;
-- Tell taxonomy and non-specialization research under `Tell分类学研究过程文档/`;
+- Tell taxonomy and non-specialization evidence under `evidence/history/tell-research/`;
 - analysis / Devin failure system remnants under `analysis-devin-failure-system/`;
 - Seven evidence factory under `seven-system/`;
 - Eight non-specialization refinement under `eight-system/`;

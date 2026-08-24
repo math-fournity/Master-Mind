@@ -1,5 +1,11 @@
 # Development
 
+## Sixth-Generation Current Contract
+
+Read `sixth-generation-development-contracts.md` for the current `.py/.ref/.ai-check`, Prompt/runtime asset,
+evidence, baseline versioning, test, Git, and migration rules. It replaces active dependence on the historical
+`.devin/rules/` tree; old rules remain recoverable from the reconstruction safety tag.
+
 Development rules:
 
 - Build cognitive closure before non-trivial work.

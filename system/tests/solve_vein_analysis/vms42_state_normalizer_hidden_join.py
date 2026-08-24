@@ -33,7 +33,7 @@ CANDIDATE_BUNDLE_SCHEMA_VERSION = "solve-vein/vms42-state-normalizer-candidate-b
 HIDDEN_JOIN_SCHEMA_VERSION = "solve-vein/vms42-state-normalizer-hidden-join/v1"
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "382-v0-2026-08-14-POC-VMS-42-State-Normalizer-hidden-join-零模型.md"
 )
 FORBIDDEN_CANDIDATE_BUNDLE_KEYS = {

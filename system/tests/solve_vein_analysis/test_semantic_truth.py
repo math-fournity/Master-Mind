@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 FIXTURE_PATH = HERE / "multiview_fixtures" / "vms40_cases.json"
 PROTOCOL_PATH = (
     HERE.parents[2]
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "366-v0-2026-08-14-POC-VMS-40-多视图脉络真值与acceptable-set确定性协议.md"
 )
 

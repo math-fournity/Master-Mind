@@ -162,7 +162,7 @@ input.md（题目+解答）
 ## 7. 关键常量
 
 ```python
-PROMPT_DIR = "第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee"
+PROMPT_DIR = "prompts/absorb/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee"
 PROMPT_VERSIONS = ["V5", "V7", "V8", "V10"]
 GRADING_PROMPT_FILES = {v: f"{PROMPT_DIR}/v{v.lower()}_grading.md"}
 SYNTHESIS_PROMPT_FILE = f"{PROMPT_DIR}/synthesis.md"

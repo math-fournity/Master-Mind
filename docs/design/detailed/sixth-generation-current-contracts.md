@@ -75,5 +75,8 @@ family。缺失必需 family 是 scientific FAIL；malformed DAG、未知端点�
 ## 当前验证
 
 命令：`PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis`
-结果：295 passed，1 warning，Python 3.14.6，pytest 9.1.1，darwin。
-警告：`test_source_tree_sha256` 返回字符串而不是 `None`；本次断言仍通过，但应作为测试质量债务。
+结果：297 passed，62 subtests passed，0 warning，Python 3.14.6，pytest 9.1.1，darwin。
+
+历史冻结绑定合同：manifest 中的旧路径是 immutable identity，不是当前文件依赖。验证优先读取映射后
+canonical current path 的同字节文件；当前文件已演进时只允许读取固定 commit `3b26684` 的原 blob。
+错误 hash/size、缺失 blob、非 canonical path 或 current symlink 均 fail-closed。

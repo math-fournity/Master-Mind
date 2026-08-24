@@ -189,7 +189,7 @@ V9产出的trace还有以下字段：
 - 受检测的文件类型：.md/.txt（资产文件）；不受限制：input.md（题目解答文本）、.py（代码文件）
 
 **资产目录**：
-- `第六代系统提示词积累目录/`——提示词文件
+- `prompts/absorb/`——提示词文件
 - `taxonomy/`——分类学识别资产文件（TODO-15拆分后）
 - AI Agent工作目录中的AGENTS.md——实例运行版AGENTS.md
 
@@ -218,6 +218,6 @@ V9产出的trace还有以下字段：
 2. 把AGENTS.md中"Tell分类学Schema"节的内容拆分到`taxonomy/schema.md`（分类学结构定义）和按domain拆分的文件（如`taxonomy/domain_algebra.md`等）
 3. 每个文件限制在300行左右
 4. AGENTS.md中只保留"必须加载的分类学文件清单"——不保留分类学内容本身
-5. 更新`.devin/rules/tell-taxonomy-schema-maintenance.md`——维护规则改为维护taxonomy/目录下的文件，而不是AGENTS.md中的Schema节
+5. 更新`docs/development/sixth-generation-development-contracts.md`——维护规则改为维护taxonomy/目录下的文件，而不是AGENTS.md中的Schema节
 
 **注意**：这个TODO涉及修改AGENTS.md的核心内容，需要谨慎执行——确保拆分后AI仍然能通过"必须加载的文件清单"找到分类学知识。

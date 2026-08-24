@@ -36,7 +36,7 @@ class VMS41R1PreexecutionFreezeTests(unittest.TestCase):
         self.assertIsInstance(frozen["platform"], str)
         self.assertIsInstance(payload["platform"], str)
 
-    def test_default_freeze_matches_current_deterministic_payload(self) -> None:
+    def test_default_freeze_matches_historical_deterministic_payload(self) -> None:
         payload = build_freeze_payload()
         frozen = json.loads(FREEZE_TARGET.read_text())
         self._assert_equivalent_modulo_platform(frozen, payload)

@@ -33,7 +33,7 @@ and implementation say so.
 | Evidence routing | `evidence/README.md` |
 
 Current implementation verdict: the complete four-Pipe/Grove loop is not implemented. The verified current
-core is the independent solve-side structured-trajectory offline toolchain, which passed 295 tests on
+core is the independent solve-side structured-trajectory offline toolchain, which passed 297 tests on
 2026-08-24; live model roles remain unqualified and unauthorized.
 
 ## Current Governance Entry Points
@@ -58,9 +58,9 @@ core is the independent solve-side structured-trajectory offline toolchain, whic
 | Astrology / star-system inheritance | historical root docs and Git commits around 2026-07-07 to 2026-07-10 | Historical inheritance layer. Concepts are traceable through `docs/history/system-lineage.md` and Git log. |
 | First five Math Master generations | `第五代系统技术说明书/`, `原语化AI数学工程系统设计/`, `primitives/`, `concepts/`, `criteria/`, `facets/` | Historical design and primitive-system lineage. Not the single current implementation. |
 | Grove / VMS / first-principles loop | `GroveCoreCognition.md`, `任务追踪/`, VMS-related dev-docs | Core historical concept family: guide tree, solver tree, tell/hint, VMS, Grove loop. |
-| Sixth-generation implementation | `system/`, `SixthGenRnD.md`, `第六代系统技术说明书/`, `第六代系统研发过程文档/` | Main in-repo implementation island for sixth-generation code and run assets. Read `system/README.md` before code claims. |
+| Sixth-generation implementation | `system/`; historical sources in `docs/history/sixth-generation/` | Current code island plus explicitly historical R&D/spec sources. Read canonical docs before module history. |
 | Sixth-generation current repo reconstruction | `dev-docs/sixth-gen-current-repo/`, branch `codex/sixth-gen-current-repo-2026-08-24` | Active transition lane. It determines which sixth-generation facts become canonical and which old paths become extracted or history-only. |
-| Tell taxonomy and non-specialization research | `Tell分类学研究过程文档/`, `POC-2.7/`, `dev-docs/385*`, `dev-docs/394*` to `399*` | Research and POC lineage for Tell/Hint, non-specialization, and overdesign investigations. |
+| Tell taxonomy and non-specialization evidence | `evidence/history/tell-research/` | Historical research and POC assets; current Tell/Hint meaning is in canonical domain docs. |
 | Analysis / Devin failure system remnants | `analysis-devin-failure-system/`, `AnalysisSystemDesign.md`, `AnalysisSystemOps.md`, `AnalysisSystem开发/` | Historical/residual in this repo. Active solve-side systems are external unless current files prove otherwise. |
 | Seven evidence factory | `seven-system/`, `seven-system非特化证据工厂研发过程文档/` | In-repo Seven island with its own `AGENTS.md`, docs, contracts, and tests. Respect its isolation rules. |
 | Eight refinement system | `eight-system/` | Non-specialization refinement and overdesign response island, including project runs and scripts. |

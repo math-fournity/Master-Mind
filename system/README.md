@@ -28,7 +28,7 @@ system/
 └── run_*.py                       ← 运行脚本（特定题目的测试运行）
 ```
 
-解题侧的全部测试和POC必须从`system/tests/solve_vein_analysis/README.md`进入；该索引连接协议、结果、repo/D盘物证、Verdict与阶段门。**当前总任务追踪以391号新方案为准**（`第六代系统研发过程文档/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`——363号及route-lock已于2026-08-16标记SUPERSEDED，资格链冻结，勿再按其指针推进）。
+解题侧的全部测试和POC必须从`system/tests/solve_vein_analysis/README.md`进入；该索引连接协议、结果、repo/D盘物证、Verdict与阶段门。**当前总任务追踪以391号新方案为准**（`docs/history/sixth-generation/rnd/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`——363号及route-lock已于2026-08-16标记SUPERSEDED，资格链冻结，勿再按其指针推进）。
 
 ## docs/ —— system 的模块内认知文档
 
@@ -71,9 +71,9 @@ system/docs/
 | 目录 | 性质 | 内容 |
 |---|---|---|
 | `system/docs/` | **系统设计说明书** | 按模块组织的正式设计文档——系统"怎么实现的" |
-| `第六代系统技术说明书/` | 技术说明书 | 系统级的技术规格——系统"应该做什么" |
-| `第六代系统研发过程文档/` | 研发过程文档 | 设计思想的来源——研发过程中的思考、争论、方案演进 |
-| `Tell分类学研究过程文档/` | 分类学研究 | Tell分类学的迭代审计记录 |
+| `docs/history/sixth-generation/legacy-spec/` | 技术说明书 | 系统级的技术规格——系统"应该做什么" |
+| `docs/history/sixth-generation/rnd/` | 研发过程文档 | 设计思想的来源——研发过程中的思考、争论、方案演进 |
+| `evidence/history/tell-research/` | 分类学研究 | Tell分类学的迭代审计记录 |
 
 **理想演进关系**：研发过程结论 → current canonical docs → `system/` 实现或显式 stub → tests/运行证据。
 历史技术说明书和 `system/docs/` 只在与当前代码及 canonical docs 一致时代表当前设计。
@@ -95,15 +95,15 @@ system/docs/vein_analysis.md
 - 解题侧确定性核心已完成结构化轨迹后的离线 POC；独立 Devin 文件写入 POC 和 tmux 交互调试档已进入开发性实测，但角色资格、流式抽取与 `process_solve.py` 接入仍未通过。
 - 解题侧tmux live workspace与较大POC物证使用独立D盘根`/data/master-mind-solve-vein-data/`；不得借用Seven、题海Solver或入题侧运行目录，也不得fallback到repo/Home/`/tmp`。
 - 解题侧Devin认知角色的当前候选执行档是no-sandbox + `dangerous`；其工作区权限由冻结的角色`AGENTS.md`/`TASK.md`约束并用原始tool events审计。VMS-38已支持这个`INTERACTIVE_TMUX_DEBUG`执行合同：D盘workspace、严格输出/DONE、exact model、边界内工具调用、唯一退出和exit 0成立；它仍是`DEVELOPMENT_ONLY`，不等于强隔离或角色资格PASS。历史receipt的ATIF计数错误已在运行后解析器中修正，但不得回写历史bundle。
-- VMS-41四个串行one-shot attempt已经全部消费并封存，artifact/replay链PASS，但冻结机械结果为0/4、协议`INCONCLUSIVE_PROTOCOL`，当前Event Extractor profile仍为`NOT_QUALIFIED`。事后诊断因先见机械结果而明确是`BREACHED_BEFORE_MANUAL_AUDIT / FAILURE_LOCALIZATION_ONLY`；其独立D盘audit bundle已封存，原四ID绝对不得重跑。VMS-41R1的独立V2 occurrence/projection evaluator、联合file-effect auditor与19场景不可变开发校准包已通过；全新未见qualification pack、阈值、盲审rubric、attempt IDs、0.4.1角色资产、零模型preexecution freeze、live runner shell、不可消费LiveRunPermit/盲审包计划、sealed manual judgment合同、hidden join simulator、fake materializer、final qualification join receipt和临时append-only写包dry-run已冻结。VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final reviewer+hidden-join receipt、unseen qualification extension与DAG writeback sidecar已新增；VMS-43 Trace Auditor结构审计已新增。当前全量295项回归PASS（2026-08-24实跑）。以上仍不资格化模型；live资格实验仍需新的明确人签LiveRunPermit。
+- VMS-41四个串行one-shot attempt已经全部消费并封存，artifact/replay链PASS，但冻结机械结果为0/4、协议`INCONCLUSIVE_PROTOCOL`，当前Event Extractor profile仍为`NOT_QUALIFIED`。事后诊断因先见机械结果而明确是`BREACHED_BEFORE_MANUAL_AUDIT / FAILURE_LOCALIZATION_ONLY`；其独立D盘audit bundle已封存，原四ID绝对不得重跑。VMS-41R1的独立V2 occurrence/projection evaluator、联合file-effect auditor与19场景不可变开发校准包已通过；全新未见qualification pack、阈值、盲审rubric、attempt IDs、0.4.1角色资产、零模型preexecution freeze、live runner shell、不可消费LiveRunPermit/盲审包计划、sealed manual judgment合同、hidden join simulator、fake materializer、final qualification join receipt和临时append-only写包dry-run已冻结。VMS-42 State Normalizer离线核心、零模型资格包、hidden join、reviewer judgment合同、final reviewer+hidden-join receipt、unseen qualification extension与DAG writeback sidecar已新增；VMS-43 Trace Auditor结构审计已新增。当前全量297项回归及62个subtests PASS、无warning（2026-08-24实跑）。以上仍不资格化模型；live资格实验仍需新的明确人签LiveRunPermit。
 - 370号提出 Trace/Tell 内容寻址分片和逐项遍历方案，但 registry、cursor、coverage/completion runtime 尚未实现。该方案不能写成当前运行事实。
 
 ## 代码规范
 
 ### .ref 文件规则
 
-`system/` 中每个 `.py` 代码文件必须有一个同名的 `.ref` 文件（如 `schema.py` → `schema.ref`）。`.ref` 文件内容是相对 repo 根目录的文档路径列表——理解该模块需要参考的文档。代码文件和 `.ref` 文件必须同步更新。详见 `.devin/rules/system-ref-sync.md`。
+`system/` 中每个 current Python 模块必须有一个同名的 `.ref` 文件（如 `schema.py` → `schema.ref`）。`.ref` 文件内容是相对 repo 根目录的文档路径列表——理解该模块需要参考的文档。代码文件和 `.ref` 文件必须同步更新。冻结 fixture/sealed POC 内的原样 Python 证据成员例外，不能为补 sidecar 改写封存 file set。详见 `docs/development/sixth-generation-development-contracts.md`。
 
 ### .ai-check 文件规则
 
-`system/` 中每个 `.py` 代码文件必须有一个同名的 `.ai-check` 文件。详见 `.devin/rules/six-dual-check-mechanism.md`。
+`system/` 中每个 current Python 模块必须有一个同名的 `.ai-check` 文件；冻结证据成员适用上述例外。详见 `docs/development/sixth-generation-development-contracts.md`。

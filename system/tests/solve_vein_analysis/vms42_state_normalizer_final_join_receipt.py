@@ -31,7 +31,7 @@ from system.tests.solve_vein_analysis import build_vms42_state_normalizer_pack a
 FINAL_JOIN_SCHEMA_VERSION = "solve-vein/vms42-state-normalizer-final-reviewer-hidden-join/v1"
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "384-v0-2026-08-14-POC-VMS-42-State-Normalizer-final-reviewer-hidden-join-零模型.md"
 )
 

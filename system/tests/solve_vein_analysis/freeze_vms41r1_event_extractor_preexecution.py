@@ -10,6 +10,7 @@ authorization and a runner that consumes this frozen manifest.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -28,10 +29,15 @@ from system.tests.solve_vein_analysis.build_vms41r1_qualification_pack import (
     CASE_ORDER,
     FIXTURE_ROOT,
     PACK_ID,
-    PARENT_PROTOCOL_PATH,
-    PROTOCOL_PATH,
+    PARENT_PROTOCOL_IDENTITY,
+    PROTOCOL_IDENTITY,
     load_vms41r1_qualification_pack,
     sha256_file,
+)
+from system.tests.solve_vein_analysis.historical_binding import (
+    HistoricalBindingError,
+    list_historical_git_files,
+    read_historical_git_blob,
 )
 
 
@@ -67,55 +73,48 @@ class VMS41R1FreezeError(RuntimeError):
         self.message = message
 
 
-def _safe_file(path: Path) -> Path:
-    if path.is_symlink() or not path.is_file():
-        raise VMS41R1FreezeError("UNSAFE_FILE", str(path))
-    return path
-
-
-def _safe_tree_files(root: Path) -> list[Path]:
-    if root.is_symlink() or not root.is_dir():
-        raise VMS41R1FreezeError("UNSAFE_TREE", str(root))
-    files: list[Path] = []
-    for path in sorted(root.rglob("*")):
-        if "__pycache__" in path.parts:
-            continue
-        if path.is_symlink():
-            raise VMS41R1FreezeError("TREE_SYMLINK_MEMBER", str(path))
-        if path.is_file():
-            files.append(path)
-    return files
-
-
-def _manifest_members() -> list[Path]:
-    roots = [
-        ASSET_RELEASE,
-        FIXTURE_ROOT,
-    ]
-    files = [
-        PROTOCOL_PATH,
-        PARENT_PROTOCOL_PATH,
-        HERE / "build_vms41r1_qualification_pack.py",
-        HERE / "build_vms41r1_qualification_pack.ref",
-        HERE / "build_vms41r1_qualification_pack.ai-check",
-        HERE / "freeze_vms41r1_event_extractor_preexecution.py",
-        HERE / "test_event_extractor_qualification_v2.py",
-        REPO_ROOT / "system" / "solve_vein_analysis" / "event_extraction_projection.py",
-        REPO_ROOT / "system" / "solve_vein_analysis" / "file_effect_audit.py",
-    ]
-    members = [_safe_file(path) for path in files]
-    for root in roots:
-        members.extend(_safe_tree_files(root))
-    unique = {path.resolve(strict=True): path for path in members}
-    return [unique[key] for key in sorted(unique)]
-
-
-def _file_record(path: Path) -> dict[str, Any]:
-    return {
-        "path": path.relative_to(REPO_ROOT).as_posix(),
-        "sha256": sha256_file(path),
-        "size_bytes": path.stat().st_size,
+def _historical_manifest_member_identities() -> tuple[str, ...]:
+    explicit = {
+        PARENT_PROTOCOL_IDENTITY,
+        PROTOCOL_IDENTITY,
+        "system/tests/solve_vein_analysis/build_vms41r1_qualification_pack.py",
+        "system/tests/solve_vein_analysis/build_vms41r1_qualification_pack.ref",
+        "system/tests/solve_vein_analysis/build_vms41r1_qualification_pack.ai-check",
+        "system/tests/solve_vein_analysis/freeze_vms41r1_event_extractor_preexecution.py",
+        "system/tests/solve_vein_analysis/test_event_extractor_qualification_v2.py",
+        "system/solve_vein_analysis/event_extraction_projection.py",
+        "system/solve_vein_analysis/file_effect_audit.py",
     }
+    roots = (
+        ASSET_RELEASE.relative_to(REPO_ROOT).as_posix(),
+        FIXTURE_ROOT.relative_to(REPO_ROOT).as_posix(),
+    )
+    try:
+        explicit.update(list_historical_git_files(REPO_ROOT, roots))
+    except HistoricalBindingError as exc:
+        raise VMS41R1FreezeError("HISTORICAL_TREE_UNAVAILABLE", exc.code) from exc
+    return tuple(sorted(explicit))
+
+
+def _historical_file_record(relative: str) -> dict[str, Any]:
+    try:
+        payload = read_historical_git_blob(REPO_ROOT, relative)
+    except HistoricalBindingError as exc:
+        raise VMS41R1FreezeError("HISTORICAL_MEMBER_UNAVAILABLE", relative) from exc
+    return {
+        "path": relative,
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "size_bytes": len(payload),
+    }
+
+
+def _historical_tree_records(root: Path) -> list[dict[str, Any]]:
+    relative_root = root.relative_to(REPO_ROOT).as_posix()
+    try:
+        paths = list_historical_git_files(REPO_ROOT, (relative_root,))
+    except HistoricalBindingError as exc:
+        raise VMS41R1FreezeError("HISTORICAL_TREE_UNAVAILABLE", relative_root) from exc
+    return [_historical_file_record(path) for path in paths]
 
 
 def build_freeze_payload() -> dict[str, Any]:
@@ -144,13 +143,13 @@ def build_freeze_payload() -> dict[str, Any]:
             "mechanical_status_ceiling": "PENDING_BLIND_MANUAL_AUDIT",
         },
         "protocols": [
-            _file_record(PARENT_PROTOCOL_PATH),
-            _file_record(PROTOCOL_PATH),
+            _historical_file_record(PARENT_PROTOCOL_IDENTITY),
+            _historical_file_record(PROTOCOL_IDENTITY),
         ],
         "asset_release": {
             "release_id": "solve-vein-event-extractor-assets-0.4.1",
             "path": ASSET_RELEASE.relative_to(REPO_ROOT).as_posix(),
-            "files": [_file_record(path) for path in _safe_tree_files(ASSET_RELEASE)],
+            "files": _historical_tree_records(ASSET_RELEASE),
         },
         "case_order": list(CASE_ORDER),
         "attempt_ids": dict(ATTEMPT_IDS),
@@ -191,7 +190,10 @@ def build_freeze_payload() -> dict[str, Any]:
             "subagent_calls_authorized": 0,
             "future_live_attempts_require_new_explicit_authorization": True,
         },
-        "frozen_members": [_file_record(path) for path in _manifest_members()],
+        "frozen_members": [
+            _historical_file_record(path)
+            for path in _historical_manifest_member_identities()
+        ],
         "explicit_nonclaims": list(EXPLICIT_NONCLAIMS),
         "platform": platform.platform(),
     }

@@ -9,6 +9,7 @@ Current in-repo evidence:
 - absorb-side historical POC assets: `system/tests/vein_analysis/` when present;
 - evidence and qualification interpretation: `docs/quality/sixth-generation-evidence-and-qualification.md`;
 - reconstruction manifests: `dev-docs/sixth-gen-current-repo/`.
+- Tell/non-specialization research and POC history: `evidence/history/tell-research/`.
 
 External/local evidence:
 

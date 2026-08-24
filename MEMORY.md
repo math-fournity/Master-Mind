@@ -37,14 +37,15 @@ repo reconstruction. The binding working guide is
 - `.env.example` is a tracked safe template and is `keep-current`; only `.env` and actual local secret state are excluded.
 - Path comparison for the manifests must use `LC_ALL=C`; the default macOS locale can treat distinct Chinese
   filenames as collation-equivalent and produce false matches or false duplicate reports.
-- All 19,286 baseline paths now have final actions: 798 keep-current, 7 extract-current-knowledge, 5,397
-  history-only, and 13,084 exclude-local. Pending and unknown are zero; physical migration has not started.
+- All 19,286 baseline paths now have final actions: 799 keep-current, 7 extract-current-knowledge, 5,396
+  history-only, and 13,084 exclude-local. Pending and unknown are zero. The canonical Prompt/R&D/spec/Tell moves,
+  `.devin` retirement and IMO 2009 P6 fixture extraction have been executed in the current uncommitted batch.
 - `dev-docs/sixth-gen-current-repo/reverse-git-log.tsv` contains one row for each of the 1,401 commits visible
   from all refs, in newest-to-oldest order.
 - Canonical sixth-generation scope, concepts, architecture, detailed contracts, AI, data, quality, operations,
   and history routes now exist under `docs/`; `prompts/` and `evidence/` provide non-duplicating asset entries.
-- `PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis` collected and passed 295 tests in 11.58s
-  on Python 3.14.6/pytest 9.1.1/darwin. One test-return warning remains.
+- `PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis` passed 297 tests and 62 subtests in 16.93s
+  on Python 3.14.6/pytest 9.1.1/darwin with no warnings.
 - The historical 161-path absorb baseline remains byte-identical at its v1 digest. A current v2 baseline covers
   the same paths with 13 audited governance/ref/ai-check/V10-description changes. Historical VMS validation reads
   evolved frozen members from pinned commit `3b26684`; 93 bindings matched and a wrong-blob test fails closed.
@@ -53,6 +54,9 @@ repo reconstruction. The binding working guide is
   remain stubs or explicit `NotImplementedError` paths.
 - `.env.example` contained a non-placeholder credential-like password value. The current branch now uses an
   explicit placeholder; the safety tag and Git history remain sensitive and the historical value must not be shown.
+- Historical qualification manifests retain their original path identities. Current moved bytes are verified at
+  canonical locations; evolved frozen source is verified read-only from pinned commit `3b26684`, and wrong blobs
+  or current symlinks fail closed. Frozen JSON and receipts were not rewritten.
 
 ## Active Work
 
@@ -62,7 +66,7 @@ repo reconstruction. The binding working guide is
 | History lineage | verified | Update lineage when new system islands or migrations happen | GOV-004, GOV-005 |
 | Audit closure | verified | Use the closure file as the entry for auditing this alignment | GOV-001, GOV-003 |
 | Seven verification | verified | Re-run when Seven code/contracts change | GOV-003 |
-| Sixth-generation current repo reconstruction | in progress | Remove current ref dependencies on old roots, execute four mapped move groups, then retire remaining history-only paths | GOV-010 |
+| Sixth-generation current repo reconstruction | in progress | Commit the canonical move batch, then retire every remaining mapped history-only path | GOV-010 |
 
 ## Open Questions
 
@@ -130,3 +134,12 @@ Closed every baseline path to a final class without moving content. The executab
 current paths, records 7 completed knowledge extractions, retires 5,397 paths through history or mapped
 history/evidence locations, and excludes 13,084 local-state paths. Four planned move groups cover 697 files
 with zero target collisions; all other historical content is recoverable from the safety tag.
+
+### 2026-08-24 - Historical Bindings Survived Current-Tree Migration
+
+Moved Prompt, sixth-generation R&D/spec and Tell evidence into canonical roots without rewriting frozen manifests.
+Added a strict current-or-pinned-Git resolver for retired path identities, made VMS-41R1 freeze reconstruction read
+the exact pre-reconstruction tree, and added wrong-blob/moved-path/symlink tests. Full offline result: 297 tests and
+62 subtests passed with no warning. Extracted the only current `subagents-dirs/` consumer fixture into
+`system/tests/vein_analysis/fixtures/`; final map counts are now 799/7/5,396/13,084. No model, DB, Solver, network
+or other external runtime was started.

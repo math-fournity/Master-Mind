@@ -31,6 +31,10 @@ from system.tests.solve_vein_analysis.freeze_vms41r1_event_extractor_preexecutio
     SCHEMA_VERSION as FREEZE_SCHEMA_VERSION,
     sha256_file,
 )
+from system.tests.solve_vein_analysis.historical_binding import (
+    HistoricalBindingError,
+    validate_current_or_historical_binding,
+)
 
 
 EXPECTED_VISIBLE_FILES = (
@@ -173,11 +177,20 @@ def _verify_frozen_members(rows: Any) -> None:
         if not isinstance(relative, str) or relative in seen:
             raise VMS41R1RunnerError("FROZEN_MEMBER_PATH_INVALID", str(relative))
         seen.add(relative)
-        path = REPO_ROOT / relative
-        if path.is_symlink() or not path.is_file():
-            raise VMS41R1RunnerError("FROZEN_MEMBER_UNSAFE", relative)
-        if sha256_file(path) != row["sha256"] or path.stat().st_size != row["size_bytes"]:
-            raise VMS41R1RunnerError("FROZEN_MEMBER_DRIFT", relative)
+        try:
+            validate_current_or_historical_binding(
+                REPO_ROOT,
+                relative,
+                row["sha256"],
+                expected_size=row["size_bytes"],
+            )
+        except HistoricalBindingError as exc:
+            code = (
+                "FROZEN_MEMBER_UNSAFE"
+                if exc.code.startswith("CURRENT_PATH_") or exc.code == "PATH_INVALID"
+                else "FROZEN_MEMBER_DRIFT"
+            )
+            raise VMS41R1RunnerError(code, f"{relative}: {exc.code}") from exc
 
 
 def _verify_asset_release(binding: Any) -> None:

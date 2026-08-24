@@ -13,6 +13,7 @@
 import os
 import sys
 import json
+from pathlib import Path
 
 # 关闭Python输出缓冲
 sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', buffering=1)
@@ -41,10 +42,18 @@ from system.vein_analysis import vein_analysis_three_phase
 from system.schema import AnalysisInput, SolutionRecord, Problem
 
 
+PROFILE_PATH = (
+    Path(__file__).resolve().parent
+    / "tests"
+    / "vein_analysis"
+    / "fixtures"
+    / "imo2009p6_profile.json"
+)
+
+
 def main():
     # 1. 从profile.json读取IMO 2009 P6的题目和解答
-    profile_path = "subagents-dirs/compfiles_imo2009p6/profile.json"
-    with open(profile_path, "r", encoding="utf-8") as f:
+    with PROFILE_PATH.open("r", encoding="utf-8") as f:
         profile = json.load(f)
 
     problem_text = profile["problem_text"]

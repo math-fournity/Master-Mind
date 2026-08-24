@@ -54,7 +54,7 @@ HERE = Path(__file__).resolve().parent
 LIVE_FIXTURES = HERE / "live_fixtures"
 PROTOCOL = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "368-v0-2026-08-14-POC-VMS-41-Event-Extractor未见样本资格化协议.md"
 )
 FIXTURE_ROOT = HERE / "qualification_fixtures/vms41"

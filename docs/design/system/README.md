@@ -13,7 +13,7 @@ The stable system design fact for this repo is that it is a multi-island histori
 - Sixth-generation implementation: `system/`.
 - Seven evidence factory: `seven-system/`.
 - Eight refinement system: `eight-system/`.
-- Tell taxonomy research: `Tell分类学研究过程文档/`.
+- Tell taxonomy and non-specialization evidence: `evidence/history/tell-research/`.
 - Analysis remnants: `analysis-devin-failure-system/` and related root analysis docs.
 - Historical primitive/generation material: `primitives/`, `concepts/`, `criteria/`, `facets/`,
   `第五代系统技术说明书/`, `原语化AI数学工程系统设计/`.

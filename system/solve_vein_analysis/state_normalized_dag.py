@@ -29,7 +29,7 @@ from system.solve_vein_analysis import state_normalization as sn
 STATE_NORMALIZED_DAG_SCHEMA_VERSION = "solve-vein/state-normalized-dag-annotation-bundle/v1"
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "386-v0-2026-08-14-POC-VMS-42-State-Normalizer-DAG-writeback-sidecar-零模型.md"
 )
 UNSEEN_FIXTURE = (

@@ -15,7 +15,7 @@
 | `system/db.py` | ArangoDB 读写适配器 | implemented-unverified | 未核当前 live schema/data |
 | `system/solve_vein_analysis/` | 结构化轨迹的独立离线 DAG/FCA/RCA-style/Trace 分析 | verified offline | 不连接 legacy schema、DB、Solver 或 Tell library |
 | solve-side role/qualification tools | Devin/tmux、资格包、审计、State Normalizer、Trace Auditor | development/offline verified | `dangerous` 不是隔离证明；live 未授权 |
-| `system/tests/solve_vein_analysis/` | 离线合同、fixtures、失败和冻结证据 | 295 PASS in current environment | 不证明模型和端到端能力 |
+| `system/tests/solve_vein_analysis/` | 离线合同、fixtures、失败和冻结证据 | 297 PASS in current environment | 不证明模型和端到端能力 |
 
 ## 当前可执行流
 
@@ -24,7 +24,7 @@
 `ReasoningTrajectory` -> strict validation -> `ReasoningDag` -> state/transition FCA -> RCA-style relational
 scaling -> deterministic TraceRecord -> audit/fingerprint -> atomic CLI output directory。
 
-该流已由当前 295 项测试覆盖。输入必须已经是结构化事件轨迹；raw natural-language extraction 是明确
+该流已由当前 297 项测试覆盖。输入必须已经是结构化事件轨迹；raw natural-language extraction 是明确
 nonclaim，`live_extraction=NOT_TESTED`。
 
 ### Absorb 侧三阶段流

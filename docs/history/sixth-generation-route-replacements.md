@@ -27,6 +27,10 @@
 | root `DataFoundation.md` | `docs/data/sixth-generation-data-boundaries.md` | 抽取账本 | 只抽取仍与当前代码/数据边界一致的内容 |
 | root `AnalysisSystem*.md` 和分析目录 | current AI/operations docs 或 history-only | `0f54bf4`、`d80201f` | 外部/历史系统不是当前第六代组件 |
 | in-repo active Solver routes | 独立 Solver repos | `0f54bf4`、`d80201f`、`e318b58` | 外部 repo 受自己的 AGENTS 治理 |
+| `第六代系统提示词积累目录/` | `prompts/absorb/` | path migration map | Prompt source 进入 canonical root，历史版本仍保留 |
+| `第六代系统研发过程文档/` | `docs/history/sixth-generation/rnd/` | path migration map | 保留第六代 R&D 证据，退出活动根 |
+| `第六代系统技术说明书/` | `docs/history/sixth-generation/legacy-spec/` | path migration map | 明确 legacy spec 身份 |
+| `Tell分类学研究过程文档/` | `evidence/history/tell-research/` | path migration map | 研究/POC 进入 evidence history |
 
 ## 当前 canonical 真值顺序
 

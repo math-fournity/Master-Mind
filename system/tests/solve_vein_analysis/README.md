@@ -1,13 +1,14 @@
 # 解题侧脉络分析测试与POC证据总索引
 
-> **⚠️ 状态更新（2026-08-24）**：任务追踪真值源是391号——`第六代系统研发过程文档/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`（§8看板为阶段状态源）。363号及route-lock已标记SUPERSEDED。本README继续作为测试/POC物证索引，但VMS-31~43的旧晋级阶段门和22个资格链脚本保持FROZEN，除非391号决策重新授权。2026-08-24当前实跑为295 tests PASS；新增测试按391号§3规则1处理。
+> **⚠️ 状态更新（2026-08-24）**：任务追踪真值源是391号——`docs/history/sixth-generation/rnd/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`（§8看板为阶段状态源）。363号及route-lock已标记SUPERSEDED。本README继续作为测试/POC物证索引，但VMS-31~43的旧晋级阶段门和22个资格链脚本保持FROZEN，除非391号决策重新授权。2026-08-24当前实跑为297 tests与62 subtests PASS、无warning；新增测试按391号§3规则1处理。
 
 **作用**：这是`system/solve_vein_analysis/`全部自动测试和POC的唯一证据索引。  
-**任务追踪真值源（已退役，见上方状态更新）**：`第六代系统研发过程文档/363-v0-2026-08-14-解题侧非线性脉络分析后续路线图-阶段门与任务追踪.md`  
+**任务追踪真值源（已退役，见上方状态更新）**：`docs/history/sixth-generation/rnd/363-v0-2026-08-14-解题侧非线性脉络分析后续路线图-阶段门与任务追踪.md`
 **保护基线**：
 
 - historical v1：`protected_absorb_baseline.sha256`，digest=`9bb4fd2551d13f196610ddf8e203ad96b0855f3337f6c4e6502f6c764eafd6b3`；由冻结VMS receipts继续引用，不修改；
-- current v2：`protected_absorb_baseline_v2.sha256`，digest=`2085e1c91bac1909b01ab3dd74f0845b9d2484b77e34d0a7cb9f2357f0b5f3a7`；包含同一161个path，只有13个经审计的治理/docs/ref/ai-check/V10描述同步变化。当前isolation test使用v2。
+- prior current v2：`protected_absorb_baseline_v2.sha256`，digest=`2085e1c91bac1909b01ab3dd74f0845b9d2484b77e34d0a7cb9f2357f0b5f3a7`；保留治理同步后的current基线；
+- current v3：`protected_absorb_baseline_v3.sha256`，digest=`3789a3137aa5bcd31514f63d8f34c7bd17996f728c5ee9b2e2517a57394787c1`；仍为同一161个path，只更新9个Prompt/R&D/spec迁移相关code/ref/plan path。当前isolation test使用v3。
 
 本README只索引证据，不替代预注册协议、结果文档、raw artifact或final receipt。没有在这里登记的测试/POC，不得被阶段门用作晋级证据。
 
@@ -19,7 +20,7 @@
 
 ```text
 2026-08-24
-295 tests
+297 tests + 62 subtests
 PASS
 ```
 
@@ -115,7 +116,7 @@ PASS
 | VMS-40 | 366号 | 367号 | `/data/master-mind-solve-vein-data/poc-results/poc-vms-40-20260814/` | `PASS_WITHIN_DETERMINISTIC_OFFLINE_SCOPE / DEVELOPMENT_ONLY` | 原目录已消费且append-only；相同ID重启被exit 2拒绝 | 6 case/26 candidate全匹配；支持多视图/多轴/acceptable-set机械合同，不资格化任何模型角色 |
 | VMS-41 | 368号 | 369号 | `/data/master-mind-solve-vein-data/poc-results/poc-vms-41-event-extractor-qualification-20260814/` + `poc-vms-41-event-extractor-diagnostic-audit-20260814/` | artifact/replay `PASS`；frozen case 0/4；`INCONCLUSIVE_PROTOCOL / NOT_QUALIFIED`；事后审计`FAILURE_LOCALIZATION_ONLY` | 四个原attempt已消费，绝对不可重跑 | 27/27 coarse anchors有映射，但粒度/typed path/status/MERGE与tool合同需修订；人工盲性已破坏，不能作确认性PASS |
 
-“346号”等均位于`第六代系统研发过程文档/`。D盘目录中的`preexecution-freeze-manifest.json`、control、launch/final/abort receipt、health snapshot、pane capture、workspace输入、output和Devin export共同构成证据，不能只引用最终Markdown。
+“346号”等均位于`docs/history/sixth-generation/rnd/`。D盘目录中的`preexecution-freeze-manifest.json`、control、launch/final/abort receipt、health snapshot、pane capture、workspace输入、output和Devin export共同构成证据，不能只引用最终Markdown。
 
 ### VMS-38不可变性特别说明
 

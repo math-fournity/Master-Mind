@@ -15,7 +15,6 @@ import json
 import os
 from pathlib import Path
 import re
-import subprocess
 import sys
 from typing import Any
 
@@ -38,6 +37,12 @@ from system.tests.solve_vein_analysis.run_event_extractor_qualification import (
     audit_tool_boundary,
     qualification_test_source_files,
     verify_attempt_file_set,
+)
+from system.tests.solve_vein_analysis.historical_binding import (
+    HISTORICAL_SOURCE_COMMIT,
+    HistoricalBindingError,
+    read_historical_git_blob,
+    validate_current_or_historical_binding,
 )
 
 
@@ -92,7 +97,6 @@ EXPECTED_AUDITOR_KEYS = {"actor_id", "actor_type", "independence"}
 RFC3339_UTC = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
 FROZEN_FREEZE_SHA256 = "2ae350c66d2d94bd63a8de1a702278a9d1b9e49d96f3ba39401d8147859db59e"
-HISTORICAL_SOURCE_COMMIT = "3b2668404ce42a3bd6eacd76f0ed1a5cfe880769"
 
 
 class DiagnosticAuditError(RuntimeError):
@@ -122,18 +126,9 @@ def _sha256_bytes(value: bytes) -> str:
 
 def _historical_git_blob(relative: str) -> bytes:
     try:
-        result = subprocess.run(
-            ["git", "show", f"{HISTORICAL_SOURCE_COMMIT}:{relative}"],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            check=False,
-            timeout=10,
-        )
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        raise DiagnosticAuditError("historical Git source unavailable") from exc
-    if result.returncode != 0:
-        raise DiagnosticAuditError(f"historical Git source absent: {relative}")
-    return result.stdout
+        return read_historical_git_blob(REPO_ROOT, relative)
+    except HistoricalBindingError as exc:
+        raise DiagnosticAuditError(str(exc)) from exc
 
 
 def _validate_current_or_historical_binding(
@@ -141,24 +136,15 @@ def _validate_current_or_historical_binding(
     expected_hash: str,
     label: str,
 ) -> str:
-    relative_path = Path(relative)
-    if (
-        not relative
-        or relative_path.is_absolute()
-        or ".." in relative_path.parts
-        or relative_path.as_posix() != relative
-        or not HEX64.fullmatch(expected_hash)
-    ):
-        raise DiagnosticAuditError(f"unsafe historical binding: {label}")
-    current = REPO_ROOT / relative_path
-    if current.is_symlink():
-        raise DiagnosticAuditError(f"current historical binding is a symlink: {label}")
-    if current.is_file() and sha256_file(current) == expected_hash:
-        return "CURRENT_WORKTREE"
-    historical = _historical_git_blob(relative)
-    if _sha256_bytes(historical) != expected_hash:
-        raise DiagnosticAuditError(f"historical Git hash drift: {label}")
-    return "PINNED_GIT_COMMIT"
+    try:
+        return validate_current_or_historical_binding(
+            REPO_ROOT,
+            relative,
+            expected_hash,
+            git_blob_reader=_historical_git_blob,
+        )
+    except HistoricalBindingError as exc:
+        raise DiagnosticAuditError(f"{label}: {exc}") from exc
 
 
 def _load_object(path: Path, label: str) -> dict[str, Any]:

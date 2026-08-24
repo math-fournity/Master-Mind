@@ -27,19 +27,21 @@ path，字段数和 path 集合一致。由于 macOS 当前 locale 会把不同�
 中文 path 分类、唯一性和集合检查统一使用 `LC_ALL=C` 的字节级比较。当前仍有 5,795 条
 `retain/extract/history` 候选动作待概念证据核验，不能把 literal `unknown=0` 写成迁移已经完成。
 
-## Final Path Decision Dry-Run
+## Final Path Decision And Canonical Move Batch
 
 在19个概念族、canonical docs、current code/tests和Git替代关系闭合后，19,286个baseline path已全部
-获得final action：798个`keep-current`、7个`extract-current-knowledge`、5,397个`history-only`、
+获得final action：799个`keep-current`、7个`extract-current-knowledge`、5,396个`history-only`、
 13,084个`exclude-local`；pending和unknown均为0，target collision为0。
 
-计划中的物理迁移共697个path：26个Prompt迁入`prompts/absorb/`，95个第六代R&D来源迁入
+已执行的物理迁移共698个path：26个Prompt迁入`prompts/absorb/`，95个第六代R&D来源迁入
 `docs/history/sixth-generation/rnd/`，19个旧第六代说明迁入`docs/history/sixth-generation/legacy-spec/`，
-557个Tell/非特化研究与POC资产迁入`evidence/history/tell-research/`。其余history-only内容不复制进
-目标树，由`pre-sixth-gen-current-repo-2026-08-24`和逐path Git pointer恢复。
+557个Tell/非特化研究与POC资产迁入`evidence/history/tell-research/`，1个仍被current absorb驱动消费的
+IMO 2009 P6 profile迁入`system/tests/vein_analysis/fixtures/`。其余history-only内容不复制进目标树，由
+`pre-sixth-gen-current-repo-2026-08-24`和逐path Git pointer恢复。
 
-本节仍是迁移计划，不表示文件已经移动。物理迁移前必须清除current `.ref` 对待移除目录的依赖，
-并把仍有效的 `.devin` 开发纪律归一到current development contract。
+current `.ref` 对待移除目录的依赖已经清除；仍有效的 `.devin` 开发纪律已归一到current development
+contract。冻结 manifest 的旧路径 identity 保持原值，通过 canonical current path 或 pinned Git blob
+验证，未靠恢复旧根目录换取测试通过。
 
 ## Git 历史逆向结果
 

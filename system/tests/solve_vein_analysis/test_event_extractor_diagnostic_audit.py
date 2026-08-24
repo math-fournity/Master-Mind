@@ -9,6 +9,7 @@ import unittest
 from unittest.mock import patch
 
 from system.tests.solve_vein_analysis import seal_event_extractor_diagnostic_audit as audit
+from system.tests.solve_vein_analysis import historical_binding
 
 
 class EventExtractorDiagnosticAuditTests(unittest.TestCase):
@@ -112,6 +113,61 @@ class EventExtractorDiagnosticAuditTests(unittest.TestCase):
                     binding["sha256"],
                     "negative fallback test",
                 )
+
+    def test_retired_protocol_identity_resolves_to_moved_current_file(self) -> None:
+        manifest_path = (
+            audit.REPO_ROOT
+            / "system/tests/solve_vein_analysis/qualification_fixtures/"
+            "vms41r1_calibration/pack-manifest.json"
+        )
+        protocol = json.loads(manifest_path.read_text())["protocol"]
+        current_relative = historical_binding.reconstructed_current_path(protocol["path"])
+        self.assertTrue(current_relative.startswith("docs/history/sixth-generation/rnd/"))
+        source = historical_binding.validate_current_or_historical_binding(
+            audit.REPO_ROOT,
+            protocol["path"],
+            protocol["sha256"],
+        )
+        self.assertEqual(source, historical_binding.CURRENT_WORKTREE)
+
+    def test_evolved_frozen_source_resolves_to_pinned_git_blob(self) -> None:
+        freeze_path = (
+            audit.REPO_ROOT
+            / "system/tests/solve_vein_analysis/live_fixtures/poc_vms_41r1.freeze.json"
+        )
+        freeze = json.loads(freeze_path.read_text())
+        binding = next(
+            row
+            for row in freeze["frozen_members"]
+            if row["path"]
+            == "system/tests/solve_vein_analysis/build_vms41r1_qualification_pack.py"
+        )
+        current = audit.REPO_ROOT / binding["path"]
+        self.assertNotEqual(audit.sha256_file(current), binding["sha256"])
+        source = historical_binding.validate_current_or_historical_binding(
+            audit.REPO_ROOT,
+            binding["path"],
+            binding["sha256"],
+            expected_size=binding["size_bytes"],
+        )
+        self.assertEqual(source, historical_binding.PINNED_GIT_COMMIT)
+
+    def test_current_binding_symlink_fails_before_git_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "target.txt"
+            target.write_bytes(b"frozen")
+            link = root / "current.txt"
+            link.symlink_to(target)
+            with self.assertRaises(historical_binding.HistoricalBindingError) as caught:
+                historical_binding.validate_current_or_historical_binding(
+                    root,
+                    "historical.txt",
+                    "a" * 64,
+                    current_path="current.txt",
+                    git_blob_reader=lambda _: b"frozen",
+                )
+            self.assertEqual(caught.exception.code, "CURRENT_PATH_SYMLINK")
 
     def test_review_cannot_restore_blindness_or_qualification(self) -> None:
         for field, bad_value in (

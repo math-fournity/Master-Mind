@@ -30,7 +30,7 @@ from system.tests.solve_vein_analysis.run_event_extractor_qualification import (
     audit_tool_boundary,
     execute_qualification,
     render_task,
-    test_source_tree_sha256,
+    test_source_tree_sha256 as source_tree_sha256,
     validate_freeze_manifest,
 )
 from system.tests.solve_vein_analysis.test_event_extraction_qualification import (
@@ -46,7 +46,7 @@ from system.tests.solve_vein_analysis.verify_event_extractor_qualification impor
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROTOCOL = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "368-v0-2026-08-14-POC-VMS-41-Event-Extractor未见样本资格化协议.md"
 )
 ASSET_ROOT = REPO_ROOT / "system/assets/solve_vein_analysis/releases/0.4.0"
@@ -243,7 +243,7 @@ def _write_freeze(
             "errors": 0,
             "skipped": 0,
             "successful": True,
-            "test_source_tree_sha256": test_source_tree_sha256(),
+            "test_source_tree_sha256": source_tree_sha256(),
             "protected_absorb_baseline_path": baseline.relative_to(
                 REPO_ROOT
             ).as_posix(),

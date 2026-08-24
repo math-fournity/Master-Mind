@@ -37,7 +37,7 @@ from system.tests.solve_vein_analysis.run_vms41r1_event_extractor_qualification 
 SCHEMA_VERSION = "solve-vein/vms41r1-live-permit-review-plan/v1"
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "374-v0-2026-08-14-POC-VMS-41R1-LiveRunPermit与盲审包计划-零模型冻结.md"
 )
 

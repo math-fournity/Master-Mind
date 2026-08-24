@@ -48,7 +48,7 @@ UNSEEN_FIXTURE = (
 )
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "385-v0-2026-08-14-POC-VMS-42-State-Normalizer-unseen-qualification-extension-零模型.md"
 )
 PARENT_PROTOCOLS = (
@@ -186,7 +186,7 @@ def main() -> int:
 def _parent_protocol_refs() -> list[dict[str, str]]:
     refs: list[dict[str, str]] = []
     for name in PARENT_PROTOCOLS:
-        path = REPO_ROOT / "第六代系统研发过程文档" / name
+        path = REPO_ROOT / "docs/history/sixth-generation/rnd" / name
         refs.append(
             {
                 "path": str(path.relative_to(REPO_ROOT)),

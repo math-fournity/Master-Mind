@@ -245,7 +245,7 @@ VMS-38随后在同一次attempt中完成并封存，最终目录为：
 .venv/bin/python system/tests/solve_vein_analysis/run_agents_limit_static.py \
   --poc-id POC-VMS-39 \
   --devin-binary ~/.local/bin/devin \
-  --protocol '第六代系统研发过程文档/364-v0-2026-08-14-POC-VMS-39-Devin-AGENTS装载物理边界-官方回源与隔离实测协议.md' \
+  --protocol 'docs/history/sixth-generation/rnd/364-v0-2026-08-14-POC-VMS-39-Devin-AGENTS装载物理边界-官方回源与隔离实测协议.md' \
   --freeze system/tests/solve_vein_analysis/live_fixtures/poc_vms_39.freeze.json \
   --output /data/master-mind-solve-vein-data/poc-results/poc-vms-39-static-loader-20260814
 ```

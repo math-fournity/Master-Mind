@@ -20,7 +20,7 @@
 | VMS-28d | V5 vs V8 | `vms28d_v5_v8_trace_comparison.md` | V8补回了V7漏掉的trace_31/33，adv_3被程序判定为"FCA可找出"但AI识别的是语义层面元模式 |
 | VMS-28e | V5 vs V8 vs V9 | `vms28e_v5_v8_v9_trace_comparison.md` | V9元反思发现5个新trace（mrt_1~5），adv_3伪元模式问题 |
 
-**这些留存文件的位置**：`第六代系统研发过程文档/`
+**这些留存文件的位置**：`docs/history/sixth-generation/rnd/`
 
 **另外**，刚才4并发完整流程的产出也作为基线：
 - `system/tests/vein_analysis/baseline/V{5,7,8,10}_output.json`——4版本各自的完整产出

@@ -12,9 +12,10 @@
 import os
 import sys
 import json
+from pathlib import Path
 
 # 确保在repo根目录
-repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+repo_root = str(Path(__file__).resolve().parents[3])
 os.chdir(repo_root)
 sys.path.insert(0, repo_root)
 
@@ -41,10 +42,14 @@ from system.vein_analysis import (
 )
 
 
+PROFILE_PATH = (
+    Path(__file__).resolve().parent / "fixtures" / "imo2009p6_profile.json"
+)
+
+
 def main():
     # 1. 从profile.json读取IMO 2009 P6的题目和解答
-    profile_path = "subagents-dirs/compfiles_imo2009p6/profile.json"
-    with open(profile_path, "r", encoding="utf-8") as f:
+    with PROFILE_PATH.open("r", encoding="utf-8") as f:
         profile = json.load(f)
 
     problem_text = profile["problem_text"]

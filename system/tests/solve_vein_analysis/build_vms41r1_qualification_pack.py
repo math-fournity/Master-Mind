@@ -29,6 +29,10 @@ from system.solve_vein_analysis.event_extraction_projection import (
     evaluate_candidate_json_v2,
 )
 from system.solve_vein_analysis.models import canonical_json_bytes
+from system.tests.solve_vein_analysis.historical_binding import (
+    HistoricalBindingError,
+    validate_current_or_historical_binding,
+)
 
 
 PACK_ID = "vms41r1-event-extractor-v2-qualification-20260814"
@@ -47,13 +51,35 @@ FIXTURE_ROOT = (
 )
 PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "372-v0-2026-08-14-POC-VMS-41R1-未见资格包冻结协议-案例阈值与盲审流程.md"
 )
 PARENT_PROTOCOL_PATH = (
     REPO_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "371-v0-2026-08-14-POC-VMS-41R1-Event-Extractor-V2修订资格化协议.md"
+)
+PARENT_PROTOCOL_IDENTITY = (
+    "第六代系统研发过程文档/"
+    "371-v0-2026-08-14-POC-VMS-41R1-Event-Extractor-V2修订资格化协议.md"
+)
+PROTOCOL_IDENTITY = (
+    "第六代系统研发过程文档/"
+    "372-v0-2026-08-14-POC-VMS-41R1-未见资格包冻结协议-案例阈值与盲审流程.md"
+)
+FROZEN_PROTOCOL_BINDINGS = (
+    (
+        PARENT_PROTOCOL_IDENTITY,
+        PARENT_PROTOCOL_PATH,
+        "1170e8afcaf9351d082ecc5e1564ca0c1d09067a4e81d199e4f6e49a69a2d36f",
+        13513,
+    ),
+    (
+        PROTOCOL_IDENTITY,
+        PROTOCOL_PATH,
+        "e27428fe85f55acb49dbddb50316600e67c54868326749381c764ebfce15bafe",
+        6688,
+    ),
 )
 REAL_SOURCE_ID = "p48cc0b3636be4b9990a9"
 REAL_SOURCE_EXPORT = (
@@ -104,6 +130,28 @@ def sha256_bytes(payload: bytes) -> str:
 
 def sha256_file(path: Path) -> str:
     return sha256_bytes(path.read_bytes())
+
+
+def frozen_protocol_rows() -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for identity, current_path, expected_sha256, expected_size in FROZEN_PROTOCOL_BINDINGS:
+        try:
+            validate_current_or_historical_binding(
+                REPO_ROOT,
+                identity,
+                expected_sha256,
+                expected_size=expected_size,
+                current_path=current_path.relative_to(REPO_ROOT).as_posix(),
+            )
+        except HistoricalBindingError as exc:
+            code = (
+                "PROTOCOL_FILE_UNSAFE"
+                if exc.code.startswith("CURRENT_PATH_") or exc.code == "PATH_INVALID"
+                else "PROTOCOL_HASH_MISMATCH"
+            )
+            raise VMS41R1PackError(code, f"{identity}: {exc.code}") from exc
+        rows.append({"path": identity, "sha256": expected_sha256})
+    return rows
 
 
 def canonical_bytes(value: Any) -> bytes:
@@ -1043,16 +1091,7 @@ def build_manifest(root: Path, objects: Mapping[str, Any]) -> dict[str, Any]:
         "pack_id": PACK_ID,
         "evidence_lane": "QUALIFICATION_HOLDOUT_PREEXECUTION",
         "case_order": list(CASE_ORDER),
-        "protocols": [
-            {
-                "path": PARENT_PROTOCOL_PATH.relative_to(REPO_ROOT).as_posix(),
-                "sha256": sha256_file(PARENT_PROTOCOL_PATH),
-            },
-            {
-                "path": PROTOCOL_PATH.relative_to(REPO_ROOT).as_posix(),
-                "sha256": sha256_file(PROTOCOL_PATH),
-            },
-        ],
+        "protocols": frozen_protocol_rows(),
         "files": file_rows,
         "case_specs": case_specs,
         "thresholds_path": "thresholds.json",
@@ -1131,13 +1170,31 @@ def load_vms41r1_qualification_pack(root: Path = FIXTURE_ROOT) -> dict[str, Any]
         )
     if any(path.is_symlink() for path in root.rglob("*")):
         raise VMS41R1PackError("PACK_SYMLINK_MEMBER", str(root))
-    for protocol in manifest["protocols"]:
+    protocols = manifest["protocols"]
+    if not isinstance(protocols, list) or len(protocols) != len(FROZEN_PROTOCOL_BINDINGS):
+        raise VMS41R1PackError("PROTOCOL_SET_MISMATCH", repr(protocols))
+    for protocol, binding in zip(protocols, FROZEN_PROTOCOL_BINDINGS, strict=True):
         _require_keys(protocol, {"path", "sha256"}, "manifest.protocols[]")
-        protocol_path = REPO_ROOT / _safe_relative(protocol["path"])
-        if not protocol_path.is_file() or protocol_path.is_symlink():
-            raise VMS41R1PackError("PROTOCOL_FILE_UNSAFE", str(protocol_path))
-        if sha256_file(protocol_path) != protocol["sha256"]:
+        identity, current_path, expected_sha256, expected_size = binding
+        if protocol["path"] != identity:
+            raise VMS41R1PackError("PROTOCOL_PATH_MISMATCH", repr(protocol["path"]))
+        if protocol["sha256"] != expected_sha256:
             raise VMS41R1PackError("PROTOCOL_HASH_MISMATCH", protocol["path"])
+        try:
+            validate_current_or_historical_binding(
+                REPO_ROOT,
+                identity,
+                expected_sha256,
+                expected_size=expected_size,
+                current_path=current_path.relative_to(REPO_ROOT).as_posix(),
+            )
+        except HistoricalBindingError as exc:
+            code = (
+                "PROTOCOL_FILE_UNSAFE"
+                if exc.code.startswith("CURRENT_PATH_") or exc.code == "PATH_INVALID"
+                else "PROTOCOL_HASH_MISMATCH"
+            )
+            raise VMS41R1PackError(code, f"{identity}: {exc.code}") from exc
     acceptable_pack = _load_json(root / "acceptable-sets.json")
     reference_candidates = _load_json(root / "reference-candidates.json")
     checks = _load_json(root / "negative-checks.json")

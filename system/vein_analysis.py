@@ -88,7 +88,7 @@ from .schema import (
 PROMPT_VERSIONS = ["V5", "V7", "V8", "V10"]
 
 # 提示词文件的相对路径（相对repo根目录）
-PROMPT_DIR = "第六代系统提示词积累目录/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee"
+PROMPT_DIR = "prompts/absorb/pipe_1_parser/step_2_grid_vein/set_A_fca_hassee"
 PROMPT_FILES = {
     "V5": os.path.join(PROMPT_DIR, "v5.md"),
     "V7": os.path.join(PROMPT_DIR, "v7.md"),

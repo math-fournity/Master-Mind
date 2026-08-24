@@ -26,6 +26,10 @@ from system.solve_vein_analysis.file_effect_audit import (
     parse_file_operation_event,
 )
 from system.solve_vein_analysis.models import canonical_json_bytes
+from system.tests.solve_vein_analysis.historical_binding import (
+    HistoricalBindingError,
+    validate_current_or_historical_binding,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
@@ -36,9 +40,17 @@ DEFAULT_FIXTURE_ROOT = (
 )
 PROTOCOL_PATH = (
     REPOSITORY_ROOT
-    / "第六代系统研发过程文档"
+    / "docs/history/sixth-generation/rnd"
     / "371-v0-2026-08-14-POC-VMS-41R1-Event-Extractor-V2修订资格化协议.md"
 )
+FROZEN_PROTOCOL_IDENTITY = (
+    "第六代系统研发过程文档/"
+    "371-v0-2026-08-14-POC-VMS-41R1-Event-Extractor-V2修订资格化协议.md"
+)
+FROZEN_PROTOCOL_SHA256 = (
+    "1170e8afcaf9351d082ecc5e1564ca0c1d09067a4e81d199e4f6e49a69a2d36f"
+)
+FROZEN_PROTOCOL_SIZE_BYTES = 13513
 MANIFEST_SCHEMA = "solve-vein/vms41r1-calibration-manifest/v1"
 MATRIX_SCHEMA = "solve-vein/vms41r1-calibration-matrix/v1"
 RESULT_SCHEMA = "solve-vein/vms41r1-calibration-result/v1"
@@ -109,10 +121,20 @@ def load_calibration_pack(fixture_root: Path = DEFAULT_FIXTURE_ROOT) -> dict[str
         )
     protocol = _mapping(manifest["protocol"], "manifest.protocol")
     _exact_keys(protocol, {"path", "sha256"}, "manifest.protocol")
-    if protocol["path"] != str(PROTOCOL_PATH.relative_to(REPOSITORY_ROOT)):
+    if protocol["path"] != FROZEN_PROTOCOL_IDENTITY:
         raise CalibrationError("PROTOCOL_PATH_MISMATCH", repr(protocol["path"]))
-    if sha256_file(PROTOCOL_PATH) != protocol["sha256"]:
+    if protocol["sha256"] != FROZEN_PROTOCOL_SHA256:
         raise CalibrationError("PROTOCOL_HASH_MISMATCH", str(protocol["sha256"]))
+    try:
+        validate_current_or_historical_binding(
+            REPOSITORY_ROOT,
+            FROZEN_PROTOCOL_IDENTITY,
+            FROZEN_PROTOCOL_SHA256,
+            expected_size=FROZEN_PROTOCOL_SIZE_BYTES,
+            current_path=PROTOCOL_PATH.relative_to(REPOSITORY_ROOT).as_posix(),
+        )
+    except HistoricalBindingError as exc:
+        raise CalibrationError("PROTOCOL_HASH_MISMATCH", exc.code) from exc
 
     file_rows = _list(manifest["files"], "manifest.files")
     paths: list[str] = []

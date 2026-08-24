@@ -23,8 +23,9 @@ means future AI should not assume the asset is the current authoritative impleme
 | `seven-system/` | Seven evidence-factory island | Has its own AGENTS, docs, schemas, code, and tests. |
 | `eight-system/` | Non-specialization refinement island | Preserves overdesign investigation and refined POC/system ideas. |
 | `analysis-devin-failure-system/` | Analysis-system historical/residual island | Active solve-side systems are external unless current evidence says otherwise. |
-| `Tell分类学研究过程文档/` | Tell/non-specialization research record | Numbered documents preserve research chronology and POC assets. |
-| `第六代系统技术说明书/` | Sixth-generation documentation | Historical and design route for `system/`. |
+| `evidence/history/tell-research/` | Tell/non-specialization research record moved from the old root | Numbered documents and POC assets preserve research chronology without acting as current truth. |
+| `docs/history/sixth-generation/legacy-spec/` | Legacy sixth-generation specification moved from the old root | Historical design route; canonical current docs supersede it. |
+| `docs/history/sixth-generation/rnd/` | Sixth-generation R&D source moved from the old root | Preserves protocols, results, failures and route replacement history. |
 | `第五代系统技术说明书/` | Fifth-generation documentation | Conceptual lineage for prior generations. |
 | `原语化AI数学工程系统设计/` | Primitive-system design archive | Preserves primitive and two-tree design ideas. |
 | `primitives/`, `concepts/`, `criteria/`, `facets/` | Primitive knowledge structure | Historical design and reference material. |

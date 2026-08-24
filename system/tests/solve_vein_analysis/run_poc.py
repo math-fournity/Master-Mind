@@ -33,7 +33,7 @@ from system.solve_vein_analysis.pipeline import (
 HERE = Path(__file__).resolve().parent
 FIXTURES = HERE / "fixtures"
 PROTOCOL_REF = (
-    "第六代系统研发过程文档/"
+    "docs/history/sixth-generation/rnd/"
     "346-v0-2026-08-14-POC-VMS-31-非线性脉络FCA-RCA对照实验协议.md"
 )
 CASE_SLUGS = (

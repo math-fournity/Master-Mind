@@ -372,7 +372,7 @@ VMS-40已经完成第1项：366号在实现前冻结，367号记录6 case/26 can
 
 下一阶段必须分开验证：
 
-当前任务状态以`第六代系统研发过程文档/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`§8为准；测试和POC物证由`system/tests/solve_vein_analysis/README.md`统一索引。363号及route-lock是SUPERSEDED冻结历史，不得继续推进其资格链。370号只冻结了文件分片与逐项遍历设计；registry、cursor、coverage和completion runtime尚未实现，不能作为当前能力。
+当前任务状态以`docs/history/sixth-generation/rnd/391-v0-2026-08-16-解题侧脉络分析新工作方案-取代363号路线图.md`§8为准；测试和POC物证由`system/tests/solve_vein_analysis/README.md`统一索引。363号及route-lock是SUPERSEDED冻结历史，不得继续推进其资格链。370号只冻结了文件分片与逐项遍历设计；registry、cursor、coverage和completion runtime尚未实现，不能作为当前能力。
 
 1. 用新题/新raw trajectory验证原始 Solver thinking → `ReasoningTrajectory` 的准确率与盲审一致性；
 2. normalizer/auditor各自的新资格化协议，以及live carrier能力与权限隔离；
