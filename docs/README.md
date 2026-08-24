@@ -5,10 +5,10 @@
 
 | Topic | Entry | Role |
 |---|---|---|
-| Product and scope | `product/README.md` | What this super repo is and is not |
-| Domain and terms | `domain/README.md` | Concept families and glossary routes |
-| System design | `design/system/README.md` | System-island topology and boundaries |
-| Detailed design | `design/detailed/README.md` | Exact contracts that are stable enough to rely on |
+| Product and scope | `product/README.md` | Sixth-generation current scope and transition non-goals |
+| Domain and terms | `domain/README.md` | Current Trace/Tell/Hint/Grove/FCA meanings and historical routes |
+| System design | `design/system/README.md` | Current implementation topology, target topology, and historical islands |
+| Detailed design | `design/detailed/README.md` | Exact current contracts, stubs, failure and verification boundaries |
 | Decisions | `decisions/README.md` | Adopted decisions and links to rulings |
 | Interfaces | `interfaces/README.md` | CLI/API/schema/cross-repo interface routes |
 | Data | `data/README.md` | D disk data, DB boundaries, file data policy |
@@ -23,3 +23,6 @@
 
 For historical claims, read `docs/history/` and then verify against Git log, old files, or migration manifests.
 For current implementation claims, read the relevant island code, tests, and run evidence.
+
+For the active reconstruction, begin with `product/sixth-generation-scope.md`, then follow the current
+sixth-generation links in each topic. Historical super-repo indexes remain routes, not current-system truth.

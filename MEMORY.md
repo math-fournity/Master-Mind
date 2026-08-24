@@ -40,6 +40,15 @@ repo reconstruction. The binding working guide is
 - The initial path maps contain 5,795 pending candidate actions. Unknown zero does not mean migration complete.
 - `dev-docs/sixth-gen-current-repo/reverse-git-log.tsv` contains one row for each of the 1,401 commits visible
   from all refs, in newest-to-oldest order.
+- Canonical sixth-generation scope, concepts, architecture, detailed contracts, AI, data, quality, operations,
+  and history routes now exist under `docs/`; `prompts/` and `evidence/` provide non-duplicating asset entries.
+- `PYTHONPATH=. python3 -m pytest system/tests/solve_vein_analysis` collected and passed 294 tests in 13.29s
+  on Python 3.14.6/pytest 9.1.1/darwin. One test-return warning remains.
+- Current code proves the complete Grove/four-Pipe system is not implemented: entry loaders, Solver exploration,
+  solve-mode vein analysis, Trace/Tell matching, Tell deposit, Hint extraction, Guide expansion, and tree persistence
+  remain stubs or explicit `NotImplementedError` paths.
+- `.env.example` contained a non-placeholder credential-like password value. The current branch now uses an
+  explicit placeholder; the safety tag and Git history remain sensitive and the historical value must not be shown.
 
 ## Active Work
 
@@ -49,7 +58,7 @@ repo reconstruction. The binding working guide is
 | History lineage | verified | Update lineage when new system islands or migrations happen | GOV-004, GOV-005 |
 | Audit closure | verified | Use the closure file as the entry for auditing this alignment | GOV-001, GOV-003 |
 | Seven verification | verified | Re-run when Seven code/contracts change | GOV-003 |
-| Sixth-generation current repo reconstruction | in progress | Close 5,795 pending path actions through the 19-concept ledger, then build canonical docs before path migration | GOV-010 |
+| Sixth-generation current repo reconstruction | in progress | Reconcile stale `system/docs` status/counts against canonical docs, then close 5,795 pending path actions before migration | GOV-010 |
 
 ## Open Questions
 
@@ -96,3 +105,11 @@ and the first investigation report. No content migration had started at this com
 Resolved all 69 initial unknown paths without moving content. The byte-exact manifests contain 19,286 unique
 paths with matching path sets and zero literal unknown. The remaining 5,795 candidate actions still require
 concept-level code/test/history evidence before they can become keep, extract, or history-only decisions.
+
+### 2026-08-24 - Canonical Sixth-Generation Cognition Established
+
+Created a breadth-first current cognition layer across product, domain, system design, detailed contracts, AI,
+data, quality, operations, and history, plus Prompt/evidence root routes. Direct code inspection established the
+partial implementation boundary, and 294 solve-side offline tests passed with one warning. No DB, Devin, tmux,
+Solver, network, or live qualification action was performed. Sanitized `.env.example` without displaying its
+historical credential-like value.

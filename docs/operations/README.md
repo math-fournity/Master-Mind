@@ -1,5 +1,10 @@
 # Operations
 
+## Current Sixth-Generation Runtime Boundary
+
+Read `sixth-generation-runtime-boundaries.md` before any command. It separates safe offline verification from
+legacy absorb side effects, solve-side local file output, development runtime, DB/external systems, and live qualification.
+
 This repo contains operational docs for several historical systems, but governance alignment does not authorize
 running them.
 

@@ -1,5 +1,10 @@
 # Product And Scope
 
+## Current Sixth-Generation Scope
+
+The canonical current product boundary is `sixth-generation-scope.md`. It distinguishes implemented, verified,
+development-only, unimplemented, and historical surfaces.
+
 This repository is the Math Master Manufacturing historical super repo. Its current product surface is not a
 single end-user app. It is a governed research and engineering archive containing multiple generations of AI
 mathematics-system design, implementation islands, POC evidence, and historical decisions.

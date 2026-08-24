@@ -1,9 +1,9 @@
 # README.md - Math Master Manufacturing System Registry
 
-This repository is a historical super repo for the Math Master Manufacturing project. Its governance goal is
-not to make every old artifact "current"; it is to let future AI sessions quickly build the right cognitive
-closure for a concrete question, while keeping every important historical concept traceable to files and Git
-history.
+This branch is the active reconstruction of the sixth-generation Math Master system as a current-state repo.
+The working tree still contains historical super-repo source islands while extraction and migration are in
+progress; those paths are evidence sources, not current components unless the canonical sixth-generation docs
+and implementation say so.
 
 ## Start Here
 
@@ -15,6 +15,26 @@ history.
 6. Use `docs/history/` and Git evidence when a claim depends on evolution, replacement, or deletion.
 7. For the active sixth-generation reconstruction, read `dev-docs/sixth-gen-current-repo/` and its report before
    interpreting old-generation documents or moving any path.
+
+## Sixth-Generation Current State
+
+| Concern | Canonical current route |
+|---|---|
+| Product scope and delivery | `docs/product/sixth-generation-scope.md` |
+| Trace/Tell/Hint/Grove/FCA concepts | `docs/domain/sixth-generation-concepts.md` |
+| Current and target architecture | `docs/design/system/sixth-generation-architecture.md` |
+| Exact current contracts and stubs | `docs/design/detailed/sixth-generation-current-contracts.md` |
+| AI roles, Prompt, isolation and qualification | `docs/ai/sixth-generation-runtime-and-prompt-contracts.md` |
+| DB, files, D disk and secret boundaries | `docs/data/sixth-generation-data-boundaries.md` |
+| Tests, POC verdicts and evidence limits | `docs/quality/sixth-generation-evidence-and-qualification.md` |
+| Safe and prohibited runtime actions | `docs/operations/sixth-generation-runtime-boundaries.md` |
+| Lineage, supersession and recovery | `docs/history/sixth-generation-route-replacements.md` |
+| Prompt asset routing | `prompts/README.md` |
+| Evidence routing | `evidence/README.md` |
+
+Current implementation verdict: the complete four-Pipe/Grove loop is not implemented. The verified current
+core is the independent solve-side structured-trajectory offline toolchain, which passed 294 tests on
+2026-08-24; live model roles remain unqualified and unauthorized.
 
 ## Current Governance Entry Points
 

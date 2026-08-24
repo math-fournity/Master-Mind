@@ -1,5 +1,10 @@
 # AI Contracts
 
+## Current Sixth-Generation Contract
+
+Read `sixth-generation-runtime-and-prompt-contracts.md` for role visibility, active Prompt versions, runtime
+isolation, trajectory/failure semantics, VMS qualification limits, and the live-authorization boundary.
+
 AI work in this repo is governed by cognitive closure, role separation, and evidence discipline.
 
 Current contracts:

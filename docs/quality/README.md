@@ -1,5 +1,10 @@
 # Quality And Verification
 
+## Current Sixth-Generation Evidence
+
+Read `sixth-generation-evidence-and-qualification.md` for the actual 294-test result, supported/non-supported
+claims, VMS verdict hierarchy, negative evidence, LiveRunPermit boundary, and residual warning.
+
 Verification must be proportional to the claim.
 
 Current governance-alignment evidence:

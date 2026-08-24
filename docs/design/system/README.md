@@ -1,5 +1,10 @@
 # System Design
 
+## Current Sixth-Generation Architecture
+
+The canonical current/target split is `sixth-generation-architecture.md`. It records the partial legacy Grove
+skeleton, the independently verified solve-side offline core, external side effects, and missing end-to-end flow.
+
 The stable system design fact for this repo is that it is a multi-island historical super repo.
 
 ## Island Topology

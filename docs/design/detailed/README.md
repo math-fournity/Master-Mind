@@ -1,5 +1,10 @@
 # Detailed Design
 
+## Current Sixth-Generation Contracts
+
+Read `sixth-generation-current-contracts.md` for current entry stubs, absorb-side effects, structured-trajectory
+pipeline invariants, CLI atomic output, State Normalizer, Trace Auditor, and the latest verification boundary.
+
 This topic is for exact API, CLI, schema, state-machine, concurrency, idempotency, and recovery contracts.
 
 Current stable detailed-design routes:

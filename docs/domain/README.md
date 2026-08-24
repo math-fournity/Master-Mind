@@ -1,5 +1,10 @@
 # Domain And Terminology
 
+## Current Sixth-Generation Concepts
+
+Read `sixth-generation-concepts.md` first. It separates the two current Trace contracts, defines Tell/Hint as
+types rather than delivered runtime, and keeps Grove/VMS/FCA claims at their evidence-supported level.
+
 The repo's domain is AI-assisted mathematics-system manufacturing: systems that analyze mathematical problem
 solving, extract tell/hint signals, guide future solver attempts, and preserve evidence.
 

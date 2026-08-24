@@ -21,7 +21,7 @@ verification claims must cite code, tests, run evidence, manifests, or Git histo
 | GOV-007 | Large data offload | Large problem data and high-volume external corpora must live on D disk, with repo pointers and verification manifests instead of active Git corpus bodies. | User update, 2026-08-24 | adopted | verified | `e52927f`, `knowledge/README.md`, `external-large-data-post-copy-verification.json` |
 | GOV-008 | Project-local governance innovation | This repo may keep local `.codex/` governance extensions when the super-repo shape needs practices not yet promoted globally. | User update, 2026-08-24 | adopted | verified | `.codex/governance/project-local-extensions.md` |
 | GOV-009 | Sensitive content handling | Preserve the 416 document in original form, but never quote or display its credential-like value in reports. | User ruling, 2026-08-24 | adopted | verified | `rulings.md`, `docs/security/README.md` |
-| GOV-010 | Sixth-generation current repo reconstruction | Future work should narrow this worktree into a sixth-generation current-state repo, with the action guide treated as the binding working constitution until superseded. | User ruling, 2026-08-24 | adopted | implemented-unverified | `AGENTS.md`, `dev-docs/sixth-gen-current-repo/action-guide-2026-08-24.md`, `rulings.md` R-008 |
+| GOV-010 | Sixth-generation current repo reconstruction | Future work should narrow this worktree into a sixth-generation current-state repo, with the action guide treated as the binding working constitution until superseded. | User ruling, 2026-08-24 | adopted | partial | `AGENTS.md`, `docs/product/sixth-generation-scope.md`, `dev-docs/sixth-gen-current-repo/`, `rulings.md` R-008 |
 
 ## System Requirements Ledger
 

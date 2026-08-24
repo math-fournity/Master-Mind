@@ -1,5 +1,10 @@
 # Data
 
+## Current Sixth-Generation Data Boundary
+
+Read `sixth-generation-data-boundaries.md` for the exact distinction between Python types, DB adapter code,
+unverified live ArangoDB, structured trajectory files, fixtures, D-disk bodies, secrets, and local state.
+
 Data in this super repo is split into active Git knowledge, offloaded local data, ignored local state, and
 external runtime/database state.
 
