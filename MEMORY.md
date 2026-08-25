@@ -37,7 +37,9 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
 - 已写入 `system-architecture.md` 的 first-pass 大图：7 个时间阶段、8 个系统群、11 个代码/资产群、7 个 POC 群、10 条研究线候选。
 - 已写入 `poc-registry.tsv`、`implementation-registry.tsv`、`research-registry.tsv` 的 first-pass 候选注册表。
 - 已验证：`commit-ledger.tsv` 为 1399 行数据、1399 个唯一 commit、全部 `stat-reviewed`；TSV 结构检查通过；目标文件尾随空白检查通过；`git diff --check` 通过。
-- 尚未开始逐 commit diff-review。
+- ordinal 1 (`f7dc625`) exact diff-review 完成：governance constitution commit，AGENTS.md M +331/-50，将旧 short-form AGENTS 替换为10节重建宪法；meta/governance 变更，五方向 impact 均为 none；ledger 已升级为 diff-reviewed。
+- ordinal 2 (`c1b934a`) path-group 计划已建立：14 个 coherent top-level groups 写入 `commit-path-group-coverage.tsv`，全部 pending；2207 paths 覆盖完整。
+- 尚未开始 ordinal 2 path-group 逐组 diff-review。
 - 旧项目`.devin/rules`、`.devin/skills`与Arango cognition Hook保留在
   `.devin/legacy/pre-e010-project-governance/`，默认无当前调度权。
 
@@ -50,7 +52,9 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
 2. 确认仍在`glm5.2`，核对current HEAD/status和immutable snapshot tag/set/count；current branch新增
    governance commit不改变1399 denominator。
 3. 运行coverage validator，不全文读取ledger；查询状态统计和next incomplete row。
-4. 从ordinal 1 / `f7dc625...`开始首个exact-diff batch；随后处理`c1b934a...`时使用path-group sidecar。
+4. 从ordinal 2 / `c1b934a...`开始 path-group diff-review；按`commit-path-group-coverage.tsv`中14个
+   coherent top-level groups逐组审阅，每组terminal后更新sidecar，全部group terminal且remainder=0后
+   才升级整commit为diff-reviewed。
 5. 每批更新coverage/registries/current queue并精确commit；PostCompaction或新Session从已提交next
    item恢复。
 

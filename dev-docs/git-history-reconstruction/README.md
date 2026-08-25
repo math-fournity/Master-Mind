@@ -65,13 +65,13 @@ snapshot tag/set本身变化或用户明确要求纳入新产品历史时才建�
 - snapshot：done
 - commit ledger rows：1399 / 1399
 - unique commits in ledger：1399 / 1399
-- stat-reviewed：1399 / 1399
-- diff-reviewed：0 / 1399
+- stat-reviewed：1398 / 1399
+- diff-reviewed：1 / 1399
 - blocked：0
-- last completed phase：first-pass metadata/message/changed-path/stat ledger + group-level map
-- next phase：second-pass exact diff-review under Devin E010 batch contract
-- next commit for strict newest-to-oldest diff ledger：`f7dc625ced176dcc04a6151092fdb0861dc66fdc`
-- next large-commit mechanism：`c1b934ab...`按`commit-path-group-coverage.tsv`拆 coherent path groups
+- last completed phase：ordinal 1 exact diff-review (f7dc625, governance constitution commit)
+- next phase：second-pass exact diff-review of ordinal 2 (c1b934a, large baseline seal) via path groups
+- next commit for strict newest-to-oldest diff ledger：`c1b934ab56d6f0554c7a7e9d89bb8b5d66b6baaa` (ordinal 2, 2207 paths, 14 path groups pending in `commit-path-group-coverage.tsv`)
+- next large-commit mechanism：`c1b934ab...`按`commit-path-group-coverage.tsv`拆 14 coherent top-level path groups; all groups terminal + remainder=0 后才升级整 commit
 
 ## First-Pass Findings
 
