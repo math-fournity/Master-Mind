@@ -6,6 +6,25 @@
 
 ---
 
+## 2026-08-24 当前治理接手提示
+
+本 README 是历史导航地图，不是当前项目真值的唯一来源。当前强制宪法是 `AGENTS.md`；用户在
+2026-08-24 裁定，继续第六代现状 repo 建设或目录重塑前，必须先对 `glm5.2` 全部 Git 历史做
+倒序认知重建。
+
+当前历史重建任务的可接手入口是：
+
+- `AGENTS.md`：项目宪法、目标分支、安全边界、五方向完成门和大图先行工作法；
+- `rulings.md`：用户原始裁定；
+- `feature-list.md`：归一后的当前要求和验收命题；
+- `MEMORY.md`：当前快照、进度和下一步；
+- `dev-docs/git-history-reconstruction/README.md`：调查阶段入口、进度和注册表索引。
+
+若本 README 的旧导航内容与上述当前治理入口冲突，按 `AGENTS.md`、用户裁定和 exact Git/current
+evidence 裁决；旧文档只作为有日期的证据来源。
+
+---
+
 ## 一、系统认知层
 
 ### `GroveCoreCognition.md` — Grove核心循环与辅助智能体认知
