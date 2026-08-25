@@ -24,3 +24,23 @@ Codex 的完整治理架构，并以认知闭包为先导。
 - 不把旧 README、任务追踪、技术说明、交接文档或先前 AI 报告直接升格为当前真值；
 - 先建立系统群、代码群、POC 群和研究线群的大图，再深入局部；
 - 局部深挖仍需回到 exact commit/diff、当前代码、测试、运行产物和注册表证据。
+
+## R-2026-08-25-002：用带Hook治理的Devin完成超级Repo重建，适配20万上下文
+
+- 日期：2026-08-25
+- 来源：当前Codex任务中的用户明确指令
+- 裁定状态：accepted
+
+用户要求：未来在本超级repo中启动只有20万上下文的Devin CLI处理完整历史重建；先把
+`~/devin`治理框架追平最新Codex方法，并重新设计本repo的AGENTS和启动方式；完成后
+提供带Hook启动命令和应发送给Devin的精确指令，使其执行
+`~/codex/dev-docs/遗留Repo全历史认知重建与目录重塑治理迭代方案-2026-08-25.md`。
+
+归一执行边界：
+
+- 当前授权包括Devin治理适配、项目治理启动面、完整历史认知重建、稳定知识写回、验证与精确commit；
+- 不把“完成方案”解释为reconstruction前即可移动目录；structure migration仍必须通过PASS/manifest/
+  consumer/rollback Gate，并由用户明确授权具体阶段和wave；
+- 旧项目Rules/Skills/Hooks应保留历史身份，但不能继续占据当前自动发现面并调度旧工作线；
+- 20万上下文通过完整Layer2按需加载、批次持久化和压缩恢复解决，不能通过删减指导力解决；
+- 不使用Sub Agent，不push，不泄漏secret，不写数据库或外部服务。

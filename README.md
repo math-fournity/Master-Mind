@@ -19,6 +19,15 @@
 - `feature-list.md`：归一后的当前要求和验收命题；
 - `MEMORY.md`：当前快照、进度和下一步；
 - `dev-docs/git-history-reconstruction/README.md`：调查阶段入口、进度和注册表索引。
+- `dev-docs/git-history-reconstruction/devin-execution-contract.md`：Devin E010在200k上下文中的完整
+  批次、证据、压缩恢复、path-group和迁移Gate合同；
+- `.devin/README.md`：当前活动配置、旧项目Rules/Skills的legacy身份和harness启动边界；
+- `~/devin/docs/operations/Devin-CLI超级Repo全历史重建使用说明.md`：启动命令、首条
+  指令、续传和后续migration授权方法。
+
+历史coverage现冻结为annotated tag `legacy-reconstruction-snapshot-2026-08-24`，指向
+`f7dc625ced176dcc04a6151092fdb0861dc66fdc`并固定1,399 commits。之后的治理/coverage commits不会
+让分母无限追涨；当前branch tip仍用于执行治理和最终tip reconciliation。
 
 若本 README 的旧导航内容与上述当前治理入口冲突，按 `AGENTS.md`、用户裁定和 exact Git/current
 evidence 裁决；旧文档只作为有日期的证据来源。

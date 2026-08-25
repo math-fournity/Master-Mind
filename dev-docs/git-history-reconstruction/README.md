@@ -6,13 +6,15 @@
 ## Frozen Snapshot
 
 - 快照日期：2026-08-24
-- 目标分支：`glm5.2`
-- HEAD：`f7dc625ced176dcc04a6151092fdb0861dc66fdc`
-- `git rev-list --count glm5.2`：1399
+- 工作分支：`glm5.2`
+- immutable ref：annotated tag `legacy-reconstruction-snapshot-2026-08-24`
+- snapshot HEAD：`f7dc625ced176dcc04a6151092fdb0861dc66fdc`
+- `git rev-list --count legacy-reconstruction-snapshot-2026-08-24`：1399
 - `git status --short --branch --untracked-files=all`：`## glm5.2`
 - 最新提交：`f7dc625ced176dcc04a6151092fdb0861dc66fdc` / `docs: make Git history reconstruction the project constitution`
 
-若后续继续时 HEAD 或 commit count 改变，先判断新增提交是否使本快照和进度失效，再扩展调查范围。
+Snapshot之后的治理/coverage commits不追涨1399分母。恢复时仍核对current branch HEAD/status；只有
+snapshot tag/set本身变化或用户明确要求纳入新产品历史时才建立新snapshot版本，不静默扩范围。
 
 ## Objective
 
@@ -50,6 +52,8 @@
 | 资产 | 职责 |
 |---|---|
 | `commit-ledger.tsv` | `glm5.2` 可达 commits 的一行不漏总账和 review 状态 |
+| `commit-path-group-coverage.tsv` | 超大commit内部path-group coverage；全部group terminal后才能升级整commit |
+| `devin-execution-contract.md` | Devin E010 / 200k context的批次、恢复、证据、生命周期与迁移Gate |
 | `system-architecture.md` | 代际、系统群、组件、当前目标/实际架构和证据入口 |
 | `poc-registry.tsv` | 显式/隐式 POC、实验群、组内次序、verdict、失败和替代关系 |
 | `implementation-registry.tsv` | 代码群、模块、引入/变更 commit、当前状态、消费者和验证证据 |
@@ -65,8 +69,9 @@
 - diff-reviewed：0 / 1399
 - blocked：0
 - last completed phase：first-pass metadata/message/changed-path/stat ledger + group-level map
-- next phase：second-pass prioritized diff-review seeded by first-pass group map
+- next phase：second-pass exact diff-review under Devin E010 batch contract
 - next commit for strict newest-to-oldest diff ledger：`f7dc625ced176dcc04a6151092fdb0861dc66fdc`
+- next large-commit mechanism：`c1b934ab...`按`commit-path-group-coverage.tsv`拆 coherent path groups
 
 ## First-Pass Findings
 

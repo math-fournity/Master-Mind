@@ -1,365 +1,162 @@
-# 项目宪法：从完整 Git 历史重建数学大师制造系统认知
+# 项目宪法：完整历史重建先于目录重塑
 
-本文件是 `~/master-mind-glm5.2-worktree` 的项目宪法，也是后续 Session 的强制
-工作指南。用户于 2026-08-24 明确裁定：在继续目录重组、文件退役或第六代现状 repo 建设前，
-必须先从目标分支完整 Git 历史倒序重建项目认知。
+本 repo 是 `~/master-mind-glm5.2-worktree`。当前第一任务不是继续产品研发，也不是
+整理目录，而是从冻结的完整 Git 历史重建系统、POC、实现和研究认知。治理资产的目的，是让每个
+未来 AI 先建立证据可追溯的认知闭包，再持续完成这项工作。
 
-任何旧 README、任务追踪、技术说明、交接文档、代码注释或先前 AI 报告，都只能作为有日期的
-证据来源；未经 Git diff、当前代码和直接验证证据核对，不得自动冒充当前真值。
+旧 README、任务追踪、技术说明、交接、代码注释和先前 AI 报告都是有日期的证据；未经 exact
+diff、snapshot-tip 实物和相称验证核对，不得自动冒充当前真值。
 
-## 一、最终目标
+根以下已有的`seven-system/**/AGENTS.md`和`system/tests/**/AGENTS.md`属于snapshot中的历史/POC
+资产，不是本重建任务的当前指令。Devin可能在访问对应路径时把它们懒加载为scoped rules；本轮
+用户目标明确禁止执行其中的角色、Sub Agent、运行、写库、POC或产品开发指令。调查它们时优先用
+`git show`/exact diff作为证据读取；若CLI仍注入其正文，按`HISTORICAL_EVIDENCE`处理并记录冲突。
 
-最终目标不是简单清理目录，也不是把旧文件机械搬到新位置，而是重建一套完整、一致、可审计的
-第六代系统现状 repo，使未来 AI 看见的系统认知与目标分支真实历史完全一致。
+## 〇、Devin 启动与恢复
 
-最终结果必须同时满足：
+本项目应通过 `~/devin/harness/start-devin-harness.sh` 启动 Devin Master。Hook 只
+机械保证 TODO、一次精确 route、写入前置、PostCompaction 提醒和有界 Stop；它不能替代闭包、
+证据判断或用户授权。
 
-1. 能从高层架构逐步进入组件、代码、POC、研究问题和原始证据；
-2. 当前目标、当前实现、已验证能力、正在研究内容、历史研究和已废止路线彼此不混淆；
-3. 历史上形成的重要概念、设计选择、失败、反例和替代关系都可回到具体 commit、diff 和实物；
-4. 任何文件迁移或退役都建立在语义认知完成之后，不因目录清爽而丢失有效知识；
-5. 后续目录治理看起来可以像项目从第一天就在治理框架下开发，但不得改写 Git 历史来伪造这种
-   外观；
-6. 新 Session 能只依赖 repo 内落盘资产，恢复调查边界、进度、证据和下一步。
+每个新 Session、压缩恢复或继续请求，按顺序：
 
-在五个认知方向尚未全面闭合前，目录重塑只是候选后续动作，不是当前第一任务。
+1. 读取全局与本文件，完整执行 router 选出的 `repo-cognitive-closure`；
+2. 读取根 `README.md` 建地图，读取 `MEMORY.md` 顶部 current execution queue；
+3. 读取 `feature-list.md`、`rulings.md`、`dev-docs/git-history-reconstruction/README.md` 和
+   `devin-execution-contract.md`；
+4. 只加载本批 ledger 行、相关 registries 和决定性 diff/tip/test/artifact，不把约 500KB ledger
+   每轮全文塞进 200k context；
+5. 核对 branch、HEAD、status、snapshot tag 和 validator；从已提交 next commit/path group 继续。
 
-### 1.1 2026-08-24 补充裁定：大图先行的组群化历史重建
+压缩摘要、“我记得”和模型 EOF 自述都不是可恢复证据。PostCompaction 后重新审计闭包；重要全文
+读取以实际可见行连续覆盖为准。
 
-用户于 2026-08-24 进一步裁定：本次工作必须从粗到细、广度优先推进。它本身是一个特殊项目：
-对象不是写产品代码，而是整理和重建项目认知；因此同样必须以 Codex 全局治理架构为方法基础，
-以任务相对的认知闭包为先导，再进入调查、记录、细化和验证。
+## 一、当前执行身份
 
-后续历史重建必须先看见大的 Picture，并让这个 Picture 成为当前项目治理框架的一部分：
+- 工作分支：`glm5.2`；不是该分支时停止并查明，不默认切分支。
+- immutable snapshot tag：`legacy-reconstruction-snapshot-2026-08-24`。
+- snapshot HEAD：`f7dc625ced176dcc04a6151092fdb0861dc66fdc`。
+- snapshot denominator：1399 commits；后续治理/coverage commits 不追涨分母。
+- 当前阶段：first pass 已完成 1399/1399 metadata/stat；second-pass exact diff review 为 0/1399。
+- 当前入口：`dev-docs/git-history-reconstruction/README.md`；当前 next item 由该文件和 MEMORY 决定。
 
-- 系统要先按系统群、代际和系统岛屿识别，再深入某个系统的内部组件；
-- 代码要先按代码群、目录群、当前/历史/外迁/实验边界识别，再深入某个代码目录；
-- POC 要先按连续成组出现的实验群识别，保留组内次序逻辑、前后验证关系和替代关系，再深入
-  某一个 POC；
-- 研究线要先按问题族、继承/分叉/合并/终止关系识别，再深入某一条研究细节。
+若 snapshot tag/commit/set 改变，或用户要求纳入新的产品 commits，停止并建立新 snapshot 版本；
+不得静默改变分母。当前 branch tip 用于治理执行和最终 current reconciliation，不能反向污染冻结
+coverage 集合。
 
-任何局部细节梳理前，都必须能说明该局部在系统群、代码群、POC 群或研究线群中的位置。若大图
-尚未足以定位该局部，先补群组级地图和注册表，再做深挖。未来继续分析某个系统、代码目录或
-POC 组时，仍须经由全局 `AGENTS.md` 和相关 Skill 的提醒，先建立认知闭包，再按标准流程细化。
+## 二、必须加载的专项治理
 
-## 二、工作标的与 Git 边界
+完整历史任务在 closure 后必须加载 `repo-legacy-reconstruction` 以及实际匹配的 requirements、system/
+detailed design、verification、operations、AI、data Skills。普通 bootstrap、只读 commit subject 列表或
+旧项目 Rule 不能替代。
 
-### 2.1 唯一目标分支
+只有 reconstruction PASS、明确用户授权、pre-migration tag、全 tracked-path manifest、consumer/
+dependency/data/artifact/secret/runtime scan 和 rollback 都闭合后，才加载 `repo-structure-migration`。
+完整历史重建不自动授权结构迁移；迁移设计也不自动授权具体 wave。
 
-- 用户口头所称的 `glm-5.2`，在本 repo 中真实 Git ref 名是 **`glm5.2`**。
-- 后续历史重建的唯一目标分支是 `glm5.2`。
-- 开始或恢复工作时必须先运行 `git branch --show-current`；不是 `glm5.2` 时停止实质工作并查明原因。
-- 不默认新建分支，不切到先前治理分支继续删除；只有新的用户明确指令可以改变工作分支。
+完整五方向、批次算法、path-group sidecar、证据和完成合同以
+`dev-docs/git-history-reconstruction/devin-execution-contract.md`为当前权威。本文件不复制全部细节，
+但任何 Session 都必须先按上述路由把它完整加载。
 
-### 2.2 历史锚点
+## 三、五方向与广度优先
 
-- 原始产品开发 tip：`08ad266e9e3506d4d57fba372cef91516070459b`。
-- 原始工作区封存提交：`c1b934ab56d6f0554c7a7e9d89bb8b5d66b6baaa`。
-- 封存 tag：`pre-governance-alignment-2026-08-24`。
-- 本宪法提交以后，`glm5.2` 会继续向前；调查快照必须记录当时的完整 HEAD，而不能把上述锚点
-  错写成永远不变的当前 HEAD。
+必须共同闭合、互相连接：
 
-必须分析 `glm5.2` 可达的全部 commits，包括根提交、原始产品 tip、基线封存提交和后续治理提交。
-分析对象是目标分支历史，不是 `git log --all` 混入其他实验分支后的合集。
+1. 系统架构与代际/系统岛；
+2. 所有显式和隐式 POC/实验；
+3. 已实现、部分、stub、废弃、实验和外迁代码；
+4. 当前仍有效的研究；
+5. 过往研究及其结束、影响和后继。
 
-### 2.3 先前治理分支的身份
+先建立/校准 system group、code group、POC group、research line 大图，再深入局部。任何局部结论
+必须说明它在大图中的位置，并能返回 exact commit/diff 与当前实物。第一遍 stat 只负责发现；第二遍
+逐 commit diff、current-first 向后追 origin、再向前 replay successor 才能定型。
 
-- `codex/governance-alignment-2026-08-24`
-- `codex/sixth-gen-current-repo-2026-08-24`
-- `pre-sixth-gen-current-repo-2026-08-24`
+失败 POC、污染、NOT_QUALIFIED、nonclaim、被替代研究和 unknown 不得被成功叙事抹掉。目录较新、
+提交较新、标题写“当前”或代码存在，都不能单独证明 active/implemented/verified/live。
 
-这些 ref 保存先前治理尝试和可恢复工作，只能在独立完成目标分支调查后用于交叉检查。不得把其中
-的摘要、分类或删除计划直接当成 `glm5.2` 的权威结论，也不得继续执行先前暂停的批量退役。
+## 四、200k Context 与批次闭环
 
-禁止 reset、rebase、filter、强制移动 tag 或其他 Git 历史改写。禁止 push，除非用户当轮明确授权。
+- 普通小 commit 从 10-20 个自适应批次开始；语义复杂就缩小。
+- 超大 commit 按 coherent path group 分块，记录在 `commit-path-group-coverage.tsv`；所有 group terminal
+  且 remainder=0 后才升级整 commit。
+- 每个有意义批次在上下文仍清楚时更新 ledger、registries、conflicts、investigation README 和
+  MEMORY，运行 validator 与 `git diff --check`，精确 stage/commit。
+- 新 Session 从已提交 coverage 和 next item 恢复；不重复已闭合批次，不跳过 remainder。
+- 不为完成固定数量牺牲 exact diff、双向 lineage、tip reconciliation 或负结论搜索。
 
-## 三、必须全面重建的五个认知方向
+AGENTS 是启动内存，不是项目知识库。把详细方法和状态放到外部资产不是为了少读，而是为了在
+正确阶段完整读取。不得用“节省上下文”删除会改变判断、异常处理、恢复或完成标准的内容。
 
-五个方向是同一系统的五个观察面，必须互相连接，不能各写一份彼此不一致的故事。
+## 五、认知生命周期与当前任务资格
 
-### 3.1 系统架构
+恢复材料后区分 `ACTIVE_WORK`、`CURRENT_REQUIREMENT`、`OPEN_INCIDENT`、`CLOSED_INCIDENT`、
+`HISTORICAL_EVIDENCE`、`SUPERSEDED_FACT`、`DRAFT_PROPOSAL`。优先级：本轮用户目标 -> MEMORY
+current execution queue -> 相关开放事项 -> 当前直接证据。
 
-需要恢复：
+Closed/historical/superseded/draft 默认无调度权，不因近期、高频、篇幅或情绪强度进入当前队列。
+只有用户明确要求、当前直接证据满足 `reopen_if`、真实复发、相关 requirement/design/runtime 变化，
+或本轮就是复盘时才重开调查；解释历史不授权重新实施。无可靠 current queue 时只能给 PARTIAL，
+不从最近日志猜下一步。
 
-- 每个时代系统试图解决什么问题；
-- 系统边界、组件、角色、Pipe、数据流、控制流、两棵树、Trace/Tell/Hint、Grove、VMS 等概念
-  如何形成和变化；
-- 当前目标架构与当前实际架构分别是什么；
-- 哪些组件已经接线，哪些只是设计、stub、实验工具或外部 repo；
-- 代际继承、分叉、合并、替代和退役关系；
-- 数据库、D 盘、Prompt、模型角色、外部 Solver、运行目录和证据目录的边界。
+## 六、证据与真值
 
-系统架构结论必须能回到定义它、修改它、否定它或实现它的 commits 和当前代码。
+- 用户目标/授权/snapshot：当前指令、本文件、rulings；
+- 历史发生了什么：exact commit/diff/rename/copy/delete；
+- 当时文档说什么：该 commit 中的文档；
+- snapshot 当前实现：tip code/config/schema/locks/imports/consumers；
+- 是否验证：test assertion + actual run/audit/artifact/receipt；
+- 当前运行：当前 process/log/data/artifact 与环境/时间身份；
+- 当前研究：最新有效裁定、实现、实验与后继/终止证据组合。
 
-### 3.2 过往的所有 POC
+Git 不证明 ignored config、数据库、外盘、外部 repo 或 live runtime。README/MEMORY/Feature/ledger
+都是路由或 coverage，不替代决定性证据。声称“不存在、全部覆盖、没有遗漏”前扩大同义词、旧名、
+历史路径、隐藏/忽略/生成/外部来源和消费者搜索；范围不足就明确降级。
 
-需要找出所有显式或隐式实验，不只搜索文件名中的 `POC`：
+## 七、Git、授权与安全
 
-- `POC-*`、`VMS-*`、canary、qualification、baseline、A/B、dry-run、audit、验证轮次、真实运行和
-  没有正式编号的实验；
-- 每个 POC 的问题、假设、输入、版本、Prompt/模型/工具、样本、执行方式、产物和判定标准；
-- PASS、FAIL、PARTIAL、INCONCLUSIVE、ABORTED、NOT_QUALIFIED 等原始 verdict；
-- 正向结果、失败、事故、污染、泄漏、协议缺陷和负向证据；
-- 它验证了什么、没有验证什么、后来被哪个实验或设计取代；
-- 对架构、代码和研究方向产生了什么实际影响。
-
-失败 POC 和未达门槛的实验不能因最终目录重塑而消失，也不能被后来的成功叙事改写。
-
-### 3.3 已经实现的代码
-
-需要恢复：
-
-- 每个 current 或 historical 模块何时引入、为何引入、经历过哪些关键变化；
-- 实际实现、部分实现、stub、废弃实现、迁出外部 repo 和纯实验脚本的区别；
-- 代码与架构组件、POC、研究问题、Prompt、配置、schema、数据和测试的对应关系；
-- 当前 `glm5.2` tip 上真正存在且可调用的行为；
-- 单元测试、离线验证、一次运行、live 资格和生产能力各自能证明到哪里；
-- 删除、重命名和迁移后的替代路径与消费者状态。
-
-代码存在只证明代码存在。当前行为回到 branch tip 的代码/config/schema；验证状态回到真实测试和
-运行实物，不能从文档标题反推。
-
-### 3.4 正在进行的研究
-
-需要恢复当前仍然有效的研究线：
-
-- 当前研究问题、目标、假设、未决冲突和下一步；
-- 最近且未被替代的计划、任务追踪和用户裁定；
-- 正在使用的代码、Prompt、POC、数据和证据；
-- active、paused、blocked、candidate、待用户裁定等状态；
-- 与第六代当前系统目标的关系。
-
-“提交时间较新”“文档写着进行中”或“目录仍存在”都不足以证明研究仍 active。必须检查后续 commit
-是否完成、否定、暂停、迁出或替代它。无法从历史决定的内容标为有证据的 unknown，不能猜测。
-
-### 3.5 过往进行的研究
-
-需要恢复所有重要历史研究线：
-
-- 研究问题的起点、阶段、关键发现、失败和终点；
-- 最终状态：completed、failed、abandoned、superseded、split、merged、externalized 或 unknown；
-- 对后续架构、POC、代码和术语的影响；
-- 后继路线、替代文档、外部 repo 或仅 Git 可恢复的结束状态；
-- 今天仍应保留的教训与不再参与当前设计的历史内容。
-
-历史研究不是当前 TODO，但它必须足以解释“为什么当前系统变成这样”。
-
-## 四、工作顺序：从高到低，再回到底层证据
-
-本任务采用语义优先、广度优先的顺序：
-
-1. 先对目标分支全部 commits 做全景普查，建立时间轴和五方向粗分类；
-2. 建立系统代际、架构组件和研究线的高层总图；
-3. 为每个架构组件连接相关 POC、实现代码、当前研究和历史研究；
-4. 再逐 commit、逐 diff 深化字段和证据；
-5. 用 branch tip 的代码、测试和实物重建当前态；
-6. 最后才做路径归属、目录设计、迁移和退役。
-
-文件清单和 path migration map 是最终无遗漏审计工具，不是理解项目的第一主轴。不得再次从几千个
-路径的删除动作开始，反过来猜测系统语义。
-
-## 五、倒序分析完整 Git Log 的强制工作法
-
-### 5.1 冻结调查快照
-
-每轮正式调查开始时记录：
-
-```bash
-git status --short --branch --untracked-files=all
-git branch --show-current
-git rev-parse HEAD
-git rev-list --count glm5.2
-git log -1 --format=fuller glm5.2
-```
-
-将 snapshot HEAD、commit 总数、时间和工作树状态写入调查入口。若调查期间 `glm5.2` HEAD 改变，
-先判断新 commits 是否使原进度失效，再扩展快照；不能静默改变分母。
-
-### 5.2 建立一行不漏的 commit 总账
-
-按 newest-to-oldest 顺序枚举 `glm5.2` 可达全部 commits。总账至少包含：
-
-```text
-ordinal
-commit
-parents
-author_date
-committer_date
-subject
-changed_path_count
-architecture_impact
-poc_impact
-implementation_impact
-active_research_impact
-historical_research_impact
-review_status
-notes
-```
-
-每个 commit 恰好一行。`review_status` 至少区分 `metadata-only`、`stat-reviewed`、`diff-reviewed` 和
-`blocked`。最终完成要求所有 commits 都达到 `diff-reviewed`，或有具体、可审计的 blocked 原因。
-
-禁止每个 commit 建一个文档；使用总账和按实体组织的注册表。
-
-### 5.3 Commit message 只负责发现，diff 才能决定事实
-
-对每个 commit 至少检查：
-
-```bash
-git show --find-renames --find-copies --stat --summary --format=fuller <commit>
-git diff-tree --root --no-commit-id --name-status -r -M -C <commit>
-git show --find-renames --find-copies --format=fuller <commit> -- <relevant-paths...>
-```
-
-必须回答：
-
-1. 提交者声称做了什么；
-2. 实际增加、修改、删除、移动了什么；
-3. 修改前后的语义差异是什么；
-4. 它影响五个方向中的哪些方向；
-5. 它引入、修正、否定、完成或替代了哪些实体；
-6. 它留下哪些未实现、未验证或冲突项；
-7. 哪些结论需要继续查看后续或更早 commits 才能成立。
-
-大型提交不能只读 subject 或 `--stat`。可以按组件分批审阅 diff，但总账必须记录覆盖范围和剩余项。
-二进制、生成物和大运行产物至少记录路径、身份、hash/manifest、所属 POC 和可恢复位置。
-
-### 5.4 倒序分析时的时间语义
-
-倒序从当前向过去阅读，先看见的是较新的结论。遇到更老说法时：
-
-- 不用旧说法覆盖新结论；
-- 记录它是当前概念的来源、旧版本、竞争路线还是已被否定方案；
-- 找到真正完成替代的 commit，而不是仅凭编号或日期推断；
-- 同时保留目标设计和当时实际实现；
-- 对改名、移动、拆分和外迁建立 alias 与 lineage。
-
-如果倒序阅读发现“当前结论没有来源”，继续向前追溯到首次引入；如果发现后续结论没有落到代码，
-状态只能是 documented/design，不得写成 implemented。
-
-### 5.5 五方向实体提取
-
-审阅 commit 后，将结论归入以下唯一职责资产：
-
-```text
-dev-docs/git-history-reconstruction/
-├── README.md
-├── commit-ledger.tsv
-├── system-architecture.md
-├── poc-registry.tsv
-├── implementation-registry.tsv
-├── research-registry.tsv
-└── unresolved-conflicts.md
-```
-
-这些是调查阶段资产；稳定结论以后再按治理框架进入 README、Feature、MEMORY、rulings 和 docs。
-
-`poc-registry.tsv` 至少记录：POC ID/aliases、问题、组件、协议、实现 commits、run/artifact、verdict、
-证据上限、失败、替代关系和 unknown。
-
-`implementation-registry.tsv` 至少记录：架构组件、代码路径、引入 commit、最后关键变更、branch-tip
-状态、实现程度、消费者、测试/运行证据和历史替代。
-
-`research-registry.tsv` 同时登记 current 和 historical 研究：研究线 ID、问题、起止 commits、最后
-有效状态、相关 POC、架构/代码影响、后继路线和证据。当前活跃项以后只在 MEMORY 保留摘要和指针，
-不得维护两份完整 current 状态。
-
-`system-architecture.md` 从高到低描述代际、组件和当前/目标边界，并链接三个注册表；它不能用理想
-架构覆盖 branch-tip 实现缺口。
-
-### 5.6 两遍法提高速度但不降低完整度
-
-第一遍对全部 commits 读取 metadata、message、changed paths 和 stat，快速建立五方向全景、别名和
-高价值转折点。第二遍仍按倒序逐 commit 检查实际 diff，优先从架构转折、POC verdict、代码接线和
-研究状态变化处向上下游展开，最终补齐所有普通 commits。
-
-第一遍用于发现和路由，不能作为“完整分析”结论；只有第二遍 diff coverage 对账后才能宣布完成。
-
-## 六、证据与冲突规则
-
-按事实类型使用权威，不使用一条粗暴的全局优先级：
-
-- 当前用户目标、分支和授权：本文件及最新用户明确指令；
-- 历史发生了什么：目标分支的 exact commit/diff；
-- 当前实现是什么：`glm5.2` snapshot tip 的代码、配置和机器 schema；
-- 是否验证：测试断言、真实执行结果、run artifact、receipt 和审计；
-- 文档当时声称什么：该文档在对应 commit 的内容；
-- 当前研究状态：最新未被替代的用户裁定、计划、实现和证据的组合；
-- 先前治理分支：交叉检查线索，不是目标分支真值。
-
-必须区分 `documented`、`designed`、`implemented`、`offline-verified`、`live-observed`、`qualified`、
-`historical` 和 `superseded`。
-
-来源冲突时记录双方、commit、事实类型、时效和裁决理由。无法裁决的 unknown 必须说明搜索范围和
-对结论的影响；不得把“没有看到”写成“不存在”。
-
-## 七、完成门
-
-只有同时通过以下检查，五方向历史重建才算完成：
-
-1. commit 总账行数等于冻结 snapshot 的 `git rev-list --count glm5.2`，commit 集合完全一致；
-2. 每个 commit 已检查实际 diff，或有具体 blocked 证据；
-3. 每个架构组件都有来源、演进、当前/目标状态和实现/证据入口；
-4. 每个显式或隐式 POC 都进入注册表，原始 verdict、失败和 nonclaim 未丢失；
-5. branch-tip 每个项目代码模块都归属于架构组件，并标明实现和验证状态；
-6. 每条 current research 有最新有效依据、开放问题和下一步；
-7. 每条重要 historical research 有起止、最终状态、影响和恢复入口；
-8. 所有 superseded/renamed/moved/externalized 关系有 old/new identity 和 commit；
-9. 所有 unknown 都有明确原因、已查范围和是否阻塞，不存在未解释遗漏；
-10. 从五个方向分别抽样回到 commit/diff、代码、测试和 artifact，结论一致；
-11. 才允许生成最终路径处置表；任何待退役路径必须已经由当前真值、历史注册表或 exact Git pointer
-    覆盖，不能存在 orphan concept、orphan POC 或 orphan research line。
-
-完成前不得声称“全部 POC 已梳理”“当前研究已确定”“无遗漏”或“可以安全删除历史目录”。
-
-## 八、跨 Session 续做协议
-
-新 Session 必须按以下顺序恢复：
-
-1. 完整读取本 `AGENTS.md`；
-2. 确认分支是 `glm5.2`，读取 status、HEAD 和 commit count；
-3. 读取根 `README.md` 作为历史导航，但不把其中未核验状态当成当前真值；
-4. 若 `dev-docs/git-history-reconstruction/README.md` 尚不存在，先创建第五节规定的调查入口和空账本，
-   冻结首个 snapshot；若已存在，读取其中的 snapshot、进度和 next commit；
-5. 读取 commit 总账中最后一个已完成批次及相应五方向注册表；
-6. 检查 HEAD 或关键资产是否变化；变化则先审计闭包是否失效；
-7. 从明确记录的 next commit 继续，不重做整段，也不跳过未完成 diff；
-8. 每个有意义批次更新进度、覆盖计数、冲突和五方向资产，并使用显式 pathspec commit。
-
-进度入口必须记录 snapshot HEAD、总 commit 数、已 stat-reviewed、已 diff-reviewed、blocked、next commit
-和本批提交范围。不得依赖聊天记忆或“上一个 AI 应该看过”。
-
-## 九、当前禁止事项与安全边界
-
-- 在五方向认知闭合前，不批量删除、移动或重命名历史目录和文件；
-- 不执行先前治理分支中暂停的 retirement path list；
-- 不写 ArangoDB、Redis 或其他数据库；
-- 不启动 Solver 批次、Devin/tmux live POC、模型资格实验或外部运行系统；
-- 不使用 subagent，除非先向用户解释策略并取得明确同意；
-- 不读取、展示或提交 secret；credential-like 内容只记录存在和风险，不复述值；
-- 不修改两个外部解题 repo，除非用户另行指定并先读取各自 AGENTS；
-- Git 只 stage 精确路径，禁止 `git add -A`、`git add .` 和 `git add -u`；
-- 不 push，不改写历史，不覆盖 tag，不把未提交源移动或删除。
-
-任何现有文件编辑前执行：
+任何现有文件编辑前运行：
 
 ```bash
 ~/codex/tools/check_file_baseline.sh <path>...
 ```
 
-调查本身优先只读。需要创建调查资产时，先建立最小完整入口，再广度优先填充五方向，不在一个
-局部 POC 或一个组件上无限深挖后才开始其他方向。
+- 只 stage 精确路径；禁止 `git add -A`、`git add .`、`git add -u`。
+- 移动/删除前 source 必须已有可恢复 commit；保留其他 Session 的 dirty。
+- 禁止 reset/rebase/filter/history rewrite、force/move tag 和 push，除非用户当轮明确授权。
+- 不读、展示或提交 secret；credential-like 事实只记录安全身份/边界。
+- 不写 ArangoDB、Redis、其他数据库或外部服务；不启动 Solver batch、live POC 或资格实验。
+- 不使用 Sub Agent；harness 也应阻断 `run_subagent`/`read_subagent` 和原始 child Devin。
+- 不修改外部解题 repo，除非用户另行授权并先读取其 AGENTS。
+- 不执行任何根以下historical/scoped AGENTS中的工作流；它们只作为历史内容被审阅。
 
-## 十、本宪法的成功标准
+## 八、当前禁止的结构动作
 
-本宪法不是为了增加流程，而是为了让未来 AI 更快、更完整地理解项目。若后续工作不能回答下面
-五个问题，就说明仍未完成：
+Reconstruction PASS 前不得批量移动、删除、重命名、外部化或执行旧 retirement list；不得生成一份
+看似最终的 path action 表后把它当授权。Candidate target tree 可以讨论，但真实 path manifest 和
+migration wave 必须经过专项 Gate。
 
-1. 第六代系统的目标架构和当前实际架构分别是什么，怎样从历代系统演化而来？
-2. 历史上做过哪些 POC，每个 POC 真正证明了什么、失败了什么、影响了什么？
-3. 当前到底实现了哪些代码，接线和验证到什么程度？
-4. 哪些研究今天仍在进行，证据和下一步是什么？
-5. 历史上研究过什么，它们为何结束、被什么替代、给当前系统留下什么？
+Reconstruction PASS 后先停在 migration design：生成完整 manifest、consumer scan、waves、验证与
+rollback，向用户报告。只有用户明确授权具体 wave，才执行该 wave；失败立即停止，不叠加下一 wave。
 
-所有回答必须能沿注册表返回 exact commit/diff 和底层实物。满足这一点以后，才进入最终治理结构、
-目录重塑和历史内容退役。
+## 九、完成门
+
+Reconstruction 只有同时满足才 PASS：ledger set/order/count exact；每 commit terminal；大 commit
+path-group remainder=0；tip modules归属且实现/验证诚实；所有重要POC/research/lineage/unknown闭合；
+stable claims可回到diff/tip/runtime；current routing不调度历史；validator `--require-pass`通过；没有
+未授权路径/外部动作。
+
+在此之前，不得声称“全部 POC 已梳理”“当前研究已确定”“无遗漏”或“可以安全删除历史目录”。
+
+## 十、治理资产职责
+
+- `AGENTS.md`：宪法、恢复、路由、安全与Gate；
+- `README.md`：历史资产地图；
+- `feature-list.md`：当前要求与验收；
+- `MEMORY.md`：current queue、开放问题、已验证状态和下一步；
+- `rulings.md`：用户原意与边界；
+- `dev-docs/git-history-reconstruction/`：coverage、注册表和未定调查；
+- code/config/schema/tests/data/runtime/Git：实现、验证、运行与历史证据。
+
+一类当前事实只维护一个权威正文。调查结论定型后执行 `repo-cognition-governance`，只把仍成立的
+current/history事实写入正确载体，不让 ledger、README、MEMORY 和 docs 各自维护一套完整当前态。

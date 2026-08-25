@@ -7,7 +7,7 @@
 
 | 路径 | 状态 | 说明 |
 |---|---|---|
-| `dev-docs/git-history-reconstruction/README.md` | active-first-pass-stat-reviewed | `glm5.2` 完整 Git 历史认知重建入口；1399 个 commits 的 metadata/stat 总账已完成，系统群、代码群、POC 群和研究线群已有 first-pass 候选大图；逐 commit diff-review 尚未开始。 |
+| `dev-docs/git-history-reconstruction/README.md` | active-second-pass-ready | immutable snapshot的1399个commits metadata/stat总账已完成；E010 Devin执行合同、path-group sidecar和Hook启动面已就绪；下一步是逐commit exact diff-review。 |
 
 ## Boundary
 
