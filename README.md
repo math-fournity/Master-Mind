@@ -21,6 +21,9 @@
 - `dev-docs/git-history-reconstruction/README.md`：调查阶段入口、进度和注册表索引。
 - `dev-docs/git-history-reconstruction/devin-execution-contract.md`：Devin E010在200k上下文中的完整
   批次、证据、压缩恢复、path-group和迁移Gate合同；
+- `dev-docs/repo-group-mapping/README.md`：多代系统repo群梳理入口（核心三仓ORIGIN/GROVE/HOME+
+  外围FEITEHUA/SUPERVISOR+排除与负结论登记、Git拓扑结论、2026-09-28未提交内容封存收据、
+  GitHub整备Master-Mind处置提案与上传前Gate；本地路径见gitignored附录）；
 - `.devin/README.md`：当前活动配置、旧项目Rules/Skills的legacy身份和harness启动边界；
 - `~/devin/docs/operations/Devin-CLI超级Repo全历史重建使用说明.md`：启动命令、首条
   指令、续传和后续migration授权方法。

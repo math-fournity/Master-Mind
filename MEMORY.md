@@ -15,7 +15,7 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
 
 ## Current State
 
-- 更新时间：2026-08-25
+- 更新时间：2026-09-28（repo群梳理批次；上一状态2026-08-25）
 - 当前任务：从 `glm5.2` 完整 Git 历史倒序重建数学大师制造系统认知。
 - 任务身份：这是一个“整理项目”的特殊治理项目，不是产品代码开发；同样必须以认知闭包为先导。
 - 当前分支：`glm5.2`
@@ -42,6 +42,12 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
 - 尚未开始 ordinal 2 path-group 逐组 diff-review。
 - 旧项目`.devin/rules`、`.devin/skills`与Arango cognition Hook保留在
   `.devin/legacy/pre-e010-project-governance/`，默认无当前调度权。
+- 2026-09-28 repo群梳理批次（用户新任务，只关注多代系统线）：完成ORIGIN/GROVE/HOME/FEITEHUA/
+  SUPERVISOR及排除项/负结论/相邻项登记与拓扑三问；ORIGIN脏区三批封存（19ca14d/56508a7/36d5e85，
+  Phase7+183/184+arango备份）、GROVE脏区五批封存（5e0fea7/09c2f9d/f86e13f/2979464/460ce36，
+  文档/删除/题库manifest/runs）、FEITEHUA初始保全（84ff468），三仓工作区均clean；GitHub目标
+  Master-Mind（public空仓）与既有已上传生态对位完成；上传硬约束（敏感token绝不出现在上传内容）、
+  敏感内容量化扫描与Gate清单落盘于`dev-docs/repo-group-mapping/`（真实路径在gitignored附录）。
 
 ## Next Handoff
 
@@ -64,6 +70,8 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
 - 当前实际架构、已实现代码、全部 POC、current research 和 historical research 都尚未达到完成门。
 - 新增45项Layer2后的真实router选择与目标repo fresh全文注入需在第一次harness运行保留私有证据；
   static/mechanical通过不能冒充长期行为证明。
+- repo群开放项：GROVE 37个独有commits与HOME的内容级对账、ORIGIN 146/147封存版本drift核对、
+  worker分支/tag上传保全决策、上传wave化方案——见`dev-docs/repo-group-mapping/topology-findings.md`§7。
 
 ## Open Incidents
 

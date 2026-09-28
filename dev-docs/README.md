@@ -8,6 +8,7 @@
 | 路径 | 状态 | 说明 |
 |---|---|---|
 | `dev-docs/git-history-reconstruction/README.md` | active-second-pass-ready | immutable snapshot的1399个commits metadata/stat总账已完成；E010 Devin执行合同、path-group sidecar和Hook启动面已就绪；下一步是逐commit exact diff-review。 |
+| `dev-docs/repo-group-mapping/README.md` | first-pass-complete-2026-09-28 | 多代系统repo群梳理（ORIGIN/GROVE/HOME核心三仓+外围+排除/负结论/相邻）；拓扑三问、2026-09-28未提交内容封存收据（三仓已clean）、GitHub整备（Master-Mind）处置提案与上传前Gate量化清单；含gitignored本地路径附录。不改变重建分母。 |
 
 ## Boundary
 
