@@ -48,6 +48,10 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
   文档/删除/题库manifest/runs）、FEITEHUA初始保全（84ff468），三仓工作区均clean；GitHub目标
   Master-Mind（public空仓）与既有已上传生态对位完成；上传硬约束（敏感token绝不出现在上传内容）、
   敏感内容量化扫描与Gate清单落盘于`dev-docs/repo-group-mapping/`（真实路径在gitignored附录）。
+- 2026-09-28补做：后续工作方案落地为文件级checklist（`dev-docs/repo-group-mapping/followup-plan.md`，
+  W1内容对账/W2 Gate执行准备/W3上传wave化/待裁定项），配套三类清单资产（37独有commits清单、
+  独有内容HOME存在性矩阵、敏感内容逐文件inventory）；fork点复核修正：GROVE↔HOME真实fork
+  commit为`2596dcf`（08-08 07:53），first-pass曾误读为`2e33663`（实为共享段早期commit）。
 
 ## Next Handoff
 

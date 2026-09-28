@@ -20,8 +20,12 @@
 
 ### 1.2 GROVE glm5.2 与 HOME glm5.2 的分叉
 
-- [git] 两线共享 `f32194f` 之后的 **265 个 commits**；fork 点 `2e33663`（08-05 晚，"更新数据库隔离
-  状态"）。
+- [git] 两线共享 `f32194f` 之后的 **265 个 commits**（连续排列）；**fork 点 `2596dcf`**（2026-08-08
+  07:53，"268号交接文档强化"）。（2026-09-28 复核修正：最初误标为 `2e33663`——该 commit 实为 f32194f
+  后第 4 早的共享 commit；正确结构为 S×265 连续 + G×37 连续，无交错、无 merge commit，S/G 全序
+  证据见 fork 点两侧 commit 序列。）
+- [git] 迁移后 GROVE 随即做了数据库二次隔离（`xishujuzhen_math_glm52` → `grove_math`，`243dc19`）：
+  两线的 ArangoDB 基线自 08-08 起分叉，对账/恢复时不可混用。
 - [git] GROVE 首个独有 commit：`83c18ef`（2026-08-08，"Grove repo迁移：路径全部从旧worktree路径
   更新为Grove路径"）——**glm5.2 线最初在别的 worktree 目录工作，08-08 迁入 GROVE 路径后形成支线**。
 - [git] 独有量：GROVE 32（历史）+5（封存）= 37；HOME 838。HOME 是 glm5.2 主线（延续至治理重建），

@@ -36,6 +36,11 @@
 
 明细（Git 身份、分支、世代覆盖、GitHub 处置提案、风险、证据等级）：`repo-group-registry.tsv`。
 拓扑结论、封存战役收据、GitHub 生态对位与上传前 Gate：`topology-findings.md`。
+**后续工作方案（文件级 checklist 版）**：`followup-plan.md`（W1 内容对账 / W2 Gate 执行准备 /
+W3 上传 wave 化 / W4 / 待裁定项）。
+清单资产：`grove-unique-commits.tsv`（GROVE 独有 37 commits）、`grove-docs-home-matrix.tsv`
+（独有内容在 HOME 的存在性矩阵）、`preupload-inventory/`（敏感内容逐文件基线，重生成命令见其
+README）。
 本地绝对路径映射：`paths.local.md`（**已 gitignore，不入库**）。
 
 ## 进度
@@ -43,8 +48,11 @@
 - first-pass 完成（2026-09-28 单会话）：范围裁定、机械勘察、拓扑三问、未提交内容封存（ORIGIN 3
   commits / GROVE 5 commits / FEITEHUA 1 commit，三仓工作区均 clean）、敏感内容量化扫描、GitHub
   目标与既有生态对位、Gate 清单落盘。
-- 开放项（见 `topology-findings.md` §7）：GROVE 独有 commits 与 HOME 的内容级对账、ORIGIN/GROVE
-  方法论文档版本 drift、分支与 tag 的上传保全决策、LFS 决策——均不阻塞 second-pass，留待相应阶段。
+- 同日补做：后续工作方案 checklist 化（`followup-plan.md` + 三类清单资产）；fork 点复核修正——
+  GROVE↔HOME 真实 fork commit 为 `2596dcf`（2026-08-08 07:53），first-pass 曾误读为 `2e33663`
+  （实为共享段早期 commit），修正详情见 `topology-findings.md` §1.2。
+- 开放项：GROVE 独有 commits 与 HOME 的内容级对账、ORIGIN/GROVE 方法论文档版本 drift、分支与
+  tag 的上传保全决策、LFS 决策——均不阻塞 second-pass，留待相应阶段。
 
 ## 边界
 
