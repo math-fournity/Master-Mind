@@ -16,12 +16,13 @@
 
 ```bash
 # 对每个成员仓（HOME/ORIGIN/GROVE，路径见 paths.local.md）：
-# TOKEN=敏感token字面量（即成员本地目录名中的词，字面量永不落盘，执行时口头/本地补全）
+# 四个待扫模式的字面量均不落盘（口头/本地补全）：敏感token（成员目录名中的词）、DB明文口令、
+# 用户主目录前缀、数据卷前缀。下文以 $TOKEN/$DB_SECRET/$USER_HOME/$DATA_VOL 代指。
 cd <成员仓>
-git grep -c "$TOKEN"        # → inventory-token.tsv（补 repo 列）
-git grep -c 'REDACTED-DB-PASSWORD'      # → inventory-secret.tsv
-git grep -c '~' && git grep -c '/data'   # → inventory-privatepaths.tsv（kind 列区分）
-git grep -cE '[a-zA-Z0-9._%+-]+@(proton|gmail|qq|163)\.'     # → inventory-emails.tsv
+git grep -c "$TOKEN"       # → inventory-token.tsv（补 repo 列）
+git grep -c "$DB_SECRET"   # → inventory-secret.tsv
+git grep -c "$USER_HOME" && git grep -c "$DATA_VOL"   # → inventory-privatepaths.tsv（kind 列区分）
+git grep -cE '[a-zA-Z0-9._%+-]+@(proton|gmail|qq|163)\.'  # → inventory-emails.tsv
 ```
 
 ## 边界与注意事项

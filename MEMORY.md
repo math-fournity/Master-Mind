@@ -52,6 +52,13 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
   W1内容对账/W2 Gate执行准备/W3上传wave化/待裁定项），配套三类清单资产（37独有commits清单、
   独有内容HOME存在性矩阵、敏感内容逐文件inventory）；fork点复核修正：GROVE↔HOME真实fork
   commit为`2596dcf`（08-08 07:53），first-pass曾误读为`2e33663`（实为共享段早期commit）。
+- 2026-09-28全量执行轮（用户指令"全部做完并自我审计"）：W1对账闭合（GROVE 37独有commits中
+  22真独有/9环境适配/5部分/1全重复；HOME dev-docs编号止于292，两线在293分道；293-302真缺失、
+  303-307异号延续；146/147两仓blob相同；ORIGIN独有仅arango备份；用户需求.md ORIGIN版为原话
+  完整版）；W2分析项闭合（邮箱99%在arxiv语料；343MB metadata大文件超GitHub硬限）；**Wave 0
+  scratch改写演练PASS**（三仓全对象存储四模式归零、commit数守恒、tag名保全；生产三仓零写入）；
+  安全发现：sample_capture二进制内含真实Devin session JWT（须轮换）。8项待用户裁定、W3上传
+  wave仍停在授权Gate。详见`dev-docs/repo-group-mapping/followup-plan.md`与`scrub-dryrun-report-2026-09-28.md`。
 
 ## Next Handoff
 

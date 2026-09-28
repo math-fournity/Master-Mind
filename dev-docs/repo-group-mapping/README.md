@@ -51,6 +51,9 @@ README）。
 - 同日补做：后续工作方案 checklist 化（`followup-plan.md` + 三类清单资产）；fork 点复核修正——
   GROVE↔HOME 真实 fork commit 为 `2596dcf`（2026-08-08 07:53），first-pass 曾误读为 `2e33663`
   （实为共享段早期 commit），修正详情见 `topology-findings.md` §1.2。
+- 2026-09-28 全量执行轮（同日第三批）：W1 对账闭合、W2 分析项闭合、**Wave 0 scratch 改写演练
+  PASS**（生产三仓零写入）、sample_capture 内真实 Devin JWT 的安全发现、8 项待裁定。执行态与
+  证据见 `followup-plan.md` 与 `scrub-dryrun-report-2026-09-28.md`。
 - 开放项：GROVE 独有 commits 与 HOME 的内容级对账、ORIGIN/GROVE 方法论文档版本 drift、分支与
   tag 的上传保全决策、LFS 决策——均不阻塞 second-pass，留待相应阶段。
 

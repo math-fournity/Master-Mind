@@ -61,13 +61,32 @@
 | GROVE | `460ce36` | 实验产物 runs 约 65M（ab_test_253、fate×10、matharena×30、vms_test_1、mitm_verify 等） | 含 31M tmux 管道原始捕获；与已提交的 cb3d044 等 commit 证据对应 |
 | FEITEHUA | `84ff468` | 角色目录初始保全提交（非特化 POC AI 工作说明） | 订正事实：该目录原为零提交状态，其 AGENTS 自述"与主 worktree 共享 git 仓库"与 Git 事实不符 |
 
-## 3. 内容级对账（开放项）
+## 3. 内容级对账（2026-09-28 W1 执行完毕）
 
-- [git] ORIGIN 今日封存的内容大部分在 HOME 线已有对应提交（HOME tracked：representation/ 24 文件、
-  183/184 号、用户需求.md 均存在）；**ORIGIN 真正独有的是 arango 备份**（HOME 无 backups/）。差异
-  以 ORIGIN 自己的工作区封存为准，是否与 HOME 版本 drift 留待核对（146/147 版本号）。
-- [git] GROVE 303-307 号文档在 HOME 的 dev-docs 无同号文件；GROVE 37 个独有 commits 与 HOME 的
-  内容对应（异号重复/改写/缺失）**未做内容级对账**——列入 second-pass 的对账事项，不在本轮伪造结论。
+**方法**：blob 内容寻址等价检查（grove commit 的 blob 是否存在于 HOME 对象库）+ 同名 tracked 检查 +
+主题词模糊匹配 + 逐文件对 diff。逐 commit 机器证据：`grove-home-reconciliation.tsv`；模糊匹配明细：
+`grove-docs-fuzzy-match.tsv`；矩阵：`grove-docs-home-matrix.tsv`。
+
+- [git] **GROVE 37 个独有 commits 的对账结论**：22 个 commit 的路径在 HOME 完全不存在（真独有），
+  9 个同名不同内容（迁移/DB 隔离/工作目录隔离的环境适配改写），5 个部分重复，1 个 blob 全量重复
+  （`5e0fea7`：225-253 号 13 份文档与 HOME 完全相同）。**GROVE 独有内容是真实工作而非路径迁移重复**：
+  串行多 AI 树生长引擎实现（`058965c` 等）、sessions.db 读取管线与 termination 修复、devin rules、
+  293-302 号"两边对比"元文档、题库/实验治理。
+- [git] **dev-docs 编号在 293 处分道**：HOME 的 dev-docs 止于 292（之后转入 Tell分类学等目录的独立
+  编号体系）；GROVE 线续写 293-307。293-302（10 份）主题词在 HOME **零命中 = 真缺失**；303-307
+  （5 份）主题在 HOME 的 Tell分类学线异号延续（如 333 号），文档本体缺失。
+- [git] **ORIGIN 封存内容 vs HOME**：representation/ 24 文件、163-166 号、183/184 号、用户需求.md
+  均在 HOME 存在；146 号两仓 **blob 完全相同**（`851b0e2`），147 号 diff 为零；AGENTS.md 差异 1043
+  行为**代际性**（ORIGIN=方法论本体 vs HOME=重建宪法），非 drift；ChangeLog 差异 176 行为 HOME
+  超集演进；**用户需求.md 差异 54 行：ORIGIN 封存版是用户原话完整版（含 tmux Supervisor Agent
+  设想整段），HOME 版为后续精简编辑版**——原话版有独立历史价值。
+- [git] **ORIGIN 真正独有**：`backups/arango/20260806`（HOME 无 backups/）。
+- [git] **runs 证据重复确认**：`460ce36` 的 293 个文件中 292 个 blob 已在 HOME（HOME 曾在 ignore
+  生效前 track 过同一批 runs）。
+- [git] **W4/feasibility**：A-FEASIBILITY 是 HOME 的 clone（origin=HOME），HOME tip 为其祖先，
+  含 15 个 trace 实验 commits，HEAD `537412bb`。
+- [sec] **二进制凭证发现**：`xishujuzhen/mitm_thinking_intercept/sample_capture/`（HOME/GROVE 各
+  5 个 `.bin`，ORIGIN 无）内含真实 Devin session JWT——详见 `scrub-dryrun-report-2026-09-28.md` §3。
 - [doc] 下载日志中出现过 HOME 路径的 hf 锁记录，说明部分题库下载最初以 HOME 为目标目录，后落在
   GROVE——数据落位史以日志为准。
 
