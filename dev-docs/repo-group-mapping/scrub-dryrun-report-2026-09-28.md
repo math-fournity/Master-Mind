@@ -35,23 +35,32 @@
    （两仓同对象、49+2 处私有路径）。定位（Python 逐对象计数）后确认载体是
    `xishujuzhen/mitm_thinking_intercept/sample_capture/`（5 个 `.bin`，HOME/GROVE 各 5、
    ORIGIN 0，由共享线单提交 `7bd106f` 引入）。
-2. **该目录内含真实凭证**：MITM 抓包捕获了 Devin CLI 会话材料，其中包含一枚 session JWT
-   （值不落盘、不展示）。这把"二进制凭证"从假想风险变成已证实风险：
-   - Gate 新增必做项：**Devin session 凭证轮换/失效确认**（与 DB 口令轮换并列）；
-   - 上传处置建议：该目录从上传历史整体移除（Pass 2 已按此演练，commit 数守恒无副作用）；
-   - Gate 新增必做项：**全库二进制凭证专项扫描**（本演练只扫四个文本模式；JWT/API key 的
-     模式与熵扫描需单独跑）。
-3. **`refs/codex/turn-diffs/checkpoints/*`（HOME 4 条工具检查点 ref）默认不被 filter-repo 处理**
+2. **该目录内含真实凭证**：MITM 抓包捕获了 Devin CLI 会话材料，**两个抓包文件各含一枚
+   session JWT**（`chatmsg_001_020811` 与 `chatmsg_002_020812`，值不落盘、不展示）。这把
+   "二进制凭证"从假想风险变成已证实风险：
+   - Gate 必做项：**两枚 Devin session 凭证轮换/失效确认**（与 DB 口令轮换并列）；
+   - 上传处置建议：该目录从上传历史整体移除（Pass 2 已按此演练，两枚 JWT 载体同时覆盖，
+     commit 数守恒无副作用）。
+3. **全库二进制凭证专项扫描（2026-09-28 已执行）**：对三生产仓全部对象（含二进制）按真实
+   token 形态做正则扫描（JWT/AWS/hf_/ghp_/gh_pat/anthropic/openai 七类形态）。结果：
+   - ORIGIN：0 载体；
+   - HOME/GROVE：各 4 个形态命中载体——其中 2 个即上述 sample_capture JWT；另 2 个为
+     `math_datasets_catalog(.v2).json` 中各 7 处 `hf_` 形态串，经上下文核验全部是 **ArangoDB
+     文档 `_key` 主键值**（数据集条目键名，形如 hf_data…），**判定假阳性**；松散模式下的
+     AKIA/sk-/hf_ 海量命中在形态验证下全部归零（含早前登记的 arxiv sk- 假阳性）。
+   - **结论：真实凭证 = sample_capture 两枚 Devin JWT，无其他；移除配方已全覆盖。**
+4. **`refs/codex/turn-diffs/checkpoints/*`（HOME 4 条工具检查点 ref）默认不被 filter-repo 处理**
    且快照未清洗内容。处置：scratch 中删除（上传范围本就只含 heads+tags，不含工具命名空间）。
    该 ref 类目已列入 Wave 1 推送清单的显式排除项。
-4. annotated tag message 在本三仓中未携带目标模式（无需重造 tag 对象；若未来发现携带，
+5. annotated tag message 在本三仓中未携带目标模式（无需重造 tag 对象；若未来发现携带，
    应使用 `--tag-callback` 保持 tagger 身份，避免用 `git tag -f` 造成身份漂移）。
 
 ## 4. 验证深度声明
 
 - 全对象存储复扫 = 覆盖所有 blob/commit/tag/tree（含二进制），非仅 tip 级。
 - commit message 复扫包含在全存储扫描内。
-- 未覆盖：邮箱模式（按待裁定项 4 暂不动）；四个文本模式之外的凭证形态（见 §3.2 专项）。
+- 二进制凭证专项扫描已补做（§3.3）：七类真实 token 形态、三仓全对象、含上下文定性。
+- 未覆盖：邮箱模式（按待裁定项 4 暂不动）。
 
 ## 5. 结论与剩余门槛
 

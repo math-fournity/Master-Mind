@@ -53,8 +53,9 @@
   replace-text 跳过二进制 blob——sample_capture 5 个 `.bin` 内含**真实 Devin session JWT**
   （凭证暴露，须轮换），已按整目录移除演练。
 - [x] **W2.7** 许可证决策记录：对齐生态 MIT；LICENSE 随 Wave 1 落地。
-- [ ] **W2.8** Gate 通过判据：四模式归零已证 ✅；**仍开**：邮箱裁定、大文件处置、两项凭证轮换
-  （DB 口令 + Devin JWT）、二进制凭证专项扫描（四文本模式之外的形态）。
+- [ ] **W2.8** Gate 通过判据：四模式归零已证 ✅；二进制凭证专项扫描已做 ✅（结论：真实凭证仅
+  sample_capture 两枚 Devin JWT，移除配方已全覆盖；catalog 的 hf_ 形态串为 Arango `_key` 假阳性）；
+  **仍开**：邮箱裁定（项 4）、大文件处置（项 8）、两项凭证轮换（项 3/7）。
 
 ## W3 上传 wave 化（每个 wave 需用户当轮明确授权；本轮零执行——by design）
 
@@ -82,7 +83,8 @@
 5. 各 wave 的授权节奏（可先授权 Wave 1）。
 6. **新增**：`sample_capture` 目录从上传历史整体移除的正式确认（演练已按此执行，commit 数无
    副作用）。
-7. **新增**：Devin session JWT 轮换/失效确认（历史内已暴露）。
+7. **新增**：两枚 Devin session JWT 轮换/失效确认（sample_capture 的 chatmsg_001/002，历史内
+   已暴露；移除配方已覆盖上传侧，轮换覆盖暴露侧）。
 8. **新增**：343MB metadata 大文件处置（LFS vs manifest 外置）。
 
 ## 与 second-pass 的关系
