@@ -14,29 +14,27 @@
 
 当前历史重建任务的可接手入口是：
 
-- `AGENTS.md`：项目宪法、目标分支、安全边界、五方向完成门和大图先行工作法；
-- `rulings.md`：用户原始裁定；
-- `feature-list.md`：归一后的当前要求和验收命题；
-- `MEMORY.md`：当前快照、进度和下一步；
-- `dev-docs/git-history-reconstruction/README.md`：调查阶段入口、进度和注册表索引。
-- `dev-docs/git-history-reconstruction/devin-execution-contract.md`：Devin E010在200k上下文中的完整
+- [AGENTS.md](AGENTS.md)：项目宪法、目标分支、安全边界、五方向完成门和大图先行工作法；
+- [rulings.md](rulings.md)：用户原始裁定；
+- [feature-list.md](feature-list.md)：归一后的当前要求和验收命题；
+- [MEMORY.md](MEMORY.md)：当前快照、进度和下一步；
+- [dev-docs/git-history-reconstruction/README.md](dev-docs/git-history-reconstruction/README.md)：调查阶段入口、进度和注册表索引。
+- [dev-docs/git-history-reconstruction/devin-execution-contract.md](dev-docs/git-history-reconstruction/devin-execution-contract.md)：Devin E010在200k上下文中的完整
   批次、证据、压缩恢复、path-group和迁移Gate合同；
-- `dev-docs/repo-group-mapping/README.md`：多代系统repo群梳理入口（核心三仓ORIGIN/GROVE/HOME+
+- [dev-docs/repo-group-mapping/README.md](dev-docs/repo-group-mapping/README.md)：多代系统repo群梳理入口（核心三仓ORIGIN/GROVE/HOME+
   外围FEITEHUA/SUPERVISOR+排除与负结论登记、Git拓扑结论、2026-09-28未提交内容封存收据、
-  GitHub整备Master-Mind处置提案与上传前Gate；本地路径见gitignored附录）；
-- `dev-docs/repo-group-mapping/session-record-2026-09-28.md`：**2026-09-28全链Session自包含交接
+  GitHub整备Master-Mind处置提案与上传前Gate）；
+- [dev-docs/repo-group-mapping/session-record-2026-09-28.md](dev-docs/repo-group-mapping/session-record-2026-09-28.md)：**2026-09-28全链Session自包含交接
   记录**（梳理→封存→对账→Gate→演练→发布→形式合并的完整裁定链/工作流/全部commits/技术发现/
   终态/剩余事项/复现程序）——接手repo群或发布工作前必读；
-- `算思系统/README.md`：**算思（Operatorial Thinking）系统目录**——从大师作品中系统化萃取思维
+- [算思系统/README.md](算思系统/README.md)：**算思（Operatorial Thinking）系统目录**——从大师作品中系统化萃取思维
   算子的方法与纪律体系（立体观察网格/OP程序/三支柱纪律/算子族/稀疏矩阵/质量门/沉淀协议）；
-- `算思系统/docs/DIALOGUE-verbatim-20260928.md`：**算思基础发现对话逐字记录**（Q1-Q9 GUI 复制
+- [算思系统/docs/DIALOGUE-verbatim-20260928.md](算思系统/docs/DIALOGUE-verbatim-20260928.md)：**算思基础发现对话逐字记录**（Q1-Q9 GUI 复制
   粘贴级别，474行）——通过用户十轮追问发现第0层计算阅读框架/构造查询二分/三因子模型/
   只需一跃原理/目的不变式；
-- `算思系统/docs/DIALOGUE-formatted-content-20260928.md`：**格式化内容完整档案**（18章节，
+- [算思系统/docs/DIALOGUE-formatted-content-20260928.md](算思系统/docs/DIALOGUE-formatted-content-20260928.md)：**格式化内容完整档案**（18章节，
   493行）——对话中全部结构化分析块的主题重组（与逐字记录互补）；
-- `.devin/README.md`：当前活动配置、旧项目Rules/Skills的legacy身份和harness启动边界；
-- `/Users/aurolafly/devin/docs/operations/Devin-CLI超级Repo全历史重建使用说明.md`：启动命令、首条
-  指令、续传和后续migration授权方法。
+- `.devin/README.md`：当前活动配置、旧项目Rules/Skills的legacy身份和harness启动边界。
 
 历史coverage现冻结为annotated tag `legacy-reconstruction-snapshot-2026-08-24`，指向
 `f7dc625ced176dcc04a6151092fdb0861dc66fdc`并固定1,399 commits。之后的治理/coverage commits不会
