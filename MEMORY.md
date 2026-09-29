@@ -77,7 +77,7 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
 - 同日推进：OP首次模拟（酸测PASS：五算子机械重演HoTT最终一跃）+第二轮定向轮读（Z5成本追缴/
   环境-内部前提不对称）；**Fields试点（June Huh）**——原始语料入Git（corpus/，用户裁定）+
   社区对照审计（网格复用层面6/6、facet新候选F13美学、out-of-grid≈3%；四字标签→H1-H5算子
-  1:35扩容）。MinerU 4.0.8装于/data/toolchain-cache/mineru-venv（公式级提取待权重下载），
+  1:35扩容）。MinerU 4.0.8装于/Volumes/D/toolchain-cache/mineru-venv（公式级提取待权重下载），
   pymupdf4llm文本级提取已投产；第三方PDF版权审查列入上传Gate。
 - 同日：**FLT大测设计预注册**（`算思系统/flt-test-design.md`，三阶段
   A重放/B1983分期盲测/C前沿真测+预注册判据）；**Stage A语料五篇集齐入库**
@@ -185,6 +185,12 @@ Structure migration 当前不是 `ACTIVE_WORK`。它只有 reconstruction PASS �
   L0镜头（类比/环境变换/统一化/对称/形变空间）是它的特化策略（同源→解释了它们间的结构
   关系）；层级体系增补Meta²层（Meta²→L0→L1→L2→L3）；候选元元算子3-5个；闭包v1.13。
   **fields68采集目标升级：每人记录(c)镜头源自哪个Meta²原理——家族从平行清单升级为谱系树。**
+- 同日git分批推送+对话录追加（用户令"分批进行git提交并推送"→"继续"）：五批推送
+  Master-Mind main至07961c53（PROD-007..012/ot-flt-inspiration/AS-FRAME-INSPIRATION/
+  fields68挖掘/镜头扫描/怀尔斯补遗/Meta²层全链同步，MEMORY.md中/Volumes/D路径已替换为
+  /data）；对话逐字存档追加Q17-Q27（本Session：Flash重审/inspiration六项声明/镜头家族
+  十八候选/元元算子层/git五批推送），82fd9f6→GitHub 86c7b513。Q17-27为压缩级记录
+  （缺失声明已更新）。
 - 同日方向纠偏+生成性实验：**方向性修正落盘**（PROD-purpose-recalibration.md，6a6e9d8
   ——用户纠偏：目的是产生怀尔斯级别完整方案非分析距离，执行级算子未被"打掉"而是"被证明
   可预制"，两边各缺一半拼起来才是完整系统）；**目的不变式护栏**（SOP v1.3 §6+closure
