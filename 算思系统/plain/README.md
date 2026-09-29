@@ -12,3 +12,6 @@
 | FLT B 关（1983 盲测） | `04-FLT-B关-人话.md` | `../flt-stage-b.md` |
 | FLT C 关（前沿生成） | `05-FLT-C关-人话.md` | `../flt-stage-c.md` |
 | 第七关（Anthropic距离第二轮） | `tasks/ot-anthropic-r2/report/plain/OT-PLAIN-anthropic-r2.md` | `tasks/ot-anthropic-r2/report/OT-REPORT-anthropic-r2.md` |
+| 第八关（FLT启发层） | `tasks/ot-flt-inspiration/report/plain/OT-PLAIN-flt-inspiration.md` | `tasks/ot-flt-inspiration/report/OT-REPORT-flt-inspiration.md` |
+| 第九关（元算子挖掘首测） | `tasks/ot-fields68/report/plain/OT-PLAIN-meta-operator-pilot.md` | `tasks/ot-fields68/notes/meta-operator-pilot.md` |
+| 第十关（镜头缺口扫描） | `tasks/ot-fields68/report/plain/OT-PLAIN-lens-gap-scan.md` | `tasks/ot-fields68/notes/lens-gap-scan.md` |
